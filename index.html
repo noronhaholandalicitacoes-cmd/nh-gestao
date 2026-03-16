@@ -1480,6 +1480,18 @@ function badge(k,ci,v){
   return s;
 }
 
+function klink(url){
+  if(!url||!String(url).trim()) return '';
+  return '<a class="klink" href="'+String(url).trim()+'" target="_blank" title="Abrir link"><svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg></a>';
+}
+function kfieldStatic(lbl,val){
+  var s=String(val||'').trim();
+  return '<div class="kfield"><div class="kfield-lbl">'+lbl+'</div><div class="kfield-val'+(s?'':' empty')+'">'+( s||'—')+'</div></div>';
+}
+function kfieldEdit(lbl,val,ci,k,abs){
+  return '<div class="kfield"><div class="kfield-lbl">'+lbl+'</div>'+inlineCell(k,abs,ci,val)+'</div>';
+}
+
 function empColor(e){
   var m={'VISE':'#eab308','SOS':'#22c55e','SAUTEC':'#3b82f6','SOS FILIAL':'#ef4444','ONLAV':'#10b981','ENGEMED':'#ec4899','POTIGUAR':'#f97316'};
   return m[String(e).trim()]||'#64748b';
