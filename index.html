@@ -259,7 +259,11 @@ select{color-scheme:dark}
   width:100%!important;background:transparent!important;
   border:none!important;outline:none!important;
   padding:0!important;font-family:'Outfit',sans-serif!important;
-  line-height:1.7!important;white-space:normal!important;
+  line-height:1.7!important;
+  white-space:normal!important;
+  word-break:break-word!important;
+  overflow:visible!important;
+  text-overflow:unset!important;
 }
 
 /* EMPRESA BADGE */
@@ -1276,9 +1280,17 @@ function fmtVal(v){
 function fmtValBR(s){
   if(!s) return '';
   var raw=String(s).replace(/R\$\s*/g,'').trim();
-  var n=parseFloat(raw.indexOf(',')!==-1?raw.replace(/\./g,'').replace(',','.'):raw)||0;
-  if(!n) return s;
-  return 'R '+n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  if(!raw) return '';
+  var n;
+  if(raw.indexOf(',')!==-1){
+    // formato BR: 1.576.613,40
+    n=parseFloat(raw.replace(/\./g,'').replace(',','.'));
+  } else {
+    // formato US ou sem separador: 1576613.4
+    n=parseFloat(raw.replace(/[^\d.]/g,''));
+  }
+  if(!n||isNaN(n)) return s;
+  return 'R$ '+n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 }
 
 function buildResumo(){
@@ -1520,7 +1532,7 @@ function renderCard(k,row,abs){
   // linha: id + data + empresa
   h+='<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">';
   h+='<span class="kcard-id">#'+id+'</span>';
-  if(data) h+='<span style="font-size:13px;font-weight:600;color:var(--t3)">'+data+'</span>';
+  if(data) h+='<span style="font-size:13px;font-weight:700;color:var(--t1);background:var(--s3);padding:2px 10px;border-radius:6px;letter-spacing:.03em">'+data+'</span>';
   if(emp)  h+='<span class="emp-badge" style="color:'+ec2+';background:'+eb+';border:1px solid '+ec2+'55">'+emp+'</span>';
   h+='</div>';
 
@@ -1552,16 +1564,10 @@ function renderCard(k,row,abs){
     var mun=String(row[6]||'').trim();
     var ve=String(row[7]||'').trim();
     var prior=String(row[8]||'').trim();
-    var resp=String(row[9]||'').trim();
-    var part2=String(row[10]||'').trim();
-    var viab=String(row[11]||'').trim();
     var link=String(row[13]||'').trim();
     if(mun)  h+='<div class="kmeta"><span class="kmeta-lbl">Local</span><span class="kmeta-val">'+mun+'</span></div>';
     if(ve)   h+='<div class="kmeta"><span class="kmeta-lbl">Valor Est.</span><span class="kmeta-val hl">'+fmtValBR(ve)+'</span></div>';
     if(prior)h+='<div class="kmeta"><span class="kmeta-lbl">Prioridade</span>'+badge('editais',8,prior)+'</div>';
-    if(resp) h+='<div class="kmeta"><span class="kmeta-lbl">Responsável</span><span class="kmeta-val">'+resp+'</span></div>';
-    if(part2)h+='<div class="kmeta"><span class="kmeta-lbl">Participar?</span>'+badge('editais',10,row[10])+'</div>';
-    if(viab) h+='<div class="kmeta"><span class="kmeta-lbl">Viabilidade</span>'+badge('editais',11,row[11])+'</div>';
     if(link) h+='<div class="kmeta"><span class="kmeta-lbl">Edital</span>'+klink(link)+'</div>';
 
   } else if(k==='andamento'||k==='finalizados'){
@@ -1619,7 +1625,7 @@ function renderCard(k,row,abs){
     h+=kfieldEdit('Responsável',row[9],9,k,abs);
     h+=kfieldEdit('Participar?',row[10],10,k,abs);
     h+=kfieldEdit('Viabilidade',row[11],11,k,abs);
-    h+=kfieldEdit('Justificativa',row[12],12,k,abs);
+    h+=kfieldStatic('Justificativa',row[12]);
   } else if(k==='andamento'||k==='finalizados'){
     h+=kfieldEdit('Classificação',row[11],11,k,abs);
     h+=kfieldEdit('Recurso',row[14],14,k,abs);
@@ -1697,10 +1703,8 @@ function inlineCell(k,abs,ci,v){
     var opts=selOpts.map(function(o){return '<option value="'+o+'"'+(o===s?' selected':'')+'>'+( o||'—')+'</option>';}).join('');
     return '<select id="'+inputId+'" onchange="saveCell(\''+k+'\','+abs+','+ci+',this.value)">'+opts+'</select>';
   }
-  if(ci===1||ci===8||ci===10||ci===11||ci===12||ci===13||ci===16){
-    if(s&&s.indexOf('/')!==-1){
-      return '<input type="date" id="'+inputId+'" value="'+isoDate(s)+'" onchange="saveCell(\''+k+'\','+abs+','+ci+',formatDateBR(this.value))">';
-    }
+  if(ci===1){
+    return '<input type="date" id="'+inputId+'" value="'+isoDate(s)+'" onchange="saveCell(\''+k+'\','+abs+','+ci+',formatDateBR(this.value))">';
   }
   return '<input type="text" id="'+inputId+'" value="'+s.replace(/"/g,'&quot;')+'" onblur="saveCell(\''+k+'\','+abs+','+ci+',this.value)">';
 }
