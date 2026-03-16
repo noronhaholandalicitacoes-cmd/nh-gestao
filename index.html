@@ -35,7 +35,7 @@
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html{font-size:14px}
-body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;min-height:100vh;display:flex;overflow-x:auto}
+body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;min-height:100vh;display:flex;overflow-x:hidden}
 
 /* ─── SIDEBAR ─────────────────────────────── */
 #sb{
@@ -121,7 +121,7 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;min-he
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
 /* ─── MAIN ───────────────────────────────── */
-#main{flex:1;display:flex;flex-direction:column;min-height:100vh;overflow-x:auto}
+#main{flex:1;display:flex;flex-direction:column;min-height:100vh;min-width:0;overflow-x:hidden}
 
 /* TOPBAR */
 .topbar{
@@ -135,9 +135,9 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;min-he
 .topbar-sub{font-size:12px;color:var(--t3);margin-top:1px;font-weight:400}
 .topbar-actions{display:flex;gap:8px;align-items:center}
 
-.content{padding:26px 28px;flex:1;overflow-x:auto}
-.page{display:none;overflow-x:auto}
-.page.on{display:block;animation:fadeUp .22s ease;overflow-x:auto}
+.content{padding:26px 28px;flex:1;min-width:0;overflow-x:hidden}
+.page{display:none;min-width:0}
+.page.on{display:block;animation:fadeUp .22s ease;min-width:0}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
 /* ─── BUTTONS ────────────────────────────── */
@@ -191,9 +191,12 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;min-he
 .stat-val.purple{color:var(--p2)}
 .stat-sub{font-size:11px;color:var(--t3);margin-top:5px}
 
+/* ─── SELECT INLINE ──────────────────────── */
+select option{background:#1c1c1c!important;color:#f5f5f5!important}
+select{color-scheme:dark}
 /* ─── TABLE ──────────────────────────────── */
-.tbl-wrap{background:var(--s1);border:1px solid var(--b1);border-radius:12px;overflow-x:auto;overflow-y:auto;display:block;width:100%}
-table{width:max-content;min-width:100%;border-collapse:collapse;font-size:13px;table-layout:auto}
+.tbl-wrap{background:var(--s1);border:1px solid var(--b1);border-radius:12px;overflow-x:auto;overflow-y:visible;display:block;width:100%;max-width:100%}
+table{width:max-content;border-collapse:collapse;font-size:13px;table-layout:auto}
 thead tr{background:var(--s2);border-bottom:1px solid var(--b1)}
 thead th{
   text-align:left;padding:11px 15px;
@@ -1240,7 +1243,7 @@ function renderTbl(k){
     document.getElementById('pag-'+k).innerHTML='';
     return;
   }
-  var h='<div style="overflow-x:auto;width:100%"><table style="width:max-content;min-width:100%"><thead><tr>';
+  var h='<table style="width:max-content"><thead><tr>';
   cfg.cols.forEach(function(c,ci){
     h+='<th>'+c+'</th>';
   });
@@ -1279,7 +1282,7 @@ function renderTbl(k){
       '<button class="btn btn-del btn-sm" onclick="doDel(\''+k+'\','+abs+')">&#x2715;</button>'+
     '</div></td></tr>';
   });
-  h+='</tbody></table></div>';
+  h+='</tbody></table>';
   document.getElementById('tbl-'+k).innerHTML=h;
   renderPag(k,tot);
 }
