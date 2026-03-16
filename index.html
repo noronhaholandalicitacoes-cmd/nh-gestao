@@ -537,6 +537,12 @@ tbody td.primary{color:var(--t1);font-weight:500}
       <span class="sb-badge" id="b-atestados">—</span>
     </div>
 
+    <div class="sb-item" id="nav-financeiro" onclick="go('financeiro',this)">
+      <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <span>Financeiro</span>
+      <span class="sb-badge" id="b-financeiro">—</span>
+    </div>
+
     <div class="sb-divider"></div>
     <div class="sb-section">Empresas</div>
 
@@ -672,6 +678,21 @@ tbody td.primary{color:var(--t1);font-weight:500}
       <div class="pag" id="pag-atestados"></div>
     </div>
 
+    <!-- FINANCEIRO -->
+    <div class="page" id="page-financeiro">
+      <div id="fin-resumo" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px"></div>
+      <div class="stats" id="st-financeiro"></div>
+      <div class="toolbar">
+        <button class="btn btn-nh" onclick="openM('financeiro')">
+          <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+          Novo Lançamento
+        </button>
+        <div class="search"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><input placeholder="Buscar..." id="q-financeiro" oninput="doQ('financeiro')"></div>
+      </div>
+      <div id="tbl-financeiro" class="tbl-wrap"><div class="load"><div class="spin"></div>Carregando...</div></div>
+      <div class="pag" id="pag-financeiro"></div>
+    </div>
+
     <!-- EMPRESA -->
     <div class="page" id="page-empresa">
       <div id="emp-body"></div>
@@ -805,16 +826,34 @@ tbody td.primary{color:var(--t1);font-weight:500}
   <div class="mft"><button class="btn btn-ghost" onclick="closeM('atestados')">Cancelar</button><button class="btn btn-nh" onclick="doSave('atestados')" id="sb-atestados">Salvar na Planilha</button></div>
 </div></div>
 
+<!-- FINANCEIRO -->
+<div class="overlay" id="mo-financeiro">
+<div class="modal">
+  <div class="mhd"><div class="mhd-nh"></div><div class="mhd-info"><h2 id="mht-financeiro">Novo Lançamento Financeiro</h2><p>Registre um gasto do escritório</p></div><button class="mx" onclick="closeM('financeiro')">×</button></div>
+  <div class="mbd"><div class="fg2">
+    <div class="fsec">Lançamento</div>
+    <div class="fg"><label>Data *</label><input type="date" id="f-data"></div>
+    <div class="fg"><label>Categoria *</label><select id="f-cat"><option value="">Selecione...</option><option>IAs</option><option>Portais</option><option>Telefonia</option><option>Informatica</option><option>Outros</option></select></div>
+    <div class="fg fc"><label>Descrição *</label><input type="text" id="f-desc" placeholder="Ex: Assinatura Claude.ai"></div>
+    <div class="fg"><label>Fornecedor</label><input type="text" id="f-forn" placeholder="Ex: Claude.ai"></div>
+    <div class="fg"><label>Valor Gasto *</label><input type="text" id="f-valor" placeholder="R$ 0,00"></div>
+    <div class="fg"><label>Status</label><select id="f-status"><option value="">-</option><option>Pago</option><option>Pendente</option><option>Atrasado</option></select></div>
+    <div class="fg"><label>Conta</label><select id="f-conta"><option value="">-</option><option>Banco Inter</option><option>Banco do Brasil</option><option>Caixa</option><option>Outros</option></select></div>
+    <div class="fg fc"><label>Observações</label><textarea id="f-obs"></textarea></div>
+  </div></div>
+  <div class="mft"><button class="btn btn-ghost" onclick="closeM('financeiro')">Cancelar</button><button class="btn btn-nh" onclick="doSave('financeiro')" id="sb-financeiro">Salvar na Planilha</button></div>
+</div></div>
+
 <div id="toasts"></div>
 
 <!-- ══════ JS ════════════════════════════════ -->
 <script>
-const SHEETS={editais:'EDITAIS CAPTURADOS',andamento:'EM ANDAMENTO',finalizados:'FINALIZADOS',ganhas:'LICITAÇÕES GANHAS',atestados:'ATESTADOS'};
+const SHEETS={editais:'EDITAIS CAPTURADOS',andamento:'EM ANDAMENTO',finalizados:'FINALIZADOS',ganhas:'LICITAÇÕES GANHAS',atestados:'ATESTADOS',financeiro:'FINANCEIRO'};
 const PS=20;
 let API=localStorage.getItem('nh_api')||'';
-let ALL={editais:[],andamento:[],finalizados:[],ganhas:[],atestados:[]};
-let FIL={editais:[],andamento:[],finalizados:[],ganhas:[],atestados:[]};
-let PG={editais:1,andamento:1,finalizados:1,ganhas:1,atestados:1};
+let ALL={editais:[],andamento:[],finalizados:[],ganhas:[],atestados:[],financeiro:[]};
+let FIL={editais:[],andamento:[],finalizados:[],ganhas:[],atestados:[],financeiro:[]};
+let PG={editais:1,andamento:1,finalizados:1,ganhas:1,atestados:1,financeiro:1};
 let EROW={editais:null,andamento:null,ganhas:null,atestados:null};
 let CUR='resumo';
 
@@ -825,6 +864,7 @@ const TOPS={
   finalizados:['Finalizados','Registros com ADJU = sim copiados automaticamente'],
   ganhas:['Licitações Ganhas','Contratos conquistados pela NH'],
   atestados:['Atestados','Controle de documentos técnicos'],
+  financeiro:['Financeiro','Controle de gastos e recargas mensais do escritório · FINANCEIRO'],
   'emp-VISE':['Empresa — VISE','Portais, certidões e documentação · CNPJ 08.348.687/0001-62'],
   'emp-SAUTEC':['Empresa — SAUTEC','Portais, certidões e documentação · CNPJ 31.586.684/0001-89'],
   'emp-SOS':['Empresa — SOS','Portais, certidões e documentação · CNPJ 38.714.702/0001-00'],
@@ -1083,7 +1123,10 @@ function go(page,el){
   } else {
     document.getElementById('page-'+page).classList.add('on');
     if(page==='resumo') buildResumo();
-    else loadPage(page);
+    else {
+      loadPage(page);
+      if(page==='financeiro') buildFinResumo();
+    }
   }
 }
 function reload(){if(CUR==='resumo') loadAll(); else loadPage(CUR);}
@@ -1105,6 +1148,23 @@ async function loadAll(){
   setSt('ok');
   if(CUR==='resumo') buildResumo();
 }
+
+function buildFinResumo(){
+  var el=document.getElementById('fin-resumo');
+  if(!el) return;
+  var rows=ALL.financeiro||[];
+  // Calcula total gasto a partir dos lançamentos
+  var totalGasto=rows.map(function(r){
+    var raw=String(r[4]||'').replace(/R\$\s*/g,'').trim();
+    return parseFloat(raw.indexOf(',')!==-1?raw.replace(/\./g,'').replace(',','.'):raw)||0;
+  }).reduce(function(a,b){return a+b;},0);
+  var recarga=1500; // fixo por enquanto — pode ser editado na planilha
+  var disponivel=recarga-totalGasto;
+  el.innerHTML=
+    '<div class="r-kpi"><div class="rkpi-lbl">Recarga Mensal</div><div class="rkpi-val" style="color:var(--b2_);font-size:22px">'+fmtVal(recarga)+'</div></div>'+
+    '<div class="r-kpi"><div class="rkpi-lbl">Total Gasto (Mês)</div><div class="rkpi-val" style="color:var(--r2);font-size:22px">'+fmtVal(totalGasto)+'</div></div>'+
+    '<div class="r-kpi nh-accent"><div class="rkpi-lbl">Total Disponível</div><div class="rkpi-val nh" style="font-size:22px">'+fmtVal(disponivel)+'</div></div>';
+}
 async function loadPage(k){
   var el=document.getElementById('tbl-'+k);
   if(el) el.innerHTML='<div class="load"><div class="spin"></div>Carregando...</div>';
@@ -1115,8 +1175,12 @@ async function _load(k){
   var d=await apiFetch({action:'read',sheet:SHEETS[k]});
   if(!d||!d.values){var el=document.getElementById('tbl-'+k);if(el) el.innerHTML=emptyEl('Sem dados ou erro');return;}
   // Filtra só linhas com colunas A B C D preenchidas (índices 0,1,2,3)
-  var minCols=(k==='ganhas'||k==='atestados')?2:4;
+  var minCols=k==='financeiro'?1:(k==='ganhas'||k==='atestados')?2:4;
   var valid=d.values.filter(function(r){
+    if(k==='financeiro'){
+      // financeiro: linhas com data e categoria preenchidas (idx 0 e 1)
+      return String(r[0]||'').trim()!==''&&String(r[1]||'').trim()!=='';
+    }
     var ok=true;
     for(var i=0;i<minCols;i++){if(!String(r[i]||'').trim()){ok=false;break;}}
     return ok;
@@ -1287,24 +1351,28 @@ function doQ(k){
 
 var TCFG={
   editais:{
-    cols:['#','Data','Empresa','Licitação','Objeto','Local','Município/UF','Valor Est.','Prioridade','Responsável','Participar','Viabilidade','Justificativa','Link','Ações'],
+    cols:['#','Data','Empresa','Licitação','Objeto','Local Exec.','Município/UF','Valor Est.','Prioridade','Responsável','Participar','Viabilidade','Justificativa','Link Edital','Ações'],
     idx:[0,1,2,3,4,5,6,7,8,9,10,11,12,13]
   },
   andamento:{
-    cols:['#','Data','Empresa','Licitação','Objeto','Local','Município/UF','Valor Est.','Valor Final','Portal','Data Disputa','Classificação','Status','Reabertura','Recurso','Resumo','ADJU','Concorrente','Valor Conc.','Link','Ações'],
+    cols:['#','Data','Empresa','Licitação','Objeto','Local','Município/UF','Valor Est.','Valor Final','Portal','Data Disputa','Classificação','Status','Reabertura','Recurso','Resumo Andamento','ADJU','Concorrente 1º','Valor 1º Colocado','Link Pasta','Ações'],
     idx:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]
   },
   finalizados:{
-    cols:['#','Data','Empresa','Licitação','Objeto','Município/UF','Valor Est.','Valor Final','Portal','Data Disputa','Classificação','Status','Recurso','Resumo','ADJU','Concorrente','Valor Conc.','Link','Ações'],
-    idx:[0,1,2,3,4,6,7,8,9,10,11,12,14,15,16,17,18,19]
+    cols:['#','Data','Empresa','Licitação','Objeto','Local','Município/UF','Valor Est.','Valor Final','Portal','Data Disputa','Classificação','Status','Reabertura','Recurso','Resumo Andamento','ADJU','Concorrente 1º','Valor 1º Colocado','Link Pasta','Ações'],
+    idx:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]
   },
   ganhas:{
-    cols:['#','Data','Empresa','Licitação','Objeto','Local','Município/UF','Valor','Contrato','Status','Vigência','Dt Assinatura','Vencimento','Recomposição','Tipo Recomp.','Status Recomp.','Nova Data Venc.','Vig. Recomp.','Venc. Recomp.','Valor Final','Observações','Link','Ações'],
+    cols:['#','Data','Empresa','Licitação','Objeto','Local','Município/UF','Valor','Contrato','Status Contrato','Vigência (mês)','Dt Assinatura','Vencimento','Recomposição','Tipo Recomp.','Status Recomp.','Nova Data Venc.','Vig. Recomp.','Venc. Recomp.','Valor Final','Observações','Link Pasta','Ações'],
     idx:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
   },
   atestados:{
-    cols:['#','Data','Empresa','Licitação','Objeto','Local','Município/UF','Contrato','Dt Assinatura','Vigência Até','Req.','Recebido','Dt Receb.','Emitente','CAT Nº','CAT Sit.','ART Nº','ART Sit.','Status Geral','Observações','Link','Ações'],
+    cols:['#','Data','Empresa','Licitação','Objeto','Local','Município/UF','Contrato','Dt Assinatura','Vigência Até','Req.?','Recebido?','Dt Receb.','Emitente','CAT Nº','CAT Sit.','ART Nº','ART Sit.','Status Geral','Observações','Link Doc.','Ações'],
     idx:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+  },
+  financeiro:{
+    cols:['Data','Categoria','Descrição','Fornecedor','Valor Gasto','Status','Conta','Observações','Ações'],
+    idx:[0,1,2,3,4,5,6,7]
   }
 }
 function badge(k,ci,v){
@@ -1329,6 +1397,7 @@ function badge(k,ci,v){
   }
   if(k==='atestados'&&(ci===10||ci===11)){if(s==='SIM') return '<span class="badge b-green">SIM</span>';if(s==='N\u00c3O') return '<span class="badge b-red">N\u00c3O</span>';}
   if(k==='atestados'&&ci===18){if(s==='COMPLETO') return '<span class="badge b-green">'+s+'</span>';if(s==='PENDENTE') return '<span class="badge b-yellow">'+s+'</span>';return '<span class="badge b-blue">'+s+'</span>';}
+  if(k==='financeiro'&&ci===5){if(s==='Pago') return '<span class="badge b-green">'+s+'</span>';if(s==='Pendente') return '<span class="badge b-yellow">'+s+'</span>';if(s==='Atrasado') return '<span class="badge b-red">'+s+'</span>';return '<span class="badge b-gray">'+s+'</span>';}
   return s;
 }
 
@@ -1399,7 +1468,8 @@ function inlineCell(k,abs,ci,v){
     editais:{2:EMPS,8:['','ALTA','MÉDIA','BAIXA'],9:['','ANTUNES','NORONHA'],10:['','SIM','NÃO','EM ANÁLISE'],11:['','POSITIVO','NEGATIVO','PENDENTE']},
     andamento:{2:EMPS,9:['','compras gov','BLL','LICITANET','CONLICITACAO','Outro'],12:['','EM ANDAMENTO','EM DISPUTA','AGUARDANDO','RECURSO','ADJUDICADO','CANCELADO'],14:['','sim','não'],16:['','sim','não']},
     ganhas:{2:EMPS,9:['','EM EXECUÇÃO','FINALIZADO','SUSPENSO','RESCINDIDO'],13:['','SIM','NÃO']},
-    atestados:{2:EMPS,10:['','SIM','NÃO'],11:['','SIM','NÃO'],15:['','ATIVO','PENDENTE','VENCIDO'],17:['','ATIVO','PENDENTE','VENCIDO'],18:['','COMPLETO','PENDENTE','EM ANDAMENTO']}
+    atestados:{2:EMPS,10:['','SIM','NÃO'],11:['','SIM','NÃO'],15:['','ATIVO','PENDENTE','VENCIDO'],17:['','ATIVO','PENDENTE','VENCIDO'],18:['','COMPLETO','PENDENTE','EM ANDAMENTO']},
+    financeiro:{1:['','IAs','Portais','Telefonia','Informatica','Outros'],5:['','Pago','Pendente','Atrasado'],6:['','Banco Inter','Banco do Brasil','Caixa','Outros']}
   };
   var selOpts=selCols[k]&&selCols[k][ci];
   if(selOpts){
@@ -1506,6 +1576,7 @@ async function doSave(k){
   else if(k==='andamento') vals=['',sv('a-data'),sv('a-emp'),sv('a-licit'),sv('a-obj'),sv('a-local'),sv('a-mun'),sv('a-vest'),sv('a-vfin'),sv('a-portal'),sv('a-disp'),sv('a-class'),sv('a-status'),sv('a-reab'),sv('a-rec'),sv('a-resumo'),sv('a-adju'),sv('a-conc'),sv('a-vconc'),sv('a-link')];
   else if(k==='ganhas') vals=['',sv('g-data'),sv('g-emp'),sv('g-licit'),sv('g-obj'),sv('g-local'),sv('g-mun'),sv('g-valor'),sv('g-cont'),sv('g-stcont'),sv('g-vig'),sv('g-dtcont'),sv('g-venc'),sv('g-recomp'),sv('g-trecomp'),sv('g-strecomp'),sv('g-novadata'),sv('g-vigrecomp'),sv('g-vencrecomp'),sv('g-vfin'),sv('g-obs'),sv('g-link')];
   else if(k==='atestados') vals=['',sv('at-data'),sv('at-emp'),sv('at-licit'),sv('at-obj'),sv('at-local'),sv('at-mun'),sv('at-cont'),sv('at-dtcont'),sv('at-vig'),sv('at-req'),sv('at-receb'),sv('at-dtreceb'),sv('at-emit'),sv('at-cat'),sv('at-catst'),sv('at-art'),sv('at-artst'),sv('at-status'),sv('at-obs'),sv('at-link')];
+  else if(k==='financeiro') vals=[sv('f-data'),sv('f-cat'),sv('f-desc'),sv('f-forn'),sv('f-valor'),sv('f-status'),sv('f-conta'),sv('f-obs')];
 
   var isEdit=EROW[k]!==null;
   var res=await apiPost({action:isEdit?'update':'append',sheet:SHEETS[k],values:vals,rowIndex:isEdit?FIL[k][EROW[k]][0]:null});
