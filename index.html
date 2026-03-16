@@ -195,26 +195,81 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;min-he
 select option{background:#1c1c1c!important;color:#f5f5f5!important}
 select{color-scheme:dark}
 /* ─── TABLE ──────────────────────────────── */
-.tbl-wrap{background:var(--s1);border:1px solid var(--b1);border-radius:12px;overflow-x:auto;overflow-y:visible;display:block;width:100%;max-width:100%}
-table{width:max-content;border-collapse:collapse;font-size:13px;table-layout:auto}
-thead tr{background:var(--s2);border-bottom:1px solid var(--b1)}
+.tbl-wrap{
+  background:var(--s1);border:1px solid var(--b1);
+  border-radius:14px;overflow-x:auto;overflow-y:visible;
+  display:block;width:100%;max-width:100%;
+}
+table{width:max-content;border-collapse:separate;border-spacing:0;font-size:13px;table-layout:auto}
+
+/* HEADER */
+thead tr{background:var(--bg);border-bottom:1px solid var(--b1)}
 thead th{
-  text-align:left;padding:11px 15px;
-  font-size:10px;font-weight:700;color:var(--t3);
-  text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;
+  text-align:left;padding:10px 18px;
+  font-size:9.5px;font-weight:700;color:var(--t3);
+  text-transform:uppercase;letter-spacing:.12em;white-space:nowrap;
   cursor:pointer;user-select:none;transition:color .15s;
+  min-width:90px;border-bottom:2px solid var(--b1);
 }
-thead th:hover{color:var(--t2)}
+thead th:first-child{min-width:52px;padding-left:20px}
+thead th:nth-child(4){min-width:240px}
+thead th:nth-child(5){min-width:180px}
+thead th:hover{color:var(--t1)}
 thead th.sorted{color:var(--nh)}
-tbody tr{border-bottom:1px solid rgba(37,37,37,.7);transition:background .1s}
-tbody tr:last-child{border-bottom:none}
-tbody tr:hover{background:rgba(28,28,28,.8)}
-tbody td{
-  padding:11px 15px;color:var(--t2);
-  vertical-align:middle;max-width:240px;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+
+/* ROWS */
+tbody tr{
+  border-bottom:1px solid rgba(30,45,69,.4);
+  transition:background .12s, box-shadow .12s;
+  position:relative;
 }
-tbody td.id{color:var(--t3);font-family:'JetBrains Mono',monospace;font-size:11px;max-width:60px}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{
+  background:rgba(249,115,22,.04);
+  box-shadow:inset 3px 0 0 var(--nh);
+}
+
+/* CELLS */
+tbody td{
+  padding:14px 18px;color:var(--t2);
+  vertical-align:middle;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  max-width:260px;
+  font-size:13px;line-height:1.4;
+  border-bottom:1px solid rgba(30,45,69,.3);
+}
+tbody tr:last-child td{border-bottom:none}
+tbody td:first-child{
+  color:var(--t3);font-family:'JetBrains Mono',monospace;
+  font-size:11px;font-weight:500;
+  padding-left:20px;min-width:52px;
+  border-right:1px solid var(--b1);
+}
+tbody td.primary{
+  color:var(--t1);font-weight:500;
+  max-width:260px;
+}
+
+/* INPUT/SELECT dentro da célula */
+tbody td input[type=text],tbody td input[type=date]{
+  background:transparent;border:none;
+  color:var(--t1);font-family:'Outfit',sans-serif;
+  font-size:13px;padding:0;width:100%;
+  outline:none;line-height:1.4;
+}
+tbody td input[type=text]:focus,tbody td input[type=date]:focus{
+  background:rgba(249,115,22,.06);
+  border-radius:4px;padding:2px 6px;
+}
+tbody td select{
+  background:#161616;border:none;
+  color:#f5f5f5;font-family:'Outfit',sans-serif;
+  font-size:13px;width:100%;cursor:pointer;
+  outline:none;padding:0;
+}
+tbody td select:focus{
+  background:rgba(249,115,22,.08);border-radius:4px;
+}
 tbody td.primary{color:var(--t1);font-weight:500}
 .td-act{display:flex;gap:5px}
 
@@ -1200,13 +1255,27 @@ function doQ(k){
 }
 
 var TCFG={
-  editais:{cols:['#','Data','Empresa','Licita\u00e7\u00e3o','Munic\u00edpio/UF','Participar','Viabilidade','A\u00e7\u00f5es'],idx:[0,1,2,3,6,10,11]},
-  andamento:{cols:['#','Data','Empresa','Licita\u00e7\u00e3o','Munic\u00edpio/UF','Valor Final','Portal','Data Disputa','Status','ADJU','A\u00e7\u00f5es'],idx:[0,1,2,3,6,8,9,10,12,16]},
-  finalizados:{cols:['#','Data','Empresa','Licita\u00e7\u00e3o','Munic\u00edpio/UF','Valor Final','Status','Classifica\u00e7\u00e3o','A\u00e7\u00f5es'],idx:[0,1,2,3,6,8,12,11]},
-  ganhas:{cols:['#','Data','Empresa','Licita\u00e7\u00e3o','Munic\u00edpio/UF','Valor','Contrato','Status','Vencimento','A\u00e7\u00f5es'],idx:[0,1,2,3,6,7,8,9,12]},
-  atestados:{cols:['#','Data','Empresa','Licita\u00e7\u00e3o','Munic\u00edpio/UF','Req.','Recebido','Status Geral','A\u00e7\u00f5es'],idx:[0,1,2,3,6,10,11,18]}
-};
-
+  editais:{
+    cols:['#','Data','Empresa','Licitação','Objeto','Local','Município/UF','Valor Est.','Prioridade','Responsável','Participar','Viabilidade','Justificativa','Link','Ações'],
+    idx:[0,1,2,3,4,5,6,7,8,9,10,11,12,13]
+  },
+  andamento:{
+    cols:['#','Data','Empresa','Licitação','Objeto','Local','Município/UF','Valor Est.','Valor Final','Portal','Data Disputa','Classificação','Status','Reabertura','Recurso','Resumo','ADJU','Concorrente','Valor Conc.','Link','Ações'],
+    idx:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]
+  },
+  finalizados:{
+    cols:['#','Data','Empresa','Licitação','Objeto','Município/UF','Valor Est.','Valor Final','Portal','Data Disputa','Classificação','Status','Recurso','Resumo','ADJU','Concorrente','Valor Conc.','Link','Ações'],
+    idx:[0,1,2,3,4,6,7,8,9,10,11,12,14,15,16,17,18,19]
+  },
+  ganhas:{
+    cols:['#','Data','Empresa','Licitação','Objeto','Local','Município/UF','Valor','Contrato','Status','Vigência','Dt Assinatura','Vencimento','Recomposição','Tipo Recomp.','Status Recomp.','Nova Data Venc.','Vig. Recomp.','Venc. Recomp.','Valor Final','Observações','Link','Ações'],
+    idx:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
+  },
+  atestados:{
+    cols:['#','Data','Empresa','Licitação','Objeto','Local','Município/UF','Contrato','Dt Assinatura','Vigência Até','Req.','Recebido','Dt Receb.','Emitente','CAT Nº','CAT Sit.','ART Nº','ART Sit.','Status Geral','Observações','Link','Ações'],
+    idx:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+  }
+}
 function badge(k,ci,v){
   var s=String(v||'').trim();
   if(!s) return '<span style="color:var(--t3)">\u2014</span>';
@@ -1270,41 +1339,44 @@ function renderTbl(k){
       else if(k==='editais'&&(participar==='NÃO'||participar==='NAO')) textColor='color:var(--r2);';
       else if(k==='editais'&&(participar==='EM ANÁLISE'||participar==='EM ANALISE')) textColor='color:var(--y2);';
       if(canEditCell&&!isId){
-        h+='<td class="'+(isPrimary?'primary':'')+'" style="'+stickyStyle+textColor+'padding:0">'+
-          '<div style="min-width:'+(isPrimary?'180px':ci===4?'110px':'80px')+'">'+
+        h+='<td class="'+(isPrimary?'primary':'')+'" style="'+stickyStyle+textColor+'padding:0 18px;">'+
           inlineCell(k,abs,ci,v)+
-          '</div></td>';
+          '</td>';
       } else {
         h+='<td class="'+(isId?'id':isPrimary?'primary':'')+'" style="'+stickyStyle+textColor+'">'+badge(k,ci,v)+'</td>';
       }
     });
     h+='<td><div class="td-act">'+
-      '<button class="btn btn-del btn-sm" onclick="doDel(\''+k+'\','+abs+')">&#x2715;</button>'+
+      '<button class="btn btn-del btn-sm" onclick="doDel(\''+k+'\','+abs+')">✕</button>'+
     '</div></td></tr>';
   });
   h+='</tbody></table>';
-  document.getElementById('tbl-'+k).innerHTML=h;
+  var wrapper=document.getElementById('tbl-'+k);
+  wrapper.style.overflowX='auto';
+  wrapper.style.display='block';
+  wrapper.innerHTML=h;
   renderPag(k,tot);
 }
 
 function inlineCell(k,abs,ci,v){
   var s=String(v||'').trim();
   var inputId='ic-'+k+'-'+abs+'-'+ci;
+  var EMPS=['','VISE','SOS','SAUTEC','SOS FILIAL','ONLAV','ENGEMED','POTIGUAR'];
   var selCols={
-    editais:{2:['','VISE','SOS','SAUTEC','SOS FILIAL','ONLAV','ENGEMED','POTIGUAR'],10:['','SIM','NAO','EM ANALISE'],11:['','POSITIVO','NEGATIVO','PENDENTE'],8:['','ALTA','MEDIA','BAIXA'],9:['','ANTUNES','NORONHA']},
-    andamento:{2:['','VISE','SOS','SAUTEC','SOS FILIAL','ONLAV','ENGEMED','POTIGUAR'],9:['','compras gov','BLL','LICITANET','CONLICITACAO','Outro'],12:['','EM ANDAMENTO','EM DISPUTA','AGUARDANDO','RECURSO','ADJUDICADO','CANCELADO'],14:['','sim','nao'],16:['','sim','nao']},
-    ganhas:{2:['','VISE','SOS','SAUTEC','SOS FILIAL','ONLAV','ENGEMED','POTIGUAR'],9:['','EM EXECUCAO','FINALIZADO','SUSPENSO','RESCINDIDO']},
-    atestados:{2:['','VISE','SOS','SAUTEC','SOS FILIAL','ONLAV','ENGEMED','POTIGUAR'],10:['','SIM','NAO'],11:['','SIM','NAO'],15:['','ATIVO','PENDENTE','VENCIDO'],17:['','ATIVO','PENDENTE','VENCIDO'],18:['','COMPLETO','PENDENTE','EM ANDAMENTO']}
+    editais:{2:EMPS,8:['','ALTA','MÉDIA','BAIXA'],9:['','ANTUNES','NORONHA'],10:['','SIM','NÃO','EM ANÁLISE'],11:['','POSITIVO','NEGATIVO','PENDENTE']},
+    andamento:{2:EMPS,9:['','compras gov','BLL','LICITANET','CONLICITACAO','Outro'],12:['','EM ANDAMENTO','EM DISPUTA','AGUARDANDO','RECURSO','ADJUDICADO','CANCELADO'],14:['','sim','não'],16:['','sim','não']},
+    ganhas:{2:EMPS,9:['','EM EXECUÇÃO','FINALIZADO','SUSPENSO','RESCINDIDO'],13:['','SIM','NÃO']},
+    atestados:{2:EMPS,10:['','SIM','NÃO'],11:['','SIM','NÃO'],15:['','ATIVO','PENDENTE','VENCIDO'],17:['','ATIVO','PENDENTE','VENCIDO'],18:['','COMPLETO','PENDENTE','EM ANDAMENTO']}
   };
   var selOpts=selCols[k]&&selCols[k][ci];
   if(selOpts){
     var opts=selOpts.map(function(o){return '<option value="'+o+'"'+(o===s?' selected':'')+'>'+( o||'—')+'</option>';}).join('');
-    return '<select id="'+inputId+'" onchange="saveCell(\''+k+'\','+abs+','+ci+',this.value)" style="width:100%;background:transparent;border:none;color:var(--t1);font-family:Outfit,sans-serif;font-size:12px;padding:10px 6px;cursor:pointer">'+opts+'</select>';
+    return '<select id="'+inputId+'" onchange="saveCell(\''+k+'\','+abs+','+ci+',this.value)">'+opts+'</select>';
   }
   if(ci===1){
-    return '<input type="date" id="'+inputId+'" value="'+isoDate(s)+'" onchange="saveCell(\''+k+'\','+abs+','+ci+',formatDateBR(this.value))" style="width:100%;background:transparent;border:none;color:var(--t1);font-family:Outfit,sans-serif;font-size:12px;padding:10px 6px">';
+    return '<input type="date" id="'+inputId+'" value="'+isoDate(s)+'" onchange="saveCell(\''+k+'\','+abs+','+ci+',formatDateBR(this.value))">';
   }
-  return '<input type="text" id="'+inputId+'" value="'+s.replace(/"/g,String.fromCharCode(39))+'" onblur="saveCell(\''+k+'\','+abs+','+ci+',this.value)" style="width:100%;background:transparent;border:none;color:var(--t1);font-family:Outfit,sans-serif;font-size:13px;padding:10px 6px">';
+  return '<input type="text" id="'+inputId+'" value="'+s.replace(/"/g,'&quot;')+'" onblur="saveCell(\''+k+'\','+abs+','+ci+',this.value)">';
 }
 
 function isoDate(br){
