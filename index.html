@@ -246,19 +246,26 @@ select{color-scheme:dark}
 /* OBJETO — texto completo, destaque */
 .kcard-obj{
   font-size:14px;color:var(--t2);
-  line-height:1.8;
-  white-space:normal!important;
-  word-break:break-word!important;
-  overflow:visible!important;
-  max-height:none!important;
-  max-width:100%!important;
-  padding:12px 16px;
+  line-height:1.7;
+  white-space:normal;word-break:break-word;
+  overflow-wrap:break-word;
+  padding:10px 14px;
   background:rgba(255,255,255,.03);
   border-radius:8px;
   border-left:3px solid rgba(249,115,22,.3);
   margin-bottom:16px;
-  display:block!important;
+  max-width:100%;
 }
+.kcard-obj textarea{
+  width:100%!important;background:transparent!important;
+  border:none!important;outline:none!important;
+  color:var(--t2)!important;font-family:'Outfit',sans-serif!important;
+  font-size:14px!important;line-height:1.7!important;
+  resize:vertical!important;min-height:48px!important;
+  white-space:pre-wrap!important;word-break:break-word!important;
+  padding:0!important;box-sizing:border-box!important;
+}
+.kcard-obj textarea:focus{border-bottom:1px solid var(--nh)!important;}
 .kcard-obj input[type=text]{
   font-size:14px!important;color:var(--t2)!important;
   width:100%!important;background:transparent!important;
@@ -352,16 +359,19 @@ select{color-scheme:dark}
 
 /* INPUTS inline */
 .kfield input[type=text],
-.kfield input[type=date]{
+.kfield input[type=date],
+.kfield textarea{
   background:transparent;border:none;
   border-bottom:1px solid rgba(255,255,255,.1);
   color:var(--t1);font-family:'Outfit',sans-serif;
   font-size:14px;width:100%;
   outline:none;padding:4px 0;
   transition:border-color .15s;
-  white-space:normal;
+  white-space:normal;word-break:break-word;
+  resize:none;overflow:hidden;
+  line-height:1.6;
 }
-.kfield input:focus{border-bottom-color:var(--nh);}
+.kfield input:focus,.kfield textarea:focus{border-bottom-color:var(--nh);}
 .kfield select{
   background:var(--s2);border:1px solid var(--b1);
   color:var(--t1);font-family:'Outfit',sans-serif;
@@ -1718,8 +1728,10 @@ function inlineCell(k,abs,ci,v){
   };
   var selOpts=selCols[k]&&selCols[k][ci];
   if(selOpts){
-    var opts=selOpts.map(function(o){return '<option value="'+o+'"'+(o===s?' selected':'')+'>'+( o||'—')+'</option>';}).join('');
-    return '<select id="'+inputId+'" onchange="saveCell(\''+k+'\','+abs+','+ci+',this.value)">'+opts+'</select>';
+    var allOpts=selOpts.slice();
+    if(s&&allOpts.indexOf(s)===-1) allOpts.push(s);
+    var opts=allOpts.map(function(o){return '<option value="'+o+'"'+(o===s?' selected':'')+'>'+( o||'—')+'</option>';}).join('');
+    return '<select id="'+inputId+'" onchange="saveCell(\''+k+'\',' +abs+','+ci+',this.value)">'+opts+'</select>';
   }
   if(ci===1){
     return '<input type="date" id="'+inputId+'" value="'+isoDate(s)+'" onchange="saveCell(\''+k+'\','+abs+','+ci+',formatDateBR(this.value))">';
@@ -1728,15 +1740,8 @@ function inlineCell(k,abs,ci,v){
   var longCols={editais:[4,12],andamento:[4,15],finalizados:[4,15],ganhas:[4,20],atestados:[4,19],financeiro:[7]};
   var isLong=longCols[k]&&longCols[k].indexOf(ci)!==-1;
   if(isLong){
-    var esc=s.replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    var ta=document.createElement('textarea');
-    ta.id=inputId;
-    ta.style.cssText='width:100%;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.1);color:var(--t1);font-family:Outfit,sans-serif;font-size:14px;outline:none;padding:4px 0;resize:vertical;line-height:1.7;min-height:48px;white-space:pre-wrap;word-break:break-word;box-sizing:border-box;';
-    ta.value=s;
-    ta.onblur=function(){saveCell(k,abs,ci,this.value);};
-    var div=document.createElement('div');
-    div.appendChild(ta);
-    return div.innerHTML;
+    var esc=s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return '<textarea id="'+inputId+'" rows="3" onblur="saveCell(\''+k+'\',' +abs+','+ci+',this.value)" style="width:100%;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.1);color:var(--t1);font-family:Outfit,sans-serif;font-size:14px;outline:none;padding:4px 0;resize:vertical;line-height:1.7;min-height:48px;white-space:pre-wrap;word-break:break-word;box-sizing:border-box;">'+esc+'</textarea>';
   }
   return '<input type="text" id="'+inputId+'" value="'+s.replace(/"/g,'&quot;')+'" onblur="saveCell(\''+k+'\','+abs+','+ci+',this.value)">';
 }
