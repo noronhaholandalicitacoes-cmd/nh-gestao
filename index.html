@@ -1480,10 +1480,14 @@ function badge(k,ci,v){
   if(k==='editais'&&ci===10){if(s==='SIM') return '<span class="badge b-nh">SIM</span>';if(s==='N\u00c3O') return '<span class="badge b-red">N\u00c3O</span>';return '<span class="badge b-yellow">'+s+'</span>';}
   if(k==='editais'&&ci===11){if(s==='POSITIVO') return '<span class="badge b-green">POSITIVO</span>';if(s==='NEGATIVO') return '<span class="badge b-red">NEGATIVO</span>';return '<span class="badge b-yellow">'+s+'</span>';}
   if((k==='andamento'||k==='finalizados')&&ci===12){
-    if(s==='ADJUDICADO') return '<span class="badge b-green">'+s+'</span>';
-    if(s==='CANCELADO') return '<span class="badge b-red">'+s+'</span>';
-    if(s==='RECURSO') return '<span class="badge b-yellow">'+s+'</span>';
-    if(s==='EM DISPUTA') return '<span class="badge b-nh">'+s+'</span>';
+    var sl=s.toLowerCase();
+    if(sl==='ganha') return '<span class="badge b-green">'+s+'</span>';
+    if(sl==='finalizado') return '<span class="badge b-blue">'+s+'</span>';
+    if(sl==='cancelado') return '<span class="badge b-red">'+s+'</span>';
+    if(sl==='desclassificado'||sl==='inabilitado') return '<span class="badge b-red">'+s+'</span>';
+    if(sl==='recurso') return '<span class="badge b-yellow">'+s+'</span>';
+    if(sl==='em andamento') return '<span class="badge b-nh">'+s+'</span>';
+    if(sl==='aguardando') return '<span class="badge b-gray">'+s+'</span>';
     return '<span class="badge b-gray">'+s+'</span>';
   }
   if(k==='ganhas'&&ci===9){
@@ -1765,7 +1769,7 @@ function inlineCell(k,abs,ci,v){
   var EMPS=['','VISE','SOS','SAUTEC','SOS FILIAL','ONLAV','ENGEMED','POTIGUAR'];
   var selCols={
     editais:{2:EMPS,10:['','SIM','NÃO','EM ANÁLISE'],11:['','POSITIVO','NEGATIVO','PENDENTE']},
-    andamento:{2:EMPS,9:['','compras gov','BLL','LICITANET','CONLICITACAO','Outro'],12:['','EM ANDAMENTO','EM DISPUTA','AGUARDANDO','RECURSO','ADJUDICADO','CANCELADO'],14:['','sim','não'],16:['','sim','não']},
+    andamento:{2:EMPS,9:['','compras gov','BLL','LICITANET','CONLICITACAO','Outro'],12:['','Em andamento','Ganha','Finalizado','Desclassificado','Inabilitado','Cancelado','Recurso','Aguardando'],14:['','sim','não'],16:['','sim','não']},
     ganhas:{2:EMPS,9:['','EM EXECUÇÃO','FINALIZADO','SUSPENSO','RESCINDIDO'],13:['','SIM','NÃO']},
     atestados:{2:EMPS,10:['','SIM','NÃO'],11:['','SIM','NÃO'],15:['','ATIVO','PENDENTE','VENCIDO'],17:['','ATIVO','PENDENTE','VENCIDO'],18:['','COMPLETO','PENDENTE','EM ANDAMENTO']},
     financeiro:{1:['','IAs','Portais','Telefonia','Informatica','Outros'],5:['','Pago','Pendente','Atrasado'],6:['','Banco Inter','Banco do Brasil','Caixa','Outros']}
