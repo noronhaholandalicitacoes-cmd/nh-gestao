@@ -470,9 +470,6 @@ tbody td.primary{color:var(--t1);font-weight:500}
       <span>ENGEMED</span>
     </div>
 
-    <div class="sb-divider"></div>
-    <div class="sb-section">Documentos</div>
-
     <div class="sb-item" id="nav-atestados" onclick="go('atestados',this)">
       <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
       <span>Atestados</span>
@@ -1027,11 +1024,18 @@ async function _load(k){
   if(!API){var el=document.getElementById('tbl-'+k);if(el) el.innerHTML=noConf();return;}
   var d=await apiFetch({action:'read',sheet:SHEETS[k]});
   if(!d||!d.values){var el=document.getElementById('tbl-'+k);if(el) el.innerHTML=emptyEl('Sem dados ou erro');return;}
-  ALL[k]=d.values; FIL[k]=d.values.slice();
+  // Filtra só linhas com colunas A B C D preenchidas (índices 0,1,2,3)
+  var valid=d.values.filter(function(r){
+    return String(r[0]||'').trim()!==''&&String(r[1]||'').trim()!==''&&
+           String(r[2]||'').trim()!==''&&String(r[3]||'').trim()!=='';
+  });
+  // Ordem decrescente (mais novo = maior ID primeiro)
+  valid.sort(function(a,b){return (parseInt(b[0])||0)-(parseInt(a[0])||0);});
+  ALL[k]=valid; FIL[k]=valid.slice();
   var b=document.getElementById('b-'+k);
-  if(b) b.textContent=d.values.length;
+  if(b) b.textContent=valid.length;
   var el=document.getElementById('tbl-'+k);
-  if(el){renderStats(k,d.values);renderPills(k,d.values);renderTbl(k);}
+  if(el){renderStats(k,valid);renderPills(k,valid);renderTbl(k);}
 }
 
 function rcRows(items,cls){
@@ -1108,9 +1112,10 @@ function renderStats(k,rows){
     var pos=rows.filter(function(r){return String(r[11]||'').trim()==='POSITIVO';}).length;
     h=sc('Total',rows.length,'nh')+sc('Participar',sim,'green')+sc('Viabilidade Positiva',pos,'yellow');
   } else if(k==='andamento'){
+    var emAnd=rows.filter(function(r){return String(r[12]||'').toUpperCase().trim()==='EM ANDAMENTO';}).length;
     var adj=rows.filter(function(r){return String(r[16]||'').toLowerCase().trim()==='sim';}).length;
     var rec=rows.filter(function(r){return String(r[14]||'').toLowerCase().trim()==='sim';}).length;
-    h=sc('Total',rows.length,'nh')+sc('Adjudicados',adj,'green')+sc('Com Recurso',rec,'yellow');
+    h=sc('Em Andamento',emAnd,'nh')+sc('Total Registros',rows.length,'blue')+sc('Adjudicados',adj,'green')+sc('Com Recurso',rec,'yellow');
   } else if(k==='finalizados'){
     h=sc('Total Finalizados',rows.length,'nh');
   } else if(k==='ganhas'){
@@ -1197,25 +1202,92 @@ function renderTbl(k){
     document.getElementById('pag-'+k).innerHTML='';
     return;
   }
-  var h='<table><thead><tr>'+cfg.cols.map(function(c){return '<th>'+c+'</th>';}).join('')+'</tr></thead><tbody>';
+  var h='<div style="overflow-x:auto"><table><thead><tr>';
+  cfg.cols.forEach(function(c,ci){
+    var frozen=ci<4;
+    var lft=ci===0?0:ci===1?60:ci===2?116:ci===3?210:0;
+    h+='<th style="'+(frozen?'position:sticky;left:'+lft+'px;z-index:2;background:var(--s2);':'')+'">'+c+'</th>';
+  });
+  h+='</tr></thead><tbody>';
   rows.forEach(function(row,ri){
     var abs=start+ri;
     var isAdju=k==='andamento'&&String(row[16]||'').toLowerCase().trim()==='sim';
-    h+='<tr'+(isAdju?' style="background:rgba(249,115,22,.04)"':'')+'>'; 
-    cfg.idx.forEach(function(ci){
+    var rowBg=isAdju?'rgba(249,115,22,.07)':'var(--s1)';
+    h+='<tr'+(isAdju?' style="background:rgba(249,115,22,.04)"':'')+' id="row-'+k+'-'+abs+'">';
+    cfg.idx.forEach(function(ci,colPos){
       var v=row[ci];
-      var isPrimary=ci===3||ci===4;
+      var frozen=colPos<4;
+      var lft=colPos===0?0:colPos===1?60:colPos===2?116:210;
+      var stickyStyle=frozen?'position:sticky;left:'+lft+'px;z-index:1;background:'+rowBg+';':'';
       var isId=ci===0;
-      h+='<td class="'+(isId?'id':isPrimary?'primary':'')+'">'+badge(k,ci,v)+'</td>';
+      var isPrimary=ci===3;
+      var canEditCell=k!=='finalizados';
+      if(canEditCell&&!isId){
+        h+='<td class="'+(isPrimary?'primary':'')+'" style="'+stickyStyle+'padding:0">'+
+          '<div style="min-width:'+(isPrimary?'180px':ci===4?'110px':'80px')+'">'+
+          inlineCell(k,abs,ci,v)+
+          '</div></td>';
+      } else {
+        h+='<td class="'+(isId?'id':isPrimary?'primary':'')+'" style="'+stickyStyle+'">'+badge(k,ci,v)+'</td>';
+      }
     });
-    var canEdit=k!=='finalizados';
-    h+='<td><div class="td-act">'+(canEdit?'<button class="btn btn-edit btn-sm" onclick="doEdit(\''+k+'\','+abs+')">&#9998;</button>':'')+
+    h+='<td><div class="td-act">'+
       '<button class="btn btn-del btn-sm" onclick="doDel(\''+k+'\','+abs+')">&#x2715;</button>'+
     '</div></td></tr>';
   });
-  h+='</tbody></table>';
+  h+='</tbody></table></div>';
   document.getElementById('tbl-'+k).innerHTML=h;
   renderPag(k,tot);
+}
+
+function inlineCell(k,abs,ci,v){
+  var s=String(v||'').trim();
+  var inputId='ic-'+k+'-'+abs+'-'+ci;
+  var selCols={
+    editais:{2:['','VISE','SOS','SAUTEC','SOS FILIAL','ONLAV','ENGEMED','POTIGUAR'],10:['','SIM','NAO','EM ANALISE'],11:['','POSITIVO','NEGATIVO','PENDENTE'],8:['','ALTA','MEDIA','BAIXA'],9:['','ANTUNES','NORONHA']},
+    andamento:{2:['','VISE','SOS','SAUTEC','SOS FILIAL','ONLAV','ENGEMED','POTIGUAR'],9:['','compras gov','BLL','LICITANET','CONLICITACAO','Outro'],12:['','EM ANDAMENTO','EM DISPUTA','AGUARDANDO','RECURSO','ADJUDICADO','CANCELADO'],14:['','sim','nao'],16:['','sim','nao']},
+    ganhas:{2:['','VISE','SOS','SAUTEC','SOS FILIAL','ONLAV','ENGEMED','POTIGUAR'],9:['','EM EXECUCAO','FINALIZADO','SUSPENSO','RESCINDIDO']},
+    atestados:{2:['','VISE','SOS','SAUTEC','SOS FILIAL','ONLAV','ENGEMED','POTIGUAR'],10:['','SIM','NAO'],11:['','SIM','NAO'],15:['','ATIVO','PENDENTE','VENCIDO'],17:['','ATIVO','PENDENTE','VENCIDO'],18:['','COMPLETO','PENDENTE','EM ANDAMENTO']}
+  };
+  var selOpts=selCols[k]&&selCols[k][ci];
+  if(selOpts){
+    var opts=selOpts.map(function(o){return '<option value="'+o+'"'+(o===s?' selected':'')+'>'+( o||'—')+'</option>';}).join('');
+    return '<select id="'+inputId+'" onchange="saveCell(\''+k+'\','+abs+','+ci+',this.value)" style="width:100%;background:transparent;border:none;color:var(--t1);font-family:Outfit,sans-serif;font-size:12px;padding:10px 6px;cursor:pointer">'+opts+'</select>';
+  }
+  if(ci===1){
+    return '<input type="date" id="'+inputId+'" value="'+isoDate(s)+'" onchange="saveCell(\''+k+'\','+abs+','+ci+',formatDateBR(this.value))" style="width:100%;background:transparent;border:none;color:var(--t1);font-family:Outfit,sans-serif;font-size:12px;padding:10px 6px">';
+  }
+  return '<input type="text" id="'+inputId+'" value="'+s.replace(/"/g,String.fromCharCode(39))+'" onblur="saveCell(\''+k+'\','+abs+','+ci+',this.value)" style="width:100%;background:transparent;border:none;color:var(--t1);font-family:Outfit,sans-serif;font-size:13px;padding:10px 6px">';
+}
+
+function isoDate(br){
+  if(!br) return '';
+  var p=br.split('/');
+  if(p.length===3) return p[2]+'-'+p[1]+'-'+p[0];
+  return br;
+}
+function formatDateBR(iso){
+  if(!iso) return '';
+  var p=iso.split('-');
+  if(p.length===3) return p[2]+'/'+p[1]+'/'+p[0];
+  return iso;
+}
+async function saveCell(k,rowIdx,ci,val){
+  var row=FIL[k][rowIdx].slice();
+  row[ci]=val;
+  var rowId=parseInt(row[0]);
+  var res=await apiPost({action:'update',sheet:SHEETS[k],values:row,rowIndex:rowId});
+  if(res&&res.success){
+    FIL[k][rowIdx]=row;
+    ALL[k]=ALL[k].map(function(r){return parseInt(r[0])===rowId?row:r;});
+    if(k==='andamento'&&ci===16&&String(val).toLowerCase()==='sim'){
+      toast('Copiado para Finalizados!','info');
+      await _load('finalizados');
+    }
+    if(CUR==='resumo') buildResumo();
+  } else {
+    toast('Erro ao salvar','err');
+  }
 }
 
 function renderPag(k,tot){
