@@ -1676,9 +1676,6 @@ function renderCard(k,row,abs){
     h+=kfieldEdit('Participar?',      row[10],10,k,abs);
     h+=kfieldEdit('Viabilidade',      row[11],11,k,abs);
     h+=kfieldEdit('Justificativa',    row[12],12,k,abs);
-    h+=kfieldEdit('Local Execução',   row[5], 5, k,abs);
-    h+=kfieldEdit('Município/UF',     row[6], 6, k,abs);
-    h+=kfieldEdit('Valor Estimado',   row[7], 7, k,abs);
     h+=kfieldEdit('Prioridade',       row[8], 8, k,abs);
 
   } else if(k==='andamento'||k==='finalizados'){
@@ -1689,19 +1686,13 @@ function renderCard(k,row,abs){
     h+=kfieldEdit('Reabertura',       row[13],13,k,abs);
     h+=kfieldEdit('Concorrente 1º',   row[17],17,k,abs);
     h+=kfieldEdit('Valor 1º Col.',    row[18],18,k,abs);
-    h+=kfieldEdit('Portal',           row[9], 9, k,abs);
-    h+=kfieldEdit('Data Disputa',     row[10],10,k,abs);
-    h+=kfieldEdit('Valor Estimado',   row[7], 7, k,abs);
-    h+=kfieldEdit('Valor Final',      row[8], 8, k,abs);
-    h+=kfieldEdit('Local Exec.',      row[5], 5, k,abs);
-    h+=kfieldEdit('Município/UF',     row[6], 6, k,abs);
     h+=kfieldEdit('Resumo Andamento', row[15],15,k,abs);
 
   } else if(k==='ganhas'){
     h+=kfieldEdit('Status Contrato',  row[9], 9, k,abs);
     h+=kfieldEdit('Vigência (meses)', row[10],10,k,abs);
     h+=kfieldEdit('Dt Assinatura',    row[11],11,k,abs);
-    h+=kfieldEdit('Vencimento',       row[12],12,k,abs);
+    h+=kfieldEdit('Vencimento Contrato', row[12],12,k,abs);
     h+=kfieldEdit('Recomposição',     row[13],13,k,abs);
     h+=kfieldEdit('Tipo Recomp.',     row[14],14,k,abs);
     h+=kfieldEdit('Status Recomp.',   row[15],15,k,abs);
@@ -1712,6 +1703,8 @@ function renderCard(k,row,abs){
     h+=kfieldEdit('Observações',      row[20],20,k,abs);
 
   } else if(k==='atestados'){
+    h+=kfieldEdit('Atestado Req.?',   row[10],10,k,abs);
+    h+=kfieldEdit('Atestado Recebido?',row[11],11,k,abs);
     h+=kfieldEdit('Contrato',         row[7], 7, k,abs);
     h+=kfieldEdit('Dt Assinatura',    row[8], 8, k,abs);
     h+=kfieldEdit('Dt Recebimento',   row[12],12,k,abs);
