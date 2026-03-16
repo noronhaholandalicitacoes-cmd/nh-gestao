@@ -196,113 +196,75 @@ select option{background:#1c1c1c!important;color:#f5f5f5!important}
 select{color-scheme:dark}
 /* ─── TABLE ──────────────────────────────── */
 .tbl-wrap{
+  background:transparent;
+  border:none;
+  display:block;
+  width:100%;
+}
+
+/* ── KANBAN CARDS ── */
+.kcard{
   background:var(--s1);
   border:1px solid var(--b1);
-  border-radius:14px;
-  overflow-x:auto!important;
-  overflow-y:visible;
-  display:block!important;
-  width:100%!important;
-  max-width:100%;
-  -webkit-overflow-scrolling:touch;
+  border-radius:12px;
+  padding:16px 18px;
+  margin-bottom:10px;
+  cursor:pointer;
+  transition:all .18s;
+  position:relative;
+  overflow:hidden;
 }
-table{
-  width:max-content!important;
-  min-width:800px;
-  border-collapse:collapse;
-  font-size:13px;
+.kcard::before{
+  content:'';
+  position:absolute;left:0;top:0;bottom:0;
+  width:3px;
+  background:var(--b2);
+  border-radius:3px 0 0 3px;
+  transition:background .18s;
 }
+.kcard:hover{background:var(--s2);border-color:var(--b2);transform:translateX(2px);}
+.kcard:hover::before{background:var(--nh);}
+.kcard.green::before{background:var(--g1);}
+.kcard.red::before{background:var(--r1);}
+.kcard.yellow::before{background:var(--y1);}
+.kcard.orange::before{background:var(--nh);}
+.kcard.blue::before{background:var(--b_);}
 
-/* HEADER */
-thead tr{background:rgba(0,0,0,.4)}
-thead th{
-  text-align:left;
-  padding:13px 16px;
-  font-size:9px;font-weight:700;
-  color:rgba(249,115,22,.7);
-  text-transform:uppercase;letter-spacing:.14em;
-  white-space:nowrap;cursor:pointer;user-select:none;
-  border-bottom:1px solid rgba(249,115,22,.15);
-  background:rgba(0,0,0,.35);
-  transition:color .15s;
-  min-width:100px;
-}
-thead th:first-child{min-width:56px;padding-left:20px;color:var(--t3)}
-thead th:nth-child(4){min-width:260px}
-thead th:nth-child(5){min-width:180px}
-thead th:hover{color:var(--nh)}
+.kcard-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;}
+.kcard-id{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--t3);flex-shrink:0;margin-top:2px;}
+.kcard-title{font-size:14px;font-weight:600;color:var(--t1);flex:1;line-height:1.3;word-break:break-word;}
+.kcard-actions{display:flex;gap:6px;flex-shrink:0;}
 
-/* ROWS — design moderno com separador sutil */
-tbody tr{
-  transition:all .15s;
-  border-bottom:1px solid rgba(255,255,255,.04);
-}
-tbody tr:last-child{border-bottom:none}
-tbody tr:hover{
-  background:rgba(249,115,22,.05);
-  box-shadow:inset 3px 0 0 var(--nh),inset 0 0 40px rgba(249,115,22,.02);
-}
+.kcard-meta{display:flex;flex-wrap:wrap;gap:6px 16px;margin-bottom:10px;}
+.kmeta{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--t3);}
+.kmeta-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.07em;font-weight:700;color:var(--t3);opacity:.6;}
+.kmeta-val{color:var(--t2);font-weight:500;}
+.kmeta-val.highlight{color:var(--nh);font-weight:700;}
 
-/* CELLS */
-tbody td{
-  padding:15px 16px;
-  color:var(--t2);
-  vertical-align:middle;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  max-width:260px;
-  font-size:13px;line-height:1.4;
-}
-tbody td:first-child{
-  color:var(--t3);
-  font-family:'JetBrains Mono',monospace;
-  font-size:11px;font-weight:600;
-  padding-left:20px;
-  min-width:56px;
-  border-right:1px solid rgba(255,255,255,.05);
-  letter-spacing:.05em;
-}
-tbody td.primary{
-  color:var(--t1);font-weight:500;
-  font-size:13px;max-width:260px;
-}
-tbody td.id{max-width:56px}
+.kcard-body{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px 16px;padding-top:10px;border-top:1px solid rgba(255,255,255,.05);}
+.kfield{display:flex;flex-direction:column;gap:3px;}
+.kfield-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.09em;font-weight:700;color:var(--t3);opacity:.55;}
+.kfield-val{font-size:12px;color:var(--t2);}
+.kfield-val.empty{color:var(--t4);font-style:italic;}
 
-/* INPUTS inline */
-tbody td input[type=text],
-tbody td input[type=date]{
-  background:transparent;border:none;
+/* inputs inline nos cards */
+.kfield input[type=text],.kfield input[type=date]{
+  background:transparent;border:none;border-bottom:1px solid var(--b1);
+  color:var(--t1);font-family:'Outfit',sans-serif;font-size:12px;
+  width:100%;outline:none;padding:2px 0;transition:border-color .15s;
+}
+.kfield input:focus{border-bottom-color:var(--nh);}
+.kfield select{
+  background:var(--s2);border:1px solid var(--b1);
   color:var(--t1);font-family:'Outfit',sans-serif;
-  font-size:13px;width:100%;
-  outline:none;line-height:1.4;
-  padding:2px 0;
+  font-size:12px;border-radius:5px;padding:3px 6px;
+  width:100%;cursor:pointer;outline:none;
+  transition:border-color .15s;
 }
-tbody td input[type=text]:focus,
-tbody td input[type=date]:focus{
-  background:rgba(249,115,22,.08);
-  border-radius:5px;padding:2px 8px;
-}
-tbody td select{
-  background:#111;border:none;
-  color:#f0f0f0;font-family:'Outfit',sans-serif;
-  font-size:13px;width:auto;min-width:90px;
-  cursor:pointer;outline:none;
-  padding:2px 4px;border-radius:4px;
-}
-tbody td select:focus{background:rgba(249,115,22,.1);}
+.kfield select:focus{border-color:var(--nh);}
+select option{background:#161616;color:#f5f5f5;}
+select{color-scheme:dark;}
 
-/* BOTÃO DELETE */
-.btn-del{
-  background:rgba(239,68,68,.08);
-  color:var(--r2);
-  border:1px solid rgba(239,68,68,.15);
-  padding:5px 9px;font-size:11px;
-  border-radius:6px;cursor:pointer;
-  transition:all .15s;
-  font-family:'Outfit',sans-serif;font-weight:600;
-}
-.btn-del:hover{background:rgba(239,68,68,.18);border-color:var(--r1);}
-tbody td.primary{color:var(--t1);font-weight:500}
-.td-act{display:flex;gap:5px}
 
 /* ─── BADGES ─────────────────────────────── */
 .badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
@@ -1401,61 +1363,195 @@ function badge(k,ci,v){
   return s;
 }
 
+function empColor(e){
+  var m={'VISE':'#f97316','SOS':'#3b82f6','SAUTEC':'#8b5cf6','SOS FILIAL':'#06b6d4','ONLAV':'#10b981','ENGEMED':'#f59e0b','POTIGUAR':'#ec4899'};
+  return m[e]||'#64748b';
+}
+
+function kfield(lbl, val, ci, k, abs, editable){
+  var s=String(val||'').trim();
+  var display = s||'—';
+  if(!editable) return '<div class="kfield"><div class="kfield-lbl">'+lbl+'</div><div class="kfield-val'+(s?'':' empty')+'">'+display+'</div></div>';
+  return '<div class="kfield"><div class="kfield-lbl">'+lbl+'</div>'+inlineCell(k,abs,ci,val)+'</div>';
+}
+
+function renderCard(k, row, abs){
+  var id    = String(row[0]||'').trim();
+  var data  = String(row[1]||'').trim();
+  var emp   = String(row[2]||'').trim();
+  var licit = String(row[3]||'').trim();
+  var ec = k==='financeiro';
+  var canEdit = k!=='finalizados';
+
+  // Cor da borda lateral baseada no status/participar
+  var cor='';
+  if(k==='editais'){
+    var part=String(row[10]||'').toUpperCase().trim();
+    if(part==='SIM') cor='green';
+    else if(part==='NÃO'||part==='NAO') cor='red';
+    else if(part==='EM ANÁLISE'||part==='EM ANALISE') cor='yellow';
+  } else if(k==='andamento'){
+    var st=String(row[12]||'').toUpperCase().trim();
+    var adju=String(row[16]||'').toLowerCase().trim();
+    if(adju==='sim') cor='orange';
+    else if(st==='ADJUDICADO') cor='green';
+    else if(st==='CANCELADO') cor='red';
+    else if(st==='RECURSO') cor='yellow';
+    else if(st==='EM ANDAMENTO'||st==='EM DISPUTA') cor='blue';
+  } else if(k==='finalizados'){
+    cor='orange';
+  } else if(k==='ganhas'){
+    var stg=String(row[9]||'').trim();
+    if(stg==='EM EXECUÇÃO') cor='green';
+    else if(stg==='FINALIZADO') cor='blue';
+    else if(stg==='SUSPENSO') cor='yellow';
+    else if(stg==='RESCINDIDO') cor='red';
+  } else if(k==='atestados'){
+    var rec=String(row[11]||'').trim();
+    if(rec==='SIM') cor='green'; else if(rec==='NÃO') cor='red';
+  } else if(k==='financeiro'){
+    var stf=String(row[5]||'').trim();
+    if(stf==='Pago') cor='green'; else if(stf==='Atrasado') cor='red'; else cor='yellow';
+  }
+
+  var h='<div class="kcard '+cor+'" id="row-'+k+'-'+abs+'">';
+
+  // TOP: id + título + ações
+  h+='<div class="kcard-top">';
+  if(!ec) h+='<div class="kcard-id">#'+id+'</div>';
+
+  // Título principal
+  if(k==='financeiro'){
+    h+='<div class="kcard-title">';
+    h+=canEdit?inlineCell(k,abs,2,row[2]):'<span>'+String(row[2]||'').trim()+'</span>';
+    h+='</div>';
+  } else {
+    h+='<div class="kcard-title">';
+    h+=canEdit?inlineCell(k,abs,3,row[3]):'<span>'+licit+'</span>';
+    h+='</div>';
+  }
+
+  // Badge empresa + ações
+  h+='<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">';
+  if(emp) h+='<span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;background:'+empColor(emp)+'22;color:'+empColor(emp)+';border:1px solid '+empColor(emp)+'44">'+emp+'</span>';
+  h+='<button class="btn-del" onclick="doDel(\''+k+'\','+abs+')">✕</button>';
+  h+='</div>';
+  h+='</div>'; // /kcard-top
+
+  // META: data + município + badges status
+  h+='<div class="kcard-meta">';
+  if(data) h+='<div class="kmeta"><span class="kmeta-lbl">Data</span><span class="kmeta-val">'+data+'</span></div>';
+
+  if(k==='editais'){
+    var mun=String(row[6]||'').trim();
+    var val7=String(row[7]||'').trim();
+    var prior=String(row[8]||'').trim();
+    if(mun) h+='<div class="kmeta"><span class="kmeta-lbl">Local</span><span class="kmeta-val">'+mun+'</span></div>';
+    if(val7) h+='<div class="kmeta"><span class="kmeta-lbl">Valor Est.</span><span class="kmeta-val highlight">'+val7+'</span></div>';
+    if(prior) h+='<div class="kmeta">'+badge('editais',8,prior)+'</div>';
+    h+='<div class="kmeta">'+badge('editais',10,row[10])+'</div>';
+    h+='<div class="kmeta">'+badge('editais',11,row[11])+'</div>';
+  } else if(k==='andamento'||k==='finalizados'){
+    var mun2=String(row[6]||'').trim();
+    var vf=String(row[8]||'').trim();
+    var dd=String(row[10]||'').trim();
+    if(mun2) h+='<div class="kmeta"><span class="kmeta-lbl">Local</span><span class="kmeta-val">'+mun2+'</span></div>';
+    if(vf) h+='<div class="kmeta"><span class="kmeta-lbl">Valor Final</span><span class="kmeta-val highlight">'+vf+'</span></div>';
+    if(dd) h+='<div class="kmeta"><span class="kmeta-lbl">Data Disputa</span><span class="kmeta-val">'+dd+'</span></div>';
+    h+='<div class="kmeta">'+badge(k,12,row[12])+'</div>';
+    if(k==='andamento') h+='<div class="kmeta">'+badge('andamento',16,row[16])+'</div>';
+  } else if(k==='ganhas'){
+    var mun3=String(row[6]||'').trim();
+    var vg=String(row[7]||'').trim();
+    var venc=String(row[12]||'').trim();
+    if(mun3) h+='<div class="kmeta"><span class="kmeta-lbl">Local</span><span class="kmeta-val">'+mun3+'</span></div>';
+    if(vg) h+='<div class="kmeta"><span class="kmeta-lbl">Valor</span><span class="kmeta-val highlight">'+vg+'</span></div>';
+    if(venc) h+='<div class="kmeta"><span class="kmeta-lbl">Vence</span><span class="kmeta-val">'+venc+'</span></div>';
+    h+='<div class="kmeta">'+badge('ganhas',9,row[9])+'</div>';
+  } else if(k==='atestados'){
+    var mun4=String(row[6]||'').trim();
+    var vig=String(row[9]||'').trim();
+    if(mun4) h+='<div class="kmeta"><span class="kmeta-lbl">Local</span><span class="kmeta-val">'+mun4+'</span></div>';
+    if(vig) h+='<div class="kmeta"><span class="kmeta-lbl">Vigência</span><span class="kmeta-val">'+vig+'</span></div>';
+    h+='<div class="kmeta">'+badge('atestados',10,row[10])+'</div>';
+    h+='<div class="kmeta">'+badge('atestados',11,row[11])+'</div>';
+    h+='<div class="kmeta">'+badge('atestados',18,row[18])+'</div>';
+  } else if(k==='financeiro'){
+    var valf=String(row[4]||'').trim();
+    var cat=String(row[1]||'').trim();
+    if(cat) h+='<div class="kmeta"><span class="kmeta-lbl">Categoria</span><span class="kmeta-val">'+cat+'</span></div>';
+    if(valf) h+='<div class="kmeta"><span class="kmeta-lbl">Valor</span><span class="kmeta-val highlight">'+valf+'</span></div>';
+    h+='<div class="kmeta">'+badge('financeiro',5,row[5])+'</div>';
+  }
+  h+='</div>'; // /kcard-meta
+
+  // BODY: campos editáveis em grid
+  h+='<div class="kcard-body">';
+  if(k==='editais'){
+    h+=kfield('Objeto',row[4],4,k,abs,canEdit);
+    h+=kfield('Local Exec.',row[5],5,k,abs,canEdit);
+    h+=kfield('Responsável',row[9],9,k,abs,canEdit);
+    h+=kfield('Justificativa',row[12],12,k,abs,canEdit);
+    h+=kfield('Link Edital',row[13],13,k,abs,canEdit);
+  } else if(k==='andamento'||k==='finalizados'){
+    h+=kfield('Objeto',row[4],4,k,abs,canEdit);
+    h+=kfield('Portal',row[9],9,k,abs,canEdit);
+    h+=kfield('Classificação',row[11],11,k,abs,canEdit);
+    h+=kfield('Recurso',row[14],14,k,abs,canEdit);
+    h+=kfield('Reabertura',row[13],13,k,abs,canEdit);
+    h+=kfield('Concorrente 1º',row[17],17,k,abs,canEdit);
+    h+=kfield('Valor 1º Col.',row[18],18,k,abs,canEdit);
+    h+=kfield('Resumo',row[15],15,k,abs,canEdit);
+    if(row[19]) h+=kfield('Link Pasta',row[19],19,k,abs,false);
+  } else if(k==='ganhas'){
+    h+=kfield('Objeto',row[4],4,k,abs,canEdit);
+    h+=kfield('Contrato',row[8],8,k,abs,canEdit);
+    h+=kfield('Vigência',row[10],10,k,abs,canEdit);
+    h+=kfield('Dt Assinatura',row[11],11,k,abs,canEdit);
+    h+=kfield('Recomposição',row[13],13,k,abs,canEdit);
+    h+=kfield('Status Recomp.',row[15],15,k,abs,canEdit);
+    h+=kfield('Valor Final',row[19],19,k,abs,canEdit);
+    h+=kfield('Observações',row[20],20,k,abs,canEdit);
+    if(row[21]) h+=kfield('Link Pasta',row[21],21,k,abs,false);
+  } else if(k==='atestados'){
+    h+=kfield('Objeto',row[4],4,k,abs,canEdit);
+    h+=kfield('Contrato',row[7],7,k,abs,canEdit);
+    h+=kfield('Dt Assinatura',row[8],8,k,abs,canEdit);
+    h+=kfield('Emitente',row[13],13,k,abs,canEdit);
+    h+=kfield('CAT Nº',row[14],14,k,abs,canEdit);
+    h+=kfield('CAT Sit.',row[15],15,k,abs,canEdit);
+    h+=kfield('ART Nº',row[16],16,k,abs,canEdit);
+    h+=kfield('ART Sit.',row[17],17,k,abs,canEdit);
+    h+=kfield('Observações',row[19],19,k,abs,canEdit);
+    if(row[20]) h+=kfield('Link Doc.',row[20],20,k,abs,false);
+  } else if(k==='financeiro'){
+    h+=kfield('Fornecedor',row[3],3,k,abs,canEdit);
+    h+=kfield('Conta',row[6],6,k,abs,canEdit);
+    h+=kfield('Observações',row[7],7,k,abs,canEdit);
+  }
+  h+='</div>'; // /kcard-body
+  h+='</div>'; // /kcard
+  return h;
+}
+
 function renderTbl(k){
-  var cfg=TCFG[k];
   var data=FIL[k];
   var tot=data.length;
   var start=(PG[k]-1)*PS;
   var rows=data.slice(start,start+PS);
+  var wrapper=document.getElementById('tbl-'+k);
   if(!tot){
-    document.getElementById('tbl-'+k).innerHTML=emptyEl('Nenhum registro encontrado');
+    wrapper.innerHTML=emptyEl('Nenhum registro encontrado');
     document.getElementById('pag-'+k).innerHTML='';
     return;
   }
-  var h='<table style="width:max-content"><thead><tr>';
-  cfg.cols.forEach(function(c,ci){
-    h+='<th>'+c+'</th>';
-  });
-  h+='</tr></thead><tbody>';
-  rows.forEach(function(row,ri){
-    var abs=start+ri;
-    var isAdju=k==='andamento'&&String(row[16]||'').toLowerCase().trim()==='sim';
-    var participar=k==='editais'?String(row[10]||'').toUpperCase().trim():'';
-    var rowStyle='';
-    if(isAdju) rowStyle='background:rgba(249,115,22,.07)';
-    else if(participar==='SIM') rowStyle='background:rgba(34,197,94,.07)';
-    else if(participar==='NÃO'||participar==='NAO') rowStyle='background:rgba(239,68,68,.07)';
-    else if(participar==='EM ANÁLISE'||participar==='EM ANALISE') rowStyle='background:rgba(234,179,8,.07)';
-    var rowBg=isAdju?'rgba(30,28,20,1)':participar==='SIM'?'rgba(16,30,20,1)':participar==='NÃO'||participar==='NAO'?'rgba(30,16,16,1)':participar==='EM ANÁLISE'||participar==='EM ANALISE'?'rgba(30,28,10,1)':'var(--s1)';
-    h+='<tr'+(rowStyle?' style="'+rowStyle+'"':'')+' id="row-'+k+'-'+abs+'">';
-    cfg.idx.forEach(function(ci,colPos){
-      var v=row[ci];
-      var stickyStyle='';
-      var isId=ci===0;
-      var isPrimary=ci===3;
-      var canEditCell=k!=='finalizados';
-      var textColor='';
-      if(k==='editais'&&participar==='SIM') textColor='color:var(--g2);';
-      else if(k==='editais'&&(participar==='NÃO'||participar==='NAO')) textColor='color:var(--r2);';
-      else if(k==='editais'&&(participar==='EM ANÁLISE'||participar==='EM ANALISE')) textColor='color:var(--y2);';
-      if(canEditCell&&!isId){
-        h+='<td class="'+(isPrimary?'primary':'')+'" style="'+stickyStyle+textColor+'padding:0 18px;">'+
-          inlineCell(k,abs,ci,v)+
-          '</td>';
-      } else {
-        h+='<td class="'+(isId?'id':isPrimary?'primary':'')+'" style="'+stickyStyle+textColor+'">'+badge(k,ci,v)+'</td>';
-      }
-    });
-    h+='<td><div class="td-act">'+
-      '<button class="btn btn-del btn-sm" onclick="doDel(\''+k+'\','+abs+')">✕</button>'+
-    '</div></td></tr>';
-  });
-  h+='</tbody></table>';
-  var wrapper=document.getElementById('tbl-'+k);
-  wrapper.style.overflowX='auto';
-  wrapper.style.overflowY='visible';
+  var h='';
+  rows.forEach(function(row,ri){h+=renderCard(k,row,start+ri);});
+  wrapper.style.overflowX='visible';
   wrapper.style.display='block';
   wrapper.style.width='100%';
+  wrapper.style.background='transparent';
+  wrapper.style.border='none';
   wrapper.innerHTML=h;
   renderPag(k,tot);
 }
@@ -1476,8 +1572,10 @@ function inlineCell(k,abs,ci,v){
     var opts=selOpts.map(function(o){return '<option value="'+o+'"'+(o===s?' selected':'')+'>'+( o||'—')+'</option>';}).join('');
     return '<select id="'+inputId+'" onchange="saveCell(\''+k+'\','+abs+','+ci+',this.value)">'+opts+'</select>';
   }
-  if(ci===1){
-    return '<input type="date" id="'+inputId+'" value="'+isoDate(s)+'" onchange="saveCell(\''+k+'\','+abs+','+ci+',formatDateBR(this.value))">';
+  if(ci===1||ci===8||ci===10||ci===11||ci===12||ci===13||ci===16){
+    if(s&&s.indexOf('/')!==-1){
+      return '<input type="date" id="'+inputId+'" value="'+isoDate(s)+'" onchange="saveCell(\''+k+'\','+abs+','+ci+',formatDateBR(this.value))">';
+    }
   }
   return '<input type="text" id="'+inputId+'" value="'+s.replace(/"/g,'&quot;')+'" onblur="saveCell(\''+k+'\','+abs+','+ci+',this.value)">';
 }
@@ -1494,6 +1592,7 @@ function formatDateBR(iso){
   if(p.length===3) return p[2]+'/'+p[1]+'/'+p[0];
   return iso;
 }
+
 async function saveCell(k,rowIdx,ci,val){
   var row=FIL[k][rowIdx].slice();
   row[ci]=val;
