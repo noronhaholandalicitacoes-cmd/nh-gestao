@@ -1573,10 +1573,11 @@ function renderCard(k,row,abs){
   // Objeto — textarea sempre visível
   if(k!=='financeiro'){
     var objVal=String(row[4]||'').trim();
-    var objEsc=objVal.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    var objId='obj_'+k+'_'+abs;
     h+='<div class="kcard-obj">';
     if(canEdit){
-      h+='<textarea onblur="saveCell(\\\''+k+'\\\',' +abs+',4,this.value)" placeholder="Clique para digitar o objeto..." style="width:100%;background:transparent;border:none;color:var(--t2);font-family:Outfit,sans-serif;font-size:14px;outline:none;padding:0;resize:vertical;line-height:1.7;min-height:44px;white-space:pre-wrap;word-break:break-word;box-sizing:border-box;">'+objEsc+'</textarea>';
+      var objEnc=encodeURIComponent(objVal);
+      h+='<textarea id="'+objId+'" data-val="'+objEnc+'" onblur="saveCell(\''+k+'\',' +abs+',4,this.value)" placeholder="Objeto da licitação..." style="width:100%;background:transparent;border:none;color:var(--t2);font-family:Outfit,sans-serif;font-size:14px;outline:none;padding:0;resize:vertical;line-height:1.7;min-height:44px;white-space:pre-wrap;word-break:break-word;box-sizing:border-box;"></textarea>';
     } else {
       h+=(objVal||'—');
     }
@@ -1759,6 +1760,10 @@ function renderTbl(k){
   wrapper.style.background='transparent';
   wrapper.style.border='none';
   wrapper.innerHTML=h;
+  // Preencher todos os textareas com data-val
+  wrapper.querySelectorAll('textarea[data-val]').forEach(function(ta){
+    ta.value=decodeURIComponent(ta.getAttribute('data-val')||'');
+  });
   renderPag(k,tot);
 }
 
@@ -1787,9 +1792,11 @@ function inlineCell(k,abs,ci,v){
   var longCols={editais:[4,12],andamento:[4,15],finalizados:[4,15],ganhas:[4,20],atestados:[4,19],financeiro:[7]};
   var isLong=longCols[k]&&longCols[k].indexOf(ci)!==-1;
   if(isLong){
-    var esc=s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    var ph=ci===12?'Digite a justificativa...':ci===15?'Resumo do andamento...':ci===20||ci===19?'Observações...':'';
-    return '<textarea id="'+inputId+'" rows="3" placeholder="'+ph+'" onblur="saveCell(\''+k+'\',' +abs+','+ci+',this.value)" style="width:100%;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.1);color:var(--t1);font-family:Outfit,sans-serif;font-size:14px;outline:none;padding:4px 0;resize:vertical;line-height:1.7;min-height:44px;white-space:pre-wrap;word-break:break-word;box-sizing:border-box;">'+esc+'</textarea>';
+    var ph=ci===12?'Justificativa...':ci===15?'Resumo do andamento...':ci===20||ci===19?'Observações...':ci===4?'Objeto...':'';
+    // Usar data-val para preservar o texto e preencher via JS depois
+    var safeId='ta_'+k+'_'+abs+'_'+ci;
+    var encoded=encodeURIComponent(s);
+    return '<textarea id="'+safeId+'" data-val="'+encoded+'" rows="3" placeholder="'+ph+'" onblur="saveCell(\''+k+'\',' +abs+','+ci+',this.value)" style="width:100%;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.1);color:var(--t1);font-family:Outfit,sans-serif;font-size:14px;outline:none;padding:4px 0;resize:vertical;line-height:1.7;min-height:44px;white-space:pre-wrap;word-break:break-word;box-sizing:border-box;"></textarea>';
   }
   return '<input type="text" id="'+inputId+'" value="'+s.replace(/"/g,'&quot;')+'" onblur="saveCell(\''+k+'\','+abs+','+ci+',this.value)">';
 }
