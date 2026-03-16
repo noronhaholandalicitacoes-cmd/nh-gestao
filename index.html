@@ -246,24 +246,30 @@ select{color-scheme:dark}
 /* OBJETO — texto completo, destaque */
 .kcard-obj{
   font-size:14px;color:var(--t2);
-  line-height:1.7;
-  white-space:normal;word-break:break-word;
-  padding:10px 14px;
+  line-height:1.8;
+  white-space:normal!important;
+  word-break:break-word!important;
+  overflow:visible!important;
+  max-height:none!important;
+  max-width:100%!important;
+  padding:12px 16px;
   background:rgba(255,255,255,.03);
   border-radius:8px;
   border-left:3px solid rgba(249,115,22,.3);
   margin-bottom:16px;
+  display:block!important;
 }
 .kcard-obj input[type=text]{
   font-size:14px!important;color:var(--t2)!important;
   width:100%!important;background:transparent!important;
   border:none!important;outline:none!important;
   padding:0!important;font-family:'Outfit',sans-serif!important;
-  line-height:1.7!important;
+  line-height:1.8!important;
   white-space:normal!important;
   word-break:break-word!important;
   overflow:visible!important;
   text-overflow:unset!important;
+  max-width:100%!important;
 }
 
 /* EMPRESA BADGE */
@@ -1637,7 +1643,7 @@ function renderCard(k,row,abs){
     h+=kfieldEdit('Responsável',row[9],9,k,abs);
     h+=kfieldEdit('Participar?',row[10],10,k,abs);
     h+=kfieldEdit('Viabilidade',row[11],11,k,abs);
-    h+=kfieldStatic('Justificativa',row[12]);
+    h+=kfieldEdit('Justificativa',row[12],12,k,abs);
   } else if(k==='andamento'||k==='finalizados'){
     h+=kfieldEdit('Classificação',row[11],11,k,abs);
     h+=kfieldEdit('Recurso',row[14],14,k,abs);
@@ -1704,7 +1710,7 @@ function inlineCell(k,abs,ci,v){
   var inputId='ic-'+k+'-'+abs+'-'+ci;
   var EMPS=['','VISE','SOS','SAUTEC','SOS FILIAL','ONLAV','ENGEMED','POTIGUAR'];
   var selCols={
-    editais:{2:EMPS,8:['','ALTA','MÉDIA','BAIXA'],9:['','ANTUNES','NORONHA'],10:['','SIM','NÃO','EM ANÁLISE'],11:['','POSITIVO','NEGATIVO','PENDENTE']},
+    editais:{2:EMPS,8:['','ALTA','MÉDIA','BAIXA'],10:['','SIM','NÃO','EM ANÁLISE'],11:['','POSITIVO','NEGATIVO','PENDENTE']},
     andamento:{2:EMPS,9:['','compras gov','BLL','LICITANET','CONLICITACAO','Outro'],12:['','EM ANDAMENTO','EM DISPUTA','AGUARDANDO','RECURSO','ADJUDICADO','CANCELADO'],14:['','sim','não'],16:['','sim','não']},
     ganhas:{2:EMPS,9:['','EM EXECUÇÃO','FINALIZADO','SUSPENSO','RESCINDIDO'],13:['','SIM','NÃO']},
     atestados:{2:EMPS,10:['','SIM','NÃO'],11:['','SIM','NÃO'],15:['','ATIVO','PENDENTE','VENCIDO'],17:['','ATIVO','PENDENTE','VENCIDO'],18:['','COMPLETO','PENDENTE','EM ANDAMENTO']},
@@ -1717,6 +1723,20 @@ function inlineCell(k,abs,ci,v){
   }
   if(ci===1){
     return '<input type="date" id="'+inputId+'" value="'+isoDate(s)+'" onchange="saveCell(\''+k+'\','+abs+','+ci+',formatDateBR(this.value))">';
+  }
+  // Campos longos (objeto, resumo, justificativa, observações) usam textarea
+  var longCols={editais:[4,12],andamento:[4,15],finalizados:[4,15],ganhas:[4,20],atestados:[4,19],financeiro:[7]};
+  var isLong=longCols[k]&&longCols[k].indexOf(ci)!==-1;
+  if(isLong){
+    var esc=s.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    var ta=document.createElement('textarea');
+    ta.id=inputId;
+    ta.style.cssText='width:100%;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.1);color:var(--t1);font-family:Outfit,sans-serif;font-size:14px;outline:none;padding:4px 0;resize:vertical;line-height:1.7;min-height:48px;white-space:pre-wrap;word-break:break-word;box-sizing:border-box;';
+    ta.value=s;
+    ta.onblur=function(){saveCell(k,abs,ci,this.value);};
+    var div=document.createElement('div');
+    div.appendChild(ta);
+    return div.innerHTML;
   }
   return '<input type="text" id="'+inputId+'" value="'+s.replace(/"/g,'&quot;')+'" onblur="saveCell(\''+k+'\','+abs+','+ci+',this.value)">';
 }
@@ -1735,30 +1755,36 @@ function formatDateBR(iso){
 }
 
 async function saveCell(k,rowIdx,ci,val){
+  if(!API){toast('Configure a URL do Apps Script','err');return;}
   var row=FIL[k][rowIdx].slice();
   row[ci]=val;
   var rowId=parseInt(row[0]);
+  if(!rowId){toast('ID inválido — não foi possível salvar','err');return;}
+  // Garante que o array tem colunas suficientes
+  while(row.length < 25) row.push('');
+  var btn=document.getElementById('ic-'+k+'-'+rowIdx+'-'+ci);
+  if(btn) btn.style.opacity='.5';
   var res=await apiPost({action:'update',sheet:SHEETS[k],values:row,rowIndex:rowId});
+  if(btn) btn.style.opacity='1';
   if(res&&res.success){
     FIL[k][rowIdx]=row;
     ALL[k]=ALL[k].map(function(r){return parseInt(r[0])===rowId?row:r;});
-    // ADJU mudou - sincroniza finalizados mas NÃO remove da lista em andamento
+    toast('Salvo!','ok');
     if(k==='andamento'&&ci===16){
       if(String(val).toLowerCase()==='sim'){
-        toast('Linha copiada para Finalizados!','info');
+        toast('Copiado para Finalizados!','info');
       } else {
-        toast('Revertido — removido de Finalizados','info');
+        toast('Revertido de Finalizados','info');
       }
       await _load('finalizados');
-      // Recarrega andamento sem sumir a linha
       await _load('andamento');
     } else {
-      // Rerenderiza só a tabela atual sem reload completo
       renderTbl(k);
     }
     if(CUR==='resumo') buildResumo();
   } else {
-    toast('Erro ao salvar','err');
+    var msg=res&&res.error?res.error:'Erro ao salvar — verifique a conexão';
+    toast(msg,'err');
   }
 }
 
