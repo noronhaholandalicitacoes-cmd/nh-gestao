@@ -266,6 +266,9 @@ select{color-scheme:dark}
   padding:0!important;box-sizing:border-box!important;
 }
 .kcard-obj textarea:focus{border-bottom:1px solid var(--nh)!important;}
+textarea::placeholder{color:var(--t4);font-style:italic;}
+.kfield textarea::placeholder{color:var(--t4);font-style:italic;}
+.kcard-obj textarea::placeholder{color:rgba(148,163,184,.3);font-style:italic;}
 .kcard-obj input[type=text]{
   font-size:14px!important;color:var(--t2)!important;
   width:100%!important;background:transparent!important;
@@ -1505,7 +1508,8 @@ function kfieldStatic(lbl,val){
   return '<div class="kfield"><div class="kfield-lbl">'+lbl+'</div><div class="kfield-val'+(s?'':' empty')+'">'+( s||'—')+'</div></div>';
 }
 function kfieldEdit(lbl,val,ci,k,abs){
-  return '<div class="kfield"><div class="kfield-lbl">'+lbl+'</div>'+inlineCell(k,abs,ci,val)+'</div>';
+  var cell=inlineCell(k,abs,ci,val);
+  return '<div class="kfield"><div class="kfield-lbl">'+lbl+'</div>'+cell+'</div>';
 }
 
 function empColor(e){
@@ -1516,10 +1520,9 @@ function empBg(e){
   var m={'VISE':'rgba(234,179,8,.12)','SOS':'rgba(34,197,94,.12)','SAUTEC':'rgba(59,130,246,.12)','SOS FILIAL':'rgba(239,68,68,.12)','ONLAV':'rgba(16,185,129,.12)','ENGEMED':'rgba(236,72,153,.12)','POTIGUAR':'rgba(249,115,22,.12)'};
   return m[String(e).trim()]||'rgba(100,116,139,.12)';
 }
-
 function kfieldStatic(lbl,val){
   var s=String(val||'').trim();
-  return '<div class="kfield"><div class="kfield-lbl">'+lbl+'</div><div class="kfield-val'+(s?'':' empty')+'">'+( s||'—')+'</div></div>';
+  return '<div class="kfield"><div class="kfield-lbl">'+lbl+'</div><div class="kfield-val'+(s?'':' empty')+'">'+(s||'—')+'</div></div>';
 }
 function kfieldEdit(lbl,val,ci,k,abs){
   return '<div class="kfield"><div class="kfield-lbl">'+lbl+'</div>'+inlineCell(k,abs,ci,val)+'</div>';
@@ -1532,7 +1535,7 @@ function renderCard(k,row,abs){
   var canEdit = k!=='finalizados';
   var ec2=empColor(emp), eb=empBg(emp);
 
-  // cor borda esquerda
+  // ── cor borda esquerda por status ──
   var cor='';
   if(k==='editais'){
     var part=String(row[10]||'').toUpperCase().trim();
@@ -1553,136 +1556,180 @@ function renderCard(k,row,abs){
 
   var h='<div class="kcard '+cor+'" id="row-'+k+'-'+abs+'">';
 
-  // ══ TOPO ══
+  // ── TOPO: id + data + empresa + título + objeto ──
   h+='<div class="kcard-top">';
   h+='<div style="flex:1;min-width:0">';
-
-  // linha: id + data + empresa
   h+='<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">';
   h+='<span class="kcard-id">#'+id+'</span>';
-  if(data) h+='<span style="font-size:13px;font-weight:700;color:var(--t1);background:var(--s3);padding:2px 10px;border-radius:6px;letter-spacing:.03em">'+data+'</span>';
+  if(data) h+='<span style="font-size:13px;font-weight:700;color:var(--t1);background:var(--s3);padding:2px 10px;border-radius:6px">'+data+'</span>';
   if(emp)  h+='<span class="emp-badge" style="color:'+ec2+';background:'+eb+';border:1px solid '+ec2+'55">'+emp+'</span>';
   h+='</div>';
 
-  // título (licitação) — editável
+  // Título editável
   h+='<div class="kcard-licit">';
   h+=canEdit?inlineCell(k,abs,k==='financeiro'?2:3,row[k==='financeiro'?2:3]):String(row[3]||'').trim();
   h+='</div>';
 
-  // objeto — completo, sem corte
+  // Objeto — textarea sempre visível
   if(k!=='financeiro'){
-    var obj=String(row[4]||'').trim();
+    var objVal=String(row[4]||'').trim();
+    var objEsc=objVal.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     h+='<div class="kcard-obj">';
-    h+=canEdit?inlineCell(k,abs,4,row[4]):(obj||'—');
+    if(canEdit){
+      h+='<textarea onblur="saveCell(\\\''+k+'\\\',' +abs+',4,this.value)" placeholder="Clique para digitar o objeto..." style="width:100%;background:transparent;border:none;color:var(--t2);font-family:Outfit,sans-serif;font-size:14px;outline:none;padding:0;resize:vertical;line-height:1.7;min-height:44px;white-space:pre-wrap;word-break:break-word;box-sizing:border-box;">'+objEsc+'</textarea>';
+    } else {
+      h+=(objVal||'—');
+    }
     h+='</div>';
   }
   h+='</div>'; // /flex:1
 
-  // botões direita
+  // botões
   h+='<div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;flex-shrink:0;padding-top:4px">';
   h+='<button class="btn-edit-card" onclick="openEditCard(\''+k+'\','+abs+')">✏ Editar</button>';
   h+='<button class="btn-del" onclick="doDel(\''+k+'\','+abs+')">✕ Excluir</button>';
   h+='</div>';
   h+='</div>'; // /kcard-top
 
-  // ══ META ══
+  // ── META ROW ──
   h+='<div class="kcard-meta">';
 
   if(k==='editais'){
-    var mun=String(row[6]||'').trim();
-    var ve=String(row[7]||'').trim();
-    var prior=String(row[8]||'').trim();
-    var link=String(row[13]||'').trim();
-    if(mun)  h+='<div class="kmeta"><span class="kmeta-lbl">Local</span><span class="kmeta-val">'+mun+'</span></div>';
-    if(ve)   h+='<div class="kmeta"><span class="kmeta-lbl">Valor Est.</span><span class="kmeta-val hl">'+fmtValBR(ve)+'</span></div>';
-    if(prior)h+='<div class="kmeta"><span class="kmeta-lbl">Prioridade</span>'+badge('editais',8,prior)+'</div>';
-    if(link) h+='<div class="kmeta"><span class="kmeta-lbl">Edital</span>'+klink(link)+'</div>';
+    var e_local=String(row[5]||'').trim();
+    var e_mun  =String(row[6]||'').trim();
+    var e_val  =String(row[7]||'').trim();
+    var e_prior=String(row[8]||'').trim();
+    var e_link =String(row[13]||'').trim();
+    if(e_local) h+='<div class="kmeta"><span class="kmeta-lbl">Local Exec.</span><span class="kmeta-val">'+e_local+'</span></div>';
+    if(e_mun)   h+='<div class="kmeta"><span class="kmeta-lbl">Município</span><span class="kmeta-val">'+e_mun+'</span></div>';
+    if(e_val)   h+='<div class="kmeta"><span class="kmeta-lbl">Valor Est.</span><span class="kmeta-val hl">'+fmtValBR(e_val)+'</span></div>';
+    if(e_prior) h+='<div class="kmeta"><span class="kmeta-lbl">Prioridade</span>'+badge('editais',8,e_prior)+'</div>';
+    if(e_link)  h+='<div class="kmeta"><span class="kmeta-lbl">Edital</span>'+klink(e_link)+'</div>';
 
   } else if(k==='andamento'||k==='finalizados'){
-    var mun2=String(row[6]||'').trim();
-    var vf=String(row[8]||'').trim();
-    var dd=String(row[10]||'').trim();
-    var portal=String(row[9]||'').trim();
-    var link2=String(row[19]||'').trim();
-    if(mun2)  h+='<div class="kmeta"><span class="kmeta-lbl">Local</span><span class="kmeta-val">'+mun2+'</span></div>';
-    if(vf)    h+='<div class="kmeta"><span class="kmeta-lbl">Valor Final</span><span class="kmeta-val hl">'+fmtValBR(vf)+'</span></div>';
-    if(dd)    h+='<div class="kmeta"><span class="kmeta-lbl">Data Disputa</span><span class="kmeta-val">'+dd+'</span></div>';
-    if(portal)h+='<div class="kmeta"><span class="kmeta-lbl">Portal</span><span class="kmeta-val">'+portal+'</span></div>';
-    h+='<div class="kmeta"><span class="kmeta-lbl">Status</span>'+badge(k,12,row[12])+'</div>';
-    if(k==='andamento')h+='<div class="kmeta"><span class="kmeta-lbl">ADJU</span>'+badge('andamento',16,row[16])+'</div>';
-    if(link2) h+='<div class="kmeta"><span class="kmeta-lbl">Pasta</span>'+klink(link2)+'</div>';
+    var a_local=String(row[5]||'').trim();
+    var a_mun  =String(row[6]||'').trim();
+    var a_vest =String(row[7]||'').trim();
+    var a_vfin =String(row[8]||'').trim();
+    var a_port =String(row[9]||'').trim();
+    var a_dd   =String(row[10]||'').trim();
+    var a_st   =String(row[12]||'').trim();
+    var a_adju =String(row[16]||'').trim();
+    var a_link =String(row[19]||'').trim();
+    if(a_local) h+='<div class="kmeta"><span class="kmeta-lbl">Local</span><span class="kmeta-val">'+a_local+'</span></div>';
+    if(a_mun)   h+='<div class="kmeta"><span class="kmeta-lbl">Município</span><span class="kmeta-val">'+a_mun+'</span></div>';
+    if(a_vest)  h+='<div class="kmeta"><span class="kmeta-lbl">Valor Est.</span><span class="kmeta-val">'+fmtValBR(a_vest)+'</span></div>';
+    if(a_vfin)  h+='<div class="kmeta"><span class="kmeta-lbl">Valor Final</span><span class="kmeta-val hl">'+fmtValBR(a_vfin)+'</span></div>';
+    if(a_port)  h+='<div class="kmeta"><span class="kmeta-lbl">Portal</span><span class="kmeta-val">'+a_port+'</span></div>';
+    if(a_dd)    h+='<div class="kmeta"><span class="kmeta-lbl">Data Disputa</span><span class="kmeta-val">'+a_dd+'</span></div>';
+    if(a_st)    h+='<div class="kmeta"><span class="kmeta-lbl">Status</span>'+badge(k,12,a_st)+'</div>';
+    if(a_adju)  h+='<div class="kmeta"><span class="kmeta-lbl">ADJU</span>'+badge('andamento',16,a_adju)+'</div>';
+    if(a_link)  h+='<div class="kmeta"><span class="kmeta-lbl">Pasta</span>'+klink(a_link)+'</div>';
 
   } else if(k==='ganhas'){
-    var mun3=String(row[6]||'').trim();
-    var vg=String(row[7]||'').trim();
-    var venc3=String(row[12]||'').trim();
-    var cont=String(row[8]||'').trim();
-    var link3=String(row[21]||'').trim();
-    if(mun3) h+='<div class="kmeta"><span class="kmeta-lbl">Local</span><span class="kmeta-val">'+mun3+'</span></div>';
-    if(vg)   h+='<div class="kmeta"><span class="kmeta-lbl">Valor</span><span class="kmeta-val hl">'+fmtValBR(vg)+'</span></div>';
-    if(venc3)h+='<div class="kmeta"><span class="kmeta-lbl">Vence em</span><span class="kmeta-val">'+venc3+'</span></div>';
-    if(cont) h+='<div class="kmeta"><span class="kmeta-lbl">Contrato</span><span class="kmeta-val">'+cont+'</span></div>';
-    h+='<div class="kmeta"><span class="kmeta-lbl">Status</span>'+badge('ganhas',9,row[9])+'</div>';
-    if(link3)h+='<div class="kmeta"><span class="kmeta-lbl">Pasta</span>'+klink(link3)+'</div>';
+    var g_local=String(row[5]||'').trim();
+    var g_mun  =String(row[6]||'').trim();
+    var g_val  =String(row[7]||'').trim();
+    var g_cont =String(row[8]||'').trim();
+    var g_st   =String(row[9]||'').trim();
+    var g_venc =String(row[12]||'').trim();
+    var g_link =String(row[21]||'').trim();
+    if(g_local) h+='<div class="kmeta"><span class="kmeta-lbl">Local</span><span class="kmeta-val">'+g_local+'</span></div>';
+    if(g_mun)   h+='<div class="kmeta"><span class="kmeta-lbl">Município</span><span class="kmeta-val">'+g_mun+'</span></div>';
+    if(g_val)   h+='<div class="kmeta"><span class="kmeta-lbl">Valor</span><span class="kmeta-val hl">'+fmtValBR(g_val)+'</span></div>';
+    if(g_cont)  h+='<div class="kmeta"><span class="kmeta-lbl">Contrato</span><span class="kmeta-val">'+g_cont+'</span></div>';
+    if(g_st)    h+='<div class="kmeta"><span class="kmeta-lbl">Status</span>'+badge('ganhas',9,g_st)+'</div>';
+    if(g_venc)  h+='<div class="kmeta"><span class="kmeta-lbl">Vence em</span><span class="kmeta-val">'+g_venc+'</span></div>';
+    if(g_link)  h+='<div class="kmeta"><span class="kmeta-lbl">Pasta</span>'+klink(g_link)+'</div>';
 
   } else if(k==='atestados'){
-    var mun4=String(row[6]||'').trim();
-    var vig4=String(row[9]||'').trim();
-    var link4=String(row[20]||'').trim();
-    if(mun4) h+='<div class="kmeta"><span class="kmeta-lbl">Local</span><span class="kmeta-val">'+mun4+'</span></div>';
-    if(vig4) h+='<div class="kmeta"><span class="kmeta-lbl">Vigência</span><span class="kmeta-val">'+vig4+'</span></div>';
+    var at_local=String(row[5]||'').trim();
+    var at_mun  =String(row[6]||'').trim();
+    var at_vig  =String(row[9]||'').trim();
+    var at_link =String(row[20]||'').trim();
+    if(at_local) h+='<div class="kmeta"><span class="kmeta-lbl">Local</span><span class="kmeta-val">'+at_local+'</span></div>';
+    if(at_mun)   h+='<div class="kmeta"><span class="kmeta-lbl">Município</span><span class="kmeta-val">'+at_mun+'</span></div>';
+    if(at_vig)   h+='<div class="kmeta"><span class="kmeta-lbl">Vigência</span><span class="kmeta-val">'+at_vig+'</span></div>';
     h+='<div class="kmeta"><span class="kmeta-lbl">Requerido</span>'+badge('atestados',10,row[10])+'</div>';
     h+='<div class="kmeta"><span class="kmeta-lbl">Recebido</span>'+badge('atestados',11,row[11])+'</div>';
-    h+='<div class="kmeta">'+badge('atestados',18,row[18])+'</div>';
-    if(link4)h+='<div class="kmeta"><span class="kmeta-lbl">Doc.</span>'+klink(link4)+'</div>';
+    if(String(row[18]||'').trim()) h+='<div class="kmeta">'+badge('atestados',18,row[18])+'</div>';
+    if(at_link)  h+='<div class="kmeta"><span class="kmeta-lbl">Doc.</span>'+klink(at_link)+'</div>';
 
   } else if(k==='financeiro'){
-    var valf=String(row[4]||'').trim();
-    var cat=String(row[1]||'').trim();
-    var conta2=String(row[6]||'').trim();
-    if(cat)   h+='<div class="kmeta"><span class="kmeta-lbl">Categoria</span><span class="kmeta-val">'+cat+'</span></div>';
-    if(valf)  h+='<div class="kmeta"><span class="kmeta-lbl">Valor</span><span class="kmeta-val hl">'+fmtValBR(valf)+'</span></div>';
-    if(conta2)h+='<div class="kmeta"><span class="kmeta-lbl">Conta</span><span class="kmeta-val">'+conta2+'</span></div>';
-    h+='<div class="kmeta">'+badge('financeiro',5,row[5])+'</div>';
+    var f_cat  =String(row[1]||'').trim();
+    var f_val  =String(row[4]||'').trim();
+    var f_conta=String(row[6]||'').trim();
+    var f_st   =String(row[5]||'').trim();
+    if(f_cat)   h+='<div class="kmeta"><span class="kmeta-lbl">Categoria</span><span class="kmeta-val">'+f_cat+'</span></div>';
+    if(f_val)   h+='<div class="kmeta"><span class="kmeta-lbl">Valor</span><span class="kmeta-val hl">'+fmtValBR(f_val)+'</span></div>';
+    if(f_conta) h+='<div class="kmeta"><span class="kmeta-lbl">Conta</span><span class="kmeta-val">'+f_conta+'</span></div>';
+    if(f_st)    h+='<div class="kmeta">'+badge('financeiro',5,f_st)+'</div>';
   }
   h+='</div>'; // /kcard-meta
 
-  // ══ BODY: campos editáveis ══
+  // ── BODY: todos os campos editáveis ──
   h+='<div class="kcard-body">';
+
   if(k==='editais'){
-    h+=kfieldEdit('Responsável',row[9],9,k,abs);
-    h+=kfieldEdit('Participar?',row[10],10,k,abs);
-    h+=kfieldEdit('Viabilidade',row[11],11,k,abs);
-    h+=kfieldEdit('Justificativa',row[12],12,k,abs);
+    h+=kfieldEdit('Responsável',      row[9], 9, k,abs);
+    h+=kfieldEdit('Participar?',      row[10],10,k,abs);
+    h+=kfieldEdit('Viabilidade',      row[11],11,k,abs);
+    h+=kfieldEdit('Justificativa',    row[12],12,k,abs);
+    h+=kfieldEdit('Local Execução',   row[5], 5, k,abs);
+    h+=kfieldEdit('Município/UF',     row[6], 6, k,abs);
+    h+=kfieldEdit('Valor Estimado',   row[7], 7, k,abs);
+    h+=kfieldEdit('Prioridade',       row[8], 8, k,abs);
+
   } else if(k==='andamento'||k==='finalizados'){
-    h+=kfieldEdit('Classificação',row[11],11,k,abs);
-    h+=kfieldEdit('Recurso',row[14],14,k,abs);
-    h+=kfieldEdit('Reabertura',row[13],13,k,abs);
-    h+=kfieldEdit('ADJU',row[16],16,k,abs);
-    h+=kfieldEdit('Concorrente 1º',row[17],17,k,abs);
-    h+=kfieldEdit('Valor 1º Col.',row[18],18,k,abs);
-    h+=kfieldEdit('Resumo do Andamento',row[15],15,k,abs);
+    h+=kfieldEdit('Status',           row[12],12,k,abs);
+    h+=kfieldEdit('ADJU',             row[16],16,k,abs);
+    h+=kfieldEdit('Classificação',    row[11],11,k,abs);
+    h+=kfieldEdit('Recurso',          row[14],14,k,abs);
+    h+=kfieldEdit('Reabertura',       row[13],13,k,abs);
+    h+=kfieldEdit('Concorrente 1º',   row[17],17,k,abs);
+    h+=kfieldEdit('Valor 1º Col.',    row[18],18,k,abs);
+    h+=kfieldEdit('Portal',           row[9], 9, k,abs);
+    h+=kfieldEdit('Data Disputa',     row[10],10,k,abs);
+    h+=kfieldEdit('Valor Estimado',   row[7], 7, k,abs);
+    h+=kfieldEdit('Valor Final',      row[8], 8, k,abs);
+    h+=kfieldEdit('Local Exec.',      row[5], 5, k,abs);
+    h+=kfieldEdit('Município/UF',     row[6], 6, k,abs);
+    h+=kfieldEdit('Resumo Andamento', row[15],15,k,abs);
+
   } else if(k==='ganhas'){
-    h+=kfieldEdit('Vigência (meses)',row[10],10,k,abs);
-    h+=kfieldEdit('Dt Assinatura',row[11],11,k,abs);
-    h+=kfieldEdit('Recomposição',row[13],13,k,abs);
-    h+=kfieldEdit('Status Recomp.',row[15],15,k,abs);
-    h+=kfieldEdit('Valor Final',row[19],19,k,abs);
-    h+=kfieldEdit('Observações',row[20],20,k,abs);
+    h+=kfieldEdit('Status Contrato',  row[9], 9, k,abs);
+    h+=kfieldEdit('Vigência (meses)', row[10],10,k,abs);
+    h+=kfieldEdit('Dt Assinatura',    row[11],11,k,abs);
+    h+=kfieldEdit('Vencimento',       row[12],12,k,abs);
+    h+=kfieldEdit('Recomposição',     row[13],13,k,abs);
+    h+=kfieldEdit('Tipo Recomp.',     row[14],14,k,abs);
+    h+=kfieldEdit('Status Recomp.',   row[15],15,k,abs);
+    h+=kfieldEdit('Nova Data Venc.',  row[16],16,k,abs);
+    h+=kfieldEdit('Vig. Recomp.',     row[17],17,k,abs);
+    h+=kfieldEdit('Venc. Recomp.',    row[18],18,k,abs);
+    h+=kfieldEdit('Valor Final',      row[19],19,k,abs);
+    h+=kfieldEdit('Observações',      row[20],20,k,abs);
+
   } else if(k==='atestados'){
-    h+=kfieldEdit('Contrato',row[7],7,k,abs);
-    h+=kfieldEdit('Dt Assinatura',row[8],8,k,abs);
-    h+=kfieldEdit('Emitente',row[13],13,k,abs);
-    h+=kfieldEdit('CAT Nº',row[14],14,k,abs);
-    h+=kfieldEdit('CAT Situação',row[15],15,k,abs);
-    h+=kfieldEdit('ART Nº',row[16],16,k,abs);
-    h+=kfieldEdit('ART Situação',row[17],17,k,abs);
-    h+=kfieldEdit('Observações',row[19],19,k,abs);
+    h+=kfieldEdit('Contrato',         row[7], 7, k,abs);
+    h+=kfieldEdit('Dt Assinatura',    row[8], 8, k,abs);
+    h+=kfieldEdit('Dt Recebimento',   row[12],12,k,abs);
+    h+=kfieldEdit('Emitente',         row[13],13,k,abs);
+    h+=kfieldEdit('CAT Nº',           row[14],14,k,abs);
+    h+=kfieldEdit('CAT Situação',     row[15],15,k,abs);
+    h+=kfieldEdit('ART Nº',           row[16],16,k,abs);
+    h+=kfieldEdit('ART Situação',     row[17],17,k,abs);
+    h+=kfieldEdit('Status Geral',     row[18],18,k,abs);
+    h+=kfieldEdit('Observações',      row[19],19,k,abs);
+
   } else if(k==='financeiro'){
-    h+=kfieldEdit('Fornecedor',row[3],3,k,abs);
-    h+=kfieldEdit('Descrição',row[2],2,k,abs);
-    h+=kfieldEdit('Observações',row[7],7,k,abs);
+    h+=kfieldEdit('Fornecedor',       row[3],3,k,abs);
+    h+=kfieldEdit('Descrição',        row[2],2,k,abs);
+    h+=kfieldEdit('Status',           row[5],5,k,abs);
+    h+=kfieldEdit('Conta',            row[6],6,k,abs);
+    h+=kfieldEdit('Observações',      row[7],7,k,abs);
   }
+
   h+='</div>'; // /kcard-body
   h+='</div>'; // /kcard
   return h;
@@ -1740,8 +1787,9 @@ function inlineCell(k,abs,ci,v){
   var longCols={editais:[4,12],andamento:[4,15],finalizados:[4,15],ganhas:[4,20],atestados:[4,19],financeiro:[7]};
   var isLong=longCols[k]&&longCols[k].indexOf(ci)!==-1;
   if(isLong){
-    var esc=s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    return '<textarea id="'+inputId+'" rows="3" onblur="saveCell(\''+k+'\',' +abs+','+ci+',this.value)" style="width:100%;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.1);color:var(--t1);font-family:Outfit,sans-serif;font-size:14px;outline:none;padding:4px 0;resize:vertical;line-height:1.7;min-height:48px;white-space:pre-wrap;word-break:break-word;box-sizing:border-box;">'+esc+'</textarea>';
+    var esc=s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    var ph=ci===12?'Digite a justificativa...':ci===15?'Resumo do andamento...':ci===20||ci===19?'Observações...':'';
+    return '<textarea id="'+inputId+'" rows="3" placeholder="'+ph+'" onblur="saveCell(\''+k+'\',' +abs+','+ci+',this.value)" style="width:100%;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.1);color:var(--t1);font-family:Outfit,sans-serif;font-size:14px;outline:none;padding:4px 0;resize:vertical;line-height:1.7;min-height:44px;white-space:pre-wrap;word-break:break-word;box-sizing:border-box;">'+esc+'</textarea>';
   }
   return '<input type="text" id="'+inputId+'" value="'+s.replace(/"/g,'&quot;')+'" onblur="saveCell(\''+k+'\','+abs+','+ci+',this.value)">';
 }
