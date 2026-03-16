@@ -135,9 +135,9 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;min-he
 .topbar-sub{font-size:12px;color:var(--t3);margin-top:1px;font-weight:400}
 .topbar-actions{display:flex;gap:8px;align-items:center}
 
-.content{padding:26px 28px;flex:1}
-.page{display:none}
-.page.on{display:block;animation:fadeUp .22s ease}
+.content{padding:26px 28px;flex:1;overflow-x:auto}
+.page{display:none;overflow-x:auto}
+.page.on{display:block;animation:fadeUp .22s ease;overflow-x:auto}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
 /* ─── BUTTONS ────────────────────────────── */
@@ -192,8 +192,8 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;min-he
 .stat-sub{font-size:11px;color:var(--t3);margin-top:5px}
 
 /* ─── TABLE ──────────────────────────────── */
-.tbl-wrap{background:var(--s1);border:1px solid var(--b1);border-radius:12px;overflow-x:auto;overflow-y:visible}
-table{width:max-content;min-width:100%;border-collapse:collapse;font-size:13px}
+.tbl-wrap{background:var(--s1);border:1px solid var(--b1);border-radius:12px;overflow-x:auto;overflow-y:auto;display:block;width:100%}
+table{width:max-content;min-width:100%;border-collapse:collapse;font-size:13px;table-layout:auto}
 thead tr{background:var(--s2);border-bottom:1px solid var(--b1)}
 thead th{
   text-align:left;padding:11px 15px;
@@ -1240,11 +1240,9 @@ function renderTbl(k){
     document.getElementById('pag-'+k).innerHTML='';
     return;
   }
-  var h='<div style="overflow-x:auto"><table><thead><tr>';
+  var h='<div style="overflow-x:auto;width:100%"><table style="width:max-content;min-width:100%"><thead><tr>';
   cfg.cols.forEach(function(c,ci){
-    var frozen=ci<4;
-    var lft=ci===0?0:ci===1?60:ci===2?116:ci===3?210:0;
-    h+='<th style="'+(frozen?'position:sticky;left:'+lft+'px;z-index:2;background:var(--s2);':'')+'">'+c+'</th>';
+    h+='<th>'+c+'</th>';
   });
   h+='</tr></thead><tbody>';
   rows.forEach(function(row,ri){
@@ -1260,9 +1258,7 @@ function renderTbl(k){
     h+='<tr'+(rowStyle?' style="'+rowStyle+'"':'')+' id="row-'+k+'-'+abs+'">';
     cfg.idx.forEach(function(ci,colPos){
       var v=row[ci];
-      var frozen=colPos<4;
-      var lft=colPos===0?0:colPos===1?60:colPos===2?116:210;
-      var stickyStyle=frozen?'position:sticky;left:'+lft+'px;z-index:1;background:'+rowBg+';':'';
+      var stickyStyle='';
       var isId=ci===0;
       var isPrimary=ci===3;
       var canEditCell=k!=='finalizados';
