@@ -339,16 +339,7 @@ textarea::placeholder{color:var(--t4);font-style:italic;}
 .klink:hover{background:rgba(249,115,22,.25);transform:scale(1.1);}
 
 /* BOTÕES */
-.btn-edit-card{
-  background:rgba(59,130,246,.1);color:var(--b2_);
-  border:1px solid rgba(59,130,246,.2);
-  padding:6px 13px;font-size:12px;font-weight:600;
-  border-radius:7px;cursor:pointer;
-  transition:all .15s;font-family:'Outfit',sans-serif;
-  display:inline-flex;align-items:center;gap:5px;
-  white-space:nowrap;
-}
-.btn-edit-card:hover{background:rgba(59,130,246,.2);}
+
 .btn-del{
   background:rgba(239,68,68,.08);color:var(--r2);
   border:1px solid rgba(239,68,68,.15);
@@ -2106,7 +2097,6 @@ function renderCard(k,row,abs){
 
   // botões
   h+='<div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;flex-shrink:0;padding-top:4px">';
-  h+='<button class="btn-edit-card" onclick="openEditCard(\''+k+'\','+abs+')">✏ Editar</button>';
   h+='<button class="btn-del" onclick="doDel(\''+k+'\','+abs+')">✕ Excluir</button>';
   h+='</div>';
   h+='</div>'; // /kcard-top
@@ -2131,8 +2121,6 @@ function renderCard(k,row,abs){
     var a_mun  =String(row[6]||'').trim();
     var a_vest =String(row[7]||'').trim();
     var a_vfin =String(row[8]||'').trim();
-    var a_port =String(row[9]||'').trim();
-    var a_dd   =String(row[10]||'').trim();
     var a_st   =String(row[12]||'').trim();
     var a_adju =String(row[16]||'').trim();
     var a_link =String(row[19]||'').trim();
@@ -2140,8 +2128,6 @@ function renderCard(k,row,abs){
     if(a_mun)   h+='<div class="kmeta"><span class="kmeta-lbl">Município</span><span class="kmeta-val">'+a_mun+'</span></div>';
     if(a_vest)  h+='<div class="kmeta"><span class="kmeta-lbl">Valor Est.</span><span class="kmeta-val">'+fmtValBR(a_vest)+'</span></div>';
     if(a_vfin)  h+='<div class="kmeta"><span class="kmeta-lbl">Valor Final</span><span class="kmeta-val hl">'+fmtValBR(a_vfin)+'</span></div>';
-    if(a_port)  h+='<div class="kmeta"><span class="kmeta-lbl">Portal</span><span class="kmeta-val">'+a_port+'</span></div>';
-    if(a_dd)    h+='<div class="kmeta"><span class="kmeta-lbl">Data Disputa</span><span class="kmeta-val">'+a_dd+'</span></div>';
     if(a_st)    h+='<div class="kmeta"><span class="kmeta-lbl">Status</span>'+badge(k,12,a_st)+'</div>';
     if(a_adju)  h+='<div class="kmeta"><span class="kmeta-lbl">ADJU</span>'+badge('andamento',16,a_adju)+'</div>';
     if(a_link)  h+='<div class="kmeta"><span class="kmeta-lbl">Pasta</span>'+klink(a_link)+'</div>';
@@ -2200,6 +2186,9 @@ function renderCard(k,row,abs){
     h+=kfieldEdit('Status',           row[12],12,k,abs);
     h+=kfieldEdit('ADJU',             row[16],16,k,abs);
     h+=kfieldEdit('Classificação',    row[11],11,k,abs);
+    h+=kfieldEdit('Portal',           row[9], 9, k,abs);
+    h+=kfieldEdit('Data Disputa',     row[10],10,k,abs);
+    h+=kfieldEdit('Valor Final',      row[8], 8, k,abs);
     h+=kfieldEdit('Recurso',          row[14],14,k,abs);
     h+=kfieldEdit('Reabertura',       row[13],13,k,abs);
     h+=kfieldEdit('Concorrente 1º',   row[17],17,k,abs);
