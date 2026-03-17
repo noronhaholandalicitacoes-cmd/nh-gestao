@@ -1149,15 +1149,184 @@ var EMP_DATA = {
   }
 };
 
-function stBadge(status, dias){
-  if(!status&&(dias===null||dias===undefined)) return '<span class="badge b-gray">—</span>';
-  if(status==='Vencido'||status==='Vencida') return '<span class="badge b-red">Vencida</span>';
-  if(status==='Pendência') return '<span class="badge b-red">Pendência</span>';
-  if(dias!==null&&dias!==undefined&&dias<=0) return '<span class="badge b-red">Vencida</span>';
-  if(dias!==null&&dias!==undefined&&dias<=30) return '<span class="badge b-yellow">'+dias+' dias</span>';
-  if(status==='Em dia') return '<span class="badge b-green">Em dia</span>';
-  return '<span class="badge b-gray">'+(status||'—')+'</span>';
-}
+var EMP_DOCS = {
+  'VISE':[
+    {categoria:'1. Doc. Jurídica',documento:'Contrato Social e Alterações',conferido:'OK',observacoes:''},
+    {categoria:'1. Doc. Jurídica',documento:'Cartão CNPJ atualizado',conferido:'OK',observacoes:''},
+    {categoria:'1. Doc. Jurídica',documento:'Inscrição Estadual e Municipal',conferido:'OK',observacoes:''},
+    {categoria:'1. Doc. Jurídica',documento:'Alvará de Funcionamento',conferido:'OK',observacoes:''},
+    {categoria:'1. Doc. Jurídica',documento:'RG e CPF dos Sócios',conferido:'OK',observacoes:''},
+    {categoria:'2. Fiscal e Trabalhista',documento:'Certidão Negativa de Débitos Federais e INSS',conferido:'OK',observacoes:''},
+    {categoria:'2. Fiscal e Trabalhista',documento:'Certidão Negativa de Débitos Estaduais',conferido:'OK',observacoes:''},
+    {categoria:'2. Fiscal e Trabalhista',documento:'Certidão Negativa de Débitos Municipais',conferido:'OK',observacoes:''},
+    {categoria:'2. Fiscal e Trabalhista',documento:'Certidão de Regularidade com o FGTS (CRF)',conferido:'OK',observacoes:''},
+    {categoria:'2. Fiscal e Trabalhista',documento:'Certidão Negativa de Débitos Trabalhistas (CNDT)',conferido:'OK',observacoes:''},
+    {categoria:'3. Econômico-Financeira',documento:'Certidão de Falência e Concordata',conferido:'OK',observacoes:''},
+    {categoria:'3. Econômico-Financeira',documento:'Balanço Patrimonial do último exercício',conferido:'OK',observacoes:''},
+    {categoria:'3. Econômico-Financeira',documento:'Índices financeiros (Liquidez, Solvência etc.)',conferido:'OK',observacoes:''},
+    {categoria:'4. Qualificação Técnica',documento:'COREN PJ',conferido:'OK',observacoes:''},
+    {categoria:'4. Qualificação Técnica',documento:'COREN PF',conferido:'OK',observacoes:''},
+    {categoria:'4. Qualificação Técnica',documento:'Atestado(s) de Capacidade Técnica',conferido:'OK',observacoes:''},
+    {categoria:'4. Qualificação Técnica',documento:'Registro da empresa no CREA-PB',conferido:'OK',observacoes:''},
+    {categoria:'4. Qualificação Técnica',documento:'Certidão de Regularidade do Resp. Técnico (Gleidson – CREA-PB)',conferido:'OK',observacoes:''},
+    {categoria:'4. Qualificação Técnica',documento:'ARTs de serviços já executados',conferido:'OK',observacoes:''},
+    {categoria:'4. Qualificação Técnica',documento:'Portfólio, Catálogos, fichas técnicas dos produtos',conferido:'',observacoes:''},
+    {categoria:'6. Licenças Ambientais',documento:'Licença da Vigilância Sanitária Municipal',conferido:'OK',observacoes:'Temos uma Declaração'},
+    {categoria:'7. Doc. Complementares',documento:'Certificado de calibração dos equipamentos',conferido:'OK',observacoes:''},
+    {categoria:'7. Doc. Complementares',documento:'Certificados dos analisadores eletrônicos',conferido:'OK',observacoes:''},
+    {categoria:'7. Doc. Complementares',documento:'Certificado da empresa na ANVISA',conferido:'OK',observacoes:''},
+    {categoria:'7. Doc. Complementares',documento:'Licença Ambiental (se exigido)',conferido:'',observacoes:''},
+    {categoria:'7. Doc. Complementares',documento:'Manual de Procedimentos Operacionais (POP)',conferido:'OK',observacoes:''},
+    {categoria:'7. Doc. Complementares',documento:'Plano de Gestão da Manutenção',conferido:'OK',observacoes:''},
+    {categoria:'7. Doc. Complementares',documento:'Certificado ISO (9001, 13485 etc.)',conferido:'',observacoes:''},
+    {categoria:'7. Doc. Complementares',documento:'Contratos de parceria com laboratórios',conferido:'',observacoes:''}
+  ],
+  'SAUTEC':[
+    {categoria:'1. Doc. Jurídica',documento:'Contrato Social e Alterações',conferido:'OK',observacoes:''},
+    {categoria:'1. Doc. Jurídica',documento:'Cartão CNPJ atualizado',conferido:'OK',observacoes:''},
+    {categoria:'1. Doc. Jurídica',documento:'Inscrição Estadual e Municipal',conferido:'OK',observacoes:''},
+    {categoria:'1. Doc. Jurídica',documento:'Alvará de Funcionamento',conferido:'OK',observacoes:''},
+    {categoria:'1. Doc. Jurídica',documento:'RG e CPF dos Sócios',conferido:'OK',observacoes:''},
+    {categoria:'2. Fiscal e Trabalhista',documento:'Certidão Negativa de Débitos Federais e INSS',conferido:'OK',observacoes:''},
+    {categoria:'2. Fiscal e Trabalhista',documento:'Certidão Negativa de Débitos Estaduais',conferido:'OK',observacoes:''},
+    {categoria:'2. Fiscal e Trabalhista',documento:'Certidão Negativa de Débitos Municipais',conferido:'OK',observacoes:''},
+    {categoria:'2. Fiscal e Trabalhista',documento:'Certidão de Regularidade com o FGTS (CRF)',conferido:'OK',observacoes:''},
+    {categoria:'2. Fiscal e Trabalhista',documento:'Certidão Negativa de Débitos Trabalhistas (CNDT)',conferido:'OK',observacoes:''},
+    {categoria:'3. Econômico-Financeira',documento:'Certidão de Falência e Concordata',conferido:'OK',observacoes:''},
+    {categoria:'3. Econômico-Financeira',documento:'Balanço Patrimonial do último exercício',conferido:'OK',observacoes:''},
+    {categoria:'3. Econômico-Financeira',documento:'Índices financeiros (Liquidez, Solvência etc.)',conferido:'OK',observacoes:''},
+    {categoria:'4. Qualificação Técnica',documento:'Certificado de ME/EPP (Simples Nacional)',conferido:'',observacoes:''},
+    {categoria:'4. Qualificação Técnica',documento:'Atestado(s) de Capacidade Técnica',conferido:'OK',observacoes:''},
+    {categoria:'4. Qualificação Técnica',documento:'Registro da empresa no CREA-PB',conferido:'OK',observacoes:''},
+    {categoria:'4. Qualificação Técnica',documento:'Certidão de Regularidade do Resp. Técnico (Thiago – CREA-PB)',conferido:'OK',observacoes:''},
+    {categoria:'4. Qualificação Técnica',documento:'ARTs de serviços já executados',conferido:'',observacoes:''},
+    {categoria:'4. Qualificação Técnica',documento:'CRF PJ',conferido:'OK',observacoes:''},
+    {categoria:'4. Qualificação Técnica',documento:'CRF PF',conferido:'OK',observacoes:''},
+    {categoria:'4. Qualificação Técnica',documento:'COREN PJ',conferido:'OK',observacoes:''},
+    {categoria:'4. Qualificação Técnica',documento:'COREN PF',conferido:'OK',observacoes:''},
+    {categoria:'4. Qualificação Técnica',documento:'Portfólio, Catálogos, fichas técnicas',conferido:'',observacoes:''},
+    {categoria:'6. Licenças Ambientais',documento:'Licença da Vigilância Sanitária Municipal',conferido:'OK',observacoes:''},
+    {categoria:'7. Doc. Complementares',documento:'Certificado de calibração dos equipamentos',conferido:'',observacoes:''},
+    {categoria:'7. Doc. Complementares',documento:'Certificados dos analisadores eletrônicos',conferido:'',observacoes:''},
+    {categoria:'7. Doc. Complementares',documento:'Registro ou cadastro dos produtos na ANVISA',conferido:'',observacoes:''},
+    {categoria:'7. Doc. Complementares',documento:'Licença Ambiental (se exigido)',conferido:'',observacoes:''},
+    {categoria:'7. Doc. Complementares',documento:'Manual de Procedimentos Operacionais (POP)',conferido:'OK',observacoes:''},
+    {categoria:'7. Doc. Complementares',documento:'Plano de Gestão da Manutenção',conferido:'',observacoes:''}
+  ],
+  'SOS':[
+    {categoria:'1. Doc. Jurídica',documento:'Contrato Social e Alterações',conferido:'OK',observacoes:''},
+    {categoria:'1. Doc. Jurídica',documento:'CNPJ',conferido:'OK',observacoes:''},
+    {categoria:'1. Doc. Jurídica',documento:'Inscrição Estadual e Municipal',conferido:'OK',observacoes:''},
+    {categoria:'1. Doc. Jurídica',documento:'Alvará de Funcionamento',conferido:'OK',observacoes:''},
+    {categoria:'1. Doc. Jurídica',documento:'RG e CPF dos Sócios',conferido:'OK',observacoes:''},
+    {categoria:'2. Fiscal e Trabalhista',documento:'Certidão Negativa de Débitos Federais (RFB + PGFN)',conferido:'OK',observacoes:''},
+    {categoria:'2. Fiscal e Trabalhista',documento:'Certidão Estadual de Débitos',conferido:'OK',observacoes:''},
+    {categoria:'2. Fiscal e Trabalhista',documento:'Certidão Municipal de Débitos',conferido:'OK',observacoes:''},
+    {categoria:'2. Fiscal e Trabalhista',documento:'Certidão Negativa de Débitos Trabalhistas (CNDT)',conferido:'OK',observacoes:''},
+    {categoria:'2. Fiscal e Trabalhista',documento:'Certidão de Regularidade do FGTS (CRF)',conferido:'OK',observacoes:''},
+    {categoria:'3. Econômico-Financeira',documento:'Balanço Patrimonial dos últimos 2 exercícios',conferido:'OK',observacoes:''},
+    {categoria:'3. Econômico-Financeira',documento:'Certidão negativa de falência ou recuperação judicial',conferido:'OK',observacoes:''},
+    {categoria:'3. Econômico-Financeira',documento:'Índices financeiros (Liquidez, Solvência etc.)',conferido:'OK',observacoes:''},
+    {categoria:'4. Qualificação Técnica',documento:'Atestados de Capacidade Técnica',conferido:'OK',observacoes:''},
+    {categoria:'4. Qualificação Técnica',documento:'Registro no CRF (Conselho Regional de Farmácia)',conferido:'OK',observacoes:''},
+    {categoria:'4. Qualificação Técnica',documento:'Catálogo ou ficha técnica dos materiais',conferido:'',observacoes:''},
+    {categoria:'4. Qualificação Técnica',documento:'FISPQ – Ficha de Informações de Segurança do Produto',conferido:'',observacoes:''},
+    {categoria:'5. Transporte de Prod. Perigosos',documento:'RNTRC – Registro na ANTT',conferido:'',observacoes:''},
+    {categoria:'5. Transporte de Prod. Perigosos',documento:'Autorização para Transporte de Produtos Perigosos (ANTT)',conferido:'',observacoes:''},
+    {categoria:'6. Licenças Ambientais',documento:'Licença Ambiental de Operação (LO)',conferido:'',observacoes:''},
+    {categoria:'6. Licenças Ambientais',documento:'IDEMA',conferido:'OK',observacoes:''},
+    {categoria:'6. Licenças Ambientais',documento:'Cadastro Técnico Federal no IBAMA',conferido:'OK',observacoes:''},
+    {categoria:'7. Documentos Sanitários',documento:'Autorização de Funcionamento (AFE) – ANVISA',conferido:'OK',observacoes:''},
+    {categoria:'7. Documentos Sanitários',documento:'Licença Sanitária',conferido:'OK',observacoes:''},
+    {categoria:'7. Documentos Sanitários',documento:'Boas Práticas de Distribuição e Armazenamento (RDC 16/2014)',conferido:'',observacoes:''},
+    {categoria:'7. Documentos Sanitários',documento:'Certificado de Boas Práticas de Fabricação - ANVISA',conferido:'',observacoes:''},
+    {categoria:'7. Documentos Sanitários',documento:'Autorização Especial (AE) – ANVISA',conferido:'',observacoes:''},
+    {categoria:'8. Segurança e Engenharia',documento:'ART de Engenheiro Responsável',conferido:'OK',observacoes:''},
+    {categoria:'9. Doc. Complementares',documento:'Plano de logística e fornecimento (se exigido)',conferido:'',observacoes:''},
+    {categoria:'10. CREA e Manutenção',documento:'Registro da empresa no CREA estadual',conferido:'OK',observacoes:''},
+    {categoria:'10. CREA e Manutenção',documento:'Engenheiro responsável técnico com registro ativo no CREA',conferido:'OK',observacoes:''},
+    {categoria:'10. CREA e Manutenção',documento:'ART de cargo e função (vínculo do engenheiro com a empresa)',conferido:'OK',observacoes:''}
+  ],
+  'SOS FILIAL':[
+    {categoria:'1. Doc. Jurídica',documento:'Contrato Social e Alterações',conferido:'',observacoes:''},
+    {categoria:'1. Doc. Jurídica',documento:'CNPJ',conferido:'',observacoes:''},
+    {categoria:'1. Doc. Jurídica',documento:'Inscrição Estadual e Municipal',conferido:'',observacoes:''},
+    {categoria:'1. Doc. Jurídica',documento:'Alvará de Funcionamento',conferido:'',observacoes:''},
+    {categoria:'1. Doc. Jurídica',documento:'RG e CPF dos Sócios',conferido:'',observacoes:''},
+    {categoria:'2. Fiscal e Trabalhista',documento:'Certidão Negativa de Débitos Federais (RFB + PGFN)',conferido:'',observacoes:''},
+    {categoria:'2. Fiscal e Trabalhista',documento:'Certidão Estadual de Débitos',conferido:'',observacoes:''},
+    {categoria:'2. Fiscal e Trabalhista',documento:'Certidão Municipal de Débitos',conferido:'',observacoes:''},
+    {categoria:'2. Fiscal e Trabalhista',documento:'Certidão Negativa de Débitos Trabalhistas (CNDT)',conferido:'',observacoes:''},
+    {categoria:'2. Fiscal e Trabalhista',documento:'Certidão de Regularidade do FGTS (CRF)',conferido:'',observacoes:''},
+    {categoria:'3. Econômico-Financeira',documento:'Balanço Patrimonial dos últimos 2 exercícios',conferido:'',observacoes:''},
+    {categoria:'3. Econômico-Financeira',documento:'Certidão negativa de falência ou recuperação judicial',conferido:'',observacoes:''},
+    {categoria:'3. Econômico-Financeira',documento:'Índices financeiros (Liquidez, Solvência etc.)',conferido:'',observacoes:''},
+    {categoria:'4. Qualificação Técnica',documento:'Atestados de Capacidade Técnica',conferido:'',observacoes:''},
+    {categoria:'4. Qualificação Técnica',documento:'Registro no CRF (Conselho Regional de Farmácia)',conferido:'',observacoes:''},
+    {categoria:'5. Transporte de Prod. Perigosos',documento:'RNTRC – Registro na ANTT',conferido:'',observacoes:''},
+    {categoria:'6. Licenças Ambientais',documento:'Licença Ambiental de Operação (LO)',conferido:'',observacoes:''},
+    {categoria:'7. Documentos Sanitários',documento:'Autorização de Funcionamento (AFE) – ANVISA',conferido:'',observacoes:''},
+    {categoria:'7. Documentos Sanitários',documento:'Licença Sanitária',conferido:'',observacoes:''}
+  ],
+  'ONLAV':[
+    {categoria:'1. Doc. Jurídica',documento:'Contrato Social e Alterações',conferido:'OK',observacoes:''},
+    {categoria:'1. Doc. Jurídica',documento:'Cartão CNPJ atualizado',conferido:'OK',observacoes:''},
+    {categoria:'1. Doc. Jurídica',documento:'Inscrição Estadual e Municipal',conferido:'OK',observacoes:''},
+    {categoria:'1. Doc. Jurídica',documento:'Alvará de Funcionamento',conferido:'Pendente',observacoes:'Em processamento'},
+    {categoria:'1. Doc. Jurídica',documento:'RG e CPF dos Sócios',conferido:'OK',observacoes:''},
+    {categoria:'2. Fiscal e Trabalhista',documento:'Certidão Negativa de Débitos Federais e INSS',conferido:'OK',observacoes:''},
+    {categoria:'2. Fiscal e Trabalhista',documento:'Certidão Negativa de Débitos Estaduais',conferido:'OK',observacoes:''},
+    {categoria:'2. Fiscal e Trabalhista',documento:'Certidão Negativa de Débitos Municipais',conferido:'OK',observacoes:''},
+    {categoria:'2. Fiscal e Trabalhista',documento:'Certidão de Regularidade com o FGTS (CRF)',conferido:'OK',observacoes:''},
+    {categoria:'2. Fiscal e Trabalhista',documento:'Certidão Negativa de Débitos Trabalhistas (CNDT)',conferido:'OK',observacoes:''},
+    {categoria:'3. Econômico-Financeira',documento:'Certidão de Falência e Concordata',conferido:'OK',observacoes:''},
+    {categoria:'3. Econômico-Financeira',documento:'Balanço Patrimonial do último exercício',conferido:'OK',observacoes:'Falta o Balanço de 2025'},
+    {categoria:'3. Econômico-Financeira',documento:'Índices financeiros (Liquidez, Solvência etc.)',conferido:'OK',observacoes:''},
+    {categoria:'4. Qualificação Técnica',documento:'Certificado de ME/EPP (Simples Nacional)',conferido:'OK',observacoes:''},
+    {categoria:'4. Qualificação Técnica',documento:'Atestado(s) de Capacidade Técnica',conferido:'OK',observacoes:''},
+    {categoria:'5. Licenças e Registros',documento:'Licença da Vigilância Sanitária Municipal',conferido:'Pendente',observacoes:'Em processamento'},
+    {categoria:'5. Licenças e Registros',documento:'Responsável Técnico com vínculo à empresa',conferido:'OK',observacoes:'Contrato de prestação de serviço'},
+    {categoria:'5. Licenças e Registros',documento:'Comprovante de inscrição da empresa no CRQ',conferido:'OK',observacoes:''},
+    {categoria:'5. Licenças e Registros',documento:'Comprovante de inscrição do RT no CRQ',conferido:'OK',observacoes:''},
+    {categoria:'5. Licenças e Registros',documento:'Registro ou cadastro na ANVISA',conferido:'',observacoes:''},
+    {categoria:'5. Licenças e Registros',documento:'Licença Ambiental de operações LO',conferido:'',observacoes:''},
+    {categoria:'6. Doc. Complementares',documento:'Manual de Procedimentos Operacionais (POP)',conferido:'',observacoes:''},
+    {categoria:'6. Doc. Complementares',documento:'Plano de Gestão',conferido:'',observacoes:''}
+  ],
+  'ENGEMED':[
+    {categoria:'1. Doc. Jurídica',documento:'Contrato Social e Alterações',conferido:'OK',observacoes:'Consolidado'},
+    {categoria:'1. Doc. Jurídica',documento:'Cartão CNPJ atualizado',conferido:'OK',observacoes:'Atualizado'},
+    {categoria:'1. Doc. Jurídica',documento:'Inscrição Estadual e Municipal',conferido:'OK',observacoes:''},
+    {categoria:'1. Doc. Jurídica',documento:'Alvará de Funcionamento',conferido:'OK',observacoes:''},
+    {categoria:'1. Doc. Jurídica',documento:'RG e CPF dos Sócios',conferido:'Pendente',observacoes:'Falta doc da sócia — sairá da sociedade'},
+    {categoria:'2. Fiscal e Trabalhista',documento:'Certidão Negativa de Débitos Federais e INSS',conferido:'Pendente',observacoes:'Pendência'},
+    {categoria:'2. Fiscal e Trabalhista',documento:'Certidão Negativa de Débitos Estaduais',conferido:'OK',observacoes:''},
+    {categoria:'2. Fiscal e Trabalhista',documento:'Certidão Negativa de Débitos Municipais',conferido:'OK',observacoes:''},
+    {categoria:'2. Fiscal e Trabalhista',documento:'Certidão de Regularidade com o FGTS (CRF)',conferido:'OK',observacoes:''},
+    {categoria:'2. Fiscal e Trabalhista',documento:'Certidão Negativa de Débitos Trabalhistas (CNDT)',conferido:'OK',observacoes:''},
+    {categoria:'3. Econômico-Financeira',documento:'Certidão de Falência e Concordata',conferido:'OK',observacoes:''},
+    {categoria:'3. Econômico-Financeira',documento:'Balanço Patrimonial do último exercício',conferido:'Pendente',observacoes:'Último balanço 2021'},
+    {categoria:'3. Econômico-Financeira',documento:'Índices financeiros (Liquidez, Solvência etc.)',conferido:'Pendente',observacoes:'Último 2021'},
+    {categoria:'4. Qualificação Técnica',documento:'Atestado(s) de Capacidade Técnica',conferido:'OK',observacoes:''},
+    {categoria:'4. Qualificação Técnica',documento:'Registro da empresa no CREA-PB',conferido:'Pendente',observacoes:'Está c/ débito conf conv Isabel'},
+    {categoria:'4. Qualificação Técnica',documento:'Certidão de Regularidade do Resp. Técnico (Claudio CREA-PB)',conferido:'OK',observacoes:''},
+    {categoria:'4. Qualificação Técnica',documento:'ARTs de serviços já executados',conferido:'OK',observacoes:''},
+    {categoria:'4. Qualificação Técnica',documento:'Portfólio, Catálogos, fichas técnicas',conferido:'',observacoes:''},
+    {categoria:'6. Licenças Ambientais',documento:'Licença da Vigilância Sanitária Municipal',conferido:'',observacoes:''},
+    {categoria:'7. Doc. Complementares',documento:'Certificado de calibração dos equipamentos',conferido:'',observacoes:''},
+    {categoria:'7. Doc. Complementares',documento:'Certificados dos analisadores eletrônicos',conferido:'',observacoes:''},
+    {categoria:'7. Doc. Complementares',documento:'Certificado da empresa na ANVISA',conferido:'',observacoes:''},
+    {categoria:'7. Doc. Complementares',documento:'Licença Ambiental (se exigido)',conferido:'',observacoes:''},
+    {categoria:'7. Doc. Complementares',documento:'Manual de Procedimentos Operacionais (POP)',conferido:'',observacoes:''},
+    {categoria:'7. Doc. Complementares',documento:'Plano de Gestão da Manutenção',conferido:'',observacoes:''},
+    {categoria:'7. Doc. Complementares',documento:'Certificado ISO (9001, 13485 etc.)',conferido:'',observacoes:''},
+    {categoria:'7. Doc. Complementares',documento:'Contratos de parceria com laboratórios',conferido:'',observacoes:''}
+  ]
+};
+
+// ══════════════════════════════════════════════════════════════
+//  SISTEMA DE EMPRESAS
+// ══════════════════════════════════════════════════════════════
 
 var senhaVis={};
 function toggleSenha(id){
@@ -1169,100 +1338,202 @@ function toggleSenha(id){
   btn.textContent=senhaVis[id]?'ocultar':'mostrar';
 }
 
-// ── Storage de certidões por empresa (localStorage) ──
-function getCerts(emp){
-  try{
-    var raw=localStorage.getItem('certs_'+emp);
-    if(raw) return JSON.parse(raw);
-  }catch(e){}
-  // Dados iniciais da planilha
-  return (EMP_DATA[emp]||{certidoes:[]}).certidoes.map(function(c,i){
-    return {id:i+1,item:c.item,validade:c.validade||'',status:c.status||'',dias:c.dias,link:c.link||''};
-  });
-}
-function saveCerts(emp, certs){
-  localStorage.setItem('certs_'+emp, JSON.stringify(certs));
+function stBadge(status,dias){
+  if(!status&&(dias===null||dias===undefined)) return '<span class="badge b-gray">—</span>';
+  if(status==='Vencido'||status==='Vencida'||status==='Pendência') return '<span class="badge b-red">'+(status==='Pendência'?'Pendência':'Vencida')+'</span>';
+  if(dias!==null&&dias!==undefined&&dias<0) return '<span class="badge b-red">Vencida</span>';
+  if(dias!==null&&dias!==undefined&&dias<=30) return '<span class="badge b-yellow">'+dias+' dias</span>';
+  return '<span class="badge b-green">Em dia</span>';
 }
 
-function certCardStatus(validade){
-  if(!validade) return {status:'',dias:null,cls:''};
-  var parts=validade.split('/');
-  if(parts.length!==3) return {status:'',dias:null,cls:''};
-  var d=new Date(parseInt(parts[2]),parseInt(parts[1])-1,parseInt(parts[0]));
+function calcDias(valBR){
+  if(!valBR) return null;
+  var p=valBR.split('/');
+  if(p.length!==3) return null;
+  var d=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
   var hoje=new Date(); hoje.setHours(0,0,0,0);
-  var diff=Math.round((d-hoje)/(1000*60*60*24));
-  if(diff<0) return {status:'Vencida',dias:diff,cls:'vencida'};
-  if(diff<=30) return {status:'Próximo',dias:diff,cls:'prox'};
-  return {status:'Em dia',dias:diff,cls:'ok'};
+  return Math.round((d-hoje)/(86400000));
+}
+function certCls(valBR){
+  var dias=calcDias(valBR);
+  if(dias===null) return '';
+  if(dias<0) return 'vencida';
+  if(dias<=30) return 'prox';
+  return 'ok';
 }
 
+// ── Storage (localStorage) ──
+function getLS(key,def){ try{ var r=localStorage.getItem(key); return r?JSON.parse(r):def; }catch(e){ return def; } }
+function setLS(key,val){ try{ localStorage.setItem(key,JSON.stringify(val)); }catch(e){} }
+
+function getPortais(emp){ return getLS('portais_'+emp, (EMP_DATA[emp]||{portais:[]}).portais.map(function(p,i){ return Object.assign({id:i+1},p); })); }
+function getCerts(emp){ return getLS('certs_'+emp, (EMP_DATA[emp]||{certidoes:[]}).certidoes.map(function(c,i){ return Object.assign({id:i+1},c); })); }
+function getDocs(emp){ return getLS('docs_'+emp, (EMP_DOCS[emp]||[]).map(function(d,i){ return Object.assign({id:i+1},d); })); }
+function savePortais(emp,d){ setLS('portais_'+emp,d); }
+function saveCerts(emp,d){ setLS('certs_'+emp,d); }
+function saveDocs(emp,d){ setLS('docs_'+emp,d); }
+
+// ══ BUILD EMPRESA ══════════════════════════════════════════════
 function buildEmpresa(emp){
   var el=document.getElementById('emp-body');
   var d=EMP_DATA[emp];
-  if(!d){el.innerHTML='<div class="empty"><p>Dados não encontrados para '+emp+'</p></div>';return;}
-  var ec=empColor(emp),eb=empBg(emp);
+  if(!d){el.innerHTML='<div class="empty"><p>Empresa não encontrada: '+emp+'</p></div>';return;}
+  var ec=empColor(emp);
 
   var certs=getCerts(emp);
-  var venc=certs.filter(function(c){var s=certCardStatus(c.validade);return s.dias!==null&&s.dias<0;}).length;
-  var prox=certs.filter(function(c){var s=certCardStatus(c.validade);return s.dias!==null&&s.dias>=0&&s.dias<=30;}).length;
+  var venc=certs.filter(function(c){ var dias=calcDias(c.validade); return dias!==null&&dias<0; }).length;
+  var prox=certs.filter(function(c){ var dias=calcDias(c.validade); return dias!==null&&dias>=0&&dias<=30; }).length;
 
-  // Header empresa
-  var h='<div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;padding:20px 22px;background:var(--s2);border:1px solid var(--b1);border-radius:14px;">';
-  h+='<div style="width:52px;height:52px;border-radius:14px;background:'+ec+';display:flex;align-items:center;justify-content:center;font-family:\'JetBrains Mono\',monospace;font-weight:800;font-size:15px;color:#000;flex-shrink:0;">'+emp.substring(0,2)+'</div>';
-  h+='<div style="flex:1"><div style="font-size:20px;font-weight:800;color:var(--t1)">'+emp+'</div><div style="font-size:12px;color:var(--t3)">CNPJ '+d.cnpj+'</div></div>';
-  if(venc>0) h+='<span class="badge b-red">'+venc+' vencida(s)</span>';
-  if(prox>0) h+='<span class="badge b-yellow">'+prox+' vencendo</span>';
+  var h='';
+
+  // ── Header ──
+  h+='<div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;padding:22px 26px;background:var(--s2);border:1px solid var(--b1);border-radius:14px">';
+  h+='<div style="width:56px;height:56px;border-radius:14px;background:'+ec+';display:flex;align-items:center;justify-content:center;font-family:\'JetBrains Mono\',monospace;font-weight:800;font-size:16px;color:#000;flex-shrink:0">'+emp.substring(0,2)+'</div>';
+  h+='<div style="flex:1"><div style="font-size:22px;font-weight:800;color:var(--t1)">'+emp+'</div><div style="font-size:13px;color:var(--t3)">CNPJ: '+d.cnpj+'</div></div>';
+  if(venc>0) h+='<span class="badge b-red">'+venc+' certidão(ões) vencida(s)</span>';
+  if(prox>0) h+='<span class="badge b-yellow">'+prox+' vencendo em breve</span>';
   h+='</div>';
 
-  // Portais — só leitura
-  h+='<div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;display:flex;align-items:center;gap:7px"><span style="width:3px;height:14px;background:var(--nh);border-radius:2px;display:inline-block"></span>Acesso aos Portais</div>';
-  h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:28px;">';
-  d.portais.forEach(function(p,i){
-    var sid=emp.replace(/\s/g,'')+'-'+i;
-    var stCls=p.status==='Vencida'?'b-red':p.status==='Sem Data'?'b-gray':'b-green';
-    h+='<div style="background:var(--s2);border:1px solid var(--b1);border-radius:12px;padding:16px 18px;">';
-    h+='<div style="font-size:14px;font-weight:700;color:var(--t1);margin-bottom:10px">'+p.portal+'</div>';
-    h+='<div style="display:flex;flex-direction:column;gap:6px;">';
-    if(p.login) h+='<div><span style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3)">Login</span><div style="font-size:13px;color:var(--t2)">'+p.login+'</div></div>';
-    if(p.senha) h+='<div><span style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3)">Senha</span><div style="font-size:13px;font-family:\'JetBrains Mono\',monospace"><span id="pw-'+sid+'" data-val="'+p.senha+'">••••••••</span> <span onclick="toggleSenha(\''+sid+'\')" id="pwbtn-'+sid+'" style="color:var(--nh);cursor:pointer;font-size:11px;font-weight:600;font-family:\'Outfit\',sans-serif">mostrar</span></div></div>';
-    if(p.vencimento) h+='<div><span style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3)">Vencimento</span><div style="font-size:13px;color:var(--t2)">'+p.vencimento+'</div></div>';
-    h+='<div style="margin-top:6px"><span class="badge '+stCls+'">'+p.status+'</span></div>';
-    if(p.obs) h+='<div style="font-size:11px;color:var(--t3);margin-top:4px">'+p.obs+'</div>';
-    h+='</div></div>';
-  });
-  h+='</div>';
+  // ── Seção Portais ──
+  h+=empSection('Portais de Acesso',
+    '<button class="btn-cert-add" onclick="addPortal(\''+emp+'\')">+ Novo Portal</button>',
+    renderPortaisGrid(emp)
+  );
 
-  // Certidões — Kanban editável
-  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">';
-  h+='<div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;display:flex;align-items:center;gap:7px"><span style="width:3px;height:14px;background:var(--nh);border-radius:2px;display:inline-block"></span>Certidões e Documentos</div>';
-  h+='<button class="btn-cert-add" onclick="addCert(\''+emp+'\')">+ Nova Certidão</button>';
-  h+='</div>';
+  // ── Seção Certidões ──
+  h+=empSection('Certidões e Documentos',
+    '<button class="btn-cert-add" onclick="addCert(\''+emp+'\')">+ Nova Certidão</button>',
+    '<div class="cert-grid" id="cert-grid-'+emp+'">'+renderCertsGrid(emp)+'</div>'
+  );
 
-  h+='<div class="cert-grid" id="cert-grid-'+emp+'">';
-  certs.forEach(function(c){
-    h+=renderCertCard(emp,c);
-  });
-  h+='</div>';
+  // ── Seção Documentação Exigível ──
+  h+=empSection('Documentação Exigível em Processos Licitatórios',
+    '<button class="btn-cert-add" onclick="addDoc(\''+emp+'\')">+ Novo Documento</button>',
+    renderDocsTable(emp)
+  );
 
   el.innerHTML=h;
 }
 
-function renderCertCard(emp,c){
-  var st=certCardStatus(c.validade);
-  var cls=st.cls;
-  var badge=st.dias!==null?(st.dias<0?'<span class="badge b-red">Vencida há '+(Math.abs(st.dias))+' dias</span>':st.dias<=30?'<span class="badge b-yellow">'+st.dias+' dias</span>':'<span class="badge b-green">Em dia — '+st.dias+' dias</span>'):'<span class="badge b-gray">Sem data</span>';
+function empSection(title,btn,content){
+  return '<div style="margin-bottom:28px">'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">'+
+      '<div style="font-size:13px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;display:flex;align-items:center;gap:8px">'+
+        '<span style="width:3px;height:16px;background:var(--nh);border-radius:2px;display:inline-block"></span>'+title+
+      '</div>'+btn+
+    '</div>'+content+'</div>';
+}
 
-  var h='<div class="cert-card '+cls+'" id="cert-'+emp.replace(/\s/g,'')+'-'+c.id+'">';
-  h+='<div class="cert-card-title">'+c.item+'</div>';
+// ══ PORTAIS ════════════════════════════════════════════════════
+function renderPortaisGrid(emp){
+  var portais=getPortais(emp);
+  if(!portais.length) return '<div class="empty" style="padding:20px"><p>Nenhum portal cadastrado</p></div>';
+  var h='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px">';
+  portais.forEach(function(p){ h+=renderPortalCard(emp,p); });
+  h+='</div>';
+  return h;
+}
+
+function renderPortalCard(emp,p){
+  var ek=emp.replace(/\s/g,'');
+  var sid=ek+'-p'+p.id;
+  var h='<div class="cert-card" id="portal-card-'+sid+'" style="border-left-color:var(--b_)">';
+  h+='<div class="cert-card-title" style="margin-bottom:14px">'+
+    '<input type="text" id="pp-nome-'+sid+'" value="'+p.portal.replace(/"/g,'&quot;')+'" placeholder="Nome do portal" style="font-size:15px;font-weight:700;background:transparent;border:none;border-bottom:1px dashed rgba(255,255,255,.15);color:var(--t1);width:100%;outline:none;padding:2px 0;font-family:Outfit,sans-serif">'+
+  '</div>';
   h+='<div class="cert-card-fields">';
-  h+='<div class="cert-field"><div class="cert-field-lbl">Documento</div><input type="text" id="cn-'+emp.replace(/\s/g,'')+'-'+c.id+'" value="'+c.item.replace(/"/g,'&quot;')+'" placeholder="Nome do documento"></div>';
-  h+='<div class="cert-field"><div class="cert-field-lbl">Validade</div><input type="date" id="cv-'+emp.replace(/\s/g,'')+'-'+c.id+'" value="'+isoDate(c.validade||'')+'"></div>';
-  h+='<div class="cert-field"><div class="cert-field-lbl">Status</div>'+badge+'</div>';
-  h+='<div class="cert-field"><div class="cert-field-lbl">Link para emitir</div><input type="url" id="cl-'+emp.replace(/\s/g,'')+'-'+c.id+'" value="'+(c.link||'').replace(/"/g,'&quot;')+'" placeholder="https://..."></div>';
+  h+='<div class="cert-field"><div class="cert-field-lbl">Login / Usuário</div><input type="text" id="pp-login-'+sid+'" value="'+p.login.replace(/"/g,'&quot;')+'" placeholder="Login ou e-mail"></div>';
+  h+='<div class="cert-field"><div class="cert-field-lbl">Senha</div>'+
+    '<div style="display:flex;align-items:center;gap:8px">'+
+      '<input type="password" id="pp-senha-'+sid+'" value="'+p.senha.replace(/"/g,'&quot;')+'" placeholder="Senha" style="background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.1);color:var(--t1);font-family:JetBrains Mono,monospace;font-size:13px;width:100%;outline:none;padding:3px 0">'+
+      '<span onclick="toggleSenhaInput(\'pp-senha-'+sid+'\')" style="color:var(--nh);cursor:pointer;font-size:11px;font-weight:600;flex-shrink:0">mostrar</span>'+
+    '</div>'+
+  '</div>';
+  h+='<div class="cert-field"><div class="cert-field-lbl">Vencimento</div><input type="date" id="pp-venc-'+sid+'" value="'+isoDate(p.vencimento||'')+'"></div>';
+  h+='<div class="cert-field"><div class="cert-field-lbl">Observações</div><input type="text" id="pp-obs-'+sid+'" value="'+p.obs.replace(/"/g,'&quot;')+'" placeholder="Observações"></div>';
+  h+='</div>';
+  h+='<div class="cert-card-actions">';
+  h+='<button class="btn-cert-save" onclick="savePortalCard(\''+emp+'\','+p.id+')">💾 Salvar</button>';
+  h+='<button class="btn-cert-del" onclick="deletePortal(\''+emp+'\','+p.id+')">✕</button>';
+  h+='</div>';
+  h+='</div>';
+  return h;
+}
+
+function toggleSenhaInput(id){
+  var el=document.getElementById(id);
+  if(!el) return;
+  el.type=el.type==='password'?'text':'password';
+}
+
+function savePortalCard(emp,id){
+  var ek=emp.replace(/\s/g,'');
+  var sid=ek+'-p'+id;
+  var portais=getPortais(emp);
+  var idx=portais.findIndex(function(p){return p.id===id;});
+  if(idx===-1) return;
+  portais[idx].portal=document.getElementById('pp-nome-'+sid).value;
+  portais[idx].login=document.getElementById('pp-login-'+sid).value;
+  portais[idx].senha=document.getElementById('pp-senha-'+sid).value;
+  var venc=document.getElementById('pp-venc-'+sid).value;
+  portais[idx].vencimento=venc?formatDateBR(venc):'';
+  portais[idx].obs=document.getElementById('pp-obs-'+sid).value;
+  savePortais(emp,portais);
+  toast('Portal salvo!','ok');
+}
+
+function deletePortal(emp,id){
+  if(!confirm('Excluir este portal?')) return;
+  var portais=getPortais(emp).filter(function(p){return p.id!==id;});
+  savePortais(emp,portais);
+  var ek=emp.replace(/\s/g,'');
+  var el=document.getElementById('portal-card-'+ek+'-p'+id);
+  if(el) el.remove();
+  toast('Portal excluído','info');
+}
+
+function addPortal(emp){
+  var portais=getPortais(emp);
+  var maxId=portais.reduce(function(m,p){return p.id>m?p.id:m;},0);
+  var novo={id:maxId+1,portal:'Novo Portal',login:'',senha:'',vencimento:'',status:'Sem Data',obs:''};
+  portais.push(novo);
+  savePortais(emp,portais);
+  var grid=document.querySelector('#emp-body [id^="portal-card-"]');
+  var container=grid?grid.parentElement:null;
+  if(container){
+    var div=document.createElement('div');
+    div.innerHTML=renderPortalCard(emp,novo);
+    container.appendChild(div.firstChild);
+  } else { buildEmpresa(emp); }
+  toast('Novo portal adicionado!','ok');
+}
+
+// ══ CERTIDÕES ══════════════════════════════════════════════════
+function renderCertsGrid(emp){
+  var certs=getCerts(emp);
+  if(!certs.length) return '<div class="empty" style="padding:20px"><p>Nenhuma certidão cadastrada</p></div>';
+  return certs.map(function(c){ return renderCertCard(emp,c); }).join('');
+}
+
+function renderCertCard(emp,c){
+  var ek=emp.replace(/\s/g,'');
+  var sid=ek+'-c'+c.id;
+  var dias=calcDias(c.validade);
+  var cls=certCls(c.validade);
+  var badgeHtml='<span class="badge '+(dias===null?'b-gray':dias<0?'b-red':dias<=30?'b-yellow':'b-green')+'">'+(dias===null?'Sem data':dias<0?'Vencida há '+Math.abs(dias)+' dias':dias<=30?dias+' dias':'Em dia — '+dias+' dias')+'</span>';
+
+  var h='<div class="cert-card '+cls+'" id="cert-card-'+sid+'">';
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">';
+  h+=badgeHtml;
+  h+='</div>';
+  h+='<div class="cert-card-fields">';
+  h+='<div class="cert-field"><div class="cert-field-lbl">Documento</div><input type="text" id="cc-nome-'+sid+'" value="'+c.item.replace(/"/g,'&quot;')+'" placeholder="Nome do documento"></div>';
+  h+='<div class="cert-field"><div class="cert-field-lbl">Validade</div><input type="date" id="cc-val-'+sid+'" value="'+isoDate(c.validade||'')+'"></div>';
+  h+='<div class="cert-field"><div class="cert-field-lbl">Link para emitir</div><input type="url" id="cc-link-'+sid+'" value="'+(c.link||'').replace(/"/g,'&quot;')+'" placeholder="https://..."></div>';
   h+='</div>';
   h+='<div class="cert-card-actions">';
   h+='<button class="btn-cert-save" onclick="saveCertCard(\''+emp+'\','+c.id+')">💾 Salvar</button>';
-  if(c.link) h+='<a href="'+c.link+'" target="_blank" class="klink" title="Emitir certidão" style="padding:6px 10px">↗</a>';
+  if(c.link) h+='<a href="'+c.link+'" target="_blank" class="klink" title="Emitir" style="padding:6px 10px">↗</a>';
   h+='<button class="btn-cert-del" onclick="deleteCert(\''+emp+'\','+c.id+')">✕</button>';
   h+='</div>';
   h+='</div>';
@@ -1270,38 +1541,29 @@ function renderCertCard(emp,c){
 }
 
 function saveCertCard(emp,id){
-  var empKey=emp.replace(/\s/g,'');
-  var nome=document.getElementById('cn-'+empKey+'-'+id);
-  var val=document.getElementById('cv-'+empKey+'-'+id);
-  var link=document.getElementById('cl-'+empKey+'-'+id);
-  if(!nome||!val) return;
+  var ek=emp.replace(/\s/g,'');
+  var sid=ek+'-c'+id;
   var certs=getCerts(emp);
   var idx=certs.findIndex(function(c){return c.id===id;});
   if(idx===-1) return;
-  certs[idx].item=nome.value;
-  certs[idx].validade=val.value?formatDateBR(val.value):certs[idx].validade;
-  certs[idx].link=link?link.value:'';
-  var st=certCardStatus(certs[idx].validade);
-  certs[idx].status=st.status;
-  certs[idx].dias=st.dias;
+  certs[idx].item=document.getElementById('cc-nome-'+sid).value;
+  var val=document.getElementById('cc-val-'+sid).value;
+  certs[idx].validade=val?formatDateBR(val):'';
+  certs[idx].link=document.getElementById('cc-link-'+sid).value;
+  var dias=calcDias(certs[idx].validade);
+  certs[idx].dias=dias;
+  certs[idx].status=dias===null?'':(dias<0?'Vencida':dias<=30?'Próximo':'Em dia');
   saveCerts(emp,certs);
-  // Rerender
-  var grid=document.getElementById('cert-grid-'+emp);
-  if(grid){
-    var cardEl=document.getElementById('cert-'+empKey+'-'+id);
-    if(cardEl) cardEl.outerHTML=renderCertCard(emp,certs[idx]);
-  }
+  var el=document.getElementById('cert-card-'+sid);
+  if(el){ var d=document.createElement('div'); d.innerHTML=renderCertCard(emp,certs[idx]); el.replaceWith(d.firstChild); }
   toast('Certidão salva!','ok');
 }
 
 function deleteCert(emp,id){
   if(!confirm('Excluir esta certidão?')) return;
-  var certs=getCerts(emp);
-  certs=certs.filter(function(c){return c.id!==id;});
-  saveCerts(emp,certs);
-  var empKey=emp.replace(/\s/g,'');
-  var cardEl=document.getElementById('cert-'+empKey+'-'+id);
-  if(cardEl) cardEl.remove();
+  saveCerts(emp,getCerts(emp).filter(function(c){return c.id!==id;}));
+  var el=document.getElementById('cert-card-'+emp.replace(/\s/g,'')+'-c'+id);
+  if(el) el.remove();
   toast('Certidão excluída','info');
 }
 
@@ -1312,12 +1574,83 @@ function addCert(emp){
   certs.push(nova);
   saveCerts(emp,certs);
   var grid=document.getElementById('cert-grid-'+emp);
-  if(grid){
-    var div=document.createElement('div');
-    div.innerHTML=renderCertCard(emp,nova);
-    grid.appendChild(div.firstChild);
-  }
-  toast('Nova certidão adicionada!','ok');
+  if(grid){ var d=document.createElement('div'); d.innerHTML=renderCertCard(emp,nova); grid.appendChild(d.firstChild); }
+  toast('Certidão adicionada!','ok');
+}
+
+// ══ DOCUMENTOS ═════════════════════════════════════════════════
+function renderDocsTable(emp){
+  var docs=getDocs(emp);
+  if(!docs.length) return '<div class="empty" style="padding:20px"><p>Nenhum documento cadastrado</p></div>';
+
+  var h='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">';
+  h+='<thead><tr style="background:rgba(0,0,0,.3)">';
+  h+='<th style="text-align:left;padding:10px 14px;font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.09em;border-bottom:1px solid var(--b1)">Categoria</th>';
+  h+='<th style="text-align:left;padding:10px 14px;font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.09em;border-bottom:1px solid var(--b1)">Documento</th>';
+  h+='<th style="text-align:center;padding:10px 14px;font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.09em;border-bottom:1px solid var(--b1);width:80px">✓</th>';
+  h+='<th style="text-align:left;padding:10px 14px;font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.09em;border-bottom:1px solid var(--b1)">Observações</th>';
+  h+='<th style="text-align:center;padding:10px 14px;font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.09em;border-bottom:1px solid var(--b1);width:60px">Ações</th>';
+  h+='</tr></thead><tbody id="docs-tbody-'+emp+'">';
+
+  docs.forEach(function(doc){ h+=renderDocRow(emp,doc); });
+  h+='</tbody></table></div>';
+  return h;
+}
+
+function renderDocRow(emp,doc){
+  var ek=emp.replace(/\s/g,'');
+  var sid=ek+'-d'+doc.id;
+  var confOk=doc.conferido&&doc.conferido.toLowerCase().indexOf('ok')!==-1;
+  var bg=confOk?'rgba(34,197,94,.04)':'rgba(239,68,68,.03)';
+  var r='<tr id="doc-row-'+sid+'" style="border-bottom:1px solid rgba(255,255,255,.04);background:'+bg+'">';
+  r+='<td style="padding:10px 14px;"><input type="text" value="'+doc.categoria.replace(/"/g,'&quot;')+'" id="dc-cat-'+sid+'" placeholder="Categoria" style="background:transparent;border:none;border-bottom:1px dashed rgba(255,255,255,.1);color:var(--t2);font-size:13px;width:100%;outline:none;padding:2px 0;font-family:Outfit,sans-serif;min-width:160px"></td>';
+  r+='<td style="padding:10px 14px;"><input type="text" value="'+doc.documento.replace(/"/g,'&quot;')+'" id="dc-doc-'+sid+'" placeholder="Documento" style="background:transparent;border:none;border-bottom:1px dashed rgba(255,255,255,.1);color:var(--t1);font-size:13px;font-weight:500;width:100%;outline:none;padding:2px 0;font-family:Outfit,sans-serif;min-width:200px"></td>';
+  r+='<td style="padding:10px 14px;text-align:center"><select id="dc-conf-'+sid+'" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);font-family:Outfit,sans-serif;font-size:12px;border-radius:6px;padding:4px 8px;cursor:pointer;outline:none">';
+  ['','OK','Pendente','N/A'].forEach(function(o){ r+='<option value="'+o+'"'+(doc.conferido===o?' selected':'')+'>'+( o||'—')+'</option>'; });
+  r+='</select></td>';
+  r+='<td style="padding:10px 14px;"><input type="text" value="'+(doc.observacoes||'').replace(/"/g,'&quot;')+'" id="dc-obs-'+sid+'" placeholder="Observações" style="background:transparent;border:none;border-bottom:1px dashed rgba(255,255,255,.1);color:var(--t3);font-size:12px;width:100%;outline:none;padding:2px 0;font-family:Outfit,sans-serif;min-width:180px"></td>';
+  r+='<td style="padding:10px 14px;text-align:center"><div style="display:flex;gap:4px;justify-content:center">';
+  r+='<button onclick="saveDocRow(\''+emp+'\','+doc.id+')" style="background:rgba(249,115,22,.1);color:var(--nh);border:1px solid rgba(249,115,22,.2);padding:4px 8px;border-radius:5px;cursor:pointer;font-size:11px;font-weight:600">💾</button>';
+  r+='<button onclick="deleteDoc(\''+emp+'\','+doc.id+')" style="background:rgba(239,68,68,.08);color:var(--r2);border:1px solid rgba(239,68,68,.15);padding:4px 8px;border-radius:5px;cursor:pointer;font-size:11px;font-weight:600">✕</button>';
+  r+='</div></td>';
+  r+='</tr>';
+  return r;
+}
+
+function saveDocRow(emp,id){
+  var ek=emp.replace(/\s/g,'');
+  var sid=ek+'-d'+id;
+  var docs=getDocs(emp);
+  var idx=docs.findIndex(function(d){return d.id===id;});
+  if(idx===-1) return;
+  docs[idx].categoria=document.getElementById('dc-cat-'+sid).value;
+  docs[idx].documento=document.getElementById('dc-doc-'+sid).value;
+  docs[idx].conferido=document.getElementById('dc-conf-'+sid).value;
+  docs[idx].observacoes=document.getElementById('dc-obs-'+sid).value;
+  saveDocs(emp,docs);
+  var row=document.getElementById('doc-row-'+sid);
+  if(row){ var d=document.createElement('tbody'); d.innerHTML=renderDocRow(emp,docs[idx]); row.replaceWith(d.firstChild); }
+  toast('Documento salvo!','ok');
+}
+
+function deleteDoc(emp,id){
+  if(!confirm('Excluir este documento?')) return;
+  saveDocs(emp,getDocs(emp).filter(function(d){return d.id!==id;}));
+  var el=document.getElementById('doc-row-'+emp.replace(/\s/g,'')+'-d'+id);
+  if(el) el.remove();
+  toast('Documento excluído','info');
+}
+
+function addDoc(emp){
+  var docs=getDocs(emp);
+  var maxId=docs.reduce(function(m,d){return d.id>m?d.id:m;},0);
+  var novo={id:maxId+1,categoria:'',documento:'Novo Documento',conferido:'',observacoes:''};
+  docs.push(novo);
+  saveDocs(emp,docs);
+  var tbody=document.getElementById('docs-tbody-'+emp);
+  if(tbody){ var d=document.createElement('tbody'); d.innerHTML=renderDocRow(emp,novo); tbody.appendChild(d.firstChild); }
+  else { buildEmpresa(emp); }
+  toast('Documento adicionado!','ok');
 }
 
 
