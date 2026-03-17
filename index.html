@@ -2031,6 +2031,19 @@ function kfieldEdit(lbl,val,ci,k,abs){
   return '<div class="kfield"><div class="kfield-lbl">'+lbl+'</div>'+inlineCell(k,abs,ci,val)+'</div>';
 }
 
+function kfieldLink(lbl,val,ci,k,abs){
+  var s=String(val||'').trim();
+  var inputId='lnk-'+k+'-'+abs+'-'+ci;
+  var linkIcon=s?'<a href="'+s+'" target="_blank" class="klink" title="Abrir" style="width:24px;height:24px;font-size:12px;margin-left:6px">&#8599;</a>':'';
+  return '<div class="kfield">'+
+    '<div class="kfield-lbl" style="display:flex;align-items:center">'+lbl+linkIcon+'</div>'+
+    '<input type="url" id="'+inputId+'" value="'+s.replace(/"/g,'&quot;')+'" placeholder="Cole o link aqui..." '+
+    'onblur="saveCell(\''+k+'\',' +abs+','+ci+',this.value)" '+
+    'style="background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.1);color:var(--t3);font-family:Outfit,sans-serif;font-size:11px;width:100%;outline:none;padding:3px 0">'+
+  '</div>';
+}
+
+
 function renderCard(k,row,abs){
   var id   = String(row[0]||'').trim();
   var data = String(row[1]||'').trim();
@@ -2194,7 +2207,7 @@ function renderCard(k,row,abs){
     h+=kfieldEdit('Concorrente 1º',   row[17],17,k,abs);
     h+=kfieldEdit('Valor 1º Col.',    row[18],18,k,abs);
     h+=kfieldEdit('Resumo Andamento', row[15],15,k,abs);
-    h+=kfieldEdit('Link Pasta',       row[19],19,k,abs);
+    h+=kfieldLink('Link Pasta', row[19],19,k,abs);
 
   } else if(k==='ganhas'){
     h+=kfieldEdit('Status Contrato',  row[9], 9, k,abs);
@@ -2273,7 +2286,7 @@ function inlineCell(k,abs,ci,v){
   var inputId='ic-'+k+'-'+abs+'-'+ci;
   // Colunas protegidas por fórmula — só leitura
   var protectedCols={
-    andamento:[1,2,3,4,5,6,7,19],
+    andamento:[1,2,3,4,5,6,7],
     finalizados:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]
   };
   if(protectedCols[k]&&protectedCols[k].indexOf(ci)!==-1){
@@ -2326,7 +2339,7 @@ function formatDateBR(iso){
 async function saveCell(k,rowIdx,ci,val){
   if(!API){toast('Configure a URL do Apps Script','err');return;}
   // Bloquear escrita em colunas protegidas por fórmula
-  var protectedCols={andamento:[1,2,3,4,5,6,7,19],finalizados:'all'};
+  var protectedCols={andamento:[1,2,3,4,5,6,7],finalizados:'all'};
   if(protectedCols[k]==='all'){toast('Aba Finalizados é somente leitura — gerenciada por fórmula','err');return;}
   if(Array.isArray(protectedCols[k])&&protectedCols[k].indexOf(ci)!==-1){
     toast('Campo protegido por fórmula — não pode ser editado aqui','err');return;
