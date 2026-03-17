@@ -756,6 +756,7 @@ select{color-scheme:dark;}
         <span style="font-size:11px;color:var(--t3);background:var(--nha2);border:1px solid rgba(249,115,22,.15);padding:4px 10px;border-radius:6px">⚡ ADJU = sim → Finalizados</span>
       </div>
       <div class="pills" id="pills-andamento"></div>
+      <div class="pills" id="status-pills-andamento" style="margin-top:8px"></div>
       <div id="tbl-andamento" class="tbl-wrap"><div class="load"><div class="spin"></div>Carregando...</div></div>
       <div class="pag" id="pag-andamento"></div>
     </div>
@@ -1916,6 +1917,7 @@ function sc(lbl,val,cls){
 }
 
 var PILL_EMPS={};
+var STATUS_FILTER={andamento:null};
 function renderPills(k,rows){
   var el=document.getElementById('pills-'+k);
   if(!el) return;
@@ -1928,6 +1930,46 @@ function renderPills(k,rows){
     parts.push('<div class="pill" onclick="setPill(this,\''+k+'\',\''+i+'\')">'+e+' ('+c[e]+')</div>');
   });
   el.innerHTML=parts.join('');
+
+  if(k!=='andamento') return;
+  var sp=document.getElementById('status-pills-andamento');
+  if(!sp) return;
+  var cats={
+    dark:  {lbl:'Sem informação',  cor:'#555',    bg:'rgba(100,100,100,.15)', count:0},
+    yellow:{lbl:'Em Andamento',    cor:'#eab308', bg:'rgba(234,179,8,.12)',   count:0},
+    green: {lbl:'Adjudicado 1º',   cor:'#22c55e', bg:'rgba(34,197,94,.12)',   count:0},
+    red:   {lbl:'Finalizado',      cor:'#ef4444', bg:'rgba(239,68,68,.12)',   count:0}
+  };
+  rows.forEach(function(r){ var cc=getAndamentoCor(r); if(cats[cc]) cats[cc].count++; });
+  var active=STATUS_FILTER[k];
+  var html='<div class="pill'+(active===null?' on':'')+'" onclick="setStatusFilter(\'andamento\',null)">Todos os status</div>';
+  ['dark','yellow','green','red'].forEach(function(key){
+    var cat=cats[key];
+    if(!cat.count) return;
+    var isOn=active===key;
+    html+='<div class="pill'+(isOn?' on':'')+'" onclick="setStatusFilter(\'andamento\',\''+key+'\')" '+
+      'style="border-color:'+cat.cor+';'+(isOn?'background:'+cat.bg+';color:'+cat.cor+';':'')+'">'+'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+cat.cor+';margin-right:5px;vertical-align:middle"></span>'+cat.lbl+' ('+cat.count+')</div>';
+  });
+  sp.innerHTML=html;
+}
+
+function setStatusFilter(k,cor){
+  STATUS_FILTER[k]=cor;
+  // Reaplicar filtro
+  var q=document.getElementById('q-'+k);
+  var query=q?q.value.toLowerCase():'';
+  if(cor===null){
+    FIL[k]=query?ALL[k].filter(function(r){return r.some(function(c){return String(c||'').toLowerCase().indexOf(query)!==-1;});}):ALL[k].slice();
+  } else {
+    FIL[k]=ALL[k].filter(function(r){
+      var matchCor=getAndamentoCor(r)===cor;
+      var matchQ=!query||r.some(function(c){return String(c||'').toLowerCase().indexOf(query)!==-1;});
+      return matchCor&&matchQ;
+    });
+  }
+  PG[k]=1;
+  renderPills(k,ALL[k]);
+  renderTbl(k);
 }
 function setPill(el,k,idx){
   document.querySelectorAll('#pills-'+k+' .pill').forEach(function(p){p.classList.remove('on');});
@@ -2032,6 +2074,21 @@ function kfieldEdit(lbl,val,ci,k,abs){
   return '<div class="kfield"><div class="kfield-lbl">'+lbl+'</div>'+inlineCell(k,abs,ci,val)+'</div>';
 }
 
+function getAndamentoCor(row){
+  var adju=String(row[16]||'').toLowerCase().trim();
+  var st=String(row[12]||'').toLowerCase().trim();
+  var cl=String(row[11]||'').toLowerCase().trim();
+  var p1=cl.indexOf('1')!==-1&&(cl.indexOf('posi')!==-1||cl.indexOf('lugar')!==-1||cl==='1'||cl==='1o'||cl==='1º');
+  if(!st&&!adju) return 'dark';
+  if(adju==='sim') return p1?'green':'red';
+  if(st==='em andamento'||st==='em disputa'||st==='aguardando') return 'yellow';
+  if(st==='ganha') return 'green';
+  if(st==='cancelado'||st==='desclassificado'||st==='inabilitado') return 'red';
+  if(st==='recurso') return 'yellow';
+  return 'dark';
+}
+
+
 function kfieldLink(lbl,val,ci,k,abs){
   var s=String(val||'').trim();
   var eid='lnk-'+k+'-'+abs+'-'+ci;
@@ -2059,26 +2116,7 @@ function renderCard(k,row,abs){
     var part=String(row[10]||'').toUpperCase().trim();
     cor=part==='SIM'?'green':part==='NÃO'||part==='NAO'?'red':part.indexOf('ANALI')!==-1?'yellow':'';
   } else if(k==='andamento'||k==='finalizados'){
-    var adju=String(row[16]||'').toLowerCase().trim();
-    var st12=String(row[12]||'').toLowerCase().trim();
-    var class11=String(row[11]||'').toLowerCase().trim(); // classificação
-    var primeiraPos=class11.indexOf('1')!==-1&&(class11.indexOf('posi')!==-1||class11.indexOf('lugar')!==-1||class11==='1'||class11==='1o'||class11==='1º');
-    if(!st12&&!adju){
-      cor='dark'; // sem informação — preto
-    } else if(adju==='sim'){
-      // ADJU = sim (finalizado) — verde se 1ª posição, vermelho se não
-      cor=primeiraPos?'green':'red';
-    } else if(st12==='em andamento'||st12==='em disputa'||st12==='aguardando'){
-      cor='yellow'; // em andamento — amarelo
-    } else if(st12==='ganha'){
-      cor='green';
-    } else if(st12==='cancelado'||st12==='desclassificado'||st12==='inabilitado'){
-      cor='red';
-    } else if(st12==='recurso'){
-      cor='yellow';
-    } else {
-      cor='dark';
-    }
+    cor=getAndamentoCor(row);
   } else if(k==='ganhas'){
     var stg=String(row[9]||'').trim();
     cor=stg==='EM EXECUÇÃO'?'green':stg==='FINALIZADO'?'blue':stg==='SUSPENSO'?'yellow':'red';
