@@ -214,6 +214,7 @@ select{color-scheme:dark}
 .kcard.yellow{border-left-color:#eab308;}
 .kcard.orange{border-left-color:#f97316;}
 .kcard.blue  {border-left-color:#3b82f6;}
+.kcard.dark  {border-left-color:#1e1e1e;}
 
 /* TOPO */
 .kcard-top{
@@ -2059,8 +2060,25 @@ function renderCard(k,row,abs){
     cor=part==='SIM'?'green':part==='NÃO'||part==='NAO'?'red':part.indexOf('ANALI')!==-1?'yellow':'';
   } else if(k==='andamento'||k==='finalizados'){
     var adju=String(row[16]||'').toLowerCase().trim();
-    var st12=String(row[12]||'').toUpperCase().trim();
-    cor=adju==='sim'?'orange':st12==='ADJUDICADO'?'green':st12==='CANCELADO'?'red':st12==='RECURSO'?'yellow':'blue';
+    var st12=String(row[12]||'').toLowerCase().trim();
+    var class11=String(row[11]||'').toLowerCase().trim(); // classificação
+    var primeiraPos=class11.indexOf('1')!==-1&&(class11.indexOf('posi')!==-1||class11.indexOf('lugar')!==-1||class11==='1'||class11==='1o'||class11==='1º');
+    if(!st12&&!adju){
+      cor='dark'; // sem informação — preto
+    } else if(adju==='sim'){
+      // ADJU = sim (finalizado) — verde se 1ª posição, vermelho se não
+      cor=primeiraPos?'green':'red';
+    } else if(st12==='em andamento'||st12==='em disputa'||st12==='aguardando'){
+      cor='yellow'; // em andamento — amarelo
+    } else if(st12==='ganha'){
+      cor='green';
+    } else if(st12==='cancelado'||st12==='desclassificado'||st12==='inabilitado'){
+      cor='red';
+    } else if(st12==='recurso'){
+      cor='yellow';
+    } else {
+      cor='dark';
+    }
   } else if(k==='ganhas'){
     var stg=String(row[9]||'').trim();
     cor=stg==='EM EXECUÇÃO'?'green':stg==='FINALIZADO'?'blue':stg==='SUSPENSO'?'yellow':'red';
