@@ -715,6 +715,9 @@ select{color-scheme:dark;}
       <div class="topbar-sub" id="tbSub">Visão consolidada · NH Licitações 2026</div>
     </div>
     <div class="topbar-actions">
+      <span id="saving-dot" style="opacity:0;transition:opacity .3s;font-size:11px;color:var(--y2);display:flex;align-items:center;gap:5px">
+        <span style="width:7px;height:7px;border-radius:50%;background:var(--y2);display:inline-block;animation:blink 1s infinite"></span>salvando...
+      </span>
       <button class="btn btn-ghost btn-sm" onclick="reload()">
         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
         Atualizar
@@ -2393,43 +2396,78 @@ function formatDateBR(iso){
   return iso;
 }
 
-async function saveCell(k,rowIdx,ci,val){
+// ── FILA DE SALVAMENTO OTIMISTA ──────────────────────────────
+var _saveQueue=[];
+var _saveRunning=false;
+var _saveTimer={};
+
+function saveCell(k,rowIdx,ci,val){
   if(!API){toast('Configure a URL do Apps Script','err');return;}
-  // Bloquear escrita em colunas protegidas por fórmula
   var protectedCols={andamento:[1,2,3,4,5,6,7],finalizados:'all'};
-  if(protectedCols[k]==='all'){toast('Aba Finalizados é somente leitura — gerenciada por fórmula','err');return;}
+  if(protectedCols[k]==='all'){toast('Aba Finalizados é somente leitura','err');return;}
   if(Array.isArray(protectedCols[k])&&protectedCols[k].indexOf(ci)!==-1){
-    toast('Campo protegido por fórmula — não pode ser editado aqui','err');return;
+    toast('Campo protegido por fórmula','err');return;
   }
+
+  // ── Atualização imediata na memória (otimista) ──
   var row=FIL[k][rowIdx].slice();
   row[ci]=val;
   var rowId=parseInt(row[0]);
-  if(!rowId){toast('ID inválido — não foi possível salvar','err');return;}
-  // Garante que o array tem colunas suficientes
-  while(row.length < 25) row.push('');
-  var btn=document.getElementById('ic-'+k+'-'+rowIdx+'-'+ci);
-  if(btn) btn.style.opacity='.5';
+  if(!rowId) return;
+  while(row.length<25) row.push('');
+  FIL[k][rowIdx]=row;
+  ALL[k]=ALL[k].map(function(r){return parseInt(r[0])===rowId?row:r;});
+
+  // Indicador discreto de pendente
+  setSavingDot(true);
+
+  // ── Debounce por campo: agrupa edições rápidas no mesmo campo ──
+  var key=k+'-'+rowIdx+'-'+ci;
+  if(_saveTimer[key]) clearTimeout(_saveTimer[key]);
+  _saveTimer[key]=setTimeout(function(){
+    delete _saveTimer[key];
+    // Enfileirar salvamento
+    _saveQueue.push({k:k,rowIdx:rowIdx,ci:ci,rowId:rowId,row:FIL[k][rowIdx].slice()});
+    if(!_saveRunning) _processQueue();
+  }, 600); // aguarda 600ms após última digitação
+}
+
+function setSavingDot(on){
+  var dot=document.getElementById('saving-dot');
+  if(!dot) return;
+  dot.style.opacity=on?'1':'0';
+}
+
+async function _processQueue(){
+  if(_saveRunning||!_saveQueue.length){
+    if(!_saveQueue.length) setSavingDot(false);
+    return;
+  }
+  _saveRunning=true;
+  var item=_saveQueue.shift();
+  var k=item.k, ci=item.ci, rowId=item.rowId, row=item.row;
+
   var res=await apiPost({action:'update',sheet:SHEETS[k],values:row,rowIndex:rowId});
-  if(btn) btn.style.opacity='1';
+  _saveRunning=false;
+
   if(res&&res.success){
-    FIL[k][rowIdx]=row;
-    ALL[k]=ALL[k].map(function(r){return parseInt(r[0])===rowId?row:r;});
-    toast('Salvo!','ok');
     if(k==='andamento'&&ci===16){
-      if(String(val).toLowerCase()==='sim'){
-        toast('Copiado para Finalizados!','info');
-      } else {
-        toast('Revertido de Finalizados','info');
-      }
+      var v=String(row[16]||'').toLowerCase().trim();
+      toast(v==='sim'?'ADJU → Finalizados!':'Revertido de Finalizados','info');
       await _load('finalizados');
       await _load('andamento');
-    } else {
-      renderTbl(k);
     }
     if(CUR==='resumo') buildResumo();
   } else {
-    var msg=res&&res.error?res.error:'Erro ao salvar — verifique a conexão';
+    var msg=res&&res.error?res.error:'Erro ao salvar';
     toast(msg,'err');
+  }
+
+  // Processar próximo da fila
+  if(_saveQueue.length){
+    _processQueue();
+  } else {
+    setSavingDot(false);
   }
 }
 
