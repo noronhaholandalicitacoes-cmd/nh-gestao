@@ -387,6 +387,55 @@ textarea::placeholder{color:var(--t4);font-style:italic;}
 select option{background:#161616;color:#f5f5f5;}
 select{color-scheme:dark;}
 
+/* ══ CERTIDÃO CARDS ══════════════════════════════════════════ */
+.cert-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:24px;}
+.cert-card{
+  background:var(--s2);border:1px solid var(--b1);border-radius:14px;
+  padding:20px 22px;position:relative;
+  border-left:4px solid var(--b2);transition:all .18s;
+}
+.cert-card:hover{background:var(--s3);}
+.cert-card.vencida{border-left-color:var(--r1);background:rgba(239,68,68,.04);}
+.cert-card.prox{border-left-color:var(--y1);background:rgba(234,179,8,.04);}
+.cert-card.ok{border-left-color:var(--g1);}
+.cert-card-title{font-size:15px;font-weight:700;color:var(--t1);margin-bottom:12px;line-height:1.3;}
+.cert-card-fields{display:flex;flex-direction:column;gap:10px;}
+.cert-field{display:flex;flex-direction:column;gap:4px;}
+.cert-field-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.09em;font-weight:700;color:var(--t3);}
+.cert-field-val{font-size:13px;color:var(--t1);}
+.cert-field input[type=text],.cert-field input[type=date]{
+  background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.1);
+  color:var(--t1);font-family:'Outfit',sans-serif;font-size:13px;
+  width:100%;outline:none;padding:3px 0;transition:border-color .15s;
+}
+.cert-field input:focus{border-bottom-color:var(--nh);}
+.cert-field select{
+  background:var(--s2);border:1px solid var(--b1);color:var(--t1);
+  font-family:'Outfit',sans-serif;font-size:13px;border-radius:6px;
+  padding:5px 8px;width:100%;cursor:pointer;outline:none;
+}
+.cert-field select:focus{border-color:var(--nh);}
+.cert-card-actions{display:flex;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.05);}
+.btn-cert-save{
+  background:rgba(249,115,22,.12);color:var(--nh);border:1px solid rgba(249,115,22,.25);
+  padding:6px 14px;font-size:12px;font-weight:600;border-radius:7px;
+  cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;flex:1;
+}
+.btn-cert-save:hover{background:rgba(249,115,22,.22);}
+.btn-cert-del{
+  background:rgba(239,68,68,.08);color:var(--r2);border:1px solid rgba(239,68,68,.15);
+  padding:6px 12px;font-size:12px;font-weight:600;border-radius:7px;
+  cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;
+}
+.btn-cert-del:hover{background:rgba(239,68,68,.18);}
+.btn-cert-add{
+  background:var(--nh);color:#000;border:none;
+  padding:9px 18px;font-size:13px;font-weight:700;border-radius:9px;
+  cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;
+  display:inline-flex;align-items:center;gap:7px;margin-bottom:20px;
+}
+.btn-cert-add:hover{background:var(--nho);transform:translateY(-1px);}
+
 /* ─── BADGES ─────────────────────────────── */
 .badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
 .b-nh{background:rgba(249,115,22,.15);color:var(--nho)}
@@ -1101,14 +1150,16 @@ var EMP_DATA = {
 };
 
 function stBadge(status, dias){
+  if(!status&&(dias===null||dias===undefined)) return '<span class="badge b-gray">—</span>';
   if(status==='Vencido'||status==='Vencida') return '<span class="badge b-red">Vencida</span>';
   if(status==='Pendência') return '<span class="badge b-red">Pendência</span>';
-  if(status==='Próximo do vencimento'||(dias!==null&&dias<=30)) return '<span class="badge b-yellow">'+dias+' dias</span>';
+  if(dias!==null&&dias!==undefined&&dias<=0) return '<span class="badge b-red">Vencida</span>';
+  if(dias!==null&&dias!==undefined&&dias<=30) return '<span class="badge b-yellow">'+dias+' dias</span>';
   if(status==='Em dia') return '<span class="badge b-green">Em dia</span>';
-  return '<span class="badge b-gray">'+status+'</span>';
+  return '<span class="badge b-gray">'+(status||'—')+'</span>';
 }
 
-var senhaVis = {};
+var senhaVis={};
 function toggleSenha(id){
   var el=document.getElementById('pw-'+id);
   var btn=document.getElementById('pwbtn-'+id);
@@ -1118,64 +1169,157 @@ function toggleSenha(id){
   btn.textContent=senhaVis[id]?'ocultar':'mostrar';
 }
 
+// ── Storage de certidões por empresa (localStorage) ──
+function getCerts(emp){
+  try{
+    var raw=localStorage.getItem('certs_'+emp);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  // Dados iniciais da planilha
+  return (EMP_DATA[emp]||{certidoes:[]}).certidoes.map(function(c,i){
+    return {id:i+1,item:c.item,validade:c.validade||'',status:c.status||'',dias:c.dias,link:c.link||''};
+  });
+}
+function saveCerts(emp, certs){
+  localStorage.setItem('certs_'+emp, JSON.stringify(certs));
+}
+
+function certCardStatus(validade){
+  if(!validade) return {status:'',dias:null,cls:''};
+  var parts=validade.split('/');
+  if(parts.length!==3) return {status:'',dias:null,cls:''};
+  var d=new Date(parseInt(parts[2]),parseInt(parts[1])-1,parseInt(parts[0]));
+  var hoje=new Date(); hoje.setHours(0,0,0,0);
+  var diff=Math.round((d-hoje)/(1000*60*60*24));
+  if(diff<0) return {status:'Vencida',dias:diff,cls:'vencida'};
+  if(diff<=30) return {status:'Próximo',dias:diff,cls:'prox'};
+  return {status:'Em dia',dias:diff,cls:'ok'};
+}
+
 function buildEmpresa(emp){
   var el=document.getElementById('emp-body');
   var d=EMP_DATA[emp];
   if(!d){el.innerHTML='<div class="empty"><p>Dados não encontrados para '+emp+'</p></div>';return;}
+  var ec=empColor(emp),eb=empBg(emp);
 
-  var venc=d.certidoes.filter(function(c){return c.status==='Vencido'||c.status==='Vencida'||c.status==='Pendência';}).length;
-  var prox=d.certidoes.filter(function(c){return c.status==='Próximo do vencimento'||(c.dias!==null&&c.dias<=30&&c.dias>=0);}).length;
+  var certs=getCerts(emp);
+  var venc=certs.filter(function(c){var s=certCardStatus(c.validade);return s.dias!==null&&s.dias<0;}).length;
+  var prox=certs.filter(function(c){var s=certCardStatus(c.validade);return s.dias!==null&&s.dias>=0&&s.dias<=30;}).length;
 
-  // Alert bar
-  var alertBar='';
-  if(venc>0) alertBar+='<div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:10px 16px;margin-bottom:14px;font-size:13px;color:var(--r2)">⚠️ <strong>'+venc+' certidão(ões) vencida(s)</strong> — renovação urgente necessária</div>';
-  if(prox>0) alertBar+='<div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:8px;padding:10px 16px;margin-bottom:14px;font-size:13px;color:var(--y2)">🕐 <strong>'+prox+' certidão(ões)</strong> vencendo em menos de 30 dias</div>';
+  // Header empresa
+  var h='<div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;padding:20px 22px;background:var(--s2);border:1px solid var(--b1);border-radius:14px;">';
+  h+='<div style="width:52px;height:52px;border-radius:14px;background:'+ec+';display:flex;align-items:center;justify-content:center;font-family:\'JetBrains Mono\',monospace;font-weight:800;font-size:15px;color:#000;flex-shrink:0;">'+emp.substring(0,2)+'</div>';
+  h+='<div style="flex:1"><div style="font-size:20px;font-weight:800;color:var(--t1)">'+emp+'</div><div style="font-size:12px;color:var(--t3)">CNPJ '+d.cnpj+'</div></div>';
+  if(venc>0) h+='<span class="badge b-red">'+venc+' vencida(s)</span>';
+  if(prox>0) h+='<span class="badge b-yellow">'+prox+' vencendo</span>';
+  h+='</div>';
 
-  // Portais table
-  var portaisRows=d.portais.map(function(p,i){
+  // Portais — só leitura
+  h+='<div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;display:flex;align-items:center;gap:7px"><span style="width:3px;height:14px;background:var(--nh);border-radius:2px;display:inline-block"></span>Acesso aos Portais</div>';
+  h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:28px;">';
+  d.portais.forEach(function(p,i){
     var sid=emp.replace(/\s/g,'')+'-'+i;
     var stCls=p.status==='Vencida'?'b-red':p.status==='Sem Data'?'b-gray':'b-green';
-    return '<tr>'+
-      '<td class="primary">'+p.portal+'</td>'+
-      '<td>'+p.login+'</td>'+
-      '<td><span id="pw-'+sid+'" data-val="'+p.senha+'" style="font-family:\'JetBrains Mono\',monospace;font-size:12px">'+( p.senha?'••••••••':'—')+'</span>'+
-        (p.senha?'&nbsp;<span onclick="toggleSenha(\''+sid+'\')" id="pwbtn-'+sid+'" style="color:var(--nh);cursor:pointer;font-size:11px;font-weight:600">mostrar</span>':'')+
-      '</td>'+
-      '<td>'+(p.vencimento||'—')+'</td>'+
-      '<td><span class="badge '+stCls+'">'+p.status+'</span></td>'+
-      '<td style="color:var(--t3);font-size:11px">'+p.obs+'</td>'+
-    '</tr>';
-  }).join('');
+    h+='<div style="background:var(--s2);border:1px solid var(--b1);border-radius:12px;padding:16px 18px;">';
+    h+='<div style="font-size:14px;font-weight:700;color:var(--t1);margin-bottom:10px">'+p.portal+'</div>';
+    h+='<div style="display:flex;flex-direction:column;gap:6px;">';
+    if(p.login) h+='<div><span style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3)">Login</span><div style="font-size:13px;color:var(--t2)">'+p.login+'</div></div>';
+    if(p.senha) h+='<div><span style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3)">Senha</span><div style="font-size:13px;font-family:\'JetBrains Mono\',monospace"><span id="pw-'+sid+'" data-val="'+p.senha+'">••••••••</span> <span onclick="toggleSenha(\''+sid+'\')" id="pwbtn-'+sid+'" style="color:var(--nh);cursor:pointer;font-size:11px;font-weight:600;font-family:\'Outfit\',sans-serif">mostrar</span></div></div>';
+    if(p.vencimento) h+='<div><span style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3)">Vencimento</span><div style="font-size:13px;color:var(--t2)">'+p.vencimento+'</div></div>';
+    h+='<div style="margin-top:6px"><span class="badge '+stCls+'">'+p.status+'</span></div>';
+    if(p.obs) h+='<div style="font-size:11px;color:var(--t3);margin-top:4px">'+p.obs+'</div>';
+    h+='</div></div>';
+  });
+  h+='</div>';
 
-  // Certidoes table
-  var certRows=d.certidoes.map(function(c){
-    var rowStyle=c.status==='Vencido'||c.status==='Vencida'||c.status==='Pendência'?'background:rgba(239,68,68,.04)':
-      (c.dias!==null&&c.dias<=15&&c.dias>=0)?'background:rgba(245,158,11,.04)':'';
-    return '<tr style="'+rowStyle+'">'+
-      '<td class="primary">'+c.item+'</td>'+
-      '<td>'+(c.validade||'—')+'</td>'+
-      '<td>'+stBadge(c.status,c.dias)+'</td>'+
-      '<td>'+(c.link?'<a href="'+c.link+'" target="_blank" style="color:var(--nh);font-size:11px;font-weight:600">Emitir →</a>':'—')+'</td>'+
-    '</tr>';
-  }).join('');
+  // Certidões — Kanban editável
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">';
+  h+='<div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;display:flex;align-items:center;gap:7px"><span style="width:3px;height:14px;background:var(--nh);border-radius:2px;display:inline-block"></span>Certidões e Documentos</div>';
+  h+='<button class="btn-cert-add" onclick="addCert(\''+emp+'\')">+ Nova Certidão</button>';
+  h+='</div>';
 
-  el.innerHTML=
-    '<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">'+
-      '<div style="background:linear-gradient(135deg,#fb923c,#f97316);width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:\'JetBrains Mono\',monospace;font-weight:700;font-size:13px;color:#000;flex-shrink:0">'+emp.substring(0,2)+'</div>'+
-      '<div><div style="font-size:18px;font-weight:800;color:var(--t1)">'+emp+'</div><div style="font-size:12px;color:var(--t3)">CNPJ '+d.cnpj+'</div></div>'+
-    '</div>'+
-    alertBar+
-    '<div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;display:flex;align-items:center;gap:7px"><span style="width:3px;height:12px;background:var(--nh);border-radius:2px;display:inline-block"></span>Acesso aos Portais</div>'+
-    '<div class="tbl-wrap" style="margin-bottom:22px">'+
-      '<table><thead><tr><th>Portal</th><th>Login</th><th>Senha</th><th>Vencimento</th><th>Status</th><th>Obs.</th></tr></thead>'+
-      '<tbody>'+portaisRows+'</tbody></table>'+
-    '</div>'+
-    '<div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;display:flex;align-items:center;gap:7px"><span style="width:3px;height:12px;background:var(--nh);border-radius:2px;display:inline-block"></span>Certidões e Documentos</div>'+
-    '<div class="tbl-wrap">'+
-      '<table><thead><tr><th>Documento</th><th>Validade</th><th>Status</th><th>Emitir</th></tr></thead>'+
-      '<tbody>'+certRows+'</tbody></table>'+
-    '</div>';
+  h+='<div class="cert-grid" id="cert-grid-'+emp+'">';
+  certs.forEach(function(c){
+    h+=renderCertCard(emp,c);
+  });
+  h+='</div>';
+
+  el.innerHTML=h;
 }
+
+function renderCertCard(emp,c){
+  var st=certCardStatus(c.validade);
+  var cls=st.cls;
+  var badge=st.dias!==null?(st.dias<0?'<span class="badge b-red">Vencida há '+(Math.abs(st.dias))+' dias</span>':st.dias<=30?'<span class="badge b-yellow">'+st.dias+' dias</span>':'<span class="badge b-green">Em dia — '+st.dias+' dias</span>'):'<span class="badge b-gray">Sem data</span>';
+
+  var h='<div class="cert-card '+cls+'" id="cert-'+emp.replace(/\s/g,'')+'-'+c.id+'">';
+  h+='<div class="cert-card-title">'+c.item+'</div>';
+  h+='<div class="cert-card-fields">';
+  h+='<div class="cert-field"><div class="cert-field-lbl">Documento</div><input type="text" id="cn-'+emp.replace(/\s/g,'')+'-'+c.id+'" value="'+c.item.replace(/"/g,'&quot;')+'" placeholder="Nome do documento"></div>';
+  h+='<div class="cert-field"><div class="cert-field-lbl">Validade</div><input type="date" id="cv-'+emp.replace(/\s/g,'')+'-'+c.id+'" value="'+isoDate(c.validade||'')+'"></div>';
+  h+='<div class="cert-field"><div class="cert-field-lbl">Status</div>'+badge+'</div>';
+  h+='<div class="cert-field"><div class="cert-field-lbl">Link para emitir</div><input type="url" id="cl-'+emp.replace(/\s/g,'')+'-'+c.id+'" value="'+(c.link||'').replace(/"/g,'&quot;')+'" placeholder="https://..."></div>';
+  h+='</div>';
+  h+='<div class="cert-card-actions">';
+  h+='<button class="btn-cert-save" onclick="saveCertCard(\''+emp+'\','+c.id+')">💾 Salvar</button>';
+  if(c.link) h+='<a href="'+c.link+'" target="_blank" class="klink" title="Emitir certidão" style="padding:6px 10px">↗</a>';
+  h+='<button class="btn-cert-del" onclick="deleteCert(\''+emp+'\','+c.id+')">✕</button>';
+  h+='</div>';
+  h+='</div>';
+  return h;
+}
+
+function saveCertCard(emp,id){
+  var empKey=emp.replace(/\s/g,'');
+  var nome=document.getElementById('cn-'+empKey+'-'+id);
+  var val=document.getElementById('cv-'+empKey+'-'+id);
+  var link=document.getElementById('cl-'+empKey+'-'+id);
+  if(!nome||!val) return;
+  var certs=getCerts(emp);
+  var idx=certs.findIndex(function(c){return c.id===id;});
+  if(idx===-1) return;
+  certs[idx].item=nome.value;
+  certs[idx].validade=val.value?formatDateBR(val.value):certs[idx].validade;
+  certs[idx].link=link?link.value:'';
+  var st=certCardStatus(certs[idx].validade);
+  certs[idx].status=st.status;
+  certs[idx].dias=st.dias;
+  saveCerts(emp,certs);
+  // Rerender
+  var grid=document.getElementById('cert-grid-'+emp);
+  if(grid){
+    var cardEl=document.getElementById('cert-'+empKey+'-'+id);
+    if(cardEl) cardEl.outerHTML=renderCertCard(emp,certs[idx]);
+  }
+  toast('Certidão salva!','ok');
+}
+
+function deleteCert(emp,id){
+  if(!confirm('Excluir esta certidão?')) return;
+  var certs=getCerts(emp);
+  certs=certs.filter(function(c){return c.id!==id;});
+  saveCerts(emp,certs);
+  var empKey=emp.replace(/\s/g,'');
+  var cardEl=document.getElementById('cert-'+empKey+'-'+id);
+  if(cardEl) cardEl.remove();
+  toast('Certidão excluída','info');
+}
+
+function addCert(emp){
+  var certs=getCerts(emp);
+  var maxId=certs.reduce(function(m,c){return c.id>m?c.id:m;},0);
+  var nova={id:maxId+1,item:'Nova Certidão',validade:'',status:'',dias:null,link:''};
+  certs.push(nova);
+  saveCerts(emp,certs);
+  var grid=document.getElementById('cert-grid-'+emp);
+  if(grid){
+    var div=document.createElement('div');
+    div.innerHTML=renderCertCard(emp,nova);
+    grid.appendChild(div.firstChild);
+  }
+  toast('Nova certidão adicionada!','ok');
+}
+
 
 if(API){document.getElementById('apiUrl').value=API;setSt('ok');}
 
@@ -1350,15 +1494,22 @@ function buildResumo(){
     ?'<div class="r-kpi nh-accent"><div class="rkpi-lbl">Total Faturado / Faturar</div><div class="rkpi-val" style="font-size:18px;color:var(--nh)">'+fmtVal(totalVal)+'</div><div class="rkpi-sub">soma dos contratos ganhos</div></div>'
     :'';
 
-  // Valor por empresa
+  // Valor por empresa — todas as empresas das ganhas
   var empVal={};
   ga.forEach(function(r){
     var e=String(r[2]||'').trim();
+    if(!e) return;
     var raw=String(r[19]||r[7]||'').replace(/R\$\s*/g,'').trim();
-    var v=parseFloat(raw.indexOf(',')!==-1?raw.replace(/\./g,'').replace(',','.'):raw)||0;
-    empVal[e]=(empVal[e]||0)+v;
+    var n=0;
+    if(raw){
+      n=parseFloat(raw.indexOf(',')!==-1?raw.replace(/\./g,'').replace(',','.'):raw.replace(/[^\d.]/g,''))||0;
+    }
+    empVal[e]=(empVal[e]||0)+n;
   });
-  var empValItems=Object.entries(empVal).filter(function(x){return x[1]>0;}).sort(function(a,b){return b[1]-a[1];});
+  // Incluir todas as empresas conhecidas mesmo com valor 0
+  var TODAS_EMPS=['VISE','SOS','SAUTEC','SOS FILIAL','ONLAV','ENGEMED','POTIGUAR'];
+  TODAS_EMPS.forEach(function(e){if(!empVal[e]) empVal[e]=0;});
+  var empValItems=Object.entries(empVal).sort(function(a,b){return b[1]-a[1];});
 
   el.innerHTML=
     '<div class="r-kpis">'+
@@ -1378,7 +1529,11 @@ function buildResumo(){
     '</div>'+
     '<div class="r-cards">'+
       '<div class="rcard"><div class="rcard-title"><div class="rcard-title-dot" style="background:var(--nh)"></div>Valor Total por Empresa (Ganhas)</div><div class="rcard-rows">'+
-        (empValItems.length?empValItems.map(function(x){return '<div class="rcard-row"><span class="rcard-row-k">'+x[0]+'</span><span class="rcard-row-v nh" style="font-size:12px">'+fmtVal(x[1])+'</span></div>';}).join(''):'<div class="rcard-row"><span class="rcard-row-k" style="color:var(--t3)">Sem dados</span></div>')+
+        empValItems.map(function(x){
+          var cor=x[1]>0?'nh':'';
+          var val=x[1]>0?fmtVal(x[1]):'R$ 0,00';
+          return '<div class="rcard-row"><span class="rcard-row-k">'+x[0]+'</span><span class="rcard-row-v '+cor+'" style="font-size:12px">'+val+'</span></div>';
+        }).join('')+
       '</div></div>'+
     '</div>';
 }
