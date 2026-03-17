@@ -2033,11 +2033,12 @@ function kfieldEdit(lbl,val,ci,k,abs){
 
 function kfieldLink(lbl,val,ci,k,abs){
   var s=String(val||'').trim();
-  var inputId='lnk-'+k+'-'+abs+'-'+ci;
-  var linkIcon=s?'<a href="'+s+'" target="_blank" class="klink" title="Abrir" style="width:24px;height:24px;font-size:12px;margin-left:6px">&#8599;</a>':'';
+  var eid='lnk-'+k+'-'+abs+'-'+ci;
+  var icon=s?'<a href="'+s+'" target="_blank" class="klink" title="Abrir" style="width:22px;height:22px;font-size:11px;margin-left:6px;flex-shrink:0">&#8599;</a>':'';
+  var encoded=encodeURIComponent(s);
   return '<div class="kfield">'+
-    '<div class="kfield-lbl" style="display:flex;align-items:center">'+lbl+linkIcon+'</div>'+
-    '<input type="url" id="'+inputId+'" value="'+s.replace(/"/g,'&quot;')+'" placeholder="Cole o link aqui..." '+
+    '<div class="kfield-lbl" style="display:flex;align-items:center;gap:4px">'+lbl+icon+'</div>'+
+    '<input type="text" id="'+eid+'" data-val="'+encoded+'" placeholder="Cole o link aqui..." '+
     'onblur="saveCell(\''+k+'\',' +abs+','+ci+',this.value)" '+
     'style="background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.1);color:var(--t3);font-family:Outfit,sans-serif;font-size:11px;width:100%;outline:none;padding:3px 0">'+
   '</div>';
@@ -2275,8 +2276,8 @@ function renderTbl(k){
   wrapper.style.border='none';
   wrapper.innerHTML=h;
   // Preencher todos os textareas com data-val
-  wrapper.querySelectorAll('textarea[data-val]').forEach(function(ta){
-    ta.value=decodeURIComponent(ta.getAttribute('data-val')||'');
+  wrapper.querySelectorAll('[data-val]').forEach(function(el){
+    el.value=decodeURIComponent(el.getAttribute('data-val')||'');
   });
   renderPag(k,tot);
 }
@@ -2311,7 +2312,7 @@ function inlineCell(k,abs,ci,v){
     return '<input type="date" id="'+inputId+'" value="'+isoDate(s)+'" onchange="saveCell(\''+k+'\','+abs+','+ci+',formatDateBR(this.value))">';
   }
   // Campos longos (objeto, resumo, justificativa, observações) usam textarea
-  var longCols={editais:[4,12],andamento:[4,15],finalizados:[4,15],ganhas:[4,20],atestados:[4,19],financeiro:[7]};
+  var longCols={editais:[4,12],andamento:[4,15],finalizados:[4,15],ganhas:[4,20],atestados:[4],financeiro:[7]};
   var isLong=longCols[k]&&longCols[k].indexOf(ci)!==-1;
   if(isLong){
     var ph=ci===12?'Justificativa...':ci===15?'Resumo do andamento...':ci===20||ci===19?'Observações...':ci===4?'Objeto...':'';
