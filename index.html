@@ -1403,7 +1403,7 @@ function buildEmpresa(emp){
   // ── Seção Certidões ──
   h+=empSection('Certidões e Documentos',
     '<button class="btn-cert-add" onclick="addCert(\''+emp+'\')">+ Nova Certidão</button>',
-    '<div class="cert-grid" id="cert-grid-'+emp+'">'+renderCertsGrid(emp)+'</div>'
+    '<div class="cert-grid" id="cert-grid-'+emp.replace(/ /g,'_')+'">'+renderCertsGrid(emp)+'</div>'
   );
 
   // ── Seção Documentação Exigível ──
@@ -1428,7 +1428,8 @@ function empSection(title,btn,content){
 function renderPortaisGrid(emp){
   var portais=getPortais(emp);
   if(!portais.length) return '<div class="empty" style="padding:20px"><p>Nenhum portal cadastrado</p></div>';
-  var h='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px">';
+  var ek=emp.replace(/\s/g,'');
+  var h='<div id="portais-grid-'+ek+'" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px">';
   portais.forEach(function(p){ h+=renderPortalCard(emp,p); });
   h+='</div>';
   return h;
@@ -1498,14 +1499,16 @@ function addPortal(emp){
   var novo={id:maxId+1,portal:'Novo Portal',login:'',senha:'',vencimento:'',status:'Sem Data',obs:''};
   portais.push(novo);
   savePortais(emp,portais);
-  var grid=document.querySelector('#emp-body [id^="portal-card-"]');
-  var container=grid?grid.parentElement:null;
+  var ek=emp.replace(/\s/g,'');
+  var containerId='portais-grid-'+ek;
+  var container=document.getElementById(containerId);
   if(container){
     var div=document.createElement('div');
     div.innerHTML=renderPortalCard(emp,novo);
     container.appendChild(div.firstChild);
+    container.lastElementChild.scrollIntoView({behavior:'smooth',block:'center'});
   } else { buildEmpresa(emp); }
-  toast('Novo portal adicionado!','ok');
+  toast('','ok');
 }
 
 // ══ CERTIDÕES ══════════════════════════════════════════════════
@@ -1554,8 +1557,18 @@ function saveCertCard(emp,id){
   certs[idx].dias=dias;
   certs[idx].status=dias===null?'':(dias<0?'Vencida':dias<=30?'Próximo':'Em dia');
   saveCerts(emp,certs);
+  // Atualizar badge de status sem rerenderizar o card
   var el=document.getElementById('cert-card-'+sid);
-  if(el){ var d=document.createElement('div'); d.innerHTML=renderCertCard(emp,certs[idx]); el.replaceWith(d.firstChild); }
+  if(el){
+    el.className='cert-card '+certCls(certs[idx].validade);
+    var dias2=calcDias(certs[idx].validade);
+    var newBadge=dias2===null?'<span class="badge b-gray">Sem data</span>':dias2<0?'<span class="badge b-red">Vencida há '+Math.abs(dias2)+' dias</span>':dias2<=30?'<span class="badge b-yellow">'+dias2+' dias</span>':'<span class="badge b-green">Em dia — '+dias2+' dias</span>';
+    var badgeEl=el.querySelector('.badge');
+    if(badgeEl) badgeEl.outerHTML=newBadge;
+    // Atualizar nome no topo se mudou
+    var nomeInput=document.getElementById('cc-nome-'+sid);
+    if(nomeInput) nomeInput.placeholder=certs[idx].item;
+  }
   toast('Certidão salva!','ok');
 }
 
@@ -1573,9 +1586,16 @@ function addCert(emp){
   var nova={id:maxId+1,item:'Nova Certidão',validade:'',status:'',dias:null,link:''};
   certs.push(nova);
   saveCerts(emp,certs);
-  var grid=document.getElementById('cert-grid-'+emp);
-  if(grid){ var d=document.createElement('div'); d.innerHTML=renderCertCard(emp,nova); grid.appendChild(d.firstChild); }
-  toast('Certidão adicionada!','ok');
+  var ek=emp.replace(/\s/g,'_');
+  var grid=document.getElementById('cert-grid-'+ek);
+  if(grid){
+    var d=document.createElement('div');
+    d.innerHTML=renderCertCard(emp,nova);
+    grid.appendChild(d.firstChild);
+    // scroll para o novo card
+    grid.lastElementChild.scrollIntoView({behavior:'smooth',block:'center'});
+  } else { buildEmpresa(emp); }
+  toast('','ok');
 }
 
 // ══ DOCUMENTOS ═════════════════════════════════════════════════
