@@ -209,12 +209,34 @@ select{color-scheme:dark}
   position:relative;
 }
 .kcard:hover{background:var(--s2);}
+.kcard.minimized .kcard-obj,
+.kcard.minimized .kcard-meta,
+.kcard.minimized .kcard-body{display:none!important;}
+.kcard.minimized .kcard-licit{font-size:13px;font-weight:500;color:var(--t2);}
+.btn-minimize{
+  background:transparent;border:none;
+  color:var(--t3);cursor:pointer;
+  font-size:16px;padding:2px 6px;
+  transition:all .15s;line-height:1;
+  flex-shrink:0;
+}
+.btn-minimize:hover{color:var(--t1);}
 .kcard.green {border-left-color:#22c55e;}
 .kcard.red   {border-left-color:#ef4444;}
 .kcard.yellow{border-left-color:#eab308;}
 .kcard.orange{border-left-color:#f97316;}
 .kcard.blue  {border-left-color:#3b82f6;}
 .kcard.dark  {border-left-color:#1e1e1e;}
+.kcard.minimized .kcard-obj,
+.kcard.minimized .kcard-meta,
+.kcard.minimized .kcard-body{display:none!important;}
+.kcard.minimized .kcard-licit{font-size:14px;}
+.btn-minimize{
+  background:none;border:none;color:var(--t3);
+  cursor:pointer;font-size:16px;padding:2px 6px;
+  line-height:1;transition:color .15s;flex-shrink:0;
+}
+.btn-minimize:hover{color:var(--t1);}
 
 /* TOPO */
 .kcard-top{
@@ -2071,6 +2093,21 @@ function kfieldEdit(lbl,val,ci,k,abs){
   return '<div class="kfield"><div class="kfield-lbl">'+lbl+'</div>'+cell+'</div>';
 }
 
+function toggleMinimize(btn){
+  var card=btn.closest('.kcard');
+  if(!card) return;
+  if(card.classList.contains('minimized')){
+    card.classList.remove('minimized');
+    btn.innerHTML='&#9662;';
+    btn.title='Minimizar';
+  } else {
+    card.classList.add('minimized');
+    btn.innerHTML='&#9656;';
+    btn.title='Expandir';
+  }
+}
+
+
 function empColor(e){
   var m={'VISE':'#eab308','SOS':'#22c55e','SAUTEC':'#3b82f6','SOS FILIAL':'#ef4444','ONLAV':'#10b981','ENGEMED':'#ec4899','POTIGUAR':'#f97316'};
   return m[String(e).trim()]||'#64748b';
@@ -2086,6 +2123,15 @@ function kfieldStatic(lbl,val){
 function kfieldEdit(lbl,val,ci,k,abs){
   return '<div class="kfield"><div class="kfield-lbl">'+lbl+'</div>'+inlineCell(k,abs,ci,val)+'</div>';
 }
+
+function toggleMinimize(btn){
+  var el=btn.closest('.kcard');
+  if(!el) return;
+  var isMin=el.classList.contains('minimized');
+  el.classList.toggle('minimized');
+  btn.innerHTML=isMin?'&#8963;':'&#8964;';
+}
+
 
 function getAndamentoCor(row){
   var adju=String(row[16]||'').toLowerCase().trim();
@@ -2140,10 +2186,14 @@ function renderCard(k,row,abs){
     cor=stf==='Pago'?'green':stf==='Atrasado'?'red':'yellow';
   }
 
-  var h='<div class="kcard '+cor+'" id="row-'+k+'-'+abs+'">';
+  var h='<div class="kcard '+cor+'" id="kcard-'+k+'-'+abs+'">';
 
   // ── TOPO: id + data + empresa + título + objeto ──
+  var cardId='kcard-'+k+'-'+abs;
   h+='<div class="kcard-top">';
+  h+='<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;margin-right:6px;padding-top:2px">';
+    h+='<button class="btn-minimize" onclick="toggleMinimize(this)" title="Minimizar">&#9662;</button>';
+  h+='</div>';
   h+='<div style="flex:1;min-width:0">';
   h+='<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">';
   h+='<span class="kcard-id">#'+id+'</span>';
@@ -2368,7 +2418,7 @@ function inlineCell(k,abs,ci,v){
   var EMPS=['','VISE','SOS','SAUTEC','SOS FILIAL','ONLAV','ENGEMED','POTIGUAR'];
   var selCols={
     editais:{2:EMPS,10:['','SIM','NÃO','EM ANÁLISE'],11:['','POSITIVO','NEGATIVO','PENDENTE']},
-    andamento:{2:EMPS,9:['','compras gov','BLL','LICITANET','CONLICITACAO','Outro'],12:['','Em andamento','Ganha','Finalizado','Desclassificado','Inabilitado','Cancelado','Recurso','Aguardando'],14:['','sim','não'],16:['','sim','não']},
+    andamento:{2:EMPS,9:['','compras gov','Compras Públicas','BLL','LICITANET','CONLICITACAO','BNC','Compras.M2A','PE-Integrado','Licitanet','Apoio Cotações','Outro'],12:['','Em andamento','Ganha','Finalizado','Desclassificado','Inabilitado','Cancelado','Recurso','Aguardando','Suspenso'],14:['','sim','não'],16:['','sim','não']},
     ganhas:{2:EMPS,9:['','EM EXECUÇÃO','FINALIZADO','SUSPENSO','RESCINDIDO'],13:['','SIM','NÃO']},
     atestados:{2:EMPS,10:['','SIM','NÃO'],11:['','SIM','NÃO'],15:['','ATIVO','PENDENTE','VENCIDO'],17:['','ATIVO','PENDENTE','VENCIDO'],18:['','COMPLETO','PENDENTE','EM ANDAMENTO']},
     financeiro:{1:['','IAs','Portais','Telefonia','Informatica','Outros'],5:['','Pago','Pendente','Atrasado'],6:['','Banco Inter','Banco do Brasil','Caixa','Outros']}
@@ -2524,7 +2574,15 @@ function clearF(k){
   });
 }
 function sv(id){var el=document.getElementById(id);return el?el.value:'';}
-function setv(id,v){var el=document.getElementById(id);if(el) el.value=v||'';}
+function setv(id,v){
+  var el=document.getElementById(id);
+  if(!el) return;
+  if(el.type==='date'&&v&&v.indexOf('/')!==-1){
+    el.value=isoDate(v);
+  } else {
+    el.value=v||'';
+  }
+}
 
 function doEdit(k,idx){
   var row=FIL[k][idx];
@@ -2540,8 +2598,32 @@ function doEdit(k,idx){
 async function doSave(k){
   var btn=document.getElementById('sb-'+k);
   btn.disabled=true;btn.textContent='Salvando...';
+  var isEdit=EROW[k]!==null;
   var vals=[];
-  if(k==='editais') vals=['',sv('e-data'),sv('e-empresa'),sv('e-licit'),sv('e-objeto'),sv('e-local'),sv('e-mun'),sv('e-valor'),sv('e-prior'),sv('e-resp'),sv('e-part'),sv('e-viab'),sv('e-just'),sv('e-link')];
+  if(k==='editais'){
+    // Partir da row original para preservar ID e todos os campos
+    var baseRow=isEdit?FIL[k][EROW[k]].slice():[];
+    while(baseRow.length<14) baseRow.push('');
+    // Preservar ID original — nunca apagar
+    if(isEdit) baseRow[0]=FIL[k][EROW[k]][0];
+    // Converter data para BR se vier do input date
+    var edata=sv('e-data');
+    if(edata&&edata.indexOf('-')!==-1) edata=formatDateBR(edata);
+    baseRow[1]=edata||baseRow[1];
+    baseRow[2]=sv('e-empresa')||baseRow[2];
+    baseRow[3]=sv('e-licit')||baseRow[3];
+    baseRow[4]=sv('e-objeto')||baseRow[4];
+    baseRow[5]=sv('e-local')||baseRow[5];
+    baseRow[6]=sv('e-mun')||baseRow[6];
+    baseRow[7]=sv('e-valor')||baseRow[7];
+    baseRow[8]=sv('e-prior')||baseRow[8];
+    baseRow[9]=sv('e-resp')||baseRow[9];
+    baseRow[10]=sv('e-part')||baseRow[10];
+    baseRow[11]=sv('e-viab')||baseRow[11];
+    baseRow[12]=sv('e-just')||baseRow[12];
+    baseRow[13]=sv('e-link')||baseRow[13];
+    vals=baseRow;
+  }
   else if(k==='andamento') vals=['',sv('a-data'),sv('a-emp'),sv('a-licit'),sv('a-obj'),sv('a-local'),sv('a-mun'),sv('a-vest'),sv('a-vfin'),sv('a-portal'),sv('a-disp'),sv('a-class'),sv('a-status'),sv('a-reab'),sv('a-rec'),sv('a-resumo'),sv('a-adju'),sv('a-conc'),sv('a-vconc'),sv('a-link')];
   else if(k==='ganhas') vals=['',sv('g-data'),sv('g-emp'),sv('g-licit'),sv('g-obj'),sv('g-local'),sv('g-mun'),sv('g-valor'),sv('g-cont'),sv('g-stcont'),sv('g-vig'),sv('g-dtcont'),sv('g-venc'),sv('g-recomp'),sv('g-trecomp'),sv('g-strecomp'),sv('g-novadata'),sv('g-vigrecomp'),sv('g-vencrecomp'),sv('g-vfin'),sv('g-obs'),sv('g-link')];
   else if(k==='atestados') vals=['',sv('at-data'),sv('at-emp'),sv('at-licit'),sv('at-obj'),sv('at-local'),sv('at-mun'),sv('at-cont'),sv('at-dtcont'),sv('at-vig'),sv('at-req'),sv('at-receb'),sv('at-dtreceb'),sv('at-emit'),sv('at-cat'),sv('at-catst'),sv('at-art'),sv('at-artst'),sv('at-status'),sv('at-obs'),sv('at-link')];
@@ -2552,7 +2634,6 @@ async function doSave(k){
     vals=[fdata,sv('f-cat'),sv('f-desc'),sv('f-forn'),sv('f-valor'),sv('f-status'),sv('f-conta'),sv('f-obs')];
   }
 
-  var isEdit=EROW[k]!==null;
   var res=await apiPost({action:isEdit?'update':'append',sheet:SHEETS[k],values:vals,rowIndex:isEdit?FIL[k][EROW[k]][0]:null});
   btn.disabled=false;btn.textContent='Salvar na Planilha';
 
