@@ -2447,7 +2447,14 @@ async function _processQueue(){
   var item=_saveQueue.shift();
   var k=item.k, ci=item.ci, rowId=item.rowId, row=item.row;
 
-  var res=await apiPost({action:'update',sheet:SHEETS[k],values:row,rowIndex:rowId});
+  var payload={action:'update',sheet:SHEETS[k],values:row,rowIndex:rowId};
+  // EM ANDAMENTO: usar rowKey (empresa+licitacao) para não depender de ID
+  if(k==='andamento'){
+    var emp2=String(row[2]||'').trim();
+    var licit2=String(row[3]||'').trim();
+    payload.rowKey=emp2+'|'+licit2;
+  }
+  var res=await apiPost(payload);
   _saveRunning=false;
 
   if(res&&res.success){
@@ -2525,7 +2532,12 @@ async function doSave(k){
   else if(k==='andamento') vals=['',sv('a-data'),sv('a-emp'),sv('a-licit'),sv('a-obj'),sv('a-local'),sv('a-mun'),sv('a-vest'),sv('a-vfin'),sv('a-portal'),sv('a-disp'),sv('a-class'),sv('a-status'),sv('a-reab'),sv('a-rec'),sv('a-resumo'),sv('a-adju'),sv('a-conc'),sv('a-vconc'),sv('a-link')];
   else if(k==='ganhas') vals=['',sv('g-data'),sv('g-emp'),sv('g-licit'),sv('g-obj'),sv('g-local'),sv('g-mun'),sv('g-valor'),sv('g-cont'),sv('g-stcont'),sv('g-vig'),sv('g-dtcont'),sv('g-venc'),sv('g-recomp'),sv('g-trecomp'),sv('g-strecomp'),sv('g-novadata'),sv('g-vigrecomp'),sv('g-vencrecomp'),sv('g-vfin'),sv('g-obs'),sv('g-link')];
   else if(k==='atestados') vals=['',sv('at-data'),sv('at-emp'),sv('at-licit'),sv('at-obj'),sv('at-local'),sv('at-mun'),sv('at-cont'),sv('at-dtcont'),sv('at-vig'),sv('at-req'),sv('at-receb'),sv('at-dtreceb'),sv('at-emit'),sv('at-cat'),sv('at-catst'),sv('at-art'),sv('at-artst'),sv('at-status'),sv('at-obs'),sv('at-link')];
-  else if(k==='financeiro') vals=[sv('f-data'),sv('f-cat'),sv('f-desc'),sv('f-forn'),sv('f-valor'),sv('f-status'),sv('f-conta'),sv('f-obs')];
+  else if(k==='financeiro'){
+    var fdata=sv('f-data');
+    // Converter data de yyyy-mm-dd para dd/mm/yyyy
+    if(fdata&&fdata.indexOf('-')!==-1){fdata=formatDateBR(fdata);}
+    vals=[fdata,sv('f-cat'),sv('f-desc'),sv('f-forn'),sv('f-valor'),sv('f-status'),sv('f-conta'),sv('f-obs')];
+  }
 
   var isEdit=EROW[k]!==null;
   var res=await apiPost({action:isEdit?'update':'append',sheet:SHEETS[k],values:vals,rowIndex:isEdit?FIL[k][EROW[k]][0]:null});
@@ -2539,6 +2551,8 @@ async function doSave(k){
       toast('Copiado para Finalizados automaticamente!','info');
       await _load('finalizados');
     }
+    // Financeiro: recalcular painel de resumo após salvar
+    if(k==='financeiro') buildFinResumo();
     if(CUR==='resumo') buildResumo();
   } else if(res){
     toast('Erro: '+(res.error||'resposta inv\u00e1lida'),'err');
@@ -2548,7 +2562,11 @@ async function doSave(k){
 async function doDel(k,idx){
   var row=FIL[k][idx];
   if(!confirm('Excluir ID '+row[0]+'?\n"'+row[3]+'"\n\nEsta a\u00e7\u00e3o n\u00e3o pode ser desfeita.')) return;
-  var res=await apiPost({action:'delete',sheet:SHEETS[k],rowId:row[0]});
+  var delPayload={action:'delete',sheet:SHEETS[k],rowId:row[0]};
+  if(k==='andamento'){
+    delPayload.rowKey=String(row[2]||'').trim()+'|'+String(row[3]||'').trim();
+  }
+  var res=await apiPost(delPayload);
   if(res&&res.success){toast('Registro exclu\u00eddo!','info');await loadPage(k);}
 }
 
