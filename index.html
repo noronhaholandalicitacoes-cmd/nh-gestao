@@ -2551,8 +2551,11 @@ async function doSave(k){
       toast('Copiado para Finalizados automaticamente!','info');
       await _load('finalizados');
     }
-    // Financeiro: recalcular painel de resumo após salvar
-    if(k==='financeiro') buildFinResumo();
+    // Financeiro: recarregar dados e recalcular painel
+    if(k==='financeiro'){
+      await _load('financeiro');
+      buildFinResumo();
+    }
     if(CUR==='resumo') buildResumo();
   } else if(res){
     toast('Erro: '+(res.error||'resposta inv\u00e1lida'),'err');
