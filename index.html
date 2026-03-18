@@ -209,34 +209,33 @@ select{color-scheme:dark}
   position:relative;
 }
 .kcard:hover{background:var(--s2);}
-.kcard.minimized .kcard-obj,
-.kcard.minimized .kcard-meta,
-.kcard.minimized .kcard-body{display:none!important;}
-.kcard.minimized .kcard-licit{font-size:13px;font-weight:500;color:var(--t2);}
-.btn-minimize{
-  background:transparent;border:none;
-  color:var(--t3);cursor:pointer;
-  font-size:16px;padding:2px 6px;
-  transition:all .15s;line-height:1;
-  flex-shrink:0;
+.kcard.collapsed .kcard-body,
+.kcard.collapsed .kcard-obj,
+.kcard.collapsed .kcard-meta{display:none!important;}
+.kcard-top{cursor:pointer;}
+.btn-toggle-card{
+  background:rgba(255,255,255,.06);color:var(--t2);
+  border:1px solid rgba(255,255,255,.1);
+  width:32px;height:32px;border-radius:8px;
+  cursor:pointer;font-size:16px;font-weight:700;
+  display:inline-flex;align-items:center;justify-content:center;
+  transition:transform .2s,background .15s;flex-shrink:0;
 }
-.btn-minimize:hover{color:var(--t1);}
+.btn-toggle-card:hover{background:rgba(255,255,255,.15);color:var(--t1);}
+.kcard.collapsed .btn-toggle-card{transform:rotate(-90deg);}
+.btn-toggle-all{
+  background:var(--s2);color:var(--t2);border:1px solid var(--b1);
+  padding:6px 14px;font-size:12px;font-weight:600;border-radius:7px;
+  cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+  transition:all .15s;font-family:'Outfit',sans-serif;white-space:nowrap;
+}
+.btn-toggle-all:hover{background:var(--s3);color:var(--t1);}
 .kcard.green {border-left-color:#22c55e;}
 .kcard.red   {border-left-color:#ef4444;}
 .kcard.yellow{border-left-color:#eab308;}
 .kcard.orange{border-left-color:#f97316;}
 .kcard.blue  {border-left-color:#3b82f6;}
 .kcard.dark  {border-left-color:#1e1e1e;}
-.kcard.minimized .kcard-obj,
-.kcard.minimized .kcard-meta,
-.kcard.minimized .kcard-body{display:none!important;}
-.kcard.minimized .kcard-licit{font-size:14px;}
-.btn-minimize{
-  background:none;border:none;color:var(--t3);
-  cursor:pointer;font-size:16px;padding:2px 6px;
-  line-height:1;transition:color .15s;flex-shrink:0;
-}
-.btn-minimize:hover{color:var(--t1);}
 
 /* TOPO */
 .kcard-top{
@@ -774,7 +773,10 @@ select{color-scheme:dark;}
         </button>
         <div class="search"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><input placeholder="Buscar edital..." id="q-editais" oninput="doQ('editais')"></div>
       </div>
-      <div class="pills" id="pills-editais"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+        <div class="pills" id="pills-editais" style="margin-bottom:0;flex:1"></div>
+        <button class="btn-toggle-all" id="tga-editais" onclick="toggleAllCards('editais')">&#8964; Expandir tudo</button>
+      </div>
       <div id="tbl-editais" class="tbl-wrap"><div class="load"><div class="spin"></div>Carregando...</div></div>
       <div class="pag" id="pag-editais"></div>
     </div>
@@ -790,7 +792,10 @@ select{color-scheme:dark;}
         <div class="search"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><input placeholder="Buscar..." id="q-andamento" oninput="doQ('andamento')"></div>
         <span style="font-size:11px;color:var(--t3);background:var(--nha2);border:1px solid rgba(249,115,22,.15);padding:4px 10px;border-radius:6px">⚡ ADJU = sim → Finalizados</span>
       </div>
-      <div class="pills" id="pills-andamento"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+        <div class="pills" id="pills-andamento" style="margin-bottom:0;flex:1"></div>
+        <button class="btn-toggle-all" id="tga-andamento" onclick="toggleAllCards('andamento')">&#8964; Expandir tudo</button>
+      </div>
       <div class="pills" id="status-pills-andamento" style="margin-top:8px"></div>
       <div id="tbl-andamento" class="tbl-wrap"><div class="load"><div class="spin"></div>Carregando...</div></div>
       <div class="pag" id="pag-andamento"></div>
@@ -803,7 +808,10 @@ select{color-scheme:dark;}
         <div class="search"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><input placeholder="Buscar finalizado..." id="q-finalizados" oninput="doQ('finalizados')"></div>
         <span style="font-size:11px;color:var(--t3)">Preenchido automaticamente quando ADJU = sim em Andamento</span>
       </div>
-      <div class="pills" id="pills-finalizados"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+        <div class="pills" id="pills-finalizados" style="margin-bottom:0;flex:1"></div>
+        <button class="btn-toggle-all" id="tga-finalizados" onclick="toggleAllCards('finalizados')">&#8964; Expandir tudo</button>
+      </div>
       <div id="tbl-finalizados" class="tbl-wrap"><div class="load"><div class="spin"></div>Carregando...</div></div>
       <div class="pag" id="pag-finalizados"></div>
     </div>
@@ -818,7 +826,10 @@ select{color-scheme:dark;}
         </button>
         <div class="search"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><input placeholder="Buscar..." id="q-ganhas" oninput="doQ('ganhas')"></div>
       </div>
-      <div class="pills" id="pills-ganhas"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+        <div class="pills" id="pills-ganhas" style="margin-bottom:0;flex:1"></div>
+        <button class="btn-toggle-all" id="tga-ganhas" onclick="toggleAllCards('ganhas')">&#8964; Expandir tudo</button>
+      </div>
       <div id="tbl-ganhas" class="tbl-wrap"><div class="load"><div class="spin"></div>Carregando...</div></div>
       <div class="pag" id="pag-ganhas"></div>
     </div>
@@ -833,7 +844,10 @@ select{color-scheme:dark;}
         </button>
         <div class="search"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><input placeholder="Buscar..." id="q-atestados" oninput="doQ('atestados')"></div>
       </div>
-      <div class="pills" id="pills-atestados"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+        <div class="pills" id="pills-atestados" style="margin-bottom:0;flex:1"></div>
+        <button class="btn-toggle-all" id="tga-atestados" onclick="toggleAllCards('atestados')">&#8964; Expandir tudo</button>
+      </div>
       <div id="tbl-atestados" class="tbl-wrap"><div class="load"><div class="spin"></div>Carregando...</div></div>
       <div class="pag" id="pag-atestados"></div>
     </div>
@@ -848,6 +862,9 @@ select{color-scheme:dark;}
           Novo Lançamento
         </button>
         <div class="search"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><input placeholder="Buscar..." id="q-financeiro" oninput="doQ('financeiro')"></div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+        <button class="btn-toggle-all" id="tga-financeiro" onclick="toggleAllCards('financeiro')">&#8964; Expandir tudo</button>
       </div>
       <div id="tbl-financeiro" class="tbl-wrap"><div class="load"><div class="spin"></div>Carregando...</div></div>
       <div class="pag" id="pag-financeiro"></div>
@@ -2093,21 +2110,6 @@ function kfieldEdit(lbl,val,ci,k,abs){
   return '<div class="kfield"><div class="kfield-lbl">'+lbl+'</div>'+cell+'</div>';
 }
 
-function toggleMinimize(btn){
-  var card=btn.closest('.kcard');
-  if(!card) return;
-  if(card.classList.contains('minimized')){
-    card.classList.remove('minimized');
-    btn.innerHTML='&#9662;';
-    btn.title='Minimizar';
-  } else {
-    card.classList.add('minimized');
-    btn.innerHTML='&#9656;';
-    btn.title='Expandir';
-  }
-}
-
-
 function empColor(e){
   var m={'VISE':'#eab308','SOS':'#22c55e','SAUTEC':'#3b82f6','SOS FILIAL':'#ef4444','ONLAV':'#10b981','ENGEMED':'#ec4899','POTIGUAR':'#f97316'};
   return m[String(e).trim()]||'#64748b';
@@ -2124,15 +2126,6 @@ function kfieldEdit(lbl,val,ci,k,abs){
   return '<div class="kfield"><div class="kfield-lbl">'+lbl+'</div>'+inlineCell(k,abs,ci,val)+'</div>';
 }
 
-function toggleMinimize(btn){
-  var el=btn.closest('.kcard');
-  if(!el) return;
-  var isMin=el.classList.contains('minimized');
-  el.classList.toggle('minimized');
-  btn.innerHTML=isMin?'&#8963;':'&#8964;';
-}
-
-
 function getAndamentoCor(row){
   var adju=String(row[16]||'').toLowerCase().trim();
   var st=String(row[12]||'').toLowerCase().trim();
@@ -2145,6 +2138,26 @@ function getAndamentoCor(row){
   if(st==='cancelado'||st==='desclassificado'||st==='inabilitado') return 'red';
   if(st==='recurso') return 'yellow';
   return 'dark';
+}
+
+
+function toggleCard(id){
+  var el=document.getElementById(id);
+  if(el) el.classList.toggle('collapsed');
+}
+
+function toggleAllCards(k){
+  var wrapper=document.getElementById('tbl-'+k);
+  if(!wrapper) return;
+  var cards=wrapper.querySelectorAll('.kcard');
+  var btn=document.getElementById('tga-'+k);
+  var collapsed=wrapper.querySelectorAll('.kcard.collapsed').length;
+  var doExpand=collapsed>0;
+  cards.forEach(function(c){
+    if(doExpand) c.classList.remove('collapsed');
+    else c.classList.add('collapsed');
+  });
+  if(btn) btn.innerHTML=doExpand?'&#8963; Recolher tudo':'&#8964; Expandir tudo';
 }
 
 
@@ -2186,14 +2199,11 @@ function renderCard(k,row,abs){
     cor=stf==='Pago'?'green':stf==='Atrasado'?'red':'yellow';
   }
 
-  var h='<div class="kcard '+cor+'" id="kcard-'+k+'-'+abs+'">';
+  var cardId='row-'+k+'-'+abs;
+  var h='<div class="kcard '+cor+' collapsed" id="'+cardId+'">';
 
-  // ── TOPO: id + data + empresa + título + objeto ──
-  var cardId='kcard-'+k+'-'+abs;
+  // ── TOPO ──
   h+='<div class="kcard-top">';
-  h+='<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;margin-right:6px;padding-top:2px">';
-    h+='<button class="btn-minimize" onclick="toggleMinimize(this)" title="Minimizar">&#9662;</button>';
-  h+='</div>';
   h+='<div style="flex:1;min-width:0">';
   h+='<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">';
   h+='<span class="kcard-id">#'+id+'</span>';
@@ -2229,11 +2239,12 @@ function renderCard(k,row,abs){
   h+='</div>'; // /flex:1
 
   // botões
-  h+='<div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;flex-shrink:0;padding-top:4px">';
+  h+='<div style="display:flex;flex-direction:row;gap:6px;align-items:center;flex-shrink:0;padding-top:2px">';
   if(k==='editais'){
-    h+='<button class="btn-edit-card" onclick="openEditCard(\''+k+'\','+abs+')">✏ Editar</button>';
+    h+='<button class="btn-edit-card" onclick="event.stopPropagation();openEditCard(\''+k+'\','+abs+')" title="Editar">✏</button>';
   }
-  h+='<button class="btn-del" onclick="doDel(\''+k+'\','+abs+')">✕ Excluir</button>';
+  h+='<button class="btn-del" onclick="event.stopPropagation();doDel(\''+k+'\','+abs+')" title="Excluir">✕</button>';
+  h+='<button class="btn-toggle-card" onclick="event.stopPropagation();document.getElementById(\''+cardId+'\').classList.toggle(\'collapsed\')" title="Expandir/Recolher">&#8964;</button>';
   h+='</div>';
   h+='</div>'; // /kcard-top
 
@@ -2418,7 +2429,7 @@ function inlineCell(k,abs,ci,v){
   var EMPS=['','VISE','SOS','SAUTEC','SOS FILIAL','ONLAV','ENGEMED','POTIGUAR'];
   var selCols={
     editais:{2:EMPS,10:['','SIM','NÃO','EM ANÁLISE'],11:['','POSITIVO','NEGATIVO','PENDENTE']},
-    andamento:{2:EMPS,9:['','compras gov','Compras Públicas','BLL','LICITANET','CONLICITACAO','BNC','Compras.M2A','PE-Integrado','Licitanet','Apoio Cotações','Outro'],12:['','Em andamento','Ganha','Finalizado','Desclassificado','Inabilitado','Cancelado','Recurso','Aguardando','Suspenso'],14:['','sim','não'],16:['','sim','não']},
+    andamento:{2:EMPS,9:['','compras gov','BLL','LICITANET','CONLICITACAO','Outro'],12:['','Em andamento','Ganha','Finalizado','Desclassificado','Inabilitado','Cancelado','Recurso','Aguardando'],14:['','sim','não'],16:['','sim','não']},
     ganhas:{2:EMPS,9:['','EM EXECUÇÃO','FINALIZADO','SUSPENSO','RESCINDIDO'],13:['','SIM','NÃO']},
     atestados:{2:EMPS,10:['','SIM','NÃO'],11:['','SIM','NÃO'],15:['','ATIVO','PENDENTE','VENCIDO'],17:['','ATIVO','PENDENTE','VENCIDO'],18:['','COMPLETO','PENDENTE','EM ANDAMENTO']},
     financeiro:{1:['','IAs','Portais','Telefonia','Informatica','Outros'],5:['','Pago','Pendente','Atrasado'],6:['','Banco Inter','Banco do Brasil','Caixa','Outros']}
@@ -2574,15 +2585,7 @@ function clearF(k){
   });
 }
 function sv(id){var el=document.getElementById(id);return el?el.value:'';}
-function setv(id,v){
-  var el=document.getElementById(id);
-  if(!el) return;
-  if(el.type==='date'&&v&&v.indexOf('/')!==-1){
-    el.value=isoDate(v);
-  } else {
-    el.value=v||'';
-  }
-}
+function setv(id,v){var el=document.getElementById(id);if(el) el.value=v||'';}
 
 function doEdit(k,idx){
   var row=FIL[k][idx];
@@ -2598,32 +2601,8 @@ function doEdit(k,idx){
 async function doSave(k){
   var btn=document.getElementById('sb-'+k);
   btn.disabled=true;btn.textContent='Salvando...';
-  var isEdit=EROW[k]!==null;
   var vals=[];
-  if(k==='editais'){
-    // Partir da row original para preservar ID e todos os campos
-    var baseRow=isEdit?FIL[k][EROW[k]].slice():[];
-    while(baseRow.length<14) baseRow.push('');
-    // Preservar ID original — nunca apagar
-    if(isEdit) baseRow[0]=FIL[k][EROW[k]][0];
-    // Converter data para BR se vier do input date
-    var edata=sv('e-data');
-    if(edata&&edata.indexOf('-')!==-1) edata=formatDateBR(edata);
-    baseRow[1]=edata||baseRow[1];
-    baseRow[2]=sv('e-empresa')||baseRow[2];
-    baseRow[3]=sv('e-licit')||baseRow[3];
-    baseRow[4]=sv('e-objeto')||baseRow[4];
-    baseRow[5]=sv('e-local')||baseRow[5];
-    baseRow[6]=sv('e-mun')||baseRow[6];
-    baseRow[7]=sv('e-valor')||baseRow[7];
-    baseRow[8]=sv('e-prior')||baseRow[8];
-    baseRow[9]=sv('e-resp')||baseRow[9];
-    baseRow[10]=sv('e-part')||baseRow[10];
-    baseRow[11]=sv('e-viab')||baseRow[11];
-    baseRow[12]=sv('e-just')||baseRow[12];
-    baseRow[13]=sv('e-link')||baseRow[13];
-    vals=baseRow;
-  }
+  if(k==='editais') vals=['',sv('e-data'),sv('e-empresa'),sv('e-licit'),sv('e-objeto'),sv('e-local'),sv('e-mun'),sv('e-valor'),sv('e-prior'),sv('e-resp'),sv('e-part'),sv('e-viab'),sv('e-just'),sv('e-link')];
   else if(k==='andamento') vals=['',sv('a-data'),sv('a-emp'),sv('a-licit'),sv('a-obj'),sv('a-local'),sv('a-mun'),sv('a-vest'),sv('a-vfin'),sv('a-portal'),sv('a-disp'),sv('a-class'),sv('a-status'),sv('a-reab'),sv('a-rec'),sv('a-resumo'),sv('a-adju'),sv('a-conc'),sv('a-vconc'),sv('a-link')];
   else if(k==='ganhas') vals=['',sv('g-data'),sv('g-emp'),sv('g-licit'),sv('g-obj'),sv('g-local'),sv('g-mun'),sv('g-valor'),sv('g-cont'),sv('g-stcont'),sv('g-vig'),sv('g-dtcont'),sv('g-venc'),sv('g-recomp'),sv('g-trecomp'),sv('g-strecomp'),sv('g-novadata'),sv('g-vigrecomp'),sv('g-vencrecomp'),sv('g-vfin'),sv('g-obs'),sv('g-link')];
   else if(k==='atestados') vals=['',sv('at-data'),sv('at-emp'),sv('at-licit'),sv('at-obj'),sv('at-local'),sv('at-mun'),sv('at-cont'),sv('at-dtcont'),sv('at-vig'),sv('at-req'),sv('at-receb'),sv('at-dtreceb'),sv('at-emit'),sv('at-cat'),sv('at-catst'),sv('at-art'),sv('at-artst'),sv('at-status'),sv('at-obs'),sv('at-link')];
@@ -2634,6 +2613,7 @@ async function doSave(k){
     vals=[fdata,sv('f-cat'),sv('f-desc'),sv('f-forn'),sv('f-valor'),sv('f-status'),sv('f-conta'),sv('f-obs')];
   }
 
+  var isEdit=EROW[k]!==null;
   var res=await apiPost({action:isEdit?'update':'append',sheet:SHEETS[k],values:vals,rowIndex:isEdit?FIL[k][EROW[k]][0]:null});
   btn.disabled=false;btn.textContent='Salvar na Planilha';
 
