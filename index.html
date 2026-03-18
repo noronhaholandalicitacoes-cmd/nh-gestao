@@ -341,6 +341,16 @@ textarea::placeholder{color:var(--t4);font-style:italic;}
 
 /* BOTÕES */
 
+.btn-edit-card{
+  background:rgba(59,130,246,.1);color:#60a5fa;
+  border:1px solid rgba(59,130,246,.2);
+  padding:6px 13px;font-size:12px;font-weight:600;
+  border-radius:7px;cursor:pointer;
+  transition:all .15s;font-family:'Outfit',sans-serif;
+  display:inline-flex;align-items:center;gap:5px;
+  white-space:nowrap;
+}
+.btn-edit-card:hover{background:rgba(59,130,246,.2);}
 .btn-del{
   background:rgba(239,68,68,.08);color:var(--r2);
   border:1px solid rgba(239,68,68,.15);
@@ -2170,6 +2180,9 @@ function renderCard(k,row,abs){
 
   // botões
   h+='<div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;flex-shrink:0;padding-top:4px">';
+  if(k==='editais'){
+    h+='<button class="btn-edit-card" onclick="openEditCard(\''+k+'\','+abs+')">✏ Editar</button>';
+  }
   h+='<button class="btn-del" onclick="doDel(\''+k+'\','+abs+')">✕ Excluir</button>';
   h+='</div>';
   h+='</div>'; // /kcard-top
@@ -2250,7 +2263,6 @@ function renderCard(k,row,abs){
   h+='<div class="kcard-body">';
 
   if(k==='editais'){
-    h+=kfieldEdit('Empresa',          row[2], 2, k,abs);
     h+=kfieldEdit('Responsável',      row[9], 9, k,abs);
     h+=kfieldEdit('Participar?',      row[10],10,k,abs);
     h+=kfieldEdit('Viabilidade',      row[11],11,k,abs);
@@ -2313,7 +2325,7 @@ function renderCard(k,row,abs){
 
 function openEditCard(k,abs){
   document.getElementById('mo-'+k).classList.add('open');
-  if(k!=='financeiro') doEdit(k,abs);
+  doEdit(k,abs);
 }
 
 function renderTbl(k){
