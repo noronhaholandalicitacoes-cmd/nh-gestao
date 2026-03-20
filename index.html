@@ -2707,9 +2707,7 @@ function openM(k){
   document.getElementById('mo-'+k).classList.add('open');
 }
 function closeM(k){document.getElementById('mo-'+k).classList.remove('open');}
-document.querySelectorAll('.overlay').forEach(function(o){
-  o.addEventListener('click',function(e){if(e.target===o) closeM(o.id.replace('mo-',''));});
-});
+// Overlay não fecha ao clicar fora — só fecha com Cancelar ou Salvar
 
 function clearF(k){
   var pfx={editais:'e-',andamento:'a-',ganhas:'g-',atestados:'at-'}[k];
@@ -2735,8 +2733,23 @@ async function doSave(k){
   var btn=document.getElementById('sb-'+k);
   btn.disabled=true;btn.textContent='Salvando...';
   var vals=[];
-  if(k==='editais') vals=['',sv('e-data'),sv('e-empresa'),sv('e-licit'),sv('e-objeto'),sv('e-local'),sv('e-mun'),sv('e-valor'),sv('e-prior'),sv('e-resp'),sv('e-part'),sv('e-viab'),sv('e-just'),sv('e-link')];
-  else if(k==='andamento') vals=['',sv('a-data'),sv('a-emp'),sv('a-licit'),sv('a-obj'),sv('a-local'),sv('a-mun'),sv('a-vest'),sv('a-vfin'),sv('a-portal'),sv('a-disp'),sv('a-class'),sv('a-status'),sv('a-reab'),sv('a-rec'),sv('a-resumo'),sv('a-adju'),sv('a-conc'),sv('a-vconc'),sv('a-link')];
+  var isEditNow=EROW[k]!==null;
+  var origRow=isEditNow?FIL[k][EROW[k]]:null;
+  if(k==='editais'){
+    // Preservar ID (pos 0) da linha original ao editar
+    var eid=origRow?origRow[0]:'';
+    var edata=sv('e-data');
+    if(edata&&edata.indexOf('-')!==-1) edata=formatDateBR(edata);
+    // Se data vazia na edição, preservar a original
+    if(!edata&&origRow) edata=origRow[1]||'';
+    vals=[eid,edata,sv('e-empresa'),sv('e-licit'),sv('e-objeto'),sv('e-local'),sv('e-mun'),sv('e-valor'),sv('e-prior'),sv('e-resp'),sv('e-part'),sv('e-viab'),sv('e-just'),sv('e-link')];
+  }
+  else if(k==='andamento'){
+    var aid=origRow?origRow[0]:'';
+    var adata=sv('a-data'); if(adata&&adata.indexOf('-')!==-1) adata=formatDateBR(adata);
+    if(!adata&&origRow) adata=origRow[1]||'';
+    vals=[aid,adata,sv('a-emp'),sv('a-licit'),sv('a-obj'),sv('a-local'),sv('a-mun'),sv('a-vest'),sv('a-vfin'),sv('a-portal'),sv('a-disp'),sv('a-class'),sv('a-status'),sv('a-reab'),sv('a-rec'),sv('a-resumo'),sv('a-adju'),sv('a-conc'),sv('a-vconc'),sv('a-link')];
+  }
   else if(k==='ganhas') vals=['',sv('g-data'),sv('g-emp'),sv('g-licit'),sv('g-obj'),sv('g-local'),sv('g-mun'),sv('g-valor'),sv('g-cont'),sv('g-stcont'),sv('g-vig'),sv('g-dtcont'),sv('g-venc'),sv('g-recomp'),sv('g-trecomp'),sv('g-strecomp'),sv('g-novadata'),sv('g-vigrecomp'),sv('g-vencrecomp'),sv('g-vfin'),sv('g-obs'),sv('g-link')];
   else if(k==='atestados') vals=['',sv('at-data'),sv('at-emp'),sv('at-licit'),sv('at-obj'),sv('at-local'),sv('at-mun'),sv('at-cont'),sv('at-dtcont'),sv('at-vig'),sv('at-req'),sv('at-receb'),sv('at-dtreceb'),sv('at-emit'),sv('at-cat'),sv('at-catst'),sv('at-art'),sv('at-artst'),sv('at-status'),sv('at-obs'),sv('at-link')];
   else if(k==='financeiro'){
@@ -2746,8 +2759,8 @@ async function doSave(k){
     vals=[fdata,sv('f-cat'),sv('f-desc'),sv('f-forn'),sv('f-valor'),sv('f-status'),sv('f-conta'),sv('f-obs')];
   }
 
-  var isEdit=EROW[k]!==null;
-  var res=await apiPost({action:isEdit?'update':'append',sheet:SHEETS[k],values:vals,rowIndex:isEdit?FIL[k][EROW[k]][0]:null});
+  var isEdit=isEditNow!==undefined?isEditNow:EROW[k]!==null;
+  var res=await apiPost({action:isEdit?'update':'append',sheet:SHEETS[k],values:vals,rowIndex:isEdit?(origRow?origRow[0]:FIL[k][EROW[k]][0]):null});
   btn.disabled=false;btn.textContent='Salvar na Planilha';
 
   if(res&&res.success){
