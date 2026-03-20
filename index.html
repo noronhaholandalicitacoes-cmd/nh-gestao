@@ -1972,6 +1972,44 @@ function sc(lbl,val,cls){
 
 var PILL_EMPS={};
 var STATUS_FILTER={andamento:null,ganhas:null,editais:null};
+var EMP_FILTER={}; // filtro de empresa por aba
+
+// ── Função central de filtro — aplica empresa + cor + busca juntos ──
+function applyFilters(k){
+  var emp=EMP_FILTER[k]||null;
+  var cor=STATUS_FILTER[k]||null;
+  var q=(document.getElementById('q-'+k)||{}).value;
+  var query=q?q.toLowerCase():'';
+
+  FIL[k]=ALL[k].filter(function(r){
+    // Filtro empresa
+    if(emp&&String(r[2]||'').trim()!==emp) return false;
+    // Filtro busca
+    if(query&&!r.some(function(c){return String(c||'').toLowerCase().indexOf(query)!==-1;})) return false;
+    // Filtro cor/status
+    if(cor){
+      if(k==='editais'){
+        var part=String(r[10]||'').toUpperCase().trim();
+        if(cor==='green'&&part!=='SIM') return false;
+        if(cor==='red'&&part!=='NÃO'&&part!=='NAO') return false;
+        if(cor==='yellow'&&part.indexOf('ANALI')===-1) return false;
+        if(cor==='dark'&&(part==='SIM'||part==='NÃO'||part==='NAO'||part.indexOf('ANALI')!==-1)) return false;
+      } else if(k==='andamento'||k==='finalizados'){
+        if(getAndamentoCor(r)!==cor) return false;
+      } else if(k==='ganhas'){
+        var stg=String(r[9]||'').trim().toUpperCase();
+        if(cor==='exec'&&stg!=='EM EXECUÇÃO'&&stg!=='EM EXECUCAO') return false;
+        if(cor==='fin'&&stg!=='FINALIZADO') return false;
+        if(cor==='susp'&&stg!=='SUSPENSO') return false;
+        if(cor==='resc'&&stg!=='RESCINDIDO') return false;
+      }
+    }
+    return true;
+  });
+  PG[k]=1;
+  renderPills(k,ALL[k]);
+  renderTbl(k);
+}
 function renderPills(k,rows){
   var el=document.getElementById('pills-'+k);
   if(!el) return;
@@ -2071,78 +2109,27 @@ function renderPills(k,rows){
 
 function setStatusFilterEditais(key){
   STATUS_FILTER['editais']=key;
-  if(key===null){
-    FIL['editais']=ALL['editais'].slice();
-  } else {
-    FIL['editais']=ALL['editais'].filter(function(r){
-      var part=String(r[10]||'').toUpperCase().trim();
-      if(key==='green') return part==='SIM';
-      if(key==='red')   return part==='NÃO'||part==='NAO';
-      if(key==='yellow') return part.indexOf('ANALI')!==-1;
-      if(key==='dark')  return part!=='SIM'&&part!=='NÃO'&&part!=='NAO'&&part.indexOf('ANALI')===-1;
-      return true;
-    });
-  }
-  PG['editais']=1;
-  renderPills('editais',ALL['editais']);
-  renderTbl('editais');
+  applyFilters('editais');
 }
 
 function setStatusFilterGanhas(key){
   STATUS_FILTER['ganhas']=key;
-  var statusMap={
-    'exec':['EM EXECUÇÃO','EM EXECUCAO'],
-    'fin':['FINALIZADO'],
-    'susp':['SUSPENSO'],
-    'resc':['RESCINDIDO']
-  };
-  if(key===null){
-    FIL['ganhas']=ALL['ganhas'].slice();
-  } else {
-    var vals=statusMap[key]||[];
-    FIL['ganhas']=ALL['ganhas'].filter(function(r){
-      return vals.indexOf(String(r[9]||'').trim().toUpperCase())!==-1;
-    });
-  }
-  PG['ganhas']=1;
-  renderPills('ganhas',ALL['ganhas']);
-  renderTbl('ganhas');
+  applyFilters('ganhas');
 }
 
 function setStatusFilter(k,cor){
   STATUS_FILTER[k]=cor;
-  // Reaplicar filtro
-  var q=document.getElementById('q-'+k);
-  var query=q?q.value.toLowerCase():'';
-  if(cor===null){
-    FIL[k]=query?ALL[k].filter(function(r){return r.some(function(c){return String(c||'').toLowerCase().indexOf(query)!==-1;});}):ALL[k].slice();
-  } else {
-    FIL[k]=ALL[k].filter(function(r){
-      var matchCor=getAndamentoCor(r)===cor;
-      var matchQ=!query||r.some(function(c){return String(c||'').toLowerCase().indexOf(query)!==-1;});
-      return matchCor&&matchQ;
-    });
-  }
-  PG[k]=1;
-  renderPills(k,ALL[k]);
-  renderTbl(k);
+  applyFilters(k);
 }
 function setPill(el,k,idx){
   document.querySelectorAll('#pills-'+k+' .pill').forEach(function(p){p.classList.remove('on');});
   el.classList.add('on');
   var i=parseInt(idx);
-  if(i===-1){
-    FIL[k]=ALL[k].slice();
-  } else {
-    var emp=PILL_EMPS[k][i];
-    FIL[k]=ALL[k].filter(function(r){return String(r[2]||'').trim()===emp;});
-  }
-  PG[k]=1;renderTbl(k);
+  EMP_FILTER[k]=(i===-1)?null:PILL_EMPS[k][i];
+  applyFilters(k);
 }
 function doQ(k){
-  var q=document.getElementById('q-'+k).value.toLowerCase();
-  FIL[k]=q?ALL[k].filter(function(r){return r.some(function(c){return String(c||'').toLowerCase().indexOf(q)!==-1;});}):ALL[k].slice();
-  PG[k]=1;renderTbl(k);
+  applyFilters(k);
 }
 
 var TCFG={
