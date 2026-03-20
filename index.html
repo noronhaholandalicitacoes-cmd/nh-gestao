@@ -2730,6 +2730,30 @@ function doEdit(k,idx){
 }
 
 async function doSave(k){
+  // ── Validar campos obrigatórios antes de salvar ──
+  var erros=[];
+  var obrig={
+    editais:   [{id:'e-data',lbl:'Data'},{id:'e-empresa',lbl:'Empresa'},{id:'e-licit',lbl:'Licitação'}],
+    andamento: [{id:'a-data',lbl:'Data'},{id:'a-emp',lbl:'Empresa'},{id:'a-licit',lbl:'Licitação'}],
+    ganhas:    [{id:'g-data',lbl:'Data'},{id:'g-emp',lbl:'Empresa'},{id:'g-licit',lbl:'Licitação'}],
+    atestados: [{id:'at-data',lbl:'Data'},{id:'at-emp',lbl:'Empresa'},{id:'at-licit',lbl:'Licitação'}],
+    financeiro:[{id:'f-data',lbl:'Data'},{id:'f-cat',lbl:'Categoria'},{id:'f-desc',lbl:'Descrição'}]
+  };
+  (obrig[k]||[]).forEach(function(f){
+    var el=document.getElementById(f.id);
+    var val=el?el.value.trim():'';
+    if(!val){
+      erros.push(f.lbl);
+      if(el){el.style.borderColor='var(--r1)';el.style.borderWidth='2px';}
+    } else {
+      if(el){el.style.borderColor='';el.style.borderWidth='';}
+    }
+  });
+  if(erros.length){
+    toast('Campos obrigatórios: '+erros.join(', '),'err');
+    return;
+  }
+
   var btn=document.getElementById('sb-'+k);
   btn.disabled=true;btn.textContent='Salvando...';
   var vals=[];
