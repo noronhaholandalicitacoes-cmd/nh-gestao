@@ -30,8 +30,8 @@
   --p2:#c084fc;
   --t1:#f5f5f5;
   --t2:#a3a3a3;
-  --t3:#525252;
-  --t4:#2a2a2a;
+  --t3:#8b95a1;
+  --t4:#404040;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html{font-size:14px}
@@ -132,7 +132,7 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;min-he
 }
 .topbar-info{flex:1}
 .topbar-title{font-size:16px;font-weight:700;color:var(--t1);line-height:1.2}
-.topbar-sub{font-size:12px;color:var(--t3);margin-top:1px;font-weight:400}
+.topbar-sub{font-size:12px;color:#94a3b8;margin-top:1px;font-weight:400}
 .topbar-actions{display:flex;gap:8px;align-items:center}
 
 .content{padding:26px 28px;flex:1;min-width:0;overflow-x:hidden}
@@ -539,7 +539,7 @@ select{color-scheme:dark;}
 }
 .fg select option{background:var(--s2)}
 .fg textarea{resize:vertical;min-height:74px;line-height:1.5}
-.fg input::placeholder,.fg textarea::placeholder{color:var(--t4)}
+.fg input::placeholder,.fg textarea::placeholder{color:#64748b}
 .fsec{
   font-size:10px;font-weight:700;color:var(--t3);
   text-transform:uppercase;letter-spacing:.1em;
@@ -777,6 +777,7 @@ select{color-scheme:dark;}
         <div class="pills" id="pills-editais" style="margin-bottom:0;flex:1"></div>
         <button class="btn-toggle-all" id="tga-editais" onclick="toggleAllCards('editais')">&#8964; Expandir tudo</button>
       </div>
+      <div class="pills" id="status-pills-editais" style="margin-top:8px"></div>
       <div id="tbl-editais" class="tbl-wrap"><div class="load"><div class="spin"></div>Carregando...</div></div>
       <div class="pag" id="pag-editais"></div>
     </div>
@@ -830,6 +831,7 @@ select{color-scheme:dark;}
         <div class="pills" id="pills-ganhas" style="margin-bottom:0;flex:1"></div>
         <button class="btn-toggle-all" id="tga-ganhas" onclick="toggleAllCards('ganhas')">&#8964; Expandir tudo</button>
       </div>
+      <div class="pills" id="status-pills-ganhas" style="margin-top:8px"></div>
       <div id="tbl-ganhas" class="tbl-wrap"><div class="load"><div class="spin"></div>Carregando...</div></div>
       <div class="pag" id="pag-ganhas"></div>
     </div>
@@ -1969,7 +1971,7 @@ function sc(lbl,val,cls){
 }
 
 var PILL_EMPS={};
-var STATUS_FILTER={andamento:null};
+var STATUS_FILTER={andamento:null,ganhas:null,editais:null};
 function renderPills(k,rows){
   var el=document.getElementById('pills-'+k);
   if(!el) return;
@@ -1982,6 +1984,68 @@ function renderPills(k,rows){
     parts.push('<div class="pill" onclick="setPill(this,\''+k+'\',\''+i+'\')">'+e+' ('+c[e]+')</div>');
   });
   el.innerHTML=parts.join('');
+
+  // Status pills para editais
+  if(k==='editais'){
+    var spe=document.getElementById('status-pills-editais');
+    if(!spe) return;
+    var catse={
+      green: {lbl:'Participar — SIM',   cor:'#22c55e', bg:'rgba(34,197,94,.12)',  count:0},
+      red:   {lbl:'Não Participar',      cor:'#ef4444', bg:'rgba(239,68,68,.12)',  count:0},
+      yellow:{lbl:'Em Análise',          cor:'#eab308', bg:'rgba(234,179,8,.12)',  count:0},
+      dark:  {lbl:'Sem Avaliação',       cor:'#555',    bg:'rgba(100,100,100,.15)',count:0}
+    };
+    rows.forEach(function(r){
+      var part=String(r[10]||'').toUpperCase().trim();
+      if(part==='SIM') catse.green.count++;
+      else if(part==='NÃO'||part==='NAO') catse.red.count++;
+      else if(part.indexOf('ANALI')!==-1) catse.yellow.count++;
+      else catse.dark.count++;
+    });
+    var activee=STATUS_FILTER['editais'];
+    var htmle='<div class="pill'+(activee===null?' on':'')+'" onclick="setStatusFilterEditais(null)">Todos</div>';
+    ['green','red','yellow','dark'].forEach(function(key){
+      var cat=catse[key];
+      if(!cat.count) return;
+      var isOn=activee===key;
+      var dot='<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+cat.cor+';margin-right:5px;vertical-align:middle"></span>';
+      var style='border-color:'+cat.cor+';'+(isOn?'background:'+cat.bg+';color:'+cat.cor+';':'');
+      htmle+='<div class="pill'+(isOn?' on':'')+'" onclick="setStatusFilterEditais(\''+key+'\')" style="'+style+'">'+dot+cat.lbl+' ('+cat.count+')</div>';
+    });
+    spe.innerHTML=htmle;
+    return;
+  }
+
+  // Status pills para ganhas
+  if(k==='ganhas'){
+    var spg=document.getElementById('status-pills-ganhas');
+    if(!spg) return;
+    var catsg={
+      'exec': {lbl:'Em Execução',  cor:'#22c55e', bg:'rgba(34,197,94,.12)',  count:0},
+      'fin':  {lbl:'Finalizado',   cor:'#3b82f6', bg:'rgba(59,130,246,.12)', count:0},
+      'susp': {lbl:'Suspenso',     cor:'#eab308', bg:'rgba(234,179,8,.12)',  count:0},
+      'resc': {lbl:'Rescindido',   cor:'#ef4444', bg:'rgba(239,68,68,.12)',  count:0}
+    };
+    rows.forEach(function(r){
+      var st=String(r[9]||'').trim().toUpperCase();
+      if(st==='EM EXECUÇÃO'||st==='EM EXECUCAO') catsg.exec.count++;
+      else if(st==='FINALIZADO') catsg.fin.count++;
+      else if(st==='SUSPENSO') catsg.susp.count++;
+      else if(st==='RESCINDIDO') catsg.resc.count++;
+    });
+    var activeg=STATUS_FILTER['ganhas'];
+    var htmlg='<div class="pill'+(activeg===null?' on':'')+'" onclick="setStatusFilterGanhas(null)">Todos os status</div>';
+    ['exec','fin','susp','resc'].forEach(function(key){
+      var cat=catsg[key];
+      if(!cat||!cat.count) return;
+      var isOn=activeg===key;
+      var dot='<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+cat.cor+';margin-right:5px;vertical-align:middle"></span>';
+      var style='border-color:'+cat.cor+';'+(isOn?'background:'+cat.bg+';color:'+cat.cor+';':'');
+      htmlg+='<div class="pill'+(isOn?' on':'')+'" onclick="setStatusFilterGanhas(\''+key+'\')" style="'+style+'">'+dot+cat.lbl+' ('+cat.count+')</div>';
+    });
+    spg.innerHTML=htmlg;
+    return;
+  }
 
   if(k!=='andamento') return;
   var sp=document.getElementById('status-pills-andamento');
@@ -2003,6 +2067,46 @@ function renderPills(k,rows){
       'style="border-color:'+cat.cor+';'+(isOn?'background:'+cat.bg+';color:'+cat.cor+';':'')+'">'+'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+cat.cor+';margin-right:5px;vertical-align:middle"></span>'+cat.lbl+' ('+cat.count+')</div>';
   });
   sp.innerHTML=html;
+}
+
+function setStatusFilterEditais(key){
+  STATUS_FILTER['editais']=key;
+  if(key===null){
+    FIL['editais']=ALL['editais'].slice();
+  } else {
+    FIL['editais']=ALL['editais'].filter(function(r){
+      var part=String(r[10]||'').toUpperCase().trim();
+      if(key==='green') return part==='SIM';
+      if(key==='red')   return part==='NÃO'||part==='NAO';
+      if(key==='yellow') return part.indexOf('ANALI')!==-1;
+      if(key==='dark')  return part!=='SIM'&&part!=='NÃO'&&part!=='NAO'&&part.indexOf('ANALI')===-1;
+      return true;
+    });
+  }
+  PG['editais']=1;
+  renderPills('editais',ALL['editais']);
+  renderTbl('editais');
+}
+
+function setStatusFilterGanhas(key){
+  STATUS_FILTER['ganhas']=key;
+  var statusMap={
+    'exec':['EM EXECUÇÃO','EM EXECUCAO'],
+    'fin':['FINALIZADO'],
+    'susp':['SUSPENSO'],
+    'resc':['RESCINDIDO']
+  };
+  if(key===null){
+    FIL['ganhas']=ALL['ganhas'].slice();
+  } else {
+    var vals=statusMap[key]||[];
+    FIL['ganhas']=ALL['ganhas'].filter(function(r){
+      return vals.indexOf(String(r[9]||'').trim().toUpperCase())!==-1;
+    });
+  }
+  PG['ganhas']=1;
+  renderPills('ganhas',ALL['ganhas']);
+  renderTbl('ganhas');
 }
 
 function setStatusFilter(k,cor){
@@ -2158,6 +2262,28 @@ function toggleAllCards(k){
     else c.classList.add('collapsed');
   });
   if(btn) btn.innerHTML=doExpand?'&#8963; Recolher tudo':'&#8964; Expandir tudo';
+}
+
+
+function onSelChange(sel,k,abs,ci){
+  var val=sel.value;
+  var customId=sel.id+'-custom';
+  var customEl=document.getElementById(customId);
+  if(val==='Outro'){
+    if(!customEl){
+      var inp=document.createElement('input');
+      inp.type='text';
+      inp.id=customId;
+      inp.placeholder='Digite o nome do portal...';
+      inp.style.cssText='margin-top:4px;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.15);color:var(--t1);font-family:Outfit,sans-serif;font-size:13px;width:100%;outline:none;padding:3px 0';
+      inp.onblur=function(){ if(this.value) saveCell(k,abs,ci,this.value); };
+      sel.parentNode.appendChild(inp);
+      inp.focus();
+    }
+  } else {
+    if(customEl) customEl.remove();
+    saveCell(k,abs,ci,val);
+  }
 }
 
 
@@ -2442,7 +2568,7 @@ function inlineCell(k,abs,ci,v){
   var EMPS=['','VISE','SOS','SAUTEC','SOS FILIAL','ONLAV','ENGEMED','POTIGUAR'];
   var selCols={
     editais:{2:EMPS,10:['','SIM','NÃO','EM ANÁLISE'],11:['','POSITIVO','NEGATIVO','PENDENTE']},
-    andamento:{2:EMPS,9:['','compras gov','BLL','LICITANET','CONLICITACAO','BNC','Publinexo','Licitanet','PE-Integrado','Compras Públicas','Outro'],12:['','Em andamento','Ganha','Finalizado','Suspenso','Desclassificado','Inabilitado','Cancelado','Recurso','Aguardando'],14:['','sim','não'],16:['','sim','não']},
+    andamento:{2:EMPS,9:['','Compras Gov','BLL','LICITANET','CONLICITACAO','BNC','Publinexo','Licitanet','PE-Integrado','Compras Públicas','Apoio Cotações','Licitar Digital','Licitações-e','Outro'],12:['','Em andamento','Ganha','Finalizado','Suspenso','Desclassificado','Inabilitado','Cancelado','Recurso','Aguardando'],14:['','sim','não'],16:['','sim','não']},
     ganhas:{2:EMPS,9:['','EM EXECUÇÃO','FINALIZADO','SUSPENSO','RESCINDIDO'],13:['','SIM','NÃO']},
     atestados:{2:EMPS,10:['','SIM','NÃO'],11:['','SIM','NÃO'],15:['','ATIVO','PENDENTE','VENCIDO'],17:['','ATIVO','PENDENTE','VENCIDO'],18:['','COMPLETO','PENDENTE','EM ANDAMENTO']},
     financeiro:{1:['','IAs','Portais','Telefonia','Informatica','Outros'],5:['','Pago','Pendente','Atrasado'],6:['','Banco Inter','Banco do Brasil','Caixa','Outros']}
@@ -2450,9 +2576,16 @@ function inlineCell(k,abs,ci,v){
   var selOpts=selCols[k]&&selCols[k][ci];
   if(selOpts){
     var allOpts=selOpts.slice();
-    if(s&&allOpts.indexOf(s)===-1) allOpts.push(s);
-    var opts=allOpts.map(function(o){return '<option value="'+o+'"'+(o===s?' selected':'')+'>'+( o||'—')+'</option>';}).join('');
-    return '<select id="'+inputId+'" onchange="saveCell(\''+k+'\',' +abs+','+ci+',this.value)">'+opts+'</select>';
+    // Se valor atual não está na lista e não é vazio, adiciona como opção
+    if(s&&s!=='Outro'&&allOpts.indexOf(s)===-1) allOpts.push(s);
+    var opts=allOpts.map(function(o){return '<option value="'+o+'"'+(o===s?' selected':'')+'>'+(o||'—')+'</option>';}).join('');
+    var selTag='<select id="'+inputId+'" onchange="onSelChange(this,\''+k+'\',' +abs+','+ci+')">'+opts+'</select>';
+    // Se portal customizado, mostrar input extra
+    var showCustom=ci===9&&s&&s!=='Outro'&&selOpts.slice(1).indexOf(s)===-1;
+    if(showCustom){
+      selTag+='<input type="text" id="'+inputId+'-custom" value="'+s.replace(/"/g,'&quot;')+'" placeholder="Nome do portal..." onblur="saveCell(\''+k+'\',' +abs+','+ci+',this.value||document.getElementById(\''+inputId+'\').value)" style="margin-top:4px;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.15);color:var(--t1);font-family:Outfit,sans-serif;font-size:13px;width:100%;outline:none;padding:3px 0">';
+    }
+    return selTag;
   }
   if(ci===1){
     return '<input type="date" id="'+inputId+'" value="'+isoDate(s)+'" onchange="saveCell(\''+k+'\','+abs+','+ci+',formatDateBR(this.value))">';
