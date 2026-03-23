@@ -2836,7 +2836,16 @@ function clearF(k){
   });
 }
 function sv(id){var el=document.getElementById(id);return el?el.value:'';}
-function setv(id,v){var el=document.getElementById(id);if(el) el.value=v||'';}
+function setv(id,v){
+  var el=document.getElementById(id);
+  if(!el) return;
+  // Se for input type=date, converter dd/MM/yyyy para yyyy-MM-dd
+  if(el.type==='date'&&v&&v.indexOf('/')!==-1){
+    el.value=isoDate(String(v).split(' ')[0]); // pega só a data sem hora
+  } else {
+    el.value=v||'';
+  }
+}
 
 function doEdit(k,idx){
   var row=FIL[k][idx];
@@ -2894,8 +2903,18 @@ async function doSave(k){
     if(!adata&&origRow) adata=origRow[1]||'';
     vals=[aid,adata,sv('a-emp'),sv('a-licit'),sv('a-obj'),sv('a-local'),sv('a-mun'),sv('a-vest'),sv('a-vfin'),sv('a-portal'),sv('a-disp'),sv('a-class'),sv('a-status'),sv('a-reab'),sv('a-rec'),sv('a-resumo'),sv('a-adju'),sv('a-conc'),sv('a-vconc'),sv('a-link')];
   }
-  else if(k==='ganhas') vals=['',sv('g-data'),sv('g-emp'),sv('g-licit'),sv('g-obj'),sv('g-local'),sv('g-mun'),sv('g-valor'),sv('g-cont'),sv('g-stcont'),sv('g-vig'),sv('g-dtcont'),sv('g-venc'),sv('g-recomp'),sv('g-trecomp'),sv('g-strecomp'),sv('g-novadata'),sv('g-vigrecomp'),sv('g-vencrecomp'),sv('g-vfin'),sv('g-obs'),sv('g-link')];
-  else if(k==='atestados') vals=['',sv('at-data'),sv('at-emp'),sv('at-licit'),sv('at-obj'),sv('at-local'),sv('at-mun'),sv('at-cont'),sv('at-dtcont'),sv('at-vig'),sv('at-req'),sv('at-receb'),sv('at-dtreceb'),sv('at-emit'),sv('at-cat'),sv('at-catst'),sv('at-art'),sv('at-artst'),sv('at-status'),sv('at-obs'),sv('at-link')];
+  else if(k==='ganhas'){
+    var gid=origRow?origRow[0]:'';
+    var gdata=sv('g-data'); if(gdata&&gdata.indexOf('-')!==-1) gdata=formatDateBR(gdata);
+    if(!gdata&&origRow) gdata=origRow[1]||'';
+    vals=[gid,gdata,sv('g-emp'),sv('g-licit'),sv('g-obj'),sv('g-local'),sv('g-mun'),sv('g-valor'),sv('g-cont'),sv('g-stcont'),sv('g-vig'),sv('g-dtcont'),sv('g-venc'),sv('g-recomp'),sv('g-trecomp'),sv('g-strecomp'),sv('g-novadata'),sv('g-vigrecomp'),sv('g-vencrecomp'),sv('g-vfin'),sv('g-obs'),sv('g-link')];
+  }
+  else if(k==='atestados'){
+    var atid=origRow?origRow[0]:'';
+    var atdata=sv('at-data'); if(atdata&&atdata.indexOf('-')!==-1) atdata=formatDateBR(atdata);
+    if(!atdata&&origRow) atdata=origRow[1]||'';
+    vals=[atid,atdata,sv('at-emp'),sv('at-licit'),sv('at-obj'),sv('at-local'),sv('at-mun'),sv('at-cont'),sv('at-dtcont'),sv('at-vig'),sv('at-req'),sv('at-receb'),sv('at-dtreceb'),sv('at-emit'),sv('at-cat'),sv('at-catst'),sv('at-art'),sv('at-artst'),sv('at-status'),sv('at-obs'),sv('at-link')];
+  }
   else if(k==='financeiro'){
     var fdata=sv('f-data');
     // Converter data de yyyy-mm-dd para dd/mm/yyyy
