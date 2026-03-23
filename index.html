@@ -772,6 +772,7 @@ select{color-scheme:dark;}
           Novo Edital
         </button>
         <div class="search"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><input placeholder="Buscar edital..." id="q-editais" oninput="doQ('editais')"></div>
+        <button id="btn-prahoje-editais" onclick="filtrarPraHojeEditais()" style="background:rgba(249,115,22,.15);color:var(--nh);border:1px solid rgba(249,115,22,.3);padding:6px 14px;font-size:12px;font-weight:700;border-radius:7px;cursor:pointer;font-family:Outfit,sans-serif;display:inline-flex;align-items:center;gap:6px">📅 Pra Hoje</button>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
         <div class="pills" id="pills-editais" style="margin-bottom:0;flex:1"></div>
@@ -792,6 +793,7 @@ select{color-scheme:dark;}
         </button>
         <div class="search"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><input placeholder="Buscar..." id="q-andamento" oninput="doQ('andamento')"></div>
         <span style="font-size:11px;color:var(--t3);background:var(--nha2);border:1px solid rgba(249,115,22,.15);padding:4px 10px;border-radius:6px">⚡ ADJU = sim → Finalizados</span>
+        <button id="btn-prahoje" onclick="filtrarPraHoje()" style="background:rgba(249,115,22,.15);color:var(--nh);border:1px solid rgba(249,115,22,.3);padding:6px 14px;font-size:12px;font-weight:700;border-radius:7px;cursor:pointer;font-family:Outfit,sans-serif;transition:all .15s;display:inline-flex;align-items:center;gap:6px">📅 Pra Hoje</button>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
         <div class="pills" id="pills-andamento" style="margin-bottom:0;flex:1"></div>
@@ -1973,9 +1975,122 @@ function sc(lbl,val,cls){
 var PILL_EMPS={};
 var STATUS_FILTER={andamento:null,ganhas:null,editais:null};
 var EMP_FILTER={}; // filtro de empresa por aba
+var PRAHOJE_ACTIVE=false;
 
 // ── Função central de filtro — aplica empresa + cor + busca juntos ──
+function filtrarPraHojeEditais(){
+  var btn=document.getElementById('btn-prahoje-editais');
+  var active=btn&&btn.getAttribute('data-active')==='1';
+
+  if(active){
+    btn.setAttribute('data-active','0');
+    btn.style.background='rgba(249,115,22,.15)';btn.style.color='var(--nh)';btn.innerHTML='📅 Pra Hoje';
+    FIL['editais']=ALL['editais'].slice();
+    PG['editais']=1;renderPills('editais',ALL['editais']);renderTbl('editais');
+    return;
+  }
+
+  btn.setAttribute('data-active','1');
+  btn.style.background='var(--nh)';btn.style.color='#000';btn.innerHTML='✕ Limpar filtro';
+
+  var hoje=new Date(); hoje.setHours(0,0,0,0);
+  var d1=new Date(hoje); d1.setDate(d1.getDate()-2);
+  var d2=new Date(hoje); d2.setDate(d2.getDate()+1);
+
+  function parseBR(str){
+    if(!str) return null;
+    var p=String(str).trim().split(' ')[0].split('/');
+    if(p.length!==3) return null;
+    return new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
+  }
+
+  // Editais — filtrar por DATA (índice 1)
+  var filtered=ALL['editais'].filter(function(r){
+    var d=parseBR(r[1]);
+    return d&&d>=d1&&d<d2;
+  });
+
+  filtered.sort(function(a,b){
+    var da=parseBR(a[1]),db=parseBR(b[1]);
+    return (da||0)-(db||0);
+  });
+
+  FIL['editais']=filtered;
+  PG['editais']=1;renderPills('editais',ALL['editais']);renderTbl('editais');
+  toast((filtered.length||'Nenhum')+' edital(is) nos últimos 3 dias','ok');
+}
+
+
+function filtrarPraHoje(){
+  PRAHOJE_ACTIVE=!PRAHOJE_ACTIVE;
+  var btn=document.getElementById('btn-prahoje');
+
+  if(!PRAHOJE_ACTIVE){
+    // Desativar filtro
+    if(btn){btn.style.background='rgba(249,115,22,.15)';btn.style.color='var(--nh)';btn.textContent='📅 Pra Hoje';}
+    FIL['andamento']=ALL['andamento'].slice();
+    PG['andamento']=1;
+    renderPills('andamento',ALL['andamento']);
+    renderTbl('andamento');
+    return;
+  }
+
+  // Ativar filtro — últimos 3 dias (hoje, ontem, anteontem)
+  if(btn){btn.style.background='var(--nh)';btn.style.color='#000';btn.textContent='✕ Limpar filtro';}
+
+  var hoje=new Date(); hoje.setHours(0,0,0,0);
+  var d1=new Date(hoje); d1.setDate(d1.getDate()-2); // 2 dias atrás
+  var d2=new Date(hoje); d2.setDate(d2.getDate()+1); // amanhã (exclusivo)
+
+  function parseDateBR(str){
+    if(!str) return null;
+    var s=String(str).trim();
+    // aceitar dd/MM/yyyy HH:mm ou dd/MM/yyyy
+    var parts=s.split(' ')[0].split('/');
+    if(parts.length!==3) return null;
+    return new Date(parseInt(parts[2]),parseInt(parts[1])-1,parseInt(parts[0]),0,0,0);
+  }
+
+  // Filtrar por Data Disputa (índice 10) ou Reabertura (índice 13)
+  var filtered=ALL['andamento'].filter(function(r){
+    var dd=parseDateBR(r[10]); // Data Disputa
+    var re=parseDateBR(r[13]); // Reabertura
+    var matchDD=dd&&dd>=d1&&dd<d2;
+    var matchRE=re&&re>=d1&&re<d2;
+    return matchDD||matchRE;
+  });
+
+  // Ordenar por data crescente (mais antiga primeiro)
+  filtered.sort(function(a,b){
+    function getDate(r){
+      var dd=parseDateBR(r[10]);
+      var re=parseDateBR(r[13]);
+      if(dd&&re) return dd<re?dd:re;
+      return dd||re||new Date(9999,0,1);
+    }
+    return getDate(a)-getDate(b);
+  });
+
+  FIL['andamento']=filtered;
+  PG['andamento']=1;
+  renderPills('andamento',ALL['andamento']);
+  renderTbl('andamento');
+
+  if(filtered.length===0){
+    toast('Nenhum processo nos últimos 3 dias','info');
+  } else {
+    toast(filtered.length+' processo(s) encontrado(s)','ok');
+  }
+}
+
+
 function applyFilters(k){
+  // Desativar Pra Hoje ao usar outros filtros em andamento
+  if(k==='andamento'&&PRAHOJE_ACTIVE){
+    PRAHOJE_ACTIVE=false;
+    var btn=document.getElementById('btn-prahoje');
+    if(btn){btn.style.background='rgba(249,115,22,.15)';btn.style.color='var(--nh)';btn.innerHTML='📅 Pra Hoje';}
+  }
   var emp=EMP_FILTER[k]||null;
   var cor=STATUS_FILTER[k]||null;
   var q=(document.getElementById('q-'+k)||{}).value;
@@ -2017,9 +2132,14 @@ function renderPills(k,rows){
   rows.forEach(function(r){var e=String(r[2]||'Outros').trim();c[e]=(c[e]||0)+1;});
   var emps=Object.keys(c).sort(function(a,b){return c[b]-c[a];});
   PILL_EMPS[k]=emps;
-  var parts=['<div class="pill on" onclick="setPill(this,\''+k+'\',\'-1\')">Todas ('+rows.length+')</div>'];
+  var activeEmp=EMP_FILTER[k]||null;
+  var parts=['<div class="pill'+(activeEmp===null?' on':'')+'" onclick="setPill(this,\''+k+'\',\'-1\')">Todas ('+rows.length+')</div>'];
   emps.forEach(function(e,i){
-    parts.push('<div class="pill" onclick="setPill(this,\''+k+'\',\''+i+'\')">'+e+' ('+c[e]+')</div>');
+    var ec2=empColor(e);
+    var eb2=empBg(e);
+    var isOn=activeEmp===e;
+    var style=isOn?'border-color:'+ec2+';background:'+eb2+';color:'+ec2+';':'';
+    parts.push('<div class="pill'+(isOn?' on':'')+'" onclick="setPill(this,\''+k+'\',\''+i+'\')" style="'+style+'">'+e+' ('+c[e]+')</div>');
   });
   el.innerHTML=parts.join('');
 
