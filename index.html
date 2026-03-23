@@ -1994,8 +1994,8 @@ function filtrarPraHojeEditais(){
   btn.style.background='var(--nh)';btn.style.color='#000';btn.innerHTML='✕ Limpar filtro';
 
   var hoje=new Date(); hoje.setHours(0,0,0,0);
-  var d1=new Date(hoje); d1.setDate(d1.getDate()-2);
-  var d2=new Date(hoje); d2.setDate(d2.getDate()+1);
+  var d1=new Date(hoje); // hoje
+  var d2=new Date(hoje); d2.setDate(d2.getDate()+3); // hoje + 2 dias (exclusivo)
 
   function parseBR(str){
     if(!str) return null;
@@ -2039,8 +2039,8 @@ function filtrarPraHoje(){
   if(btn){btn.style.background='var(--nh)';btn.style.color='#000';btn.textContent='✕ Limpar filtro';}
 
   var hoje=new Date(); hoje.setHours(0,0,0,0);
-  var d1=new Date(hoje); d1.setDate(d1.getDate()-2); // 2 dias atrás
-  var d2=new Date(hoje); d2.setDate(d2.getDate()+1); // amanhã (exclusivo)
+  var d1=new Date(hoje); // hoje
+  var d2=new Date(hoje); d2.setDate(d2.getDate()+3); // hoje + 2 dias (exclusivo)
 
   function parseDateBR(str){
     if(!str) return null;
