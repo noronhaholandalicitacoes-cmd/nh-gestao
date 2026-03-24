@@ -1873,6 +1873,16 @@ function fmtValBR(s){
   return 'R$ '+n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 }
 
+function calcValorGanhas(r){
+  function parseVal(s){
+    var raw=String(s||'').replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.').trim();
+    return parseFloat(raw)||0;
+  }
+  var vfin=parseVal(r[19]);
+  if(vfin>0) return vfin;
+  return parseVal(r[7]);
+}
+
 function buildResumo(){
   var el=document.getElementById('resumo-body');
   if(!API){el.innerHTML=noConf();return;}
@@ -1881,21 +1891,7 @@ function buildResumo(){
   var part=ed.filter(function(r){return String(r[10]||'').toUpperCase().trim()==='SIM';}).length;
   var adj=an.filter(function(r){return String(r[16]||'').toLowerCase().trim()==='sim';}).length;
   var emExec=ga.filter(function(r){return String(r[9]||'').trim()==='EM EXECU\u00c7\u00c3O';}).length;
-  var totalVal=ga.map(function(r){
-    // Usar último valor final preenchido entre as 4 recomposições, senão valor original
-    var vfin=0;
-    var idxsFin=[19,26,33,40]; // índices dos Valor Final de cada recomp
-    for(var ii=idxsFin.length-1;ii>=0;ii--){
-      var raw2=String(r[idxsFin[ii]]||'').replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.').trim();
-      var n2=parseFloat(raw2)||0;
-      if(n2>0){vfin=n2;break;}
-    }
-    if(!vfin){
-      var raw=String(r[7]||'').replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.').trim();
-      vfin=parseFloat(raw)||0;
-    }
-    return vfin;
-  }).reduce(function(a,b){return a+b;},0);
+  var totalVal=ga.reduce(function(acc,r){return acc+calcValorGanhas(r);},0);
 
   var EMPS=['VISE','SOS','SAUTEC','SOS FILIAL','ONLAV','ENGEMED','POTIGUAR'];
   var empAn={};
@@ -1926,18 +1922,7 @@ function buildResumo(){
   ga.forEach(function(r){
     var e=String(r[2]||'').trim();
     if(!e) return;
-    var vfin=0;
-    var idxsFin=[19,26,33,40];
-    for(var ii=idxsFin.length-1;ii>=0;ii--){
-      var raw2=String(r[idxsFin[ii]]||'').replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.').trim();
-      var n2=parseFloat(raw2)||0;
-      if(n2>0){vfin=n2;break;}
-    }
-    if(!vfin){
-      var raw=String(r[7]||'').replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.').trim();
-      vfin=parseFloat(raw)||0;
-    }
-    empVal[e]=(empVal[e]||0)+vfin;
+    empVal[e]=(empVal[e]||0)+calcValorGanhas(r);
   });
   // Incluir todas as empresas conhecidas mesmo com valor 0
   var TODAS_EMPS=['VISE','SOS','SAUTEC','SOS FILIAL','ONLAV','ENGEMED','POTIGUAR'];
@@ -1989,17 +1974,7 @@ function renderStats(k,rows){
   } else if(k==='ganhas'){
     var exec=rows.filter(function(r){return String(r[9]||'').trim()==='EM EXECUÇÃO';}).length;
     var fin=rows.filter(function(r){return String(r[9]||'').trim()==='FINALIZADO';}).length;
-    var tv=rows.reduce(function(acc,r){
-      var vfin=0;
-      var idxsFin=[19,26,33,40];
-      for(var ii=idxsFin.length-1;ii>=0;ii--){
-        var rw=String(r[idxsFin[ii]]||'').replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.').trim();
-        var nn=parseFloat(rw)||0;
-        if(nn>0){vfin=nn;break;}
-      }
-      if(!vfin){var rw2=String(r[7]||'').replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.').trim();vfin=parseFloat(rw2)||0;}
-      return acc+vfin;
-    },0);
+    var tv=rows.reduce(function(acc,r){return acc+calcValorGanhas(r);},0);
     h=sc('Total Ganhas',rows.length,'nh')+sc('Em Execução',exec,'green')+sc('Finalizados',fin,'yellow')+(tv>0?sc('Valor Total',fmtVal(tv),'blue'):'');
   } else if(k==='atestados'){
     var rec2=rows.filter(function(r){return String(r[11]||'').trim()==='SIM';}).length;
@@ -2317,20 +2292,7 @@ function setStatusFilterGanhas(key){
 
 function atualizarTotalGanhas(){
   var rows=FIL['ganhas']||[];
-  var total=rows.reduce(function(acc,r){
-    var vfin=0;
-    var idxsFin=[19,26,33,40];
-    for(var ii=idxsFin.length-1;ii>=0;ii--){
-      var raw2=String(r[idxsFin[ii]]||'').replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.').trim();
-      var n2=parseFloat(raw2)||0;
-      if(n2>0){vfin=n2;break;}
-    }
-    if(!vfin){
-      var raw=String(r[7]||'').replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.').trim();
-      vfin=parseFloat(raw)||0;
-    }
-    return acc+vfin;
-  },0);
+  var total=rows.reduce(function(acc,r){return acc+calcValorGanhas(r);},0);
   var bar=document.getElementById('ganhas-total-bar');
   var val=document.getElementById('ganhas-total-val');
   if(bar) bar.style.display=rows.length<(ALL['ganhas']||[]).length?'block':'none';
