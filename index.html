@@ -1874,13 +1874,10 @@ function fmtValBR(s){
 }
 
 function calcValorGanhas(r){
-  function parseVal(s){
-    var raw=String(s||'').replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.').trim();
-    return parseFloat(raw)||0;
-  }
-  var vfin=parseVal(r[19]);
-  if(vfin>0) return vfin;
-  return parseVal(r[7]);
+  // Valor está na coluna H (índice 7)
+  var raw=String(r[7]||'').replace(/R\$/g,'').replace(/\s/g,'').replace(/\./g,'').replace(',','.').trim();
+  var n=parseFloat(raw);
+  return (isNaN(n)||n<=0)?0:n;
 }
 
 function buildResumo(){
