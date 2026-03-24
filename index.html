@@ -1987,10 +1987,20 @@ function renderStats(k,rows){
   } else if(k==='finalizados'){
     h=sc('Total Finalizados',rows.length,'nh');
   } else if(k==='ganhas'){
-    var exec=rows.filter(function(r){return String(r[9]||'').trim()==='EM EXECU\u00c7\u00c3O';}).length;
+    var exec=rows.filter(function(r){return String(r[9]||'').trim()==='EM EXECUÇÃO';}).length;
     var fin=rows.filter(function(r){return String(r[9]||'').trim()==='FINALIZADO';}).length;
-    var tv=rows.map(function(r){var raw=String(r[19]||r[7]||'').replace(/R\$\s*/g,'').trim();var v2=raw.indexOf(',')!==-1?raw.replace(/\./g,'').replace(',','.'):raw;return parseFloat(v2)||0;}).reduce(function(a,b){return a+b;},0);
-    h=sc('Total Ganhas',rows.length,'nh')+sc('Em Execu\u00e7\u00e3o',exec,'green')+sc('Finalizados',fin,'yellow')+(tv>0?sc('Valor Total',fmtVal(tv),'blue'):'');
+    var tv=rows.reduce(function(acc,r){
+      var vfin=0;
+      var idxsFin=[19,26,33,40];
+      for(var ii=idxsFin.length-1;ii>=0;ii--){
+        var rw=String(r[idxsFin[ii]]||'').replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.').trim();
+        var nn=parseFloat(rw)||0;
+        if(nn>0){vfin=nn;break;}
+      }
+      if(!vfin){var rw2=String(r[7]||'').replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.').trim();vfin=parseFloat(rw2)||0;}
+      return acc+vfin;
+    },0);
+    h=sc('Total Ganhas',rows.length,'nh')+sc('Em Execução',exec,'green')+sc('Finalizados',fin,'yellow')+(tv>0?sc('Valor Total',fmtVal(tv),'blue'):'');
   } else if(k==='atestados'){
     var rec2=rows.filter(function(r){return String(r[11]||'').trim()==='SIM';}).length;
     var pend=rows.filter(function(r){return String(r[11]||'').trim()==='N\u00c3O';}).length;
@@ -2175,6 +2185,7 @@ function applyFilters(k){
     return true;
   });
   PG[k]=1;
+  renderStats(k,FIL[k]);
   renderPills(k,ALL[k]);
   renderTbl(k);
   if(k==='ganhas') atualizarTotalGanhas();
