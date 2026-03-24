@@ -2976,13 +2976,19 @@ async function doSave(k){
 
 async function doDel(k,idx){
   var row=FIL[k][idx];
-  if(!confirm('Excluir ID '+row[0]+'?\n"'+row[3]+'"\n\nEsta a\u00e7\u00e3o n\u00e3o pode ser desfeita.')) return;
+  var label=k==='financeiro'?row[2]:row[3]; // financeiro: descrição; outros: licitação
+  if(!confirm('Excluir?\n"'+label+'"\n\nEsta ação não pode ser desfeita.')) return;
   var delPayload={action:'delete',sheet:SHEETS[k],rowId:row[0]};
   if(k==='andamento'){
     delPayload.rowKey=String(row[2]||'').trim()+'|'+String(row[3]||'').trim();
   }
+  if(k==='financeiro'){
+    // Financeiro não tem ID — usar data+descrição como chave
+    delPayload.finData=String(row[0]||'').trim();
+    delPayload.finDesc=String(row[2]||'').trim();
+  }
   var res=await apiPost(delPayload);
-  if(res&&res.success){toast('Registro exclu\u00eddo!','info');await loadPage(k);}
+  if(res&&res.success){toast('Registro excluído!','info');await loadPage(k);}
 }
 
 function toast(msg,type){
