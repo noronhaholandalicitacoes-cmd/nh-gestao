@@ -1811,7 +1811,7 @@ async function _load(k){
   var d=await apiFetch({action:'read',sheet:SHEETS[k]});
   if(!d||!d.values){var el=document.getElementById('tbl-'+k);if(el) el.innerHTML=emptyEl('Sem dados ou erro');return;}
   // Filtra só linhas com colunas A B C D preenchidas (índices 0,1,2,3)
-  var minCols=k==='financeiro'?1:k==='ganhas'?1:(k==='atestados')?2:4;
+  var minCols=k==='financeiro'?1:(k==='ganhas'||k==='atestados')?2:4;
   var valid=d.values.filter(function(r){
     if(k==='financeiro'){
       // financeiro: linhas com data e categoria preenchidas (idx 0 e 1)
@@ -1874,12 +1874,9 @@ function fmtValBR(s){
 }
 
 function calcValorGanhas(r){
-  // Valor está na coluna H (índice 7)
   var raw=String(r[7]||'').replace(/R\$/g,'').replace(/\s/g,'').replace(/\./g,'').replace(',','.').trim();
   var n=parseFloat(raw);
-  var result=(isNaN(n)||n<=0)?0:n;
-  console.log('GANHAS valor idx7='+JSON.stringify(r[7])+' parsed='+result+' licit='+String(r[3]||'').substring(0,30));
-  return result;
+  return (isNaN(n)||n<=0)?0:n;
 }
 
 function buildResumo(){
