@@ -838,6 +838,9 @@ select{color-scheme:dark;}
         <button class="btn-toggle-all" id="tga-ganhas" onclick="toggleAllCards('ganhas')">&#8964; Expandir tudo</button>
       </div>
       <div class="pills" id="status-pills-ganhas" style="margin-top:8px"></div>
+      <div id="ganhas-total-bar" style="margin-top:8px;font-size:13px;color:var(--t2);background:var(--s2);border:1px solid var(--b1);border-radius:8px;padding:8px 14px;display:none">
+        <span>Total filtrado: </span><strong id="ganhas-total-val" style="color:var(--nh)">R$ 0,00</strong>
+      </div>
       <div id="tbl-ganhas" class="tbl-wrap"><div class="load"><div class="spin"></div>Carregando...</div></div>
       <div class="pag" id="pag-ganhas"></div>
     </div>
@@ -1879,9 +1882,19 @@ function buildResumo(){
   var adj=an.filter(function(r){return String(r[16]||'').toLowerCase().trim()==='sim';}).length;
   var emExec=ga.filter(function(r){return String(r[9]||'').trim()==='EM EXECU\u00c7\u00c3O';}).length;
   var totalVal=ga.map(function(r){
-    var raw=String(r[19]||r[7]||'').replace(/R\$\s*/g,'').trim();
-    var v=raw.indexOf(',')!==-1?raw.replace(/\./g,'').replace(',','.'):raw;
-    return parseFloat(v)||0;
+    // Usar último valor final preenchido entre as 4 recomposições, senão valor original
+    var vfin=0;
+    var idxsFin=[19,26,33,40]; // índices dos Valor Final de cada recomp
+    for(var ii=idxsFin.length-1;ii>=0;ii--){
+      var raw2=String(r[idxsFin[ii]]||'').replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.').trim();
+      var n2=parseFloat(raw2)||0;
+      if(n2>0){vfin=n2;break;}
+    }
+    if(!vfin){
+      var raw=String(r[7]||'').replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.').trim();
+      vfin=parseFloat(raw)||0;
+    }
+    return vfin;
   }).reduce(function(a,b){return a+b;},0);
 
   var EMPS=['VISE','SOS','SAUTEC','SOS FILIAL','ONLAV','ENGEMED','POTIGUAR'];
@@ -1913,12 +1926,18 @@ function buildResumo(){
   ga.forEach(function(r){
     var e=String(r[2]||'').trim();
     if(!e) return;
-    var raw=String(r[19]||r[7]||'').replace(/R\$\s*/g,'').trim();
-    var n=0;
-    if(raw){
-      n=parseFloat(raw.indexOf(',')!==-1?raw.replace(/\./g,'').replace(',','.'):raw.replace(/[^\d.]/g,''))||0;
+    var vfin=0;
+    var idxsFin=[19,26,33,40];
+    for(var ii=idxsFin.length-1;ii>=0;ii--){
+      var raw2=String(r[idxsFin[ii]]||'').replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.').trim();
+      var n2=parseFloat(raw2)||0;
+      if(n2>0){vfin=n2;break;}
     }
-    empVal[e]=(empVal[e]||0)+n;
+    if(!vfin){
+      var raw=String(r[7]||'').replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.').trim();
+      vfin=parseFloat(raw)||0;
+    }
+    empVal[e]=(empVal[e]||0)+vfin;
   });
   // Incluir todas as empresas conhecidas mesmo com valor 0
   var TODAS_EMPS=['VISE','SOS','SAUTEC','SOS FILIAL','ONLAV','ENGEMED','POTIGUAR'];
@@ -2142,7 +2161,12 @@ function applyFilters(k){
         if(getAndamentoCor(r)!==cor) return false;
       } else if(k==='ganhas'){
         var stg=String(r[9]||'').trim().toUpperCase();
-        if(cor==='exec'&&stg!=='EM EXECUÇÃO'&&stg!=='EM EXECUCAO') return false;
+        var hj=new Date(); hj.setHours(0,0,0,0);
+        var vdp=String(r[12]||'').split('/');
+        var vd=vdp.length===3?new Date(parseInt(vdp[2]),parseInt(vdp[1])-1,parseInt(vdp[0])):null;
+        var isVencido=vd&&vd<hj&&(stg==='EM EXECUÇÃO'||stg==='EM EXECUCAO');
+        if(cor==='venc'&&!isVencido) return false;
+        if(cor==='exec'&&(isVencido||stg!=='EM EXECUÇÃO'&&stg!=='EM EXECUCAO')) return false;
         if(cor==='fin'&&stg!=='FINALIZADO') return false;
         if(cor==='susp'&&stg!=='SUSPENSO') return false;
         if(cor==='resc'&&stg!=='RESCINDIDO') return false;
@@ -2153,6 +2177,7 @@ function applyFilters(k){
   PG[k]=1;
   renderPills(k,ALL[k]);
   renderTbl(k);
+  if(k==='ganhas') atualizarTotalGanhas();
 }
 function renderPills(k,rows){
   var el=document.getElementById('pills-'+k);
@@ -2207,15 +2232,26 @@ function renderPills(k,rows){
   if(k==='ganhas'){
     var spg=document.getElementById('status-pills-ganhas');
     if(!spg) return;
+    var hoje2=new Date(); hoje2.setHours(0,0,0,0);
+    function parseBRDate(s){
+      if(!s) return null;
+      var p=String(s).split('/');
+      if(p.length!==3) return null;
+      return new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
+    }
     var catsg={
       'exec': {lbl:'Em Execução',  cor:'#22c55e', bg:'rgba(34,197,94,.12)',  count:0},
+      'venc': {lbl:'Vencidos',     cor:'#ef4444', bg:'rgba(239,68,68,.12)',  count:0},
       'fin':  {lbl:'Finalizado',   cor:'#3b82f6', bg:'rgba(59,130,246,.12)', count:0},
       'susp': {lbl:'Suspenso',     cor:'#eab308', bg:'rgba(234,179,8,.12)',  count:0},
       'resc': {lbl:'Rescindido',   cor:'#ef4444', bg:'rgba(239,68,68,.12)',  count:0}
     };
     rows.forEach(function(r){
       var st=String(r[9]||'').trim().toUpperCase();
-      if(st==='EM EXECUÇÃO'||st==='EM EXECUCAO') catsg.exec.count++;
+      var venc=parseBRDate(r[12]); // col M = vencimento contrato
+      var isVenc=venc&&venc<hoje2&&(st==='EM EXECUÇÃO'||st==='EM EXECUCAO');
+      if(isVenc) catsg.venc.count++;
+      else if(st==='EM EXECUÇÃO'||st==='EM EXECUCAO') catsg.exec.count++;
       else if(st==='FINALIZADO') catsg.fin.count++;
       else if(st==='SUSPENSO') catsg.susp.count++;
       else if(st==='RESCINDIDO') catsg.resc.count++;
@@ -2264,6 +2300,30 @@ function setStatusFilterEditais(key){
 function setStatusFilterGanhas(key){
   STATUS_FILTER['ganhas']=key;
   applyFilters('ganhas');
+  // Recalcular total filtrado
+  setTimeout(function(){ atualizarTotalGanhas(); }, 100);
+}
+
+function atualizarTotalGanhas(){
+  var rows=FIL['ganhas']||[];
+  var total=rows.reduce(function(acc,r){
+    var vfin=0;
+    var idxsFin=[19,26,33,40];
+    for(var ii=idxsFin.length-1;ii>=0;ii--){
+      var raw2=String(r[idxsFin[ii]]||'').replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.').trim();
+      var n2=parseFloat(raw2)||0;
+      if(n2>0){vfin=n2;break;}
+    }
+    if(!vfin){
+      var raw=String(r[7]||'').replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.').trim();
+      vfin=parseFloat(raw)||0;
+    }
+    return acc+vfin;
+  },0);
+  var bar=document.getElementById('ganhas-total-bar');
+  var val=document.getElementById('ganhas-total-val');
+  if(bar) bar.style.display=rows.length<(ALL['ganhas']||[]).length?'block':'none';
+  if(val) val.textContent=fmtVal(total);
 }
 
 function setStatusFilter(k,cor){
@@ -2515,7 +2575,7 @@ function renderCard(k,row,abs){
 
   // botões
   h+='<div style="display:flex;flex-direction:row;gap:6px;align-items:center;flex-shrink:0;padding-top:2px">';
-  if(k==='editais'){
+  if(k==='editais'||k==='ganhas'||k==='atestados'||k==='financeiro'){
     h+='<button class="btn-edit-card" onclick="event.stopPropagation();openEditCard(\''+k+'\','+abs+')" title="Editar">✏</button>';
   }
   h+='<button class="btn-del" onclick="event.stopPropagation();doDel(\''+k+'\','+abs+')" title="Excluir">✕</button>';
