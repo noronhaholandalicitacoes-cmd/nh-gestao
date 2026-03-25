@@ -826,6 +826,7 @@ select{color-scheme:dark;}
     <!-- GANHAS -->
     <div class="page" id="page-ganhas">
       <div class="stats" id="st-ganhas"></div>
+      <div id="debug-ganhas" style="font-size:11px;color:#f97316;padding:4px 8px;background:rgba(249,115,22,.1);border-radius:6px;margin-bottom:8px;display:none"></div>
       <div class="toolbar">
         <button class="btn btn-nh" onclick="openM('ganhas')">
           <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
@@ -1975,6 +1976,8 @@ function renderStats(k,rows){
     var fin=rows.filter(function(r){return String(r[9]||'').trim()==='FINALIZADO';}).length;
     var recomp=rows.filter(function(r){return String(r[13]||'').toUpperCase().trim()==='SIM';}).length;
     var tv=rows.reduce(function(acc,r){return acc+calcValorGanhas(r);},0);
+    var dbg=document.getElementById('debug-ganhas');
+    if(dbg){dbg.style.display='block';dbg.textContent='Linhas: '+rows.length+' | IDs: '+rows.map(function(r){return r[0];}).join(',')+'  | Total: '+fmtVal(tv);}
     h=sc('Total Ganhas',rows.length,'nh')+sc('Em Execução',exec,'green')+sc('Finalizados',fin,'yellow')+sc('Recomp. Contratual',recomp,'orange')+(tv>0?sc('Valor Total',fmtVal(tv),'blue'):'');
   } else if(k==='atestados'){
     var rec2=rows.filter(function(r){return String(r[11]||'').trim()==='SIM';}).length;
