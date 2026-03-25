@@ -1977,7 +1977,11 @@ function renderStats(k,rows){
     var recomp=rows.filter(function(r){return String(r[13]||'').toUpperCase().trim()==='SIM';}).length;
     var tv=rows.reduce(function(acc,r){return acc+calcValorGanhas(r);},0);
     var dbg=document.getElementById('debug-ganhas');
-    if(dbg){dbg.style.display='block';dbg.textContent='Linhas: '+rows.length+' | IDs: '+rows.map(function(r){return r[0];}).join(',')+'  | Total: '+fmtVal(tv);}
+    if(dbg){
+      dbg.style.display='block';
+      var det=rows.map(function(r){return '#'+r[0]+': idx7='+JSON.stringify(r[7])+' val='+calcValorGanhas(r);}).join(' | ');
+      dbg.textContent=det;
+    }
     h=sc('Total Ganhas',rows.length,'nh')+sc('Em Execução',exec,'green')+sc('Finalizados',fin,'yellow')+sc('Recomp. Contratual',recomp,'orange')+(tv>0?sc('Valor Total',fmtVal(tv),'blue'):'');
   } else if(k==='atestados'){
     var rec2=rows.filter(function(r){return String(r[11]||'').trim()==='SIM';}).length;
