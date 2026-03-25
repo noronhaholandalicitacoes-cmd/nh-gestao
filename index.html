@@ -969,15 +969,54 @@ select{color-scheme:dark;}
     <div class="fg"><label>Vigência (meses)</label><input type="number" id="g-vig"></div>
     <div class="fg"><label>Data Assinatura</label><input type="date" id="g-dtcont"></div>
     <div class="fg"><label>Vencimento</label><input type="date" id="g-venc"></div>
-    <div class="fsec">Recomposição</div>
-    <div class="fg"><label>Recomposição?</label><select id="g-recomp"><option value="">-</option><option>SIM</option><option>NÃO</option></select></div>
-    <div class="fg"><label>Tipo</label><input type="text" id="g-trecomp"></div>
-    <div class="fg"><label>Status Recomposição</label><select id="g-strecomp"><option value="">-</option><option>Não Iniciado</option><option>Em Andamento</option><option>Concluído</option></select></div>
-    <div class="fg"><label>Nova Data Vencimento</label><input type="date" id="g-novadata"></div>
-    <div class="fg"><label>Vigência Recomp. (meses)</label><input type="number" id="g-vigrecomp"></div>
-    <div class="fg"><label>Vencimento Recomp.</label><input type="date" id="g-vencrecomp"></div>
-    <div class="fg fc"><label>Valor Final</label><input type="text" id="g-vfin" placeholder="R$ 0,00"></div>
-    <div class="fg fc"><label>Observações</label><textarea id="g-obs"></textarea></div>
+    <div class="fsec">Recomposição Contratual</div>
+    <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+      <button type="button" class="btn-recomp-tab active" onclick="showRecomp(1)" id="rtab-1" style="padding:5px 12px;font-size:12px;font-weight:600;border-radius:6px;cursor:pointer;border:1px solid rgba(249,115,22,.3);background:rgba(249,115,22,.15);color:var(--nh);font-family:Outfit,sans-serif">Recomp 1</button>
+      <button type="button" class="btn-recomp-tab" onclick="showRecomp(2)" id="rtab-2" style="padding:5px 12px;font-size:12px;font-weight:600;border-radius:6px;cursor:pointer;border:1px solid var(--b1);background:var(--s2);color:var(--t2);font-family:Outfit,sans-serif">Recomp 2</button>
+      <button type="button" class="btn-recomp-tab" onclick="showRecomp(3)" id="rtab-3" style="padding:5px 12px;font-size:12px;font-weight:600;border-radius:6px;cursor:pointer;border:1px solid var(--b1);background:var(--s2);color:var(--t2);font-family:Outfit,sans-serif">Recomp 3</button>
+      <button type="button" class="btn-recomp-tab" onclick="showRecomp(4)" id="rtab-4" style="padding:5px 12px;font-size:12px;font-weight:600;border-radius:6px;cursor:pointer;border:1px solid var(--b1);background:var(--s2);color:var(--t2);font-family:Outfit,sans-serif">Recomp 4</button>
+    </div>
+    <!-- Recomp 1: idx 13-19 -->
+    <div id="rpanel-1">
+      <div class="fg"><label>Recomposição?</label><select id="g-recomp"><option value="">-</option><option>SIM</option><option>NÃO</option></select></div>
+      <div class="fg"><label>Tipo</label><input type="text" id="g-trecomp"></div>
+      <div class="fg"><label>Status</label><select id="g-strecomp"><option value="">-</option><option>Não Iniciado</option><option>Em Tramitação</option><option>Em Andamento</option><option>Concluído</option></select></div>
+      <div class="fg"><label>Nova Data Vencimento</label><input type="date" id="g-novadata"></div>
+      <div class="fg"><label>Vigência (meses)</label><input type="number" id="g-vigrecomp"></div>
+      <div class="fg"><label>Vencimento Recomp.</label><input type="date" id="g-vencrecomp"></div>
+      <div class="fg"><label>Valor Final</label><input type="text" id="g-vfin" placeholder="R$ 0,00"></div>
+    </div>
+    <!-- Recomp 2: idx 20-26 -->
+    <div id="rpanel-2" style="display:none">
+      <div class="fg"><label>Recomposição 2?</label><select id="g-recomp2"><option value="">-</option><option>SIM</option><option>NÃO</option></select></div>
+      <div class="fg"><label>Tipo</label><input type="text" id="g-trecomp2"></div>
+      <div class="fg"><label>Status</label><select id="g-strecomp2"><option value="">-</option><option>Não Iniciado</option><option>Em Tramitação</option><option>Em Andamento</option><option>Concluído</option></select></div>
+      <div class="fg"><label>Nova Data Vencimento</label><input type="date" id="g-novadata2"></div>
+      <div class="fg"><label>Vigência (meses)</label><input type="number" id="g-vigrecomp2"></div>
+      <div class="fg"><label>Vencimento Recomp.</label><input type="date" id="g-vencrecomp2"></div>
+      <div class="fg"><label>Valor Final</label><input type="text" id="g-vfin2" placeholder="R$ 0,00"></div>
+    </div>
+    <!-- Recomp 3: idx 27-33 -->
+    <div id="rpanel-3" style="display:none">
+      <div class="fg"><label>Recomposição 3?</label><select id="g-recomp3"><option value="">-</option><option>SIM</option><option>NÃO</option></select></div>
+      <div class="fg"><label>Tipo</label><input type="text" id="g-trecomp3"></div>
+      <div class="fg"><label>Status</label><select id="g-strecomp3"><option value="">-</option><option>Não Iniciado</option><option>Em Tramitação</option><option>Em Andamento</option><option>Concluído</option></select></div>
+      <div class="fg"><label>Nova Data Vencimento</label><input type="date" id="g-novadata3"></div>
+      <div class="fg"><label>Vigência (meses)</label><input type="number" id="g-vigrecomp3"></div>
+      <div class="fg"><label>Vencimento Recomp.</label><input type="date" id="g-vencrecomp3"></div>
+      <div class="fg"><label>Valor Final</label><input type="text" id="g-vfin3" placeholder="R$ 0,00"></div>
+    </div>
+    <!-- Recomp 4: idx 34-40 -->
+    <div id="rpanel-4" style="display:none">
+      <div class="fg"><label>Recomposição 4?</label><select id="g-recomp4"><option value="">-</option><option>SIM</option><option>NÃO</option></select></div>
+      <div class="fg"><label>Tipo</label><input type="text" id="g-trecomp4"></div>
+      <div class="fg"><label>Status</label><select id="g-strecomp4"><option value="">-</option><option>Não Iniciado</option><option>Em Tramitação</option><option>Em Andamento</option><option>Concluído</option></select></div>
+      <div class="fg"><label>Nova Data Vencimento</label><input type="date" id="g-novadata4"></div>
+      <div class="fg"><label>Vigência (meses)</label><input type="number" id="g-vigrecomp4"></div>
+      <div class="fg"><label>Vencimento Recomp.</label><input type="date" id="g-vencrecomp4"></div>
+      <div class="fg"><label>Valor Final</label><input type="text" id="g-vfin4" placeholder="R$ 0,00"></div>
+    </div>
+    <div class="fg fc" style="margin-top:12px"><label>Observações</label><textarea id="g-obs"></textarea></div>
     <div class="fg fc"><label>Link da Pasta</label><input type="url" id="g-link"></div>
   </div></div>
   <div class="mft"><button class="btn btn-ghost" onclick="closeM('ganhas')">Cancelar</button><button class="btn btn-nh" onclick="doSave('ganhas')" id="sb-ganhas">Salvar na Planilha</button></div>
@@ -1878,17 +1917,21 @@ function fmtValBR(s){
 }
 
 function calcValorGanhas(r){
-  var v=r[7];
-  // Se já é número, usar direto
-  if(typeof v==='number') return v>0?v:0;
-  var s=String(v||'').replace(/R\$/g,'').replace(/\s/g,'').trim();
-  // Formato BR: 1.946.027,50 — tem vírgula como decimal
-  if(s.indexOf(',')!==-1){
-    s=s.replace(/\./g,'').replace(',','.');
+  function parseV(v){
+    if(typeof v==='number') return v>0?v:0;
+    var s=String(v||'').replace(/R\$/g,'').replace(/\s/g,'').trim();
+    if(!s) return 0;
+    if(s.indexOf(',')!==-1) s=s.replace(/\./g,'').replace(',','.');
+    var n=parseFloat(s);
+    return (isNaN(n)||n<=0)?0:n;
   }
-  // Formato já com ponto decimal: 1946027.5
-  var n=parseFloat(s);
-  return (isNaN(n)||n<=0)?0:n;
+  // Pegar último Valor Final preenchido: Recomp 4(40) → 3(33) → 2(26) → 1(19) → Valor original(7)
+  var idxs=[40,33,26,19];
+  for(var i=0;i<idxs.length;i++){
+    var v=parseV(r[idxs[i]]);
+    if(v>0) return v;
+  }
+  return parseV(r[7]);
 }
 
 function buildResumo(){
@@ -2469,6 +2512,22 @@ function onSelChange(sel,k,abs,ci){
 }
 
 
+function showRecomp(n){
+  for(var i=1;i<=4;i++){
+    var p=document.getElementById('rpanel-'+i);
+    var t=document.getElementById('rtab-'+i);
+    if(p) p.style.display=i===n?'':'none';
+    if(t){
+      if(i===n){
+        t.style.background='rgba(249,115,22,.15)';t.style.color='var(--nh)';t.style.borderColor='rgba(249,115,22,.3)';
+      } else {
+        t.style.background='var(--s2)';t.style.color='var(--t2)';t.style.borderColor='var(--b1)';
+      }
+    }
+  }
+}
+
+
 function kfieldLink(lbl,val,ci,k,abs){
   var s=String(val||'').trim();
   var eid='lnk-'+k+'-'+abs+'-'+ci;
@@ -2929,7 +2988,25 @@ function doEdit(k,idx){
   document.getElementById('mht-'+k).textContent='Editar Registro';
   if(k==='editais'){setv('e-data',row[1]);setv('e-empresa',row[2]);setv('e-licit',row[3]);setv('e-objeto',row[4]);setv('e-local',row[5]);setv('e-mun',row[6]);setv('e-valor',row[7]);setv('e-prior',row[8]);setv('e-resp',row[9]);setv('e-part',row[10]);setv('e-viab',row[11]);setv('e-just',row[12]);setv('e-link',row[13]);}
   else if(k==='andamento'){setv('a-data',row[1]);setv('a-emp',row[2]);setv('a-licit',row[3]);setv('a-obj',row[4]);setv('a-local',row[5]);setv('a-mun',row[6]);setv('a-vest',row[7]);setv('a-vfin',row[8]);setv('a-portal',row[9]);setv('a-disp',row[10]);setv('a-class',row[11]);setv('a-status',row[12]);setv('a-reab',row[13]);setv('a-rec',row[14]);setv('a-resumo',row[15]);setv('a-adju',row[16]);setv('a-conc',row[17]);setv('a-vconc',row[18]);setv('a-link',row[19]);}
-  else if(k==='ganhas'){setv('g-data',row[1]);setv('g-emp',row[2]);setv('g-licit',row[3]);setv('g-obj',row[4]);setv('g-local',row[5]);setv('g-mun',row[6]);setv('g-valor',row[7]);setv('g-cont',row[8]);setv('g-stcont',row[9]);setv('g-vig',row[10]);setv('g-dtcont',row[11]);setv('g-venc',row[12]);setv('g-recomp',row[13]);setv('g-trecomp',row[14]);setv('g-strecomp',row[15]);setv('g-novadata',row[16]);setv('g-vigrecomp',row[17]);setv('g-vencrecomp',row[18]);setv('g-vfin',row[19]);setv('g-obs',row[20]);setv('g-link',row[21]);}
+  else if(k==='ganhas'){
+    setv('g-data',row[1]);setv('g-emp',row[2]);setv('g-licit',row[3]);setv('g-obj',row[4]);
+    setv('g-local',row[5]);setv('g-mun',row[6]);setv('g-valor',row[7]);setv('g-cont',row[8]);
+    setv('g-stcont',row[9]);setv('g-vig',row[10]);setv('g-dtcont',row[11]);setv('g-venc',row[12]);
+    // Recomp 1
+    setv('g-recomp',row[13]);setv('g-trecomp',row[14]);setv('g-strecomp',row[15]);
+    setv('g-novadata',row[16]);setv('g-vigrecomp',row[17]);setv('g-vencrecomp',row[18]);setv('g-vfin',row[19]);
+    // Recomp 2
+    setv('g-recomp2',row[20]);setv('g-trecomp2',row[21]);setv('g-strecomp2',row[22]);
+    setv('g-novadata2',row[23]);setv('g-vigrecomp2',row[24]);setv('g-vencrecomp2',row[25]);setv('g-vfin2',row[26]);
+    // Recomp 3
+    setv('g-recomp3',row[27]);setv('g-trecomp3',row[28]);setv('g-strecomp3',row[29]);
+    setv('g-novadata3',row[30]);setv('g-vigrecomp3',row[31]);setv('g-vencrecomp3',row[32]);setv('g-vfin3',row[33]);
+    // Recomp 4
+    setv('g-recomp4',row[34]);setv('g-trecomp4',row[35]);setv('g-strecomp4',row[36]);
+    setv('g-novadata4',row[37]);setv('g-vigrecomp4',row[38]);setv('g-vencrecomp4',row[39]);setv('g-vfin4',row[40]);
+    // Obs e Link
+    setv('g-obs',row[41]);setv('g-link',row[42]);
+  }
   else if(k==='atestados'){setv('at-data',row[1]);setv('at-emp',row[2]);setv('at-licit',row[3]);setv('at-obj',row[4]);setv('at-local',row[5]);setv('at-mun',row[6]);setv('at-cont',row[7]);setv('at-dtcont',row[8]);setv('at-vig',row[9]);setv('at-req',row[10]);setv('at-receb',row[11]);setv('at-dtreceb',row[12]);setv('at-emit',row[13]);setv('at-cat',row[14]);setv('at-catst',row[15]);setv('at-art',row[16]);setv('at-artst',row[17]);setv('at-status',row[18]);setv('at-obs',row[19]);setv('at-link',row[20]);}
   document.getElementById('mo-'+k).classList.add('open');
 }
@@ -2983,7 +3060,22 @@ async function doSave(k){
     var gid=origRow?origRow[0]:'';
     var gdata=sv('g-data'); if(gdata&&gdata.indexOf('-')!==-1) gdata=formatDateBR(gdata);
     if(!gdata&&origRow) gdata=origRow[1]||'';
-    vals=[gid,gdata,sv('g-emp'),sv('g-licit'),sv('g-obj'),sv('g-local'),sv('g-mun'),sv('g-valor'),sv('g-cont'),sv('g-stcont'),sv('g-vig'),sv('g-dtcont'),sv('g-venc'),sv('g-recomp'),sv('g-trecomp'),sv('g-strecomp'),sv('g-novadata'),sv('g-vigrecomp'),sv('g-vencrecomp'),sv('g-vfin'),sv('g-obs'),sv('g-link')];
+    // Converter datas de ISO para BR
+    function gDate(id){var v=sv(id);return (v&&v.indexOf('-')!==-1)?formatDateBR(v):v;}
+    vals=[
+      gid,gdata,sv('g-emp'),sv('g-licit'),sv('g-obj'),sv('g-local'),sv('g-mun'),
+      sv('g-valor'),sv('g-cont'),sv('g-stcont'),sv('g-vig'),sv('g-dtcont'),sv('g-venc'),
+      // Recomp 1 (idx 13-19)
+      sv('g-recomp'),sv('g-trecomp'),sv('g-strecomp'),gDate('g-novadata'),sv('g-vigrecomp'),gDate('g-vencrecomp'),sv('g-vfin'),
+      // Recomp 2 (idx 20-26)
+      sv('g-recomp2'),sv('g-trecomp2'),sv('g-strecomp2'),gDate('g-novadata2'),sv('g-vigrecomp2'),gDate('g-vencrecomp2'),sv('g-vfin2'),
+      // Recomp 3 (idx 27-33)
+      sv('g-recomp3'),sv('g-trecomp3'),sv('g-strecomp3'),gDate('g-novadata3'),sv('g-vigrecomp3'),gDate('g-vencrecomp3'),sv('g-vfin3'),
+      // Recomp 4 (idx 34-40)
+      sv('g-recomp4'),sv('g-trecomp4'),sv('g-strecomp4'),gDate('g-novadata4'),sv('g-vigrecomp4'),gDate('g-vencrecomp4'),sv('g-vfin4'),
+      // Obs e Link (idx 41-42)
+      sv('g-obs'),sv('g-link')
+    ];
   }
   else if(k==='atestados'){
     var atid=origRow?origRow[0]:'';
