@@ -2163,6 +2163,7 @@ function applyFilters(k){
         if(cor==='venc'&&!isVencido) return false;
         if(cor==='exec'&&(isVencido||stg!=='EM EXECUÇÃO'&&stg!=='EM EXECUCAO')) return false;
         if(cor==='fin'&&stg!=='FINALIZADO') return false;
+        if(cor==='recomp'&&String(r[13]||'').toUpperCase().trim()!=='SIM') return false;
         if(cor==='susp'&&stg!=='SUSPENSO') return false;
         if(cor==='resc'&&stg!=='RESCINDIDO') return false;
       }
@@ -2236,25 +2237,27 @@ function renderPills(k,rows){
       return new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
     }
     var catsg={
-      'exec': {lbl:'Em Execução',  cor:'#22c55e', bg:'rgba(34,197,94,.12)',  count:0},
-      'venc': {lbl:'Vencidos',     cor:'#ef4444', bg:'rgba(239,68,68,.12)',  count:0},
-      'fin':  {lbl:'Finalizado',   cor:'#3b82f6', bg:'rgba(59,130,246,.12)', count:0},
-      'susp': {lbl:'Suspenso',     cor:'#eab308', bg:'rgba(234,179,8,.12)',  count:0},
-      'resc': {lbl:'Rescindido',   cor:'#ef4444', bg:'rgba(239,68,68,.12)',  count:0}
+      'exec':  {lbl:'Em Execução',         cor:'#22c55e', bg:'rgba(34,197,94,.12)',  count:0},
+      'venc':  {lbl:'Vencidos',            cor:'#ef4444', bg:'rgba(239,68,68,.12)',  count:0},
+      'fin':   {lbl:'Finalizado',          cor:'#3b82f6', bg:'rgba(59,130,246,.12)', count:0},
+      'recomp':{lbl:'Recomp. Contratual',  cor:'#ffffff', bg:'rgba(255,255,255,.1)', count:0},
+      'susp':  {lbl:'Suspenso',            cor:'#eab308', bg:'rgba(234,179,8,.12)',  count:0},
+      'resc':  {lbl:'Rescindido',          cor:'#ef4444', bg:'rgba(239,68,68,.12)',  count:0}
     };
     rows.forEach(function(r){
       var st=String(r[9]||'').trim().toUpperCase();
-      var venc=parseBRDate(r[12]); // col M = vencimento contrato
+      var venc=parseBRDate(r[12]);
       var isVenc=venc&&venc<hoje2&&(st==='EM EXECUÇÃO'||st==='EM EXECUCAO');
       if(isVenc) catsg.venc.count++;
       else if(st==='EM EXECUÇÃO'||st==='EM EXECUCAO') catsg.exec.count++;
       else if(st==='FINALIZADO') catsg.fin.count++;
       else if(st==='SUSPENSO') catsg.susp.count++;
       else if(st==='RESCINDIDO') catsg.resc.count++;
+      if(String(r[13]||'').toUpperCase().trim()==='SIM') catsg.recomp.count++;
     });
     var activeg=STATUS_FILTER['ganhas'];
     var htmlg='<div class="pill'+(activeg===null?' on':'')+'" onclick="setStatusFilterGanhas(null)">Todos os status</div>';
-    ['exec','fin','susp','resc'].forEach(function(key){
+    ['exec','venc','fin','recomp','susp','resc'].forEach(function(key){
       var cat=catsg[key];
       if(!cat||!cat.count) return;
       var isOn=activeg===key;
