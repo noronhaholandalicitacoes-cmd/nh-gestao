@@ -773,8 +773,8 @@ select{color-scheme:dark;}
         </button>
         <div class="search"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><input placeholder="Buscar edital..." id="q-editais" oninput="doQ('editais')"></div>
         <button id="btn-prahoje-editais" onclick="filtrarPraHojeEditais()" style="background:rgba(249,115,22,.15);color:var(--nh);border:1px solid rgba(249,115,22,.3);padding:6px 14px;font-size:12px;font-weight:700;border-radius:7px;cursor:pointer;font-family:Outfit,sans-serif;display:inline-flex;align-items:center;gap:6px">📅 Pra Hoje</button>
-        <button onclick="sortByDate('editais','asc')" title="Mais antigo primeiro" style="width:32px;height:32px;border-radius:50%;background:var(--nh);border:none;color:#000;font-size:14px;font-weight:900;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">↑</button>
-        <button onclick="sortByDate('editais','desc')" title="Mais recente primeiro" style="width:32px;height:32px;border-radius:50%;background:var(--nh);border:none;color:#000;font-size:14px;font-weight:900;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">↓</button>
+        <button onclick="sortByDate('editais','asc')" title="Mais antigo primeiro" style="width:34px;height:34px;border-radius:50%;background:var(--nh);border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;box-shadow:0 2px 8px rgba(249,115,22,.35)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+        <button onclick="sortByDate('editais','desc')" title="Mais recente primeiro" style="width:34px;height:34px;border-radius:50%;background:var(--nh);border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;box-shadow:0 2px 8px rgba(249,115,22,.35)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg></button>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
         <div class="pills" id="pills-editais" style="margin-bottom:0;flex:1"></div>
@@ -796,8 +796,8 @@ select{color-scheme:dark;}
         <div class="search"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><input placeholder="Buscar..." id="q-andamento" oninput="doQ('andamento')"></div>
         <span style="font-size:11px;color:var(--t3);background:var(--nha2);border:1px solid rgba(249,115,22,.15);padding:4px 10px;border-radius:6px">⚡ ADJU = sim → Finalizados</span>
         <button id="btn-prahoje" onclick="filtrarPraHoje()" style="background:rgba(249,115,22,.15);color:var(--nh);border:1px solid rgba(249,115,22,.3);padding:6px 14px;font-size:12px;font-weight:700;border-radius:7px;cursor:pointer;font-family:Outfit,sans-serif;transition:all .15s;display:inline-flex;align-items:center;gap:6px">📅 Pra Hoje</button>
-        <button onclick="sortByDate('andamento','asc')" title="Mais antigo primeiro" style="width:32px;height:32px;border-radius:50%;background:var(--nh);border:none;color:#000;font-size:14px;font-weight:900;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">↑</button>
-        <button onclick="sortByDate('andamento','desc')" title="Mais recente primeiro" style="width:32px;height:32px;border-radius:50%;background:var(--nh);border:none;color:#000;font-size:14px;font-weight:900;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">↓</button>
+        <button onclick="sortByDate('andamento','asc')" title="Mais antigo primeiro" style="width:34px;height:34px;border-radius:50%;background:var(--nh);border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;box-shadow:0 2px 8px rgba(249,115,22,.35)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+        <button onclick="sortByDate('andamento','desc')" title="Mais recente primeiro" style="width:34px;height:34px;border-radius:50%;background:var(--nh);border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;box-shadow:0 2px 8px rgba(249,115,22,.35)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg></button>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
         <div class="pills" id="pills-andamento" style="margin-bottom:0;flex:1"></div>
@@ -1814,8 +1814,11 @@ async function _load(k){
   var minCols=k==='financeiro'?1:(k==='ganhas'||k==='atestados')?2:4;
   var valid=d.values.filter(function(r){
     if(k==='financeiro'){
-      // financeiro: linhas com data e categoria preenchidas (idx 0 e 1)
       return String(r[0]||'').trim()!==''&&String(r[1]||'').trim()!=='';
+    }
+    // Ganhas: exigir ID (col A) E Valor (col H, idx 7)
+    if(k==='ganhas'){
+      return String(r[0]||'').trim()!==''&&String(r[7]||'').trim()!=='';
     }
     var ok=true;
     for(var i=0;i<minCols;i++){if(!String(r[i]||'').trim()){ok=false;break;}}
@@ -1970,8 +1973,9 @@ function renderStats(k,rows){
   } else if(k==='ganhas'){
     var exec=rows.filter(function(r){return String(r[9]||'').trim()==='EM EXECUÇÃO';}).length;
     var fin=rows.filter(function(r){return String(r[9]||'').trim()==='FINALIZADO';}).length;
+    var recomp=rows.filter(function(r){return String(r[13]||'').toUpperCase().trim()==='SIM';}).length;
     var tv=rows.reduce(function(acc,r){return acc+calcValorGanhas(r);},0);
-    h=sc('Total Ganhas',rows.length,'nh')+sc('Em Execução',exec,'green')+sc('Finalizados',fin,'yellow')+(tv>0?sc('Valor Total',fmtVal(tv),'blue'):'');
+    h=sc('Total Ganhas',rows.length,'nh')+sc('Em Execução',exec,'green')+sc('Finalizados',fin,'yellow')+sc('Recomp. Contratual',recomp,'orange')+(tv>0?sc('Valor Total',fmtVal(tv),'blue'):'');
   } else if(k==='atestados'){
     var rec2=rows.filter(function(r){return String(r[11]||'').trim()==='SIM';}).length;
     var pend=rows.filter(function(r){return String(r[11]||'').trim()==='N\u00c3O';}).length;
