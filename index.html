@@ -2023,12 +2023,23 @@ function renderStats(k,rows){
   } else if(k==='finalizados'){
     h=sc('Total Finalizados',rows.length,'nh');
   } else if(k==='ganhas'){
-    var exec=rows.filter(function(r){return String(r[9]||'').trim()==='EM EXECUÇÃO';}).length;
-    var fin=rows.filter(function(r){return String(r[9]||'').trim()==='FINALIZADO';}).length;
-    var recomp=rows.filter(function(r){return String(r[13]||'').toUpperCase().trim()==='SIM';}).length;
+    var hj3=new Date(); hj3.setHours(0,0,0,0);
+    function pDateG(s){var p=String(s||'').split('/');return p.length===3?new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0])):null;}
+    var exec=0,fin=0,recomp=0,tvAtivo=0;
+    rows.forEach(function(r){
+      var st=String(r[9]||'').trim().toUpperCase();
+      var isExec=st==='EM EXECUÇÃO'||st==='EM EXECUCAO';
+      if(isExec){exec++;tvAtivo+=calcValorGanhas(r);}
+      if(st==='FINALIZADO') fin++;
+      if(String(r[13]||'').toUpperCase().trim()==='SIM') recomp++;
+    });
     var tv=rows.reduce(function(acc,r){return acc+calcValorGanhas(r);},0);
-
-    h=sc('Total Ganhas',rows.length,'nh')+sc('Em Execução',exec,'green')+sc('Finalizados',fin,'yellow')+sc('Recomp. Contratual',recomp,'orange')+(tv>0?sc('Valor Total',fmtVal(tv),'blue'):'');
+    h=sc('Total Ganhas',rows.length,'nh')+
+      sc('Em Execução',exec,'green')+
+      sc('Finalizados',fin,'yellow')+
+      sc('Recomp. Contratual',recomp,'orange')+
+      (tvAtivo>0?sc('Faturamento Ativo',fmtVal(tvAtivo),'green'):'')+
+      (tv>0?sc('Valor Total',fmtVal(tv),'blue'):'');
   } else if(k==='atestados'){
     var rec2=rows.filter(function(r){return String(r[11]||'').trim()==='SIM';}).length;
     var pend=rows.filter(function(r){return String(r[11]||'').trim()==='N\u00c3O';}).length;
@@ -2834,7 +2845,7 @@ function inlineCell(k,abs,ci,v){
     return '<input type="date" id="'+inputId+'" value="'+isoDate(s)+'" onchange="saveCell(\''+k+'\','+abs+','+ci+',formatDateBR(this.value))">';
   }
   // Campos longos (objeto, resumo, justificativa, observações) usam textarea
-  var longCols={editais:[4,12],andamento:[4,15],finalizados:[4,15],ganhas:[4,20],atestados:[4],financeiro:[7]};
+  var longCols={editais:[4,12],andamento:[4,15],finalizados:[4,15],ganhas:[4,41],atestados:[4],financeiro:[7]};
   var isLong=longCols[k]&&longCols[k].indexOf(ci)!==-1;
   if(isLong){
     var ph=ci===12?'Justificativa...':ci===15?'Resumo do andamento...':ci===20||ci===19?'Observações...':ci===4?'Objeto...':'';
