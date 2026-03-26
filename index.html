@@ -2666,7 +2666,7 @@ function renderCard(k,row,abs){
     var g_cont =String(row[8]||'').trim();
     var g_st   =String(row[9]||'').trim();
     var g_venc =String(row[12]||'').trim();
-    var g_link =String(row[21]||'').trim();
+    var g_link =String(row[42]||row[21]||'').trim(); // idx 42=novo, 21=fallback antigo
     if(g_local) h+='<div class="kmeta"><span class="kmeta-lbl">Local</span><span class="kmeta-val">'+g_local+'</span></div>';
     if(g_mun)   h+='<div class="kmeta"><span class="kmeta-lbl">Município</span><span class="kmeta-val">'+g_mun+'</span></div>';
     if(g_val)   h+='<div class="kmeta"><span class="kmeta-lbl">Valor</span><span class="kmeta-val hl">'+fmtValBR(g_val)+'</span></div>';
@@ -2735,7 +2735,8 @@ function renderCard(k,row,abs){
     h+=kfieldEdit('Vig. Recomp.',     row[17],17,k,abs);
     h+=kfieldEdit('Venc. Recomp.',    row[18],18,k,abs);
     h+=kfieldEdit('Valor Final',      row[19],19,k,abs);
-    h+=kfieldEdit('Observações',      row[20],20,k,abs);
+    h+=kfieldEdit('Observações',      row[41],41,k,abs);
+    h+=kfieldLink('Link Pasta',       row[42],42,k,abs);
 
   } else if(k==='atestados'){
     h+=kfieldEdit('Atestado Req.?',   row[10],10,k,abs);
