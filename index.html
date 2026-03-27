@@ -1938,8 +1938,8 @@ function buildResumo(){
 
   var part=ed.filter(function(r){return String(r[10]||'').toUpperCase().trim()==='SIM';}).length;
 
-  // Em Andamento: usar o mesmo número que aparece no badge lateral
-  var anAtivos=an.length;
+  // Em Andamento: usar mesmo filtro do badge lateral (status = 'EM ANDAMENTO')
+  var anAtivos=an.filter(function(r){return String(r[12]||'').toUpperCase().trim()==='EM ANDAMENTO';}).length;
   var adj=an.filter(function(r){return String(r[16]||'').toLowerCase().trim()==='sim';}).length;
 
   // Contratos ativos em execução
@@ -1948,15 +1948,18 @@ function buildResumo(){
     .reduce(function(acc,r){return acc+calcValorGanhas(r);},0);
   var totalVal=ga.reduce(function(acc,r){return acc+calcValorGanhas(r);},0);
 
-  // Total processos ganhos = ADJU=sim em EM ANDAMENTO + 1ª posição em FINALIZADOS
-  function is1pos(r){var cl=String(r[11]||'').toLowerCase();return cl.indexOf('1')!==-1&&(cl.indexOf('posi')!==-1||cl.indexOf('lugar')!==-1||cl==='1'||cl==='1º');}
-  var adjSim=an.filter(function(r){return String(r[16]||'').toLowerCase().trim()==='sim';}).length;
-  var fi1pos=fi.filter(is1pos).length;
-  var totalGanhos=adjSim+fi1pos;
+  // Total processos ganhos = soma col L (1 posição) + col Q (ADJU=sim)
+  var count1pos=an.filter(function(r){
+    var cl=String(r[11]||'').toLowerCase().trim();
+    return cl.indexOf('1 posi')!==-1||cl==='1 posição'||cl==='1 posicao'||cl==='1º posição'||cl==='1º';
+  }).length;
+  var countAdju=an.filter(function(r){return String(r[16]||'').toLowerCase().trim()==='sim';}).length;
+  var totalGanhos=count1pos+countAdju;
 
   var EMPS=['VISE','SOS','SAUTEC','SOS FILIAL','ONLAV','ENGEMED','POTIGUAR'];
   var empAn={};
-  an.forEach(function(r){var e=String(r[2]||'').trim();empAn[e]=(empAn[e]||0)+1;});
+  an.filter(function(r){return String(r[12]||'').toUpperCase().trim()==='EM ANDAMENTO';})
+    .forEach(function(r){var e=String(r[2]||'').trim();empAn[e]=(empAn[e]||0)+1;});
 
   var stMap={};
   // Usar editais para licitações por estado (tem mais dados)
@@ -1970,11 +1973,9 @@ function buildResumo(){
   var topStates=Object.entries(stMap).sort(function(a,b){return b[1]-a[1];}).slice(0,5);
   var empAnItems=EMPS.filter(function(e){return empAn[e];}).map(function(e){return [e,empAn[e]];});
 
-  // Ganhas por empresa = ADJU=sim em andamento + 1ª posição em finalizados
+  // Ganhas por empresa = finalizados com cor 'green'
   var gaEmpC={};
-  an.filter(function(r){return String(r[16]||'').toLowerCase().trim()==='sim';})
-    .forEach(function(r){var e=String(r[2]||'').trim();if(e)gaEmpC[e]=(gaEmpC[e]||0)+1;});
-  fi.filter(is1pos)
+  fi.filter(function(r){return getAndamentoCor(r)==='green';})
     .forEach(function(r){var e=String(r[2]||'').trim();if(e)gaEmpC[e]=(gaEmpC[e]||0)+1;});
   var gaEmpItems=Object.entries(gaEmpC).sort(function(a,b){return b[1]-a[1];});
 
@@ -1996,7 +1997,7 @@ function buildResumo(){
       '<div class="r-kpi"><div class="rkpi-lbl">Em Andamento</div><div class="rkpi-val" style="color:var(--y2)">'+anAtivos+'</div><div class="rkpi-sub">'+adj+' adjudicados</div></div>'+
       '<div class="r-kpi"><div class="rkpi-lbl">Finalizados</div><div class="rkpi-val" style="color:var(--b2_)">'+fi.length+'</div><div class="rkpi-sub">ADJU = sim</div></div>'+
       '<div class="r-kpi"><div class="rkpi-lbl">Contratos Ativos</div><div class="rkpi-val g">'+emExec+'</div><div class="rkpi-sub">'+fmtVal(tvAtivo)+'</div></div>'+
-      '<div class="r-kpi nh-accent"><div class="rkpi-lbl">Total Processos Ganhos</div><div class="rkpi-val" style="color:var(--nh)">'+totalGanhos+'</div><div class="rkpi-sub">ADJU sim + 1ª posição</div></div>'+
+      '<div class="r-kpi nh-accent"><div class="rkpi-lbl">Total Processos Ganhos</div><div class="rkpi-val" style="color:var(--nh)">'+totalGanhos+'</div><div class="rkpi-sub">processos finalizados ganhos</div></div>'+
       (totalVal>0?'<div class="r-kpi" style="border-color:rgba(34,197,94,.3)"><div class="rkpi-lbl">Total Contratos Ganhos</div><div class="rkpi-val" style="font-size:18px;color:#22c55e">'+fmtVal(totalVal)+'</div><div class="rkpi-sub">soma de todos os contratos</div></div>':'')+
     '</div>'+
     '<div class="r-cards">'+
