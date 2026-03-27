@@ -1948,12 +1948,20 @@ function buildResumo(){
     .reduce(function(acc,r){return acc+calcValorGanhas(r);},0);
   var totalVal=ga.reduce(function(acc,r){return acc+calcValorGanhas(r);},0);
 
-  // Total processos ganhos = soma col L (1 posição) + col Q (ADJU=sim)
-  var count1pos=an.filter(function(r){
+  // Total processos ganhos — filtrar só processos ATIVOS em andamento
+  // Status ativo = não é ganha/finalizado/cancelado/desclassificado/inabilitado
+  var stFim=['ganha','finalizado','cancelado','desclassificado','inabilitado'];
+  var anAtual=an.filter(function(r){
+    var st=String(r[12]||'').toLowerCase().trim();
+    return stFim.indexOf(st)===-1;
+  });
+  var count1pos=anAtual.filter(function(r){
     var cl=String(r[11]||'').toLowerCase().trim();
-    return cl.indexOf('1 posi')!==-1||cl==='1 posição'||cl==='1 posicao'||cl==='1º posição'||cl==='1º';
+    return cl.indexOf('1')!==-1&&cl.indexOf('posi')!==-1;
   }).length;
-  var countAdju=an.filter(function(r){return String(r[16]||'').toLowerCase().trim()==='sim';}).length;
+  var countAdju=anAtual.filter(function(r){
+    return String(r[16]||'').toLowerCase().trim()==='sim';
+  }).length;
   var totalGanhos=count1pos+countAdju;
 
   var EMPS=['VISE','SOS','SAUTEC','SOS FILIAL','ONLAV','ENGEMED','POTIGUAR'];
