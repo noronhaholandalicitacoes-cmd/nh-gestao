@@ -53,16 +53,18 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;min-he
 }
 .sb-logomark{
   width:46px;height:46px;
-  background:linear-gradient(145deg,#fb923c,#f97316);
-  border-radius:14px;
+  background:#e8620a;
+  border-radius:50%;
   display:flex;align-items:center;justify-content:center;
   flex-shrink:0;
-  box-shadow:0 4px 14px rgba(249,115,22,.35);
+  box-shadow:0 4px 14px rgba(249,115,22,.4);
   position:relative;overflow:hidden;
 }
 .sb-logomark::after{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(135deg,rgba(255,255,255,.15) 0%,transparent 60%);
+  content:'';position:absolute;
+  width:38px;height:38px;border-radius:50%;
+  background:#f07820;
+  top:50%;left:50%;transform:translate(-50%,-50%);
 }
 .sb-logomark svg{position:relative;z-index:1}
 .sb-brand{line-height:1.2}
@@ -643,10 +645,16 @@ select{color-scheme:dark;}
 <aside id="sb">
   <div class="sb-top">
     <div class="sb-logomark">
-      <!-- NH logo mark SVG -->
-      <svg width="28" height="20" viewBox="0 0 28 20" fill="none">
-        <path d="M2 18V2L10 12V2" stroke="#000" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M18 2V18M18 10H26M26 2V18" stroke="#000" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- NH logo mark SVG — novo design -->
+      <svg width="30" height="22" viewBox="0 0 30 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- n: duas hastes verticais com arco em cima -->
+        <rect x="2" y="8" width="3.5" height="13" rx="1" fill="#1a1a1a"/>
+        <rect x="10" y="8" width="3.5" height="13" rx="1" fill="#1a1a1a"/>
+        <path d="M2 8 Q2 2 8 2 Q14 2 13.5 8" stroke="#1a1a1a" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+        <!-- H: duas hastes verticais com barra horizontal -->
+        <rect x="17" y="2" width="3.5" height="19" rx="1" fill="#1a1a1a"/>
+        <rect x="25" y="2" width="3.5" height="19" rx="1" fill="#1a1a1a"/>
+        <rect x="17" y="10" width="11.5" height="3" rx="1" fill="#1a1a1a"/>
       </svg>
     </div>
     <div class="sb-brand">
@@ -2898,6 +2906,9 @@ function saveCell(k,rowIdx,ci,val){
   FIL[k][rowIdx]=row;
   ALL[k]=ALL[k].map(function(r){return parseInt(r[0])===rowId?row:r;});
 
+  // Atualizar cor do card imediatamente sem rerenderizar tudo
+  updateCardColor(k, rowIdx);
+
   // Indicador discreto de pendente
   setSavingDot(true);
 
@@ -2911,6 +2922,38 @@ function saveCell(k,rowIdx,ci,val){
     if(!_saveRunning) _processQueue();
   }, 600); // aguarda 600ms após última digitação
 }
+
+function updateCardColor(k, rowIdx){
+  var row=FIL[k][rowIdx];
+  if(!row) return;
+  var cardId='row-'+k+'-'+rowIdx;
+  // Tentar também com kcard- (nome antigo)
+  var card=document.getElementById(cardId)||document.getElementById('kcard-'+k+'-'+rowIdx);
+  if(!card) return;
+
+  // Calcular nova cor
+  var cor='blue';
+  if(k==='andamento'||k==='finalizados'){
+    cor=getAndamentoCor(row);
+  } else if(k==='editais'){
+    var part=String(row[10]||'').toUpperCase().trim();
+    var viab=String(row[11]||'').toUpperCase().trim();
+    cor=part==='SIM'&&viab==='POSITIVO'?'green':part==='SIM'?'yellow':part==='NÃO'?'red':'blue';
+  }
+
+  // Remover classes de cor antigas e adicionar nova
+  var cores=['green','red','yellow','orange','blue','dark'];
+  cores.forEach(function(c){ card.classList.remove(c); });
+  card.classList.add(cor);
+
+  // Atualizar borda esquerda
+  var corMap={
+    green:'#22c55e', red:'#ef4444', yellow:'#eab308',
+    orange:'#f97316', blue:'#3b82f6', dark:'#1e1e1e'
+  };
+  if(corMap[cor]) card.style.borderLeftColor=corMap[cor];
+}
+
 
 function setSavingDot(on){
   var dot=document.getElementById('saving-dot');
