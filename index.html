@@ -2928,11 +2928,11 @@ async function _processQueue(){
   var k=item.k, ci=item.ci, rowId=item.rowId, row=item.row;
 
   var payload={action:'update',sheet:SHEETS[k],values:row,rowIndex:rowId};
-  // EM ANDAMENTO: usar rowKey (empresa+licitacao) para não depender de ID
+  // EM ANDAMENTO: usar ID se disponível, senão rowKey como fallback
   if(k==='andamento'){
-    var emp2=String(row[2]||'').trim();
-    var licit2=String(row[3]||'').trim();
-    payload.rowKey=emp2+'|'+licit2;
+    payload.rowKey=String(row[2]||'').trim()+'|'+String(row[3]||'').trim();
+    // Se tem ID, enviar também para o Apps Script usar como prioridade
+    if(rowId) payload.rowIndex=rowId;
   }
   var res=await apiPost(payload);
   _saveRunning=false;
