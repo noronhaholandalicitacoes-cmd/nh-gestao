@@ -27,6 +27,7 @@
 <input id="api-url" placeholder="https://script.google.com/macros/s/.../exec" value="">
 
 <button class="btn" onclick="testar()">🧪 Testar Conexão</button>
+<button class="btn" onclick="diagnostico()" style="background:#eab308;color:#000">🔍 Diagnóstico</button>
 <button class="btn btn-blue" onclick="migrarTudo()" id="btn-migrar">🚀 Migrar Tudo</button>
 
 <div class="progress"><div class="progress-bar" id="prog"></div></div>
@@ -123,6 +124,28 @@ async function migrarAba(apiUrl, sheet, col){
   if(batchCount > 0) await batch.commit();
   log('✅ '+sheet+': '+count+' registros migrados','ok');
   return count;
+}
+
+async function diagnostico(){
+  var api = document.getElementById('api-url').value.trim();
+  if(!api){ log('Cole a URL!','err'); return; }
+  log('Testando leitura direta...','muted');
+  
+  // Testar com GET simples
+  var url1 = api + '?sheet=EDITAIS%20CAPTURADOS';
+  var url2 = api + '?action=read&sheet=EDITAIS%20CAPTURADOS';
+  
+  try{
+    var r1 = await fetch(url1);
+    var d1 = await r1.json();
+    log('GET simples: '+JSON.stringify(d1).substring(0,200),'info');
+  }catch(e){ log('GET simples erro: '+e.message,'err'); }
+  
+  try{
+    var r2 = await fetch(url2);
+    var d2 = await r2.json();
+    log('GET action=read: '+JSON.stringify(d2).substring(0,200),'info');
+  }catch(e){ log('GET action=read erro: '+e.message,'err'); }
 }
 
 async function migrarTudo(){
