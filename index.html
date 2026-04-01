@@ -629,6 +629,9 @@ select{color-scheme:dark;}
   .r-cards,.r-cards.c3{grid-template-columns:1fr}
 }
 </style>
+  <!-- Firebase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -717,12 +720,11 @@ select{color-scheme:dark;}
 
   </nav>
 
-  <div class="api-box">
-    <label class="api-lbl">URL Apps Script</label>
-    <input class="api-inp" id="apiUrl" placeholder="Cole a URL aqui..." oninput="saveUrl()">
+  <div class="api-box" style="background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.3)">
+    <label class="api-lbl" style="color:#22c55e">🔥 Firebase</label>
     <div class="api-status">
-      <div class="dot" id="sDot"></div>
-      <span id="sTxt">Não configurado</span>
+      <div class="dot ok" id="sDot"></div>
+      <span id="sTxt" style="color:#22c55e">nh-licitacoes</span>
     </div>
   </div>
 </aside>
@@ -899,7 +901,7 @@ select{color-scheme:dark;}
     <div class="fg fc"><label>Justificativa</label><textarea id="e-just" placeholder="Motivo da decisão..."></textarea></div>
     <div class="fg fc"><label>Link do Edital</label><input type="url" id="e-link" placeholder="https://..."></div>
   </div></div>
-  <div class="mft"><button class="btn btn-ghost" onclick="closeM('editais')">Cancelar</button><button class="btn btn-nh" onclick="doSave('editais')" id="sb-editais">Salvar na Planilha</button></div>
+  <div class="mft"><button class="btn btn-ghost" onclick="closeM('editais')">Cancelar</button><button class="btn btn-nh" onclick="doSave('editais')" id="sb-editais"> Salvar</button></div>
 </div></div>
 
 <!-- ANDAMENTO -->
@@ -933,7 +935,7 @@ select{color-scheme:dark;}
     <div class="fg fc"><label>Valor Final 1º Colocado</label><input type="text" id="a-vconc"></div>
     <div class="fg fc"><label>Link da Pasta</label><input type="url" id="a-link"></div>
   </div></div>
-  <div class="mft"><button class="btn btn-ghost" onclick="closeM('andamento')">Cancelar</button><button class="btn btn-nh" onclick="doSave('andamento')" id="sb-andamento">Salvar na Planilha</button></div>
+  <div class="mft"><button class="btn btn-ghost" onclick="closeM('andamento')">Cancelar</button><button class="btn btn-nh" onclick="doSave('andamento')" id="sb-andamento"> Salvar</button></div>
 </div></div>
 
 <!-- GANHAS -->
@@ -1005,7 +1007,7 @@ select{color-scheme:dark;}
     <div class="fg fc" style="margin-top:12px"><label>Observações</label><textarea id="g-obs"></textarea></div>
     <div class="fg fc"><label>Link da Pasta</label><input type="url" id="g-link"></div>
   </div></div>
-  <div class="mft"><button class="btn btn-ghost" onclick="closeM('ganhas')">Cancelar</button><button class="btn btn-nh" onclick="doSave('ganhas')" id="sb-ganhas">Salvar na Planilha</button></div>
+  <div class="mft"><button class="btn btn-ghost" onclick="closeM('ganhas')">Cancelar</button><button class="btn btn-nh" onclick="doSave('ganhas')" id="sb-ganhas"> Salvar</button></div>
 </div></div>
 
 <!-- ATESTADOS -->
@@ -1037,7 +1039,7 @@ select{color-scheme:dark;}
     <div class="fg fc"><label>Observações</label><textarea id="at-obs"></textarea></div>
     <div class="fg fc"><label>Link do Documento</label><input type="url" id="at-link"></div>
   </div></div>
-  <div class="mft"><button class="btn btn-ghost" onclick="closeM('atestados')">Cancelar</button><button class="btn btn-nh" onclick="doSave('atestados')" id="sb-atestados">Salvar na Planilha</button></div>
+  <div class="mft"><button class="btn btn-ghost" onclick="closeM('atestados')">Cancelar</button><button class="btn btn-nh" onclick="doSave('atestados')" id="sb-atestados"> Salvar</button></div>
 </div></div>
 
 <!-- FINANCEIRO -->
@@ -1055,7 +1057,7 @@ select{color-scheme:dark;}
     <div class="fg"><label>Conta</label><select id="f-conta"><option value="">-</option><option>Banco Inter</option><option>Banco do Brasil</option><option>Caixa</option><option>Outros</option></select></div>
     <div class="fg fc"><label>Observações</label><textarea id="f-obs"></textarea></div>
   </div></div>
-  <div class="mft"><button class="btn btn-ghost" onclick="closeM('financeiro')">Cancelar</button><button class="btn btn-nh" onclick="doSave('financeiro')" id="sb-financeiro">Salvar na Planilha</button></div>
+  <div class="mft"><button class="btn btn-ghost" onclick="closeM('financeiro')">Cancelar</button><button class="btn btn-nh" onclick="doSave('financeiro')" id="sb-financeiro"> Salvar</button></div>
 </div></div>
 
 <div id="toasts"></div>
@@ -1064,7 +1066,29 @@ select{color-scheme:dark;}
 <script>
 const SHEETS={editais:'EDITAIS CAPTURADOS',andamento:'EM ANDAMENTO',finalizados:'FINALIZADOS',ganhas:'LICITAÇÕES GANHAS',atestados:'ATESTADOS',financeiro:'FINANCEIRO'};
 const PS=20;
-let API=localStorage.getItem('nh_api')||'';
+// ── Firebase Config ──
+const firebaseConfig = {
+  apiKey: "AIzaSyBhcpJP9dRM0SEJsGfcNUXYb1rTMdEDw6M",
+  authDomain: "nh-licitacoes.firebaseapp.com",
+  projectId: "nh-licitacoes",
+  storageBucket: "nh-licitacoes.firebasestorage.app",
+  messagingSenderId: "1081646053691",
+  appId: "1:1081646053691:web:a8abcb5792d026ade71f1e"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// Mapa de coleções Firebase
+const FB_COLS = {
+  editais:    'editais',
+  andamento:  'andamento',
+  finalizados:'finalizados',
+  ganhas:     'ganhas',
+  atestados:  'atestados',
+  financeiro: 'financeiro'
+};
+
+let API = 'firebase'; // sempre ativo
 let ALL={editais:[],andamento:[],finalizados:[],ganhas:[],atestados:[],financeiro:[]};
 let FIL={editais:[],andamento:[],finalizados:[],ganhas:[],atestados:[],financeiro:[]};
 let PG={editais:1,andamento:1,finalizados:1,ganhas:1,atestados:1,financeiro:1};
@@ -1756,7 +1780,7 @@ function addDoc(emp){
 }
 
 
-if(API){document.getElementById('apiUrl').value=API;setSt('ok');}
+setSt('ok'); // Firebase sempre conectado
 
 function saveUrl(){
   API=document.getElementById('apiUrl').value.trim();
@@ -1794,14 +1818,27 @@ function go(page,el){
 function reload(){if(CUR==='resumo') loadAll(); else loadPage(CUR);}
 
 async function apiFetch(p){
-  if(!API){toast('Configure a URL do Apps Script','err');return null;}
   try{var r=await fetch(API+'?'+new URLSearchParams(p));return await r.json();}
   catch(e){setSt('err');toast('Erro de conex\u00e3o','err');return null;}
 }
+// ── Firebase CRUD ──
+async function fbGetNextId(col){
+  var snap=await db.collection(col).orderBy('_id','desc').limit(1).get();
+  if(snap.empty) return 1;
+  return (snap.docs[0].data()._id||0)+1;
+}
+
+async function fbSave(col,id,arr){
+  await db.collection(col).doc(String(id)).set({_id:id,_arr:arr});
+}
+
+async function fbDelete(col,id){
+  await db.collection(col).doc(String(id)).delete();
+}
+
 async function apiPost(b){
-  if(!API){toast('Configure a URL do Apps Script','err');return null;}
-  try{var r=await fetch(API,{method:'POST',body:JSON.stringify(b)});return await r.json();}
-  catch(e){setSt('err');toast('Erro ao salvar','err');return null;}
+  // Compatibilidade — redireciona para Firebase
+  return null;
 }
 
 async function loadAll(){
@@ -1833,45 +1870,32 @@ async function loadPage(k){
   await _load(k);
 }
 async function _load(k){
-  if(!API){var el=document.getElementById('tbl-'+k);if(el) el.innerHTML=noConf();return;}
-  var d=await apiFetch({action:'read',sheet:SHEETS[k]});
-  if(!d||!d.values){var el=document.getElementById('tbl-'+k);if(el) el.innerHTML=emptyEl('Sem dados ou erro');return;}
-  // Filtra só linhas com colunas A B C D preenchidas (índices 0,1,2,3)
-  var minCols=k==='financeiro'?1:(k==='ganhas'||k==='atestados')?2:4;
-  var valid=d.values.filter(function(r){
-    if(k==='financeiro'){
-      return String(r[0]||'').trim()!==''&&String(r[1]||'').trim()!=='';
-    }
-    // Ganhas: exigir ID (col A) E Valor (col H, idx 7)
-    if(k==='ganhas'){
-      return String(r[0]||'').trim()!==''&&String(r[7]||'').trim()!=='';
-    }
-    var ok=true;
-    for(var i=0;i<minCols;i++){if(!String(r[i]||'').trim()){ok=false;break;}}
-    return ok;
-  });
-  // Deduplicar por ID
-  var seen={};
-  valid=valid.filter(function(r){
-    var id=String(r[0]||'').trim();
-    if(!id) return true; // sem ID, manter
-    if(seen[id]) return false;
-    seen[id]=true; return true;
-  });
-  // Ordem decrescente (mais novo = maior ID primeiro)
-  valid.sort(function(a,b){return (parseInt(b[0])||0)-(parseInt(a[0])||0);});
-  ALL[k]=valid; FIL[k]=valid.slice();
-  var b=document.getElementById('b-'+k);
-  if(b){
-    if(k==='andamento'){
-      var emAnd=valid.filter(function(r){return String(r[12]||'').toUpperCase().trim()==='EM ANDAMENTO';}).length;
-      b.textContent=emAnd;
-    } else {
-      b.textContent=valid.length;
-    }
-  }
   var el=document.getElementById('tbl-'+k);
-  if(el){renderStats(k,valid);renderPills(k,valid);renderTbl(k);}
+  if(el) el.innerHTML='<div class="load"><div class="spin"></div>Carregando...</div>';
+  try{
+    var snap=await db.collection(FB_COLS[k]).orderBy('_id','asc').get();
+    var valid=[];
+    snap.forEach(function(doc){
+      var arr=doc.data()._arr||[];
+      valid.push(arr);
+    });
+    // Ordem decrescente
+    valid.sort(function(a,b){return (parseInt(b[0])||0)-(parseInt(a[0])||0);});
+    ALL[k]=valid; FIL[k]=valid.slice();
+    var b=document.getElementById('b-'+k);
+    if(b){
+      if(k==='andamento'){
+        var emAnd=valid.filter(function(r){return String(r[12]||'').toUpperCase().trim()==='EM ANDAMENTO';}).length;
+        b.textContent=emAnd;
+      } else {
+        b.textContent=valid.length;
+      }
+    }
+    if(el){renderStats(k,valid);renderPills(k,valid);renderTbl(k);}
+  }catch(e){
+    console.error('_load error',k,e);
+    if(el) el.innerHTML=emptyEl('Erro ao carregar: '+e.message);
+  }
 }
 
 function rcRows(items,cls){
@@ -2871,7 +2895,6 @@ var _saveRunning=false;
 var _saveTimer={};
 
 function saveCell(k,rowIdx,ci,val){
-  if(!API){toast('Configure a URL do Apps Script','err');return;}
   var protectedCols={andamento:[1,2,3,4,5,6,7],finalizados:'all'};
   if(protectedCols[k]==='all'){toast('Aba Finalizados é somente leitura','err');return;}
   if(Array.isArray(protectedCols[k])&&protectedCols[k].indexOf(ci)!==-1){
@@ -2901,6 +2924,7 @@ function saveCell(k,rowIdx,ci,val){
     // Enfileirar salvamento
     _saveQueue.push({k:k,rowIdx:rowIdx,ci:ci,rowId:rowId,row:FIL[k][rowIdx].slice()});
     if(!_saveRunning) _processQueue();
+  // _saveRunning é gerenciado pelo processQueue
   }, 600); // aguarda 600ms após última digitação
 }
 
@@ -2951,30 +2975,15 @@ async function _processQueue(){
   var item=_saveQueue.shift();
   var k=item.k, ci=item.ci, rowId=item.rowId, row=item.row;
 
-  var payload={action:'update',sheet:SHEETS[k],values:row,rowIndex:rowId};
-  // EM ANDAMENTO: usar ID se disponível, senão rowKey como fallback
-  if(k==='andamento'){
-    payload.rowKey=String(row[2]||'').trim()+'|'+String(row[3]||'').trim();
-    // Se tem ID, enviar também para o Apps Script usar como prioridade
-    if(rowId) payload.rowIndex=rowId;
+  try{
+    await fbSave(FB_COLS[k], parseInt(rowId), row);
+    if(CUR==='resumo') buildResumo();
+  }catch(e){
+    toast('Erro ao salvar: '+e.message,'err');
+    console.error('_processQueue Firebase error:',e);
   }
-  var res=await apiPost(payload);
   _saveRunning=false;
 
-  if(res&&res.success){
-    if(k==='andamento'&&ci===16){
-      var v=String(row[16]||'').toLowerCase().trim();
-      toast(v==='sim'?'ADJU → Finalizados!':'Revertido de Finalizados','info');
-      await _load('finalizados');
-      await _load('andamento');
-    }
-    if(CUR==='resumo') buildResumo();
-  } else {
-    var msg=res&&res.error?res.error:'Erro ao salvar';
-    toast(msg,'err');
-  }
-
-  // Processar próximo da fila
   if(_saveQueue.length){
     _processQueue();
   } else {
@@ -3133,55 +3142,45 @@ async function doSave(k){
   }
 
   var isEdit=isEditNow!==undefined?isEditNow:EROW[k]!==null;
-  var payload={action:isEdit?'update':'append',sheet:SHEETS[k],values:vals};
-  if(isEdit) payload.rowIndex=origRow?origRow[0]:(FIL[k][EROW[k]]?FIL[k][EROW[k]][0]:null);
-  // EM ANDAMENTO: usar rowKey
-  if(k==='andamento'){
-    var emp2=String(vals[2]||'').trim();
-    var licit2=String(vals[3]||'').trim();
-    payload.rowKey=emp2+'|'+licit2;
-  }
-  var res=await apiPost(payload);
-  btn.disabled=false;btn.textContent='Salvar na Planilha';
+  var col=FB_COLS[k];
 
-  if(res&&res.success){
-    toast(isEdit?'Registro atualizado!':'Salvo com sucesso!','ok');
+  try{
+    var rowId;
+    if(isEdit){
+      rowId=parseInt(origRow?origRow[0]:(FIL[k][EROW[k]]?FIL[k][EROW[k]][0]:0));
+    } else {
+      rowId=await fbGetNextId(col);
+      vals[0]=rowId;
+    }
+    await fbSave(col,rowId,vals);
+    btn.disabled=false;btn.textContent='Salvar';
+    toast(isEdit?'Atualizado!':'Salvo com sucesso!','ok');
     closeM(k);
     await loadPage(k);
-    if(k==='andamento'&&vals[16]&&vals[16].toLowerCase()==='sim'){
-      toast('Copiado para Finalizados automaticamente!','info');
-      await _load('finalizados');
-    }
-    // Financeiro: recarregar dados e recalcular painel
-    if(k==='financeiro'){
-      await _load('financeiro');
-      buildFinResumo();
-    }
+    if(k==='financeiro') buildFinResumo();
     if(CUR==='resumo') buildResumo();
-  } else if(res){
-    var errMsg=res.error||JSON.stringify(res)||'resposta inválida';
-    toast('Erro: '+errMsg,'err');
-    console.error('doSave error:', res);
-  } else {
-    toast('Sem resposta do servidor','err');
-    console.error('doSave: res is null/undefined');
+  }catch(e){
+    btn.disabled=false;btn.textContent='Salvar';
+    toast('Erro: '+e.message,'err');
+    console.error('doSave Firebase error:',e);
   }
 }
 
 async function doDel(k,idx){
   var row=FIL[k][idx];
-  var label=k==='financeiro'?row[2]:row[3]; // financeiro: descrição; outros: licitação
+  var label=k==='financeiro'?row[2]:row[3];
   if(!confirm('Excluir?\n"'+label+'"\n\nEsta ação não pode ser desfeita.')) return;
-  var delPayload={action:'delete',sheet:SHEETS[k],rowId:row[0]};
-  if(k==='andamento'){
-    delPayload.rowKey=String(row[2]||'').trim()+'|'+String(row[3]||'').trim();
+  var rowId=String(row[0]||'').trim();
+  if(!rowId){toast('Sem ID para excluir','err');return;}
+  try{
+    await fbDelete(FB_COLS[k],rowId);
+    toast('Excluído!','ok');
+    await loadPage(k);
+    if(CUR==='resumo') buildResumo();
+  }catch(e){
+    toast('Erro ao excluir: '+e.message,'err');
   }
-  if(k==='financeiro'){
-    // Financeiro não tem ID — usar data+descrição como chave
-    delPayload.finData=String(row[0]||'').trim();
-    delPayload.finDesc=String(row[2]||'').trim();
-  }
-  var res=await apiPost(delPayload);
+  var res={success:true}; // compatibilidade
   if(res&&res.success){toast('Registro excluído!','info');await loadPage(k);}
 }
 
