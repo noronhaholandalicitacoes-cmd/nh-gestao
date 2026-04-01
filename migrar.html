@@ -79,11 +79,15 @@ async function testar(){
   if(!api){ log('Cole a URL do Apps Script!','err'); return; }
   log('Testando conexão...','muted');
   try{
-    var rows = await fetchSheet(api, 'EDITAIS CAPTURADOS');
+    // Usar action=read
+    var url = api + '?action=read&sheet=' + encodeURIComponent('EDITAIS CAPTURADOS');
+    var res = await fetch(url);
+    var data = await res.json();
+    var rows = data.values || [];
+    if(data.error) throw new Error(data.error);
     log('✅ Apps Script OK — '+rows.length+' editais encontrados','ok');
-    // Testar Firebase
     await db.collection('_test').doc('ping').set({ok:true});
-    log('✅ Firebase OK','ok');
+    log('✅ Firebase OK — pronto para migrar!','ok');
   }catch(e){
     log('❌ Erro: '+e.message,'err');
   }
