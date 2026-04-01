@@ -65,9 +65,11 @@ function setProgress(pct){
 }
 
 async function fetchSheet(apiUrl, sheetName){
-  var url = apiUrl + '?sheet=' + encodeURIComponent(sheetName);
+  // Usar mesmo formato do sistema: action=read
+  var url = apiUrl + '?action=read&sheet=' + encodeURIComponent(sheetName);
   var res = await fetch(url);
   var data = await res.json();
+  log('Resposta de '+sheetName+': '+(data.error||('rows: '+(data.values||[]).length)),'muted');
   return data.values || [];
 }
 
