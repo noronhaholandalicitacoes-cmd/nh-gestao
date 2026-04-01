@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Migração NH → Firebase</title>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-firestore-compat.js"></script>
+<style>
+  body{font-family:sans-serif;background:#111;color:#eee;padding:32px;max-width:700px;margin:0 auto}
+  h1{color:#f97316}
+  .btn{background:#f97316;color:#000;border:none;padding:12px 28px;border-radius:8px;font-size:16px;font-weight:700;cursor:pointer;margin:8px 4px}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn-blue{background:#3b82f6;color:#fff}
+  .log{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:16px;margin-top:16px;height:400px;overflow-y:auto;font-family:monospace;font-size:13px}
+  .ok{color:#22c55e} .err{color:#ef4444} .info{color:#f97316} .muted{color:#888}
+  input{background:#222;border:1px solid #444;color:#eee;padding:8px 12px;border-radius:6px;width:100%;margin-bottom:8px;font-size:13px}
+  label{font-size:12px;color:#888;display:block;margin-bottom:4px}
+  .progress{background:#333;border-radius:4px;height:8px;margin-top:8px}
+  .progress-bar{background:#f97316;height:8px;border-radius:4px;transition:width .3s;width:0}
+</style>
+</head>
+<body>
+<h1>🔥 Migração NH → Firebase</h1>
+<p style="color:#888">Cole a URL do Apps Script e clique em Migrar Tudo</p>
+
+<label>URL do Apps Script</label>
+<input id="api-url" placeholder="https://script.google.com/macros/s/.../exec" value="">
+
+<button class="btn" onclick="testar()">🧪 Testar Conexão</button>
+<button class="btn btn-blue" onclick="migrarTudo()" id="btn-migrar">🚀 Migrar Tudo</button>
+
+<div class="progress"><div class="progress-bar" id="prog"></div></div>
+<div class="log" id="log"></div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBhcpJP9dRM0SEJsGfcNUXYb1rTMdEDw6M",
+  authDomain: "nh-licitacoes.firebaseapp.com",
+  projectId: "nh-licitacoes",
+  storageBucket: "nh-licitacoes.firebasestorage.app",
+  messagingSenderId: "1081646053691",
+  appId: "1:1081646053691:web:a8abcb5792d026ade71f1e"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const ABAS = [
+  {sheet:'EDITAIS CAPTURADOS', col:'editais'},
+  {sheet:'EM ANDAMENTO',       col:'andamento'},
+  {sheet:'FINALIZADOS',        col:'finalizados'},
+  {sheet:'LICITAÇÕES GANHAS',  col:'ganhas'},
+  {sheet:'ATESTADOS',          col:'atestados'},
+  {sheet:'FINANCEIRO',         col:'financeiro'}
+];
+
+function log(msg, tipo){
+  var el = document.getElementById('log');
+  var d = new Date().toLocaleTimeString();
+  el.innerHTML += '<div class="'+(tipo||'info')+'">['+d+'] '+msg+'</div>';
+  el.scrollTop = el.scrollHeight;
+}
+
+function setProgress(pct){
+  document.getElementById('prog').style.width = pct + '%';
+}
+
+async function fetchSheet(apiUrl, sheetName){
+  var url = apiUrl + '?sheet=' + encodeURIComponent(sheetName);
+  var res = await fetch(url);
+  var data = await res.json();
+  return data.values || [];
+}
+
+async function testar(){
+  var api = document.getElementById('api-url').value.trim();
+  if(!api){ log('Cole a URL do Apps Script!','err'); return; }
+  log('Testando conexão...','muted');
+  try{
+    var rows = await fetchSheet(api, 'EDITAIS CAPTURADOS');
+    log('✅ Apps Script OK — '+rows.length+' editais encontrados','ok');
+    // Testar Firebase
+    await db.collection('_test').doc('ping').set({ok:true});
+    log('✅ Firebase OK','ok');
+  }catch(e){
+    log('❌ Erro: '+e.message,'err');
+  }
+}
+
+async function migrarAba(apiUrl, sheet, col){
+  log('Migrando '+sheet+'...','info');
+  var rows = await fetchSheet(apiUrl, sheet);
+  if(!rows.length){ log(sheet+': vazia','muted'); return 0; }
+  
+  var count = 0;
+  var batch = db.batch();
+  var batchCount = 0;
+
+  for(var i = 0; i < rows.length; i++){
+    var row = rows[i];
+    // Pular linhas vazias
+    var temDado = row.some(function(v){ return v !== '' && v !== null; });
+    if(!temDado) continue;
+
+    var id = String(row[0]||'').trim();
+    if(!id) id = col+'_'+(i+1);
+
+    var ref = db.collection(col).doc(id);
+    batch.set(ref, { _id: parseInt(id)||i+1, _arr: row });
+    batchCount++;
+    count++;
+
+    // Commit a cada 400 docs (limite do Firestore é 500)
+    if(batchCount >= 400){
+      await batch.commit();
+      batch = db.batch();
+      batchCount = 0;
+      log(sheet+': '+count+' registros enviados...','muted');
+    }
+  }
+
+  if(batchCount > 0) await batch.commit();
+  log('✅ '+sheet+': '+count+' registros migrados','ok');
+  return count;
+}
+
+async function migrarTudo(){
+  var api = document.getElementById('api-url').value.trim();
+  if(!api){ log('Cole a URL do Apps Script!','err'); return; }
+  
+  document.getElementById('btn-migrar').disabled = true;
+  var total = 0;
+  
+  for(var i = 0; i < ABAS.length; i++){
+    setProgress((i/ABAS.length)*100);
+    try{
+      var n = await migrarAba(api, ABAS[i].sheet, ABAS[i].col);
+      total += n;
+    }catch(e){
+      log('❌ Erro em '+ABAS[i].sheet+': '+e.message,'err');
+    }
+  }
+  
+  setProgress(100);
+  log('🎉 MIGRAÇÃO CONCLUÍDA — '+total+' registros no total','ok');
+  document.getElementById('btn-migrar').disabled = false;
+}
+</script>
+</body>
+</html>
