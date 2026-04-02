@@ -717,30 +717,7 @@ select{color-scheme:dark;}
       <button onclick="abrirGerenciarEmpresas()" style="background:none;border:1px solid var(--b1);color:var(--t3);font-size:10px;padding:2px 8px;border-radius:4px;cursor:pointer;font-family:Outfit,sans-serif">⚙ Gerenciar</button>
     </div>
 
-    <div class="sb-item" id="nav-emp-VISE" onclick="go('emp-VISE',this)">
-      <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-      <span>VISE</span>
-    </div>
-    <div class="sb-item" id="nav-emp-SAUTEC" onclick="go('emp-SAUTEC',this)">
-      <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-      <span>SAUTEC</span>
-    </div>
-    <div class="sb-item" id="nav-emp-SOS" onclick="go('emp-SOS',this)">
-      <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-      <span>SOS</span>
-    </div>
-    <div class="sb-item" id="nav-emp-SOS FILIAL" onclick="go('emp-SOS FILIAL',this)">
-      <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-      <span>SOS Filial</span>
-    </div>
-    <div class="sb-item" id="nav-emp-ONLAV" onclick="go('emp-ONLAV',this)">
-      <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-      <span>ONLAV</span>
-    </div>
-    <div class="sb-item" id="nav-emp-ENGEMED" onclick="go('emp-ENGEMED',this)">
-      <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-      <span>ENGEMED</span>
-    </div>
+    <div id="sb-empresas-lista"></div>
 
   </nav>
 
@@ -1259,6 +1236,24 @@ function atualizarSelectsEmpresas(){
     var val = el ? el.value : '';
     if(el){ el.innerHTML = opts; el.value = val; }
   });
+  // Atualizar sidebar
+  var sbIcon = '<svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>';
+  var sb = document.getElementById('sb-empresas-lista');
+  if(sb){
+    sb.innerHTML = EMPRESAS.map(function(e){
+      var nid = 'nav-emp-'+e.nome;
+      var cor = e.cor||'#f97316';
+      return '<div class="sb-item" id="'+nid+'" data-emp="'+e.nome+'" style="position:relative">'+
+        '<span style="width:8px;height:8px;border-radius:50%;background:'+cor+';flex-shrink:0;display:inline-block;margin-right:2px"></span>'+
+        '<span>'+e.nome+'</span>'+
+        '</div>';
+    }).join('');
+    // Restaurar item ativo se houver
+    if(CUR && CUR.startsWith('emp-')){
+      var activeEl = document.getElementById('nav-'+CUR);
+      if(activeEl) activeEl.classList.add('on');
+    }
+  }
 }
 
 let API = 'firebase'; // sempre ativo
@@ -3185,14 +3180,48 @@ function renderListaEmpresas(){
     return;
   }
   lista.innerHTML = EMPRESAS.map(function(e,i){
-    return '<div style="display:grid;grid-template-columns:auto 1fr 1fr 1fr auto;gap:8px;align-items:center;background:var(--s2);padding:10px 12px;border-radius:8px;border:1px solid var(--b1)">'+
-      '<span style="width:12px;height:12px;border-radius:50%;background:'+e.cor+';flex-shrink:0;display:inline-block"></span>'+
-      '<span style="font-size:12px;color:var(--t1);font-weight:600">'+e.nome+'</span>'+
-      '<span style="font-size:11px;color:var(--t3)">'+( e.razao||'')+'</span>'+
-      '<span style="font-size:11px;color:var(--t3)">'+( e.cnpj||'')+'</span>'+
-      '<button onclick="removerEmpresa('+i+')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;cursor:pointer;font-size:12px;padding:3px 8px;border-radius:6px;font-family:Outfit,sans-serif">Remover</button>'+
-      '</div>';
+    return '<div style="background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:12px;margin-bottom:4px">'+
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'+
+        '<span style="width:14px;height:14px;border-radius:50%;background:'+(e.cor||'#888')+';flex-shrink:0;display:inline-block"></span>'+
+        '<strong style="font-size:14px;color:var(--t1)">'+e.nome+'</strong>'+
+        '<div style="margin-left:auto;display:flex;gap:6px">'+
+          '<button onclick="editarEmpresa('+i+')" style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);color:#3b82f6;cursor:pointer;font-size:11px;padding:3px 10px;border-radius:6px;font-family:Outfit,sans-serif">Editar</button>'+
+          '<button onclick="removerEmpresa('+i+')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;cursor:pointer;font-size:11px;padding:3px 10px;border-radius:6px;font-family:Outfit,sans-serif">Remover</button>'+
+        '</div>'+
+      '</div>'+
+      '<div id="edit-emp-'+i+'" style="display:none;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">'+
+        '<div><label style="font-size:11px;color:var(--t3)">Razão Social</label>'+
+        '<input value="'+(e.razao||'')+'" onchange="EMPRESAS['+i+'].razao=this.value" style="width:100%;background:var(--s1);border:1px solid var(--b1);color:var(--t1);padding:6px 10px;border-radius:6px;font-size:12px;font-family:Outfit,sans-serif;outline:none;margin-top:2px"></div>'+
+        '<div><label style="font-size:11px;color:var(--t3)">Nome Fantasia</label>'+
+        '<input value="'+(e.nome||'')+'" onchange="EMPRESAS['+i+'].nome=this.value" style="width:100%;background:var(--s1);border:1px solid var(--b1);color:var(--t1);padding:6px 10px;border-radius:6px;font-size:12px;font-family:Outfit,sans-serif;outline:none;margin-top:2px"></div>'+
+        '<div><label style="font-size:11px;color:var(--t3)">CNPJ</label>'+
+        '<input value="'+(e.cnpj||'')+'" oninput="mascaraCNPJ(this);EMPRESAS['+i+'].cnpj=this.value" style="width:100%;background:var(--s1);border:1px solid var(--b1);color:var(--t1);padding:6px 10px;border-radius:6px;font-size:12px;font-family:Outfit,sans-serif;outline:none;margin-top:2px"></div>'+
+        '<div><label style="font-size:11px;color:var(--t3)">Cor</label>'+
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">'+
+          ['#eab308','#3b82f6','#22c55e','#ef4444','#10b981','#ec4899','#f97316','#8b5cf6'].map(function(c){
+            var brd = e.cor===c?'3px solid #fff':'2px solid transparent';
+            return '<span data-ci="'+i+'" data-cor="'+c+'" class="emp-cor-opt" style="width:20px;height:20px;border-radius:50%;background:'+c+';cursor:pointer;border:'+brd+'"></span>';
+          }).join('')+
+        '</div></div>'+
+      '</div>'+
+      '<div style="font-size:11px;color:var(--t3);margin-top:4px">'+
+        (e.razao?'<span>'+e.razao+'</span> · ':'')+(e.cnpj?'<span>CNPJ: '+e.cnpj+'</span>':'<span style="color:#555">CNPJ não informado</span>')+
+      '</div>'+
+    '</div>';
   }).join('');
+}
+
+function editarEmpresa(i){
+  // Toggle painel de edição inline
+  var panel = document.getElementById('edit-emp-'+i);
+  if(!panel) return;
+  var isOpen = panel.style.display === 'grid';
+  // Fechar todos
+  EMPRESAS.forEach(function(_,j){
+    var p = document.getElementById('edit-emp-'+j);
+    if(p) p.style.display='none';
+  });
+  if(!isOpen) panel.style.display='grid';
 }
 
 function adicionarEmpresa(){
@@ -3677,6 +3706,26 @@ function buscaGlobal(q){
     });
   });
 }
+
+// Event delegation para empresas no sidebar e cores
+document.addEventListener('click',function(e){
+  var empItem = e.target.closest('[data-emp]');
+  if(empItem){
+    var nome = empItem.getAttribute('data-emp');
+    go('emp-'+nome, empItem);
+    return;
+  }
+  var corOpt = e.target.closest('.emp-cor-opt');
+  if(corOpt){
+    var ci = parseInt(corOpt.getAttribute('data-ci'));
+    var cor = corOpt.getAttribute('data-cor');
+    if(!isNaN(ci) && EMPRESAS[ci]){
+      EMPRESAS[ci].cor = cor;
+      renderListaEmpresas();
+    }
+    return;
+  }
+});
 
 // Fechar busca ao clicar fora
 document.addEventListener('click',function(e){
