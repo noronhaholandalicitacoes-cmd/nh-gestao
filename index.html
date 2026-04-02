@@ -508,6 +508,8 @@ select{color-scheme:dark;}
 }
 .mx:hover{color:var(--t1);background:var(--b2)}
 .mbd{padding:22px 26px}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
 .mft{
   padding:14px 26px;border-top:1px solid var(--b1);
   display:flex;gap:8px;justify-content:flex-end;
@@ -843,7 +845,7 @@ select{color-scheme:dark;}
     </div>
 
     <!-- EMPRESAS CONFIG -->
-<div class="modal-overlay" id="mo-empresas" onclick="if(event.target===this)closeM('empresas')">
+<div class="modal-overlay" id="mo-empresas" onclick="if(event.target===this)closeM('empresas')" style="display:none">
 <div class="modal" style="max-width:560px">
   <div class="mhd"><div class="mhd-nh"></div><div class="mhd-info"><h2>Gerenciar Empresas</h2><p>Cadastro completo das empresas do grupo NH</p></div><button class="mx" onclick="closeM('empresas')">×</button></div>
   <div class="mbd"><div class="fg2">
@@ -3171,7 +3173,9 @@ function mascaraCNPJ(el){
 
 function abrirGerenciarEmpresas(){
   renderListaEmpresas();
-  document.getElementById('mo-empresas').classList.add('open');
+  var el = document.getElementById('mo-empresas');
+  el.style.display='flex';
+  el.classList.add('open');
 }
 
 function renderListaEmpresas(){
@@ -3324,7 +3328,16 @@ function openM(k){
 }
 function closeM(k){
   var el = document.getElementById('mo-'+k);
-  if(el) el.classList.remove('open');
+  if(!el) return;
+  // modal-overlay usa display:none/flex
+  if(el.classList.contains('modal-overlay')){
+    el.style.display='none';
+    el.classList.remove('open');
+  } else {
+    el.classList.remove('open');
+  }
+  // Limpar EDIT_ROW
+  if(EDIT_ROW) EDIT_ROW[k]=null;
 }
 // Overlay não fecha ao clicar fora — só fecha com Cancelar ou Salvar
 
