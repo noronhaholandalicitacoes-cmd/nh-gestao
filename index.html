@@ -1851,7 +1851,7 @@ async function addPortal(emp){
 // ══ CERTIDÕES ══════════════════════════════════════════════════
 function renderCertsGrid(emp){
   var certs=getCerts(emp);
-  if(!certs.length) return '<div class="empty" style="padding:20px"><p>Nenhuma certidão cadastrada</p></div>';
+  if(!certs.length) return '<div id="certs-empty-'+emp+'" style="padding:20px;color:var(--t3);font-size:13px;text-align:center">Nenhuma certidão cadastrada</div>';
   return certs.map(function(c){ return renderCertCard(emp,c); }).join('');
 }
 
@@ -1940,8 +1940,6 @@ async function addCert(emp){
 // ══ DOCUMENTOS ═════════════════════════════════════════════════
 function renderDocsTable(emp){
   var docs=getDocs(emp);
-  if(!docs.length) return '<div class="empty" style="padding:20px"><p>Nenhum documento cadastrado</p></div>';
-
   var h='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">';
   h+='<thead><tr style="background:rgba(0,0,0,.3)">';
   h+='<th style="text-align:left;padding:10px 14px;font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.09em;border-bottom:1px solid var(--b1)">Categoria</th>';
@@ -1950,7 +1948,7 @@ function renderDocsTable(emp){
   h+='<th style="text-align:left;padding:10px 14px;font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.09em;border-bottom:1px solid var(--b1)">Observações</th>';
   h+='<th style="text-align:center;padding:10px 14px;font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.09em;border-bottom:1px solid var(--b1);width:60px">Ações</th>';
   h+='</tr></thead><tbody id="docs-tbody-'+emp+'">';
-
+  if(!docs.length) h+='<tr id="docs-empty-'+emp+'"><td colspan="5" style="padding:20px;text-align:center;color:var(--t3);font-size:13px">Nenhum documento cadastrado</td></tr>';
   docs.forEach(function(doc){ h+=renderDocRow(emp,doc); });
   h+='</tbody></table></div>';
   return h;
@@ -2009,11 +2007,16 @@ async function addDoc(emp){
   saveDocs(emp,docs);
   var tbody=document.getElementById('docs-tbody-'+emp);
   if(tbody){
+    // Remover linha "vazia" se existir
+    var emptyRow=document.getElementById('docs-empty-'+emp);
+    if(emptyRow) emptyRow.remove();
     var tr=document.createElement('tr');
-    tr.innerHTML=renderDocRow(emp,novo);
-    tbody.appendChild(tr);
-    tr.scrollIntoView({behavior:'smooth',block:'center'});
-  } else { buildEmpresa(emp); }
+    tr.outerHTML; // força parse
+    tbody.insertAdjacentHTML('beforeend', renderDocRow(emp,novo));
+    tbody.lastElementChild.scrollIntoView({behavior:'smooth',block:'center'});
+  } else {
+    await buildEmpresa(emp);
+  }
   toast('Documento adicionado!','ok');
 }
 
