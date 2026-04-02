@@ -3168,20 +3168,21 @@ function saveCell(k,rowIdx,ci,val){
 // Sincroniza campos A-H de EM ANDAMENTO quando edital é editado
 async function sincronizarAndamento(editaisRow){
   try{
-    var edId = parseInt(editaisRow[0]);
-    // Buscar processo em andamento com mesmo ID
-    var snap = await db.collection('andamento').doc(String(edId)).get();
-    if(!snap.exists) return;
-    var andRow = snap.data()._arr||[];
-    // Atualizar colunas A-H (0-7) com dados do edital
+    var licit = String(editaisRow[3]||'').trim();
+    if(!licit) return;
+    // Buscar em memória por licitação (mais rápido)
+    var andIdx = ALL['andamento'].findIndex(function(r){
+      return String(r[3]||'').trim() === licit;
+    });
+    if(andIdx === -1) return;
+    var andRow = ALL['andamento'][andIdx].slice();
+    var andId = parseInt(andRow[0]);
+    // Atualizar colunas 1-7 com dados do edital
     for(var i=1;i<=7;i++){
       andRow[i] = editaisRow[i]||'';
     }
-    await fbSave('andamento', edId, andRow);
-    // Atualizar memória
-    ALL['andamento'] = ALL['andamento'].map(function(r){
-      return parseInt(r[0])===edId ? andRow : r;
-    });
+    await fbSave('andamento', andId, andRow);
+    ALL['andamento'][andIdx] = andRow;
     FIL['andamento'] = ALL['andamento'].slice();
     toast('Em Andamento sincronizado!','ok');
   }catch(e){
