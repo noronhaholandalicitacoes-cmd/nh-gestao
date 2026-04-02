@@ -1827,7 +1827,8 @@ function deletePortal(emp,id){
   toast('Portal excluído','info');
 }
 
-function addPortal(emp){
+async function addPortal(emp){
+  if(!_empCache[emp]) await loadEmpData(emp);
   var portais=getPortais(emp);
   var maxId=portais.reduce(function(m,p){return p.id>m?p.id:m;},0);
   var novo={id:maxId+1,portal:'Novo Portal',login:'',senha:'',vencimento:'',status:'Sem Data',obs:''};
@@ -1842,7 +1843,7 @@ function addPortal(emp){
     container.appendChild(div.firstChild);
     container.lastElementChild.scrollIntoView({behavior:'smooth',block:'center'});
   } else { buildEmpresa(emp); }
-  toast('','ok');
+  toast('Portal adicionado!','ok');
 }
 
 // ══ CERTIDÕES ══════════════════════════════════════════════════
@@ -1877,7 +1878,8 @@ function renderCertCard(emp,c){
   return h;
 }
 
-function saveCertCard(emp,id){
+async function saveCertCard(emp,id){
+  if(!_empCache[emp]) await loadEmpData(emp);
   var ek=emp.replace(/\s/g,'');
   var sid=ek+'-c'+id;
   var certs=getCerts(emp);
@@ -1914,7 +1916,8 @@ function deleteCert(emp,id){
   toast('Certidão excluída','info');
 }
 
-function addCert(emp){
+async function addCert(emp){
+  if(!_empCache[emp]) await loadEmpData(emp);
   var certs=getCerts(emp);
   var maxId=certs.reduce(function(m,c){return c.id>m?c.id:m;},0);
   var nova={id:maxId+1,item:'Nova Certidão',validade:'',status:'',dias:null,link:''};
@@ -1995,15 +1998,20 @@ function deleteDoc(emp,id){
   toast('Documento excluído','info');
 }
 
-function addDoc(emp){
+async function addDoc(emp){
+  if(!_empCache[emp]) await loadEmpData(emp);
   var docs=getDocs(emp);
   var maxId=docs.reduce(function(m,d){return d.id>m?d.id:m;},0);
   var novo={id:maxId+1,categoria:'',documento:'Novo Documento',conferido:'',observacoes:''};
   docs.push(novo);
   saveDocs(emp,docs);
   var tbody=document.getElementById('docs-tbody-'+emp);
-  if(tbody){ var d=document.createElement('tbody'); d.innerHTML=renderDocRow(emp,novo); tbody.appendChild(d.firstChild); }
-  else { buildEmpresa(emp); }
+  if(tbody){
+    var tr=document.createElement('tr');
+    tr.innerHTML=renderDocRow(emp,novo);
+    tbody.appendChild(tr);
+    tr.scrollIntoView({behavior:'smooth',block:'center'});
+  } else { buildEmpresa(emp); }
   toast('Documento adicionado!','ok');
 }
 
