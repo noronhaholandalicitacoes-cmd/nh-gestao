@@ -1661,20 +1661,22 @@ async function loadEmpData(emp){
   if(_empCache[emp]) return _empCache[emp];
   try{
     var snap = await db.collection('emp_data').doc(emp).get();
-    if(snap.exists){
-      _empCache[emp] = snap.data();
-    } else {
-      // Carregar do localStorage como fallback (migração)
+    if(snap.exists && snap.data()){
+      var d = snap.data();
+      // Garantir que todos os campos existem
       _empCache[emp] = {
-        portais: getLS('portais_'+emp, (EMP_DATA[emp]||{portais:[]}).portais||[]),
-        certs:   getLS('certs_'+emp,   (EMP_DATA[emp]||{certidoes:[]}).certidoes||[]),
-        docs:    getLS('docs_'+emp,    (EMP_DATA[emp]||{docs:[]}).docs||[])
+        portais: d.portais||[],
+        certs:   d.certs||[],
+        docs:    d.docs||[]
       };
-      // Migrar para Firebase
+    } else {
+      // Empresa nova ou sem dados — inicializar vazio e salvar no Firebase
+      _empCache[emp] = {portais:[], certs:[], docs:[]};
       await db.collection('emp_data').doc(emp).set(_empCache[emp]);
     }
   }catch(e){
-    _empCache[emp] = {portais:[],certs:[],docs:[]};
+    console.error('loadEmpData error:', emp, e);
+    _empCache[emp] = {portais:[], certs:[], docs:[]};
   }
   return _empCache[emp];
 }
