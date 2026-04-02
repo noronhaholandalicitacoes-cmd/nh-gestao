@@ -3073,14 +3073,11 @@ function inlineCell(k,abs,ci,v){
   var s=String(v||'').trim();
   var inputId='ic-'+k+'-'+abs+'-'+ci;
   // Colunas protegidas por fórmula — só leitura
-  var protectedCols={
-    andamento:[1,2,3,4,5,6,7],
-    finalizados:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]
-  };
-  if(protectedCols[k]&&protectedCols[k].indexOf(ci)!==-1){
+  // Finalizados são somente leitura
+  if(k==='finalizados'){
     return '<span style="font-size:14px;color:var(--t2);line-height:1.6;word-break:break-word;white-space:pre-wrap">'+(s||'—')+'</span>';
   }
-  var EMPS=['','VISE','SOS','SAUTEC','SOS FILIAL','ONLAV','ENGEMED','POTIGUAR'];
+  var EMPS=['']; EMPRESAS.forEach(function(e){EMPS.push(e.nome);});
   var selCols={
     editais:{2:EMPS,10:['','SIM','NÃO','EM ANÁLISE'],11:['','POSITIVO','NEGATIVO','PENDENTE']},
     andamento:{2:EMPS,9:['','Compras Gov','BLL','LICITANET','CONLICITACAO','BNC','Publinexo','Licitanet','PE-Integrado','Compras Públicas','Apoio Cotações','Licitar Digital','Licitações-e','Outro'],12:['','Em andamento','Ganha','Finalizado','Suspenso','Desclassificado','Inabilitado','Cancelado','Recurso','Aguardando'],14:['','sim','não'],16:['','sim','não']},
@@ -3168,6 +3165,31 @@ function saveCell(k,rowIdx,ci,val){
 }
 
 // Cria processo em EM ANDAMENTO quando Edital tem PARTICIPAR=SIM
+// Sincroniza campos A-H de EM ANDAMENTO quando edital é editado
+async function sincronizarAndamento(editaisRow){
+  try{
+    var edId = parseInt(editaisRow[0]);
+    // Buscar processo em andamento com mesmo ID
+    var snap = await db.collection('andamento').doc(String(edId)).get();
+    if(!snap.exists) return;
+    var andRow = snap.data()._arr||[];
+    // Atualizar colunas A-H (0-7) com dados do edital
+    for(var i=1;i<=7;i++){
+      andRow[i] = editaisRow[i]||'';
+    }
+    await fbSave('andamento', edId, andRow);
+    // Atualizar memória
+    ALL['andamento'] = ALL['andamento'].map(function(r){
+      return parseInt(r[0])===edId ? andRow : r;
+    });
+    FIL['andamento'] = ALL['andamento'].slice();
+    toast('Em Andamento sincronizado!','ok');
+  }catch(e){
+    console.error('sincronizarAndamento error:',e);
+  }
+}
+
+
 async function criarAndamentoDoEdital(editaisRow){
   try{
     // Verificar se já existe em andamento (mesmo ID de edital na col 0)
@@ -3389,6 +3411,10 @@ async function _processQueue(){
     var cellVal = String(row[ci]||'');
     if(k==='editais' && ci===10 && cellVal.toUpperCase().trim()==='SIM'){
       await criarAndamentoDoEdital(row);
+    }
+    // Se editais mudou empresa (ci=2) ou licitação (ci=3), atualizar em andamento se existir
+    if(k==='editais' && (ci===2||ci===3)){
+      await sincronizarAndamento(row);
     }
     if(k==='andamento' && ci===16 && cellVal.toLowerCase().trim()==='sim'){
       await copiarParaFinalizados(row);
