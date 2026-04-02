@@ -3177,7 +3177,7 @@ async function syncEntreAbas(k, ci, row){
   if(k === 'editais'){
     // Encontrar processo correspondente em andamento (por licitação)
     var andIdx = ALL['andamento'].findIndex(function(r){
-      return String(r[3]||'').trim() === licit;
+      return String(r[3]||'').trim().toLowerCase() === licit.toLowerCase();
     });
 
     // PARTICIPAR mudou para SIM → criar em andamento se não existe
@@ -3205,18 +3205,22 @@ async function syncEntreAbas(k, ci, row){
       return;
     }
 
-    // Qualquer outro campo mudou → sincronizar colunas 0-7 em andamento
-    if(andIdx !== -1){
-      var andRow = ALL['andamento'][andIdx].slice();
+    // Qualquer campo mudou → sincronizar colunas 1-7 em andamento
+    // Buscar por licitação com trim+lowercase para evitar erros de espaço
+    var andIdx2 = ALL['andamento'].findIndex(function(r){
+      return String(r[3]||'').trim().toLowerCase() === licit.toLowerCase();
+    });
+    if(andIdx2 !== -1){
+      var andRow = ALL['andamento'][andIdx2].slice();
       var andId2 = parseInt(andRow[0]);
-      // Copiar campos do edital (data, empresa, licitação, objeto, local, município, valor)
       for(var i = 1; i <= 7; i++){
-        andRow[i] = row[i]||'';
+        andRow[i] = row[i]!==undefined ? row[i] : andRow[i];
       }
       await fbSave('andamento', andId2, andRow);
-      ALL['andamento'][andIdx] = andRow;
+      ALL['andamento'][andIdx2] = andRow;
       FIL['andamento'] = ALL['andamento'].slice();
       if(CUR === 'andamento') renderTbl('andamento');
+      toast('Empresa atualizada em Em Andamento!','ok');
     }
   }
 
@@ -3652,8 +3656,9 @@ async function doSave(k){
     if(k==='editais'){
       var part=String(vals[10]||'').toUpperCase().trim();
       if(part==='SIM'){
+        var licitNova=String(vals[3]||'').trim().toLowerCase();
         var existe=ALL['andamento'].some(function(r){
-          return String(r[3]||'').trim()===String(vals[3]||'').trim();
+          return String(r[3]||'').trim().toLowerCase()===licitNova;
         });
         if(!existe) await criarAndamentoDoEdital(vals);
         else await syncEntreAbas('editais', 2, vals); // sincronizar campos
