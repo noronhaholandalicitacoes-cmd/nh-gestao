@@ -1222,6 +1222,11 @@ async function carregarEmpresas(){
     }
   }catch(e){ console.log('Usando empresas padrão'); }
   atualizarSelectsEmpresas();
+  // Inicializar EMP_DATA para todas empresas
+  EMPRESAS.forEach(function(e){
+    if(!EMP_DATA[e.nome]) EMP_DATA[e.nome]={cnpj:e.cnpj||'',portais:[],docs:[]};
+    if(!TOPS['emp-'+e.nome]) TOPS['emp-'+e.nome]=['Empresa — '+e.nome,'Portais, certidões e documentação'+(e.cnpj?' · CNPJ '+e.cnpj:'')];
+  });
 }
 
 async function salvarEmpresas(){
@@ -1235,6 +1240,15 @@ function atualizarSelectsEmpresas(){
     var el = document.getElementById(id);
     var val = el ? el.value : '';
     if(el){ el.innerHTML = opts; el.value = val; }
+  });
+  // Atualizar TOPS para todas empresas
+  EMPRESAS.forEach(function(e){
+    if(!TOPS['emp-'+e.nome]){
+      TOPS['emp-'+e.nome]=['Empresa — '+e.nome,'Portais, certidões e documentação'+(e.cnpj?' · CNPJ '+e.cnpj:'')];
+    }
+    if(!EMP_DATA[e.nome]){
+      EMP_DATA[e.nome]={cnpj:e.cnpj||'',portais:[],docs:[]};
+    }
   });
   // Atualizar sidebar
   var sbIcon = '<svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>';
@@ -1650,8 +1664,19 @@ function saveDocs(emp,d){ setLS('docs_'+emp,d); }
 // ══ BUILD EMPRESA ══════════════════════════════════════════════
 function buildEmpresa(emp){
   var el=document.getElementById('emp-body');
+  // Criar entrada vazia se empresa nova ainda não tem dados
+  if(!EMP_DATA[emp]){
+    EMP_DATA[emp]={cnpj:'',portais:[],docs:[]};
+  }
   var d=EMP_DATA[emp];
-  if(!d){el.innerHTML='<div class="empty"><p>Empresa não encontrada: '+emp+'</p></div>';return;}
+  // Atualizar TOPS para empresa nova
+  if(!TOPS['emp-'+emp]){
+    var empObj = EMPRESAS.find(function(e){return e.nome===emp;})||{};
+    TOPS['emp-'+emp]=['Empresa — '+emp,'Portais, certidões e documentação'+(empObj.cnpj?' · CNPJ '+empObj.cnpj:'')];
+  }
+  // Sincronizar CNPJ do Firebase com EMP_DATA
+  var empObj2 = EMPRESAS.find(function(e){return e.nome===emp;})||{};
+  if(empObj2.cnpj && !d.cnpj) d.cnpj = empObj2.cnpj;
   var ec=empColor(emp);
 
   var certs=getCerts(emp);
