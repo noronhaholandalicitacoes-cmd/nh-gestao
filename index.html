@@ -1654,19 +1654,55 @@ function certCls(valBR){
 function getLS(key,def){ try{ var r=localStorage.getItem(key); return r?JSON.parse(r):def; }catch(e){ return def; } }
 function setLS(key,val){ try{ localStorage.setItem(key,JSON.stringify(val)); }catch(e){} }
 
-function getPortais(emp){ return getLS('portais_'+emp, (EMP_DATA[emp]||{portais:[]}).portais.map(function(p,i){ return Object.assign({id:i+1},p); })); }
-function getCerts(emp){ return getLS('certs_'+emp, (EMP_DATA[emp]||{certidoes:[]}).certidoes.map(function(c,i){ return Object.assign({id:i+1},c); })); }
+// Cache em memória para portais/certs/docs por empresa
+var _empCache = {};
+
+async function loadEmpData(emp){
+  if(_empCache[emp]) return _empCache[emp];
+  try{
+    var snap = await db.collection('emp_data').doc(emp).get();
+    if(snap.exists){
+      _empCache[emp] = snap.data();
+    } else {
+      // Carregar do localStorage como fallback (migração)
+      _empCache[emp] = {
+        portais: getLS('portais_'+emp, (EMP_DATA[emp]||{portais:[]}).portais||[]),
+        certs:   getLS('certs_'+emp,   (EMP_DATA[emp]||{certidoes:[]}).certidoes||[]),
+        docs:    getLS('docs_'+emp,    (EMP_DATA[emp]||{docs:[]}).docs||[])
+      };
+      // Migrar para Firebase
+      await db.collection('emp_data').doc(emp).set(_empCache[emp]);
+    }
+  }catch(e){
+    _empCache[emp] = {portais:[],certs:[],docs:[]};
+  }
+  return _empCache[emp];
+}
+
+async function saveEmpData(emp, field, data){
+  if(!_empCache[emp]) _empCache[emp] = {portais:[],certs:[],docs:[]};
+  _empCache[emp][field] = data;
+  await db.collection('emp_data').doc(emp).set(_empCache[emp]);
+}
+
+function getPortais(emp){ return (_empCache[emp]||{portais:[]}).portais||[]; }
+function getCerts(emp){   return (_empCache[emp]||{certs:[]}).certs||[];   }
+function getDocs(emp){    return (_empCache[emp]||{docs:[]}).docs||[];     }
 function getDocs(emp){ return getLS('docs_'+emp, (EMP_DOCS[emp]||[]).map(function(d,i){ return Object.assign({id:i+1},d); })); }
-function savePortais(emp,d){ setLS('portais_'+emp,d); }
-function saveCerts(emp,d){ setLS('certs_'+emp,d); }
-function saveDocs(emp,d){ setLS('docs_'+emp,d); }
+function savePortais(emp,d){ saveEmpData(emp,'portais',d); }
+function saveCerts(emp,d){   saveEmpData(emp,'certs',d);   }
+function saveDocs(emp,d){    saveEmpData(emp,'docs',d);    }
 
 // ══ BUILD EMPRESA ══════════════════════════════════════════════
-function buildEmpresa(emp){
+async function buildEmpresa(emp){
   var el=document.getElementById('emp-body');
-  // Criar entrada vazia se empresa nova ainda não tem dados
+  el.innerHTML='<div class="load"><div class="spin"></div>Carregando '+emp+'...</div>';
+  // Carregar dados do Firebase
+  await loadEmpData(emp);
+  // Criar entrada no EMP_DATA se não existir
   if(!EMP_DATA[emp]){
-    EMP_DATA[emp]={cnpj:'',portais:[],docs:[]};
+    var empObj0 = EMPRESAS.find(function(e){return e.nome===emp;})||{};
+    EMP_DATA[emp]={cnpj:empObj0.cnpj||'',portais:[],docs:[]};
   }
   var d=EMP_DATA[emp];
   // Atualizar TOPS para empresa nova
@@ -1674,7 +1710,6 @@ function buildEmpresa(emp){
     var empObj = EMPRESAS.find(function(e){return e.nome===emp;})||{};
     TOPS['emp-'+emp]=['Empresa — '+emp,'Portais, certidões e documentação'+(empObj.cnpj?' · CNPJ '+empObj.cnpj:'')];
   }
-  // Sincronizar CNPJ do Firebase com EMP_DATA
   var empObj2 = EMPRESAS.find(function(e){return e.nome===emp;})||{};
   if(empObj2.cnpj && !d.cnpj) d.cnpj = empObj2.cnpj;
   var ec=empColor(emp);
