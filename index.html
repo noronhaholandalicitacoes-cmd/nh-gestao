@@ -843,18 +843,36 @@ select{color-scheme:dark;}
     </div>
 
     <!-- EMPRESAS CONFIG -->
-<div class="modal-wrap" id="mw-empresas">
-<div class="modal" style="max-width:480px">
-  <div class="mhd"><div class="mhd-nh"></div><div class="mhd-info"><h2>Gerenciar Empresas</h2><p>Adicionar, editar ou remover empresas</p></div><button class="mx" onclick="closeM('empresas')">×</button></div>
-  <div class="mbd">
-    <div id="emp-lista" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
-    <div style="display:flex;gap:8px;align-items:center">
-      <input type="text" id="emp-novo-nome" placeholder="Nome da empresa" style="flex:1;background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:8px 12px;border-radius:8px;font-family:Outfit,sans-serif;font-size:13px;outline:none">
-      <input type="color" id="emp-novo-cor" value="#f97316" style="width:40px;height:36px;border:none;border-radius:6px;cursor:pointer;background:none">
-      <button class="btn btn-nh btn-sm" onclick="adicionarEmpresa()">+ Adicionar</button>
+<div class="modal-overlay" id="mo-empresas" onclick="if(event.target===this)closeM('empresas')">
+<div class="modal" style="max-width:560px">
+  <div class="mhd"><div class="mhd-nh"></div><div class="mhd-info"><h2>Gerenciar Empresas</h2><p>Cadastro completo das empresas do grupo NH</p></div><button class="mx" onclick="closeM('empresas')">×</button></div>
+  <div class="mbd"><div class="fg2">
+    <!-- Lista de empresas existentes -->
+    <div class="fsec">Empresas Cadastradas</div>
+    <div id="emp-lista" style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px"></div>
+    <!-- Formulário nova empresa -->
+    <div class="fsec">Nova Empresa</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="fg"><label>Razão Social *</label><input type="text" id="emp-razao" placeholder="Razão Social LTDA"></div>
+      <div class="fg"><label>Nome Fantasia *</label><input type="text" id="emp-fantasia" placeholder="NOME"></div>
+      <div class="fg"><label>CNPJ</label><input type="text" id="emp-cnpj" placeholder="00.000.000/0001-00" oninput="mascaraCNPJ(this)"></div>
+      <div class="fg"><label>Cor no sistema</label>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px">
+          <span class="cor-opt" data-cor="#eab308" style="width:24px;height:24px;border-radius:50%;background:#eab308;cursor:pointer;border:2px solid transparent" onclick="selecionarCor(this)"></span>
+          <span class="cor-opt" data-cor="#3b82f6" style="width:24px;height:24px;border-radius:50%;background:#3b82f6;cursor:pointer;border:2px solid transparent" onclick="selecionarCor(this)"></span>
+          <span class="cor-opt" data-cor="#22c55e" style="width:24px;height:24px;border-radius:50%;background:#22c55e;cursor:pointer;border:2px solid transparent" onclick="selecionarCor(this)"></span>
+          <span class="cor-opt" data-cor="#ef4444" style="width:24px;height:24px;border-radius:50%;background:#ef4444;cursor:pointer;border:2px solid transparent" onclick="selecionarCor(this)"></span>
+          <span class="cor-opt" data-cor="#10b981" style="width:24px;height:24px;border-radius:50%;background:#10b981;cursor:pointer;border:2px solid transparent" onclick="selecionarCor(this)"></span>
+          <span class="cor-opt" data-cor="#ec4899" style="width:24px;height:24px;border-radius:50%;background:#ec4899;cursor:pointer;border:2px solid transparent" onclick="selecionarCor(this)"></span>
+          <span class="cor-opt" data-cor="#f97316" style="width:24px;height:24px;border-radius:50%;background:#f97316;cursor:pointer;border:2px solid transparent" onclick="selecionarCor(this)"></span>
+          <span class="cor-opt" data-cor="#8b5cf6" style="width:24px;height:24px;border-radius:50%;background:#8b5cf6;cursor:pointer;border:2px solid transparent" onclick="selecionarCor(this)"></span>
+          <input type="color" id="emp-novo-cor" value="#f97316" style="width:24px;height:24px;border:none;background:none;cursor:pointer;border-radius:50%;padding:0" title="Cor personalizada">
+        </div>
+      </div>
     </div>
-  </div>
-  <div class="mft"><button class="btn btn-ghost" onclick="closeM('empresas')">Fechar</button><button class="btn btn-nh" onclick="confirmarEmpresas()">Salvar</button></div>
+    <button class="btn btn-nh" onclick="adicionarEmpresa()" style="margin-top:8px;width:100%">+ Adicionar Empresa</button>
+  </div></div>
+  <div class="mft"><button class="btn btn-ghost" onclick="closeM('empresas')">Fechar</button><button class="btn btn-nh" onclick="confirmarEmpresas()" id="btn-salvar-emp">Salvar Alterações</button></div>
 </div></div>
 
 <!-- GANHAS -->
@@ -3133,46 +3151,82 @@ async function copiarParaFinalizados(andRow){
 }
 
 
+var _corSelecionada = '#f97316';
+
+function selecionarCor(el){
+  document.querySelectorAll('.cor-opt').forEach(function(c){ c.style.border='2px solid transparent'; });
+  el.style.border='2px solid #fff';
+  _corSelecionada = el.getAttribute('data-cor');
+  document.getElementById('emp-novo-cor').value = _corSelecionada;
+}
+
+function mascaraCNPJ(el){
+  var v = el.value.replace(/\D/g,'').substring(0,14);
+  v = v.replace(/(\d{2})(\d)/,'$1.$2');
+  v = v.replace(/(\d{3})(\d)/,'$1.$2');
+  v = v.replace(/(\d{3})(\d)/,'$1/$2');
+  v = v.replace(/(\d{4})(\d)/,'$1-$2');
+  el.value = v;
+}
+
 function abrirGerenciarEmpresas(){
   renderListaEmpresas();
-  document.getElementById('mw-empresas').style.display='flex';
+  document.getElementById('mo-empresas').classList.add('open');
 }
 
 function renderListaEmpresas(){
   var lista = document.getElementById('emp-lista');
+  if(!EMPRESAS.length){
+    lista.innerHTML='<div style="color:var(--t3);font-size:13px;padding:8px">Nenhuma empresa cadastrada</div>';
+    return;
+  }
   lista.innerHTML = EMPRESAS.map(function(e,i){
-    return '<div style="display:flex;align-items:center;gap:8px;background:var(--s2);padding:8px 12px;border-radius:8px;border:1px solid var(--b1)">'+
-      '<span style="width:12px;height:12px;border-radius:50%;background:'+e.cor+';flex-shrink:0"></span>'+
-      '<input value="'+e.nome+'" onchange="EMPRESAS['+i+'].nome=this.value" style="flex:1;background:transparent;border:none;color:var(--t1);font-family:Outfit,sans-serif;font-size:13px;outline:none">'+
-      '<input type="color" value="'+e.cor+'" onchange="EMPRESAS['+i+'].cor=this.value;this.previousElementSibling.previousElementSibling.style.background=this.value" style="width:28px;height:28px;border:none;background:none;cursor:pointer;border-radius:4px">'+
-      '<button onclick="removerEmpresa('+i+')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:16px;padding:0 4px">×</button>'+
+    return '<div style="display:grid;grid-template-columns:auto 1fr 1fr 1fr auto;gap:8px;align-items:center;background:var(--s2);padding:10px 12px;border-radius:8px;border:1px solid var(--b1)">'+
+      '<span style="width:12px;height:12px;border-radius:50%;background:'+e.cor+';flex-shrink:0;display:inline-block"></span>'+
+      '<span style="font-size:12px;color:var(--t1);font-weight:600">'+e.nome+'</span>'+
+      '<span style="font-size:11px;color:var(--t3)">'+( e.razao||'')+'</span>'+
+      '<span style="font-size:11px;color:var(--t3)">'+( e.cnpj||'')+'</span>'+
+      '<button onclick="removerEmpresa('+i+')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;cursor:pointer;font-size:12px;padding:3px 8px;border-radius:6px;font-family:Outfit,sans-serif">Remover</button>'+
       '</div>';
   }).join('');
 }
 
 function adicionarEmpresa(){
-  var nome = document.getElementById('emp-novo-nome').value.trim();
-  var cor = document.getElementById('emp-novo-cor').value;
-  if(!nome){ toast('Digite o nome da empresa','err'); return; }
-  if(EMPRESAS.find(function(e){return e.nome.toUpperCase()===nome.toUpperCase();})){
+  var razao = document.getElementById('emp-razao').value.trim();
+  var fantasia = document.getElementById('emp-fantasia').value.trim().toUpperCase();
+  var cnpj = document.getElementById('emp-cnpj').value.trim();
+  var cor = document.getElementById('emp-novo-cor').value || _corSelecionada;
+  if(!fantasia){ toast('Digite o nome fantasia','err'); return; }
+  if(EMPRESAS.find(function(e){return e.nome.toUpperCase()===fantasia;})){
     toast('Empresa já existe','err'); return;
   }
-  EMPRESAS.push({nome:nome.toUpperCase(), cor:cor});
-  document.getElementById('emp-novo-nome').value='';
+  EMPRESAS.push({nome:fantasia, razao:razao, cnpj:cnpj, cor:cor});
+  document.getElementById('emp-razao').value='';
+  document.getElementById('emp-fantasia').value='';
+  document.getElementById('emp-cnpj').value='';
   renderListaEmpresas();
+  atualizarSelectsEmpresas();
+  toast('Empresa adicionada! Clique em Salvar Alterações','ok');
 }
 
 function removerEmpresa(i){
-  if(!confirm('Remover '+EMPRESAS[i].nome+'?')) return;
+  if(!confirm('Remover '+EMPRESAS[i].nome+'? Esta ação não pode ser desfeita.')) return;
   EMPRESAS.splice(i,1);
   renderListaEmpresas();
 }
 
 async function confirmarEmpresas(){
-  await salvarEmpresas();
-  atualizarSelectsEmpresas();
-  closeM('empresas');
-  toast('Empresas salvas!','ok');
+  var btn = document.getElementById('btn-salvar-emp');
+  if(btn){btn.disabled=true; btn.textContent='Salvando...';}
+  try{
+    await salvarEmpresas();
+    atualizarSelectsEmpresas();
+    closeM('empresas');
+    toast('Empresas salvas com sucesso!','ok');
+  }catch(e){
+    toast('Erro ao salvar: '+e.message,'err');
+  }
+  if(btn){btn.disabled=false; btn.textContent='Salvar Alterações';}
 }
 
 
@@ -3268,7 +3322,10 @@ function openM(k){
   document.getElementById('mht-'+k).textContent=titles[k];
   document.getElementById('mo-'+k).classList.add('open');
 }
-function closeM(k){document.getElementById('mo-'+k).classList.remove('open');}
+function closeM(k){
+  var el = document.getElementById('mo-'+k);
+  if(el) el.classList.remove('open');
+}
 // Overlay não fecha ao clicar fora — só fecha com Cancelar ou Salvar
 
 function clearF(k){
@@ -3427,7 +3484,33 @@ async function doDel(k,idx){
   var label=k==='financeiro'?row[2]:row[3];
   if(!confirm('Excluir?\n"'+label+'"\n\nEsta ação não pode ser desfeita.')) return;
   var rowId=String(row[0]||'').trim();
-  if(!rowId){toast('Sem ID para excluir','err');return;}
+  // Se sem ID, tentar deletar por empresa+licitação
+  if(!rowId){
+    // Buscar no Firebase e deletar pelo doc que bate
+    try{
+      var snap = await db.collection(FB_COLS[k])
+        .where('_arr','array-contains',row[2]||'').limit(10).get();
+      var deleted = false;
+      snap.forEach(function(doc){
+        var arr = doc.data()._arr||[];
+        if(String(arr[2]||'')=== String(row[2]||'') && String(arr[3]||'')=== String(row[3]||'')){
+          doc.ref.delete();
+          deleted = true;
+        }
+      });
+      if(deleted){
+        toast('Excluído!','ok');
+        await loadPage(k);
+      } else {
+        // Fallback — remover apenas da memória
+        ALL[k] = ALL[k].filter(function(r,i){ return i !== idx; });
+        FIL[k] = FIL[k].filter(function(r,i){ return i !== idx; });
+        renderTbl(k);
+        toast('Removido localmente','ok');
+      }
+    }catch(e){ toast('Erro: '+e.message,'err'); }
+    return;
+  }
   try{
     await fbDelete(FB_COLS[k],rowId);
     toast('Excluído!','ok');
