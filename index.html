@@ -710,7 +710,10 @@ select{color-scheme:dark;}
     </div>
 
     <div class="sb-divider"></div>
-    <div class="sb-section">Empresas</div>
+    <div class="sb-section" style="display:flex;align-items:center;justify-content:space-between">
+      Empresas
+      <button onclick="abrirGerenciarEmpresas()" style="background:none;border:1px solid var(--b1);color:var(--t3);font-size:10px;padding:2px 8px;border-radius:4px;cursor:pointer;font-family:Outfit,sans-serif">⚙ Gerenciar</button>
+    </div>
 
     <div class="sb-item" id="nav-emp-VISE" onclick="go('emp-VISE',this)">
       <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
@@ -839,7 +842,23 @@ select{color-scheme:dark;}
       <div class="pag" id="pag-finalizados"></div>
     </div>
 
-    <!-- GANHAS -->
+    <!-- EMPRESAS CONFIG -->
+<div class="modal-wrap" id="mw-empresas">
+<div class="modal" style="max-width:480px">
+  <div class="mhd"><div class="mhd-nh"></div><div class="mhd-info"><h2>Gerenciar Empresas</h2><p>Adicionar, editar ou remover empresas</p></div><button class="mx" onclick="closeM('empresas')">×</button></div>
+  <div class="mbd">
+    <div id="emp-lista" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input type="text" id="emp-novo-nome" placeholder="Nome da empresa" style="flex:1;background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:8px 12px;border-radius:8px;font-family:Outfit,sans-serif;font-size:13px;outline:none">
+      <input type="color" id="emp-novo-cor" value="#f97316" style="width:40px;height:36px;border:none;border-radius:6px;cursor:pointer;background:none">
+      <button class="btn btn-nh btn-sm" onclick="adicionarEmpresa()">+ Adicionar</button>
+    </div>
+  </div>
+  <div class="mft"><button class="btn btn-ghost" onclick="closeM('empresas')">Fechar</button><button class="btn btn-nh" onclick="confirmarEmpresas()">Salvar</button></div>
+</div></div>
+
+<!-- GANHAS -->
+
     <div class="page" id="page-ganhas">
       <div class="stats" id="st-ganhas"></div>
 
@@ -1183,8 +1202,44 @@ const FB_COLS = {
   finalizados:'finalizados',
   ganhas:     'ganhas',
   atestados:  'atestados',
-  financeiro: 'financeiro'
+  financeiro: 'financeiro',
+  config:     'config'
 };
+
+// ── Empresas dinâmicas ──
+var EMPRESAS = [
+  {nome:'VISE',      cor:'#eab308'},
+  {nome:'SAUTEC',    cor:'#3b82f6'},
+  {nome:'SOS',       cor:'#22c55e'},
+  {nome:'SOS FILIAL',cor:'#ef4444'},
+  {nome:'ONLAV',     cor:'#10b981'},
+  {nome:'ENGEMED',   cor:'#ec4899'},
+  {nome:'POTIGUAR',  cor:'#f97316'}
+];
+
+async function carregarEmpresas(){
+  try{
+    var snap = await db.collection('config').doc('empresas').get();
+    if(snap.exists && snap.data().lista){
+      EMPRESAS = snap.data().lista;
+    }
+  }catch(e){ console.log('Usando empresas padrão'); }
+  atualizarSelectsEmpresas();
+}
+
+async function salvarEmpresas(){
+  await db.collection('config').doc('empresas').set({lista: EMPRESAS});
+}
+
+function atualizarSelectsEmpresas(){
+  var opts = '<option value="">Selecione...</option>' +
+    EMPRESAS.map(function(e){ return '<option>'+e.nome+'</option>'; }).join('');
+  ['e-empresa','a-emp','g-emp','at-emp'].forEach(function(id){
+    var el = document.getElementById(id);
+    var val = el ? el.value : '';
+    if(el){ el.innerHTML = opts; el.value = val; }
+  });
+}
 
 let API = 'firebase'; // sempre ativo
 let ALL={editais:[],andamento:[],finalizados:[],ganhas:[],atestados:[],financeiro:[]};
@@ -2059,7 +2114,7 @@ function buildResumo(){
     .reduce(function(acc,r){return acc+calcValorGanhas(r);},0);
   var totalVal=ga.reduce(function(acc,r){return acc+calcValorGanhas(r);},0);
 
-  var EMPS=['VISE','SOS','SAUTEC','SOS FILIAL','ONLAV','ENGEMED','POTIGUAR'];
+  var EMPS=EMPRESAS.map(function(e){return e.nome;});
   var empAn={};
   an.filter(function(r){return String(r[12]||'').toUpperCase().trim()==='EM ANDAMENTO';})
     .forEach(function(r){var e=String(r[2]||'').trim();empAn[e]=(empAn[e]||0)+1;});
@@ -2092,7 +2147,7 @@ function buildResumo(){
   var empVal={};
   ga.filter(function(r){return String(r[9]||'').trim().toUpperCase()==='EM EXECUÇÃO';})
     .forEach(function(r){var e=String(r[2]||'').trim();if(e)empVal[e]=(empVal[e]||0)+calcValorGanhas(r);});
-  var TODAS_EMPS=['VISE','SOS','SAUTEC','SOS FILIAL','ONLAV','ENGEMED','POTIGUAR'];
+  var TODAS_EMPS=EMPRESAS.map(function(e){return e.nome;});
   TODAS_EMPS.forEach(function(e){if(!empVal[e]) empVal[e]=0;});
   var empValItems=Object.entries(empVal).sort(function(a,b){return b[1]-a[1];});
 
@@ -2568,7 +2623,8 @@ function kfieldEdit(lbl,val,ci,k,abs){
 }
 
 function empColor(e){
-  var m={'VISE':'#eab308','SOS':'#22c55e','SAUTEC':'#3b82f6','SOS FILIAL':'#ef4444','ONLAV':'#10b981','ENGEMED':'#ec4899','POTIGUAR':'#f97316'};
+  var m={};
+  EMPRESAS.forEach(function(e){ m[e.nome]=e.cor; });
   return m[String(e).trim()]||'#64748b';
 }
 function empBg(e){
@@ -3077,6 +3133,49 @@ async function copiarParaFinalizados(andRow){
 }
 
 
+function abrirGerenciarEmpresas(){
+  renderListaEmpresas();
+  document.getElementById('mw-empresas').style.display='flex';
+}
+
+function renderListaEmpresas(){
+  var lista = document.getElementById('emp-lista');
+  lista.innerHTML = EMPRESAS.map(function(e,i){
+    return '<div style="display:flex;align-items:center;gap:8px;background:var(--s2);padding:8px 12px;border-radius:8px;border:1px solid var(--b1)">'+
+      '<span style="width:12px;height:12px;border-radius:50%;background:'+e.cor+';flex-shrink:0"></span>'+
+      '<input value="'+e.nome+'" onchange="EMPRESAS['+i+'].nome=this.value" style="flex:1;background:transparent;border:none;color:var(--t1);font-family:Outfit,sans-serif;font-size:13px;outline:none">'+
+      '<input type="color" value="'+e.cor+'" onchange="EMPRESAS['+i+'].cor=this.value;this.previousElementSibling.previousElementSibling.style.background=this.value" style="width:28px;height:28px;border:none;background:none;cursor:pointer;border-radius:4px">'+
+      '<button onclick="removerEmpresa('+i+')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:16px;padding:0 4px">×</button>'+
+      '</div>';
+  }).join('');
+}
+
+function adicionarEmpresa(){
+  var nome = document.getElementById('emp-novo-nome').value.trim();
+  var cor = document.getElementById('emp-novo-cor').value;
+  if(!nome){ toast('Digite o nome da empresa','err'); return; }
+  if(EMPRESAS.find(function(e){return e.nome.toUpperCase()===nome.toUpperCase();})){
+    toast('Empresa já existe','err'); return;
+  }
+  EMPRESAS.push({nome:nome.toUpperCase(), cor:cor});
+  document.getElementById('emp-novo-nome').value='';
+  renderListaEmpresas();
+}
+
+function removerEmpresa(i){
+  if(!confirm('Remover '+EMPRESAS[i].nome+'?')) return;
+  EMPRESAS.splice(i,1);
+  renderListaEmpresas();
+}
+
+async function confirmarEmpresas(){
+  await salvarEmpresas();
+  atualizarSelectsEmpresas();
+  closeM('empresas');
+  toast('Empresas salvas!','ok');
+}
+
+
 function updateCardColor(k, rowIdx){
   var row=FIL[k][rowIdx];
   if(!row) return;
@@ -3127,11 +3226,11 @@ async function _processQueue(){
   try{
     await fbSave(FB_COLS[k], parseInt(rowId), row);
     // Se editais e campo PARTICIPAR (ci=10) mudou para SIM → criar em Andamento
-    if(k==='editais' && ci===10 && String(val||'').toUpperCase().trim()==='SIM'){
+    var cellVal = String(row[ci]||'');
+    if(k==='editais' && ci===10 && cellVal.toUpperCase().trim()==='SIM'){
       await criarAndamentoDoEdital(row);
     }
-    // Se andamento e ADJU (ci=16) mudou para SIM → copiar para Finalizados
-    if(k==='andamento' && ci===16 && String(val||'').toLowerCase().trim()==='sim'){
+    if(k==='andamento' && ci===16 && cellVal.toLowerCase().trim()==='sim'){
       await copiarParaFinalizados(row);
     }
     if(CUR==='resumo') buildResumo();
@@ -3364,6 +3463,7 @@ function setTheme(dark){
 
 function initApp(){
   setTheme(isDark);
+  carregarEmpresas();
   setSt('load');
   loadAll();
   setTimeout(verificarVencimentos, 3000);
