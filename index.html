@@ -965,7 +965,7 @@ select{color-scheme:dark;}
     <div class="fg"><label>Valor Final</label><input type="text" id="a-vfin" placeholder="R$ 0,00"></div>
     <div class="fg"><label>Portal</label><select id="a-portal"><option value="">-</option><option>compras gov</option><option>BLL</option><option>LICITANET</option><option>CONLICITACAO</option><option>Outro</option></select></div>
     <div class="fg"><label>Data de Disputa</label><input type="date" id="a-disp"></div>
-    <div class="fg"><label>Classificação</label><input type="text" id="a-class" placeholder="Ex: 1 posição"></div>
+    <div class="fg"><label>Classificação</label><select id="a-class"><option></option><option>1 posição</option><option>2 posição</option><option>3 posição</option><option>4 posição</option><option>5 posição</option><option>6 posição</option><option>7 posição</option><option>8 posição</option><option>9 posição</option><option>10 posição</option><option>11 posição</option><option>12 posição</option><option>13 posição</option><option>14 posição</option><option>15 posição</option><option>Desclassificado</option><option>Inabilitado</option><option>Cancelado</option><option>Não participou</option></select></div>
     <div class="fg"><label>Status</label><select id="a-status"><option value="">-</option><option>EM DISPUTA</option><option>AGUARDANDO</option><option>RECURSO</option><option>ADJUDICADO</option><option>CANCELADO</option></select></div>
     <div class="fg"><label>Reabertura</label><input type="date" id="a-reab"></div>
     <div class="fg"><label>Recurso</label><select id="a-rec"><option value="">-</option><option>sim</option><option>não</option></select></div>
@@ -1110,6 +1110,34 @@ select{color-scheme:dark;}
 <script>
 const SHEETS={editais:'EDITAIS CAPTURADOS',andamento:'EM ANDAMENTO',finalizados:'FINALIZADOS',ganhas:'LICITAÇÕES GANHAS',atestados:'ATESTADOS',financeiro:'FINANCEIRO'};
 const PS=20;
+// ── Opções customizadas por campo (salvas no Firebase) ──
+var CUSTOM_OPTS = {};
+
+async function carregarOptsCustom(){
+  try{
+    var snap = await db.collection('config').doc('custom_opts').get();
+    if(snap.exists && snap.data()) CUSTOM_OPTS = snap.data();
+  }catch(e){}
+}
+
+async function salvarOptsCustom(){
+  await db.collection('config').doc('custom_opts').set(CUSTOM_OPTS);
+}
+
+function getOptsCustom(k, ci){
+  var key = k+'_'+ci;
+  return CUSTOM_OPTS[key]||[];
+}
+
+async function adicionarOpcaoCustom(k, ci, novaOpt){
+  var key = k+'_'+ci;
+  if(!CUSTOM_OPTS[key]) CUSTOM_OPTS[key]=[];
+  if(CUSTOM_OPTS[key].indexOf(novaOpt)===-1){
+    CUSTOM_OPTS[key].push(novaOpt);
+    await salvarOptsCustom();
+  }
+}
+
 // ── Emails autorizados (só esses podem acessar) ──
 const EMAILS_AUTORIZADOS = [
   'noronhaholandalicitacoes@gmail.com',
@@ -2727,11 +2755,26 @@ function kfieldEdit(lbl,val,ci,k,abs){
   return '<div class="kfield"><div class="kfield-lbl">'+lbl+'</div>'+inlineCell(k,abs,ci,val)+'</div>';
 }
 
+// Verifica exatamente 1ª posição — não confunde com 10ª, 11ª etc
+function is1Posicao(cl){
+  var s = String(cl||'').toLowerCase().trim();
+  if(!s) return false;
+  // Exatamente "1", "1o", "1°", "1º", "1ª"
+  if(/^1[o°ºª]?$/.test(s)) return true;
+  // "1 posição", "1ª posição", "1º posição", "1° posição"
+  if(/^1[o°ºªª]?\s+posi/.test(s)) return true;
+  // "1 lugar", "1º lugar" etc
+  if(/^1[o°ºªª]?\s+lugar/.test(s)) return true;
+  // "primeiro lugar", "primeiro colocado", "primeiro"
+  if(/^primeiro/.test(s)) return true;
+  return false;
+}
+
 function getAndamentoCor(row){
   var adju=String(row[16]||'').toLowerCase().trim();
   var st=String(row[12]||'').toLowerCase().trim();
   var cl=String(row[11]||'').toLowerCase().trim();
-  var p1=cl.indexOf('1')!==-1&&(cl.indexOf('posi')!==-1||cl.indexOf('lugar')!==-1||cl==='1'||cl==='1o'||cl==='1º');
+  var p1=is1Posicao(cl);
   if(!st&&!adju) return 'dark';
   if(adju==='sim') return p1?'green':'red';
   if(st==='em andamento'||st==='em disputa'||st==='aguardando') return 'yellow';
@@ -2771,15 +2814,44 @@ function onSelChange(sel,k,abs,ci){
       var inp=document.createElement('input');
       inp.type='text';
       inp.id=customId;
-      inp.placeholder='Digite o nome do portal...';
-      inp.style.cssText='margin-top:4px;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.15);color:var(--t1);font-family:Outfit,sans-serif;font-size:13px;width:100%;outline:none;padding:3px 0';
-      inp.onblur=function(){ if(this.value) saveCell(k,abs,ci,this.value); };
+      inp.placeholder='Digite e pressione Enter para salvar...';
+      inp.style.cssText='margin-top:6px;background:var(--s2);border:1px solid var(--nh);color:var(--t1);font-family:Outfit,sans-serif;font-size:13px;width:100%;outline:none;padding:6px 10px;border-radius:6px';
+      inp.onkeydown=async function(e){
+        if(e.key==='Enter'&&this.value.trim()){
+          var novaOpt=this.value.trim();
+          // Salvar como opção fixa no Firebase
+          await adicionarOpcaoCustom(k, ci, novaOpt);
+          saveCell(k,abs,ci,novaOpt);
+          // Atualizar o select adicionando nova opção
+          var opt=document.createElement('option');
+          opt.value=novaOpt; opt.text=novaOpt; opt.selected=true;
+          var outroOpt=sel.querySelector('option[value="Outro"]');
+          sel.insertBefore(opt, outroOpt);
+          sel.value=novaOpt;
+          this.remove();
+          toast('"'+novaOpt+'" adicionado às opções!','ok');
+        }
+      };
+      inp.onblur=function(){
+        if(!this.value.trim()) this.remove();
+      };
       sel.parentNode.appendChild(inp);
       inp.focus();
     }
   } else {
     if(customEl) customEl.remove();
     saveCell(k,abs,ci,val);
+  }
+}
+
+
+function onModalSelChange(sel, field){
+  var customId = sel.id + '-custom';
+  var customEl = document.getElementById(customId);
+  if(sel.value === 'Outro'){
+    if(customEl) customEl.style.display='block';
+  } else {
+    if(customEl) customEl.style.display='none';
   }
 }
 
@@ -3078,12 +3150,46 @@ function inlineCell(k,abs,ci,v){
     return '<span style="font-size:14px;color:var(--t2);line-height:1.6;word-break:break-word;white-space:pre-wrap">'+(s||'—')+'</span>';
   }
   var EMPS=['']; EMPRESAS.forEach(function(e){EMPS.push(e.nome);});
+  // Montar selCols com opções fixas + customizadas do Firebase
+  function mkOpts(k, ci, base){
+    var custom = getOptsCustom(k, ci);
+    var all = base.slice();
+    custom.forEach(function(c){ if(all.indexOf(c)===-1) all.push(c); });
+    if(all.indexOf('Outro')===-1) all.push('Outro');
+    return all;
+  }
   var selCols={
-    editais:{2:EMPS,10:['','SIM','NÃO','EM ANÁLISE'],11:['','POSITIVO','NEGATIVO','PENDENTE']},
-    andamento:{2:EMPS,9:['','Compras Gov','BLL','LICITANET','CONLICITACAO','BNC','Publinexo','Licitanet','PE-Integrado','Compras Públicas','Apoio Cotações','Licitar Digital','Licitações-e','Outro'],12:['','Em andamento','Ganha','Finalizado','Suspenso','Desclassificado','Inabilitado','Cancelado','Recurso','Aguardando'],14:['','sim','não'],16:['','sim','não']},
-    ganhas:{2:EMPS,9:['','EM EXECUÇÃO','FINALIZADO','SUSPENSO','RESCINDIDO'],13:['','SIM','NÃO']},
-    atestados:{2:EMPS,10:['','SIM','NÃO'],11:['','SIM','NÃO'],15:['','ATIVO','PENDENTE','VENCIDO'],17:['','ATIVO','PENDENTE','VENCIDO'],18:['','COMPLETO','PENDENTE','EM ANDAMENTO']},
-    financeiro:{1:['','IAs','Portais','Telefonia','Informatica','Outros'],5:['','Pago','Pendente','Atrasado'],6:['','Banco Inter','Banco do Brasil','Caixa','Outros']}
+    editais:{
+      2:EMPS,
+      10:['','SIM','NÃO','EM ANÁLISE'],
+      11:['','POSITIVO','NEGATIVO','PENDENTE']
+    },
+    andamento:{
+      2:EMPS,
+      9:mkOpts('andamento',9,['','Compras Gov','BLL','LICITANET','CONLICITACAO','BNC','Publinexo','Licitanet','PE-Integrado','Compras Públicas','Apoio Cotações','Licitar Digital','Licitações-e']),
+      11:mkOpts('andamento',11,['','1 posição','2 posição','3 posição','4 posição','5 posição','6 posição','7 posição','8 posição','9 posição','10 posição','11 posição','12 posição','13 posição','14 posição','15 posição','Desclassificado','Inabilitado','Cancelado','Não participou']),
+      12:mkOpts('andamento',12,['','Em andamento','Ganha','Finalizado','Suspenso','Desclassificado','Inabilitado','Cancelado','Recurso','Aguardando']),
+      14:['','sim','não'],
+      16:['','sim','não']
+    },
+    ganhas:{
+      2:EMPS,
+      9:mkOpts('ganhas',9,['','EM EXECUÇÃO','FINALIZADO','SUSPENSO','RESCINDIDO']),
+      13:['','SIM','NÃO']
+    },
+    atestados:{
+      2:EMPS,
+      10:['','SIM','NÃO'],
+      11:['','SIM','NÃO'],
+      15:mkOpts('atestados',15,['','ATIVO','PENDENTE','VENCIDO']),
+      17:mkOpts('atestados',17,['','ATIVO','PENDENTE','VENCIDO']),
+      18:mkOpts('atestados',18,['','COMPLETO','PENDENTE','EM ANDAMENTO'])
+    },
+    financeiro:{
+      1:mkOpts('financeiro',1,['','IAs','Portais','Telefonia','Informatica']),
+      5:mkOpts('financeiro',5,['','Pago','Pendente','Atrasado']),
+      6:mkOpts('financeiro',6,['','Banco Inter','Banco do Brasil','Caixa'])
+    }
   };
   var selOpts=selCols[k]&&selCols[k][ci];
   if(selOpts){
@@ -3753,6 +3859,7 @@ function setTheme(dark){
 function initApp(){
   setTheme(isDark);
   carregarEmpresas();
+  carregarOptsCustom();
   setSt('load');
   loadAll();
   setTimeout(verificarVencimentos, 3000);
