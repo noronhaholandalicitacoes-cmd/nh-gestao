@@ -710,6 +710,10 @@ select{color-scheme:dark;}
       <span>Financeiro</span>
       <span class="sb-badge" id="b-financeiro">—</span>
     </div>
+    <div class="sb-item" id="nav-calendario" onclick="go('calendario',this)">
+      <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+      <span>Calendário</span>
+    </div>
 
     <div class="sb-divider"></div>
     <div class="sb-section" style="display:flex;align-items:center;justify-content:space-between">
@@ -915,6 +919,44 @@ select{color-scheme:dark;}
     </div>
 
     <!-- EMPRESA -->
+    <!-- CALENDÁRIO -->
+    <div class="page" id="page-calendario">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <button onclick="calMes(-1)" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:18px">‹</button>
+          <span id="cal-titulo" style="font-size:18px;font-weight:700;color:var(--t1);min-width:200px;text-align:center"></span>
+          <button onclick="calMes(1)" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:18px">›</button>
+          <button onclick="calHoje()" style="background:var(--s2);border:1px solid var(--b1);color:var(--t3);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:12px">Hoje</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--t3)"><span style="width:10px;height:10px;border-radius:2px;background:#f97316;display:inline-block"></span>Disputa</span>
+          <span style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--t3)"><span style="width:10px;height:10px;border-radius:2px;background:#3b82f6;display:inline-block"></span>Reabertura</span>
+          <a id="btn-google-cal" href="#" target="_blank" style="background:#22c55e;color:#000;border:none;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:6px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+            Abrir Google Calendar
+          </a>
+        </div>
+      </div>
+      <!-- Grade do calendário -->
+      <div style="background:var(--s2);border:1px solid var(--b1);border-radius:14px;overflow:hidden">
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);background:var(--s1);border-bottom:1px solid var(--b1)">
+          <div style="padding:10px;text-align:center;font-size:11px;font-weight:700;color:var(--t3)">DOM</div>
+          <div style="padding:10px;text-align:center;font-size:11px;font-weight:700;color:var(--t3)">SEG</div>
+          <div style="padding:10px;text-align:center;font-size:11px;font-weight:700;color:var(--t3)">TER</div>
+          <div style="padding:10px;text-align:center;font-size:11px;font-weight:700;color:var(--t3)">QUA</div>
+          <div style="padding:10px;text-align:center;font-size:11px;font-weight:700;color:var(--t3)">QUI</div>
+          <div style="padding:10px;text-align:center;font-size:11px;font-weight:700;color:var(--t3)">SEX</div>
+          <div style="padding:10px;text-align:center;font-size:11px;font-weight:700;color:var(--t3)">SAB</div>
+        </div>
+        <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr)"></div>
+      </div>
+      <!-- Lista de eventos do mês -->
+      <div style="margin-top:20px">
+        <div style="font-size:13px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px">Disputas e Reaberturas do Mês</div>
+        <div id="cal-lista"></div>
+      </div>
+    </div>
+
     <div class="page" id="page-empresa">
       <div id="emp-body"></div>
     </div>
@@ -1313,6 +1355,7 @@ const TOPS={
   ganhas:['Licitações Ganhas','Contratos conquistados pela NH'],
   atestados:['Atestados','Controle de documentos técnicos'],
   financeiro:['Financeiro','Controle de gastos e recargas mensais do escritório · FINANCEIRO'],
+  calendario:['Calendário','Disputas e reaberturas do mês · integrado com Google Calendar'],
   'emp-VISE':['Empresa — VISE','Portais, certidões e documentação · CNPJ 08.348.687/0001-62'],
   'emp-SAUTEC':['Empresa — SAUTEC','Portais, certidões e documentação · CNPJ 31.586.684/0001-89'],
   'emp-SOS':['Empresa — SOS','Portais, certidões e documentação · CNPJ 38.714.702/0001-00'],
@@ -2078,6 +2121,7 @@ function go(page,el){
   } else {
     document.getElementById('page-'+page).classList.add('on');
     if(page==='resumo') buildResumo();
+    else if(page==='calendario') initCalendario();
     else {
       loadPage(page);
       if(page==='financeiro') buildFinResumo();
@@ -2247,10 +2291,14 @@ function buildResumo(){
   var topStates=Object.entries(stMap).sort(function(a,b){return b[1]-a[1];}).slice(0,5);
   var empAnItems=EMPS.filter(function(e){return empAn[e];}).map(function(e){return [e,empAn[e]];});
 
-  // Ganhas por empresa = ADJU=sim em Em Andamento apenas
+  // Ganhas por empresa = processos com ADJU=sim OU Classificação 1 posição (1 processo = 1 ganho)
   var gaEmpC={};
-  an.filter(function(r){return String(r[16]||'').toLowerCase().trim()==='sim';})
-    .forEach(function(r){var e=String(r[2]||'').trim();if(e)gaEmpC[e]=(gaEmpC[e]||0)+1;});
+  an.filter(function(r){
+    return String(r[16]||'').toLowerCase().trim()==='sim' || is1Posicao(String(r[11]||'').trim());
+  }).forEach(function(r){
+    var e=String(r[2]||'').trim();
+    if(e) gaEmpC[e]=(gaEmpC[e]||0)+1;
+  });
   var gaEmpItems=Object.entries(gaEmpC).sort(function(a,b){return b[1]-a[1];});
   var totalGanhos=Object.values(gaEmpC).reduce(function(a,b){return a+b;},0);
 
@@ -3924,6 +3972,165 @@ window.addEventListener('load',function(){
 });
 
 // ── Busca Global ──
+// ══ CALENDÁRIO ══════════════════════════════════════════════
+var _calAno = new Date().getFullYear();
+var _calMes = new Date().getMonth();
+
+var MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+var EMPCORES = {VISE:'#eab308',SAUTEC:'#3b82f6',SOS:'#22c55e','SOS FILIAL':'#ef4444',ONLAV:'#10b981',ENGEMED:'#ec4899',POTIGUAR:'#f97316'};
+
+function calMes(delta){
+  _calMes += delta;
+  if(_calMes > 11){ _calMes=0; _calAno++; }
+  if(_calMes < 0){ _calMes=11; _calAno--; }
+  renderCalendario();
+}
+
+function calHoje(){
+  var h = new Date();
+  _calAno = h.getFullYear();
+  _calMes = h.getMonth();
+  renderCalendario();
+}
+
+function getEventosDoMes(ano, mes){
+  var eventos = [];
+  var an = ALL['andamento']||[];
+  an.forEach(function(r){
+    var emp = String(r[2]||'').trim();
+    var licit = String(r[3]||'').trim().substring(0,50);
+    // Data Disputa (col 10 = idx 9 no array, mas verificar índice correto)
+    var dataDisp = String(r[9]||'').trim();
+    var dataReab = String(r[13]||'').trim();
+
+    if(dataDisp){
+      var d = parseBRDate(dataDisp);
+      if(d && d.getFullYear()===ano && d.getMonth()===mes){
+        eventos.push({tipo:'disputa', data:d, dia:d.getDate(), emp:emp, licit:licit, hora:dataDisp});
+      }
+    }
+    if(dataReab){
+      var d2 = parseBRDate(dataReab);
+      if(d2 && d2.getFullYear()===ano && d2.getMonth()===mes){
+        eventos.push({tipo:'reabertura', data:d2, dia:d2.getDate(), emp:emp, licit:licit, hora:dataReab});
+      }
+    }
+  });
+  // Ordenar por dia
+  eventos.sort(function(a,b){ return a.data-b.data; });
+  return eventos;
+}
+
+function renderCalendario(){
+  document.getElementById('cal-titulo').textContent = MESES[_calMes]+' '+_calAno;
+
+  var eventos = getEventosDoMes(_calAno, _calMes);
+  var evMap = {};
+  eventos.forEach(function(e){ if(!evMap[e.dia]) evMap[e.dia]=[]; evMap[e.dia].push(e); });
+
+  // Primeiro dia do mês e total de dias
+  var primeiroDia = new Date(_calAno, _calMes, 1).getDay();
+  var totalDias = new Date(_calAno, _calMes+1, 0).getDate();
+  var hoje = new Date(); hoje.setHours(0,0,0,0);
+
+  var grid = document.getElementById('cal-grid');
+  var h = '';
+
+  // Células vazias antes do dia 1
+  for(var i=0; i<primeiroDia; i++){
+    h += '<div style="min-height:80px;border-right:1px solid var(--b1);border-bottom:1px solid var(--b1);padding:6px;opacity:.3"></div>';
+  }
+
+  for(var d=1; d<=totalDias; d++){
+    var dataAtual = new Date(_calAno, _calMes, d);
+    var isHoje = dataAtual.getTime()===hoje.getTime();
+    var evs = evMap[d]||[];
+    var bg = isHoje ? 'background:rgba(249,115,22,.1);' : '';
+    var numStyle = isHoje ? 'color:var(--nh);font-weight:800;' : 'color:var(--t2);';
+    var col = (primeiroDia+d-1)%7;
+    var borderR = col<6 ? 'border-right:1px solid var(--b1);' : '';
+
+    h += '<div style="min-height:80px;'+borderR+'border-bottom:1px solid var(--b1);padding:6px;'+bg+'">';
+    h += '<div style="font-size:13px;'+numStyle+'margin-bottom:4px">'+d+'</div>';
+    evs.slice(0,3).forEach(function(e){
+      var cor = e.tipo==='disputa'?'#f97316':'#3b82f6';
+      var empCor = EMPCORES[e.emp]||'#888';
+      h += '<div style="background:'+cor+';border-radius:3px;padding:2px 5px;margin-bottom:2px;font-size:10px;color:#000;font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis" title="'+e.emp+' · '+e.licit+'">';
+      h += '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:'+empCor+';margin-right:3px;vertical-align:middle"></span>';
+      h += e.emp.substring(0,6)+'</div>';
+    });
+    if(evs.length>3) h += '<div style="font-size:10px;color:var(--t3)">+' +(evs.length-3)+' mais</div>';
+    h += '</div>';
+  }
+
+  // Células restantes
+  var total = primeiroDia + totalDias;
+  var resto = total%7===0?0:7-(total%7);
+  for(var i=0; i<resto; i++){
+    var col2 = (total+i)%7;
+    var br = col2<6 ? 'border-right:1px solid var(--b1);' : '';
+    h += '<div style="min-height:80px;'+br+'border-bottom:1px solid var(--b1);padding:6px;opacity:.3"></div>';
+  }
+
+  grid.innerHTML = h;
+
+  // Lista de eventos
+  var lista = document.getElementById('cal-lista');
+  if(!eventos.length){
+    lista.innerHTML = '<div style="color:var(--t3);font-size:13px;padding:20px;text-align:center">Nenhuma disputa ou reabertura este mês</div>';
+    return;
+  }
+  lista.innerHTML = eventos.map(function(e){
+    var cor = e.tipo==='disputa'?'#f97316':'#3b82f6';
+    var empCor = EMPCORES[e.emp]||'#888';
+    var icone = e.tipo==='disputa'?'⚡':'🔄';
+    var gcLink = criarLinkGoogleCal(e);
+    return '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--s2);border:1px solid var(--b1);border-left:4px solid '+cor+';border-radius:8px;margin-bottom:8px">'+
+      '<div style="min-width:40px;text-align:center"><div style="font-size:20px;font-weight:800;color:var(--t1);line-height:1">'+e.dia+'</div><div style="font-size:10px;color:var(--t3)">'+MESES[_calMes].substring(0,3)+'</div></div>'+
+      '<div style="flex:1;overflow:hidden">'+
+        '<div style="font-size:11px;color:'+cor+';font-weight:700;text-transform:uppercase;letter-spacing:.05em">'+icone+' '+e.tipo+'</div>'+
+        '<div style="font-size:13px;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.licit+'</div>'+
+        '<div style="font-size:11px;color:'+empCor+';font-weight:600;margin-top:2px">'+e.emp+'</div>'+
+      '</div>'+
+      '<div style="font-size:11px;color:var(--t3);white-space:nowrap">'+String(e.hora).substring(0,16)+'</div>'+
+      '<a href="'+gcLink+'" target="_blank" title="Adicionar ao Google Calendar" style="color:#22c55e;text-decoration:none;font-size:18px;flex-shrink:0">+</a>'+
+    '</div>';
+  }).join('');
+
+  // Atualizar link do Google Calendar
+  var gcMainLink = 'https://calendar.google.com/calendar/r/month/'+_calAno+'/'+((_calMes+1));
+  document.getElementById('btn-google-cal').href = gcMainLink;
+}
+
+function criarLinkGoogleCal(evento){
+  // Criar link para adicionar evento individual ao Google Calendar
+  var d = evento.data;
+  // Tentar extrair hora do campo (formato: dd/mm/yyyy HH:mm ou dd/mm/yyyy as HH:h)
+  var hora = '090000';
+  var horaStr = String(evento.hora||'');
+  var mHora = horaStr.match(/(\d{1,2})[h:](\d{2})/i);
+  if(mHora) hora = ('0'+mHora[1]).slice(-2)+('0'+mHora[2]).slice(-2)+'00';
+
+  var ano = d.getFullYear();
+  var mes = ('0'+(d.getMonth()+1)).slice(-2);
+  var dia = ('0'+d.getDate()).slice(-2);
+  var dtStr = ano+mes+dia+'T'+hora;
+  // Fim = 1h depois
+  var fimH = parseInt(hora.substring(0,2))+1;
+  var dtFim = ano+mes+dia+'T'+('0'+fimH).slice(-2)+hora.substring(2);
+
+  var titulo = encodeURIComponent((evento.tipo==='disputa'?'⚡ DISPUTA: ':'🔄 REABERTURA: ')+evento.emp+' - '+evento.licit.substring(0,60));
+  return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text='+titulo+'&dates='+dtStr+'/'+dtFim+'&details='+encodeURIComponent(evento.licit);
+}
+
+// Inicializar calendário quando entrar na página
+var _calInited = false;
+function initCalendario(){
+  if(!_calInited){ _calInited=true; }
+  renderCalendario();
+}
+
+
 function buscaGlobal(q){
   q = q.trim().toLowerCase();
   var res = document.getElementById('busca-resultado');
