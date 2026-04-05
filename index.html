@@ -2291,10 +2291,12 @@ function buildResumo(){
   var topStates=Object.entries(stMap).sort(function(a,b){return b[1]-a[1];}).slice(0,5);
   var empAnItems=EMPS.filter(function(e){return empAn[e];}).map(function(e){return [e,empAn[e]];});
 
-  // Ganhas por empresa = processos com ADJU=sim OU Classificação 1 posição (1 processo = 1 ganho)
+  // Ganhas por empresa = ADJU=sim E Classificação=1 posição no mesmo processo
   var gaEmpC={};
   an.filter(function(r){
-    return String(r[16]||'').toLowerCase().trim()==='sim' || is1Posicao(String(r[11]||'').trim());
+    var adju=String(r[16]||'').toLowerCase().trim()==='sim';
+    var pos1=is1Posicao(String(r[11]||'').trim());
+    return adju && pos1;
   }).forEach(function(r){
     var e=String(r[2]||'').trim();
     if(e) gaEmpC[e]=(gaEmpC[e]||0)+1;
@@ -3999,8 +4001,8 @@ function getEventosDoMes(ano, mes){
   an.forEach(function(r){
     var emp = String(r[2]||'').trim();
     var licit = String(r[3]||'').trim().substring(0,50);
-    // Data Disputa (col 10 = idx 9 no array, mas verificar índice correto)
-    var dataDisp = String(r[9]||'').trim();
+    // Data Disputa = índice 10, Reabertura = índice 13
+    var dataDisp = String(r[10]||'').trim();
     var dataReab = String(r[13]||'').trim();
 
     if(dataDisp){
