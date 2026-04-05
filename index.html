@@ -714,6 +714,7 @@ select{color-scheme:dark;}
     <div class="sb-item" id="nav-calendario" onclick="go('calendario',this)">
       <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
       <span>Calendário</span>
+      <span class="sb-badge" id="b-calendario">—</span>
     </div>
 
     <div class="sb-divider"></div>
@@ -2160,6 +2161,10 @@ async function loadAll(){
   await Promise.all(Object.keys(SHEETS).map(function(k){return _load(k);}));
   setSt('ok');
   if(CUR==='resumo') buildResumo();
+  // Atualizar badge do calendário com eventos do mês atual
+  var _evMes = getEventosDoMes(new Date().getFullYear(), new Date().getMonth());
+  var _bc = document.getElementById('b-calendario');
+  if(_bc) _bc.textContent = _evMes.length || '—';
 }
 
 function buildFinResumo(){
@@ -4140,6 +4145,10 @@ function renderCalendario(){
   // Atualizar link do Google Calendar
   var gcMainLink = 'https://calendar.google.com/calendar/r/month/'+_calAno+'/'+((_calMes+1));
   document.getElementById('btn-google-cal').href = gcMainLink;
+
+  // Atualizar badge do sidebar com total do mês atual
+  var b = document.getElementById('b-calendario');
+  if(b) b.textContent = eventos.length || '—';
 }
 
 // Chave única por evento para marcar como salvo
