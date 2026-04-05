@@ -716,6 +716,11 @@ select{color-scheme:dark;}
       <span>Calendário</span>
       <span class="sb-badge" id="b-calendario">—</span>
     </div>
+    <div class="sb-item" id="nav-tarefas" onclick="go('tarefas',this)">
+      <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+      <span>Afazeres</span>
+      <span class="sb-badge" id="b-tarefas">—</span>
+    </div>
 
     <div class="sb-divider"></div>
     <div class="sb-section" style="display:flex;align-items:center;justify-content:space-between">
@@ -921,6 +926,59 @@ select{color-scheme:dark;}
     </div>
 
     <!-- EMPRESA -->
+    <!-- AFAZERES -->
+    <div class="page" id="page-tarefas">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap" id="tar-filtros">
+          <button onclick="filtrarTarefas('todas')" id="tf-todas" class="btn btn-nh btn-sm">Todas</button>
+          <button onclick="filtrarTarefas('pendente')" id="tf-pendente" class="btn btn-ghost btn-sm">Pendentes</button>
+          <button onclick="filtrarTarefas('hoje')" id="tf-hoje" class="btn btn-ghost btn-sm">Hoje</button>
+          <button onclick="filtrarTarefas('semana')" id="tf-semana" class="btn btn-ghost btn-sm">Esta Semana</button>
+          <button onclick="filtrarTarefas('concluida')" id="tf-concluida" class="btn btn-ghost btn-sm">Concluídas</button>
+        </div>
+        <button onclick="abrirNovaTarefa()" class="btn btn-nh" style="gap:6px">
+          <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+          Nova Tarefa
+        </button>
+      </div>
+      <!-- Kanban por prioridade -->
+      <div id="tar-board" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px"></div>
+    </div>
+
+    <!-- MODAL NOVA TAREFA -->
+    <div class="modal-overlay" id="mo-tarefa" onclick="if(event.target===this)closeM('tarefa')" style="display:none">
+    <div class="modal" style="max-width:500px">
+      <div class="mhd"><div class="mhd-nh"></div><div class="mhd-info"><h2 id="tar-modal-title">Nova Tarefa</h2><p>Adicionar afazer ou anotação</p></div><button class="mx" onclick="closeM('tarefa')">×</button></div>
+      <div class="mbd"><div class="fg2">
+        <div class="fg fc"><label>Título *</label><input type="text" id="tar-titulo" placeholder="O que precisa ser feito?"></div>
+        <div class="fg fc"><label>Descrição / Anotação</label><textarea id="tar-desc" rows="3" placeholder="Detalhes, observações..."></textarea></div>
+        <div class="fg"><label>Empresa</label>
+          <select id="tar-emp"><option value="">Geral (sem empresa)</option></select>
+        </div>
+        <div class="fg"><label>Prioridade</label>
+          <select id="tar-prio">
+            <option value="alta">🔴 Alta</option>
+            <option value="media" selected>🟡 Média</option>
+            <option value="baixa">🟢 Baixa</option>
+          </select>
+        </div>
+        <div class="fg"><label>Prazo</label><input type="date" id="tar-prazo"></div>
+        <div class="fg"><label>Notificar antes</label>
+          <select id="tar-notif">
+            <option value="">Sem notificação</option>
+            <option value="15">15 minutos antes</option>
+            <option value="60">1 hora antes</option>
+            <option value="1440">1 dia antes</option>
+            <option value="2880">2 dias antes</option>
+          </select>
+        </div>
+      </div></div>
+      <div class="mft">
+        <button class="btn btn-ghost" onclick="closeM('tarefa')">Cancelar</button>
+        <button class="btn btn-nh" onclick="salvarTarefa()" id="btn-salvar-tar">Salvar Tarefa</button>
+      </div>
+    </div></div>
+
     <!-- CALENDÁRIO -->
     <div class="page" id="page-calendario">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
@@ -1358,6 +1416,7 @@ const TOPS={
   atestados:['Atestados','Controle de documentos técnicos'],
   financeiro:['Financeiro','Controle de gastos e recargas mensais do escritório · FINANCEIRO'],
   calendario:['Calendário','Disputas e reaberturas do mês · integrado com Google Calendar'],
+  tarefas:['Afazeres','Tarefas e anotações da semana · integrado com empresas'],
   'emp-VISE':['Empresa — VISE','Portais, certidões e documentação · CNPJ 08.348.687/0001-62'],
   'emp-SAUTEC':['Empresa — SAUTEC','Portais, certidões e documentação · CNPJ 31.586.684/0001-89'],
   'emp-SOS':['Empresa — SOS','Portais, certidões e documentação · CNPJ 38.714.702/0001-00'],
@@ -2124,6 +2183,7 @@ function go(page,el){
     document.getElementById('page-'+page).classList.add('on');
     if(page==='resumo') buildResumo();
     else if(page==='calendario') initCalendario();
+    else if(page==='tarefas') initTarefas();
     else {
       loadPage(page);
       if(page==='financeiro') buildFinResumo();
@@ -3939,6 +3999,7 @@ function initApp(){
   loadAll();
   setTimeout(verificarVencimentos, 3000);
   setTimeout(iniciarNotificacoesCalendario, 5000);
+  carregarTarefas();
 }
 
 function verificarVencimentos(){
@@ -4214,6 +4275,251 @@ function criarLinkGoogleCal(evento){
 }
 
 // Modal de preview do evento
+// ══ AFAZERES / TAREFAS ══════════════════════════════════════
+var _tarefaEditId = null;
+var _tarefaFiltro = 'todas';
+
+async function carregarTarefas(){
+  try{
+    var snap = await db.collection('tarefas').orderBy('_criado','desc').get();
+    var tarefas = [];
+    snap.forEach(function(doc){ tarefas.push(Object.assign({id:doc.id},doc.data())); });
+    window._tarefas = tarefas;
+    atualizarBadgeTarefas();
+    return tarefas;
+  }catch(e){ window._tarefas=[]; return []; }
+}
+
+function atualizarBadgeTarefas(){
+  var pendentes = (window._tarefas||[]).filter(function(t){ return t.status!=='concluida'; }).length;
+  var b = document.getElementById('b-tarefas');
+  if(b) b.textContent = pendentes||'—';
+}
+
+async function initTarefas(){
+  await carregarTarefas();
+  renderTarefas();
+  // Atualizar selects de empresa
+  var sel = document.getElementById('tar-emp');
+  if(sel){
+    sel.innerHTML = '<option value="">Geral (sem empresa)</option>' +
+      EMPRESAS.map(function(e){ return '<option value="'+e.nome+'">'+e.nome+'</option>'; }).join('');
+  }
+}
+
+function getTarefasFiltradas(){
+  var todas = window._tarefas||[];
+  var hoje = new Date(); hoje.setHours(0,0,0,0);
+  var semana = new Date(hoje); semana.setDate(semana.getDate()+7);
+  return todas.filter(function(t){
+    if(_tarefaFiltro==='pendente') return t.status!=='concluida';
+    if(_tarefaFiltro==='concluida') return t.status==='concluida';
+    if(_tarefaFiltro==='hoje'){
+      if(!t.prazo) return false;
+      var d=new Date(t.prazo); d.setHours(0,0,0,0);
+      return d.getTime()===hoje.getTime();
+    }
+    if(_tarefaFiltro==='semana'){
+      if(!t.prazo) return false;
+      var d2=new Date(t.prazo);
+      return d2>=hoje&&d2<=semana;
+    }
+    return true;
+  });
+}
+
+function renderTarefas(){
+  var board = document.getElementById('tar-board');
+  if(!board) return;
+  var tarefas = getTarefasFiltradas();
+  var hoje = new Date(); hoje.setHours(0,0,0,0);
+
+  // Agrupar por prioridade
+  var grupos = {alta:[],media:[],baixa:[]};
+  tarefas.forEach(function(t){
+    var p = t.prioridade||'media';
+    if(grupos[p]) grupos[p].push(t);
+  });
+
+  var corPrio = {alta:'#ef4444',media:'#eab308',baixa:'#22c55e'};
+  var iconePrio = {alta:'🔴',media:'🟡',baixa:'🟢'};
+  var nomePrio = {alta:'Alta Prioridade',media:'Média Prioridade',baixa:'Baixa Prioridade'};
+
+  board.innerHTML = ['alta','media','baixa'].map(function(p){
+    var items = grupos[p];
+    var h = '<div style="background:var(--s2);border:1px solid var(--b1);border-top:3px solid '+corPrio[p]+';border-radius:12px;padding:16px">';
+    h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">';
+    h += '<div style="font-size:12px;font-weight:700;color:'+corPrio[p]+';text-transform:uppercase;letter-spacing:.05em">'+iconePrio[p]+' '+nomePrio[p]+'</div>';
+    h += '<span style="background:var(--s1);color:var(--t3);font-size:11px;padding:2px 8px;border-radius:10px">'+items.length+'</span>';
+    h += '</div>';
+    if(!items.length){
+      h += '<div style="color:var(--t3);font-size:12px;text-align:center;padding:20px 0">Nenhuma tarefa</div>';
+    } else {
+      h += items.map(function(t){ return renderTarefaCard(t, hoje); }).join('');
+    }
+    h += '</div>';
+    return h;
+  }).join('');
+}
+
+function renderTarefaCard(t, hoje){
+  var concluida = t.status==='concluida';
+  var empCor = t.empresa ? (EMPCORES[t.empresa]||'#888') : 'var(--t3)';
+  var prazoHtml = '';
+  if(t.prazo){
+    var dp = new Date(t.prazo); dp.setHours(0,0,0,0);
+    var diff = Math.round((dp-hoje)/86400000);
+    var pCor = concluida?'var(--t3)':diff<0?'#ef4444':diff===0?'#f97316':diff<=2?'#eab308':'var(--t3)';
+    var pTxt = diff<0?'Atrasado '+Math.abs(diff)+'d':diff===0?'Hoje':diff===1?'Amanhã':'Em '+diff+'d';
+    prazoHtml = '<span style="font-size:10px;color:'+pCor+';font-weight:700">📅 '+pTxt+'</span>';
+  }
+  return '<div style="background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:12px;margin-bottom:8px;'+(concluida?'opacity:.5':'')+'">'+
+    '<div style="display:flex;align-items:flex-start;gap:10px">'+
+      '<input type="checkbox" '+(concluida?'checked':'')+' data-tid="'+t.id+'" class="tar-check" '+
+        'style="width:16px;height:16px;margin-top:2px;cursor:pointer;accent-color:var(--nh);flex-shrink:0">'+
+      '<div style="flex:1;min-width:0">'+
+        '<div style="font-size:13px;font-weight:600;color:var(--t1);'+(concluida?'text-decoration:line-through':'')+'">'+t.titulo+'</div>'+
+        (t.desc?'<div style="font-size:12px;color:var(--t2);margin-top:4px;line-height:1.5">'+t.desc+'</div>':'')+
+        '<div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap">'+
+          (t.empresa?'<span style="font-size:10px;color:'+empCor+';font-weight:700;background:'+empCor+'22;padding:2px 7px;border-radius:8px">'+t.empresa+'</span>':'')+
+          prazoHtml+
+        '</div>'+
+      '</div>'+
+      '<div style="display:flex;gap:4px;flex-shrink:0">'+
+        '<button data-tid-edit="'+t.id+'" class="tar-btn-edit" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px;padding:2px" title="Editar">✏</button>'+
+        '<button data-tid-del="'+t.id+'" class="tar-btn-del" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:14px;padding:2px" title="Excluir">✕</button>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
+
+function filtrarTarefas(f){
+  _tarefaFiltro = f;
+  // Atualizar botões
+  ['todas','pendente','hoje','semana','concluida'].forEach(function(id){
+    var btn = document.getElementById('tf-'+id);
+    if(btn){ btn.className = id===f?'btn btn-nh btn-sm':'btn btn-ghost btn-sm'; }
+  });
+  renderTarefas();
+}
+
+function abrirNovaTarefa(){
+  _tarefaEditId = null;
+  document.getElementById('tar-modal-title').textContent = 'Nova Tarefa';
+  document.getElementById('tar-titulo').value = '';
+  document.getElementById('tar-desc').value = '';
+  document.getElementById('tar-emp').value = '';
+  document.getElementById('tar-prio').value = 'media';
+  document.getElementById('tar-prazo').value = '';
+  document.getElementById('tar-notif').value = '';
+  var el = document.getElementById('mo-tarefa');
+  el.style.display='flex'; el.classList.add('open');
+}
+
+function editarTarefa(id){
+  var t = (window._tarefas||[]).find(function(x){ return x.id===id; });
+  if(!t) return;
+  _tarefaEditId = id;
+  document.getElementById('tar-modal-title').textContent = 'Editar Tarefa';
+  document.getElementById('tar-titulo').value = t.titulo||'';
+  document.getElementById('tar-desc').value = t.desc||'';
+  document.getElementById('tar-emp').value = t.empresa||'';
+  document.getElementById('tar-prio').value = t.prioridade||'media';
+  document.getElementById('tar-prazo').value = t.prazo||'';
+  document.getElementById('tar-notif').value = t.notif||'';
+  var el = document.getElementById('mo-tarefa');
+  el.style.display='flex'; el.classList.add('open');
+}
+
+async function salvarTarefa(){
+  var titulo = document.getElementById('tar-titulo').value.trim();
+  if(!titulo){ toast('Digite um título','err'); return; }
+  var btn = document.getElementById('btn-salvar-tar');
+  btn.disabled=true; btn.textContent='Salvando...';
+
+  var dados = {
+    titulo: titulo,
+    desc: document.getElementById('tar-desc').value.trim(),
+    empresa: document.getElementById('tar-emp').value,
+    prioridade: document.getElementById('tar-prio').value,
+    prazo: document.getElementById('tar-prazo').value,
+    notif: document.getElementById('tar-notif').value,
+    status: 'pendente',
+    _criado: Date.now()
+  };
+
+  try{
+    if(_tarefaEditId){
+      // Preservar status atual ao editar
+      var atual = (window._tarefas||[]).find(function(x){ return x.id===_tarefaEditId; });
+      if(atual) dados.status = atual.status;
+      dados._criado = atual ? atual._criado : Date.now();
+      await db.collection('tarefas').doc(_tarefaEditId).set(dados);
+    } else {
+      await db.collection('tarefas').add(dados);
+    }
+    closeM('tarefa');
+    await carregarTarefas();
+    renderTarefas();
+    toast(_tarefaEditId?'Tarefa atualizada!':'Tarefa criada!','ok');
+  }catch(e){
+    toast('Erro: '+e.message,'err');
+  }
+  btn.disabled=false; btn.textContent='Salvar Tarefa';
+  _tarefaEditId = null;
+}
+
+async function toggleTarefa(id){
+  var t = (window._tarefas||[]).find(function(x){ return x.id===id; });
+  if(!t) return;
+  var novoStatus = t.status==='concluida'?'pendente':'concluida';
+  try{
+    await db.collection('tarefas').doc(id).update({status:novoStatus});
+    t.status = novoStatus;
+    atualizarBadgeTarefas();
+    renderTarefas();
+    if(novoStatus==='concluida') toast('✅ Tarefa concluída!','ok');
+  }catch(e){ toast('Erro: '+e.message,'err'); }
+}
+
+async function excluirTarefa(id){
+  if(!confirm('Excluir esta tarefa?')) return;
+  try{
+    await db.collection('tarefas').doc(id).delete();
+    window._tarefas = (window._tarefas||[]).filter(function(x){ return x.id!==id; });
+    atualizarBadgeTarefas();
+    renderTarefas();
+    toast('Tarefa excluída','info');
+  }catch(e){ toast('Erro: '+e.message,'err'); }
+}
+
+// Notificações de tarefas
+function verificarNotificacoesTarefas(){
+  var agora = new Date();
+  var tarefas = (window._tarefas||[]).filter(function(t){ return t.status!=='concluida'&&t.prazo&&t.notif; });
+  tarefas.forEach(function(t){
+    var prazo = new Date(t.prazo); prazo.setHours(23,59,0,0);
+    var diffMin = Math.round((prazo-agora)/60000);
+    var notifMin = parseInt(t.notif);
+    if(diffMin===notifMin){
+      var n = document.createElement('div');
+      n.style.cssText='position:fixed;bottom:20px;left:20px;z-index:9998;background:var(--s1);border:2px solid #eab308;border-radius:12px;padding:16px 20px;max-width:320px;box-shadow:0 8px 24px rgba(0,0,0,.5);animation:slideIn .3s ease';
+      n.innerHTML='<div style="display:flex;gap:10px;align-items:flex-start">'+
+        '<div style="font-size:22px">📋</div>'+
+        '<div style="flex:1">'+
+          '<div style="font-size:13px;font-weight:800;color:#eab308;margin-bottom:4px">Tarefa pendente!</div>'+
+          '<div style="font-size:12px;color:var(--t1);font-weight:600">'+t.titulo+'</div>'+
+          (t.empresa?'<div style="font-size:11px;color:var(--t3);margin-top:2px">'+t.empresa+'</div>':'')+
+        '</div>'+
+        '<button onclick="this.parentNode.parentNode.remove()" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:18px">×</button>'+
+      '</div>';
+      document.body.appendChild(n);
+      setTimeout(function(){ if(n.parentNode) n.remove(); },20000);
+    }
+  });
+}
+
+
 function fecharPreviewCal(){
   var p = document.getElementById('cal-preview');
   if(p) p.remove();
@@ -4289,7 +4595,10 @@ var _notifTimer = null;
 function iniciarNotificacoesCalendario(){
   if(_notifTimer) clearInterval(_notifTimer);
   verificarNotificacoesCalendario();
-  _notifTimer = setInterval(verificarNotificacoesCalendario, 60000); // checar a cada 1 minuto
+  _notifTimer = setInterval(function(){
+    verificarNotificacoesCalendario();
+    verificarNotificacoesTarefas();
+  }, 60000); // checar a cada 1 minuto
 }
 
 function verificarNotificacoesCalendario(){
