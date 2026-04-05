@@ -4126,11 +4126,13 @@ function renderCalendario(){
       '</div>'+
       '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">'+
         '<div style="font-size:11px;color:var(--t3);white-space:nowrap">'+String(e.hora).substring(0,16)+'</div>'+
-        '<a href="'+gcLink+'" target="_blank" onclick="event.stopPropagation()" '+
-          'title="Salvar no Google Calendar" '+
-          'style="background:#22c55e;color:#000;text-decoration:none;font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;white-space:nowrap">'+
-          '📅 Salvar no Google Calendar'+
-        '</a>'+
+        (isEventoSalvo(e)
+          ? '<span style="background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3);font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;white-space:nowrap">✅ Salvo no Calendar</span>'
+          : '<a href="'+gcLink+'" target="_blank" onclick="event.stopPropagation();marcarSalvoEAtualizar('+i+')" '+
+            'title="Salvar no Google Calendar" '+
+            'style="background:#22c55e;color:#000;text-decoration:none;font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;white-space:nowrap">'+
+            '📅 Salvar no Calendar'+
+          '</a>')+
       '</div>'+
     '</div>';
   }).join('');
@@ -4138,6 +4140,19 @@ function renderCalendario(){
   // Atualizar link do Google Calendar
   var gcMainLink = 'https://calendar.google.com/calendar/r/month/'+_calAno+'/'+((_calMes+1));
   document.getElementById('btn-google-cal').href = gcMainLink;
+}
+
+// Chave única por evento para marcar como salvo
+function eventoCalKey(e){
+  return 'gcal_'+e.tipo+'_'+e.emp+'_'+String(e.hora||'').replace(/\W/g,'');
+}
+
+function isEventoSalvo(e){
+  return localStorage.getItem(eventoCalKey(e))==='1';
+}
+
+function marcarEventoSalvo(e){
+  localStorage.setItem(eventoCalKey(e),'1');
 }
 
 function criarLinkGoogleCal(evento){
@@ -4173,6 +4188,16 @@ function criarLinkGoogleCal(evento){
 function fecharPreviewCal(){
   var p = document.getElementById('cal-preview');
   if(p) p.remove();
+}
+
+function marcarSalvoEAtualizar(idx){
+  var e = (window._calEventos||[])[idx];
+  if(e){ marcarEventoSalvo(e); setTimeout(function(){ renderCalendario(); },500); }
+}
+
+function marcarSalvoPreview(idx){
+  var e = (window._calEventos||[])[idx];
+  if(e) marcarEventoSalvo(e);
 }
 
 function mostrarPreviewEvento(idx){
@@ -4214,10 +4239,12 @@ function mostrarPreviewEvento(idx){
         '<div style="font-size:12px;color:var(--t2);line-height:1.6;background:var(--s2);padding:10px 12px;border-radius:8px">'+e.obj+'</div></div>':'')+
       (e.resumo?'<div style="margin-bottom:16px"><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Resumo / Justificativa</div>'+
         '<div style="font-size:12px;color:var(--t2);line-height:1.6;background:var(--s2);padding:10px 12px;border-radius:8px">'+e.resumo+'</div></div>':'')+
-      '<a href="'+gcLink+'" target="_blank" onclick="fecharPreviewCal()" '+
-        'style="display:block;text-align:center;background:#22c55e;color:#000;text-decoration:none;padding:12px;border-radius:8px;font-weight:700;font-size:14px">'+
-        '📅 Salvar no Google Calendar'+
-      '</a>'+
+      (isEventoSalvo(e)
+        ? '<div style="text-align:center;background:rgba(34,197,94,.1);color:#22c55e;border:1px solid rgba(34,197,94,.3);padding:12px;border-radius:8px;font-weight:700;font-size:14px">✅ Salvo no Google Calendar</div>'
+        : '<a href="'+gcLink+'" target="_blank" onclick="marcarSalvoPreview('+idx+');fecharPreviewCal()" '+
+          'style="display:block;text-align:center;background:#22c55e;color:#000;text-decoration:none;padding:12px;border-radius:8px;font-weight:700;font-size:14px">'+
+          '📅 Salvar no Google Calendar'+
+          '</a>')+
     '</div>';
   document.body.appendChild(div);
 }
