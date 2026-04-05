@@ -2247,12 +2247,11 @@ function buildResumo(){
   var topStates=Object.entries(stMap).sort(function(a,b){return b[1]-a[1];}).slice(0,5);
   var empAnItems=EMPS.filter(function(e){return empAn[e];}).map(function(e){return [e,empAn[e]];});
 
-  // Ganhas por empresa = finalizados com cor 'green' (ADJU=sim + 1ª posição)
+  // Ganhas por empresa = ADJU=sim em andamento (mesma lógica do filtro)
   var gaEmpC={};
-  fi.filter(function(r){return getAndamentoCor(r)==='green';})
+  an.filter(function(r){return String(r[16]||'').toLowerCase().trim()==='sim';})
     .forEach(function(r){var e=String(r[2]||'').trim();if(e)gaEmpC[e]=(gaEmpC[e]||0)+1;});
   var gaEmpItems=Object.entries(gaEmpC).sort(function(a,b){return b[1]-a[1];});
-  // Total = soma de todos os valores do gaEmpC
   var totalGanhos=Object.values(gaEmpC).reduce(function(a,b){return a+b;},0);
 
   var gaStC={};
