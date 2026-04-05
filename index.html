@@ -510,6 +510,7 @@ select{color-scheme:dark;}
 .mbd{padding:22px 26px}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
 .mft{
   padding:14px 26px;border-top:1px solid var(--b1);
   display:flex;gap:8px;justify-content:flex-end;
@@ -3912,6 +3913,7 @@ function initApp(){
   setSt('load');
   loadAll();
   setTimeout(verificarVencimentos, 3000);
+  setTimeout(iniciarNotificacoesCalendario, 5000);
 }
 
 function verificarVencimentos(){
@@ -4009,21 +4011,27 @@ function getEventosDoMes(ano, mes){
   var eventos = [];
   var an = ALL['andamento']||[];
   an.forEach(function(r){
-    var emp = String(r[2]||'').trim();
-    var licit = String(r[3]||'').trim().substring(0,50);
+    var emp    = String(r[2]||'').trim();
+    var licit  = String(r[3]||'').trim();
+    var obj    = String(r[4]||'').trim();
+    var local  = String(r[5]||'').trim();
+    var mun    = String(r[6]||'').trim();
+    var resumo = String(r[15]||'').trim(); // Resumo Andamento
     var dataDisp = String(r[10]||'').trim();
     var dataReab = String(r[13]||'').trim();
+    var portal   = String(r[9]||'').trim();
+    var vest     = String(r[7]||'').trim();
 
     if(dataDisp){
       var d = parseDataCal(dataDisp);
       if(d && d.getFullYear()===ano && d.getMonth()===mes){
-        eventos.push({tipo:'disputa',data:d,dia:d.getDate(),emp:emp,licit:licit,hora:dataDisp});
+        eventos.push({tipo:'disputa',data:d,dia:d.getDate(),emp:emp,licit:licit,hora:dataDisp,obj:obj,local:local,mun:mun,resumo:resumo,portal:portal,vest:vest});
       }
     }
     if(dataReab){
       var d2 = parseDataCal(dataReab);
       if(d2 && d2.getFullYear()===ano && d2.getMonth()===mes){
-        eventos.push({tipo:'reabertura',data:d2,dia:d2.getDate(),emp:emp,licit:licit,hora:dataReab});
+        eventos.push({tipo:'reabertura',data:d2,dia:d2.getDate(),emp:emp,licit:licit,hora:dataReab,obj:obj,local:local,mun:mun,resumo:resumo,portal:portal,vest:vest});
       }
     }
   });
@@ -4090,20 +4098,40 @@ function renderCalendario(){
     lista.innerHTML = '<div style="color:var(--t3);font-size:13px;padding:20px;text-align:center">Nenhuma disputa ou reabertura este mês</div>';
     return;
   }
-  lista.innerHTML = eventos.map(function(e){
+  // Guardar eventos globalmente para preview
+  window._calEventos = eventos;
+
+  lista.innerHTML = eventos.map(function(e,i){
     var cor = e.tipo==='disputa'?'#f97316':'#3b82f6';
     var empCor = EMPCORES[e.emp]||'#888';
     var icone = e.tipo==='disputa'?'⚡':'🔄';
     var gcLink = criarLinkGoogleCal(e);
-    return '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--s2);border:1px solid var(--b1);border-left:4px solid '+cor+';border-radius:8px;margin-bottom:8px">'+
-      '<div style="min-width:40px;text-align:center"><div style="font-size:20px;font-weight:800;color:var(--t1);line-height:1">'+e.dia+'</div><div style="font-size:10px;color:var(--t3)">'+MESES[_calMes].substring(0,3)+'</div></div>'+
-      '<div style="flex:1;overflow:hidden">'+
-        '<div style="font-size:11px;color:'+cor+';font-weight:700;text-transform:uppercase;letter-spacing:.05em">'+icone+' '+e.tipo+'</div>'+
-        '<div style="font-size:13px;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.licit+'</div>'+
-        '<div style="font-size:11px;color:'+empCor+';font-weight:600;margin-top:2px">'+e.emp+'</div>'+
+    var hoje2 = new Date(); hoje2.setHours(0,0,0,0);
+    var isHoje = e.data.getTime()===hoje2.getTime();
+    var borda = isHoje?'border:2px solid '+cor+';':'border:1px solid var(--b1);border-left:4px solid '+cor+';';
+    return '<div onclick="mostrarPreviewEvento('+i+')" style="cursor:pointer;display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--s2);'+borda+'border-radius:8px;margin-bottom:8px;transition:all .15s" '+
+      'onmouseover="this.style.opacity=.85" onmouseout="this.style.opacity=1">'+
+      '<div style="min-width:44px;text-align:center">'+
+        '<div style="font-size:22px;font-weight:800;color:'+(isHoje?cor:'var(--t1)')+';line-height:1">'+e.dia+'</div>'+
+        '<div style="font-size:10px;color:var(--t3)">'+MESES[_calMes].substring(0,3)+'</div>'+
       '</div>'+
-      '<div style="font-size:11px;color:var(--t3);white-space:nowrap">'+String(e.hora).substring(0,16)+'</div>'+
-      '<a href="'+gcLink+'" target="_blank" title="Adicionar ao Google Calendar" style="color:#22c55e;text-decoration:none;font-size:18px;flex-shrink:0">+</a>'+
+      '<div style="flex:1;overflow:hidden">'+
+        '<div style="font-size:11px;color:'+cor+';font-weight:700;text-transform:uppercase;letter-spacing:.05em">'+icone+' '+e.tipo+(isHoje?' · HOJE':'')+'</div>'+
+        '<div style="font-size:13px;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+e.licit+'">'+e.licit.substring(0,60)+'</div>'+
+        '<div style="font-size:11px;margin-top:2px;display:flex;gap:8px">'+
+          '<span style="color:'+empCor+';font-weight:600">'+e.emp+'</span>'+
+          (e.portal?'<span style="color:var(--t3)">· '+e.portal+'</span>':'')+
+        '</div>'+
+        (e.resumo?'<div style="font-size:11px;color:var(--t3);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.resumo+'</div>':'')+
+      '</div>'+
+      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">'+
+        '<div style="font-size:11px;color:var(--t3);white-space:nowrap">'+String(e.hora).substring(0,16)+'</div>'+
+        '<a href="'+gcLink+'" target="_blank" onclick="event.stopPropagation()" '+
+          'title="Salvar no Google Calendar" '+
+          'style="background:#22c55e;color:#000;text-decoration:none;font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;white-space:nowrap">'+
+          '📅 Salvar no Google Calendar'+
+        '</a>'+
+      '</div>'+
     '</div>';
   }).join('');
 
@@ -4129,8 +4157,141 @@ function criarLinkGoogleCal(evento){
   var fimH = parseInt(hora.substring(0,2))+1;
   var dtFim = ano+mes+dia+'T'+('0'+fimH).slice(-2)+hora.substring(2);
 
-  var titulo = encodeURIComponent((evento.tipo==='disputa'?'⚡ DISPUTA: ':'🔄 REABERTURA: ')+evento.emp+' - '+evento.licit.substring(0,60));
-  return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text='+titulo+'&dates='+dtStr+'/'+dtFim+'&details='+encodeURIComponent(evento.licit);
+  var prefix = evento.tipo==='disputa'?'⚡ DISPUTA: ':'🔄 REABERTURA: ';
+  var titulo = encodeURIComponent(prefix+evento.emp+' - '+evento.licit.substring(0,60));
+  var sep = '%0A';
+  var detalhes = evento.licit;
+  if(evento.obj) detalhes += ' | Objeto: '+evento.obj;
+  if(evento.local) detalhes += ' | Local: '+evento.local+(evento.mun?' - '+evento.mun:'');
+  if(evento.portal) detalhes += ' | Portal: '+evento.portal;
+  if(evento.vest) detalhes += ' | Valor Est.: R$ '+evento.vest;
+  if(evento.resumo) detalhes += ' | Resumo: '+evento.resumo;
+  return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text='+titulo+'&dates='+dtStr+'/'+dtFim+'&details='+encodeURIComponent(detalhes)+'&location='+encodeURIComponent(evento.local||'');
+}
+
+// Modal de preview do evento
+function fecharPreviewCal(){
+  var p = document.getElementById('cal-preview');
+  if(p) p.remove();
+}
+
+function mostrarPreviewEvento(idx){
+  var e = (window._calEventos||[])[idx];
+  if(!e) return;
+  var cor = e.tipo==='disputa'?'#f97316':'#3b82f6';
+  var empCor = EMPCORES[e.emp]||'#888';
+  var icone = e.tipo==='disputa'?'⚡':'🔄';
+  var gcLink = criarLinkGoogleCal(e);
+
+  // Remover preview anterior
+  var old = document.getElementById('cal-preview');
+  if(old) old.remove();
+
+  var div = document.createElement('div');
+  div.id = 'cal-preview';
+  div.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2000;display:flex;align-items:center;justify-content:center';
+  div.onclick = function(ev){ if(ev.target===div) fecharPreviewCal(); };
+  div.innerHTML =
+    '<div style="background:var(--s1);border:1px solid var(--b1);border-top:4px solid '+cor+';border-radius:14px;padding:28px;max-width:500px;width:90%;max-height:85vh;overflow-y:auto">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">'+
+        '<div style="font-size:16px;font-weight:800;color:'+cor+'">'+icone+' '+e.tipo.toUpperCase()+'</div>'+
+        '<button onclick="fecharPreviewCal()" style="background:none;border:none;color:var(--t3);font-size:22px;cursor:pointer;line-height:1">×</button>'+
+      '</div>'+
+      '<div style="font-size:15px;font-weight:700;color:var(--t1);margin-bottom:12px;line-height:1.4">'+e.licit+'</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">'+
+        '<div><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em">Empresa</div>'+
+          '<div style="font-size:13px;color:'+empCor+';font-weight:700;margin-top:2px">'+e.emp+'</div></div>'+
+        '<div><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em">Data/Hora</div>'+
+          '<div style="font-size:13px;color:var(--t1);margin-top:2px">'+e.hora+'</div></div>'+
+        (e.local?'<div><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em">Local</div>'+
+          '<div style="font-size:13px;color:var(--t1);margin-top:2px">'+e.local+(e.mun?' - '+e.mun:'')+'</div></div>':'')+
+        (e.portal?'<div><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em">Portal</div>'+
+          '<div style="font-size:13px;color:var(--t1);margin-top:2px">'+e.portal+'</div></div>':'')+
+        (e.vest?'<div><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em">Valor Est.</div>'+
+          '<div style="font-size:13px;color:var(--nh);font-weight:700;margin-top:2px">R$ '+e.vest+'</div></div>':'')+
+      '</div>'+
+      (e.obj?'<div style="margin-bottom:12px"><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Objeto</div>'+
+        '<div style="font-size:12px;color:var(--t2);line-height:1.6;background:var(--s2);padding:10px 12px;border-radius:8px">'+e.obj+'</div></div>':'')+
+      (e.resumo?'<div style="margin-bottom:16px"><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Resumo / Justificativa</div>'+
+        '<div style="font-size:12px;color:var(--t2);line-height:1.6;background:var(--s2);padding:10px 12px;border-radius:8px">'+e.resumo+'</div></div>':'')+
+      '<a href="'+gcLink+'" target="_blank" onclick="fecharPreviewCal()" '+
+        'style="display:block;text-align:center;background:#22c55e;color:#000;text-decoration:none;padding:12px;border-radius:8px;font-weight:700;font-size:14px">'+
+        '📅 Salvar no Google Calendar'+
+      '</a>'+
+    '</div>';
+  document.body.appendChild(div);
+}
+
+function salvarNoGoogleCal(event, link){
+  // Apenas abre o link — o clique já faz isso via <a>
+  // Mas registrar que foi salvo
+  toast('Abrindo Google Calendar...','ok');
+}
+
+// Notificações de disputa/reabertura chegando
+var _notifTimer = null;
+function iniciarNotificacoesCalendario(){
+  if(_notifTimer) clearInterval(_notifTimer);
+  verificarNotificacoesCalendario();
+  _notifTimer = setInterval(verificarNotificacoesCalendario, 60000); // checar a cada 1 minuto
+}
+
+function verificarNotificacoesCalendario(){
+  var agora = new Date();
+  var an = ALL['andamento']||[];
+  var alertas = [];
+
+  an.forEach(function(r){
+    var emp = String(r[2]||'').trim();
+    var licit = String(r[3]||'').trim().substring(0,50);
+    var dataDisp = String(r[10]||'').trim();
+    var dataReab = String(r[13]||'').trim();
+
+    function checarData(dataStr, tipo){
+      var d = parseDataCal(dataStr);
+      if(!d) return;
+      // Extrair hora
+      var mHora = dataStr.match(/(\d{1,2})[h:](\d{2})/i);
+      if(mHora){
+        d.setHours(parseInt(mHora[1]), parseInt(mHora[2]), 0, 0);
+      }
+      var diff = d.getTime() - agora.getTime();
+      var diffMin = Math.round(diff/60000);
+      // Notificar se falta 60, 30, 15 ou 5 minutos
+      if(diffMin===60||diffMin===30||diffMin===15||diffMin===5||diffMin===0){
+        alertas.push({tipo:tipo, emp:emp, licit:licit, diffMin:diffMin, hora:dataStr});
+      }
+    }
+
+    checarData(dataDisp,'disputa');
+    checarData(dataReab,'reabertura');
+  });
+
+  if(alertas.length>0) mostrarNotificacoesCalendario(alertas);
+}
+
+function mostrarNotificacoesCalendario(alertas){
+  alertas.forEach(function(a){
+    var cor = a.tipo==='disputa'?'#f97316':'#3b82f6';
+    var icone = a.tipo==='disputa'?'⚡':'🔄';
+    var msg = a.diffMin===0 ? 'AGORA!' : 'em '+a.diffMin+' minutos';
+    var n = document.createElement('div');
+    n.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9998;background:var(--s1);border:2px solid '+cor+';border-radius:12px;padding:16px 20px;max-width:340px;box-shadow:0 8px 24px rgba(0,0,0,.5);animation:slideIn .3s ease';
+    n.innerHTML =
+      '<div style="display:flex;align-items:flex-start;gap:12px">'+
+        '<div style="font-size:24px">'+icone+'</div>'+
+        '<div style="flex:1">'+
+          '<div style="font-size:13px;font-weight:800;color:'+cor+';margin-bottom:4px">'+a.tipo.toUpperCase()+' '+msg+'</div>'+
+          '<div style="font-size:12px;color:var(--t1);font-weight:600;margin-bottom:2px">'+a.emp+'</div>'+
+          '<div style="font-size:11px;color:var(--t2);line-height:1.4">'+a.licit+'</div>'+
+          '<div style="font-size:10px;color:var(--t3);margin-top:4px">'+a.hora+'</div>'+
+        '</div>'+
+        '<button onclick="this.parentNode.parentNode.remove()" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:18px;padding:0;line-height:1">×</button>'+
+      '</div>';
+    document.body.appendChild(n);
+    // Auto-remover em 30 segundos
+    setTimeout(function(){ if(n.parentNode) n.remove(); }, 30000);
+  });
 }
 
 // Inicializar calendário quando entrar na página
@@ -4138,6 +4299,7 @@ var _calInited = false;
 function initCalendario(){
   if(!_calInited){ _calInited=true; }
   renderCalendario();
+  iniciarNotificacoesCalendario();
 }
 
 
