@@ -511,6 +511,7 @@ select{color-scheme:dark;}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
 @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.3)}}
 .mft{
   padding:14px 26px;border-top:1px solid var(--b1);
   display:flex;gap:8px;justify-content:flex-end;
@@ -3129,6 +3130,26 @@ function renderCard(k,row,abs){
   if(k==='editais'||k==='ganhas'||k==='atestados'||k==='financeiro'){
     h+='<button class="btn-edit-card" onclick="event.stopPropagation();openEditCard(\''+k+'\','+abs+')" title="Editar">✏</button>';
   }
+  // ⚡ Raio — proposta cadastrada (editais e andamento)
+  if(k==='editais'||k==='andamento'){
+    var _pk='proposta_'+k+'_'+rowId;
+    var _ps=localStorage.getItem(_pk)==='1';
+    h+='<button data-prop-key="'+_pk+'" onclick="event.stopPropagation();toggleProposta(this)" '+
+      'title="'+(_ps?'✅ Proposta cadastrada':'Proposta não cadastrada')+'" '+
+      'style="background:none;border:none;cursor:pointer;padding:2px 3px;line-height:1;opacity:'+(_ps?'1':'.3')+'">'+ 
+      '<svg width="13" height="13" viewBox="0 0 24 24" fill="'+(_ps?'#eab308':'#fff')+'" stroke="'+(_ps?'#eab308':'#fff')+'" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>'+
+    '</button>';
+  }
+  // 💬 Chat Conlicitação — só em andamento
+  if(k==='andamento'){
+    var _ck='chat_'+rowId;
+    var _ca=localStorage.getItem(_ck)==='1';
+    h+='<button data-chat-key="'+_ck+'" onclick="event.stopPropagation();toggleChat(this)" '+
+      'title="'+(_ca?'💬 Chat ativo':'Chat Conlicitação')+'" '+
+      'style="background:none;border:none;cursor:pointer;padding:2px 3px;line-height:1;opacity:'+(_ca?'1':'.3')+'">'+ 
+      '<svg width="13" height="13" viewBox="0 0 24 24" fill="'+(_ca?'#3b82f6':'#aaa')+'" stroke="none"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>'+
+    '</button>';
+  }
   h+='<button class="btn-del" onclick="event.stopPropagation();doDel(\''+k+'\','+abs+')" title="Excluir">✕</button>';
   h+='<button class="btn-toggle-card" onclick="event.stopPropagation();document.getElementById(\''+cardId+'\').classList.toggle(\'collapsed\')" title="Expandir/Recolher">&#8964;</button>';
   h+='</div>';
@@ -3757,6 +3778,33 @@ async function confirmarEmpresas(){
 }
 
 
+function toggleProposta(btn){
+  var key = btn.getAttribute('data-prop-key');
+  var atual = localStorage.getItem(key)==='1';
+  var novo = !atual;
+  localStorage.setItem(key, novo?'1':'0');
+  btn.style.opacity = novo?'1':'.35';
+  btn.title = novo?'Proposta cadastrada':'Cadastrar proposta';
+  btn.setAttribute('data-proposta', novo?'1':'0');
+  var svg = btn.querySelector('path');
+  if(svg){ svg.setAttribute('fill', novo?'#eab308':'#fff'); svg.setAttribute('stroke', novo?'#eab308':'#fff'); }
+  toast(novo?'⚡ Proposta cadastrada!':'Proposta desmarcada','ok');
+}
+
+function toggleChat(btn){
+  var key = btn.getAttribute('data-chat-key');
+  var atual = localStorage.getItem(key)==='1';
+  var novo = !atual;
+  localStorage.setItem(key, novo?'1':'0');
+  btn.style.opacity = novo?'1':'.35';
+  btn.title = novo?'Chat Conlicitação ativo':'Ativar chat Conlicitação';
+  btn.setAttribute('data-chat', novo?'1':'0');
+  var svg = btn.querySelector('path');
+  if(svg) svg.setAttribute('fill', novo?'#3b82f6':'#888');
+  toast(novo?'💬 Chat Conlicitação ativado!':'Chat desmarcado','ok');
+}
+
+
 function updateCardColor(k, rowIdx){
   var row=FIL[k][rowIdx];
   if(!row) return;
@@ -3838,8 +3886,19 @@ function goPg(k,n){PG[k]=n;renderTbl(k);}
 function openM(k){
   EROW[k]=null;
   clearF(k);
-  var titles={editais:'Novo Edital Capturado',andamento:'Nova Licita\u00e7\u00e3o em Andamento',ganhas:'Registrar Licita\u00e7\u00e3o Ganha',atestados:'Novo Atestado'};
-  document.getElementById('mht-'+k).textContent=titles[k];
+  // Limpar financeiro explicitamente
+  if(k==='financeiro'){
+    ['f-data','f-cat','f-desc','f-forn','f-valor','f-status','f-conta','f-obs'].forEach(function(id){
+      var el=document.getElementById(id);
+      if(!el) return;
+      el.tagName==='SELECT'?el.selectedIndex=0:(el.value='');
+    });
+    var fdata=document.getElementById('f-data');
+    if(fdata){ var td=new Date(); fdata.value=td.toISOString().split('T')[0]; }
+    document.getElementById('mht-financeiro').textContent='Novo Lançamento Financeiro';
+  }
+  var titles={editais:'Novo Edital Capturado',andamento:'Nova Licitação em Andamento',ganhas:'Registrar Licitação Ganha',atestados:'Novo Atestado'};
+  if(titles[k]) document.getElementById('mht-'+k).textContent=titles[k];
   document.getElementById('mo-'+k).classList.add('open');
 }
 function closeM(k){
@@ -4421,7 +4480,7 @@ async function carregarTarefas(){
 function atualizarBadgeTarefas(){
   var pendentes = (window._tarefas||[]).filter(function(t){ return t.status!=='concluida'; }).length;
   var b = document.getElementById('b-tarefas');
-  if(b) b.textContent = pendentes||'—';
+  if(b) b.textContent = pendentes>0?pendentes:'—';
 }
 
 async function initTarefas(){
@@ -4497,8 +4556,9 @@ function renderTarefaCard(t, hoje){
   if(t.prazo){
     var dp = new Date(t.prazo); dp.setHours(0,0,0,0);
     var diff = Math.round((dp-hoje)/86400000);
-    var pCor = concluida?'var(--t3)':diff<0?'#ef4444':diff===0?'#f97316':diff<=2?'#eab308':'var(--t3)';
-    var pTxt = diff<0?'Atrasado '+Math.abs(diff)+'d':diff===0?'Hoje':diff===1?'Amanhã':'Em '+diff+'d';
+    // diff>=0 = ok/hoje, diff<0 = vencido (só depois da meia noite do dia)
+    var pCor = concluida?'var(--t3)':diff<0?'#ef4444':diff===0?'#f97316':diff<=2?'#eab308':'#22c55e';
+    var pTxt = diff<0?'Vencido há '+Math.abs(diff)+'d':diff===0?'Hoje':diff===1?'Amanhã':'Em '+diff+'d';
     prazoHtml = '<span style="font-size:10px;color:'+pCor+';font-weight:700">📅 '+pTxt+'</span>';
   }
   return '<div style="background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:12px;margin-bottom:8px;'+(concluida?'opacity:.5':'')+'">'+
@@ -4602,12 +4662,13 @@ async function toggleTarefa(id){
   if(!t) return;
   var novoStatus = t.status==='concluida'?'pendente':'concluida';
   try{
-    await db.collection('tarefas').doc(id).update({status:novoStatus});
+    await db.collection('tarefas').doc(id).set(Object.assign({},t,{status:novoStatus,id:undefined}));
     t.status = novoStatus;
     atualizarBadgeTarefas();
     renderTarefas();
     if(novoStatus==='concluida') toast('✅ Tarefa concluída!','ok');
-  }catch(e){ toast('Erro: '+e.message,'err'); }
+    else toast('Tarefa reaberta','info');
+  }catch(e){ toast('Erro ao salvar: '+e.message,'err'); }
 }
 
 async function excluirTarefa(id){
@@ -4772,15 +4833,23 @@ function mostrarNotificacoesCalendario(alertas){
     n.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9998;background:var(--s1);border:2px solid '+cor+';border-radius:12px;padding:16px 20px;max-width:340px;box-shadow:0 8px 24px rgba(0,0,0,.5);animation:slideIn .3s ease';
     n.innerHTML =
       '<div style="display:flex;align-items:flex-start;gap:12px">'+
-        '<div style="font-size:24px">'+icone+'</div>'+
+        '<div style="font-size:28px;animation:pulse 1s infinite">'+icone+'</div>'+
         '<div style="flex:1">'+
-          '<div style="font-size:13px;font-weight:800;color:'+cor+';margin-bottom:4px">'+a.tipo.toUpperCase()+' '+msg+'</div>'+
-          '<div style="font-size:12px;color:var(--t1);font-weight:600;margin-bottom:2px">'+a.emp+'</div>'+
-          '<div style="font-size:11px;color:var(--t2);line-height:1.4">'+a.licit+'</div>'+
-          '<div style="font-size:10px;color:var(--t3);margin-top:4px">'+a.hora+'</div>'+
+          '<div style="font-size:14px;font-weight:900;color:'+cor+';margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">🚨 '+a.tipo+' '+msg+'</div>'+
+          '<div style="font-size:13px;color:var(--t1);font-weight:700;margin-bottom:4px">'+a.emp+'</div>'+
+          '<div style="font-size:12px;color:var(--t2);line-height:1.4">'+a.licit+'</div>'+
+          '<div style="font-size:11px;color:'+cor+';margin-top:6px;font-weight:600">🕐 '+a.hora+'</div>'+
         '</div>'+
-        '<button onclick="this.parentNode.parentNode.remove()" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:18px;padding:0;line-height:1">×</button>'+
+        '<button onclick="this.parentNode.parentNode.remove()" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:20px;padding:0;line-height:1">×</button>'+
       '</div>';
+    // Som de alerta (beep via Web Audio API)
+    try{
+      var ctx=new(window.AudioContext||window.webkitAudioContext)();
+      var osc=ctx.createOscillator(); var gain=ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value=880; gain.gain.value=0.3;
+      osc.start(); osc.stop(ctx.currentTime+0.3);
+    }catch(e){}
     document.body.appendChild(n);
     // Auto-remover em 30 segundos
     setTimeout(function(){ if(n.parentNode) n.remove(); }, 30000);
