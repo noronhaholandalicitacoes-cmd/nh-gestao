@@ -3133,7 +3133,9 @@ function renderCard(k,row,abs){
   var rowId=parseInt(row[0]||0);
   // ⚡ Raio — proposta cadastrada (editais e andamento)
   if(k==='editais'||k==='andamento'){
-    var _pk='proposta_'+k+'_'+rowId;
+    // Chave universal — usa licitação (col 3) para compartilhar entre editais e andamento
+    var _licitKey=String(row[3]||rowId).trim().replace(/\s+/g,'_').substring(0,40);
+    var _pk='proposta_'+_licitKey;
     var _ps=localStorage.getItem(_pk)==='1';
     h+='<button data-prop-key="'+_pk+'" onclick="event.stopPropagation();toggleProposta(this)" '+
       'title="'+(_ps?'✅ Proposta cadastrada':'Proposta não cadastrada')+'" '+
