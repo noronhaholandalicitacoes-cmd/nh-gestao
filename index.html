@@ -1076,7 +1076,7 @@ select{color-scheme:dark;}
     <div class="fg"><label>Valor Final</label><input type="text" id="a-vfin" oninput="mascaraMoeda(this)" placeholder="R$ 0,00"></div>
     <div class="fg"><label>Portal</label><select id="a-portal"><option value="">-</option><option>compras gov</option><option>BLL</option><option>LICITANET</option><option>CONLICITACAO</option><option>Outro</option></select></div>
     <div class="fg"><label>Data de Disputa</label><input type="date" id="a-disp"></div>
-    <div class="fg"><label>Classificação</label><select id="a-class"><option></option><option>1 posição</option><option>2 posição</option><option>3 posição</option><option>4 posição</option><option>5 posição</option><option>6 posição</option><option>7 posição</option><option>8 posição</option><option>9 posição</option><option>10 posição</option><option>11 posição</option><option>12 posição</option><option>13 posição</option><option>14 posição</option><option>15 posição</option><option>Desclassificado</option><option>Inabilitado</option><option>Cancelado</option><option>Não participou</option></select></div>
+    <div class="fg"><label>Classificação</label><select id="a-class"><option></option><option>1 posição</option><option>2 posição</option><option>3 posição</option><option>4 posição</option><option>5 posição</option><option>6 posição</option><option>7 posição</option><option>8 posição</option><option>9 posição</option><option>10 posição</option><option>11 posição</option><option>12 posição</option><option>13 posição</option><option>14 posição</option><option>15 posição</option><option>Proposta enviada</option><option>Desclassificado</option><option>Inabilitado</option><option>Cancelado</option><option>Não participou</option></select></div>
     <div class="fg"><label>Status</label><select id="a-status"><option value="">-</option><option>EM DISPUTA</option><option>AGUARDANDO</option><option>RECURSO</option><option>ADJUDICADO</option><option>CANCELADO</option></select></div>
     <div class="fg"><label>Reabertura</label><input type="date" id="a-reab"></div>
     <div class="fg"><label>Recurso</label><select id="a-rec"><option value="">-</option><option>sim</option><option>não</option></select></div>
@@ -2992,15 +2992,19 @@ function onSelChange(sel,k,abs,ci){
           var novaOpt=this.value.trim();
           // Salvar como opção fixa no Firebase
           await adicionarOpcaoCustom(k, ci, novaOpt);
-          saveCell(k,abs,ci,novaOpt);
-          // Atualizar o select adicionando nova opção
+          // Salvar no processo
+          if(k && abs!==undefined && ci!==undefined){
+            saveCell(k, abs, ci, novaOpt);
+          }
+          // Atualizar o select adicionando nova opção antes de "Outro"
           var opt=document.createElement('option');
           opt.value=novaOpt; opt.text=novaOpt; opt.selected=true;
           var outroOpt=sel.querySelector('option[value="Outro"]');
-          sel.insertBefore(opt, outroOpt);
+          if(outroOpt) sel.insertBefore(opt, outroOpt);
+          else sel.appendChild(opt);
           sel.value=novaOpt;
           this.remove();
-          toast('"'+novaOpt+'" adicionado às opções!','ok');
+          toast('"'+novaOpt+'" salvo e adicionado às opções!','ok');
         }
       };
       inp.onblur=function(){
@@ -3360,8 +3364,8 @@ function inlineCell(k,abs,ci,v){
     },
     andamento:{
       2:EMPS,
-      9:mkOpts('andamento',9,['','Compras Gov','BLL','LICITANET','CONLICITACAO','BNC','Publinexo','Licitanet','PE-Integrado','Compras Públicas','Apoio Cotações','Licitar Digital','Licitações-e']),
-      11:mkOpts('andamento',11,['','1 posição','2 posição','3 posição','4 posição','5 posição','6 posição','7 posição','8 posição','9 posição','10 posição','11 posição','12 posição','13 posição','14 posição','15 posição','Desclassificado','Inabilitado','Cancelado','Não participou']),
+      9:mkOpts('andamento',9,['','Compras Gov','BLL','LICITANET','CONLICITACAO','BNC','Publinexo','Licitanet','PE-Integrado','Compras Públicas','Apoio Cotações','Licitar Digital','Licitações-e','Enviada por E-mail']),
+      11:mkOpts('andamento',11,['','1 posição','2 posição','3 posição','4 posição','5 posição','6 posição','7 posição','8 posição','9 posição','10 posição','11 posição','12 posição','13 posição','14 posição','15 posição','Proposta enviada','Desclassificado','Inabilitado','Cancelado','Não participou']),
       12:mkOpts('andamento',12,['','Em andamento','Ganha','Finalizado','Suspenso','Desclassificado','Inabilitado','Cancelado','Recurso','Aguardando']),
       14:['','sim','não'],
       16:['','sim','não']
