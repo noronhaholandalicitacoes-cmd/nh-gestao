@@ -1063,8 +1063,8 @@ select{color-scheme:dark;}
     <div class="fg"><label>Local de Execução</label><input type="text" id="a-local"></div>
     <div class="fg"><label>Município / Estado</label><input type="text" id="a-mun"></div>
     <div class="fsec">Disputa</div>
-    <div class="fg"><label>Valor Estimado</label><input type="text" id="a-vest" placeholder="R$ 0,00"></div>
-    <div class="fg"><label>Valor Final</label><input type="text" id="a-vfin" placeholder="R$ 0,00"></div>
+    <div class="fg"><label>Valor Estimado</label><input type="text" id="a-vest" oninput="mascaraMoeda(this)" placeholder="R$ 0,00"></div>
+    <div class="fg"><label>Valor Final</label><input type="text" id="a-vfin" oninput="mascaraMoeda(this)" placeholder="R$ 0,00"></div>
     <div class="fg"><label>Portal</label><select id="a-portal"><option value="">-</option><option>compras gov</option><option>BLL</option><option>LICITANET</option><option>CONLICITACAO</option><option>Outro</option></select></div>
     <div class="fg"><label>Data de Disputa</label><input type="date" id="a-disp"></div>
     <div class="fg"><label>Classificação</label><select id="a-class"><option></option><option>1 posição</option><option>2 posição</option><option>3 posição</option><option>4 posição</option><option>5 posição</option><option>6 posição</option><option>7 posição</option><option>8 posição</option><option>9 posição</option><option>10 posição</option><option>11 posição</option><option>12 posição</option><option>13 posição</option><option>14 posição</option><option>15 posição</option><option>Desclassificado</option><option>Inabilitado</option><option>Cancelado</option><option>Não participou</option></select></div>
@@ -1078,7 +1078,7 @@ select{color-scheme:dark;}
       <select id="a-adju"><option value="">-</option><option>sim</option><option>não</option></select>
     </div>
     <div class="fg"><label>Concorrente 1º Colocado</label><input type="text" id="a-conc"></div>
-    <div class="fg fc"><label>Valor Final 1º Colocado</label><input type="text" id="a-vconc"></div>
+    <div class="fg fc"><label>Valor Final 1º Colocado</label><input type="text" id="a-vconc" oninput="mascaraMoeda(this)"></div>
     <div class="fg fc"><label>Link da Pasta</label><input type="url" id="a-link"></div>
   </div></div>
   <div class="mft"><button class="btn btn-ghost" onclick="closeM('andamento')">Cancelar</button><button class="btn btn-nh" onclick="doSave('andamento')" id="sb-andamento"> Salvar</button></div>
@@ -1097,7 +1097,7 @@ select{color-scheme:dark;}
     <div class="fg"><label>Local de Execução</label><input type="text" id="g-local"></div>
     <div class="fg"><label>Município / Estado</label><input type="text" id="g-mun"></div>
     <div class="fsec">Contrato</div>
-    <div class="fg"><label>Valor *</label><input type="text" id="g-valor" placeholder="R$ 0,00"></div>
+    <div class="fg"><label>Valor *</label><input type="text" id="g-valor" oninput="mascaraMoeda(this)" placeholder="R$ 0,00"></div>
     <div class="fg"><label>Contrato</label><input type="text" id="g-cont"></div>
     <div class="fg"><label>Status do Contrato</label><select id="g-stcont"><option value="">-</option><option>EM EXECUÇÃO</option><option>FINALIZADO</option><option>SUSPENSO</option><option>RESCINDIDO</option></select></div>
     <div class="fg"><label>Vigência (meses)</label><input type="number" id="g-vig"></div>
@@ -1198,7 +1198,7 @@ select{color-scheme:dark;}
     <div class="fg"><label>Categoria *</label><select id="f-cat"><option value="">Selecione...</option><option>IAs</option><option>Portais</option><option>Telefonia</option><option>Informatica</option><option>Outros</option></select></div>
     <div class="fg fc"><label>Descrição *</label><input type="text" id="f-desc" placeholder="Ex: Assinatura Claude.ai"></div>
     <div class="fg"><label>Fornecedor</label><input type="text" id="f-forn" placeholder="Ex: Claude.ai"></div>
-    <div class="fg"><label>Valor Gasto *</label><input type="text" id="f-valor" placeholder="R$ 0,00"></div>
+    <div class="fg"><label>Valor Gasto *</label><input type="text" id="f-valor" oninput="mascaraMoeda(this)" placeholder="R$ 0,00"></div>
     <div class="fg"><label>Status</label><select id="f-status"><option value="">-</option><option>Pago</option><option>Pendente</option><option>Atrasado</option></select></div>
     <div class="fg"><label>Conta</label><select id="f-conta"><option value="">-</option><option>Banco Inter</option><option>Banco do Brasil</option><option>Caixa</option><option>Outros</option></select></div>
     <div class="fg fc"><label>Observações</label><textarea id="f-obs"></textarea></div>
@@ -2284,36 +2284,63 @@ function rcRows(items,cls){
   }).join('');
 }
 
-function fmtVal(v){
-  if(v>=1000000) return 'R$ '+(v/1000000).toFixed(2).replace('.',',')+'M';
-  if(v>=1000) return 'R$ '+(v/1000).toFixed(1).replace('.',',')+'K';
-  return 'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-}
-function fmtValBR(s){
-  if(!s) return '';
-  var raw=String(s).replace(/R\$\s*/g,'').trim();
-  if(!raw) return '';
-  var n;
-  if(raw.indexOf(',')!==-1){
-    // formato BR: 1.576.613,40
-    n=parseFloat(raw.replace(/\./g,'').replace(',','.'));
+// ── Funções centralizadas de valor ──────────────────────────
+// Converte qualquer string de valor para número
+function parseMoeda(v){
+  if(typeof v==='number') return isNaN(v)?0:v;
+  var s = String(v||'').replace(/R\$\s*/g,'').replace(/\s/g,'').trim();
+  if(!s) return 0;
+  // Formato BR: 1.250.000,50 ou 1250000,50
+  if(s.indexOf(',')!==-1){
+    s = s.replace(/\./g,'').replace(',','.');
   } else {
-    // formato US ou sem separador: 1576613.4
-    n=parseFloat(raw.replace(/[^\d.]/g,''));
+    // Formato US: 1250000.50 ou sem decimais: 1250000
+    s = s.replace(/[^\d.]/g,'');
   }
-  if(!n||isNaN(n)) return s;
+  var n = parseFloat(s);
+  return (isNaN(n)||n<0) ? 0 : n;
+}
+
+// Formata número para R$ 1.250.000,00
+function fmtMoeda(n){
+  if(typeof n==='string') n = parseMoeda(n);
+  if(!n||isNaN(n)) return 'R$ 0,00';
   return 'R$ '+n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 }
 
+// Formata qualquer string de valor para padrão BR
+function fmtValBR(s){
+  if(!s) return '';
+  var n = parseMoeda(s);
+  if(!n) return s;
+  return fmtMoeda(n);
+}
+
+// Versão resumida para o resumo (K/M)
+function fmtVal(v){
+  if(typeof v==='string') v=parseMoeda(v);
+  if(!v||isNaN(v)) return 'R$ 0,00';
+  return 'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+// Aplica máscara monetária em tempo real num input
+function mascaraMoeda(el){
+  var s = el.value.replace(/\D/g,'');
+  if(!s){ el.value=''; return; }
+  var n = parseInt(s,10)/100;
+  el.value = 'R$ '+n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+// Valida se valor está no formato correto — retorna número ou null
+function validarMoeda(s){
+  if(!s||!String(s).trim()) return 0; // vazio é permitido
+  var n = parseMoeda(s);
+  if(n===0 && String(s).trim()!=='' && String(s).replace(/R\$\s*/,'').trim()!=='0,00') return null;
+  return n;
+}
+
 function calcValorGanhas(r){
-  function parseV(v){
-    if(typeof v==='number') return v>0?v:0;
-    var s=String(v||'').replace(/R\$/g,'').replace(/\s/g,'').trim();
-    if(!s) return 0;
-    if(s.indexOf(',')!==-1) s=s.replace(/\./g,'').replace(',','.');
-    var n=parseFloat(s);
-    return (isNaN(n)||n<=0)?0:n;
-  }
+  function parseV(v){ return parseMoeda(v); }
   // Pegar último Valor Final preenchido: Recomp 4(40) → 3(33) → 2(26) → 1(19) → Valor original(7)
   var idxs=[40,33,26,19];
   for(var i=0;i<idxs.length;i++){
@@ -2390,8 +2417,8 @@ function buildResumo(){
     var e=String(r[2]||'').trim();
     if(!e) return;
     // Pegar valor final (idx 8) ou valor estimado (idx 7)
-    var vf=parseFloat(String(r[8]||'').replace(/[^\d,.]/g,'').replace(',','.'))||0;
-    var ve=parseFloat(String(r[7]||'').replace(/[^\d,.]/g,'').replace(',','.'))||0;
+    var vf=parseMoeda(r[8]);
+    var ve=parseMoeda(r[7]);
     empValGanhos[e]=(empValGanhos[e]||0)+(vf||ve);
   });
   TODAS_EMPS.forEach(function(e){if(!empValGanhos[e]) empValGanhos[e]=0;});
@@ -3377,6 +3404,12 @@ var _saveTimer={};
 function saveCell(k,rowIdx,ci,val){
   var protectedCols={finalizados:'all'};
   if(protectedCols[k]==='all'){toast('Aba Finalizados é somente leitura','err');return;}
+  // Normalizar valor monetário
+  var camposMoeda={andamento:[7,8,18],ganhas:[7,19,26,33,40],financeiro:[3]};
+  if(camposMoeda[k]&&camposMoeda[k].indexOf(ci)!==-1&&val){
+    var nVal=parseMoeda(val);
+    if(nVal>0) val=fmtMoeda(nVal);
+  }
 
   // ── Atualização imediata na memória (otimista) ──
   var row=FIL[k][rowIdx].slice();
@@ -3847,10 +3880,10 @@ function doEdit(k,idx){
   EROW[k]=idx;
   document.getElementById('mht-'+k).textContent='Editar Registro';
   if(k==='editais'){setv('e-data',row[1]);setv('e-empresa',row[2]);setv('e-licit',row[3]);setv('e-objeto',row[4]);setv('e-local',row[5]);setv('e-mun',row[6]);setv('e-valor',row[7]);setv('e-prior',row[8]);setv('e-resp',row[9]);setv('e-part',row[10]);setv('e-viab',row[11]);setv('e-just',row[12]);setv('e-link',row[13]);}
-  else if(k==='andamento'){setv('a-data',row[1]);setv('a-emp',row[2]);setv('a-licit',row[3]);setv('a-obj',row[4]);setv('a-local',row[5]);setv('a-mun',row[6]);setv('a-vest',row[7]);setv('a-vfin',row[8]);setv('a-portal',row[9]);setv('a-disp',row[10]);setv('a-class',row[11]);setv('a-status',row[12]);setv('a-reab',row[13]);setv('a-rec',row[14]);setv('a-resumo',row[15]);setv('a-adju',row[16]);setv('a-conc',row[17]);setv('a-vconc',row[18]);setv('a-link',row[19]);}
+  else if(k==='andamento'){setv('a-data',row[1]);setv('a-emp',row[2]);setv('a-licit',row[3]);setv('a-obj',row[4]);setv('a-local',row[5]);setv('a-mun',row[6]);setv('a-vest',fmtValBR(row[7]));setv('a-vfin',fmtValBR(row[8]));setv('a-portal',row[9]);setv('a-disp',row[10]);setv('a-class',row[11]);setv('a-status',row[12]);setv('a-reab',row[13]);setv('a-rec',row[14]);setv('a-resumo',row[15]);setv('a-adju',row[16]);setv('a-conc',row[17]);setv('a-vconc',row[18]);setv('a-link',row[19]);}
   else if(k==='ganhas'){
     setv('g-data',row[1]);setv('g-emp',row[2]);setv('g-licit',row[3]);setv('g-obj',row[4]);
-    setv('g-local',row[5]);setv('g-mun',row[6]);setv('g-valor',row[7]);setv('g-cont',row[8]);
+    setv('g-local',row[5]);setv('g-mun',row[6]);setv('g-valor',fmtValBR(row[7]));setv('g-cont',row[8]);
     setv('g-stcont',row[9]);setv('g-vig',row[10]);setv('g-dtcont',row[11]);setv('g-venc',row[12]);
     // Recomp 1
     setv('g-recomp',row[13]);setv('g-trecomp',row[14]);setv('g-strecomp',row[15]);
@@ -3914,7 +3947,11 @@ async function doSave(k){
     var aid=origRow?origRow[0]:'';
     var adata=sv('a-data'); if(adata&&adata.indexOf('-')!==-1) adata=formatDateBR(adata);
     if(!adata&&origRow) adata=origRow[1]||'';
-    vals=[aid,adata,sv('a-emp'),sv('a-licit'),sv('a-obj'),sv('a-local'),sv('a-mun'),sv('a-vest'),sv('a-vfin'),sv('a-portal'),sv('a-disp'),sv('a-class'),sv('a-status'),sv('a-reab'),sv('a-rec'),sv('a-resumo'),sv('a-adju'),sv('a-conc'),sv('a-vconc'),sv('a-link')];
+    var _vest=sv('a-vest'),_vfin=sv('a-vfin'),_vconc=sv('a-vconc');
+    vals=[aid,adata,sv('a-emp'),sv('a-licit'),sv('a-obj'),sv('a-local'),sv('a-mun'),
+      fmtValBR(_vest)||_vest, fmtValBR(_vfin)||_vfin,
+      sv('a-portal'),sv('a-disp'),sv('a-class'),sv('a-status'),sv('a-reab'),sv('a-rec'),sv('a-resumo'),sv('a-adju'),sv('a-conc'),
+      fmtValBR(_vconc)||_vconc, sv('a-link')];
   }
   else if(k==='ganhas'){
     var gid=origRow?origRow[0]:'';
