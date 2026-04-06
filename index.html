@@ -3130,6 +3130,7 @@ function renderCard(k,row,abs){
   if(k==='editais'||k==='ganhas'||k==='atestados'||k==='financeiro'){
     h+='<button class="btn-edit-card" onclick="event.stopPropagation();openEditCard(\''+k+'\','+abs+')" title="Editar">✏</button>';
   }
+  var rowId=parseInt(row[0]||0);
   // ⚡ Raio — proposta cadastrada (editais e andamento)
   if(k==='editais'||k==='andamento'){
     var _pk='proposta_'+k+'_'+rowId;
