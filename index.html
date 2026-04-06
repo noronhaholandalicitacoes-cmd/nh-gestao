@@ -3466,12 +3466,22 @@ async function syncEntreAbas(k, ci, row){
   }
 
   if(k === 'andamento'){
-    // ADJU mudou para SIM → copiar para finalizados
-    if(ci === 16 && adju === 'sim'){
+    var adjuAtual = String(row[16]||'').toLowerCase().trim();
+    var clasAtual = String(row[11]||'').trim();
+    var isGanho   = adjuAtual==='sim' && is1Posicao(clasAtual);
+
+    // ADJU mudou → copiar para finalizados
+    if(ci === 16 && adjuAtual === 'sim'){
       await copiarParaFinalizados(row);
     }
-    // ADJU mudou para NÃO → remover de finalizados se existir
-    if(ci === 16 && adju !== 'sim'){
+    // Classificação ou ADJU mudou → verificar se é processo ganho
+    if(ci === 16 || ci === 11){
+      if(isGanho){
+        await criarLicitacaoGanha(row);
+      }
+    }
+    // ADJU mudou para NÃO → remover de finalizados
+    if(ci === 16 && adjuAtual !== 'sim'){
       var rowId = parseInt(row[0]);
       var fiIdx = ALL['finalizados'].findIndex(function(r){ return parseInt(r[0])===rowId; });
       if(fiIdx !== -1){
@@ -3482,6 +3492,48 @@ async function syncEntreAbas(k, ci, row){
         if(bf) bf.textContent = FIL['finalizados'].length;
       }
     }
+  }
+}
+
+
+async function criarLicitacaoGanha(andRow){
+  try{
+    var rowId = parseInt(andRow[0]);
+    // Verificar se já existe em ganhas (pelo ID do processo de andamento)
+    var jaExiste = ALL['ganhas'].some(function(r){
+      return String(r[3]||'').trim().toLowerCase() === String(andRow[3]||'').trim().toLowerCase()
+          && String(r[2]||'').trim() === String(andRow[2]||'').trim();
+    });
+    if(jaExiste){
+      console.log('Licitação já existe em Ganhas:', andRow[3]);
+      return;
+    }
+    // Criar novo registro em ganhas copiando campos do processo
+    var novoId = await fbGetNextId('ganhas');
+    // Estrutura ganhas: 0=ID,1=Data,2=Empresa,3=Licitação,4=Objeto,5=Local,6=Município,7=Valor,8=Contrato,9=StatusContrato,...
+    var novaRow = [];
+    while(novaRow.length < 43) novaRow.push('');
+    novaRow[0]  = novoId;
+    novaRow[1]  = andRow[1]||'';   // Data
+    novaRow[2]  = andRow[2]||'';   // Empresa
+    novaRow[3]  = andRow[3]||'';   // Licitação
+    novaRow[4]  = andRow[4]||'';   // Objeto
+    novaRow[5]  = andRow[5]||'';   // Local
+    novaRow[6]  = andRow[6]||'';   // Município
+    novaRow[7]  = andRow[8]||andRow[7]||''; // Valor Final ou Est.
+    novaRow[9]  = 'EM EXECUÇÃO';   // Status Contrato padrão
+    await fbSave('ganhas', novoId, novaRow);
+    ALL['ganhas'].push(novaRow);
+    FIL['ganhas'] = ALL['ganhas'].slice();
+    // Atualizar badge
+    var bg = document.getElementById('b-ganhas');
+    if(bg) bg.textContent = FIL['ganhas'].length;
+    // Re-renderizar se estiver na aba ganhas
+    if(CUR==='ganhas') renderTbl('ganhas');
+    toast('✅ Processo adicionado em Licitações Ganhas!','ok');
+  }catch(e){
+    console.error('criarLicitacaoGanha error:',e);
+    toast('Erro ao criar em Ganhas: '+e.message,'err');
   }
 }
 
@@ -3908,8 +3960,10 @@ async function doSave(k){
       }
     }
     if(k==='andamento'){
-      var adju=String(vals[16]||'').toLowerCase().trim();
-      if(adju==='sim') await copiarParaFinalizados(vals);
+      var adju2=String(vals[16]||'').toLowerCase().trim();
+      var clas2=String(vals[11]||'').trim();
+      if(adju2==='sim') await copiarParaFinalizados(vals);
+      if(adju2==='sim' && is1Posicao(clas2)) await criarLicitacaoGanha(vals);
     }
 
     btn.disabled=false;btn.textContent='Salvar';
