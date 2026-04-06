@@ -3151,6 +3151,7 @@ function renderCard(k,row,abs){
       '<svg width="13" height="13" viewBox="0 0 24 24" fill="'+(_ca?'#3b82f6':'#aaa')+'" stroke="none"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>'+
     '</button>';
   }
+  h+='<span style="width:1px;height:14px;background:var(--b1);display:inline-block;margin:0 4px"></span>';
   h+='<button class="btn-del" onclick="event.stopPropagation();doDel(\''+k+'\','+abs+')" title="Excluir">✕</button>';
   h+='<button class="btn-toggle-card" onclick="event.stopPropagation();document.getElementById(\''+cardId+'\').classList.toggle(\'collapsed\')" title="Expandir/Recolher">&#8964;</button>';
   h+='</div>';
@@ -4574,9 +4575,11 @@ function renderTarefaCard(t, hoje){
           prazoHtml+
         '</div>'+
       '</div>'+
-      '<div style="display:flex;gap:4px;flex-shrink:0">'+
-        '<button data-tid-edit="'+t.id+'" class="tar-btn-edit" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px;padding:2px" title="Editar">✏</button>'+
-        '<button data-tid-del="'+t.id+'" class="tar-btn-del" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:14px;padding:2px" title="Excluir">✕</button>'+
+      '<div style="display:flex;gap:6px;flex-shrink:0;align-items:center">'+
+        '<button class="tar-btn-edit" data-tid-edit="'+t.id+'" '+
+          'style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);color:#3b82f6;cursor:pointer;font-size:11px;padding:3px 8px;border-radius:6px;font-family:Outfit,sans-serif" title="Editar">✏ Editar</button>'+
+        '<button class="tar-btn-del" data-tid-del="'+t.id+'" '+
+          'style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#ef4444;cursor:pointer;font-size:11px;padding:3px 8px;border-radius:6px;font-family:Outfit,sans-serif" title="Excluir">✕</button>'+
       '</div>'+
     '</div>'+
   '</div>';
@@ -4663,7 +4666,8 @@ async function toggleTarefa(id){
   if(!t) return;
   var novoStatus = t.status==='concluida'?'pendente':'concluida';
   try{
-    await db.collection('tarefas').doc(id).set(Object.assign({},t,{status:novoStatus,id:undefined}));
+    var dadosSalvar = {titulo:t.titulo,desc:t.desc,empresa:t.empresa,prioridade:t.prioridade,prazo:t.prazo,notif:t.notif,_criado:t._criado,status:novoStatus};
+    await db.collection('tarefas').doc(id).set(dadosSalvar);
     t.status = novoStatus;
     atualizarBadgeTarefas();
     renderTarefas();
@@ -4919,14 +4923,28 @@ function buscaGlobal(q){
   });
 }
 
-// Event delegation para empresas no sidebar e cores
+// Event delegation global — tarefas + empresas + cores
+document.addEventListener('change',function(e){
+  if(e.target.classList.contains('tar-check')){
+    toggleTarefa(e.target.getAttribute('data-tid'));
+  }
+});
+
 document.addEventListener('click',function(e){
+  // Editar tarefa
+  var btnEdit = e.target.closest('.tar-btn-edit');
+  if(btnEdit){ e.stopPropagation(); editarTarefa(btnEdit.getAttribute('data-tid-edit')); return; }
+  // Excluir tarefa
+  var btnDel2 = e.target.closest('.tar-btn-del');
+  if(btnDel2){ e.stopPropagation(); excluirTarefa(btnDel2.getAttribute('data-tid-del')); return; }
+  // Empresa no sidebar
   var empItem = e.target.closest('[data-emp]');
   if(empItem){
     var nome = empItem.getAttribute('data-emp');
     go('emp-'+nome, empItem);
     return;
   }
+  // Cor de empresa
   var corOpt = e.target.closest('.emp-cor-opt');
   if(corOpt){
     var ci = parseInt(corOpt.getAttribute('data-ci'));
