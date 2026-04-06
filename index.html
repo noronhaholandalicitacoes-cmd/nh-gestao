@@ -1011,9 +1011,17 @@ select{color-scheme:dark;}
         </div>
         <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr)"></div>
       </div>
-      <!-- Lista de eventos do mês -->
+      <!-- Lista semanal de eventos -->
       <div style="margin-top:20px">
-        <div style="font-size:13px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px">Disputas e Reaberturas do Mês</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+          <div style="font-size:13px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.1em" id="cal-lista-titulo">Disputas e Reaberturas da Semana</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button onclick="calSemana(-1)" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:13px">‹</button>
+            <span id="cal-semana-label" style="font-size:12px;color:var(--t2);min-width:160px;text-align:center"></span>
+            <button onclick="calSemana(1)" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:13px">›</button>
+            <button onclick="calSemanaHoje()" style="background:var(--s2);border:1px solid var(--b1);color:var(--t3);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px">Hoje</button>
+          </div>
+        </div>
         <div id="cal-lista"></div>
       </div>
     </div>
@@ -4255,6 +4263,12 @@ window.addEventListener('load',function(){
 // ══ CALENDÁRIO ══════════════════════════════════════════════
 var _calAno = new Date().getFullYear();
 var _calMes = new Date().getMonth();
+// Semana — início (domingo) da semana atual
+var _calSemanaInicio = (function(){
+  var d = new Date(); d.setHours(0,0,0,0);
+  d.setDate(d.getDate() - d.getDay()); // domingo
+  return d;
+})();
 
 var MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 var EMPCORES = {VISE:'#eab308',SAUTEC:'#3b82f6',SOS:'#22c55e','SOS FILIAL':'#ef4444',ONLAV:'#10b981',ENGEMED:'#ec4899',POTIGUAR:'#f97316'};
@@ -4271,6 +4285,105 @@ function calHoje(){
   _calAno = h.getFullYear();
   _calMes = h.getMonth();
   renderCalendario();
+}
+
+function calSemana(delta){
+  _calSemanaInicio = new Date(_calSemanaInicio);
+  _calSemanaInicio.setDate(_calSemanaInicio.getDate() + delta*7);
+  renderListaSemanal();
+}
+
+function calSemanaHoje(){
+  _calSemanaInicio = new Date(); _calSemanaInicio.setHours(0,0,0,0);
+  _calSemanaInicio.setDate(_calSemanaInicio.getDate() - _calSemanaInicio.getDay());
+  renderListaSemanal();
+}
+
+function renderListaSemanal(){
+  var fim = new Date(_calSemanaInicio);
+  fim.setDate(fim.getDate()+6); fim.setHours(23,59,59,0);
+  var inicio = new Date(_calSemanaInicio);
+
+  // Label da semana
+  var label = document.getElementById('cal-semana-label');
+  if(label){
+    var d1=inicio.getDate()+'/'+(inicio.getMonth()+1);
+    var d2=fim.getDate()+'/'+(fim.getMonth()+1)+'/'+fim.getFullYear();
+    label.textContent = d1+' — '+d2;
+  }
+
+  // Filtrar eventos da semana de todos os meses
+  var an = ALL['andamento']||[];
+  var eventos = [];
+  an.forEach(function(r){
+    var emp=String(r[2]||'').trim();
+    var licit=String(r[3]||'').trim();
+    var obj=String(r[4]||'').trim();
+    var local=String(r[5]||'').trim();
+    var mun=String(r[6]||'').trim();
+    var resumo=String(r[15]||'').trim();
+    var portal=String(r[9]||'').trim();
+    var vest=String(r[7]||'').trim();
+    var dataDisp=String(r[10]||'').trim();
+    var dataReab=String(r[13]||'').trim();
+
+    function checar(ds, tipo){
+      var d=parseDataCal(ds);
+      if(!d) return;
+      d.setHours(0,0,0,0);
+      if(d>=inicio && d<=fim){
+        eventos.push({tipo:tipo,data:d,dia:d.getDate(),emp:emp,licit:licit,hora:ds,obj:obj,local:local,mun:mun,resumo:resumo,portal:portal,vest:vest});
+      }
+    }
+    checar(dataDisp,'disputa');
+    checar(dataReab,'reabertura');
+  });
+  eventos.sort(function(a,b){return a.data-b.data;});
+  window._calEventos = eventos;
+
+  var lista = document.getElementById('cal-lista');
+  if(!lista) return;
+
+  if(!eventos.length){
+    lista.innerHTML='<div style="color:var(--t3);font-size:13px;padding:20px;text-align:center;background:var(--s2);border-radius:8px;border:1px solid var(--b1)">Nenhum evento nesta semana</div>';
+    return;
+  }
+
+  var hoje2=new Date(); hoje2.setHours(0,0,0,0);
+  lista.innerHTML = eventos.map(function(e,i){
+    var cor=e.tipo==='disputa'?'#f97316':'#3b82f6';
+    var empCor=EMPCORES[e.emp]||'#888';
+    var icone=e.tipo==='disputa'?'⚡':'🔄';
+    var gcLink=criarLinkGoogleCal(e);
+    var isHoje=e.data.getTime()===hoje2.getTime();
+    var borda=isHoje?'border:2px solid '+cor+';':'border:1px solid var(--b1);border-left:4px solid '+cor+';';
+    var diasSemana=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    var diaSem=diasSemana[e.data.getDay()];
+    return '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--s2);'+borda+'border-radius:8px;margin-bottom:8px">'+
+      '<div style="min-width:48px;text-align:center;cursor:pointer" onclick="mostrarPreviewEvento('+i+')">'+
+        '<div style="font-size:10px;color:'+cor+';font-weight:700;text-transform:uppercase">'+diaSem+'</div>'+
+        '<div style="font-size:22px;font-weight:800;color:'+(isHoje?cor:'var(--t1)')+';line-height:1">'+e.dia+'</div>'+
+      '</div>'+
+      '<div style="flex:1;overflow:hidden;cursor:pointer" onclick="mostrarPreviewEvento('+i+')">'+
+        '<div style="font-size:11px;color:'+cor+';font-weight:700;text-transform:uppercase">'+icone+' '+e.tipo+(isHoje?' · HOJE':'')+'</div>'+
+        '<div style="font-size:13px;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.licit.substring(0,60)+'</div>'+
+        '<div style="font-size:11px;margin-top:2px;display:flex;gap:8px">'+
+          '<span style="color:'+empCor+';font-weight:600">'+e.emp+'</span>'+
+          (e.portal?'<span style="color:var(--t3)">· '+e.portal+'</span>':'')+
+        '</div>'+
+        (e.resumo?'<div style="font-size:11px;color:var(--t3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.resumo+'</div>':'')+
+      '</div>'+
+      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">'+
+        '<div style="font-size:11px;color:var(--t3)">'+String(e.hora).substring(0,16)+'</div>'+
+        (isEventoSalvo(e)
+          ? '<span style="background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">✅ Salvo</span>'
+          : '<a href="'+gcLink+'" target="_blank" onclick="marcarSalvoEAtualizar('+i+')" '+
+            'style="background:#22c55e;color:#000;text-decoration:none;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;white-space:nowrap">📅 Salvar</a>')+
+        '<button data-exc-emp="'+encodeURIComponent(e.emp)+'" data-exc-licit="'+encodeURIComponent(e.licit.substring(0,40))+'" data-exc-tipo="'+e.tipo+'" class="cal-excluir-btn" '+
+          'style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#ef4444;font-size:10px;padding:3px 8px;border-radius:6px;cursor:pointer;font-family:Outfit,sans-serif">✕ Excluir</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
 }
 
 function parseDataCal(s){
@@ -4420,6 +4533,8 @@ function renderCalendario(){
   // Atualizar badge do sidebar com total do mês atual
   var b = document.getElementById('b-calendario');
   if(b) b.textContent = eventos.length || '—';
+  // Atualizar lista semanal
+  renderListaSemanal();
 }
 
 // Chave única por evento para marcar como salvo
@@ -4715,6 +4830,27 @@ function verificarNotificacoesTarefas(){
 }
 
 
+async function excluirEventoCal(emp, licitParcial, tipo){
+  if(!confirm('Excluir este evento do calendário?\nIsso vai limpar a data de '+tipo+' do processo.')) return;
+  // Encontrar processo em andamento
+  var idx = ALL['andamento'].findIndex(function(r){
+    return String(r[2]||'').trim()===emp &&
+           String(r[3]||'').trim().toLowerCase().indexOf(licitParcial.toLowerCase())!==-1;
+  });
+  if(idx===-1){ toast('Processo não encontrado','err'); return; }
+  var row = ALL['andamento'][idx].slice();
+  var rowId = parseInt(row[0]);
+  // Limpar campo: disputa=índice 10, reabertura=índice 13
+  if(tipo==='disputa') row[10]='';
+  else row[13]='';
+  await fbSave('andamento', rowId, row);
+  ALL['andamento'][idx]=row;
+  FIL['andamento']=ALL['andamento'].slice();
+  toast('Evento removido!','ok');
+  renderListaSemanal();
+  renderCalendario();
+}
+
 function fecharPreviewCal(){
   var p = document.getElementById('cal-preview');
   if(p) p.remove();
@@ -4867,6 +5003,7 @@ var _calInited = false;
 function initCalendario(){
   if(!_calInited){ _calInited=true; }
   renderCalendario();
+  renderListaSemanal();
   iniciarNotificacoesCalendario();
 }
 
@@ -4928,6 +5065,18 @@ function buscaGlobal(q){
 document.addEventListener('change',function(e){
   if(e.target.classList.contains('tar-check')){
     toggleTarefa(e.target.getAttribute('data-tid'));
+  }
+});
+
+document.addEventListener('click',function(e){
+  var excBtn = e.target.closest('.cal-excluir-btn');
+  if(excBtn){
+    e.stopPropagation();
+    var emp = decodeURIComponent(excBtn.getAttribute('data-exc-emp'));
+    var licit = decodeURIComponent(excBtn.getAttribute('data-exc-licit'));
+    var tipo = excBtn.getAttribute('data-exc-tipo');
+    excluirEventoCal(emp, licit, tipo);
+    return;
   }
 });
 
