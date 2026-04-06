@@ -3474,10 +3474,28 @@ async function syncEntreAbas(k, ci, row){
     if(ci === 16 && adjuAtual === 'sim'){
       await copiarParaFinalizados(row);
     }
-    // Classificação ou ADJU mudou → verificar se é processo ganho
+    // Classificação ou ADJU mudou → criar ou remover de Licitações Ganhas
     if(ci === 16 || ci === 11){
       if(isGanho){
         await criarLicitacaoGanha(row);
+      } else {
+        // Não é mais ganho — remover de Licitações Ganhas se existir
+        var licitNorm = String(row[3]||'').trim().toLowerCase();
+        var empNorm   = String(row[2]||'').trim();
+        var gaIdx = ALL['ganhas'].findIndex(function(r){
+          return String(r[3]||'').trim().toLowerCase()===licitNorm
+              && String(r[2]||'').trim()===empNorm;
+        });
+        if(gaIdx !== -1){
+          var gaId = parseInt(ALL['ganhas'][gaIdx][0]);
+          await fbDelete('ganhas', gaId);
+          ALL['ganhas'].splice(gaIdx, 1);
+          FIL['ganhas'] = ALL['ganhas'].slice();
+          var bga = document.getElementById('b-ganhas');
+          if(bga) bga.textContent = FIL['ganhas'].length;
+          if(CUR==='ganhas') renderTbl('ganhas');
+          toast('Removido de Licitações Ganhas','info');
+        }
       }
     }
     // ADJU mudou para NÃO → remover de finalizados
@@ -3962,8 +3980,27 @@ async function doSave(k){
     if(k==='andamento'){
       var adju2=String(vals[16]||'').toLowerCase().trim();
       var clas2=String(vals[11]||'').trim();
+      var isGanho2 = adju2==='sim' && is1Posicao(clas2);
       if(adju2==='sim') await copiarParaFinalizados(vals);
-      if(adju2==='sim' && is1Posicao(clas2)) await criarLicitacaoGanha(vals);
+      if(isGanho2){
+        await criarLicitacaoGanha(vals);
+      } else {
+        // Remover de ganhas se existir
+        var lN = String(vals[3]||'').trim().toLowerCase();
+        var eN = String(vals[2]||'').trim();
+        var gI = ALL['ganhas'].findIndex(function(r){
+          return String(r[3]||'').trim().toLowerCase()===lN && String(r[2]||'').trim()===eN;
+        });
+        if(gI !== -1){
+          var gId = parseInt(ALL['ganhas'][gI][0]);
+          await fbDelete('ganhas', gId);
+          ALL['ganhas'].splice(gI, 1);
+          FIL['ganhas'] = ALL['ganhas'].slice();
+          var bgx = document.getElementById('b-ganhas');
+          if(bgx) bgx.textContent = FIL['ganhas'].length;
+          toast('Removido de Licitações Ganhas','info');
+        }
+      }
     }
 
     btn.disabled=false;btn.textContent='Salvar';
