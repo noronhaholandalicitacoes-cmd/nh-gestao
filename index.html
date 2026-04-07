@@ -3177,6 +3177,27 @@ function renderCard(k,row,abs){
       '<svg width="16" height="16" viewBox="0 0 24 24" fill="'+(_ca?'#3b82f6':'#aaa')+'" stroke="none"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>'+
     '</button>';
   }
+  // 📄 Contrato e 📋 Aditivo — só em ganhas
+  if(k==='ganhas'){
+    var _contKey='contrato_'+rowId;
+    var _contAtivo=localStorage.getItem(_contKey)==='1';
+    h+='<button data-cont-key="'+_contKey+'" onclick="event.stopPropagation();toggleContrato(this)" '+
+      'title="'+(_contAtivo?'✅ Contrato assinado':'Contrato não assinado')+'" '+
+      'style="background:none;border:none;cursor:pointer;padding:2px 3px;line-height:1;opacity:'+(_contAtivo?'1':'.3')+'">'+
+      '<svg width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\''+(_contAtivo?'#22c55e':'#aaa')+'\'  stroke-width=\'2\'>'+
+        '<path stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z\'/>'+
+      '</svg>'+
+    '</button>';
+    var _aditKey='aditivo_'+rowId;
+    var _aditAtivo=localStorage.getItem(_aditKey)==='1';
+    h+='<button data-adit-key="'+_aditKey+'" onclick="event.stopPropagation();toggleAditivo(this)" '+
+      'title="'+(_aditAtivo?'✅ Aditivo registrado':'Aditivo não registrado')+'" '+
+      'style="background:none;border:none;cursor:pointer;padding:2px 3px;line-height:1;opacity:'+(_aditAtivo?'1':'.3')+'">'+
+      '<svg width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\''+(_aditAtivo?'#a78bfa':'#aaa')+'\'  stroke-width=\'2\'>'+
+        '<path stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z\'/>'+
+      '</svg>'+
+    '</button>';
+  }
   h+='<span style="width:1px;height:18px;background:var(--b1);display:inline-block;margin:0 8px"></span>';
   h+='<button class="btn-del" onclick="event.stopPropagation();doDel(\''+k+'\','+abs+')" title="Excluir">✕</button>';
   h+='</div>';
@@ -3804,6 +3825,28 @@ async function confirmarEmpresas(){
   if(btn){btn.disabled=false; btn.textContent='Salvar Alterações';}
 }
 
+
+function toggleContrato(btn){
+  var key = btn.getAttribute('data-cont-key');
+  var novo = localStorage.getItem(key)!=='1';
+  localStorage.setItem(key, novo?'1':'0');
+  btn.style.opacity = novo?'1':'.3';
+  btn.title = novo?'✅ Contrato assinado':'Contrato não assinado';
+  var path = btn.querySelector('svg');
+  if(path) path.style.stroke = novo?'#22c55e':'#aaa';
+  toast(novo?'📄 Contrato marcado!':'Contrato desmarcado','ok');
+}
+
+function toggleAditivo(btn){
+  var key = btn.getAttribute('data-adit-key');
+  var novo = localStorage.getItem(key)!=='1';
+  localStorage.setItem(key, novo?'1':'0');
+  btn.style.opacity = novo?'1':'.3';
+  btn.title = novo?'✅ Aditivo registrado':'Aditivo não registrado';
+  var svg = btn.querySelector('svg');
+  if(svg) svg.style.stroke = novo?'#a78bfa':'#aaa';
+  toast(novo?'📋 Aditivo marcado!':'Aditivo desmarcado','ok');
+}
 
 function toggleProposta(btn){
   var key = btn.getAttribute('data-prop-key');
