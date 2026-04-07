@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<link rel="manifest" href="manifest-viabilidade.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NH Viabilidade">
+<meta name="theme-color" content="#f97316">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f0f0f">
+<title>NH Licitações — Viabilidade</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:#0f0f0f;color:#e5e5e5;min-height:100vh}
+
+/* Header */
+.header{background:#1a1a1a;border-bottom:1px solid #2a2a2a;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#f97316,#ea580c);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;color:#000}
+.logo-text{font-size:15px;font-weight:800;color:#f97316}
+.logo-sub{font-size:11px;color:#555;margin-top:1px}
+.badge-pend{background:rgba(249,115,22,.15);color:#f97316;border:1px solid rgba(249,115,22,.3);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700}
+
+/* Filtros */
+.filtros{padding:16px 16px 0;display:flex;gap:8px;flex-wrap:wrap;overflow-x:auto;scrollbar-width:none}
+.filtros::-webkit-scrollbar{display:none}
+.f-btn{background:#1a1a1a;border:1px solid #2a2a2a;color:#888;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:Outfit,sans-serif;transition:all .15s}
+.f-btn.on{background:rgba(249,115,22,.15);border-color:rgba(249,115,22,.4);color:#f97316}
+
+/* Stats bar */
+.stats{display:flex;gap:12px;padding:16px;overflow-x:auto;scrollbar-width:none}
+.stats::-webkit-scrollbar{display:none}
+.stat{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:10px 16px;min-width:90px;text-align:center;flex-shrink:0}
+.stat-n{font-size:22px;font-weight:800;line-height:1}
+.stat-l{font-size:10px;color:#666;margin-top:2px;text-transform:uppercase;letter-spacing:.05em}
+
+/* Cards */
+.cards{padding:0 16px 100px;display:flex;flex-direction:column;gap:12px}
+.card{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:14px;overflow:hidden;transition:all .2s}
+.card.sim{border-color:rgba(34,197,94,.4)}
+.card.nao{border-color:rgba(239,68,68,.4)}
+.card.analise{border-color:rgba(234,179,8,.4)}
+
+/* Barra colorida do topo do card */
+.card-bar{height:3px}
+.card.sim .card-bar{background:#22c55e}
+.card.nao .card-bar{background:#ef4444}
+.card.analise .card-bar{background:#eab308}
+.card-bar{background:#2a2a2a}
+
+.card-head{padding:14px 14px 10px;display:flex;align-items:flex-start;gap:10px}
+.card-emp{font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;letter-spacing:.05em;flex-shrink:0}
+.card-num{font-size:11px;color:#555;flex-shrink:0;margin-top:1px}
+
+/* ANTUNES E NORONHA destaque */
+.tag-an{background:linear-gradient(135deg,#f97316,#ea580c);color:#000;font-size:10px;font-weight:900;padding:2px 8px;border-radius:20px;letter-spacing:.05em;flex-shrink:0}
+
+.card-licit{font-size:13px;font-weight:700;color:#e5e5e5;line-height:1.4;flex:1}
+.card-meta{padding:0 14px 12px;display:flex;flex-wrap:wrap;gap:6px}
+.meta-tag{background:#111;border:1px solid #2a2a2a;border-radius:6px;padding:3px 8px;font-size:11px;color:#888}
+.meta-tag.val{color:#f97316;border-color:rgba(249,115,22,.2);background:rgba(249,115,22,.05)}
+.meta-tag.obj{color:#aaa;font-size:11px;width:100%;line-height:1.4;white-space:normal}
+
+/* Ações */
+.card-acoes{padding:0 14px 14px}
+.btns-part{display:flex;gap:8px;margin-bottom:10px}
+.btn-part{flex:1;padding:10px;border-radius:10px;border:2px solid;font-size:13px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-sim{border-color:#2a2a2a;background:#111;color:#666}
+.btn-sim.on{border-color:#22c55e;background:rgba(34,197,94,.15);color:#22c55e}
+.btn-nao{border-color:#2a2a2a;background:#111;color:#666}
+.btn-nao.on{border-color:#ef4444;background:rgba(239,68,68,.15);color:#ef4444}
+.btn-analise{border-color:#2a2a2a;background:#111;color:#666;font-size:11px}
+.btn-analise.on{border-color:#eab308;background:rgba(234,179,8,.15);color:#eab308}
+
+/* Justificativa */
+.just-area{width:100%;background:#111;border:1px solid #2a2a2a;border-radius:8px;color:#e5e5e5;font-family:Outfit,sans-serif;font-size:13px;padding:10px 12px;resize:vertical;min-height:70px;outline:none;transition:border .2s}
+.just-area:focus{border-color:rgba(249,115,22,.4)}
+.just-label{font-size:11px;color:#555;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
+.btn-salvar-just{width:100%;margin-top:8px;background:#f97316;color:#000;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:opacity .2s}
+.btn-salvar-just:disabled{opacity:.5}
+.btn-salvar-just:active{opacity:.8}
+
+/* Status badge */
+.status-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.s-sim{background:rgba(34,197,94,.15);color:#22c55e}
+.s-nao{background:rgba(239,68,68,.15);color:#ef4444}
+.s-analise{background:rgba(234,179,8,.15);color:#eab308}
+.s-pend{background:rgba(100,100,100,.15);color:#666}
+
+/* Vazio */
+.empty-state{text-align:center;padding:60px 20px;color:#555}
+.empty-state svg{opacity:.3;margin-bottom:12px}
+
+/* Toast */
+.toast-box{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:10px 20px;font-size:13px;font-weight:600;z-index:999;display:none;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.toast-box.ok{border-color:rgba(34,197,94,.4);color:#22c55e}
+.toast-box.err{border-color:rgba(239,68,68,.4);color:#ef4444}
+
+/* Loading */
+.loading{text-align:center;padding:60px 20px;color:#555}
+.spin{width:32px;height:32px;border:3px solid #2a2a2a;border-top-color:#f97316;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-mark">NH</div>
+    <div>
+      <div class="logo-text">NH Licitações</div>
+      <div class="logo-sub">Análise de Viabilidade</div>
+    </div>
+  </div>
+  <div class="badge-pend" id="badge-pend">— pendentes</div>
+</div>
+
+<div class="stats" id="stats-bar">
+  <div class="stat"><div class="stat-n" id="st-total" style="color:#f97316">—</div><div class="stat-l">Total</div></div>
+  <div class="stat"><div class="stat-n" id="st-pend" style="color:#666">—</div><div class="stat-l">Pendentes</div></div>
+  <div class="stat"><div class="stat-n" id="st-sim" style="color:#22c55e">—</div><div class="stat-l">Participar</div></div>
+  <div class="stat"><div class="stat-n" id="st-nao" style="color:#ef4444">—</div><div class="stat-l">Recusados</div></div>
+</div>
+
+<div class="filtros" id="filtros">
+  <button class="f-btn on" onclick="filtrar('todos',this)">Todos</button>
+  <button class="f-btn" onclick="filtrar('pendente',this)">⏳ Pendentes</button>
+</div>
+
+<div id="main-content">
+  <div class="loading"><div class="spin"></div>Carregando editais...</div>
+</div>
+
+<div class="toast-box" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig={apiKey:"AIzaSyBhcpJP9dRM0SEJsGfcNUXYb1rTMdEDw6M",authDomain:"nh-licitacoes.firebaseapp.com",projectId:"nh-licitacoes",storageBucket:"nh-licitacoes.firebasestorage.app",messagingSenderId:"1081646053691",appId:"1:1081646053691:web:a8abcb5792d026ade71f1e"};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.firestore();
+db.settings({experimentalAutoDetectLongPolling:true,merge:true});
+// Cache gerenciado pelo Firebase internamente
+
+var TODOS = [];
+var FILTRO = 'todos';
+var FILTRO_EMP = 'todos';
+
+var EMP_CORES = {
+  'VISE':'#eab308','SAUTEC':'#3b82f6','SOS':'#22c55e',
+  'SOS FILIAL':'#ef4444','ONLAV':'#10b981','ENGEMED':'#ec4899','POTIGUAR':'#f97316'
+};
+
+function toast(msg,tipo){
+  var t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast-box '+(tipo||'ok'); t.style.display='block';
+  setTimeout(function(){t.style.display='none';},2500);
+}
+
+function parseMoeda(v){
+  var s=String(v||'').replace(/R\$\s*/g,'').replace(/\s/g,'').trim();
+  if(!s) return 0;
+  if(s.indexOf(',')!==-1) s=s.replace(/\./g,'').replace(',','.');
+  else s=s.replace(/[^\d.]/g,'');
+  return parseFloat(s)||0;
+}
+function fmtMoeda(n){
+  if(!n) return '';
+  return 'R$ '+n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+async function carregar(){
+  try{
+    var snap=await db.collection('editais').orderBy('_id','desc').get();
+    TODOS=[];
+    snap.forEach(function(doc){
+      var d=doc.data();
+      TODOS.push({id:doc.id,_id:d._id,arr:d._arr||[]});
+    });
+    // Ordenar por _id desc (mais recente primeiro)
+    TODOS.sort(function(a,b){return b._id-a._id;});
+    buildFiltrosEmpresas();
+    renderizar();
+  }catch(e){
+    document.getElementById('main-content').innerHTML='<div class="empty-state"><p>Erro ao carregar: '+e.message+'</p></div>';
+  }
+}
+
+function buildFiltrosEmpresas(){
+  var emps={};
+  TODOS.forEach(function(d){ var e=String(d.arr[2]||'').trim(); if(e) emps[e]=true; });
+  var filtros=document.getElementById('filtros');
+  Object.keys(emps).sort().forEach(function(emp){
+    var btn=document.createElement('button');
+    btn.className='f-btn';
+    btn.textContent=emp;
+    var cor=EMP_CORES[emp]||'#f97316';
+    btn.onclick=function(){ filtrarEmp(emp,btn); };
+    filtros.appendChild(btn);
+  });
+}
+
+function filtrar(f,btn){
+  FILTRO=f;
+  document.querySelectorAll('#filtros .f-btn').forEach(function(b){
+    if(['todos','pendente'].some(function(x){return b.textContent.includes(x)||b.getAttribute('data-f')===x;})){
+      b.classList.remove('on');
+    }
+  });
+  btn.classList.add('on');
+  renderizar();
+}
+
+function filtrarEmp(emp,btn){
+  FILTRO_EMP = FILTRO_EMP===emp?'todos':emp;
+  document.querySelectorAll('#filtros .f-btn').forEach(function(b){
+    var bEmp = b.getAttribute('data-emp');
+    if(bEmp) b.classList.remove('on');
+  });
+  if(FILTRO_EMP!=='todos') btn.classList.add('on');
+  renderizar();
+}
+
+// Adicionar data-emp nos botões de empresa ao criar
+function buildFiltrosEmpresas(){
+  var emps={};
+  TODOS.forEach(function(d){ var e=String(d.arr[2]||'').trim(); if(e) emps[e]=true; });
+  var filtros=document.getElementById('filtros');
+  // Remover botões de empresa antigos
+  filtros.querySelectorAll('[data-emp]').forEach(function(b){b.remove();});
+  Object.keys(emps).sort().forEach(function(emp){
+    var btn=document.createElement('button');
+    btn.className='f-btn';
+    btn.textContent=emp;
+    btn.setAttribute('data-emp',emp);
+    btn.onclick=function(){ filtrarEmp(emp,btn); };
+    filtros.appendChild(btn);
+  });
+}
+
+function getFiltrados(){
+  return TODOS.filter(function(d){
+    var part=String(d.arr[10]||'').toUpperCase().trim();
+    if(FILTRO==='pendente' && part!=='') return false;
+    if(FILTRO_EMP!=='todos' && String(d.arr[2]||'').trim()!==FILTRO_EMP) return false;
+    return true;
+  });
+}
+
+function renderizar(){
+  var lista=getFiltrados();
+  var pend=TODOS.filter(function(d){return !String(d.arr[10]||'').trim();}).length;
+
+  // Stats
+  document.getElementById('st-total').textContent=TODOS.length;
+  document.getElementById('st-pend').textContent=pend;
+  document.getElementById('st-sim').textContent=TODOS.filter(function(d){return String(d.arr[10]||'').toUpperCase()==='SIM';}).length;
+  document.getElementById('st-nao').textContent=TODOS.filter(function(d){return String(d.arr[10]||'').toUpperCase()==='NÃO'||String(d.arr[10]||'').toUpperCase()==='NAO';}).length;
+  document.getElementById('badge-pend').textContent=pend+' pendente'+(pend!==1?'s':'');
+
+  if(!lista.length){
+    document.getElementById('main-content').innerHTML='<div class="empty-state"><svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><p>Nenhum edital encontrado</p></div>';
+    return;
+  }
+
+  var html=lista.map(function(d){ return renderCard(d); }).join('');
+  var wrap=document.createElement('div');
+  wrap.className='cards';
+  wrap.innerHTML=html;
+  document.getElementById('main-content').innerHTML='';
+  document.getElementById('main-content').appendChild(wrap);
+}
+
+function renderCard(d){
+  var arr=d.arr;
+  var emp=String(arr[2]||'').trim();
+  var licit=String(arr[3]||'').trim();
+  var obj=String(arr[4]||'').trim();
+  var local=String(arr[5]||'').trim();
+  var mun=String(arr[6]||'').trim();
+  var val=parseMoeda(arr[7]);
+  var part=String(arr[10]||'').toUpperCase().trim();
+  var just=String(arr[12]||'').trim();
+  var id=d.id;
+
+  var empCor=EMP_CORES[emp]||'#f97316';
+  var cardCls=part==='SIM'?'sim':part==='NÃO'||part==='NAO'?'nao':part==='EM ANÁLISE'?'analise':'';
+
+  // Verificar se é processo ANTUNES E NORONHA
+  var isAN = licit.toUpperCase().indexOf('ANTUNES')!==-1 || licit.toUpperCase().indexOf('NORONHA')!==-1 ||
+             obj.toUpperCase().indexOf('ANTUNES')!==-1 || obj.toUpperCase().indexOf('NORONHA')!==-1 ||
+             emp.toUpperCase().indexOf('ANTUNES')!==-1;
+
+  var statusHtml='';
+  if(part==='SIM') statusHtml='<span class="status-pill s-sim">✓ Participar</span>';
+  else if(part==='NÃO'||part==='NAO') statusHtml='<span class="status-pill s-nao">✕ Recusado</span>';
+  else if(part==='EM ANÁLISE') statusHtml='<span class="status-pill s-analise">⏳ Em Análise</span>';
+  else statusHtml='<span class="status-pill s-pend">— Pendente</span>';
+
+  return '<div class="card '+cardCls+'" id="card-'+id+'">'+
+    '<div class="card-bar"></div>'+
+    '<div class="card-head">'+
+      '<span class="card-emp" style="background:'+empCor+'22;color:'+empCor+';border:1px solid '+empCor+'44">'+emp+'</span>'+
+      (isAN?'<span class="tag-an">⭐ ANTUNES E NORONHA</span>':'')+
+      '<div style="flex:1">'+
+        '<div class="card-licit">'+licit+'</div>'+
+        '<div style="margin-top:4px">'+statusHtml+'</div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="card-meta">'+
+      (obj?'<span class="meta-tag obj">'+obj.substring(0,120)+'</span>':'')+
+      (local?'<span class="meta-tag">📍 '+local+(mun?' · '+mun:'')+'</span>':'')+
+      (val>0?'<span class="meta-tag val">💰 '+fmtMoeda(val)+'</span>':'')+
+    '</div>'+
+    '<div class="card-acoes">'+
+      '<div class="btns-part">'+
+        '<button class="btn-part btn-sim'+(part==='SIM'?' on':'')+'" onclick="votar(\''+id+'\',\'SIM\')">'+
+          '<svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>SIM'+
+        '</button>'+
+        '<button class="btn-part btn-nao'+(part==='NÃO'||part==='NAO'?' on':'')+'" onclick="votar(\''+id+'\',\'NÃO\')">'+
+          '<svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>NÃO'+
+        '</button>'+
+        '<button class="btn-part btn-analise'+(part==='EM ANÁLISE'?' on':'')+'" onclick="votar(\''+id+'\',\'EM ANÁLISE\')">⏳ ANÁLISE</button>'+
+      '</div>'+
+      '<div class="just-label">Justificativa / Observação</div>'+
+      '<textarea class="just-area" id="just-'+id+'" placeholder="Escreva uma justificativa ou observação...">'+just+'</textarea>'+
+      '<button class="btn-salvar-just" onclick="salvarJust(\''+id+'\')">💾 Salvar Justificativa</button>'+
+    '</div>'+
+  '</div>';
+}
+
+async function votar(id, valor){
+  var d=TODOS.find(function(x){return x.id===id;});
+  if(!d) return;
+  var arr=d.arr.slice();
+  arr[10]=valor;
+  try{
+    await db.collection('editais').doc(id).set({_id:d._id,_arr:arr});
+    d.arr=arr;
+    // Atualizar visual do card
+    var card=document.getElementById('card-'+id);
+    if(card){
+      card.className='card '+(valor==='SIM'?'sim':valor==='NÃO'?'nao':valor==='EM ANÁLISE'?'analise':'');
+      // Atualizar botões
+      card.querySelectorAll('.btn-sim,.btn-nao,.btn-analise').forEach(function(b){b.classList.remove('on');});
+      if(valor==='SIM') card.querySelector('.btn-sim').classList.add('on');
+      else if(valor==='NÃO') card.querySelector('.btn-nao').classList.add('on');
+      else if(valor==='EM ANÁLISE') card.querySelector('.btn-analise').classList.add('on');
+      // Atualizar status pill
+      var pill=card.querySelector('.status-pill');
+      if(pill){
+        if(valor==='SIM') pill.outerHTML='<span class="status-pill s-sim">✓ Participar</span>';
+        else if(valor==='NÃO') pill.outerHTML='<span class="status-pill s-nao">✕ Recusado</span>';
+        else pill.outerHTML='<span class="status-pill s-analise">⏳ Em Análise</span>';
+      }
+    }
+    // Atualizar stats
+    var pend=TODOS.filter(function(x){return !String(x.arr[10]||'').trim();}).length;
+    document.getElementById('st-pend').textContent=pend;
+    document.getElementById('st-sim').textContent=TODOS.filter(function(x){return String(x.arr[10]||'').toUpperCase()==='SIM';}).length;
+    document.getElementById('st-nao').textContent=TODOS.filter(function(x){return String(x.arr[10]||'').toUpperCase()==='NÃO'||String(x.arr[10]||'').toUpperCase()==='NAO';}).length;
+    document.getElementById('badge-pend').textContent=pend+' pendente'+(pend!==1?'s':'');
+    toast(valor==='SIM'?'✅ Marcado para participar!':valor==='NÃO'?'❌ Marcado como recusado':'⏳ Em análise','ok');
+  }catch(e){ toast('Erro: '+e.message,'err'); }
+}
+
+async function salvarJust(id){
+  var d=TODOS.find(function(x){return x.id===id;});
+  if(!d) return;
+  var just=document.getElementById('just-'+id);
+  if(!just) return;
+  var btn=just.nextElementSibling;
+  if(btn){btn.disabled=true;btn.textContent='Salvando...';}
+  var arr=d.arr.slice();
+  arr[12]=just.value.trim();
+  try{
+    await db.collection('editais').doc(id).set({_id:d._id,_arr:arr});
+    d.arr=arr;
+    toast('✅ Justificativa salva!','ok');
+  }catch(e){ toast('Erro: '+e.message,'err'); }
+  if(btn){btn.disabled=false;btn.textContent='💾 Salvar Justificativa';}
+}
+
+// Iniciar
+carregar();
+</script>
+  <script>
+    if('serviceWorker' in navigator){
+      window.addEventListener('load', function(){
+        navigator.serviceWorker.register('sw-viabilidade.js').catch(function(){});
+      });
+    }
+  </script>
+</body>
+</html>
