@@ -2,107 +2,109 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest-viabilidade.json">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f0f0f">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="NH Viabilidade">
-<meta name="theme-color" content="#f97316">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0f0f0f">
-<title>NH Licitações — Viabilidade</title>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest-viabilidade.json">
+<title>NH — Viabilidade</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Outfit',sans-serif;background:#0f0f0f;color:#e5e5e5;min-height:100vh}
+body{font-family:'Outfit',sans-serif;background:#0f0f0f;color:#e5e5e5;min-height:100vh;-webkit-tap-highlight-color:transparent}
 
-/* Header */
-.header{background:#1a1a1a;border-bottom:1px solid #2a2a2a;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.header{background:#1a1a1a;border-bottom:1px solid #2a2a2a;padding:14px 16px;position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between}
 .logo{display:flex;align-items:center;gap:10px}
-.logo-mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#f97316,#ea580c);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;color:#000}
-.logo-text{font-size:15px;font-weight:800;color:#f97316}
-.logo-sub{font-size:11px;color:#555;margin-top:1px}
-.badge-pend{background:rgba(249,115,22,.15);color:#f97316;border:1px solid rgba(249,115,22,.3);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700}
+.logo-mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#f97316,#ea580c);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;color:#000;flex-shrink:0}
+.logo-info .title{font-size:15px;font-weight:800;color:#f97316}
+.logo-info .sub{font-size:11px;color:#555}
+.badge-pend{background:rgba(249,115,22,.15);color:#f97316;border:1px solid rgba(249,115,22,.3);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap}
+
+/* Stats */
+.stats{display:flex;gap:10px;padding:14px 16px;overflow-x:auto;scrollbar-width:none}
+.stats::-webkit-scrollbar{display:none}
+.stat{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:10px 14px;min-width:80px;text-align:center;flex-shrink:0}
+.stat-n{font-size:22px;font-weight:800;line-height:1}
+.stat-l{font-size:10px;color:#555;margin-top:2px;text-transform:uppercase;letter-spacing:.05em}
 
 /* Filtros */
-.filtros{padding:16px 16px 0;display:flex;gap:8px;flex-wrap:wrap;overflow-x:auto;scrollbar-width:none}
-.filtros::-webkit-scrollbar{display:none}
-.f-btn{background:#1a1a1a;border:1px solid #2a2a2a;color:#888;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:Outfit,sans-serif;transition:all .15s}
+.filtros-wrap{padding:0 16px 12px;display:flex;flex-direction:column;gap:8px}
+.filtros-row{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.filtros-row::-webkit-scrollbar{display:none}
+.filtro-label{font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.f-btn{background:#1a1a1a;border:1px solid #2a2a2a;color:#777;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:Outfit,sans-serif;transition:all .15s;flex-shrink:0}
 .f-btn.on{background:rgba(249,115,22,.15);border-color:rgba(249,115,22,.4);color:#f97316}
-
-/* Stats bar */
-.stats{display:flex;gap:12px;padding:16px;overflow-x:auto;scrollbar-width:none}
-.stats::-webkit-scrollbar{display:none}
-.stat{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:10px 16px;min-width:90px;text-align:center;flex-shrink:0}
-.stat-n{font-size:22px;font-weight:800;line-height:1}
-.stat-l{font-size:10px;color:#666;margin-top:2px;text-transform:uppercase;letter-spacing:.05em}
+.f-btn.on-antunes{background:rgba(234,179,8,.15);border-color:rgba(234,179,8,.4);color:#eab308}
+.f-btn.on-noronha{background:rgba(59,130,246,.15);border-color:rgba(59,130,246,.4);color:#3b82f6}
 
 /* Cards */
 .cards{padding:0 16px 100px;display:flex;flex-direction:column;gap:12px}
-.card{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:14px;overflow:hidden;transition:all .2s}
-.card.sim{border-color:rgba(34,197,94,.4)}
-.card.nao{border-color:rgba(239,68,68,.4)}
-.card.analise{border-color:rgba(234,179,8,.4)}
 
-/* Barra colorida do topo do card */
-.card-bar{height:3px}
-.card.sim .card-bar{background:#22c55e}
-.card.nao .card-bar{background:#ef4444}
-.card.analise .card-bar{background:#eab308}
-.card-bar{background:#2a2a2a}
+.card{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:14px;overflow:hidden;transition:border .2s}
+.card.sim{border-color:rgba(34,197,94,.5)}
+.card.nao{border-color:rgba(239,68,68,.5)}
+.card.analise{border-color:rgba(234,179,8,.5)}
+.card-bar{height:4px;background:#2a2a2a}
+.card.sim .card-bar{background:linear-gradient(90deg,#22c55e,#16a34a)}
+.card.nao .card-bar{background:linear-gradient(90deg,#ef4444,#dc2626)}
+.card.analise .card-bar{background:linear-gradient(90deg,#eab308,#ca8a04)}
 
-.card-head{padding:14px 14px 10px;display:flex;align-items:flex-start;gap:10px}
-.card-emp{font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;letter-spacing:.05em;flex-shrink:0}
-.card-num{font-size:11px;color:#555;flex-shrink:0;margin-top:1px}
+.card-head{padding:14px 14px 8px}
+.card-top-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.card-emp{font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;flex-shrink:0}
 
-/* ANTUNES E NORONHA destaque */
-.tag-an{background:linear-gradient(135deg,#f97316,#ea580c);color:#000;font-size:10px;font-weight:900;padding:2px 8px;border-radius:20px;letter-spacing:.05em;flex-shrink:0}
+/* Tags de responsável */
+.tag-antunes{background:linear-gradient(135deg,#eab308,#ca8a04);color:#000;font-size:10px;font-weight:900;padding:3px 10px;border-radius:20px;flex-shrink:0;letter-spacing:.03em}
+.tag-noronha{background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;font-size:10px;font-weight:900;padding:3px 10px;border-radius:20px;flex-shrink:0;letter-spacing:.03em}
+.tag-ambos{background:linear-gradient(135deg,#f97316,#ea580c);color:#000;font-size:10px;font-weight:900;padding:3px 10px;border-radius:20px;flex-shrink:0;letter-spacing:.03em}
 
-.card-licit{font-size:13px;font-weight:700;color:#e5e5e5;line-height:1.4;flex:1}
-.card-meta{padding:0 14px 12px;display:flex;flex-wrap:wrap;gap:6px}
-.meta-tag{background:#111;border:1px solid #2a2a2a;border-radius:6px;padding:3px 8px;font-size:11px;color:#888}
-.meta-tag.val{color:#f97316;border-color:rgba(249,115,22,.2);background:rgba(249,115,22,.05)}
-.meta-tag.obj{color:#aaa;font-size:11px;width:100%;line-height:1.4;white-space:normal}
-
-/* Ações */
-.card-acoes{padding:0 14px 14px}
-.btns-part{display:flex;gap:8px;margin-bottom:10px}
-.btn-part{flex:1;padding:10px;border-radius:10px;border:2px solid;font-size:13px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
-.btn-sim{border-color:#2a2a2a;background:#111;color:#666}
-.btn-sim.on{border-color:#22c55e;background:rgba(34,197,94,.15);color:#22c55e}
-.btn-nao{border-color:#2a2a2a;background:#111;color:#666}
-.btn-nao.on{border-color:#ef4444;background:rgba(239,68,68,.15);color:#ef4444}
-.btn-analise{border-color:#2a2a2a;background:#111;color:#666;font-size:11px}
-.btn-analise.on{border-color:#eab308;background:rgba(234,179,8,.15);color:#eab308}
-
-/* Justificativa */
-.just-area{width:100%;background:#111;border:1px solid #2a2a2a;border-radius:8px;color:#e5e5e5;font-family:Outfit,sans-serif;font-size:13px;padding:10px 12px;resize:vertical;min-height:70px;outline:none;transition:border .2s}
-.just-area:focus{border-color:rgba(249,115,22,.4)}
-.just-label{font-size:11px;color:#555;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
-.btn-salvar-just{width:100%;margin-top:8px;background:#f97316;color:#000;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:opacity .2s}
-.btn-salvar-just:disabled{opacity:.5}
-.btn-salvar-just:active{opacity:.8}
-
-/* Status badge */
-.status-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.status-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;flex-shrink:0}
 .s-sim{background:rgba(34,197,94,.15);color:#22c55e}
 .s-nao{background:rgba(239,68,68,.15);color:#ef4444}
 .s-analise{background:rgba(234,179,8,.15);color:#eab308}
-.s-pend{background:rgba(100,100,100,.15);color:#666}
+.s-pend{background:rgba(100,100,100,.1);color:#555;border:1px solid #2a2a2a}
 
-/* Vazio */
-.empty-state{text-align:center;padding:60px 20px;color:#555}
-.empty-state svg{opacity:.3;margin-bottom:12px}
+.card-licit{font-size:14px;font-weight:700;color:#e5e5e5;line-height:1.4}
+.card-meta{padding:0 14px 10px;display:flex;flex-wrap:wrap;gap:6px}
+.meta-tag{background:#111;border:1px solid #222;border-radius:6px;padding:3px 8px;font-size:11px;color:#777}
+.meta-tag.val{color:#f97316;border-color:rgba(249,115,22,.2)}
+.meta-tag.obj{color:#999;width:100%;line-height:1.5;white-space:normal}
 
-/* Toast */
-.toast-box{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:10px 20px;font-size:13px;font-weight:600;z-index:999;display:none;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.5)}
-.toast-box.ok{border-color:rgba(34,197,94,.4);color:#22c55e}
-.toast-box.err{border-color:rgba(239,68,68,.4);color:#ef4444}
+/* Ações */
+.card-acoes{padding:0 14px 14px}
+.btns-part{display:flex;gap:8px;margin-bottom:12px}
+.btn-part{flex:1;padding:11px 6px;border-radius:10px;border:2px solid #2a2a2a;font-size:13px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:5px;background:#111;color:#555}
+.btn-part.on-sim{border-color:#22c55e;background:rgba(34,197,94,.15);color:#22c55e}
+.btn-part.on-nao{border-color:#ef4444;background:rgba(239,68,68,.15);color:#ef4444}
+.btn-part.on-analise{border-color:#eab308;background:rgba(234,179,8,.15);color:#eab308}
+.btn-part:active{transform:scale(.97)}
 
-/* Loading */
+/* Justificativa — BLOQUEADA até clicar em SIM/NÃO/ANÁLISE */
+.just-wrap{position:relative}
+.just-label{font-size:11px;color:#555;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
+.just-area{width:100%;background:#111;border:1px solid #2a2a2a;border-radius:8px;color:#e5e5e5;font-family:Outfit,sans-serif;font-size:13px;padding:10px 12px;resize:vertical;min-height:80px;outline:none;transition:border .2s}
+.just-area:focus{border-color:rgba(249,115,22,.5)}
+.just-area:disabled{opacity:.4;cursor:not-allowed}
+.btn-salvar{width:100%;margin-top:8px;padding:12px;border-radius:10px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:all .2s;background:#2a2a2a;color:#555}
+.btn-salvar.ativo{background:#f97316;color:#000}
+.btn-salvar.ativo:active{opacity:.8}
+.btn-salvar:disabled{opacity:.5;cursor:not-allowed}
+
+/* Aviso de alteração pendente */
+.aviso-salvar{font-size:11px;color:#eab308;margin-top:6px;display:none;text-align:center}
+
+/* Loading / vazio */
 .loading{text-align:center;padding:60px 20px;color:#555}
 .spin{width:32px;height:32px;border:3px solid #2a2a2a;border-top-color:#f97316;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
 @keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:50px 20px;color:#555;font-size:14px}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;border:1px solid #333;border-radius:10px;padding:10px 20px;font-size:13px;font-weight:600;z-index:999;display:none;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.6);max-width:90vw;text-align:center}
+.toast.ok{border-color:rgba(34,197,94,.5);color:#22c55e}
+.toast.err{border-color:rgba(239,68,68,.5);color:#ef4444}
 </style>
 </head>
 <body>
@@ -110,31 +112,52 @@ body{font-family:'Outfit',sans-serif;background:#0f0f0f;color:#e5e5e5;min-height
 <div class="header">
   <div class="logo">
     <div class="logo-mark">NH</div>
-    <div>
-      <div class="logo-text">NH Licitações</div>
-      <div class="logo-sub">Análise de Viabilidade</div>
+    <div class="logo-info">
+      <div class="title">NH Licitações</div>
+      <div class="sub">Análise de Viabilidade</div>
     </div>
   </div>
-  <div class="badge-pend" id="badge-pend">— pendentes</div>
+  <div class="badge-pend" id="badge-pend">...</div>
 </div>
 
-<div class="stats" id="stats-bar">
-  <div class="stat"><div class="stat-n" id="st-total" style="color:#f97316">—</div><div class="stat-l">Total</div></div>
-  <div class="stat"><div class="stat-n" id="st-pend" style="color:#666">—</div><div class="stat-l">Pendentes</div></div>
-  <div class="stat"><div class="stat-n" id="st-sim" style="color:#22c55e">—</div><div class="stat-l">Participar</div></div>
-  <div class="stat"><div class="stat-n" id="st-nao" style="color:#ef4444">—</div><div class="stat-l">Recusados</div></div>
+<div class="stats">
+  <div class="stat"><div class="stat-n" style="color:#f97316" id="st-total">—</div><div class="stat-l">Total</div></div>
+  <div class="stat"><div class="stat-n" style="color:#666" id="st-pend">—</div><div class="stat-l">Pendentes</div></div>
+  <div class="stat"><div class="stat-n" style="color:#22c55e" id="st-sim">—</div><div class="stat-l">Participar</div></div>
+  <div class="stat"><div class="stat-n" style="color:#ef4444" id="st-nao">—</div><div class="stat-l">Recusados</div></div>
 </div>
 
-<div class="filtros" id="filtros">
-  <button class="f-btn on" onclick="filtrar('todos',this)">Todos</button>
-  <button class="f-btn" onclick="filtrar('pendente',this)">⏳ Pendentes</button>
+<div class="filtros-wrap">
+  <div>
+    <div class="filtro-label">Status</div>
+    <div class="filtros-row" id="filtros-status">
+      <button class="f-btn" id="fb-pend" onclick="setFiltroStatus('pendente',this)">⏳ Pendentes</button>
+      <button class="f-btn" id="fb-todos" onclick="setFiltroStatus('todos',this)">Todos</button>
+      <button class="f-btn" id="fb-sim" onclick="setFiltroStatus('sim',this)">✅ SIM</button>
+      <button class="f-btn" id="fb-nao" onclick="setFiltroStatus('nao',this)">❌ NÃO</button>
+    </div>
+  </div>
+  <div>
+    <div class="filtro-label">Responsável</div>
+    <div class="filtros-row" id="filtros-resp">
+      <button class="f-btn" id="fr-todos" onclick="setFiltroResp('todos',this)">Todos</button>
+      <button class="f-btn" id="fr-antunes" onclick="setFiltroResp('ANTUNES',this)">⭐ ANTUNES</button>
+      <button class="f-btn" id="fr-noronha" onclick="setFiltroResp('NORONHA',this)">🔵 NORONHA</button>
+    </div>
+  </div>
+  <div>
+    <div class="filtro-label">Empresa</div>
+    <div class="filtros-row" id="filtros-emp">
+      <button class="f-btn on" id="fe-todos" onclick="setFiltroEmp('todos',this)">Todas</button>
+    </div>
+  </div>
 </div>
 
 <div id="main-content">
   <div class="loading"><div class="spin"></div>Carregando editais...</div>
 </div>
 
-<div class="toast-box" id="toast"></div>
+<div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-firestore-compat.js"></script>
@@ -143,20 +166,20 @@ const firebaseConfig={apiKey:"AIzaSyBhcpJP9dRM0SEJsGfcNUXYb1rTMdEDw6M",authDomai
 firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore();
 db.settings({experimentalAutoDetectLongPolling:true,merge:true});
-// Cache gerenciado pelo Firebase internamente
 
-var TODOS = [];
-var FILTRO = 'todos';
-var FILTRO_EMP = 'todos';
+var TODOS=[];
+var FILTRO_STATUS='pendente'; // começa em pendentes
+var FILTRO_RESP='todos';
+var FILTRO_EMP='todos';
 
-var EMP_CORES = {
-  'VISE':'#eab308','SAUTEC':'#3b82f6','SOS':'#22c55e',
-  'SOS FILIAL':'#ef4444','ONLAV':'#10b981','ENGEMED':'#ec4899','POTIGUAR':'#f97316'
-};
+var EMP_CORES={'VISE':'#eab308','SAUTEC':'#3b82f6','SOS':'#22c55e','SOS FILIAL':'#ef4444','ONLAV':'#10b981','ENGEMED':'#ec4899','POTIGUAR':'#f97316'};
+
+// Estado de alterações pendentes por card
+var _pendentes={};
 
 function toast(msg,tipo){
   var t=document.getElementById('toast');
-  t.textContent=msg; t.className='toast-box '+(tipo||'ok'); t.style.display='block';
+  t.textContent=msg; t.className='toast '+(tipo||'ok'); t.style.display='block';
   setTimeout(function(){t.style.display='none';},2500);
 }
 
@@ -178,221 +201,249 @@ async function carregar(){
     TODOS=[];
     snap.forEach(function(doc){
       var d=doc.data();
-      TODOS.push({id:doc.id,_id:d._id,arr:d._arr||[]});
+      if(d._arr) TODOS.push({id:doc.id,_id:d._id,arr:d._arr});
     });
-    // Ordenar por _id desc (mais recente primeiro)
     TODOS.sort(function(a,b){return b._id-a._id;});
     buildFiltrosEmpresas();
+    // Ativar pendentes por padrão
+    document.getElementById('fb-pend').classList.add('on');
     renderizar();
   }catch(e){
-    document.getElementById('main-content').innerHTML='<div class="empty-state"><p>Erro ao carregar: '+e.message+'</p></div>';
+    document.getElementById('main-content').innerHTML='<div class="empty">Erro ao carregar: '+e.message+'</div>';
   }
 }
 
 function buildFiltrosEmpresas(){
   var emps={};
-  TODOS.forEach(function(d){ var e=String(d.arr[2]||'').trim(); if(e) emps[e]=true; });
-  var filtros=document.getElementById('filtros');
-  Object.keys(emps).sort().forEach(function(emp){
-    var btn=document.createElement('button');
-    btn.className='f-btn';
-    btn.textContent=emp;
-    var cor=EMP_CORES[emp]||'#f97316';
-    btn.onclick=function(){ filtrarEmp(emp,btn); };
-    filtros.appendChild(btn);
-  });
-}
-
-function filtrar(f,btn){
-  FILTRO=f;
-  document.querySelectorAll('#filtros .f-btn').forEach(function(b){
-    if(['todos','pendente'].some(function(x){return b.textContent.includes(x)||b.getAttribute('data-f')===x;})){
-      b.classList.remove('on');
-    }
-  });
-  btn.classList.add('on');
-  renderizar();
-}
-
-function filtrarEmp(emp,btn){
-  FILTRO_EMP = FILTRO_EMP===emp?'todos':emp;
-  document.querySelectorAll('#filtros .f-btn').forEach(function(b){
-    var bEmp = b.getAttribute('data-emp');
-    if(bEmp) b.classList.remove('on');
-  });
-  if(FILTRO_EMP!=='todos') btn.classList.add('on');
-  renderizar();
-}
-
-// Adicionar data-emp nos botões de empresa ao criar
-function buildFiltrosEmpresas(){
-  var emps={};
-  TODOS.forEach(function(d){ var e=String(d.arr[2]||'').trim(); if(e) emps[e]=true; });
-  var filtros=document.getElementById('filtros');
-  // Remover botões de empresa antigos
-  filtros.querySelectorAll('[data-emp]').forEach(function(b){b.remove();});
+  TODOS.forEach(function(d){var e=String(d.arr[2]||'').trim();if(e)emps[e]=true;});
+  var wrap=document.getElementById('filtros-emp');
   Object.keys(emps).sort().forEach(function(emp){
     var btn=document.createElement('button');
     btn.className='f-btn';
     btn.textContent=emp;
     btn.setAttribute('data-emp',emp);
-    btn.onclick=function(){ filtrarEmp(emp,btn); };
-    filtros.appendChild(btn);
+    btn.onclick=function(){setFiltroEmp(emp,btn);};
+    wrap.appendChild(btn);
   });
+}
+
+function setFiltroStatus(f,btn){
+  FILTRO_STATUS=f;
+  document.querySelectorAll('#filtros-status .f-btn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  renderizar();
+}
+function setFiltroResp(f,btn){
+  FILTRO_RESP=f;
+  document.querySelectorAll('#filtros-resp .f-btn').forEach(function(b){b.classList.remove('on','on-antunes','on-noronha');});
+  if(f==='ANTUNES') btn.classList.add('on-antunes');
+  else if(f==='NORONHA') btn.classList.add('on-noronha');
+  else btn.classList.add('on');
+  renderizar();
+}
+function setFiltroEmp(f,btn){
+  FILTRO_EMP=f;
+  document.querySelectorAll('#filtros-emp .f-btn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  renderizar();
 }
 
 function getFiltrados(){
   return TODOS.filter(function(d){
     var part=String(d.arr[10]||'').toUpperCase().trim();
-    if(FILTRO==='pendente' && part!=='') return false;
-    if(FILTRO_EMP!=='todos' && String(d.arr[2]||'').trim()!==FILTRO_EMP) return false;
+    var resp=String(d.arr[9]||'').toUpperCase().trim();
+    var emp=String(d.arr[2]||'').trim();
+    // Filtro status
+    if(FILTRO_STATUS==='pendente' && part!=='') return false;
+    if(FILTRO_STATUS==='sim' && part!=='SIM') return false;
+    if(FILTRO_STATUS==='nao' && part!=='NÃO' && part!=='NAO') return false;
+    // Filtro responsável
+    if(FILTRO_RESP==='ANTUNES' && resp.indexOf('ANTUNES')===-1) return false;
+    if(FILTRO_RESP==='NORONHA' && resp.indexOf('NORONHA')===-1) return false;
+    // Filtro empresa
+    if(FILTRO_EMP!=='todos' && emp!==FILTRO_EMP) return false;
     return true;
   });
 }
 
-function renderizar(){
-  var lista=getFiltrados();
+function atualizarStats(){
   var pend=TODOS.filter(function(d){return !String(d.arr[10]||'').trim();}).length;
-
-  // Stats
+  var sim=TODOS.filter(function(d){return String(d.arr[10]||'').toUpperCase()==='SIM';}).length;
+  var nao=TODOS.filter(function(d){var p=String(d.arr[10]||'').toUpperCase();return p==='NÃO'||p==='NAO';}).length;
   document.getElementById('st-total').textContent=TODOS.length;
   document.getElementById('st-pend').textContent=pend;
-  document.getElementById('st-sim').textContent=TODOS.filter(function(d){return String(d.arr[10]||'').toUpperCase()==='SIM';}).length;
-  document.getElementById('st-nao').textContent=TODOS.filter(function(d){return String(d.arr[10]||'').toUpperCase()==='NÃO'||String(d.arr[10]||'').toUpperCase()==='NAO';}).length;
+  document.getElementById('st-sim').textContent=sim;
+  document.getElementById('st-nao').textContent=nao;
   document.getElementById('badge-pend').textContent=pend+' pendente'+(pend!==1?'s':'');
+}
 
+function renderizar(){
+  atualizarStats();
+  var lista=getFiltrados();
   if(!lista.length){
-    document.getElementById('main-content').innerHTML='<div class="empty-state"><svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><p>Nenhum edital encontrado</p></div>';
+    document.getElementById('main-content').innerHTML='<div class="empty">Nenhum edital encontrado neste filtro</div>';
     return;
   }
-
-  var html=lista.map(function(d){ return renderCard(d); }).join('');
   var wrap=document.createElement('div');
   wrap.className='cards';
-  wrap.innerHTML=html;
+  wrap.innerHTML=lista.map(function(d){return renderCard(d);}).join('');
   document.getElementById('main-content').innerHTML='';
   document.getElementById('main-content').appendChild(wrap);
 }
 
 function renderCard(d){
   var arr=d.arr;
+  var id=d.id;
   var emp=String(arr[2]||'').trim();
   var licit=String(arr[3]||'').trim();
   var obj=String(arr[4]||'').trim();
   var local=String(arr[5]||'').trim();
   var mun=String(arr[6]||'').trim();
   var val=parseMoeda(arr[7]);
+  var resp=String(arr[9]||'').toUpperCase().trim();
   var part=String(arr[10]||'').toUpperCase().trim();
   var just=String(arr[12]||'').trim();
-  var id=d.id;
 
   var empCor=EMP_CORES[emp]||'#f97316';
-  var cardCls=part==='SIM'?'sim':part==='NÃO'||part==='NAO'?'nao':part==='EM ANÁLISE'?'analise':'';
+  var cardCls=part==='SIM'?'sim':(part==='NÃO'||part==='NAO')?'nao':part==='EM ANÁLISE'?'analise':'';
 
-  // Verificar se é processo ANTUNES E NORONHA
-  var isAN = licit.toUpperCase().indexOf('ANTUNES')!==-1 || licit.toUpperCase().indexOf('NORONHA')!==-1 ||
-             obj.toUpperCase().indexOf('ANTUNES')!==-1 || obj.toUpperCase().indexOf('NORONHA')!==-1 ||
-             emp.toUpperCase().indexOf('ANTUNES')!==-1;
+  // Tag de responsável
+  var tagResp='';
+  var isAnt=resp.indexOf('ANTUNES')!==-1;
+  var isNor=resp.indexOf('NORONHA')!==-1;
+  if(isAnt&&isNor) tagResp='<span class="tag-ambos">⭐🔵 ANTUNES & NORONHA</span>';
+  else if(isAnt) tagResp='<span class="tag-antunes">⭐ ANTUNES</span>';
+  else if(isNor) tagResp='<span class="tag-noronha">🔵 NORONHA</span>';
 
-  var statusHtml='';
-  if(part==='SIM') statusHtml='<span class="status-pill s-sim">✓ Participar</span>';
-  else if(part==='NÃO'||part==='NAO') statusHtml='<span class="status-pill s-nao">✕ Recusado</span>';
-  else if(part==='EM ANÁLISE') statusHtml='<span class="status-pill s-analise">⏳ Em Análise</span>';
-  else statusHtml='<span class="status-pill s-pend">— Pendente</span>';
+  // Status pill
+  var pill='<span class="status-pill s-pend">— Pendente</span>';
+  if(part==='SIM') pill='<span class="status-pill s-sim">✓ Participar</span>';
+  else if(part==='NÃO'||part==='NAO') pill='<span class="status-pill s-nao">✕ Recusado</span>';
+  else if(part==='EM ANÁLISE') pill='<span class="status-pill s-analise">⏳ Em Análise</span>';
+
+  var temPart = part!=='';
+  var justDisabled = !temPart ? 'disabled' : '';
 
   return '<div class="card '+cardCls+'" id="card-'+id+'">'+
     '<div class="card-bar"></div>'+
     '<div class="card-head">'+
-      '<span class="card-emp" style="background:'+empCor+'22;color:'+empCor+';border:1px solid '+empCor+'44">'+emp+'</span>'+
-      (isAN?'<span class="tag-an">⭐ ANTUNES E NORONHA</span>':'')+
-      '<div style="flex:1">'+
-        '<div class="card-licit">'+licit+'</div>'+
-        '<div style="margin-top:4px">'+statusHtml+'</div>'+
+      '<div class="card-top-row">'+
+        '<span class="card-emp" style="background:'+empCor+'22;color:'+empCor+';border:1px solid '+empCor+'44">'+emp+'</span>'+
+        tagResp+
+        pill+
       '</div>'+
+      '<div class="card-licit">'+licit+'</div>'+
     '</div>'+
     '<div class="card-meta">'+
-      (obj?'<span class="meta-tag obj">'+obj.substring(0,120)+'</span>':'')+
+      (obj?'<span class="meta-tag obj">'+obj.substring(0,150)+'</span>':'')+
       (local?'<span class="meta-tag">📍 '+local+(mun?' · '+mun:'')+'</span>':'')+
       (val>0?'<span class="meta-tag val">💰 '+fmtMoeda(val)+'</span>':'')+
     '</div>'+
     '<div class="card-acoes">'+
       '<div class="btns-part">'+
-        '<button class="btn-part btn-sim'+(part==='SIM'?' on':'')+'" onclick="votar(\''+id+'\',\'SIM\')">'+
-          '<svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>SIM'+
-        '</button>'+
-        '<button class="btn-part btn-nao'+(part==='NÃO'||part==='NAO'?' on':'')+'" onclick="votar(\''+id+'\',\'NÃO\')">'+
-          '<svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>NÃO'+
-        '</button>'+
-        '<button class="btn-part btn-analise'+(part==='EM ANÁLISE'?' on':'')+'" onclick="votar(\''+id+'\',\'EM ANÁLISE\')">⏳ ANÁLISE</button>'+
+        '<button class="btn-part'+(part==='SIM'?' on-sim':'')+'" onclick="selecionarVoto(\''+id+'\',\'SIM\')">'+
+          '✅ SIM</button>'+
+        '<button class="btn-part'+(part==='NÃO'||part==='NAO'?' on-nao':'')+'" onclick="selecionarVoto(\''+id+'\',\'NÃO\')">'+
+          '❌ NÃO</button>'+
+        '<button class="btn-part'+(part==='EM ANÁLISE'?' on-analise':'')+'" style="font-size:11px" onclick="selecionarVoto(\''+id+'\',\'EM ANÁLISE\')">'+
+          '⏳ ANÁLISE</button>'+
       '</div>'+
-      '<div class="just-label">Justificativa / Observação</div>'+
-      '<textarea class="just-area" id="just-'+id+'" placeholder="Escreva uma justificativa ou observação...">'+just+'</textarea>'+
-      '<button class="btn-salvar-just" onclick="salvarJust(\''+id+'\')">💾 Salvar Justificativa</button>'+
+      '<div class="just-wrap">'+
+        '<div class="just-label">Justificativa / Observação</div>'+
+        '<textarea class="just-area" id="just-'+id+'" '+justDisabled+' '+
+          'placeholder="'+(temPart?'Escreva uma justificativa...':'Selecione SIM, NÃO ou ANÁLISE primeiro')+'">'+just+'</textarea>'+
+        '<div class="aviso-salvar" id="aviso-'+id+'">⚠️ Alteração pendente — clique em Salvar</div>'+
+        '<button class="btn-salvar'+(temPart?' ativo':'')+'" id="btn-'+id+'" '+(temPart?'':'disabled')+' onclick="salvar(\''+id+'\')">'+
+          '💾 Salvar'+
+        '</button>'+
+      '</div>'+
     '</div>'+
   '</div>';
 }
 
-async function votar(id, valor){
+// Selecionar voto — apenas visual, não salva ainda
+function selecionarVoto(id, valor){
   var d=TODOS.find(function(x){return x.id===id;});
   if(!d) return;
-  var arr=d.arr.slice();
-  arr[10]=valor;
-  try{
-    await db.collection('editais').doc(id).set({_id:d._id,_arr:arr});
-    d.arr=arr;
-    // Atualizar visual do card
-    var card=document.getElementById('card-'+id);
-    if(card){
-      card.className='card '+(valor==='SIM'?'sim':valor==='NÃO'?'nao':valor==='EM ANÁLISE'?'analise':'');
-      // Atualizar botões
-      card.querySelectorAll('.btn-sim,.btn-nao,.btn-analise').forEach(function(b){b.classList.remove('on');});
-      if(valor==='SIM') card.querySelector('.btn-sim').classList.add('on');
-      else if(valor==='NÃO') card.querySelector('.btn-nao').classList.add('on');
-      else if(valor==='EM ANÁLISE') card.querySelector('.btn-analise').classList.add('on');
-      // Atualizar status pill
-      var pill=card.querySelector('.status-pill');
-      if(pill){
-        if(valor==='SIM') pill.outerHTML='<span class="status-pill s-sim">✓ Participar</span>';
-        else if(valor==='NÃO') pill.outerHTML='<span class="status-pill s-nao">✕ Recusado</span>';
-        else pill.outerHTML='<span class="status-pill s-analise">⏳ Em Análise</span>';
-      }
-    }
-    // Atualizar stats
-    var pend=TODOS.filter(function(x){return !String(x.arr[10]||'').trim();}).length;
-    document.getElementById('st-pend').textContent=pend;
-    document.getElementById('st-sim').textContent=TODOS.filter(function(x){return String(x.arr[10]||'').toUpperCase()==='SIM';}).length;
-    document.getElementById('st-nao').textContent=TODOS.filter(function(x){return String(x.arr[10]||'').toUpperCase()==='NÃO'||String(x.arr[10]||'').toUpperCase()==='NAO';}).length;
-    document.getElementById('badge-pend').textContent=pend+' pendente'+(pend!==1?'s':'');
-    toast(valor==='SIM'?'✅ Marcado para participar!':valor==='NÃO'?'❌ Marcado como recusado':'⏳ Em análise','ok');
-  }catch(e){ toast('Erro: '+e.message,'err'); }
+
+  // Guardar voto pendente
+  if(!_pendentes[id]) _pendentes[id]={};
+  _pendentes[id].part = valor;
+
+  // Atualizar visual dos botões
+  var card=document.getElementById('card-'+id);
+  if(!card) return;
+  card.querySelectorAll('.btn-part').forEach(function(b){b.classList.remove('on-sim','on-nao','on-analise');});
+  if(valor==='SIM') card.querySelectorAll('.btn-part')[0].classList.add('on-sim');
+  else if(valor==='NÃO') card.querySelectorAll('.btn-part')[1].classList.add('on-nao');
+  else card.querySelectorAll('.btn-part')[2].classList.add('on-analise');
+
+  // Habilitar justificativa e botão salvar
+  var just=document.getElementById('just-'+id);
+  if(just){ just.disabled=false; just.placeholder='Escreva uma justificativa...'; }
+  var btn=document.getElementById('btn-'+id);
+  if(btn){ btn.disabled=false; btn.className='btn-salvar ativo'; }
+
+  // Mostrar aviso
+  var aviso=document.getElementById('aviso-'+id);
+  if(aviso) aviso.style.display='block';
+
+  // Atualizar pill visual
+  var pill=card.querySelector('.status-pill');
+  if(pill){
+    if(valor==='SIM') pill.outerHTML='<span class="status-pill s-sim">✓ Participar</span>';
+    else if(valor==='NÃO') pill.outerHTML='<span class="status-pill s-nao">✕ Recusado</span>';
+    else pill.outerHTML='<span class="status-pill s-analise">⏳ Em Análise</span>';
+  }
 }
 
-async function salvarJust(id){
+// Salvar — só aqui grava no Firebase
+async function salvar(id){
   var d=TODOS.find(function(x){return x.id===id;});
   if(!d) return;
-  var just=document.getElementById('just-'+id);
-  if(!just) return;
-  var btn=just.nextElementSibling;
+
+  var btn=document.getElementById('btn-'+id);
   if(btn){btn.disabled=true;btn.textContent='Salvando...';}
+
   var arr=d.arr.slice();
-  arr[12]=just.value.trim();
+  // Aplicar voto pendente
+  if(_pendentes[id]&&_pendentes[id].part) arr[10]=_pendentes[id].part;
+  // Aplicar justificativa
+  var just=document.getElementById('just-'+id);
+  if(just) arr[12]=just.value.trim();
+
   try{
     await db.collection('editais').doc(id).set({_id:d._id,_arr:arr});
     d.arr=arr;
-    toast('✅ Justificativa salva!','ok');
-  }catch(e){ toast('Erro: '+e.message,'err'); }
-  if(btn){btn.disabled=false;btn.textContent='💾 Salvar Justificativa';}
+    delete _pendentes[id];
+
+    // Esconder aviso
+    var aviso=document.getElementById('aviso-'+id);
+    if(aviso) aviso.style.display='none';
+
+    // Atualizar borda do card
+    var card=document.getElementById('card-'+id);
+    var part=String(arr[10]||'').toUpperCase().trim();
+    if(card){
+      card.className='card '+(part==='SIM'?'sim':(part==='NÃO'||part==='NAO')?'nao':part==='EM ANÁLISE'?'analise':'');
+    }
+
+    atualizarStats();
+    toast('✅ Salvo com sucesso!','ok');
+  }catch(e){
+    toast('Erro ao salvar: '+e.message,'err');
+  }
+
+  if(btn){btn.disabled=false;btn.textContent='💾 Salvar';}
 }
 
 // Iniciar
 carregar();
+
+// SW
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw-viabilidade.js').catch(function(){});
+}
 </script>
-  <script>
-    if('serviceWorker' in navigator){
-      window.addEventListener('load', function(){
-        navigator.serviceWorker.register('sw-viabilidade.js').catch(function(){});
-      });
-    }
-  </script>
 </body>
 </html>
