@@ -2,6 +2,12 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+  <link rel="manifest" href="manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="NH Licitações">
+  <meta name="theme-color" content="#f97316">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NH Licitações</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -1267,6 +1273,12 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+// Usar long polling para evitar erros de WebChannel em alguns ambientes
+db.settings({
+  experimentalAutoDetectLongPolling: true,
+  merge: true
+});
+// Cache offline desabilitado — Firebase gerencia internamente
 const auth = firebase.auth();
 
 // ── Auth Email/Senha ──
@@ -5120,5 +5132,14 @@ document.addEventListener('click',function(e){
 });
 
 </script>
+  <script>
+    if('serviceWorker' in navigator){
+      window.addEventListener('load', function(){
+        navigator.serviceWorker.register('sw.js').then(function(reg){
+          console.log('SW registrado:', reg.scope);
+        }).catch(function(e){ console.log('SW erro:', e); });
+      });
+    }
+  </script>
 </body>
 </html>
