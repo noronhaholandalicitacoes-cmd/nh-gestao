@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Migrar → Licitações Ganhas</title>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-firestore-compat.js"></script>
+<style>
+body{font-family:sans-serif;background:#111;color:#eee;padding:32px;max-width:700px;margin:0 auto}
+h1{color:#f97316;margin-bottom:8px}
+p{color:#888;margin-bottom:20px;font-size:14px}
+.btn{background:#f97316;color:#000;border:none;padding:12px 28px;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;margin:8px 4px}
+.btn-del{background:#ef4444}
+.log{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:16px;margin-top:16px;min-height:120px;font-family:monospace;font-size:12px;max-height:500px;overflow-y:auto}
+.ok{color:#22c55e}.err{color:#ef4444}.info{color:#f97316}.muted{color:#666}
+</style>
+</head>
+<body>
+<h1>🏆 Migrar Processos → Licitações Ganhas</h1>
+<p>Varre todos os processos de <b>Em Andamento</b> com ADJU=sim E Classificação=1 posição e cria os registros em <b>Licitações Ganhas</b> (sem mexer nos que já existem).</p>
+
+<button class="btn" onclick="verificar()">🔍 Verificar processos elegíveis</button>
+<button class="btn" onclick="migrar()" id="btn-migrar" style="display:none">🚀 Migrar para Licitações Ganhas</button>
+
+<div class="log" id="log"><span class="muted">Aguardando...</span></div>
+
+<script>
+const cfg={apiKey:"AIzaSyBhcpJP9dRM0SEJsGfcNUXYb1rTMdEDw6M",authDomain:"nh-licitacoes.firebaseapp.com",projectId:"nh-licitacoes",storageBucket:"nh-licitacoes.firebasestorage.app",messagingSenderId:"1081646053691",appId:"1:1081646053691:web:a8abcb5792d026ade71f1e"};
+firebase.initializeApp(cfg);
+const db=firebase.firestore();
+db.settings({experimentalAutoDetectLongPolling:true,merge:true});
+
+function log(msg,tipo){
+  var el=document.getElementById('log');
+  el.innerHTML+='<div class="'+(tipo||'info')+'">'+msg+'</div>';
+  el.scrollTop=el.scrollHeight;
+}
+
+function is1Posicao(cl){
+  var s=String(cl||'').toLowerCase().trim();
+  if(!s) return false;
+  if(/^1[o°ºª]?$/.test(s)) return true;
+  if(/^1[o°ºª]?\s+(posi|lugar)/.test(s)) return true;
+  if(/^primeiro/.test(s)) return true;
+  return false;
+}
+
+var elegíveis=[];
+var gaExistentes=[];
+
+async function verificar(){
+  document.getElementById('log').innerHTML='';
+  log('Carregando Em Andamento...','info');
+
+  var snapAnd=await db.collection('andamento').get();
+  var snapGa=await db.collection('ganhas').get();
+
+  gaExistentes=[];
+  snapGa.forEach(function(doc){
+    var arr=doc.data()._arr||[];
+    gaExistentes.push(String(arr[3]||'').trim().toLowerCase()+'|'+String(arr[2]||'').trim());
+  });
+  log('Ganhas existentes: '+gaExistentes.length+' registros','muted');
+
+  elegíveis=[];
+  snapAnd.forEach(function(doc){
+    var d=doc.data(); var arr=d._arr||[];
+    var adju=String(arr[16]||'').toLowerCase().trim();
+    var clas=String(arr[11]||'').trim();
+    if(adju==='sim' && is1Posicao(clas)){
+      var chave=String(arr[3]||'').trim().toLowerCase()+'|'+String(arr[2]||'').trim();
+      var jaExiste=gaExistentes.indexOf(chave)!==-1;
+      elegíveis.push({id:doc.id,_id:d._id,arr:arr,jaExiste:jaExiste});
+    }
+  });
+
+  if(!elegíveis.length){
+    log('Nenhum processo elegível encontrado.','muted');
+    return;
+  }
+
+  var novos=elegíveis.filter(function(e){return !e.jaExiste;});
+  var existentes=elegíveis.filter(function(e){return e.jaExiste;});
+
+  log('','');
+  log('✅ Processos elegíveis: '+elegíveis.length,'ok');
+  log('🆕 Para migrar (novos): '+novos.length,'ok');
+  log('⏭ Já existem em Ganhas: '+existentes.length+' (serão ignorados)','muted');
+  log('','');
+
+  novos.forEach(function(e){
+    log('• '+String(e.arr[2]||'').trim()+' — '+String(e.arr[3]||'').trim().substring(0,60),'info');
+  });
+
+  if(novos.length>0){
+    document.getElementById('btn-migrar').style.display='inline-block';
+  } else {
+    log('','');
+    log('Todos os processos elegíveis já estão em Licitações Ganhas!','ok');
+  }
+}
+
+async function migrar(){
+  var novos=elegíveis.filter(function(e){return !e.jaExiste;});
+  if(!novos.length){ log('Nada para migrar.','muted'); return; }
+
+  document.getElementById('btn-migrar').disabled=true;
+  log('','');
+  log('Iniciando migração de '+novos.length+' processos...','info');
+
+  // Pegar próximo ID de ganhas
+  var snapMaxId=await db.collection('ganhas').orderBy('_id','desc').limit(1).get();
+  var nextId=snapMaxId.empty?1:(snapMaxId.docs[0].data()._id||0)+1;
+
+  var ok=0; var err=0;
+  for(var i=0;i<novos.length;i++){
+    var e=novos[i];
+    var arr=e.arr;
+    try{
+      var novaRow=[];
+      while(novaRow.length<43) novaRow.push('');
+      novaRow[0]=nextId;
+      novaRow[1]=arr[1]||''; // Data
+      novaRow[2]=arr[2]||''; // Empresa
+      novaRow[3]=arr[3]||''; // Licitação
+      novaRow[4]=arr[4]||''; // Objeto
+      novaRow[5]=arr[5]||''; // Local
+      novaRow[6]=arr[6]||''; // Município
+      novaRow[7]=arr[8]||arr[7]||''; // Valor Final ou Est.
+      novaRow[9]='EM EXECUÇÃO'; // Status Contrato
+      await db.collection('ganhas').doc(String(nextId)).set({_id:nextId,_arr:novaRow});
+      log('✅ ['+nextId+'] '+String(arr[2]||'').trim()+' — '+String(arr[3]||'').trim().substring(0,50),'ok');
+      nextId++; ok++;
+    }catch(ex){
+      log('❌ Erro: '+String(arr[3]||'')+' — '+ex.message,'err');
+      err++;
+    }
+  }
+
+  log('','');
+  log('Migração concluída! ✅ '+ok+' migrados | ❌ '+err+' erros','ok');
+  log('Atualize o sistema principal para ver os registros.','muted');
+  document.getElementById('btn-migrar').disabled=false;
+}
+</script>
+</body>
+</html>
