@@ -2697,25 +2697,29 @@ function applyFilters(k){
   });
   PG[k]=1;
   renderStats(k,FIL[k]);
-  renderPills(k,ALL[k]);
+  renderPills(k,ALL[k],FIL[k]);
   renderTbl(k);
   if(k==='ganhas') atualizarTotalGanhas();
 }
-function renderPills(k,rows){
+function renderPills(k,rows,filtrados){
   var el=document.getElementById('pills-'+k);
   if(!el) return;
   var c={};
   rows.forEach(function(r){var e=String(r[2]||'Outros').trim();c[e]=(c[e]||0)+1;});
+  var cf={};
+  if(filtrados) filtrados.forEach(function(r){var e=String(r[2]||'Outros').trim();cf[e]=(cf[e]||0)+1;});
   var emps=Object.keys(c).sort(function(a,b){return c[b]-c[a];});
   PILL_EMPS[k]=emps;
   var activeEmp=EMP_FILTER[k]||null;
-  var parts=['<div class="pill'+(activeEmp===null?' on':'')+'" onclick="setPill(this,\''+k+'\',\'-1\')">Todas ('+rows.length+')</div>'];
+  var totalFil=filtrados?filtrados.length:rows.length;
+  var parts=['<div class="pill'+(activeEmp===null?' on':'')+'" onclick="setPill(this,\''+k+'\',\'-1\')">Todas ('+totalFil+')</div>'];
   emps.forEach(function(e,i){
     var ec2=empColor(e);
     var eb2=empBg(e);
     var isOn=activeEmp===e;
     var style=isOn?'border-color:'+ec2+';background:'+eb2+';color:'+ec2+';':'';
-    parts.push('<div class="pill'+(isOn?' on':'')+'" onclick="setPill(this,\''+k+'\',\''+i+'\')" style="'+style+'">'+e+' ('+c[e]+')</div>');
+    var cnt=isOn&&filtrados?cf[e]||0:c[e];
+    parts.push('<div class="pill'+(isOn?' on':'')+'" onclick="setPill(this,\''+k+'\',\''+i+'\')" style="'+style+'">'+e+' ('+cnt+')</div>');
   });
   el.innerHTML=parts.join('');
 
@@ -3634,10 +3638,9 @@ async function syncEntreAbas(k, ci, row){
           var gaId = parseInt(ALL['ganhas'][gaIdx][0]);
           await fbDelete('ganhas', gaId);
           ALL['ganhas'].splice(gaIdx, 1);
-          FIL['ganhas'] = ALL['ganhas'].slice();
+          applyFilters('ganhas');
           var bga = document.getElementById('b-ganhas');
-          if(bga) bga.textContent = FIL['ganhas'].length;
-          if(CUR==='ganhas') renderTbl('ganhas');
+          if(bga) bga.textContent = ALL['ganhas'].length;
           toast('Removido de Licitações Ganhas','info');
         }
       }
@@ -3686,12 +3689,10 @@ async function criarLicitacaoGanha(andRow){
     novaRow[9]  = 'EM EXECUÇÃO';   // Status Contrato padrão
     await fbSave('ganhas', novoId, novaRow);
     ALL['ganhas'].push(novaRow);
-    FIL['ganhas'] = ALL['ganhas'].slice();
+    applyFilters('ganhas');
     // Atualizar badge
     var bg = document.getElementById('b-ganhas');
-    if(bg) bg.textContent = FIL['ganhas'].length;
-    // Re-renderizar se estiver na aba ganhas
-    if(CUR==='ganhas') renderTbl('ganhas');
+    if(bg) bg.textContent = ALL['ganhas'].length;
     toast('✅ Processo adicionado em Licitações Ganhas!','ok');
   }catch(e){
     console.error('criarLicitacaoGanha error:',e);
@@ -3993,7 +3994,13 @@ function renderPag(k,tot){
   if(cur<pages) h+='<div class="pb" onclick="goPg(\''+k+'\','+(cur+1)+')">&#8250;</div>';
   document.getElementById('pag-'+k).innerHTML=h;
 }
-function goPg(k,n){PG[k]=n;renderTbl(k);}
+function goPg(k,n){
+  PG[k]=n;
+  renderTbl(k);
+  // Rolar para o topo da aba
+  var el=document.getElementById('tbl-'+k);
+  if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+}
 
 function openM(k){
   EROW[k]=null;
