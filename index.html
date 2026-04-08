@@ -3984,10 +3984,11 @@ function selecionarWpp(resp){
   var link  = 'https://noronhaholandalicitacoes-cmd.github.io/nh-gestao/viabilidade.html';
 
   var nome = resp === 'ANTUNES' ? 'Antunes' : 'Noronha';
+  var bordao = resp === 'ANTUNES' ? 'Arrocha!' : 'Maravilha!';
   var partes = [
     'Ola, '+nome+'!',
     '',
-    'Novo processo para analise de viabilidade:',
+    'Novo processo para analise de participacao:',
     '',
     'Empresa: '+emp,
     'Licitacao: '+licit
@@ -3997,8 +3998,10 @@ function selecionarWpp(resp){
   if(val) partes.push('Valor Est.: '+val);
   partes.push('');
   partes.push('Vamos participar?');
+  partes.push('Acesse o link abaixo, marque SIM ou NAO e salve:');
+  partes.push(link);
   partes.push('');
-  partes.push('Acesse o app: '+link);
+  partes.push(bordao);
   var msg = partes.join('\n');
     document.getElementById('wpp-preview').value = msg;
 
@@ -5393,7 +5396,7 @@ document.addEventListener('click',function(e){
       </div>
       <div>
         <div style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Prévia da mensagem</div>
-        <textarea id="wpp-preview" style="width:100%;background:#111;border:1px solid #2a2a2a;border-radius:8px;color:#e5e5e5;font-family:Outfit,sans-serif;font-size:12px;padding:10px;resize:vertical;min-height:110px;outline:none;line-height:1.6" readonly></textarea>
+        <textarea id="wpp-preview" style="width:100%;background:#111;border:1px solid #2a2a2a;border-radius:8px;color:#e5e5e5;font-family:Outfit,sans-serif;font-size:12px;padding:10px;resize:vertical;min-height:110px;outline:none;line-height:1.6"></textarea>
       </div>
       <button id="wpp-enviar" onclick="enviarWhatsapp()" disabled
         style="width:100%;padding:14px;border-radius:10px;border:none;background:#2a2a2a;color:#555;font-size:15px;font-weight:800;cursor:not-allowed;font-family:Outfit,sans-serif;transition:all .2s">
