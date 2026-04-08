@@ -4314,6 +4314,14 @@ function initApp(){
   carregarTarefas();
 }
 
+function parseBRDate(s){
+  if(!s) return null;
+  var p=String(s).trim().split(' ')[0].split('/');
+  if(p.length!==3) return null;
+  var d=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
+  return isNaN(d.getTime())?null:d;
+}
+
 function verificarVencimentos(){
   var hoje = new Date(); hoje.setHours(0,0,0,0);
   var avisos = [];
