@@ -3177,6 +3177,12 @@ function renderCard(k,row,abs){
       '<svg width="16" height="16" viewBox="0 0 24 24" fill="'+(_ps?'#eab308':'#fff')+'" stroke="'+(_ps?'#eab308':'#fff')+'" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>'+
     '</button>';
   }
+  // 📲 WhatsApp — só em editais
+  if(k==='editais'){
+    h+='<button onclick="event.stopPropagation();abrirWpp('+abs+')" title="Enviar para WhatsApp" style="background:none;border:none;cursor:pointer;padding:2px 3px;line-height:1;opacity:.8" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.8">'+
+      '<svg width="16" height="16" viewBox="0 0 24 24" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.532 5.856L.057 23.882l6.198-1.448A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.907 0-3.694-.5-5.24-1.375l-.375-.222-3.684.861.901-3.574-.243-.389A9.937 9.937 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>'+
+    '</button>';
+  }
   // 💬 Chat Conlicitação — só em andamento
   if(k==='andamento'){
     var _ck='chat_'+rowId;
@@ -3187,8 +3193,31 @@ function renderCard(k,row,abs){
       '<svg width="16" height="16" viewBox="0 0 24 24" fill="'+(_ca?'#3b82f6':'#aaa')+'" stroke="none"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>'+
     '</button>';
   }
-  // 📄 Contrato e 📋 Aditivo — só em ganhas
+  // 📄 Contrato, 📋 Aditivo e ⏱ Vencimento — só em ganhas
   if(k==='ganhas'){
+    // ── Contador de vencimento ──
+    var _gVenc=String(row[12]||'').trim();
+    if(_gVenc){
+      var _gVd=parseBRDate(_gVenc);
+      if(_gVd){
+        var _gHoje=new Date(); _gHoje.setHours(0,0,0,0);
+        var _gDias=Math.round((_gVd-_gHoje)/86400000);
+        var _gCor=_gDias<0?'#ef4444':_gDias<=30?'#f97316':_gDias<=90?'#eab308':'#22c55e';
+        var _gTxt=_gDias<0?'Vencido há '+Math.abs(_gDias)+'d':_gDias===0?'HOJE':_gDias<=60?_gDias+'d':'~'+Math.round(_gDias/30)+'m';
+        h+='<span onclick="event.stopPropagation()" title="Vencimento: '+_gVenc+'" style="display:inline-flex;align-items:center;gap:3px;background:'+_gCor+'22;border:1px solid '+_gCor+'55;color:'+_gCor+';border-radius:6px;padding:2px 7px;font-size:11px;font-weight:700;cursor:default">⏱ '+_gTxt+'</span>';
+      }
+    }
+    // ── Contador de aditivos ──
+    var _gAdits=0;
+    var _gAditData='';
+    [[13,16],[20,23],[27,30],[34,37]].forEach(function(p){
+      if(String(row[p[0]]||'').trim()) _gAdits++;
+      if(String(row[p[1]]||'').trim()) _gAditData=String(row[p[1]]||'').trim();
+    });
+    if(_gAdits>0){
+      h+='<span onclick="event.stopPropagation()" title="'+_gAdits+' aditivo(s)'+(_gAditData?' · Nova data: '+_gAditData:'')+'" style="display:inline-flex;align-items:center;gap:3px;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.3);color:#a78bfa;border-radius:6px;padding:2px 7px;font-size:11px;font-weight:700;cursor:default">📋 '+_gAdits+'</span>';
+    }
+    // ── Ícones contrato e aditivo ──
     var _contKey='contrato_'+rowId;
     var _contAtivo=localStorage.getItem(_contKey)==='1';
     h+='<button data-cont-key="'+_contKey+'" onclick="event.stopPropagation();toggleContrato(this)" '+
@@ -3895,6 +3924,111 @@ function toggleAditivo(btn){
   var svg = btn.querySelector('svg');
   if(svg) svg.style.stroke = novo?'#a78bfa':'#aaa';
   toast(novo?'📋 Aditivo marcado!':'Aditivo desmarcado','ok');
+}
+
+// Números WhatsApp — edite aqui
+var WPP_NUMS = {
+  'ANTUNES': '5583998509055',
+  'NORONHA': '5583981921103'
+};
+var _wppAbs = null;
+var _wppResp = null;
+
+function abrirWpp(abs){
+  var row = FIL[CUR][abs] || ALL[CUR][abs];
+  if(!row) return;
+  _wppAbs = abs;
+  _wppResp = null;
+
+  var emp   = String(row[2]||'').trim();
+  var licit = String(row[3]||'').trim();
+  var obj   = String(row[4]||'').trim().substring(0,80);
+  var local = String(row[5]||'').trim();
+  var val   = fmtValBR(String(row[7]||'').trim());
+  var resp  = String(row[9]||'').toUpperCase().trim();
+
+  var info = [emp, licit, obj&&('Objeto: '+obj), local&&('Local: '+local), val&&('Valor Est.: '+val)].filter(Boolean).join(' | ');
+  document.getElementById('wpp-processo').innerHTML = info.split(' | ').join('<br>');
+  document.getElementById('wpp-preview').value = '';
+  document.getElementById('wpp-enviar').disabled = true;
+  document.getElementById('wpp-enviar').style.background = '#2a2a2a';
+  document.getElementById('wpp-enviar').style.color = '#555';
+  document.getElementById('wpp-enviar').style.cursor = 'not-allowed';
+  document.getElementById('wpp-enviar').textContent = 'Selecione um responsável';
+
+  // Resetar botões
+  ['ant','nor'].forEach(function(b){
+    var el = document.getElementById('wpp-btn-'+b);
+    if(el){ el.style.borderColor='#2a2a2a'; el.style.background='#111'; el.style.color='#777'; }
+  });
+
+  // Pré-selecionar se já tem responsável cadastrado
+  if(resp.indexOf('ANTUNES')!==-1 && resp.indexOf('NORONHA')===-1) selecionarWpp('ANTUNES');
+  else if(resp.indexOf('NORONHA')!==-1 && resp.indexOf('ANTUNES')===-1) selecionarWpp('NORONHA');
+
+  var mo = document.getElementById('mo-whatsapp');
+  mo.style.display = 'flex';
+}
+
+function selecionarWpp(resp){
+  _wppResp = resp;
+  var row = FIL[CUR][_wppAbs] || ALL[CUR][_wppAbs];
+  if(!row) return;
+
+  var emp   = String(row[2]||'').trim();
+  var licit = String(row[3]||'').trim();
+  var obj   = String(row[4]||'').trim().substring(0,100);
+  var local = String(row[5]||'').trim();
+  var mun   = String(row[6]||'').trim();
+  var val   = fmtValBR(String(row[7]||'').trim());
+  var link  = 'https://noronhaholandalicitacoes-cmd.github.io/nh-gestao/viabilidade.html';
+
+  var nome = resp === 'ANTUNES' ? 'Antunes' : 'Noronha';
+  var partes = [
+    'Ola, '+nome+'!',
+    '',
+    'Novo processo para analise de viabilidade:',
+    '',
+    'Empresa: '+emp,
+    'Licitacao: '+licit
+  ];
+  if(obj) partes.push('Objeto: '+obj);
+  if(local||mun) partes.push('Local: '+(local||mun));
+  if(val) partes.push('Valor Est.: '+val);
+  partes.push('');
+  partes.push('Vamos participar?');
+  partes.push('');
+  partes.push('Acesse o app: '+link);
+  var msg = partes.join('\n');
+    document.getElementById('wpp-preview').value = msg;
+
+  // Destacar botão selecionado
+  var isAnt = resp === 'ANTUNES';
+  var btnAnt = document.getElementById('wpp-btn-ant');
+  var btnNor = document.getElementById('wpp-btn-nor');
+  if(btnAnt){ btnAnt.style.borderColor=isAnt?'#eab308':'#2a2a2a'; btnAnt.style.background=isAnt?'rgba(234,179,8,.15)':'#111'; btnAnt.style.color=isAnt?'#eab308':'#777'; }
+  if(btnNor){ btnNor.style.borderColor=!isAnt?'#3b82f6':'#2a2a2a'; btnNor.style.background=!isAnt?'rgba(59,130,246,.15)':'#111'; btnNor.style.color=!isAnt?'#3b82f6':'#777'; }
+
+  var btn = document.getElementById('wpp-enviar');
+  btn.disabled = false;
+  btn.style.background = '#25d366';
+  btn.style.color = '#000';
+  btn.style.cursor = 'pointer';
+  btn.textContent = '📲 Enviar para ' + nome;
+}
+
+function enviarWhatsapp(){
+  if(!_wppResp) return;
+  var msg = document.getElementById('wpp-preview').value;
+  var num = WPP_NUMS[_wppResp] || '';
+  var url = 'https://wa.me/'+num+'?text='+encodeURIComponent(msg);
+  window.open(url, '_blank');
+  closeWpp();
+  toast('📲 Abrindo WhatsApp...','ok');
+}
+
+function closeWpp(){
+  document.getElementById('mo-whatsapp').style.display='none';
 }
 
 function toggleProposta(btn){
@@ -5238,6 +5372,37 @@ document.addEventListener('click',function(e){
 });
 
 </script>
+  <!-- Modal WhatsApp -->
+  <div id="mo-whatsapp" style="display:none;position:fixed;inset:0;z-index:9000;align-items:center;justify-content:center">
+    <div onclick="closeWpp()" style="position:absolute;inset:0;background:rgba(0,0,0,.7)"></div>
+    <div style="position:relative;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:16px;padding:28px;width:360px;max-width:95vw;display:flex;flex-direction:column;gap:16px">
+      <div style="font-size:16px;font-weight:800;color:#25d366">📲 Enviar via WhatsApp</div>
+      <div id="wpp-processo" style="font-size:13px;color:#aaa;background:#111;border-radius:8px;padding:10px 12px;line-height:1.6"></div>
+      <div>
+        <div style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Responsável</div>
+        <div style="display:flex;gap:8px">
+          <button id="wpp-btn-ant" onclick="selecionarWpp('ANTUNES')"
+            style="flex:1;padding:12px;border-radius:10px;border:2px solid #2a2a2a;background:#111;color:#777;font-size:14px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:all .2s">
+            ⭐ ANTUNES
+          </button>
+          <button id="wpp-btn-nor" onclick="selecionarWpp('NORONHA')"
+            style="flex:1;padding:12px;border-radius:10px;border:2px solid #2a2a2a;background:#111;color:#777;font-size:14px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:all .2s">
+            🔵 NORONHA
+          </button>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Prévia da mensagem</div>
+        <textarea id="wpp-preview" style="width:100%;background:#111;border:1px solid #2a2a2a;border-radius:8px;color:#e5e5e5;font-family:Outfit,sans-serif;font-size:12px;padding:10px;resize:vertical;min-height:110px;outline:none;line-height:1.6" readonly></textarea>
+      </div>
+      <button id="wpp-enviar" onclick="enviarWhatsapp()" disabled
+        style="width:100%;padding:14px;border-radius:10px;border:none;background:#2a2a2a;color:#555;font-size:15px;font-weight:800;cursor:not-allowed;font-family:Outfit,sans-serif;transition:all .2s">
+        Selecione um responsável
+      </button>
+      <button onclick="closeWpp()" style="background:none;border:none;color:#555;font-size:13px;cursor:pointer;font-family:Outfit,sans-serif">Cancelar</button>
+    </div>
+  </div>
+
   <script>
     if('serviceWorker' in navigator && location.hostname !== 'www.claudeusercontent.com'){
       window.addEventListener('load', function(){
