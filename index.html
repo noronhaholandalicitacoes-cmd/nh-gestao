@@ -2281,7 +2281,14 @@ async function _load(k){
     });
     // Ordem decrescente
     valid.sort(function(a,b){return (parseInt(b[0])||0)-(parseInt(a[0])||0);});
-    ALL[k]=valid; FIL[k]=valid.slice();
+    ALL[k]=valid;
+    // Reaplicar filtro ativo se existir, senão usa tudo
+    if(EMP_FILTER[k]||STATUS_FILTER[k]){
+      applyFilters(k);
+    } else {
+      FIL[k]=valid.slice();
+      if(el){renderStats(k,FIL[k]);renderPills(k,ALL[k],FIL[k]);renderTbl(k);}
+    }
     var b=document.getElementById('b-'+k);
     if(b){
       if(k==='andamento'){
@@ -2291,7 +2298,6 @@ async function _load(k){
         b.textContent=valid.length;
       }
     }
-    if(el){renderStats(k,valid);renderPills(k,valid);renderTbl(k);}
   }catch(e){
     console.error('_load error',k,e);
     if(el) el.innerHTML=emptyEl('Erro ao carregar: '+e.message);
@@ -4210,9 +4216,9 @@ async function doSave(k){
           var gId = parseInt(ALL['ganhas'][gI][0]);
           await fbDelete('ganhas', gId);
           ALL['ganhas'].splice(gI, 1);
-          FIL['ganhas'] = ALL['ganhas'].slice();
+          applyFilters('ganhas');
           var bgx = document.getElementById('b-ganhas');
-          if(bgx) bgx.textContent = FIL['ganhas'].length;
+          if(bgx) bgx.textContent = ALL['ganhas'].length;
           toast('Removido de Licitações Ganhas','info');
         }
       }
