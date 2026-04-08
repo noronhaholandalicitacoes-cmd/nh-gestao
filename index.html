@@ -2560,7 +2560,7 @@ function filtrarPraHojeEditais(){
     btn.setAttribute('data-active','0');
     btn.style.background='rgba(249,115,22,.15)';btn.style.color='var(--nh)';btn.innerHTML='📅 Pra Hoje';
     FIL['editais']=ALL['editais'].slice();
-    PG['editais']=1;renderPills('editais',ALL['editais']);renderTbl('editais');
+    PG['editais']=1;renderPills('editais',ALL['editais'],FIL['editais']);renderTbl('editais');
     return;
   }
 
@@ -2590,7 +2590,7 @@ function filtrarPraHojeEditais(){
   });
 
   FIL['editais']=filtered;
-  PG['editais']=1;renderPills('editais',ALL['editais']);renderTbl('editais');
+  PG['editais']=1;renderPills('editais',ALL['editais'],FIL['editais']);renderTbl('editais');
   toast((filtered.length||'Nenhum')+' edital(is) nos últimos 3 dias','ok');
 }
 
@@ -2604,7 +2604,7 @@ function filtrarPraHoje(){
     if(btn){btn.style.background='rgba(249,115,22,.15)';btn.style.color='var(--nh)';btn.textContent='📅 Pra Hoje';}
     FIL['andamento']=ALL['andamento'].slice();
     PG['andamento']=1;
-    renderPills('andamento',ALL['andamento']);
+    renderPills('andamento',ALL['andamento'],FIL['andamento']);
     renderTbl('andamento');
     return;
   }
@@ -2647,7 +2647,7 @@ function filtrarPraHoje(){
 
   FIL['andamento']=filtered;
   PG['andamento']=1;
-  renderPills('andamento',ALL['andamento']);
+  renderPills('andamento',ALL['andamento'],FIL['andamento']);
   renderTbl('andamento');
 
   if(filtered.length===0){
