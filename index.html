@@ -3240,14 +3240,56 @@ function renderCard(k,row,abs){
     var g_val  =String(row[7]||'').trim();
     var g_cont =String(row[8]||'').trim();
     var g_st   =String(row[9]||'').trim();
+    var g_vig  =String(row[10]||'').trim();
+    var g_assin=String(row[11]||'').trim();
     var g_venc =String(row[12]||'').trim();
-    var g_link =String(row[42]||row[21]||'').trim(); // idx 42=novo, 21=fallback antigo
+    var g_link =String(row[42]||row[21]||'').trim();
+
     if(g_local) h+='<div class="kmeta"><span class="kmeta-lbl">Local</span><span class="kmeta-val">'+g_local+'</span></div>';
     if(g_mun)   h+='<div class="kmeta"><span class="kmeta-lbl">Município</span><span class="kmeta-val">'+g_mun+'</span></div>';
     if(g_val)   h+='<div class="kmeta"><span class="kmeta-lbl">Valor</span><span class="kmeta-val hl">'+fmtValBR(g_val)+'</span></div>';
     if(g_cont)  h+='<div class="kmeta"><span class="kmeta-lbl">Contrato</span><span class="kmeta-val">'+g_cont+'</span></div>';
     if(g_st)    h+='<div class="kmeta"><span class="kmeta-lbl">Status</span>'+badge('ganhas',9,g_st)+'</div>';
-    if(g_venc)  h+='<div class="kmeta"><span class="kmeta-lbl">Vence em</span><span class="kmeta-val">'+g_venc+'</span></div>';
+
+    // ── Contador de vencimento do contrato ──
+    if(g_venc){
+      var _vd=parseBRDate(g_venc)||parseDataCal(g_venc);
+      if(_vd){
+        var _hoje=new Date(); _hoje.setHours(0,0,0,0);
+        var _diffMs=_vd-_hoje;
+        var _diffDias=Math.round(_diffMs/86400000);
+        var _diffMeses=Math.round(_diffDias/30);
+        var _vencCor=_diffDias<0?'#ef4444':_diffDias<=30?'#f97316':_diffDias<=90?'#eab308':'#22c55e';
+        var _vencTxt=_diffDias<0
+          ?'Vencido há '+Math.abs(_diffDias)+'d'
+          :_diffDias===0?'Vence HOJE'
+          :_diffDias<=60?'Vence em '+_diffDias+'d'
+          :'Vence em '+_diffMeses+' meses';
+        h+='<div class="kmeta">';
+        h+='<span class="kmeta-lbl">⏱ Contrato</span>';
+        h+='<span class="kmeta-val" style="color:'+_vencCor+';font-weight:700">'+_vencTxt+'</span>';
+        if(g_assin) h+='<span class="kmeta-val" style="font-size:11px;color:var(--t3);margin-left:4px">· Assinado: '+g_assin+'</span>';
+        h+='</div>';
+      }
+    }
+
+    // ── Contagem de aditivos cadastrados ──
+    var _adits=[];
+    // Aditivos em índices: 1=Nova Data Venc(16), 2=NovaDt2(23), 3=NovaDt3(30), 4=NovaDt4(37)
+    var _aditIdxs=[[13,14,15,16,17,18,19],[20,21,22,23,24,25,26],[27,28,29,30,31,32,33],[34,35,36,37,38,39,40]];
+    _aditIdxs.forEach(function(idxs,n){
+      var recomp=String(row[idxs[0]]||'').trim();
+      var novaData=String(row[idxs[3]]||'').trim();
+      if(recomp||novaData) _adits.push({n:n+1,tipo:String(row[idxs[1]]||'').trim(),novaData:novaData,valFinal:String(row[idxs[5]]||'').trim()});
+    });
+    if(_adits.length>0){
+      h+='<div class="kmeta"><span class="kmeta-lbl">📋 Aditivos</span>';
+      h+='<span class="kmeta-val" style="color:#a78bfa;font-weight:700">'+_adits.length+' aditivo(s)';
+      var _ultAdit=_adits[_adits.length-1];
+      if(_ultAdit.novaData) h+=' · Vence: '+_ultAdit.novaData;
+      h+='</span></div>';
+    }
+
     if(g_link)  h+='<div class="kmeta"><span class="kmeta-lbl">Pasta</span>'+klink(g_link)+'</div>';
 
   } else if(k==='atestados'){
@@ -5176,11 +5218,9 @@ document.addEventListener('click',function(e){
 
 </script>
   <script>
-    if('serviceWorker' in navigator){
+    if('serviceWorker' in navigator && location.hostname !== 'www.claudeusercontent.com'){
       window.addEventListener('load', function(){
-        navigator.serviceWorker.register('sw.js').then(function(reg){
-          console.log('SW registrado:', reg.scope);
-        }).catch(function(e){ console.log('SW erro:', e); });
+        navigator.serviceWorker.register('sw.js').catch(function(){});
       });
     }
   </script>
