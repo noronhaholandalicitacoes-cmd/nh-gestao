@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="NH Licitações">
   <meta name="theme-color" content="#f97316">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NH Licitações v53</title>
+<title>NH Licitações</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -770,7 +770,7 @@ select{color-scheme:dark;}
       </button>
       <div id="user-info" style="display:none;align-items:center;gap:6px">
         <span id="user-name" style="font-size:11px;color:var(--t2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
-        <button title="v53" onclick="logoutGoogle()" style="background:none;border:none;color:var(--t3);font-size:11px;cursor:pointer;padding:2px 6px;border-radius:4px;border:1px solid var(--b1)">Sair</button>
+        <button onclick="logoutGoogle()" style="background:none;border:none;color:var(--t3);font-size:11px;cursor:pointer;padding:2px 6px;border-radius:4px;border:1px solid var(--b1)">Sair</button>
       </div>
     </div>
   </div>
@@ -4462,20 +4462,20 @@ function parseBRDate(s){
 function verificarVencimentos(){
   var hoje = new Date(); hoje.setHours(0,0,0,0);
   var avisos = [];
-  // Contratos ganhos prestes a vencer (30 dias)
+  // Contratos ganhos prestes a vencer — só avisa se faltar 7 dias ou menos
   (ALL.ganhas||[]).forEach(function(r){
     var st = String(r[9]||'').toUpperCase().trim();
     if(st !== 'EM EXECUÇÃO' && st !== 'EM EXECUCAO') return;
     var venc = parseBRDate(r[12]);
     if(!venc) return;
     var dias = Math.round((venc-hoje)/(1000*60*60*24));
-    if(dias >= 0 && dias <= 30){
+    if(dias >= 0 && dias <= 7){
       avisos.push({tipo:'ganhas',id:r[0],emp:r[2],licit:String(r[3]||'').substring(0,40),dias:dias});
     }
   });
   // Processos em andamento com data de disputa hoje ou amanhã
   (ALL.andamento||[]).forEach(function(r){
-    var dd = parseBRDate(r[9]);
+    var dd = parseBRDate(r[10]);
     if(!dd) return;
     var dias = Math.round((dd-hoje)/(1000*60*60*24));
     if(dias >= 0 && dias <= 1){
