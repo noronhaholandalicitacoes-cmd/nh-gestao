@@ -1372,12 +1372,17 @@ async function carregarEmpresas(){
       EMPRESAS = snap.data().lista;
     }
   }catch(e){ console.log('Usando empresas padrão'); }
-  atualizarSelectsEmpresas();
   // Inicializar EMP_DATA para todas empresas
   EMPRESAS.forEach(function(e){
     if(!EMP_DATA[e.nome]) EMP_DATA[e.nome]={cnpj:e.cnpj||'',portais:[],docs:[]};
     if(!TOPS['emp-'+e.nome]) TOPS['emp-'+e.nome]=['Empresa — '+e.nome,'Portais, certidões e documentação'+(e.cnpj?' · CNPJ '+e.cnpj:'')];
   });
+  // Carregar certidões de TODAS as empresas do Firebase antes de renderizar o sidebar
+  try{
+    await Promise.all(EMPRESAS.map(function(e){ return loadEmpData(e.nome); }));
+  }catch(e){ console.log('Erro ao pré-carregar certidões:', e); }
+  // Só agora renderiza o sidebar — com dados corretos do Firebase
+  atualizarSelectsEmpresas();
 }
 
 async function salvarEmpresas(){
@@ -1414,15 +1419,15 @@ function getCertBadge(empNome){
   // Retorna array de badges separados
   var badges = [];
   if(vencidas > 0) badges.push({
-    txt: vencidas+' vencida'+(vencidas>1?'s':''),
-    cor: '#ef4444',
-    bg:  'rgba(239,68,68,.08)',
+    txt: vencidas,
+    cor: '#f87171',
+    bg:  'rgba(239,68,68,.06)',
     title: vencidas+' certidão(ões) VENCIDA(S)'
   });
   if(urgentes > 0) badges.push({
-    txt: urgentes+' a vencer',
-    cor: '#eab308',
-    bg:  'rgba(234,179,8,.08)',
+    txt: urgentes,
+    cor: '#fbbf24',
+    bg:  'rgba(234,179,8,.06)',
     title: urgentes+' certidão(ões) vence(m) em até 5 dias'
   });
   return badges.length ? badges : null;
@@ -1878,8 +1883,7 @@ async function loadEmpData(emp){
         certs:   d.certs||[],
         docs:    d.docs||[]
       };
-      // Atualizar badges no sidebar após carregar certidões
-      setTimeout(function(){ atualizarSelectsEmpresas(); }, 50);
+      // badges atualizados via carregarEmpresas no boot
     } else {
       // Empresa nova ou sem dados — inicializar vazio e salvar no Firebase
       _empCache[emp] = {portais:[], certs:[], docs:[]};
