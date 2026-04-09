@@ -1384,6 +1384,46 @@ async function salvarEmpresas(){
   await db.collection('config').doc('empresas').set({lista: EMPRESAS});
 }
 
+function getCertBadge(empNome){
+  // Calcula status das certidões de uma empresa em tempo real
+  var dados = EMP_DATA[empNome];
+  if(!dados) return null;
+  // Tentar pegar certidões do cache Firebase
+  var certs = (window._empCache && window._empCache[empNome] && window._empCache[empNome].certs)
+    ? window._empCache[empNome].certs
+    : (dados.certidoes || []);
+  if(!certs || !certs.length) return null;
+
+  var hoje = new Date(); hoje.setHours(0,0,0,0);
+  var vencidas = 0, urgentes = 0;
+
+  certs.forEach(function(c){
+    var val = c.validade || c.vencimento || '';
+    if(!val || val==='-' || val==='') return;
+    var p = val.split('/');
+    if(p.length !== 3) return;
+    var dt = new Date(parseInt(p[2]), parseInt(p[1])-1, parseInt(p[0]));
+    if(isNaN(dt.getTime())) return;
+    var dias = Math.round((dt - hoje) / 86400000);
+    if(dias < 0) vencidas++;
+    else if(dias <= 5) urgentes++;
+  });
+
+  if(vencidas > 0) return {
+    txt: vencidas+'✗',
+    cor: '#ef4444',
+    bg:  'rgba(239,68,68,.12)',
+    title: vencidas+' certidão(ões) VENCIDA(S)'
+  };
+  if(urgentes > 0) return {
+    txt: urgentes+'⚠',
+    cor: '#f97316',
+    bg:  'rgba(249,115,22,.12)',
+    title: urgentes+' certidão(ões) vence(m) em até 5 dias'
+  };
+  return null;
+}
+
 function atualizarSelectsEmpresas(){
   var opts = '<option value="">Selecione...</option>' +
     EMPRESAS.map(function(e){ return '<option>'+e.nome+'</option>'; }).join('');
@@ -1408,9 +1448,13 @@ function atualizarSelectsEmpresas(){
     sb.innerHTML = EMPRESAS.map(function(e){
       var nid = 'nav-emp-'+e.nome;
       var cor = e.cor||'#f97316';
-      return '<div class="sb-item" id="'+nid+'" data-emp="'+e.nome+'" style="position:relative">'+
-        '<span style="width:8px;height:8px;border-radius:50%;background:'+cor+';flex-shrink:0;display:inline-block;margin-right:2px"></span>'+
+      var badge = getCertBadge(e.nome);
+      return '<div class="sb-item" id="'+nid+'" data-emp="'+e.nome+'" style="position:relative;justify-content:space-between">'+
+        '<div style="display:flex;align-items:center;gap:6px">'+
+        '<span style="width:8px;height:8px;border-radius:50%;background:'+cor+';flex-shrink:0;display:inline-block"></span>'+
         '<span>'+e.nome+'</span>'+
+        '</div>'+
+        (badge?'<span title="'+badge.title+'" style="font-size:10px;font-weight:800;padding:1px 6px;border-radius:10px;background:'+badge.bg+';color:'+badge.cor+';border:1px solid '+badge.cor+'55;white-space:nowrap">'+badge.txt+'</span>':'')+
         '</div>';
     }).join('');
     // Restaurar item ativo se houver
@@ -1822,6 +1866,8 @@ async function loadEmpData(emp){
         certs:   d.certs||[],
         docs:    d.docs||[]
       };
+      // Atualizar badges no sidebar após carregar certidões
+      setTimeout(function(){ atualizarSelectsEmpresas(); }, 50);
     } else {
       // Empresa nova ou sem dados — inicializar vazio e salvar no Firebase
       _empCache[emp] = {portais:[], certs:[], docs:[]};
