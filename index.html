@@ -1385,30 +1385,38 @@ async function salvarEmpresas(){
 }
 
 function getCertBadge(empNome){
-  // Calcula status das certidões de uma empresa em tempo real
-  var dados = EMP_DATA[empNome];
-  if(!dados) return null;
-  // Tentar pegar certidões do cache Firebase
-  var certs = (window._empCache && window._empCache[empNome] && window._empCache[empNome].certs)
-    ? window._empCache[empNome].certs
-    : (dados.certidoes || []);
+  // Prioriza cache do Firebase; cai no EMP_DATA hardcoded como fallback
+  var certs = null;
+  if(window._empCache && window._empCache[empNome] && window._empCache[empNome].certs && window._empCache[empNome].certs.length){
+    certs = window._empCache[empNome].certs;
+  } else if(EMP_DATA[empNome] && EMP_DATA[empNome].certidoes){
+    certs = EMP_DATA[empNome].certidoes;
+  }
   if(!certs || !certs.length) return null;
 
   var hoje = new Date(); hoje.setHours(0,0,0,0);
   var vencidas = 0, urgentes = 0;
 
   certs.forEach(function(c){
-    var val = c.validade || c.vencimento || '';
-    if(!val || val==='-' || val==='') return;
+    // Campo pode ser 'validade' (Firebase) ou 'vencimento'
+    var val = String(c.validade || c.vencimento || '').trim();
+    if(!val || val==='-') return;
     var p = val.split('/');
     if(p.length !== 3) return;
     var dt = new Date(parseInt(p[2]), parseInt(p[1])-1, parseInt(p[0]));
     if(isNaN(dt.getTime())) return;
-    var dias = Math.round((dt - hoje) / 86400000);
-    if(dias < 0) vencidas++;
-    else if(dias <= 5) urgentes++;
+    // Calcular dias SEMPRE a partir da data real — ignorar campo 'dias' que pode estar desatualizado
+    var diasReais = Math.round((dt - hoje) / 86400000);
+    if(diasReais < 0) vencidas++;
+    else if(diasReais <= 5) urgentes++;
   });
 
+  if(vencidas > 0 && urgentes > 0) return {
+    txt: vencidas+'✗ '+urgentes+'⚠',
+    cor: '#ef4444',
+    bg:  'rgba(239,68,68,.12)',
+    title: vencidas+' vencida(s) e '+urgentes+' vence(m) em até 5 dias'
+  };
   if(vencidas > 0) return {
     txt: vencidas+'✗',
     cor: '#ef4444',
@@ -1416,9 +1424,9 @@ function getCertBadge(empNome){
     title: vencidas+' certidão(ões) VENCIDA(S)'
   };
   if(urgentes > 0) return {
-    txt: urgentes+'⚠',
-    cor: '#f97316',
-    bg:  'rgba(249,115,22,.12)',
+    txt: urgentes+' ⚠',
+    cor: '#eab308',
+    bg:  'rgba(234,179,8,.12)',
     title: urgentes+' certidão(ões) vence(m) em até 5 dias'
   };
   return null;
