@@ -1360,7 +1360,7 @@ var EMPRESAS = [
   {nome:'SAUTEC',    cor:'#3b82f6'},
   {nome:'SOS',       cor:'#22c55e'},
   {nome:'SOS FILIAL',cor:'#ef4444'},
-  {nome:'ONLAV',     cor:'#10b981'},
+  {nome:'ONLAV',     cor:'#06b6d4'},
   {nome:'ENGEMED',   cor:'#ec4899'},
   {nome:'POTIGUAR',  cor:'#f97316'}
 ];
@@ -1411,25 +1411,21 @@ function getCertBadge(empNome){
     else if(diasReais <= 5) urgentes++;
   });
 
-  if(vencidas > 0 && urgentes > 0) return {
-    txt: vencidas+'✗ '+urgentes+'⚠',
+  // Retorna array de badges separados
+  var badges = [];
+  if(vencidas > 0) badges.push({
+    txt: vencidas+' vencida'+(vencidas>1?'s':''),
     cor: '#ef4444',
-    bg:  'rgba(239,68,68,.12)',
-    title: vencidas+' vencida(s) e '+urgentes+' vence(m) em até 5 dias'
-  };
-  if(vencidas > 0) return {
-    txt: vencidas+'✗',
-    cor: '#ef4444',
-    bg:  'rgba(239,68,68,.12)',
+    bg:  'rgba(239,68,68,.08)',
     title: vencidas+' certidão(ões) VENCIDA(S)'
-  };
-  if(urgentes > 0) return {
-    txt: urgentes+' ⚠',
+  });
+  if(urgentes > 0) badges.push({
+    txt: urgentes+' a vencer',
     cor: '#eab308',
-    bg:  'rgba(234,179,8,.12)',
+    bg:  'rgba(234,179,8,.08)',
     title: urgentes+' certidão(ões) vence(m) em até 5 dias'
-  };
-  return null;
+  });
+  return badges.length ? badges : null;
 }
 
 function atualizarSelectsEmpresas(){
@@ -1456,13 +1452,21 @@ function atualizarSelectsEmpresas(){
     sb.innerHTML = EMPRESAS.map(function(e){
       var nid = 'nav-emp-'+e.nome;
       var cor = e.cor||'#f97316';
-      var badge = getCertBadge(e.nome);
-      return '<div class="sb-item" id="'+nid+'" data-emp="'+e.nome+'" style="position:relative;justify-content:space-between">'+
-        '<div style="display:flex;align-items:center;gap:6px">'+
+      var badges = getCertBadge(e.nome);
+      var badgeHtml = '';
+      if(badges && badges.length){
+        badgeHtml = '<div style="display:flex;gap:4px;flex-shrink:0">';
+        badges.forEach(function(b){
+          badgeHtml += '<span title="'+b.title+'" style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:'+b.bg+';color:'+b.cor+';border:1px solid '+b.cor+'33">'+b.txt+'</span>';
+        });
+        badgeHtml += '</div>';
+      }
+      return '<div class="sb-item" id="'+nid+'" data-emp="'+e.nome+'" style="position:relative;justify-content:space-between;gap:6px">'+
+        '<div style="display:flex;align-items:center;gap:6px;min-width:0">'+
         '<span style="width:8px;height:8px;border-radius:50%;background:'+cor+';flex-shrink:0;display:inline-block"></span>'+
-        '<span>'+e.nome+'</span>'+
+        '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+e.nome+'</span>'+
         '</div>'+
-        (badge?'<span title="'+badge.title+'" style="font-size:10px;font-weight:800;padding:1px 6px;border-radius:10px;background:'+badge.bg+';color:'+badge.cor+';border:1px solid '+badge.cor+'55;white-space:nowrap">'+badge.txt+'</span>':'')+
+        badgeHtml+
         '</div>';
     }).join('');
     // Restaurar item ativo se houver
@@ -2991,7 +2995,7 @@ function empColor(e){
   return m[String(e).trim()]||'#64748b';
 }
 function empBg(e){
-  var m={'VISE':'rgba(234,179,8,.12)','SOS':'rgba(34,197,94,.12)','SAUTEC':'rgba(59,130,246,.12)','SOS FILIAL':'rgba(239,68,68,.12)','ONLAV':'rgba(16,185,129,.12)','ENGEMED':'rgba(236,72,153,.12)','POTIGUAR':'rgba(249,115,22,.12)'};
+  var m={'VISE':'rgba(234,179,8,.12)','SOS':'rgba(34,197,94,.12)','SAUTEC':'rgba(59,130,246,.12)','SOS FILIAL':'rgba(239,68,68,.12)','ONLAV':'rgba(6,182,212,.12)','ENGEMED':'rgba(236,72,153,.12)','POTIGUAR':'rgba(249,115,22,.12)'};
   return m[String(e).trim()]||'rgba(100,116,139,.12)';
 }
 function kfieldStatic(lbl,val){
@@ -3893,7 +3897,7 @@ function renderListaEmpresas(){
         '<input value="'+(e.cnpj||'')+'" oninput="mascaraCNPJ(this);EMPRESAS['+i+'].cnpj=this.value" style="width:100%;background:var(--s1);border:1px solid var(--b1);color:var(--t1);padding:6px 10px;border-radius:6px;font-size:12px;font-family:Outfit,sans-serif;outline:none;margin-top:2px"></div>'+
         '<div><label style="font-size:11px;color:var(--t3)">Cor</label>'+
         '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">'+
-          ['#eab308','#3b82f6','#22c55e','#ef4444','#10b981','#ec4899','#f97316','#8b5cf6'].map(function(c){
+          ['#eab308','#3b82f6','#22c55e','#ef4444','#06b6d4','#ec4899','#f97316','#8b5cf6'].map(function(c){
             var brd = e.cor===c?'3px solid #fff':'2px solid transparent';
             return '<span data-ci="'+i+'" data-cor="'+c+'" class="emp-cor-opt" style="width:20px;height:20px;border-radius:50%;background:'+c+';cursor:pointer;border:'+brd+'"></span>';
           }).join('')+
@@ -4584,7 +4588,7 @@ var _calSemanaInicio = (function(){
 })();
 
 var MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-var EMPCORES = {VISE:'#eab308',SAUTEC:'#3b82f6',SOS:'#22c55e','SOS FILIAL':'#ef4444',ONLAV:'#10b981',ENGEMED:'#ec4899',POTIGUAR:'#f97316'};
+var EMPCORES = {VISE:'#eab308',SAUTEC:'#3b82f6',SOS:'#22c55e','SOS FILIAL':'#ef4444',ONLAV:'#06b6d4',ENGEMED:'#ec4899',POTIGUAR:'#f97316'};
 
 function calMes(delta){
   _calMes += delta;
