@@ -303,6 +303,7 @@ function renderCard(d){
   var resp=String(arr[9]||'').toUpperCase().trim();
   var part=String(arr[10]||'').toUpperCase().trim();
   var just=String(arr[12]||'').trim();
+  var linkPub=String(arr[13]||'').trim();
 
   var empCor=EMP_CORES[emp]||'#f97316';
   var cardCls=part==='SIM'?'sim':(part==='NÃO'||part==='NAO')?'nao':part==='EM ANÁLISE'?'analise':'';
@@ -338,6 +339,7 @@ function renderCard(d){
       (obj?'<span class="meta-tag obj">'+obj.substring(0,150)+'</span>':'')+
       (local?'<span class="meta-tag">📍 '+local+(mun?' · '+mun:'')+'</span>':'')+
       (val>0?'<span class="meta-tag val">💰 '+fmtMoeda(val)+'</span>':'')+
+      (linkPub?'<a href="'+linkPub+'" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;gap:5px;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);color:#60a5fa;border-radius:8px;padding:5px 12px;font-size:13px;font-weight:600;text-decoration:none">📄 Consultar Edital / TR</a>':'')+
     '</div>'+
     '<div class="card-acoes">'+
       '<div class="btns-part">'+
