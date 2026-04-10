@@ -4393,8 +4393,8 @@ async function doSave(k){
     var eid=origRow?origRow[0]:'';
     var edata=sv('e-data');
     if(edata&&edata.indexOf('-')!==-1) edata=formatDateBR(edata);
-    // Se data vazia na edição, preservar a original
     if(!edata&&origRow) edata=origRow[1]||'';
+    var evalor=sv('e-valor');
     vals=[eid,edata,sv('e-empresa'),sv('e-licit'),sv('e-objeto'),sv('e-local'),sv('e-mun'),evalor,sv('e-prior'),sv('e-resp'),sv('e-part'),sv('e-viab'),sv('e-just'),sv('e-link')];
   }
   else if(k==='andamento'){
