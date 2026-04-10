@@ -181,7 +181,7 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;min-he
 }
 .stat-glow{position:absolute;top:-24px;right:-24px;width:80px;height:80px;border-radius:50%;opacity:.07}
 .stat-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:8px}
-.stat-val{font-size:20px;font-weight:800;line-height:1.3;font-family:'JetBrains Mono',monospace;letter-spacing:-1px;word-break:break-all}
+.stat-val{font-size:14px;font-weight:800;line-height:1.3;font-family:'JetBrains Mono',monospace;letter-spacing:0;word-break:break-word;overflow-wrap:anywhere}
 .stat-val.nh{color:var(--nh)}
 .stat-val.green{color:var(--g2)}
 .stat-val.yellow{color:var(--y2)}
@@ -2590,7 +2590,7 @@ function sc(lbl,val,cls){
   var bg=cls==='nh'?'var(--nh)':cls==='green'?'var(--g1)':cls==='yellow'?'var(--y1)':cls==='red'?'var(--r1)':cls==='blue'?'var(--b_)':'var(--p1)';
   // Se valor monetário, separar R$ do número para exibir R$ menor
   var valHtml = String(val).indexOf('R$')!==-1
-    ? '<span style="font-size:13px;font-weight:600;opacity:.6">R$</span><span style="font-size:22px"> '+String(val).replace('R$ ','').replace('R$','')+'</span>'
+    ? '<span style="font-size:11px;font-weight:600;opacity:.6">R$</span><span style="font-size:18px"> '+String(val).replace('R$ ','').replace('R$','')+'</span>'
     : val;
   return '<div class="stat"><div class="stat-glow" style="background:'+bg+'"></div><div class="stat-lbl">'+lbl+'</div><div class="stat-val '+cls+'">'+valHtml+'</div></div>';
 }
