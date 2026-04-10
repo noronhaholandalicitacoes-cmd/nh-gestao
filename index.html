@@ -1054,7 +1054,7 @@ select{color-scheme:dark;}
     <div class="fg"><label>Local de Execução</label><input type="text" id="e-local"></div>
     <div class="fg"><label>Município / Estado</label><input type="text" id="e-mun" placeholder="Ex: João Pessoa PB"></div>
     <div class="fsec">Avaliação</div>
-    <div class="fg"><label>Valor Estimado</label><input type="text" id="e-valor" placeholder="R$ 0,00"></div>
+    <div class="fg"><label>Valor Estimado</label><input type="text" id="e-valor" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
     <div class="fg"><label>Prioridade</label><select id="e-prior"><option value="">-</option><option>ALTA</option><option>MÉDIA</option><option>BAIXA</option></select></div>
     <div class="fg"><label>Responsável</label><select id="e-resp"><option value="">-</option><option>ANTUNES</option><option>NORONHA</option></select></div>
     <div class="fg"><label>Participar?</label><select id="e-part"><option value="">-</option><option>SIM</option><option>NÃO</option><option>EM ANÁLISE</option></select></div>
@@ -4323,8 +4323,8 @@ function doEdit(k,idx){
   var row=FIL[k][idx];
   EROW[k]=idx;
   document.getElementById('mht-'+k).textContent='Editar Registro';
-  if(k==='editais'){setv('e-data',row[1]);setv('e-empresa',row[2]);setv('e-licit',row[3]);setv('e-objeto',row[4]);setv('e-local',row[5]);setv('e-mun',row[6]);setv('e-valor',row[7]);setv('e-prior',row[8]);setv('e-resp',row[9]);setv('e-part',row[10]);setv('e-viab',row[11]);setv('e-just',row[12]);setv('e-link',row[13]);}
-  else if(k==='andamento'){setv('a-data',row[1]);setv('a-emp',row[2]);setv('a-licit',row[3]);setv('a-obj',row[4]);setv('a-local',row[5]);setv('a-mun',row[6]);setv('a-vest',fmtValBR(row[7]));setv('a-vfin',fmtValBR(row[8]));setv('a-portal',row[9]);setv('a-disp',row[10]);setv('a-class',row[11]);setv('a-status',row[12]);setv('a-reab',row[13]);setv('a-rec',row[14]);setv('a-resumo',row[15]);setv('a-adju',row[16]);setv('a-conc',row[17]);setv('a-vconc',row[18]);setv('a-link',row[19]);}
+  if(k==='editais'){setv('e-data',isoDate(String(row[1]||'')));setv('e-empresa',row[2]);setv('e-licit',row[3]);setv('e-objeto',row[4]);setv('e-local',row[5]);setv('e-mun',row[6]);setv('e-valor',fmtValBR(row[7]));setv('e-prior',row[8]);setv('e-resp',row[9]);setv('e-part',row[10]);setv('e-viab',row[11]);setv('e-just',row[12]);setv('e-link',row[13]);}
+  else if(k==='andamento'){setv('a-data',isoDate(String(row[1]||'')));setv('a-emp',row[2]);setv('a-licit',row[3]);setv('a-obj',row[4]);setv('a-local',row[5]);setv('a-mun',row[6]);setv('a-vest',fmtValBR(row[7]));setv('a-vfin',fmtValBR(row[8]));setv('a-portal',row[9]);setv('a-disp',isoDate(String(row[10]||'')));setv('a-class',row[11]);setv('a-status',row[12]);setv('a-reab',isoDate(String(row[13]||'')));setv('a-rec',row[14]);setv('a-resumo',row[15]);setv('a-adju',row[16]);setv('a-conc',row[17]);setv('a-vconc',fmtValBR(row[18]));setv('a-link',row[19]);}
   else if(k==='ganhas'){
     setv('g-data',row[1]);setv('g-emp',row[2]);setv('g-licit',row[3]);setv('g-obj',row[4]);
     setv('g-local',row[5]);setv('g-mun',row[6]);setv('g-valor',fmtValBR(row[7]));setv('g-cont',row[8]);
@@ -4350,7 +4350,7 @@ function doEdit(k,idx){
     // Obs e Link
     setv('g-obs',row[41]);setv('g-link',row[42]);
   }
-  else if(k==='atestados'){setv('at-data',row[1]);setv('at-emp',row[2]);setv('at-licit',row[3]);setv('at-obj',row[4]);setv('at-local',row[5]);setv('at-mun',row[6]);setv('at-cont',row[7]);setv('at-dtcont',row[8]);setv('at-vig',row[9]);setv('at-req',row[10]);setv('at-receb',row[11]);setv('at-dtreceb',row[12]);setv('at-emit',row[13]);setv('at-cat',row[14]);setv('at-catst',row[15]);setv('at-art',row[16]);setv('at-artst',row[17]);setv('at-status',row[18]);setv('at-obs',row[19]);setv('at-link',row[20]);}
+  else if(k==='atestados'){setv('at-data',isoDate(String(row[1]||'')));setv('at-emp',row[2]);setv('at-licit',row[3]);setv('at-obj',row[4]);setv('at-local',row[5]);setv('at-mun',row[6]);setv('at-cont',row[7]);setv('at-dtcont',isoDate(String(row[8]||'')));setv('at-vig',isoDate(String(row[9]||'')));setv('at-req',row[10]);setv('at-receb',row[11]);setv('at-dtreceb',isoDate(String(row[12]||'')));setv('at-emit',row[13]);setv('at-cat',row[14]);setv('at-catst',row[15]);setv('at-art',row[16]);setv('at-artst',row[17]);setv('at-status',row[18]);setv('at-obs',row[19]);setv('at-link',row[20]);}
   document.getElementById('mo-'+k).classList.add('open');
 }
 
@@ -4391,16 +4391,17 @@ async function doSave(k){
     if(edata&&edata.indexOf('-')!==-1) edata=formatDateBR(edata);
     // Se data vazia na edição, preservar a original
     if(!edata&&origRow) edata=origRow[1]||'';
-    vals=[eid,edata,sv('e-empresa'),sv('e-licit'),sv('e-objeto'),sv('e-local'),sv('e-mun'),sv('e-valor'),sv('e-prior'),sv('e-resp'),sv('e-part'),sv('e-viab'),sv('e-just'),sv('e-link')];
+    vals=[eid,edata,sv('e-empresa'),sv('e-licit'),sv('e-objeto'),sv('e-local'),sv('e-mun'),evalor,sv('e-prior'),sv('e-resp'),sv('e-part'),sv('e-viab'),sv('e-just'),sv('e-link')];
   }
   else if(k==='andamento'){
     var aid=origRow?origRow[0]:'';
     var adata=sv('a-data'); if(adata&&adata.indexOf('-')!==-1) adata=formatDateBR(adata);
+    function aDate(id){var v=sv(id);return (v&&v.indexOf('-')!==-1)?formatDateBR(v):v;}
     if(!adata&&origRow) adata=origRow[1]||'';
     var _vest=sv('a-vest'),_vfin=sv('a-vfin'),_vconc=sv('a-vconc');
     vals=[aid,adata,sv('a-emp'),sv('a-licit'),sv('a-obj'),sv('a-local'),sv('a-mun'),
       fmtValBR(_vest)||_vest, fmtValBR(_vfin)||_vfin,
-      sv('a-portal'),sv('a-disp'),sv('a-class'),sv('a-status'),sv('a-reab'),sv('a-rec'),sv('a-resumo'),sv('a-adju'),sv('a-conc'),
+      sv('a-portal'),aDate('a-disp'),sv('a-class'),sv('a-status'),aDate('a-reab'),sv('a-rec'),sv('a-resumo'),sv('a-adju'),sv('a-conc'),
       fmtValBR(_vconc)||_vconc, sv('a-link')];
   }
   else if(k==='ganhas'){
@@ -4427,8 +4428,9 @@ async function doSave(k){
   else if(k==='atestados'){
     var atid=origRow?origRow[0]:'';
     var atdata=sv('at-data'); if(atdata&&atdata.indexOf('-')!==-1) atdata=formatDateBR(atdata);
+    function atDate(id){var v=sv(id);return (v&&v.indexOf('-')!==-1)?formatDateBR(v):v;}
     if(!atdata&&origRow) atdata=origRow[1]||'';
-    vals=[atid,atdata,sv('at-emp'),sv('at-licit'),sv('at-obj'),sv('at-local'),sv('at-mun'),sv('at-cont'),sv('at-dtcont'),sv('at-vig'),sv('at-req'),sv('at-receb'),sv('at-dtreceb'),sv('at-emit'),sv('at-cat'),sv('at-catst'),sv('at-art'),sv('at-artst'),sv('at-status'),sv('at-obs'),sv('at-link')];
+    vals=[atid,atdata,sv('at-emp'),sv('at-licit'),sv('at-obj'),sv('at-local'),sv('at-mun'),sv('at-cont'),atDate('at-dtcont'),atDate('at-vig'),sv('at-req'),sv('at-receb'),atDate('at-dtreceb'),sv('at-emit'),sv('at-cat'),sv('at-catst'),sv('at-art'),sv('at-artst'),sv('at-status'),sv('at-obs'),sv('at-link')];
   }
   else if(k==='financeiro'){
     var fdata=sv('f-data');
