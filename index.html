@@ -1133,7 +1133,7 @@ select{color-scheme:dark;}
       <div class="fg"><label>Nova Data Vencimento</label><input type="date" id="g-novadata" oninput="calcVencRecomp('')"></div>
       <div class="fg"><label>Vigência (meses)</label><input type="number" id="g-vigrecomp" oninput="calcVencRecomp('')"></div>
       <div class="fg"><label>Vencimento Recomp. (auto)</label><input type="date" id="g-vencrecomp" readonly style="opacity:.7;cursor:not-allowed"></div>
-      <div class="fg"><label>Valor Final</label><input type="text" id="g-vfin" placeholder="R$ 0,00"></div>
+      <div class="fg"><label>Valor Final</label><input type="text" id="g-vfin" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
     </div>
     <!-- Recomp 2: idx 20-26 -->
     <div id="rpanel-2" style="display:none">
@@ -1143,7 +1143,7 @@ select{color-scheme:dark;}
       <div class="fg"><label>Nova Data Vencimento</label><input type="date" id="g-novadata2" oninput="calcVencRecomp('2')"></div>
       <div class="fg"><label>Vigência (meses)</label><input type="number" id="g-vigrecomp2" oninput="calcVencRecomp('2')"></div>
       <div class="fg"><label>Vencimento Recomp. (auto)</label><input type="date" id="g-vencrecomp2" readonly style="opacity:.7;cursor:not-allowed"></div>
-      <div class="fg"><label>Valor Final</label><input type="text" id="g-vfin2" placeholder="R$ 0,00"></div>
+      <div class="fg"><label>Valor Final</label><input type="text" id="g-vfin2" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
     </div>
     <!-- Recomp 3: idx 27-33 -->
     <div id="rpanel-3" style="display:none">
@@ -1153,7 +1153,7 @@ select{color-scheme:dark;}
       <div class="fg"><label>Nova Data Vencimento</label><input type="date" id="g-novadata3" oninput="calcVencRecomp('3')"></div>
       <div class="fg"><label>Vigência (meses)</label><input type="number" id="g-vigrecomp3" oninput="calcVencRecomp('3')"></div>
       <div class="fg"><label>Vencimento Recomp. (auto)</label><input type="date" id="g-vencrecomp3" readonly style="opacity:.7;cursor:not-allowed"></div>
-      <div class="fg"><label>Valor Final</label><input type="text" id="g-vfin3" placeholder="R$ 0,00"></div>
+      <div class="fg"><label>Valor Final</label><input type="text" id="g-vfin3" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
     </div>
     <!-- Recomp 4: idx 34-40 -->
     <div id="rpanel-4" style="display:none">
@@ -1163,7 +1163,7 @@ select{color-scheme:dark;}
       <div class="fg"><label>Nova Data Vencimento</label><input type="date" id="g-novadata4" oninput="calcVencRecomp('4')"></div>
       <div class="fg"><label>Vigência (meses)</label><input type="number" id="g-vigrecomp4" oninput="calcVencRecomp('4')"></div>
       <div class="fg"><label>Vencimento Recomp. (auto)</label><input type="date" id="g-vencrecomp4" readonly style="opacity:.7;cursor:not-allowed"></div>
-      <div class="fg"><label>Valor Final</label><input type="text" id="g-vfin4" placeholder="R$ 0,00"></div>
+      <div class="fg"><label>Valor Final</label><input type="text" id="g-vfin4" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
     </div>
     <div class="fg fc" style="margin-top:12px"><label>Observações</label><textarea id="g-obs"></textarea></div>
     <div class="fg fc"><label>Link da Pasta</label><input type="url" id="g-link"></div>
@@ -4328,19 +4328,25 @@ function doEdit(k,idx){
   else if(k==='ganhas'){
     setv('g-data',row[1]);setv('g-emp',row[2]);setv('g-licit',row[3]);setv('g-obj',row[4]);
     setv('g-local',row[5]);setv('g-mun',row[6]);setv('g-valor',fmtValBR(row[7]));setv('g-cont',row[8]);
-    setv('g-stcont',row[9]);setv('g-vig',row[10]);setv('g-dtcont',row[11]);setv('g-venc',row[12]);
-    // Recomp 1
+    setv('g-stcont',row[9]);setv('g-vig',row[10]);
+    setv('g-dtcont',isoDate(String(row[11]||'')));
+    setv('g-venc',isoDate(String(row[12]||'')));
+    // Recomp 1 — datas BR→ISO para input type=date
     setv('g-recomp',row[13]);setv('g-trecomp',row[14]);setv('g-strecomp',row[15]);
-    setv('g-novadata',row[16]);setv('g-vigrecomp',row[17]);setv('g-vencrecomp',row[18]);setv('g-vfin',row[19]);
+    setv('g-novadata',isoDate(String(row[16]||'')));setv('g-vigrecomp',row[17]);setv('g-vencrecomp',isoDate(String(row[18]||'')));
+    setv('g-vfin',fmtValBR(row[19]));
     // Recomp 2
     setv('g-recomp2',row[20]);setv('g-trecomp2',row[21]);setv('g-strecomp2',row[22]);
-    setv('g-novadata2',row[23]);setv('g-vigrecomp2',row[24]);setv('g-vencrecomp2',row[25]);setv('g-vfin2',row[26]);
+    setv('g-novadata2',isoDate(String(row[23]||'')));setv('g-vigrecomp2',row[24]);setv('g-vencrecomp2',isoDate(String(row[25]||'')));
+    setv('g-vfin2',fmtValBR(row[26]));
     // Recomp 3
     setv('g-recomp3',row[27]);setv('g-trecomp3',row[28]);setv('g-strecomp3',row[29]);
-    setv('g-novadata3',row[30]);setv('g-vigrecomp3',row[31]);setv('g-vencrecomp3',row[32]);setv('g-vfin3',row[33]);
+    setv('g-novadata3',isoDate(String(row[30]||'')));setv('g-vigrecomp3',row[31]);setv('g-vencrecomp3',isoDate(String(row[32]||'')));
+    setv('g-vfin3',fmtValBR(row[33]));
     // Recomp 4
     setv('g-recomp4',row[34]);setv('g-trecomp4',row[35]);setv('g-strecomp4',row[36]);
-    setv('g-novadata4',row[37]);setv('g-vigrecomp4',row[38]);setv('g-vencrecomp4',row[39]);setv('g-vfin4',row[40]);
+    setv('g-novadata4',isoDate(String(row[37]||'')));setv('g-vigrecomp4',row[38]);setv('g-vencrecomp4',isoDate(String(row[39]||'')));
+    setv('g-vfin4',fmtValBR(row[40]));
     // Obs e Link
     setv('g-obs',row[41]);setv('g-link',row[42]);
   }
@@ -4405,7 +4411,7 @@ async function doSave(k){
     function gDate(id){var v=sv(id);return (v&&v.indexOf('-')!==-1)?formatDateBR(v):v;}
     vals=[
       gid,gdata,sv('g-emp'),sv('g-licit'),sv('g-obj'),sv('g-local'),sv('g-mun'),
-      sv('g-valor'),sv('g-cont'),sv('g-stcont'),sv('g-vig'),sv('g-dtcont'),sv('g-venc'),
+      parseMoeda(sv('g-valor'))?fmtValBR(sv('g-valor')):sv('g-valor'),sv('g-cont'),sv('g-stcont'),sv('g-vig'),gDate('g-dtcont'),gDate('g-venc'),
       // Recomp 1 (idx 13-19)
       sv('g-recomp'),sv('g-trecomp'),sv('g-strecomp'),gDate('g-novadata'),sv('g-vigrecomp'),gDate('g-vencrecomp'),sv('g-vfin'),
       // Recomp 2 (idx 20-26)
