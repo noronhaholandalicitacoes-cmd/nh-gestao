@@ -10,7 +10,8 @@
   <meta name="theme-color" content="#f97316">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NH Licitações</title>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#0c0c0c;
@@ -796,7 +797,7 @@ select{color-scheme:dark;}
       </button>
       <div id="user-info" style="display:none;align-items:center;gap:6px">
         <span id="user-name" style="font-size:11px;color:var(--t2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
-        <button onclick="logoutGoogle()" style="background:none;border:none;color:var(--t3);font-size:11px;cursor:pointer;padding:2px 6px;border-radius:4px;border:1px solid var(--b1)">Sair</button>
+        <button onclick="exportarExcelCompleto()" style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);color:#22c55e;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:Outfit,sans-serif;font-size:11px;font-weight:700;margin-right:8px">📊 Exportar Tudo</button><button onclick="logoutGoogle()" style="background:none;border:none;color:var(--t3);font-size:11px;cursor:pointer;padding:2px 6px;border-radius:4px;border:1px solid var(--b1)">Sair</button>
       </div>
     </div>
   </div>
@@ -818,6 +819,7 @@ select{color-scheme:dark;}
         </button>
         <div class="search"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><input placeholder="Buscar edital..." id="q-editais" oninput="doQ('editais')"></div>
         <button onclick="imprimirAba('editais')" title="Imprimir / PDF" style="background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.25);color:var(--nh);padding:6px 12px;border-radius:7px;cursor:pointer;font-family:Outfit,sans-serif;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>Imprimir</button>
+        <button onclick="exportarExcel('editais')" title="Exportar Excel" style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);color:#22c55e;padding:6px 12px;border-radius:7px;cursor:pointer;font-family:Outfit,sans-serif;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Excel</button>
         <button id="btn-prahoje-editais" onclick="filtrarPraHojeEditais()" style="background:rgba(249,115,22,.15);color:var(--nh);border:1px solid rgba(249,115,22,.3);padding:6px 14px;font-size:12px;font-weight:700;border-radius:7px;cursor:pointer;font-family:Outfit,sans-serif;display:inline-flex;align-items:center;gap:6px">📅 Pra Hoje</button>
         <button onclick="sortByDate('editais','asc')" title="Mais antigo primeiro" style="width:34px;height:34px;border-radius:50%;background:var(--nh);border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;box-shadow:0 2px 8px rgba(249,115,22,.35)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
         <button onclick="sortByDate('editais','desc')" title="Mais recente primeiro" style="width:34px;height:34px;border-radius:50%;background:var(--nh);border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;box-shadow:0 2px 8px rgba(249,115,22,.35)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg></button>
@@ -839,6 +841,7 @@ select{color-scheme:dark;}
         <div class="search"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><input placeholder="Buscar..." id="q-andamento" oninput="doQ('andamento')"></div>
         <span style="font-size:11px;color:var(--t3);background:var(--nha2);border:1px solid rgba(249,115,22,.15);padding:4px 10px;border-radius:6px">⚡ ADJU = sim → Finalizados</span>
         <button onclick="imprimirAba('andamento')" title="Imprimir / PDF" style="background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.25);color:var(--nh);padding:6px 12px;border-radius:7px;cursor:pointer;font-family:Outfit,sans-serif;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>Imprimir</button>
+        <button onclick="exportarExcel('andamento')" title="Exportar Excel" style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);color:#22c55e;padding:6px 12px;border-radius:7px;cursor:pointer;font-family:Outfit,sans-serif;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Excel</button>
         <button id="btn-prahoje" onclick="filtrarPraHoje()" style="background:rgba(249,115,22,.15);color:var(--nh);border:1px solid rgba(249,115,22,.3);padding:6px 14px;font-size:12px;font-weight:700;border-radius:7px;cursor:pointer;font-family:Outfit,sans-serif;transition:all .15s;display:inline-flex;align-items:center;gap:6px">📅 Pra Hoje</button>
         <button onclick="sortByDate('andamento','asc')" title="Mais antigo primeiro" style="width:34px;height:34px;border-radius:50%;background:var(--nh);border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;box-shadow:0 2px 8px rgba(249,115,22,.35)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
         <button onclick="sortByDate('andamento','desc')" title="Mais recente primeiro" style="width:34px;height:34px;border-radius:50%;background:var(--nh);border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;box-shadow:0 2px 8px rgba(249,115,22,.35)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg></button>
@@ -857,6 +860,7 @@ select{color-scheme:dark;}
       <div class="stats" id="st-finalizados"></div>
       <div class="toolbar">
         <button onclick="imprimirAba('finalizados')" title="Imprimir / PDF" style="background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.25);color:var(--nh);padding:6px 12px;border-radius:7px;cursor:pointer;font-family:Outfit,sans-serif;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>Imprimir</button>
+        <button onclick="exportarExcel('finalizados')" title="Exportar Excel" style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);color:#22c55e;padding:6px 12px;border-radius:7px;cursor:pointer;font-family:Outfit,sans-serif;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Excel</button>
         <div class="search"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><input placeholder="Buscar finalizado..." id="q-finalizados" oninput="doQ('finalizados')"></div>
         <span style="font-size:11px;color:var(--t3)">Preenchido automaticamente quando ADJU = sim em Andamento</span>
       </div>
@@ -913,6 +917,7 @@ select{color-scheme:dark;}
           Registrar Vitória
         </button>
         <button onclick="imprimirAba('ganhas')" title="Imprimir / PDF" style="background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.25);color:var(--nh);padding:6px 12px;border-radius:7px;cursor:pointer;font-family:Outfit,sans-serif;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>Imprimir</button>
+        <button onclick="exportarExcel('ganhas')" title="Exportar Excel" style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);color:#22c55e;padding:6px 12px;border-radius:7px;cursor:pointer;font-family:Outfit,sans-serif;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Excel</button>
         <div class="search"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><input placeholder="Buscar..." id="q-ganhas" oninput="doQ('ganhas')"></div>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
@@ -3232,8 +3237,107 @@ function onModalSelChange(sel, field){
 }
 
 
+function _buildSheetData(k, rows){
+  var hoje = new Date().toLocaleDateString('pt-BR');
+  function fv(v){
+    if(!v||String(v).trim()===''||String(v).trim()==='-') return '';
+    var n = parseMoeda(v);
+    return (n&&!isNaN(n)) ? n : String(v).trim();
+  }
+  function fs(v){ return String(v||'').trim(); }
+
+  var defs = {
+    editais: {
+      cols:['#','Data','Empresa','Licitação','Objeto','Local Exec.','Município/UF','Valor Est.','Prioridade','Responsável','Participar','Viabilidade','Justificativa','Link Edital'],
+      build: function(r){ return [fs(r[0]),fs(r[1]),fs(r[2]),fs(r[3]),fs(r[4]),fs(r[5]),fs(r[6]),fv(r[7]),fs(r[8]),fs(r[9]),fs(r[10]),fs(r[11]),fs(r[12]),fs(r[13])]; }
+    },
+    andamento: {
+      cols:['#','Data','Empresa','Licitação','Objeto','Local','Município','Valor Est.','Valor Final','Portal','Data Disputa','Classificação','Status','Reabertura','Recurso','Resumo','ADJU','Concorrente 1º','Valor 1º Col.','Link'],
+      build: function(r){ return [fs(r[0]),fs(r[1]),fs(r[2]),fs(r[3]),fs(r[4]),fs(r[5]),fs(r[6]),fv(r[7]),fv(r[8]),fs(r[9]),fs(r[10]),fs(r[11]),fs(r[12]),fs(r[13]),fs(r[14]),fs(r[15]),fs(r[16]),fs(r[17]),fv(r[18]),fs(r[19])]; }
+    },
+    finalizados: {
+      cols:['#','Data','Empresa','Licitação','Objeto','Local','Município','Valor Est.','Valor Final','Portal','Data Disputa','Classificação','Status','Reabertura','Recurso','Resumo','ADJU','Concorrente 1º','Valor 1º Col.','Link'],
+      build: function(r){ return [fs(r[0]),fs(r[1]),fs(r[2]),fs(r[3]),fs(r[4]),fs(r[5]),fs(r[6]),fv(r[7]),fv(r[8]),fs(r[9]),fs(r[10]),fs(r[11]),fs(r[12]),fs(r[13]),fs(r[14]),fs(r[15]),fs(r[16]),fs(r[17]),fv(r[18]),fs(r[19])]; }
+    },
+    ganhas: {
+      cols:['#','Data','Empresa','Licitação','Objeto','Local','Município','Valor','Contrato','Status Contrato','Vigência (m)','Dt Assinatura','Vencimento','Recomp?','Tipo Recomp.','Status Recomp.','Nova Data Venc.','Vig. Recomp.','Venc. Recomp.','Valor Final Recomp.','Observações','Link Pasta'],
+      build: function(r){ return [fs(r[0]),fs(r[1]),fs(r[2]),fs(r[3]),fs(r[4]),fs(r[5]),fs(r[6]),fv(r[7]),fs(r[8]),fs(r[9]),fs(r[10]),fs(r[11]),fs(r[12]),fs(r[13]),fs(r[14]),fs(r[15]),fs(r[16]),fs(r[17]),fs(r[18]),fv(r[19]),fs(r[41]),fs(r[42])]; }
+    },
+    atestados: {
+      cols:['#','Data','Empresa','Licitação','Objeto','Local','Município','Contrato','Dt Assinatura','Vigência','Req.?','Recebido?','Dt Recebimento','Emitente','CAT Nº','CAT Situação','ART Nº','ART Situação','Status Geral','Obs.','Link'],
+      build: function(r){ return [fs(r[0]),fs(r[1]),fs(r[2]),fs(r[3]),fs(r[4]),fs(r[5]),fs(r[6]),fs(r[7]),fs(r[8]),fs(r[9]),fs(r[10]),fs(r[11]),fs(r[12]),fs(r[13]),fs(r[14]),fs(r[15]),fs(r[16]),fs(r[17]),fs(r[18]),fs(r[19]),fs(r[20])]; }
+    },
+    financeiro: {
+      cols:['Data','Categoria','Descrição','Fornecedor','Valor','Status','Conta','Obs.'],
+      build: function(r){ return [fs(r[0]),fs(r[1]),fs(r[2]),fs(r[3]),fv(r[4]),fs(r[5]),fs(r[6]),fs(r[7])]; }
+    }
+  };
+
+  var def = defs[k];
+  if(!def) return null;
+  var data = [def.cols];
+  rows.forEach(function(r){ data.push(def.build(r)); });
+  return data;
+}
+
+function exportarExcel(k){
+  if(typeof XLSX === 'undefined'){ toast('SheetJS não carregado. Tente recarregar a página.','err'); return; }
+  var titulo = {editais:'Editais',andamento:'Em Andamento',finalizados:'Finalizados',ganhas:'Licitações Ganhas',atestados:'Atestados',financeiro:'Financeiro'}[k]||k;
+  var rows = FIL[k]||[];
+  var data = _buildSheetData(k, rows);
+  if(!data){ toast('Sem dados para exportar','err'); return; }
+
+  var wb = XLSX.utils.book_new();
+  var ws = XLSX.utils.aoa_to_sheet(data);
+
+  // Largura automática das colunas
+  var maxW = data[0].map(function(_,ci){
+    return Math.min(50, Math.max(10, data.reduce(function(max,row){
+      return Math.max(max, String(row[ci]||'').length);
+    },0)));
+  });
+  ws['!cols'] = maxW.map(function(w){ return {wch:w}; });
+
+  XLSX.utils.book_append_sheet(wb, ws, titulo);
+  var hoje = new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
+  XLSX.writeFile(wb, 'NH_'+titulo.replace(/\s/g,'_')+'_'+hoje+'.xlsx');
+  toast('✅ Excel exportado!','ok');
+}
+
+function exportarExcelCompleto(){
+  if(typeof XLSX === 'undefined'){ toast('SheetJS não carregado. Recarregue a página.','err'); return; }
+  var wb = XLSX.utils.book_new();
+  var abas = [
+    {k:'editais',    nome:'Editais Capturados'},
+    {k:'andamento',  nome:'Em Andamento'},
+    {k:'finalizados',nome:'Finalizados'},
+    {k:'ganhas',     nome:'Licitações Ganhas'},
+    {k:'atestados',  nome:'Atestados'},
+    {k:'financeiro', nome:'Financeiro'}
+  ];
+  var count = 0;
+  abas.forEach(function(a){
+    var rows = ALL[a.k]||[];
+    if(!rows.length) return;
+    var data = _buildSheetData(a.k, rows);
+    if(!data) return;
+    var ws = XLSX.utils.aoa_to_sheet(data);
+    var maxW = data[0].map(function(_,ci){
+      return Math.min(50, Math.max(10, data.reduce(function(max,row){
+        return Math.max(max, String(row[ci]||'').length);
+      },0)));
+    });
+    ws['!cols'] = maxW.map(function(w){ return {wch:w}; });
+    XLSX.utils.book_append_sheet(wb, ws, a.nome);
+    count++;
+  });
+  if(!count){ toast('Nenhum dado encontrado','err'); return; }
+  var hoje = new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
+  XLSX.writeFile(wb, 'NH_Licitacoes_Completo_'+hoje+'.xlsx');
+  toast('✅ Excel completo exportado com '+count+' abas!','ok');
+}
+
 function imprimirAba(k){
-  // Montar conteúdo para impressão
   var titulo = {
     editais:'Editais Capturados', andamento:'Em Andamento',
     finalizados:'Finalizados', ganhas:'Licitações Ganhas',
@@ -3241,74 +3345,148 @@ function imprimirAba(k){
   }[k] || k;
 
   var rows = FIL[k] || [];
-  var hoje = new Date().toLocaleDateString('pt-BR');
-  var filtroEmp = (EMP_FILTER[k] ? ' · Empresa: '+EMP_FILTER[k] : '');
+  var hoje = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+  var filtroEmp = EMP_FILTER[k] ? ' · Empresa: '+EMP_FILTER[k] : '';
   var total = rows.length;
 
-  // Gerar HTML da tabela
-  var cols = {
-    editais:    ['#','Data','Empresa','Licitação','Objeto','Local','Valor Est.','Responsável','Participar'],
-    andamento:  ['#','Data','Empresa','Licitação','Objeto','Status','Data Disputa','Portal','Valor Final'],
-    finalizados:['#','Data','Empresa','Licitação','Objeto','Status','ADJU','Classificação','Valor Final'],
-    ganhas:     ['#','Data','Empresa','Licitação','Contrato','Status','Assinatura','Vencimento','Valor'],
-    atestados:  ['#','Data','Empresa','Licitação','Contrato','Req.','Recebido','Vigência'],
-    financeiro: ['Data','Categoria','Descrição','Fornecedor','Valor','Status','Conta']
-  }[k] || ['#','Dados'];
+  function fv(v){
+    // Formata valor monetário
+    if(!v||String(v).trim()===''||String(v).trim()==='-') return '—';
+    var n = parseMoeda(v);
+    if(!n||isNaN(n)) return String(v).trim();
+    return 'R$ '+n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  }
+  function fs(v){ return String(v||'').trim()||'—'; }
+  function fo(v){ 
+    // Objeto: trunca em 80 chars
+    var s = String(v||'').trim();
+    return s.length>80 ? s.substring(0,80)+'…' : (s||'—');
+  }
 
-  var idxs = {
-    editais:    [0,1,2,3,4,5,7,9,10],
-    andamento:  [0,1,2,3,4,12,10,9,8],
-    finalizados:[0,1,2,3,4,12,16,11,8],
-    ganhas:     [0,1,2,3,8,9,11,12,7],
-    atestados:  [0,1,2,3,7,10,11,9],
-    financeiro: [0,1,2,3,4,5,6]
-  }[k] || [0,1,2,3];
+  var corEmpMap = {'VISE':'#b45309','SAUTEC':'#1d4ed8','SOS':'#15803d','SOS FILIAL':'#b91c1c','ONLAV':'#0e7490','ENGEMED':'#be185d','POTIGUAR':'#c2410c'};
+  function corEmp(emp){ return corEmpMap[emp]||'#374151'; }
 
-  var corEmp = function(emp){
-    var cores={'VISE':'#d97706','SAUTEC':'#2563eb','SOS':'#16a34a','SOS FILIAL':'#dc2626','ONLAV':'#0891b2','ENGEMED':'#db2777','POTIGUAR':'#ea580c'};
-    return cores[emp]||'#555';
+  // Definição de colunas por aba
+  var defs = {
+    editais: {
+      cols:['#','Data','Empresa','Licitação','Objeto','Município','Valor Est.','Resp.','Participar'],
+      build: function(r){ return [fs(r[0]),fs(r[1]),r[2],fs(r[3]),fo(r[4]),fs(r[6]),fv(r[7]),fs(r[9]),fs(r[10])]; }
+    },
+    andamento: {
+      cols:['#','Data','Empresa','Licitação','Objeto','Status','Data Disputa','Portal','Valor Final'],
+      build: function(r){ return [fs(r[0]),fs(r[1]),r[2],fs(r[3]),fo(r[4]),fs(r[12]),fs(r[10]),fs(r[9]),fv(r[8])]; }
+    },
+    finalizados: {
+      cols:['#','Data','Empresa','Licitação','Objeto','Status','ADJU','Classificação','Valor Final'],
+      build: function(r){ return [fs(r[0]),fs(r[1]),r[2],fs(r[3]),fo(r[4]),fs(r[12]),fs(r[16]),fs(r[11]),fv(r[8])]; }
+    },
+    ganhas: {
+      cols:['#','Data','Empresa','Licitação','Contrato','Status','Assinatura','Vencimento','Valor'],
+      build: function(r){ return [fs(r[0]),fs(r[1]),r[2],fs(r[3]),fs(r[8]),fs(r[9]),fs(r[11]),fs(r[12]),fv(r[7])]; }
+    },
+    atestados: {
+      cols:['#','Data','Empresa','Licitação','Contrato','Req.','Recebido','Vigência'],
+      build: function(r){ return [fs(r[0]),fs(r[1]),r[2],fs(r[3]),fs(r[7]),fs(r[10]),fs(r[11]),fs(r[9])]; }
+    },
+    financeiro: {
+      cols:['Data','Categoria','Descrição','Fornecedor','Valor','Status','Conta'],
+      build: function(r){ return [fs(r[0]),fs(r[1]),fs(r[2]),fs(r[3]),fv(r[4]),fs(r[5]),fs(r[6])]; }
+    }
   };
 
-  var trs = rows.map(function(r){
-    var emp = String(r[2]||'').trim();
-    var cor = corEmp(emp);
-    var tds = idxs.map(function(i){
-      var v = String(r[i]||'').trim();
-      if(i===2) return '<td style="font-weight:700;color:'+cor+'">'+v+'</td>';
-      if(i===7&&k==='editais'||i===8&&(k==='andamento'||k==='finalizados')||i===7&&k==='ganhas'){
-        // valor
-        return '<td style="font-weight:600">'+v+'</td>';
-      }
-      return '<td>'+v+'</td>';
-    }).join('');
-    return '<tr>'+tds+'</tr>';
+  var def = defs[k] || defs.editais;
+  var nCols = def.cols.length;
+
+  // Larguras relativas por aba
+  var wMap = {
+    editais:    ['4%','7%','8%','18%','22%','9%','10%','7%','7%'],
+    andamento:  ['4%','7%','8%','18%','20%','9%','10%','10%','10%'],
+    finalizados:['4%','7%','8%','18%','18%','8%','6%','12%','10%'],
+    ganhas:     ['4%','7%','8%','20%','14%','10%','9%','9%','10%'],
+    atestados:  ['4%','8%','9%','22%','17%','8%','8%','10%'],
+    financeiro: ['8%','14%','22%','18%','12%','10%','12%']
+  };
+  var ws = wMap[k] || [];
+
+  var ths = def.cols.map(function(c,i){
+    return '<th style="width:'+(ws[i]||'auto')+'">'+c+'</th>';
   }).join('');
 
-  var ths = cols.map(function(c){ return '<th>'+c+'</th>'; }).join('');
+  var trs = rows.map(function(r, ri){
+    var emp = String(r[2]||'').trim();
+    var cor = corEmp(emp);
+    var cells = def.build(r);
+    var tds = cells.map(function(v, i){
+      var align = (i>=nCols-2 && k!=='financeiro'&&k!=='atestados') ? 'right' : 'left';
+      var bold = (i===nCols-1&&v!=='—') ? 'font-weight:700;' : '';
+      var empStyle = (i===2) ? 'color:'+cor+';font-weight:700;' : '';
+      return '<td style="'+empStyle+bold+'text-align:'+align+'">'+v+'</td>';
+    }).join('');
+    var bg = ri%2===0 ? '#fff' : '#f8f8f8';
+    return '<tr style="background:'+bg+'">'+tds+'</tr>';
+  }).join('');
 
-  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">'+
+  // Resumo por empresa
+  var empCount = {};
+  rows.forEach(function(r){ var e=String(r[2]||'').trim()||'Outros'; empCount[e]=(empCount[e]||0)+1; });
+  var empSummary = Object.keys(empCount).sort().map(function(e){
+    return '<span style="display:inline-block;margin:0 8px 4px 0;background:'+corEmp(e)+'18;color:'+corEmp(e)+';border:1px solid '+corEmp(e)+'44;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700">'+e+' ('+empCount[e]+')</span>';
+  }).join('');
+
+  var html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">'+
     '<title>NH Licitações — '+titulo+'</title>'+
     '<style>'+
-    'body{font-family:Arial,sans-serif;font-size:11px;color:#000;margin:24px}'+
-    'h1{font-size:18px;color:#f97316;margin:0 0 4px}'+
-    '.sub{font-size:11px;color:#666;margin-bottom:16px}'+
-    'table{width:100%;border-collapse:collapse;margin-top:12px}'+
-    'th{background:#f97316;color:#fff;padding:6px 8px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.05em}'+
-    'tr:nth-child(even){background:#f9f9f9}'+
-    'td{padding:5px 8px;border-bottom:1px solid #eee;vertical-align:top;max-width:200px;word-break:break-word}'+
-    '@media print{body{margin:12px}.no-print{display:none}}'+
+    '*{box-sizing:border-box;margin:0;padding:0}'+
+    'body{font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#1f2937;background:#fff;padding:20px 24px}'+
+    '.hd{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #f97316;padding-bottom:10px;margin-bottom:12px}'+
+    '.hd-left h1{font-size:22px;color:#f97316;font-weight:900;letter-spacing:-0.5px}'+
+    '.hd-left .sub{font-size:10px;color:#6b7280;margin-top:3px}'+
+    '.hd-right{text-align:right;font-size:10px;color:#9ca3af}'+
+    '.hd-right .data{font-size:13px;font-weight:700;color:#374151}'+
+    '.summary{margin-bottom:10px;padding:8px 10px;background:#fafafa;border:1px solid #e5e7eb;border-radius:6px}'+
+    '.summary-title{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af;margin-bottom:5px;font-weight:700}'+
+    'table{width:100%;border-collapse:collapse;font-size:10px}'+
+    'thead tr{background:#1f2937}'+
+    'th{color:#fff;padding:7px 6px;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:.07em;font-weight:700;border-right:1px solid #374151}'+
+    'th:last-child{border-right:none}'+
+    'td{padding:5px 6px;border-bottom:1px solid #f3f4f6;vertical-align:top;line-height:1.4;word-break:break-word;border-right:1px solid #f3f4f6}'+
+    'td:last-child{border-right:none}'+
+    'tr:hover{background:#f0f9ff}'+
+    '.footer{margin-top:14px;display:flex;justify-content:space-between;font-size:9px;color:#9ca3af;border-top:1px solid #e5e7eb;padding-top:8px}'+
+    '@media print{'+
+    'body{padding:10px 14px}'+
+    '@page{margin:1cm;size:A4 landscape}'+
+    'tr{page-break-inside:avoid}'+
+    '}'+
     '</style></head><body>'+
-    '<div style="display:flex;justify-content:space-between;align-items:center">'+
-    '<div><h1>NH Licitações</h1><div class="sub">'+titulo+filtroEmp+' · '+total+' registro(s) · Impresso em: '+hoje+'</div></div>'+
-    '<div style="font-size:10px;color:#888">noronhaholandalicitacoes-cmd.github.io</div></div>'+
-    '<table><thead><tr>'+ths+'</tr></thead><tbody>'+trs+'</tbody></table>'+
-    '<div style="margin-top:16px;font-size:10px;color:#aaa;text-align:right">NH Gestão · Relatório gerado automaticamente</div>'+
+    '<div class="hd">'+
+      '<div class="hd-left">'+
+        '<h1>NH Licitações</h1>'+
+        '<div class="sub">'+titulo+filtroEmp+' &nbsp;·&nbsp; '+total+' registro(s) &nbsp;·&nbsp; Impresso em: '+hoje+'</div>'+
+      '</div>'+
+      '<div class="hd-right">'+
+        '<div class="data">'+hoje+'</div>'+
+        '<div>noronhaholandalicitacoes-cmd.github.io</div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="summary">'+
+      '<div class="summary-title">Registros por empresa</div>'+
+      empSummary+
+    '</div>'+
+    '<table>'+
+      '<thead><tr>'+ths+'</tr></thead>'+
+      '<tbody>'+trs+'</tbody>'+
+    '</table>'+
+    '<div class="footer">'+
+      '<span>NH Gestão · Relatório gerado automaticamente</span>'+
+      '<span>Total: '+total+' registro(s)</span>'+
+    '</div>'+
     '</body></html>';
 
   var win = window.open('','_blank');
   win.document.write(html);
   win.document.close();
-  setTimeout(function(){ win.print(); }, 500);
+  setTimeout(function(){ win.print(); }, 600);
 }
 
 function toggleRecomp(id){
