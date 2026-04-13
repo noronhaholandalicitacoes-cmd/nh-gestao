@@ -3412,19 +3412,36 @@ function imprimirAba(k){
     return '<th style="width:'+(ws[i]||'auto')+'">'+c+'</th>';
   }).join('');
 
+  // Índices de valor por aba para somar total
+  var valIdx = {editais:7,andamento:8,finalizados:8,ganhas:7,atestados:-1,financeiro:4};
+  var vi = valIdx[k];
+  var totalVal = 0;
+
   var trs = rows.map(function(r, ri){
     var emp = String(r[2]||'').trim();
     var cor = corEmp(emp);
     var cells = def.build(r);
+    // Acumular valor
+    if(vi>=0){ var nv=parseMoeda(r[vi]); if(nv&&!isNaN(nv)) totalVal+=nv; }
     var tds = cells.map(function(v, i){
       var align = (i>=nCols-2 && k!=='financeiro'&&k!=='atestados') ? 'right' : 'left';
-      var bold = (i===nCols-1&&v!=='—') ? 'font-weight:700;' : '';
+      var bold = (i===nCols-1&&v!=='' ) ? 'font-weight:700;' : '';
       var empStyle = (i===2) ? 'color:'+cor+';font-weight:700;' : '';
       return '<td style="'+empStyle+bold+'text-align:'+align+'">'+v+'</td>';
     }).join('');
-    var bg = ri%2===0 ? '#fff' : '#f8f8f8';
-    return '<tr style="background:'+bg+'">'+tds+'</tr>';
+    var cls = ri%2===1 ? ' class="par"' : '';
+    return '<tr'+cls+'>'+tds+'</tr>';
   }).join('');
+
+  // Linha de total
+  var totalRow = '';
+  if(totalVal>0){
+    var totalFmt = 'R$ '+totalVal.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+    var emptyCells = def.cols.slice(0,-1).map(function(_,i){
+      return i===0 ? '<td style="font-weight:700">TOTAL</td>' : '<td></td>';
+    }).join('');
+    totalRow = '<tr class="total-row">'+emptyCells+'<td style="text-align:right;font-weight:700">'+totalFmt+'</td></tr>';
+  }
 
   // Resumo por empresa
   var empCount = {};
@@ -3437,37 +3454,34 @@ function imprimirAba(k){
     '<title>NH Licitações — '+titulo+'</title>'+
     '<style>'+
     '*{box-sizing:border-box;margin:0;padding:0}'+
-    'body{font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#1f2937;background:#fff;padding:20px 24px}'+
+    'body{font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#1f2937;background:#fff;padding:20px 24px;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
     '.hd{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #f97316;padding-bottom:10px;margin-bottom:12px}'+
     '.hd-left h1{font-size:22px;color:#f97316;font-weight:900;letter-spacing:-0.5px}'+
     '.hd-left .sub{font-size:10px;color:#6b7280;margin-top:3px}'+
-    '.hd-right{text-align:right;font-size:10px;color:#9ca3af}'+
-    '.hd-right .data{font-size:13px;font-weight:700;color:#374151}'+
-    '.summary{margin-bottom:10px;padding:8px 10px;background:#fafafa;border:1px solid #e5e7eb;border-radius:6px}'+
-    '.summary-title{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af;margin-bottom:5px;font-weight:700}'+
     'table{width:100%;border-collapse:collapse;font-size:10px}'+
-    'thead tr{background:#1f2937}'+
-    'th{color:#fff;padding:7px 6px;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:.07em;font-weight:700;border-right:1px solid #374151}'+
+    'thead tr{background:#1f2937 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
+    'th{color:#ffffff !important;padding:8px 6px;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:.07em;font-weight:700;border-right:2px solid #374151;background:#1f2937 !important}'+
     'th:last-child{border-right:none}'+
-    'td{padding:5px 6px;border-bottom:1px solid #f3f4f6;vertical-align:top;line-height:1.4;word-break:break-word;border-right:1px solid #f3f4f6}'+
+    'td{padding:5px 6px;border-bottom:1px solid #d1d5db;vertical-align:top;line-height:1.4;word-break:break-word;border-right:1px solid #d1d5db}'+
     'td:last-child{border-right:none}'+
-    'tr:hover{background:#f0f9ff}'+
-    '.footer{margin-top:14px;display:flex;justify-content:space-between;font-size:9px;color:#9ca3af;border-top:1px solid #e5e7eb;padding-top:8px}'+
+    'tr.par{background:#f3f4f6 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
+    '.summary{margin-bottom:10px;padding:8px 10px;background:#f9fafb;border:1px solid #d1d5db;border-radius:6px}'+
+    '.summary-title{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:5px;font-weight:700}'+
+    '.footer{margin-top:14px;font-size:9px;color:#6b7280;border-top:2px solid #e5e7eb;padding-top:8px;display:flex;justify-content:space-between}'+
+    '.total-row td{font-weight:700;background:#f0fdf4 !important;border-top:2px solid #16a34a;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
     '@media print{'+
-    'body{padding:10px 14px}'+
+    'body{padding:10px 14px;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
     '@page{margin:1cm;size:A4 landscape}'+
+    'thead{display:table-header-group}'+
     'tr{page-break-inside:avoid}'+
     '}'+
     '</style></head><body>'+
     '<div class="hd">'+
       '<div class="hd-left">'+
         '<h1>NH Licitações</h1>'+
-        '<div class="sub">'+titulo+filtroEmp+' &nbsp;·&nbsp; '+total+' registro(s) &nbsp;·&nbsp; Impresso em: '+hoje+'</div>'+
+        '<div class="sub">'+titulo+filtroEmp+' &nbsp;·&nbsp; '+total+' registro(s) &nbsp;·&nbsp; Gerado em: '+hoje+'</div>'+
       '</div>'+
-      '<div class="hd-right">'+
-        '<div class="data">'+hoje+'</div>'+
-        '<div>noronhaholandalicitacoes-cmd.github.io</div>'+
-      '</div>'+
+      '<div style="text-align:right;font-size:12px;font-weight:700;color:#374151">'+hoje+'</div>'+
     '</div>'+
     '<div class="summary">'+
       '<div class="summary-title">Registros por empresa</div>'+
@@ -3475,11 +3489,11 @@ function imprimirAba(k){
     '</div>'+
     '<table>'+
       '<thead><tr>'+ths+'</tr></thead>'+
-      '<tbody>'+trs+'</tbody>'+
+      '<tbody>'+trs+totalRow+'</tbody>'+
     '</table>'+
     '<div class="footer">'+
       '<span>NH Gestão · Relatório gerado automaticamente</span>'+
-      '<span>Total: '+total+' registro(s)</span>'+
+      '<span>Total: '+total+' registro(s)'+(totalVal>0?' · Valor total: R$ '+totalVal.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'')+'</span>'+
     '</div>'+
     '</body></html>';
 
