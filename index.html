@@ -833,6 +833,7 @@ select{color-scheme:dark;}
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
         <div class="pills" id="pills-finalizados" style="margin-bottom:0;flex:1"></div>
+      <div class="pills" id="status-pills-finalizados" style="margin-top:8px"></div>
         <button class="btn-toggle-all" id="tga-finalizados" onclick="toggleAllCards('finalizados')">&#8964; Expandir tudo</button>
       </div>
       <div id="tbl-finalizados" class="tbl-wrap"><div class="load"><div class="spin"></div>Carregando...</div></div>
@@ -2339,7 +2340,8 @@ async function _load(k){
     var valid=[];
     snap.forEach(function(doc){
       var arr=doc.data()._arr||[];
-      valid.push(arr);
+      // Ignorar registros vazios ou sem ID (card fantasma)
+      if(arr.length > 0 && (arr[0]!==undefined && arr[0]!==null && arr[0]!=='')) valid.push(arr);
     });
     // Ordem decrescente
     valid.sort(function(a,b){return (parseInt(b[0])||0)-(parseInt(a[0])||0);});
@@ -2763,7 +2765,19 @@ function applyFilters(k){
         if(cor==='yellow'&&part.indexOf('ANALI')===-1) return false;
         if(cor==='dark'&&(part==='SIM'||part==='NÃO'||part==='NAO'||part.indexOf('ANALI')!==-1)) return false;
       } else if(k==='andamento'||k==='finalizados'){
-        if(getAndamentoCor(r)!==cor) return false;
+        if(k==='finalizados'){
+          var adjF=String(r[16]||'').toLowerCase().trim();
+          var clF=String(r[11]||'').trim();
+          var recF=String(r[14]||'').toLowerCase().trim();
+          if(cor==='green' && !(adjF==='sim'&&is1Posicao(clF))) return false;
+          if(cor==='red' && !(adjF==='sim'&&!is1Posicao(clF))) return false;
+          if(cor==='yellow' && recF!=='sim') return false;
+          if(cor==='dark' && (adjF==='sim'||recF==='sim')) return false;
+        } else if(cor==='recurso'){
+          if(String(r[14]||'').toLowerCase().trim()!=='sim') return false;
+        } else {
+          if(getAndamentoCor(r)!==cor) return false;
+        }
       } else if(k==='ganhas'){
         var stg=String(r[9]||'').trim().toUpperCase();
         var hj=new Date(); hj.setHours(0,0,0,0);
@@ -2807,6 +2821,9 @@ function renderPills(k,rows,filtrados){
     parts.push('<div class="pill'+(isOn?' on':'')+'" onclick="setPill(this,\''+k+'\',\''+i+'\')" style="'+style+'">'+e+' ('+cnt+')</div>');
   });
   el.innerHTML=parts.join('');
+
+  // Status pills para finalizados
+  if(k==='finalizados') renderStatusPillsFinalizados(filtrados||rows);
 
   // Status pills para editais
   if(k==='editais'){
@@ -2885,17 +2902,23 @@ function renderPills(k,rows,filtrados){
 
   if(k!=='andamento') return;
   var sp=document.getElementById('status-pills-andamento');
-  if(!sp) return;
+  if(!sp){ sp.innerHTML=''; return; }
+  // Em Andamento só mostra: Sem informação e Em Andamento (Adjudicados/Finalizados ficam em Finalizados)
   var cats={
     dark:  {lbl:'Sem informação',  cor:'#555',    bg:'rgba(100,100,100,.15)', count:0},
     yellow:{lbl:'Em Andamento',    cor:'#eab308', bg:'rgba(234,179,8,.12)',   count:0},
-    green: {lbl:'Adjudicado 1º',   cor:'#22c55e', bg:'rgba(34,197,94,.12)',   count:0},
-    red:   {lbl:'Finalizado',      cor:'#ef4444', bg:'rgba(239,68,68,.12)',   count:0}
+    recurso:{lbl:'Com Recurso',    cor:'#f97316', bg:'rgba(249,115,22,.12)',  count:0}
   };
-  rows.forEach(function(r){ var cc=getAndamentoCor(r); if(cats[cc]) cats[cc].count++; });
+  rows.forEach(function(r){
+    var rec=String(r[14]||'').toLowerCase().trim();
+    var st=String(r[12]||'').toLowerCase().trim();
+    if(rec==='sim') cats.recurso.count++;
+    else if(st==='em andamento'||st==='em disputa'||st==='aguardando'||st==='recurso') cats.yellow.count++;
+    else cats.dark.count++;
+  });
   var active=STATUS_FILTER[k];
   var html='<div class="pill'+(active===null?' on':'')+'" onclick="setStatusFilter(\'andamento\',null)">Todos os status</div>';
-  ['dark','yellow','green','red'].forEach(function(key){
+  ['dark','yellow','recurso'].forEach(function(key){
     var cat=cats[key];
     if(!cat.count) return;
     var isOn=active===key;
@@ -2903,6 +2926,42 @@ function renderPills(k,rows,filtrados){
       'style="border-color:'+cat.cor+';'+(isOn?'background:'+cat.bg+';color:'+cat.cor+';':'')+'">'+'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+cat.cor+';margin-right:5px;vertical-align:middle"></span>'+cat.lbl+' ('+cat.count+')</div>';
   });
   sp.innerHTML=html;
+}
+
+// Status pills para FINALIZADOS
+function renderStatusPillsFinalizados(rows){
+  var sp=document.getElementById('status-pills-finalizados');
+  if(!sp) return;
+  var cats={
+    green:  {lbl:'Adjudicado 1º',  cor:'#22c55e', bg:'rgba(34,197,94,.12)',  count:0},
+    red:    {lbl:'Não ganho',       cor:'#ef4444', bg:'rgba(239,68,68,.12)',  count:0},
+    yellow: {lbl:'Com Recurso',     cor:'#eab308', bg:'rgba(234,179,8,.12)',  count:0},
+    dark:   {lbl:'Sem informação',  cor:'#555',    bg:'rgba(100,100,100,.15)',count:0}
+  };
+  rows.forEach(function(r){
+    var adju=String(r[16]||'').toLowerCase().trim();
+    var cl=String(r[11]||'').trim();
+    var rec=String(r[14]||'').toLowerCase().trim();
+    if(adju==='sim' && is1Posicao(cl)) cats.green.count++;
+    else if(rec==='sim') cats.yellow.count++;
+    else if(adju==='sim') cats.red.count++;
+    else cats.dark.count++;
+  });
+  var active=STATUS_FILTER['finalizados'];
+  var html='<div class="pill'+(active===null?' on':'')+'" onclick="setStatusFilterFinalizados(null)">Todos os status</div>';
+  ['green','red','yellow','dark'].forEach(function(key){
+    var cat=cats[key];
+    if(!cat.count) return;
+    var isOn=active===key;
+    html+='<div class="pill'+(isOn?' on':'')+'" onclick="setStatusFilterFinalizados(\''+key+'\')" '+
+      'style="border-color:'+cat.cor+';'+(isOn?'background:'+cat.bg+';color:'+cat.cor+';':'')+'">'+'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+cat.cor+';margin-right:5px;vertical-align:middle"></span>'+cat.lbl+' ('+cat.count+')</div>';
+  });
+  sp.innerHTML=html;
+}
+
+function setStatusFilterFinalizados(key){
+  STATUS_FILTER['finalizados']=key;
+  applyFilters('finalizados');
 }
 
 function setStatusFilterEditais(key){
