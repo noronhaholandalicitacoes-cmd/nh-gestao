@@ -2773,8 +2773,13 @@ function applyFilters(k){
           if(cor==='red' && !(adjF==='sim'&&!is1Posicao(clF))) return false;
           if(cor==='yellow' && recF!=='sim') return false;
           if(cor==='dark' && (adjF==='sim'||recF==='sim')) return false;
-        } else if(cor==='recurso'){
-          if(String(r[14]||'').toLowerCase().trim()!=='sim') return false;
+        } else if(k==='andamento'){
+          var stA=String(r[12]||'').toLowerCase().trim();
+          var recA=String(r[14]||'').toLowerCase().trim();
+          if(cor==='yellow' && !(stA==='em andamento'||stA==='em disputa'||stA==='recurso')) return false;
+          if(cor==='aguard' && stA!=='aguardando') return false;
+          if(cor==='recurso' && recA!=='sim') return false;
+          if(cor==='dark' && (stA==='em andamento'||stA==='em disputa'||stA==='aguardando'||stA==='recurso'||recA==='sim')) return false;
         } else {
           if(getAndamentoCor(r)!==cor) return false;
         }
@@ -2902,23 +2907,28 @@ function renderPills(k,rows,filtrados){
 
   if(k!=='andamento') return;
   var sp=document.getElementById('status-pills-andamento');
-  if(!sp){ sp.innerHTML=''; return; }
-  // Em Andamento só mostra: Sem informação e Em Andamento (Adjudicados/Finalizados ficam em Finalizados)
+  if(!sp) return;
+  // Contar apenas processos SEM ADJU=sim (os que realmente aparecem em andamento)
+  var rowsAtivos=rows.filter(function(r){
+    return String(r[16]||'').toLowerCase().trim()!=='sim';
+  });
   var cats={
-    dark:  {lbl:'Sem informação',  cor:'#555',    bg:'rgba(100,100,100,.15)', count:0},
-    yellow:{lbl:'Em Andamento',    cor:'#eab308', bg:'rgba(234,179,8,.12)',   count:0},
-    recurso:{lbl:'Com Recurso',    cor:'#f97316', bg:'rgba(249,115,22,.12)',  count:0}
+    yellow:  {lbl:'Em Disputa',    cor:'#eab308', bg:'rgba(234,179,8,.12)',   count:0},
+    aguard:  {lbl:'Aguardando',    cor:'#3b82f6', bg:'rgba(59,130,246,.12)',  count:0},
+    recurso: {lbl:'Com Recurso',   cor:'#f97316', bg:'rgba(249,115,22,.12)',  count:0},
+    dark:    {lbl:'Sem status',    cor:'#555',    bg:'rgba(100,100,100,.15)', count:0}
   };
-  rows.forEach(function(r){
-    var rec=String(r[14]||'').toLowerCase().trim();
+  rowsAtivos.forEach(function(r){
     var st=String(r[12]||'').toLowerCase().trim();
+    var rec=String(r[14]||'').toLowerCase().trim();
     if(rec==='sim') cats.recurso.count++;
-    else if(st==='em andamento'||st==='em disputa'||st==='aguardando'||st==='recurso') cats.yellow.count++;
+    else if(st==='em andamento'||st==='em disputa'||st==='recurso') cats.yellow.count++;
+    else if(st==='aguardando') cats.aguard.count++;
     else cats.dark.count++;
   });
   var active=STATUS_FILTER[k];
-  var html='<div class="pill'+(active===null?' on':'')+'" onclick="setStatusFilter(\'andamento\',null)">Todos os status</div>';
-  ['dark','yellow','recurso'].forEach(function(key){
+  var html='<div class="pill'+(active===null?' on':'')+'" onclick="setStatusFilter(\'andamento\',null)">Todos ('+rowsAtivos.length+')</div>';
+  ['yellow','aguard','recurso','dark'].forEach(function(key){
     var cat=cats[key];
     if(!cat.count) return;
     var isOn=active===key;
