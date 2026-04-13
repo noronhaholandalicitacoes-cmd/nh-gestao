@@ -2344,8 +2344,19 @@ async function _load(k){
     // Ordem decrescente
     valid.sort(function(a,b){return (parseInt(b[0])||0)-(parseInt(a[0])||0);});
     ALL[k]=valid;
-    // Reaplicar filtro ativo se existir, senão usa tudo
-    if(EMP_FILTER[k]||STATUS_FILTER[k]){
+    // Em Andamento: excluir por padrão processos com ADJU=sim (esses ficam em Finalizados)
+    if(k==='andamento'){
+      ALL[k]=valid; // ALL mantém todos para referência interna
+      var validAndamento=valid.filter(function(r){
+        return String(r[16]||'').toLowerCase().trim()!=='sim';
+      });
+      if(EMP_FILTER[k]||STATUS_FILTER[k]){
+        applyFilters(k);
+      } else {
+        FIL[k]=validAndamento.slice();
+        if(el){renderStats(k,FIL[k]);renderPills(k,validAndamento,FIL[k]);renderTbl(k);}
+      }
+    } else if(EMP_FILTER[k]||STATUS_FILTER[k]){
       applyFilters(k);
     } else {
       FIL[k]=valid.slice();
@@ -2737,6 +2748,8 @@ function applyFilters(k){
   var query=q?q.toLowerCase():'';
 
   FIL[k]=ALL[k].filter(function(r){
+    // Em Andamento: excluir ADJU=sim (esses estão em Finalizados)
+    if(k==='andamento' && String(r[16]||'').toLowerCase().trim()==='sim') return false;
     // Filtro empresa
     if(emp&&String(r[2]||'').trim()!==emp) return false;
     // Filtro busca
