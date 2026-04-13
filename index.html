@@ -638,6 +638,32 @@ select{color-scheme:dark;}
   .sb-item{justify-content:center;padding:12px;margin:1px 4px}
   .r-cards,.r-cards.c3{grid-template-columns:1fr}
 }
+
+@media print {
+  body { background: #fff !important; color: #000 !important; font-family: Arial, sans-serif; }
+  .print-area { display: block !important; }
+  .no-print, #sidebar, .toolbar, .pills, .pag, .btn-del, .btn-edit-card,
+  .kcard-body, .kcard-meta, button, input, select, textarea { display: none !important; }
+  .kcard { border: 1px solid #ddd !important; border-left: 4px solid #f97316 !important;
+    background: #fff !important; margin-bottom: 8px !important; page-break-inside: avoid; }
+  .kcard.green { border-left-color: #22c55e !important; }
+  .kcard.red   { border-left-color: #ef4444 !important; }
+  .kcard.yellow{ border-left-color: #eab308 !important; }
+  .kcard.blue  { border-left-color: #3b82f6 !important; }
+  .kcard-top { background: #fff !important; color: #000 !important; }
+  .kcard-licit { color: #000 !important; font-size: 13px !important; }
+  .kcard-obj { color: #444 !important; font-size: 11px !important; }
+  .kcard-id, .emp-badge { color: #555 !important; }
+  .kmeta { display: flex !important; }
+  .kmeta-lbl { color: #888 !important; }
+  .kmeta-val { color: #000 !important; }
+  .print-header { display: block !important; }
+  #main-content, .page { display: block !important; }
+  .page { display: none !important; }
+  .page.print-active { display: block !important; }
+}
+.print-header { display: none; padding: 0 0 16px; border-bottom: 2px solid #f97316; margin-bottom: 16px; }
+
 </style>
   <!-- Firebase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js"></script>
@@ -791,6 +817,7 @@ select{color-scheme:dark;}
           Novo Edital
         </button>
         <div class="search"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><input placeholder="Buscar edital..." id="q-editais" oninput="doQ('editais')"></div>
+        <button onclick="imprimirAba('editais')" title="Imprimir / PDF" style="background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.25);color:var(--nh);padding:6px 12px;border-radius:7px;cursor:pointer;font-family:Outfit,sans-serif;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>Imprimir</button>
         <button id="btn-prahoje-editais" onclick="filtrarPraHojeEditais()" style="background:rgba(249,115,22,.15);color:var(--nh);border:1px solid rgba(249,115,22,.3);padding:6px 14px;font-size:12px;font-weight:700;border-radius:7px;cursor:pointer;font-family:Outfit,sans-serif;display:inline-flex;align-items:center;gap:6px">📅 Pra Hoje</button>
         <button onclick="sortByDate('editais','asc')" title="Mais antigo primeiro" style="width:34px;height:34px;border-radius:50%;background:var(--nh);border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;box-shadow:0 2px 8px rgba(249,115,22,.35)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
         <button onclick="sortByDate('editais','desc')" title="Mais recente primeiro" style="width:34px;height:34px;border-radius:50%;background:var(--nh);border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;box-shadow:0 2px 8px rgba(249,115,22,.35)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg></button>
@@ -811,6 +838,7 @@ select{color-scheme:dark;}
         <span style="font-size:11px;color:var(--t3);background:var(--s2);border:1px solid var(--b1);padding:6px 12px;border-radius:6px">⚡ Populado automaticamente via Editais</span>
         <div class="search"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><input placeholder="Buscar..." id="q-andamento" oninput="doQ('andamento')"></div>
         <span style="font-size:11px;color:var(--t3);background:var(--nha2);border:1px solid rgba(249,115,22,.15);padding:4px 10px;border-radius:6px">⚡ ADJU = sim → Finalizados</span>
+        <button onclick="imprimirAba('andamento')" title="Imprimir / PDF" style="background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.25);color:var(--nh);padding:6px 12px;border-radius:7px;cursor:pointer;font-family:Outfit,sans-serif;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>Imprimir</button>
         <button id="btn-prahoje" onclick="filtrarPraHoje()" style="background:rgba(249,115,22,.15);color:var(--nh);border:1px solid rgba(249,115,22,.3);padding:6px 14px;font-size:12px;font-weight:700;border-radius:7px;cursor:pointer;font-family:Outfit,sans-serif;transition:all .15s;display:inline-flex;align-items:center;gap:6px">📅 Pra Hoje</button>
         <button onclick="sortByDate('andamento','asc')" title="Mais antigo primeiro" style="width:34px;height:34px;border-radius:50%;background:var(--nh);border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;box-shadow:0 2px 8px rgba(249,115,22,.35)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
         <button onclick="sortByDate('andamento','desc')" title="Mais recente primeiro" style="width:34px;height:34px;border-radius:50%;background:var(--nh);border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;box-shadow:0 2px 8px rgba(249,115,22,.35)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg></button>
@@ -828,6 +856,7 @@ select{color-scheme:dark;}
     <div class="page" id="page-finalizados">
       <div class="stats" id="st-finalizados"></div>
       <div class="toolbar">
+        <button onclick="imprimirAba('finalizados')" title="Imprimir / PDF" style="background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.25);color:var(--nh);padding:6px 12px;border-radius:7px;cursor:pointer;font-family:Outfit,sans-serif;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>Imprimir</button>
         <div class="search"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><input placeholder="Buscar finalizado..." id="q-finalizados" oninput="doQ('finalizados')"></div>
         <span style="font-size:11px;color:var(--t3)">Preenchido automaticamente quando ADJU = sim em Andamento</span>
       </div>
@@ -883,6 +912,7 @@ select{color-scheme:dark;}
           <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
           Registrar Vitória
         </button>
+        <button onclick="imprimirAba('ganhas')" title="Imprimir / PDF" style="background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.25);color:var(--nh);padding:6px 12px;border-radius:7px;cursor:pointer;font-family:Outfit,sans-serif;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>Imprimir</button>
         <div class="search"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><input placeholder="Buscar..." id="q-ganhas" oninput="doQ('ganhas')"></div>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
@@ -3201,6 +3231,85 @@ function onModalSelChange(sel, field){
   }
 }
 
+
+function imprimirAba(k){
+  // Montar conteúdo para impressão
+  var titulo = {
+    editais:'Editais Capturados', andamento:'Em Andamento',
+    finalizados:'Finalizados', ganhas:'Licitações Ganhas',
+    atestados:'Atestados', financeiro:'Financeiro'
+  }[k] || k;
+
+  var rows = FIL[k] || [];
+  var hoje = new Date().toLocaleDateString('pt-BR');
+  var filtroEmp = (EMP_FILTER[k] ? ' · Empresa: '+EMP_FILTER[k] : '');
+  var total = rows.length;
+
+  // Gerar HTML da tabela
+  var cols = {
+    editais:    ['#','Data','Empresa','Licitação','Objeto','Local','Valor Est.','Responsável','Participar'],
+    andamento:  ['#','Data','Empresa','Licitação','Objeto','Status','Data Disputa','Portal','Valor Final'],
+    finalizados:['#','Data','Empresa','Licitação','Objeto','Status','ADJU','Classificação','Valor Final'],
+    ganhas:     ['#','Data','Empresa','Licitação','Contrato','Status','Assinatura','Vencimento','Valor'],
+    atestados:  ['#','Data','Empresa','Licitação','Contrato','Req.','Recebido','Vigência'],
+    financeiro: ['Data','Categoria','Descrição','Fornecedor','Valor','Status','Conta']
+  }[k] || ['#','Dados'];
+
+  var idxs = {
+    editais:    [0,1,2,3,4,5,7,9,10],
+    andamento:  [0,1,2,3,4,12,10,9,8],
+    finalizados:[0,1,2,3,4,12,16,11,8],
+    ganhas:     [0,1,2,3,8,9,11,12,7],
+    atestados:  [0,1,2,3,7,10,11,9],
+    financeiro: [0,1,2,3,4,5,6]
+  }[k] || [0,1,2,3];
+
+  var corEmp = function(emp){
+    var cores={'VISE':'#d97706','SAUTEC':'#2563eb','SOS':'#16a34a','SOS FILIAL':'#dc2626','ONLAV':'#0891b2','ENGEMED':'#db2777','POTIGUAR':'#ea580c'};
+    return cores[emp]||'#555';
+  };
+
+  var trs = rows.map(function(r){
+    var emp = String(r[2]||'').trim();
+    var cor = corEmp(emp);
+    var tds = idxs.map(function(i){
+      var v = String(r[i]||'').trim();
+      if(i===2) return '<td style="font-weight:700;color:'+cor+'">'+v+'</td>';
+      if(i===7&&k==='editais'||i===8&&(k==='andamento'||k==='finalizados')||i===7&&k==='ganhas'){
+        // valor
+        return '<td style="font-weight:600">'+v+'</td>';
+      }
+      return '<td>'+v+'</td>';
+    }).join('');
+    return '<tr>'+tds+'</tr>';
+  }).join('');
+
+  var ths = cols.map(function(c){ return '<th>'+c+'</th>'; }).join('');
+
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">'+
+    '<title>NH Licitações — '+titulo+'</title>'+
+    '<style>'+
+    'body{font-family:Arial,sans-serif;font-size:11px;color:#000;margin:24px}'+
+    'h1{font-size:18px;color:#f97316;margin:0 0 4px}'+
+    '.sub{font-size:11px;color:#666;margin-bottom:16px}'+
+    'table{width:100%;border-collapse:collapse;margin-top:12px}'+
+    'th{background:#f97316;color:#fff;padding:6px 8px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.05em}'+
+    'tr:nth-child(even){background:#f9f9f9}'+
+    'td{padding:5px 8px;border-bottom:1px solid #eee;vertical-align:top;max-width:200px;word-break:break-word}'+
+    '@media print{body{margin:12px}.no-print{display:none}}'+
+    '</style></head><body>'+
+    '<div style="display:flex;justify-content:space-between;align-items:center">'+
+    '<div><h1>NH Licitações</h1><div class="sub">'+titulo+filtroEmp+' · '+total+' registro(s) · Impresso em: '+hoje+'</div></div>'+
+    '<div style="font-size:10px;color:#888">noronhaholandalicitacoes-cmd.github.io</div></div>'+
+    '<table><thead><tr>'+ths+'</tr></thead><tbody>'+trs+'</tbody></table>'+
+    '<div style="margin-top:16px;font-size:10px;color:#aaa;text-align:right">NH Gestão · Relatório gerado automaticamente</div>'+
+    '</body></html>';
+
+  var win = window.open('','_blank');
+  win.document.write(html);
+  win.document.close();
+  setTimeout(function(){ win.print(); }, 500);
+}
 
 function toggleRecomp(id){
   var el=document.getElementById(id);
