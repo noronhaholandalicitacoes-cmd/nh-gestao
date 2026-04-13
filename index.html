@@ -3205,7 +3205,7 @@ function renderCard(k,row,abs){
   var id   = String(row[0]||'').trim();
   var data = String(row[1]||'').trim();
   var emp  = String(row[2]||'').trim();
-  var canEdit = k!=='finalizados';
+  var canEdit = true; // todos editáveis incluindo finalizados
   var ec2=empColor(emp), eb=empBg(emp);
 
   // ── cor borda esquerda por status ──
@@ -3341,6 +3341,12 @@ function renderCard(k,row,abs){
         '<path stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z\'/>'+
       '</svg>'+
     '</button>';
+  }
+  // Botão Reabrir — só em finalizados
+  if(k==='finalizados'){
+    h+='<button onclick="event.stopPropagation();reabrirFinalizados('+abs+')" title="Reabrir em Andamento" '+
+      'style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);color:#60a5fa;padding:4px 8px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700">'+
+      '↩ Reabrir</button>';
   }
   h+='<span style="width:1px;height:18px;background:var(--b1);display:inline-block;margin:0 8px"></span>';
   h+='<button class="btn-del" onclick="event.stopPropagation();doDel(\''+k+'\','+abs+')" title="Excluir">✕</button>';
@@ -3793,9 +3799,18 @@ async function syncEntreAbas(k, ci, row){
     var clasAtual = String(row[11]||'').trim();
     var isGanho   = adjuAtual==='sim' && is1Posicao(clasAtual);
 
-    // ADJU mudou → copiar para finalizados
+    // ADJU mudou → copiar para finalizados (com dados mais atualizados)
     if(ci === 16 && adjuAtual === 'sim'){
       await copiarParaFinalizados(row);
+    }
+    // Quando altera ADJU=sim mas classificação ainda não está como 1 posição,
+    // atualiza o finalizados com a row completa atual
+    if(ci === 16 && adjuAtual === 'sim'){
+      var fiIdx2 = ALL['finalizados'].findIndex(function(r){ return parseInt(r[0])===parseInt(row[0]); });
+      if(fiIdx2 !== -1){
+        ALL['finalizados'][fiIdx2] = row.slice();
+        await fbSave('finalizados', parseInt(row[0]), row);
+      }
     }
     // Classificação ou ADJU mudou → criar ou remover de Licitações Ganhas
     if(ci === 16 || ci === 11){
@@ -3835,6 +3850,31 @@ async function syncEntreAbas(k, ci, row){
   }
 }
 
+
+async function reabrirFinalizados(abs){
+  var row = FIL['finalizados'][abs];
+  if(!row) return;
+  if(!confirm('Reabrir este processo em Em Andamento? O ADJU será resetado para "não".')) return;
+  var rowId = parseInt(row[0]);
+  // Resetar ADJU para não
+  var novaRow = row.slice();
+  novaRow[16] = 'não';
+  // Salvar de volta em andamento
+  await fbSave('andamento', rowId, novaRow);
+  // Atualizar ALL andamento
+  var aIdx = ALL['andamento'].findIndex(function(r){ return parseInt(r[0])===rowId; });
+  if(aIdx !== -1) ALL['andamento'][aIdx] = novaRow;
+  else ALL['andamento'].push(novaRow);
+  // Remover de finalizados
+  await fbDelete('finalizados', rowId);
+  ALL['finalizados'].splice(abs, 1);
+  FIL['finalizados'] = ALL['finalizados'].slice();
+  applyFilters('andamento');
+  if(CUR==='finalizados') renderTbl('finalizados');
+  var bf = document.getElementById('b-finalizados');
+  if(bf) bf.textContent = ALL['finalizados'].length;
+  toast('✅ Processo reaberto em Em Andamento!','ok');
+}
 
 async function criarLicitacaoGanha(andRow){
   try{
