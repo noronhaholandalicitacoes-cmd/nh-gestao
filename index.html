@@ -3768,8 +3768,6 @@ var _saveRunning=false;
 var _saveTimer={};
 
 function saveCell(k,rowIdx,ci,val){
-  var protectedCols={finalizados:'all'};
-  if(protectedCols[k]==='all'){toast('Aba Finalizados é somente leitura','err');return;}
   // Normalizar valor monetário
   var camposMoeda={andamento:[7,8,18],ganhas:[7,19,26,33,40],financeiro:[3]};
   if(camposMoeda[k]&&camposMoeda[k].indexOf(ci)!==-1&&val){
@@ -3808,7 +3806,7 @@ function saveCell(k,rowIdx,ci,val){
 // Sincroniza campos A-H de EM ANDAMENTO quando edital é editado
 // ─── Sincronização completa entre abas ───────────────────────
 async function syncEntreAbas(k, ci, row){
-  if(k !== 'editais' && k !== 'andamento') return;
+  if(k !== 'editais' && k !== 'andamento' && k !== 'finalizados') return;
 
   var licit = String(row[3]||'').trim();
   var part  = String(row[10]||'').toUpperCase().trim(); // col K = PARTICIPAR (editais)
@@ -4361,6 +4359,12 @@ async function _processQueue(){
   try{
     await fbSave(FB_COLS[k], parseInt(rowId), row);
     await syncEntreAbas(k, ci, row);
+    // Se em andamento e ADJU mudou para sim, remover do FIL de andamento visualmente
+    if(k==='andamento' && ci===16 && String(row[16]||'').toLowerCase().trim()==='sim'){
+      FIL['andamento'] = FIL['andamento'].filter(function(r){ return parseInt(r[0])!==parseInt(rowId); });
+      ALL['andamento'] = ALL['andamento'].map(function(r){ return parseInt(r[0])===parseInt(rowId)?row:r; });
+      if(CUR==='andamento') renderTbl('andamento');
+    }
     if(CUR==='resumo') buildResumo();
   }catch(e){
     toast('Erro ao salvar: '+e.message,'err');
