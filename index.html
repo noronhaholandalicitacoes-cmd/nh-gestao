@@ -5639,9 +5639,13 @@ async function extrairEdital(){
   status.innerHTML='<span class="spin"></span>Analisando edital...';
 
   try{
-    // Tentar API Anthropic com dangerous-direct-browser-access
+    // Timeout de 4 segundos — se não conectar vai direto para extração local
+    var controller = new AbortController();
+    var timer = setTimeout(function(){ controller.abort(); }, 4000);
+
     var resp = await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
+      signal: controller.signal,
       headers:{
         'Content-Type':'application/json',
         'anthropic-version':'2023-06-01',
@@ -5653,7 +5657,8 @@ async function extrairEdital(){
         messages:[{role:'user',content:buildPrompt(texto)}]
       })
     });
-    
+    clearTimeout(timer);
+
     if(resp.ok){
       var data = await resp.json();
       aplicarExtracao(JSON.parse(data.content[0].text.replace(/```json|```/g,'').trim()));
@@ -5663,7 +5668,7 @@ async function extrairEdital(){
       throw new Error('fallback');
     }
   }catch(e){
-    // Fallback: extração local por regex
+    // Fallback imediato: extração local por regex
     var resultado = extrairLocal(texto);
     aplicarExtracao(resultado);
     status.className='ai-status ok';
