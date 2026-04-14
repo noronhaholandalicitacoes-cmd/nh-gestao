@@ -634,7 +634,7 @@ body{font-family:Outfit,sans-serif;background:#0f0f0f;color:#e5e5e5;min-height:1
 .logo-mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#f97316,#ea580c);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;color:#000;flex-shrink:0}
 .logo-title{font-size:15px;font-weight:800;color:#f97316}
 .logo-sub{font-size:11px;color:#555}
-.doc-main{max-width:960px;margin:0 auto;padding:28px 20px 60px}
+.doc-main{max-width:100%;margin:0;padding:20px 0 60px}
 .doc-card{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:14px;padding:22px;margin-bottom:18px}
 .doc-card-title{font-size:11px;font-weight:800;color:#f97316;text-transform:uppercase;letter-spacing:.1em;margin-bottom:16px;display:flex;align-items:center;gap:7px}
 .step-num{width:20px;height:20px;border-radius:50%;background:#f97316;color:#000;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -815,11 +815,6 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
       <span class="sb-badge" id="b-atestados">—</span>
     </div>
 
-    <div class="sb-item" id="nav-documentos" onclick="go('documentos',this)">
-      <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-      <span>Documentos</span>
-    </div>
-
     <div class="sb-item" id="nav-financeiro" onclick="go('financeiro',this)">
       <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
       <span>Financeiro</span>
@@ -834,6 +829,11 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
       <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
       <span>Afazeres</span>
       <span class="sb-badge" id="b-tarefas">—</span>
+    </div>
+
+    <div class="sb-item" id="nav-documentos" onclick="go('documentos',this)">
+      <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      <span>Documentos</span>
     </div>
 
     <div class="sb-divider"></div>
@@ -967,6 +967,17 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
       <div class="fg"><label>Razão Social *</label><input type="text" id="emp-razao" placeholder="Razão Social LTDA"></div>
       <div class="fg"><label>Nome Fantasia *</label><input type="text" id="emp-fantasia" placeholder="NOME"></div>
       <div class="fg"><label>CNPJ</label><input type="text" id="emp-cnpj" placeholder="00.000.000/0001-00" oninput="mascaraCNPJ(this)"></div>
+      <div class="fg"><label>Endereço</label><input type="text" id="emp-endereco" placeholder="Rua, Nº, Bairro"></div>
+      <div class="fg"><label>Cidade/UF</label><input type="text" id="emp-cidade" placeholder="João Pessoa/PB"></div>
+      <div class="fg"><label>CEP</label><input type="text" id="emp-cep" placeholder="00.000-000"></div>
+      <div class="fg"><label>Telefone</label><input type="text" id="emp-tel" placeholder="(83) 99999-9999"></div>
+      <div class="fg"><label>E-mail Licitações</label><input type="text" id="emp-email" placeholder="licitacoes@empresa.com"></div>
+      <div class="fg"><label>Nome do Sócio</label><input type="text" id="emp-socio" placeholder="Nome completo do sócio"></div>
+      <div class="fg"><label>CPF do Sócio</label><input type="text" id="emp-cpf" placeholder="000.000.000-00"></div>
+      <div class="fg"><label>Cargo do Sócio</label><input type="text" id="emp-cargo" placeholder="Sócio Administrador"></div>
+      <div class="fg"><label>Banco</label><input type="text" id="emp-banco" placeholder="Ex: Bradesco"></div>
+      <div class="fg"><label>Agência</label><input type="text" id="emp-agencia" placeholder="0000"></div>
+      <div class="fg"><label>Conta Corrente</label><input type="text" id="emp-conta" placeholder="00000-0"></div>
       <div class="fg"><label>Cor no sistema</label>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px">
           <span class="cor-opt" data-cor="#eab308" style="width:24px;height:24px;border-radius:50%;background:#eab308;cursor:pointer;border:2px solid transparent" onclick="selecionarCor(this)"></span>
@@ -1077,7 +1088,7 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
         <textarea id="edital-input" rows="4" placeholder="Cole aqui o texto do edital, termo de referência ou qualquer trecho com os dados do processo e itens..."></textarea>
       </div>
       <div style="margin-top:8px;display:flex;gap:8px">
-        <button class="btn btn-blue" onclick="extrairEdital()">⚡ Extrair com IA</button>
+        <button class="btn btn-blue" onclick="extrairEdital()">⚡ Extrair dados do edital</button>
         <span style="font-size:11px;color:#555;align-self:center">A IA preenche automaticamente todos os campos e monta a tabela igual ao TR</span>
       </div>
       <div id="ai-status" class="ai-status"></div>
@@ -4608,63 +4619,38 @@ function renderListaEmpresas(){
     return;
   }
   lista.innerHTML = EMPRESAS.map(function(e,i){
-    return '<div style="background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:12px;margin-bottom:4px">'+
-      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'+
-        '<span style="width:14px;height:14px;border-radius:50%;background:'+(e.cor||'#888')+';flex-shrink:0;display:inline-block"></span>'+
-        '<strong style="font-size:14px;color:var(--t1)">'+e.nome+'</strong>'+
-        '<div style="margin-left:auto;display:flex;gap:6px">'+
-          '<button onclick="editarEmpresa('+i+')" style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);color:#3b82f6;cursor:pointer;font-size:11px;padding:3px 10px;border-radius:6px;font-family:Outfit,sans-serif">Editar</button>'+
-          '<button onclick="removerEmpresa('+i+')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;cursor:pointer;font-size:11px;padding:3px 10px;border-radius:6px;font-family:Outfit,sans-serif">Remover</button>'+
-        '</div>'+
+    var cor = e.cor||'#f97316';
+    var extras = [e.cnpj,e.cidade,e.socio?'Sócio: '+e.socio:''].filter(Boolean).join(' · ');
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#111;border-radius:8px;border-left:3px solid '+cor+'">'+
+      '<div>'+
+        '<span style="font-weight:700;color:'+cor+'">'+e.nome+'</span>'+
+        (extras?'<div style="font-size:11px;color:#555;margin-top:2px">'+extras+'</div>':'')+
       '</div>'+
-      '<div id="edit-emp-'+i+'" style="display:none;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">'+
-        '<div><label style="font-size:11px;color:var(--t3)">Razão Social</label>'+
-        '<input value="'+(e.razao||'')+'" onchange="EMPRESAS['+i+'].razao=this.value" style="width:100%;background:var(--s1);border:1px solid var(--b1);color:var(--t1);padding:6px 10px;border-radius:6px;font-size:12px;font-family:Outfit,sans-serif;outline:none;margin-top:2px"></div>'+
-        '<div><label style="font-size:11px;color:var(--t3)">Nome Fantasia</label>'+
-        '<input value="'+(e.nome||'')+'" onchange="EMPRESAS['+i+'].nome=this.value" style="width:100%;background:var(--s1);border:1px solid var(--b1);color:var(--t1);padding:6px 10px;border-radius:6px;font-size:12px;font-family:Outfit,sans-serif;outline:none;margin-top:2px"></div>'+
-        '<div><label style="font-size:11px;color:var(--t3)">CNPJ</label>'+
-        '<input value="'+(e.cnpj||'')+'" oninput="mascaraCNPJ(this);EMPRESAS['+i+'].cnpj=this.value" style="width:100%;background:var(--s1);border:1px solid var(--b1);color:var(--t1);padding:6px 10px;border-radius:6px;font-size:12px;font-family:Outfit,sans-serif;outline:none;margin-top:2px"></div>'+
-        '<div><label style="font-size:11px;color:var(--t3)">Cor</label>'+
-        '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">'+
-          ['#eab308','#3b82f6','#22c55e','#ef4444','#06b6d4','#ec4899','#f97316','#8b5cf6'].map(function(c){
-            var brd = e.cor===c?'3px solid #fff':'2px solid transparent';
-            return '<span data-ci="'+i+'" data-cor="'+c+'" class="emp-cor-opt" style="width:20px;height:20px;border-radius:50%;background:'+c+';cursor:pointer;border:'+brd+'"></span>';
-          }).join('')+
-        '</div></div>'+
-      '</div>'+
-      '<div style="font-size:11px;color:var(--t3);margin-top:4px">'+
-        (e.razao?'<span>'+e.razao+'</span> · ':'')+(e.cnpj?'<span>CNPJ: '+e.cnpj+'</span>':'<span style="color:#555">CNPJ não informado</span>')+
-      '</div>'+
+      '<button onclick="removerEmpresa('+i+')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#ef4444;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px">✕</button>'+
     '</div>';
   }).join('');
 }
 
-function editarEmpresa(i){
-  // Toggle painel de edição inline
-  var panel = document.getElementById('edit-emp-'+i);
-  if(!panel) return;
-  var isOpen = panel.style.display === 'grid';
-  // Fechar todos
-  EMPRESAS.forEach(function(_,j){
-    var p = document.getElementById('edit-emp-'+j);
-    if(p) p.style.display='none';
-  });
-  if(!isOpen) panel.style.display='grid';
-}
-
+function gv(id){var el=document.getElementById(id);return el?el.value.trim():'';}
 function adicionarEmpresa(){
-  var razao = document.getElementById('emp-razao').value.trim();
-  var fantasia = document.getElementById('emp-fantasia').value.trim().toUpperCase();
-  var cnpj = document.getElementById('emp-cnpj').value.trim();
-  var cor = document.getElementById('emp-novo-cor').value || _corSelecionada;
+  var fantasia = gv('emp-fantasia').toUpperCase();
+  var razao    = gv('emp-razao');
+  var cnpj     = gv('emp-cnpj');
+  var cor      = gv('emp-novo-cor') || _corSelecionada || '#f97316';
   if(!fantasia){ toast('Digite o nome fantasia','err'); return; }
   if(EMPRESAS.find(function(e){return e.nome.toUpperCase()===fantasia;})){
     toast('Empresa já existe','err'); return;
   }
-  EMPRESAS.push({nome:fantasia, razao:razao, cnpj:cnpj, cor:cor});
-  document.getElementById('emp-razao').value='';
-  document.getElementById('emp-fantasia').value='';
-  document.getElementById('emp-cnpj').value='';
+  EMPRESAS.push({
+    nome:fantasia, razao:razao, cnpj:cnpj, cor:cor,
+    endereco:gv('emp-endereco'), cidade:gv('emp-cidade'), cep:gv('emp-cep'),
+    tel:gv('emp-tel'), email:gv('emp-email'),
+    socio:gv('emp-socio'), cpf:gv('emp-cpf'), cargo:gv('emp-cargo')||'Sócio Administrador',
+    banco:gv('emp-banco'), agencia:gv('emp-agencia'), conta:gv('emp-conta')
+  });
+  ['emp-razao','emp-fantasia','emp-cnpj','emp-endereco','emp-cidade','emp-cep',
+   'emp-tel','emp-email','emp-socio','emp-cpf','emp-cargo','emp-banco','emp-agencia','emp-conta']
+    .forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
   renderListaEmpresas();
   atualizarSelectsEmpresas();
   toast('Empresa adicionada! Clique em Salvar Alterações','ok');
@@ -5405,8 +5391,24 @@ function selEmp(nome){
 
 function getDados(){
   if(!empSelecionada) return {};
-  // Merge dados fixos com dados do Firebase (se existir)
-  return DADOS_FIXOS[empSelecionada] || {razao:empSelecionada,cnpj:'',endereco:'',cidade:'',cep:'',tel:'',email:'',socio:'',cpf:'',cargo:'Sócio Administrador'};
+  // Prioriza dados do Firebase (EMPRESAS array carregado)
+  var empFb = EMPRESAS.find(function(e){return e.nome===empSelecionada;})||{};
+  var fixo = DADOS_FIXOS[empSelecionada]||{};
+  return {
+    razao:    empFb.razao    || fixo.razao    || empSelecionada,
+    cnpj:     empFb.cnpj     || fixo.cnpj     || '',
+    endereco: empFb.endereco || fixo.endereco || '',
+    cidade:   empFb.cidade   || fixo.cidade   || '',
+    cep:      empFb.cep      || fixo.cep      || '',
+    tel:      empFb.tel      || fixo.tel      || '',
+    email:    empFb.email    || fixo.email    || '',
+    socio:    empFb.socio    || fixo.socio    || '',
+    cpf:      empFb.cpf      || fixo.cpf      || '',
+    cargo:    empFb.cargo    || fixo.cargo    || 'Sócio Administrador',
+    banco:    empFb.banco    || fixo.banco    || '',
+    agencia:  empFb.agencia  || fixo.agencia  || '',
+    conta:    empFb.conta    || fixo.conta    || '',
+  };
 }
 
 // ── Tipos de documento ──
@@ -5866,12 +5868,15 @@ function cssBase(corEmp){
 }
 
 function timbradoHTML(emp, corEmp){
-  return '<div class="timbrado">'+
-    '<div class="timbrado-logo">'+empSelecionada+'</div>'+
-    '<div class="timbrado-nome">'+
-      '<strong>'+emp.razao+'</strong><br>'+
-      'CNPJ: '+emp.cnpj+'<br>'+
-      emp.tel+' · '+emp.email+
+  // Linha superior colorida + dados empresa profissional
+  return '<div style="border-top:6px solid '+corEmp+';border-bottom:2px solid '+corEmp+'33;padding:14px 0 12px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between">'+
+    '<div style="font-size:28px;font-weight:900;color:'+corEmp+';letter-spacing:-1px;line-height:1">'+empSelecionada+
+      '<div style="font-size:10px;font-weight:400;color:#888;letter-spacing:0;margin-top:2px">'+emp.razao+'</div>'+
+    '</div>'+
+    '<div style="text-align:right;font-size:10px;color:#555;line-height:1.8">'+
+      'CNPJ: <strong style="color:#333">'+emp.cnpj+'</strong><br>'+
+      (emp.tel?emp.tel+'<br>':'')+
+      (emp.email?'<span style="color:'+corEmp+'">'+emp.email+'</span>':'')+
     '</div>'+
   '</div>';
 }
