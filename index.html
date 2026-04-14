@@ -2567,6 +2567,8 @@ function go(page,el){
   document.querySelectorAll('.sb-item').forEach(function(i){i.classList.remove('on');});
   el.classList.add('on');
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('on');});
+  // Sempre voltar ao topo ao trocar de página
+  window.scrollTo({top:0,behavior:'instant'});
   CUR=page;
   var info=TOPS[page]||[page,''];
   document.getElementById('tbTitle').textContent=info[0];
@@ -5997,7 +5999,7 @@ function parseMoeda(v){
   else s=s.replace(/[^\d.]/g,'');
   return parseFloat(s)||0;
 }
-function esc(s){return String(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function dataExtenso(ds){
   if(!ds) return '';
   var d=new Date(ds+'T12:00:00');
@@ -7006,10 +7008,6 @@ function initCalendario(){
   iniciarNotificacoesCalendario();
 }
 
-
-function esc(s){
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
 
 function buscaGlobal(q){
   q = q.trim().toLowerCase();
