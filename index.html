@@ -1058,18 +1058,22 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
   <!-- 2. TIPO DE DOCUMENTO -->
   <div class="doc-card">
     <div class="doc-card-title"><div class="step-num">2</div> Tipo de Documento</div>
-    <div class="doc-grid">
+    <div class="doc-grid" style="grid-template-columns:1fr 1fr 1fr">
       <button class="doc-btn on" onclick="setTipo('proposta',this)">
         📋 Proposta Comercial
         <span class="doc-sub">Tabela de itens com valores, condições e assinatura</span>
       </button>
       <button class="doc-btn" onclick="setTipo('decl_unificada',this)">
         📜 Declaração Unificada
-        <span class="doc-sub">10 declarações padrão: habilitação, ME/EPP, menores, etc.</span>
+        <span class="doc-sub">10 declarações: habilitação, ME/EPP, menores, etc.</span>
+      </button>
+      <button class="doc-btn" onclick="setTipo('outras',this)">
+        📑 Outras Declarações
+        <span class="doc-sub">Não vistoria, tomada de conhecimento, personalizada...</span>
       </button>
     </div>
-    <!-- Outras declarações -->
-    <div class="outras-grid" id="outras-grid">
+    <!-- Outras declarações submenu -->
+    <div class="outras-grid" id="outras-grid" style="display:none">
       <button class="outras-btn on" onclick="setOutra('vistoria',this)">📍 Não Vistoria</button>
       <button class="outras-btn" onclick="setOutra('conhecimento',this)">📖 Tomada de Conhecimento</button>
       <button class="outras-btn" onclick="setOutra('capacidade',this)">🏭 Capacidade Técnica</button>
@@ -1081,19 +1085,7 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
   <div class="doc-card">
     <div class="doc-card-title"><div class="step-num">3</div> Dados do Processo</div>
     
-    <!-- Extração automática -->
-    <div style="margin-bottom:16px">
-      <label>Cole o texto do edital / Termo de Referência aqui</label>
-      <div class="ai-row" style="margin-top:6px">
-        <textarea id="edital-input" rows="4" placeholder="Cole aqui o texto do edital, termo de referência ou qualquer trecho com os dados do processo e itens..."></textarea>
-      </div>
-      <div style="margin-top:8px;display:flex;gap:8px">
-        <button class="btn btn-blue" onclick="extrairEdital()">⚡ Extrair dados do edital</button>
-        <span style="font-size:11px;color:#555;align-self:center">A IA preenche automaticamente todos os campos e monta a tabela igual ao TR</span>
-      </div>
-      <div id="ai-status" class="ai-status"></div>
-    </div>
-
+    <div id="ai-status" class="ai-status" style="display:none"></div>
     <div class="row" style="margin-bottom:12px">
       <div class="fg">
         <label>Órgão / Entidade</label>
@@ -1674,6 +1666,7 @@ async function salvarEmpresas(){
 }
 
 function getCertBadge(empNome){
+  try{
   // Prioriza cache do Firebase; cai no EMP_DATA hardcoded como fallback
   var certs = null;
   if(window._empCache && window._empCache[empNome] && window._empCache[empNome].certs && window._empCache[empNome].certs.length){
@@ -1715,6 +1708,7 @@ function getCertBadge(empNome){
     title: urgentes+' certidão(ões) vence(m) em até 5 dias'
   });
   return badges.length ? badges : null;
+  }catch(e){ return null; }
 }
 
 function atualizarSelectsEmpresas(){
@@ -5424,7 +5418,7 @@ function setTipo(t, btn){
     og.style.display='none'; ci.style.display=''; cc.style.display=''; cd.style.display='none';
   } else if(t==='decl_unificada'){
     og.style.display='none'; ci.style.display='none'; cc.style.display='none'; cd.style.display='none';
-  } else {
+  } else { // outras
     og.style.display='flex'; ci.style.display='none'; cc.style.display='none';
     cd.style.display = outraDecl==='personalizada' ? '' : 'none';
   }
