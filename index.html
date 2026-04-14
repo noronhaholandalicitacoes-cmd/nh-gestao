@@ -560,6 +560,13 @@ select{color-scheme:dark;}
 .empty p{font-size:13px}
 .load{text-align:center;padding:48px;color:var(--t3);font-size:13px}
 .spin{width:28px;height:28px;border:2px solid var(--b1);border-top-color:var(--nh);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
+.skeleton{background:var(--s2);border-radius:8px;animation:skel 1.2s ease-in-out infinite}
+@keyframes skel{0%,100%{opacity:.4}50%{opacity:.9}}
+.skel-card{background:var(--s2);border:1px solid var(--b1);border-radius:14px;padding:26px 30px;margin-bottom:16px}
+.skel-line{height:12px;border-radius:4px;margin-bottom:10px}
+.skel-line.lg{height:18px;width:60%}
+.skel-line.md{height:12px;width:80%}
+.skel-line.sm{height:10px;width:40%}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* ─── PAGINATION ─────────────────────────── */
@@ -1206,7 +1213,21 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
     </div>
 
     <div class="page" id="page-financeiro">
+      <!-- Seletor de mês + configuração de recarga -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <button onclick="finMes(-1)" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:5px 12px;border-radius:7px;cursor:pointer;font-size:16px">‹</button>
+        <span id="fin-mes-label" style="font-size:14px;font-weight:700;color:var(--t1);min-width:140px;text-align:center"></span>
+        <button onclick="finMes(1)" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:5px 12px;border-radius:7px;cursor:pointer;font-size:16px">›</button>
+        <button onclick="finMesHoje()" style="background:var(--s2);border:1px solid var(--b1);color:var(--t3);padding:5px 12px;border-radius:7px;cursor:pointer;font-size:12px">Mês Atual</button>
+        <div style="flex:1"></div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:12px;color:var(--t3)">Recarga mensal:</span>
+          <input type="text" id="fin-recarga-val" style="width:120px;background:var(--s2);border:1px solid var(--b1);color:var(--nh);padding:5px 9px;border-radius:7px;font-size:13px;font-weight:700;text-align:right;font-family:Outfit,sans-serif" placeholder="R$ 1.500,00" oninput="mascaraMoeda(this)" onchange="salvarRecarga()">
+        </div>
+      </div>
       <div id="fin-resumo" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:0"></div>
+      <!-- Por empresa -->
+      <div id="fin-por-empresa" style="margin-bottom:0"></div>
       <div class="stats" id="st-financeiro" style="margin-bottom:0"></div>
       <div class="toolbar">
         <button class="btn btn-nh" onclick="openM('financeiro')">
@@ -1243,7 +1264,7 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
     </div>
 
     <!-- MODAL NOVA TAREFA -->
-    <div class="modal-overlay" id="mo-tarefa" onclick="if(event.target===this)closeM('tarefa')" style="display:none">
+    <div class="modal-overlay" id="mo-tarefa" style="display:none">
     <div class="modal" style="max-width:500px">
       <div class="mhd"><div class="mhd-nh"></div><div class="mhd-info"><h2 id="tar-modal-title">Nova Tarefa</h2><p>Adicionar afazer ou anotação</p></div><button class="mx" onclick="closeM('tarefa')">×</button></div>
       <div class="mbd"><div class="fg2">
@@ -2561,16 +2582,18 @@ function go(page,el){
     else if(page==='documentos') initDocumentos();
     else {
       loadPage(page);
-      if(page==='financeiro') buildFinResumo();
+      if(page==='financeiro'){
+        buildFinResumo();
+        // Preencher input de recarga com valor salvo
+        var recEl = document.getElementById('fin-recarga-val');
+        if(recEl) recEl.value = fmtVal(_finRecarga);
+      }
     }
   }
 }
 function reload(){if(CUR==='resumo') loadAll(); else loadPage(CUR);}
 
-async function apiFetch(p){
-  try{var r=await fetch(API+'?'+new URLSearchParams(p));return await r.json();}
-  catch(e){setSt('err');toast('Erro de conex\u00e3o','err');return null;}
-}
+/* apiFetch removida — app usa Firebase diretamente */
 // ── Firebase CRUD ──
 async function fbGetNextId(col){
   var snap=await db.collection(col).orderBy('_id','desc').limit(1).get();
@@ -2579,17 +2602,21 @@ async function fbGetNextId(col){
 }
 
 async function fbSave(col,id,arr){
-  await db.collection(col).doc(String(id)).set({_id:id,_arr:arr});
+  var meta = {_id:id,_arr:arr,_updatedAt:Date.now()};
+  // Preservar _createdAt se já existir
+  try{
+    var existing = await db.collection(col).doc(String(id)).get();
+    if(existing.exists && existing.data()._createdAt) meta._createdAt = existing.data()._createdAt;
+    else meta._createdAt = existing.exists ? (existing.data()._createdAt||Date.now()) : Date.now();
+  }catch(e){ meta._createdAt = Date.now(); }
+  await db.collection(col).doc(String(id)).set(meta);
 }
 
 async function fbDelete(col,id){
   await db.collection(col).doc(String(id)).delete();
 }
 
-async function apiPost(b){
-  // Compatibilidade — redireciona para Firebase
-  return null;
-}
+/* apiPost removida — app usa Firebase diretamente */
 
 async function loadAll(){
   setSt('load');
@@ -2602,38 +2629,131 @@ async function loadAll(){
   if(_bc) _bc.textContent = _evMes.length || '—';
 }
 
-function buildFinResumo(){
-  var el=document.getElementById('fin-resumo');
+// Estado do mês financeiro
+var _finAno  = new Date().getFullYear();
+var _finMes  = new Date().getMonth(); // 0-based
+var _finRecarga = parseFloat(localStorage.getItem('nh_recarga')||'1500');
+
+function finMes(d){
+  _finMes += d;
+  if(_finMes < 0){ _finMes = 11; _finAno--; }
+  if(_finMes > 11){ _finMes = 0; _finAno++; }
+  buildFinResumo();
+}
+function finMesHoje(){
+  _finAno = new Date().getFullYear();
+  _finMes = new Date().getMonth();
+  buildFinResumo();
+}
+function salvarRecarga(){
+  var el = document.getElementById('fin-recarga-val');
   if(!el) return;
-  var rows=ALL.financeiro||[];
-  // Calcula total gasto a partir dos lançamentos
-  var totalGasto=rows.map(function(r){
-    var raw=String(r[4]||'').replace(/R\$\s*/g,'').trim();
-    return parseFloat(raw.indexOf(',')!==-1?raw.replace(/\./g,'').replace(',','.'):raw)||0;
-  }).reduce(function(a,b){return a+b;},0);
-  var recarga=1500; // fixo por enquanto — pode ser editado na planilha
-  var disponivel=recarga-totalGasto;
-  el.style.marginBottom='20px';
-  el.innerHTML=
+  var n = parseMoeda(el.value);
+  if(n > 0){ _finRecarga = n; localStorage.setItem('nh_recarga', String(n)); }
+  buildFinResumo();
+}
+
+function buildFinResumo(){
+  // Atualizar label do mês
+  var meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  var lbl = document.getElementById('fin-mes-label');
+  if(lbl) lbl.textContent = meses[_finMes]+' '+_finAno;
+
+  // Preencher input de recarga com valor atual
+  var recEl = document.getElementById('fin-recarga-val');
+  if(recEl && !recEl._dirty) recEl.value = fmtVal(_finRecarga).replace('R$ ','R$ ');
+
+  var el = document.getElementById('fin-resumo');
+  var elEmp = document.getElementById('fin-por-empresa');
+  if(!el) return;
+
+  // Filtrar por mês selecionado
+  var rows = (ALL.financeiro||[]).filter(function(r){
+    var data = String(r[0]||'');
+    // formato dd/mm/yyyy
+    var parts = data.split('/');
+    if(parts.length===3){
+      return parseInt(parts[1])-1 === _finMes && parseInt(parts[2]) === _finAno;
+    }
+    // formato yyyy-mm-dd
+    var d = new Date(data);
+    if(!isNaN(d.getTime())) return d.getMonth()===_finMes && d.getFullYear()===_finAno;
+    return false;
+  });
+
+  var recarga = _finRecarga;
+  var totalGasto = rows.reduce(function(acc,r){
+    return acc + parseMoeda(r[4]||0);
+  }, 0);
+  var disponivel = recarga - totalGasto;
+
+  el.style.marginBottom = '16px';
+  el.innerHTML =
     '<div class="r-kpi"><div class="rkpi-lbl">Recarga Mensal</div><div class="rkpi-val" style="color:var(--b2_);font-size:22px">'+fmtVal(recarga)+'</div></div>'+
     '<div class="r-kpi"><div class="rkpi-lbl">Total Gasto (Mês)</div><div class="rkpi-val" style="color:var(--r2);font-size:22px">'+fmtVal(totalGasto)+'</div></div>'+
     '<div class="r-kpi nh-accent"><div class="rkpi-lbl">Total Disponível</div><div class="rkpi-val nh" style="font-size:22px">'+fmtVal(disponivel)+'</div></div>';
+
+  // Breakdown por empresa
+  if(elEmp){
+    var porEmp = {};
+    rows.forEach(function(r){
+      var emp = String(r[3]||'').trim()||'Geral';
+      if(!porEmp[emp]) porEmp[emp] = 0;
+      porEmp[emp] += parseMoeda(r[4]||0);
+    });
+    var emps = Object.keys(porEmp).sort(function(a,b){ return porEmp[b]-porEmp[a]; });
+    if(emps.length > 1){
+      elEmp.style.marginBottom = '16px';
+      elEmp.innerHTML = '<div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:8px">Gastos por empresa — '+meses[_finMes]+'</div>'+
+        '<div style="display:flex;flex-direction:column;gap:6px">'+
+        emps.map(function(emp){
+          var val = porEmp[emp];
+          var pct = totalGasto > 0 ? Math.round(val/totalGasto*100) : 0;
+          var cor = (EMPRESAS.find(function(e){return e.nome===emp;})||{}).cor||'var(--nh)';
+          return '<div style="display:flex;align-items:center;gap:10px">'+
+            '<span style="font-size:12px;font-weight:700;color:'+cor+';min-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+emp+'</span>'+
+            '<div style="flex:1;background:var(--b1);border-radius:4px;height:6px;overflow:hidden">'+
+              '<div style="width:'+pct+'%;background:'+cor+';height:100%;border-radius:4px;transition:width .4s"></div>'+
+            '</div>'+
+            '<span style="font-size:12px;color:var(--t2);min-width:90px;text-align:right">'+fmtVal(val)+'</span>'+
+            '<span style="font-size:11px;color:var(--t3);min-width:32px;text-align:right">'+pct+'%</span>'+
+          '</div>';
+        }).join('')+
+      '</div>';
+    } else {
+      elEmp.style.marginBottom = '0';
+      elEmp.innerHTML = '';
+    }
+  }
 }
-async function loadPage(k){
-  var el=document.getElementById('tbl-'+k);
-  if(el) el.innerHTML='<div class="load"><div class="spin"></div>Carregando...</div>';
-  await _load(k);
+async function loadPage(k){ await _load(k); }
+function _skelHtml(){
+  var s='';
+  for(var i=0;i<4;i++){
+    s+='<div class="skel-card">'+
+      '<div class="skeleton skel-line lg" style="margin-bottom:14px"></div>'+
+      '<div class="skeleton skel-line md"></div>'+
+      '<div class="skeleton skel-line sm"></div>'+
+    '</div>';
+  }
+  return s;
 }
 async function _load(k){
   var el=document.getElementById('tbl-'+k);
-  if(el) el.innerHTML='<div class="load"><div class="spin"></div>Carregando...</div>';
+  if(el) el.innerHTML=_skelHtml();
   try{
     var snap=await db.collection(FB_COLS[k]).orderBy('_id','asc').get();
     var valid=[];
     snap.forEach(function(doc){
-      var arr=doc.data()._arr||[];
+      var docData = doc.data();
+      var arr=docData._arr||[];
       // Ignorar registros vazios ou sem ID (card fantasma)
-      if(arr.length > 0 && (arr[0]!==undefined && arr[0]!==null && arr[0]!=='')) valid.push(arr);
+      if(arr.length > 0 && (arr[0]!==undefined && arr[0]!==null && arr[0]!=='')){
+        // Expor metadados para exibição nos cards
+        if(docData._updatedAt) arr._updatedAt = docData._updatedAt;
+        if(docData._createdAt) arr._createdAt = docData._createdAt;
+        valid.push(arr);
+      }
     });
     // Ordem decrescente
     valid.sort(function(a,b){return (parseInt(b[0])||0)-(parseInt(a[0])||0);});
@@ -3863,6 +3983,12 @@ function renderCard(k,row,abs){
   h+='<span class="kcard-id">#'+id+'</span>';
   if(data) h+='<span style="font-size:13px;font-weight:700;color:var(--t1);background:var(--s3);padding:2px 10px;border-radius:6px">'+data+'</span>';
   if(emp)  h+='<span class="emp-badge" style="color:'+ec2+';background:'+eb+';border:1px solid '+ec2+'55">'+emp+'</span>';
+  // Badge de última edição (vem do Firebase meta)
+  if(row._updatedAt){
+    var updD = new Date(row._updatedAt);
+    var updStr = ('0'+updD.getDate()).slice(-2)+'/'+('0'+(updD.getMonth()+1)).slice(-2)+' '+('0'+updD.getHours()).slice(-2)+':'+('0'+updD.getMinutes()).slice(-2);
+    h+='<span title="Última edição" style="font-size:10px;color:var(--t4);background:var(--s3);padding:2px 8px;border-radius:5px;margin-left:auto">✎ '+updStr+'</span>';
+  }
   h+='</div>';
 
   // Título — protegido em andamento/finalizados (vem de fórmula)
@@ -5212,9 +5338,7 @@ async function doDel(k,idx){
   var label=k==='financeiro'?row[2]:row[3];
   if(!confirm('Excluir?\n"'+label+'"\n\nEsta ação não pode ser desfeita.')) return;
   var rowId=String(row[0]||'').trim();
-  // Se sem ID, tentar deletar por empresa+licitação
   if(!rowId){
-    // Buscar no Firebase e deletar pelo doc que bate
     try{
       var snap = await db.collection(FB_COLS[k])
         .where('_arr','array-contains',row[2]||'').limit(10).get();
@@ -5230,7 +5354,6 @@ async function doDel(k,idx){
         toast('Excluído!','ok');
         await loadPage(k);
       } else {
-        // Fallback — remover apenas da memória
         ALL[k] = ALL[k].filter(function(r,i){ return i !== idx; });
         FIL[k] = FIL[k].filter(function(r,i){ return i !== idx; });
         renderTbl(k);
@@ -5241,14 +5364,32 @@ async function doDel(k,idx){
   }
   try{
     await fbDelete(FB_COLS[k],rowId);
+    // Limpeza em cascata: se for edital, remove processos relacionados em outras abas
+    if(k==='editais'){
+      var licitDel = String(row[3]||'').trim().toLowerCase();
+      var empDel   = String(row[2]||'').trim();
+      var abCascata = ['andamento','finalizados','ganhas'];
+      for(var ci=0;ci<abCascata.length;ci++){
+        var aK=abCascata[ci];
+        var idx2=ALL[aK].findIndex(function(r){
+          return String(r[3]||'').trim().toLowerCase()===licitDel && String(r[2]||'').trim()===empDel;
+        });
+        if(idx2!==-1){
+          var cId=parseInt(ALL[aK][idx2][0]);
+          if(cId) await fbDelete(FB_COLS[aK],cId);
+          ALL[aK].splice(idx2,1);
+          FIL[aK]=ALL[aK].slice();
+          var b=document.getElementById('b-'+aK);
+          if(b) b.textContent=ALL[aK].length;
+        }
+      }
+    }
     toast('Excluído!','ok');
     await loadPage(k);
     if(CUR==='resumo') buildResumo();
   }catch(e){
     toast('Erro ao excluir: '+e.message,'err');
   }
-  var res={success:true}; // compatibilidade
-  if(res&&res.success){toast('Registro excluído!','info');await loadPage(k);}
 }
 
 function toast(msg,type){
@@ -5296,15 +5437,21 @@ function parseBRDate(s){
 function verificarVencimentos(){
   var hoje = new Date(); hoje.setHours(0,0,0,0);
   var avisos = [];
-  // Contratos ganhos prestes a vencer — só avisa se faltar 7 dias ou menos
+  var vistos = JSON.parse(localStorage.getItem('nh_avisos_vistos')||'{}');
+  var chaveHoje = hoje.toISOString().split('T')[0];
+
+  // Contratos ganhos prestes a vencer — avisa com 30, 15, 7, 1 dia de antecedência
   (ALL.ganhas||[]).forEach(function(r){
     var st = String(r[9]||'').toUpperCase().trim();
     if(st !== 'EM EXECUÇÃO' && st !== 'EM EXECUCAO') return;
     var venc = parseBRDate(r[12]);
     if(!venc) return;
     var dias = Math.round((venc-hoje)/(1000*60*60*24));
-    if(dias >= 0 && dias <= 7){
-      avisos.push({tipo:'ganhas',id:r[0],emp:r[2],licit:String(r[3]||'').substring(0,40),dias:dias});
+    if(dias >= 0 && dias <= 30){
+      var chave = 'g_'+r[0]+'_'+chaveHoje;
+      if(!vistos[chave]){
+        avisos.push({tipo:'ganhas',id:r[0],emp:r[2],licit:String(r[3]||'').substring(0,40),dias:dias,chave:chave});
+      }
     }
   });
   // Processos em andamento com data de disputa hoje ou amanhã
@@ -5313,10 +5460,26 @@ function verificarVencimentos(){
     if(!dd) return;
     var dias = Math.round((dd-hoje)/(1000*60*60*24));
     if(dias >= 0 && dias <= 1){
-      avisos.push({tipo:'andamento',id:r[0],emp:r[2],licit:String(r[3]||'').substring(0,40),dias:dias,disputa:true});
+      var chave = 'a_'+r[0]+'_'+chaveHoje;
+      if(!vistos[chave]){
+        avisos.push({tipo:'andamento',id:r[0],emp:r[2],licit:String(r[3]||'').substring(0,40),dias:dias,disputa:true,chave:chave});
+      }
     }
   });
   if(avisos.length > 0) mostrarNotificacoes(avisos);
+}
+
+function marcarAvisoVisto(chave){
+  var vistos = JSON.parse(localStorage.getItem('nh_avisos_vistos')||'{}');
+  vistos[chave] = true;
+  // Limpar entradas antigas (> 60 dias)
+  var limite = Date.now() - 60*24*60*60*1000;
+  Object.keys(vistos).forEach(function(k){
+    var partes = k.split('_');
+    var data = partes[partes.length-1];
+    if(data && new Date(data).getTime() < limite) delete vistos[k];
+  });
+  localStorage.setItem('nh_avisos_vistos', JSON.stringify(vistos));
 }
 
 function mostrarNotificacoes(avisos){
@@ -5324,16 +5487,27 @@ function mostrarNotificacoes(avisos){
   if(existing) existing.remove();
   var banner = document.createElement('div');
   banner.id = 'notif-banner';
-  banner.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px;max-width:340px';
+  banner.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px;max-width:360px';
   avisos.slice(0,5).forEach(function(a){
-    var cor = a.dias===0?'#ef4444':a.dias<=7?'#eab308':'#f97316';
-    var msg = a.disputa
-      ? (a.dias===0?'🔔 DISPUTA HOJE':'🔔 Disputa amanhã')+': '+a.licit
-      : (a.dias===0?'⚠️ VENCE HOJE':'⚠️ Vence em '+a.dias+'d')+': '+a.licit;
+    var cor = a.dias===0?'#ef4444':a.dias<=3?'#f97316':a.dias<=7?'#eab308':'#60a5fa';
+    var urgLabel = a.disputa
+      ? (a.dias===0?'DISPUTA HOJE':'DISPUTA AMANHÃ')
+      : (a.dias===0?'VENCE HOJE':a.dias<=3?'VENCE EM '+a.dias+'d':a.dias<=7?'VENCE EM '+a.dias+'d':'VENCE EM '+a.dias+'d');
     var n = document.createElement('div');
-    n.style.cssText = 'background:#1a1a1a;border-left:4px solid '+cor+';border-radius:8px;padding:12px 14px;font-size:12px;color:#eee;box-shadow:0 4px 14px rgba(0,0,0,.4);cursor:pointer';
-    n.innerHTML = '<div style="font-weight:700;color:'+cor+'">'+a.emp+'</div><div style="margin-top:2px;color:#aaa">'+msg+'</div>';
-    n.onclick = function(){ n.remove(); };
+    n.style.cssText = 'background:#1a1a1a;border-left:4px solid '+cor+';border-radius:8px;padding:12px 14px;font-size:12px;color:#eee;box-shadow:0 4px 14px rgba(0,0,0,.5);display:flex;align-items:flex-start;gap:10px';
+    n.innerHTML =
+      '<div style="flex:1">'+
+        '<div style="font-size:10px;font-weight:800;color:'+cor+';letter-spacing:.06em;margin-bottom:3px">'+urgLabel+'</div>'+
+        '<div style="font-weight:700;color:#f0f0f0;margin-bottom:2px">'+esc(a.emp)+'</div>'+
+        '<div style="color:#aaa;font-size:11px;line-height:1.4">'+esc(a.licit)+'</div>'+
+      '</div>'+
+      '<button title="Dispensar" style="background:none;border:none;color:#555;cursor:pointer;font-size:18px;padding:0;line-height:1;flex-shrink:0">×</button>';
+    var closeBtn = n.querySelector('button');
+    closeBtn.onclick = function(){
+      if(a.chave) marcarAvisoVisto(a.chave);
+      n.remove();
+      if(!banner.querySelector('div[style*="border-left"]')) banner.remove();
+    };
     banner.appendChild(n);
   });
   if(avisos.length > 5){
@@ -5344,8 +5518,7 @@ function mostrarNotificacoes(avisos){
     banner.appendChild(more);
   }
   document.body.appendChild(banner);
-  // Auto-remover em 10s
-  setTimeout(function(){ if(banner.parentNode) banner.remove(); }, 10000);
+  setTimeout(function(){ if(banner.parentNode) banner.remove(); }, 15000);
 }
 
 window.addEventListener('load',function(){
@@ -6462,6 +6635,15 @@ function renderTarefas(){
     var p = t.prioridade||'media';
     if(grupos[p]) grupos[p].push(t);
   });
+  // Ordenar cada grupo: com prazo primeiro (mais próximo no topo), depois sem prazo
+  ['alta','media','baixa'].forEach(function(p){
+    grupos[p].sort(function(a,b){
+      if(!a.prazo && !b.prazo) return 0;
+      if(!a.prazo) return 1;
+      if(!b.prazo) return -1;
+      return new Date(a.prazo) - new Date(b.prazo);
+    });
+  });
 
   var corPrio = {alta:'#ef4444',media:'#eab308',baixa:'#22c55e'};
   var iconePrio = {alta:'🔴',media:'🟡',baixa:'🟢'};
@@ -6501,8 +6683,8 @@ function renderTarefaCard(t, hoje){
       '<input type="checkbox" '+(concluida?'checked':'')+' data-tid="'+t.id+'" class="tar-check" '+
         'style="width:16px;height:16px;margin-top:2px;cursor:pointer;accent-color:var(--nh);flex-shrink:0">'+
       '<div style="flex:1;min-width:0">'+
-        '<div style="font-size:13px;font-weight:600;color:var(--t1);'+(concluida?'text-decoration:line-through':'')+'">'+t.titulo+'</div>'+
-        (t.desc?'<div style="font-size:12px;color:var(--t2);margin-top:4px;line-height:1.5">'+t.desc+'</div>':'')+
+        '<div style="font-size:13px;font-weight:600;color:var(--t1);'+(concluida?'text-decoration:line-through':'')+'">'+esc(t.titulo)+'</div>'+
+        (t.desc?'<div style="font-size:12px;color:var(--t2);margin-top:4px;line-height:1.5">'+esc(t.desc)+'</div>':'')+
         '<div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap">'+
           (t.empresa?'<span style="font-size:10px;color:'+empCor+';font-weight:700;background:'+empCor+'22;padding:2px 7px;border-radius:8px">'+t.empresa+'</span>':'')+
           prazoHtml+
@@ -6825,6 +7007,10 @@ function initCalendario(){
 }
 
 
+function esc(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 function buscaGlobal(q){
   q = q.trim().toLowerCase();
   var res = document.getElementById('busca-resultado');
@@ -6843,6 +7029,13 @@ function buscaGlobal(q){
       }
     });
   });
+  // Incluir Tarefas na busca global
+  (window._tarefas||[]).forEach(function(t){
+    var texto = (t.titulo+' '+(t.desc||'')+' '+(t.empresa||'')).toLowerCase();
+    if(texto.indexOf(q) !== -1){
+      encontrados.push({k:'tarefas',nome:'Afazeres',id:'',emp:t.empresa||'Geral',licit:t.titulo,data:t.prazo||''});
+    }
+  });
   if(!res){
     res = document.createElement('div');
     res.id = 'busca-resultado';
@@ -6857,9 +7050,9 @@ function buscaGlobal(q){
   var html = encontrados.slice(0,12).map(function(x){
     return '<div class="busca-item" data-aba="'+x.k+'" '+
       'style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:10px">' +
-      '<span style="font-size:10px;background:var(--s2);padding:2px 6px;border-radius:4px;color:var(--t3);white-space:nowrap">'+x.nome+'</span>'+
-      '<div><div style="font-size:13px;color:var(--t1)">#'+x.id+' '+String(x.licit||'').substring(0,45)+'</div>'+
-      '<div style="font-size:11px;color:var(--t3)">'+x.emp+' · '+x.data+'</div></div>'+
+      '<span style="font-size:10px;background:var(--s2);padding:2px 6px;border-radius:4px;color:var(--t3);white-space:nowrap">'+esc(x.nome)+'</span>'+
+      '<div><div style="font-size:13px;color:var(--t1)">#'+esc(x.id)+' '+esc(String(x.licit||'').substring(0,45))+'</div>'+
+      '<div style="font-size:11px;color:var(--t3)">'+esc(x.emp)+' · '+esc(x.data)+'</div></div>'+
       '</div>';
   }).join('');
   if(encontrados.length>12) html+='<div style="padding:10px;font-size:12px;color:var(--t3);text-align:center">+'+(encontrados.length-12)+' resultados</div>';
@@ -6869,7 +7062,19 @@ function buscaGlobal(q){
     el.addEventListener('mouseout',function(){this.style.background='';});
     el.addEventListener('click',function(){
       var aba = this.getAttribute('data-aba');
-      go(aba,null);
+      // Encontrar item correto na sidebar
+      var sbEl = document.getElementById('nav-'+aba);
+      if(!sbEl){
+        document.querySelectorAll('.sb-item').forEach(function(it){
+          var oc = it.getAttribute('onclick')||'';
+          if(oc.indexOf(aba)!==-1) sbEl=it;
+        });
+      }
+      if(sbEl) go(aba, sbEl);
+      else {
+        var fallback = document.querySelector('.sb-item.on')||document.querySelector('.sb-item');
+        go(aba, fallback||document.body);
+      }
       var inp = document.getElementById('busca-global');
       if(inp) inp.value='';
       var r = document.getElementById('busca-resultado');
