@@ -880,7 +880,7 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
   <div class="content">
 
     <!-- RESUMO -->
-    <div class="page on" id="page-resumo">
+    <div class="page" id="page-resumo">
       <div id="resumo-body"><div class="load"><div class="spin"></div>Carregando resumo...</div></div>
     </div>
 
@@ -1206,8 +1206,8 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
     </div>
 
     <div class="page" id="page-financeiro">
-      <div id="fin-resumo" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px"></div>
-      <div class="stats" id="st-financeiro"></div>
+      <div id="fin-resumo" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:0"></div>
+      <div class="stats" id="st-financeiro" style="margin-bottom:0"></div>
       <div class="toolbar">
         <button class="btn btn-nh" onclick="openM('financeiro')">
           <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
@@ -2613,6 +2613,7 @@ function buildFinResumo(){
   }).reduce(function(a,b){return a+b;},0);
   var recarga=1500; // fixo por enquanto — pode ser editado na planilha
   var disponivel=recarga-totalGasto;
+  el.style.marginBottom='20px';
   el.innerHTML=
     '<div class="r-kpi"><div class="rkpi-lbl">Recarga Mensal</div><div class="rkpi-val" style="color:var(--b2_);font-size:22px">'+fmtVal(recarga)+'</div></div>'+
     '<div class="r-kpi"><div class="rkpi-lbl">Total Gasto (Mês)</div><div class="rkpi-val" style="color:var(--r2);font-size:22px">'+fmtVal(totalGasto)+'</div></div>'+
@@ -5276,6 +5277,8 @@ function initApp(){
   carregarEmpresas();
   carregarOptsCustom();
   setSt('load');
+  // Ativar página inicial via JS
+  document.getElementById('page-resumo').classList.add('on');
   loadAll();
   setTimeout(verificarVencimentos, 3000);
   setTimeout(iniciarNotificacoesCalendario, 5000);
