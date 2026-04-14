@@ -627,6 +627,81 @@ select{color-scheme:dark;}
 .rcard-row-v.y{color:var(--y2)}
 .rcard-row-v.r{color:var(--r2)}
 
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Outfit,sans-serif;background:#0f0f0f;color:#e5e5e5;min-height:100vh}
+.header{background:#1a1a1a;border-bottom:1px solid #2a2a2a;padding:14px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.logo-mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#f97316,#ea580c);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;color:#000;flex-shrink:0}
+.logo-title{font-size:15px;font-weight:800;color:#f97316}
+.logo-sub{font-size:11px;color:#555}
+.doc-main{max-width:960px;margin:0 auto;padding:28px 20px 60px}
+.doc-card{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:14px;padding:22px;margin-bottom:18px}
+.doc-card-title{font-size:11px;font-weight:800;color:#f97316;text-transform:uppercase;letter-spacing:.1em;margin-bottom:16px;display:flex;align-items:center;gap:7px}
+.step-num{width:20px;height:20px;border-radius:50%;background:#f97316;color:#000;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+/* Empresa grid */
+.emp-grid{display:flex;flex-wrap:wrap;gap:8px}
+.emp-btn{display:flex;align-items:center;gap:8px;padding:9px 16px;border-radius:20px;border:2px solid #2a2a2a;background:#111;cursor:pointer;font-family:Outfit,sans-serif;font-size:13px;font-weight:700;color:#777;transition:all .2s}
+.emp-btn.on{background:rgba(249,115,22,.08)}
+.emp-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+/* Doc types */
+.doc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.doc-btn{padding:14px 16px;border-radius:12px;border:2px solid #2a2a2a;background:#111;color:#777;font-size:13px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:all .2s;text-align:left;display:flex;flex-direction:column;gap:4px}
+.doc-btn.on{border-color:#f97316;background:rgba(249,115,22,.08);color:#f97316}
+.doc-btn .doc-sub{font-size:10px;font-weight:400;color:#555;margin-top:2px}
+.doc-btn.on .doc-sub{color:#f97316aa}
+/* Outras declarações submenu */
+.outras-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid #2a2a2a;display:none}
+.outras-btn{padding:7px 14px;border-radius:20px;border:1px solid #2a2a2a;background:#111;color:#777;font-size:12px;font-weight:600;cursor:pointer;font-family:Outfit,sans-serif;transition:all .2s}
+.outras-btn.on{border-color:#a78bfa;background:rgba(167,139,250,.1);color:#a78bfa}
+/* Form */
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg.fc{grid-column:1/-1}
+label{font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+input,select,textarea{background:#111;border:1px solid #2a2a2a;border-radius:8px;color:#e5e5e5;font-family:Outfit,sans-serif;font-size:13px;padding:9px 12px;outline:none;transition:border .2s;width:100%}
+input:focus,select:focus,textarea:focus{border-color:rgba(249,115,22,.5)}
+textarea{resize:vertical;min-height:70px;line-height:1.6}
+/* AI box */
+.ai-row{display:flex;gap:8px;margin-top:10px}
+.ai-row input{flex:1}
+.btn{padding:10px 18px;border-radius:9px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;display:inline-flex;align-items:center;gap:6px;transition:all .2s;white-space:nowrap}
+.btn-nh{background:#f97316;color:#000}
+.btn-ghost{background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.3);color:#f97316}
+.btn-blue{background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.3);color:#60a5fa}
+.btn-green{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:#22c55e}
+.btn-sm{padding:6px 12px;font-size:11px}
+.ai-status{margin-top:10px;padding:10px 14px;border-radius:8px;background:#111;border:1px solid #2a2a2a;font-size:12px;color:#aaa;display:none}
+.ai-status.ok{border-color:rgba(34,197,94,.3);color:#22c55e}
+.ai-status.err{border-color:rgba(239,68,68,.3);color:#ef4444}
+/* ── TABELA EXCEL ── */
+.tbl-toolbar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+.tbl-wrap{overflow-x:auto;border:1px solid #2a2a2a;border-radius:10px}
+#tabela-proposta{border-collapse:collapse;width:100%;font-size:12px;min-width:600px}
+#tabela-proposta th{background:#111;color:#888;padding:0;font-size:10px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;border:1px solid #2a2a2a;white-space:nowrap;position:relative;user-select:none}
+#tabela-proposta th .th-inner{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;gap:6px}
+#tabela-proposta th .th-name{flex:1;outline:none;background:transparent;border:none;color:#aaa;font-size:10px;font-weight:700;font-family:Outfit,sans-serif;text-transform:uppercase;letter-spacing:.06em;min-width:40px;cursor:text}
+#tabela-proposta th .th-name:focus{color:#e5e5e5}
+#tabela-proposta th .btn-rm-col{background:none;border:none;color:#ef4444;cursor:pointer;font-size:11px;padding:0 2px;opacity:.5;flex-shrink:0;line-height:1}
+#tabela-proposta th .btn-rm-col:hover{opacity:1}
+#tabela-proposta td{border:1px solid #2a2a2a;padding:0;position:relative}
+#tabela-proposta td input,#tabela-proposta td textarea{background:transparent;border:none;color:#e5e5e5;font-family:Outfit,sans-serif;font-size:12px;padding:7px 9px;width:100%;outline:none;resize:none;overflow:hidden}
+#tabela-proposta td input:focus,#tabela-proposta td textarea:focus{background:rgba(249,115,22,.05);outline:1px solid rgba(249,115,22,.4)}
+#tabela-proposta td.col-num{background:#0f0f0f;text-align:center;font-size:11px;color:#555;font-weight:700;width:36px}
+#tabela-proposta td.col-num input{text-align:center;color:#555;font-weight:700;cursor:default}
+#tabela-proposta tr:hover td{background:rgba(255,255,255,.02)}
+#tabela-proposta tr:hover td.col-num{background:#111}
+.btn-rm-row{background:none;border:none;color:#ef4444;cursor:pointer;font-size:13px;opacity:.4;padding:4px;line-height:1}
+.btn-rm-row:hover{opacity:1}
+.total-bar{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#111;border-top:1px solid #2a2a2a;border-radius:0 0 10px 10px}
+.total-label{font-size:11px;color:#777;font-weight:700;text-transform:uppercase}
+.total-value{font-size:16px;font-weight:800;color:#f97316}
+/* Footer */
+.footer-btns{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.spin{width:16px;height:16px;border:2px solid #2a2a2a;border-top-color:#f97316;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+
 /* ADJU highlight */
 .adju-yes{color:var(--g2);font-weight:700}
 .adju-tag{font-size:9px;font-weight:700;background:rgba(249,115,22,.12);color:var(--nh);padding:2px 7px;border-radius:4px;text-transform:uppercase;letter-spacing:.07em}
@@ -738,6 +813,11 @@ select{color-scheme:dark;}
       <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
       <span>Atestados</span>
       <span class="sb-badge" id="b-atestados">—</span>
+    </div>
+
+    <div class="sb-item" id="nav-documentos" onclick="go('documentos',this)">
+      <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      <span>Documentos</span>
     </div>
 
     <div class="sb-item" id="nav-financeiro" onclick="go('financeiro',this)">
@@ -951,6 +1031,163 @@ select{color-scheme:dark;}
     </div>
 
     <!-- FINANCEIRO -->
+    <!-- DOCUMENTOS -->
+    <div class="page" id="page-documentos">
+      <div style="padding:0 0 32px">
+<div class="doc-main">
+
+  <!-- 1. EMPRESA -->
+  <div class="doc-card">
+    <div class="doc-card-title"><div class="step-num">1</div> Empresa</div>
+    <div class="emp-grid" id="emp-grid">
+      <div style="color:#555;font-size:12px">Carregando empresas...</div>
+    </div>
+  </div>
+
+  <!-- 2. TIPO DE DOCUMENTO -->
+  <div class="doc-card">
+    <div class="doc-card-title"><div class="step-num">2</div> Tipo de Documento</div>
+    <div class="doc-grid">
+      <button class="doc-btn on" onclick="setTipo('proposta',this)">
+        📋 Proposta Comercial
+        <span class="doc-sub">Tabela de itens com valores, condições e assinatura</span>
+      </button>
+      <button class="doc-btn" onclick="setTipo('decl_unificada',this)">
+        📜 Declaração Unificada
+        <span class="doc-sub">10 declarações padrão: habilitação, ME/EPP, menores, etc.</span>
+      </button>
+    </div>
+    <!-- Outras declarações -->
+    <div class="outras-grid" id="outras-grid">
+      <button class="outras-btn on" onclick="setOutra('vistoria',this)">📍 Não Vistoria</button>
+      <button class="outras-btn" onclick="setOutra('conhecimento',this)">📖 Tomada de Conhecimento</button>
+      <button class="outras-btn" onclick="setOutra('capacidade',this)">🏭 Capacidade Técnica</button>
+      <button class="outras-btn" onclick="setOutra('personalizada',this)">✏️ Personalizada</button>
+    </div>
+  </div>
+
+  <!-- 3. DADOS DO PROCESSO -->
+  <div class="doc-card">
+    <div class="doc-card-title"><div class="step-num">3</div> Dados do Processo</div>
+    
+    <!-- Extração automática -->
+    <div style="margin-bottom:16px">
+      <label>Cole o texto do edital / Termo de Referência aqui</label>
+      <div class="ai-row" style="margin-top:6px">
+        <textarea id="edital-input" rows="4" placeholder="Cole aqui o texto do edital, termo de referência ou qualquer trecho com os dados do processo e itens..."></textarea>
+      </div>
+      <div style="margin-top:8px;display:flex;gap:8px">
+        <button class="btn btn-blue" onclick="extrairEdital()">⚡ Extrair com IA</button>
+        <span style="font-size:11px;color:#555;align-self:center">A IA preenche automaticamente todos os campos e monta a tabela igual ao TR</span>
+      </div>
+      <div id="ai-status" class="ai-status"></div>
+    </div>
+
+    <div class="row" style="margin-bottom:12px">
+      <div class="fg">
+        <label>Órgão / Entidade</label>
+        <input id="orgao" type="text" placeholder="Ex: FUNDAÇÃO PARAIBANA DE GESTÃO EM SAÚDE – PB SAÚDE">
+      </div>
+      <div class="fg">
+        <label>Setor / Comissão</label>
+        <input id="setor" type="text" placeholder="Ex: COMISSÃO PERMANENTE DE LICITAÇÃO">
+      </div>
+    </div>
+    <div class="row" style="margin-bottom:12px">
+      <div class="fg">
+        <label>Modalidade e Número</label>
+        <input id="modalidade" type="text" placeholder="Ex: PREGÃO ELETRÔNICO Nº 050/2026">
+      </div>
+      <div class="fg">
+        <label>Processo Administrativo</label>
+        <input id="processo" type="text" placeholder="Ex: PBS-PRC-2025/08783">
+      </div>
+    </div>
+    <div class="fg">
+      <label>Objeto</label>
+      <textarea id="objeto" rows="3" placeholder="Descrição completa do objeto..."></textarea>
+    </div>
+  </div>
+
+  <!-- 4. TABELA DE ITENS -->
+  <div class="doc-card" id="card-itens">
+    <div class="doc-card-title"><div class="step-num">4</div> Tabela de Itens <span id="col-count" style="font-size:10px;color:#555;font-weight:400;margin-left:8px"></span></div>
+    
+    <div class="tbl-toolbar">
+      <button class="btn btn-green btn-sm" onclick="addLinha()">+ Linha</button>
+      <button class="btn btn-blue btn-sm" onclick="addColuna()">+ Coluna</button>
+      <button class="btn btn-sm" style="background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);color:#a78bfa" onclick="resetColunas()">↺ Resetar Colunas</button>
+      <span style="font-size:11px;color:#555;margin-left:4px">Tab = próxima célula · Enter = nova linha · Del = limpar</span>
+    </div>
+
+    <div class="tbl-wrap">
+      <table id="tabela-proposta">
+        <thead id="tbl-head"></thead>
+        <tbody id="tbl-body"></tbody>
+      </table>
+      <div class="total-bar">
+        <span class="total-label">Valor Total Global</span>
+        <span class="total-value" id="total-global">R$ 0,00</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. CONDIÇÕES -->
+  <div class="doc-card" id="card-condicoes">
+    <div class="doc-card-title"><div class="step-num">5</div> Condições</div>
+    <div class="row" style="margin-bottom:12px">
+      <div class="fg">
+        <label>Validade da Proposta (dias)</label>
+        <input id="validade" type="number" value="60">
+      </div>
+      <div class="fg">
+        <label>Prazo de Entrega / Serviço</label>
+        <input id="prazo_entrega" value="conforme edital e seus anexos">
+      </div>
+    </div>
+    <div class="row" style="margin-bottom:12px">
+      <div class="fg">
+        <label>Prazo de Pagamento</label>
+        <input id="prazo_pag" value="conforme edital e seus anexos">
+      </div>
+      <div class="fg">
+        <label>Local de Prestação</label>
+        <input id="local_prestacao" value="conforme edital e seus anexos">
+      </div>
+    </div>
+    <div class="row">
+      <div class="fg">
+        <label>Cidade / UF da Assinatura</label>
+        <input id="cidade_assina" placeholder="Ex: João Pessoa/PB">
+      </div>
+      <div class="fg">
+        <label>Data da Assinatura</label>
+        <input id="data_assina" type="date">
+      </div>
+    </div>
+  </div>
+
+  <!-- DECLARAÇÃO PERSONALIZADA -->
+  <div class="doc-card" id="card-decl-custom" style="display:none">
+    <div class="doc-card-title"><div class="step-num">4</div> Texto da Declaração</div>
+    <div class="fg">
+      <label>Título da Declaração</label>
+      <input id="decl-titulo" placeholder="Ex: DECLARAÇÃO DE CAPACIDADE TÉCNICA">
+    </div>
+    <div class="fg" style="margin-top:12px">
+      <label>Texto da Declaração</label>
+      <textarea id="decl-texto" rows="8" placeholder="Digite o texto completo da declaração..."></textarea>
+    </div>
+  </div>
+
+  <div class="footer-btns">
+    <button class="btn btn-ghost" onclick="previsualizar()">👁 Pré-visualizar</button>
+    <button class="btn btn-nh" onclick="gerarDocumento()">📄 Gerar Documento</button>
+  </div>
+</div>
+      </div>
+    </div>
+
     <div class="page" id="page-financeiro">
       <div id="fin-resumo" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px"></div>
       <div class="stats" id="st-financeiro"></div>
@@ -2303,6 +2540,7 @@ function go(page,el){
     if(page==='resumo') buildResumo();
     else if(page==='calendario') initCalendario();
     else if(page==='tarefas') initTarefas();
+    else if(page==='documentos') initDocumentos();
     else {
       loadPage(page);
       if(page==='financeiro') buildFinResumo();
@@ -5080,6 +5318,720 @@ function mostrarNotificacoes(avisos){
 window.addEventListener('load',function(){
   // App inicializado pelo auth.onAuthStateChanged
 });
+
+// ── GERADOR DE DOCUMENTOS ──
+
+// ── Firebase ──
+// firebase já inicializado
+
+// ── Dados fixos das empresas ──
+var DADOS_FIXOS = {
+  'VISE':   {razao:'VIA DE SERVIÇOS ESPECIALIZADOS LTDA',cnpj:'08.348.687/0001-62',endereco:'Av. Camilo de Holanda, Nº432, Centro',cidade:'João Pessoa/PB',cep:'58.013-360',tel:'(83) 9 8229-1361',email:'licitacoes@viseservicos.com',socio:'Caio Cesar Germano Rodrigues',cpf:'111.368.404-60',cargo:'Sócio-Administrador',banco:'Bradesco',agencia:'1061',conta:'0019654-1'},
+  'SAUTEC': {razao:'SAUTEC EQUIPAMENTOS MEDICO HOSPITALARES LTDA',cnpj:'31.586.684/0001-89',endereco:'Rua Gualberto Filho, 0020, Centro',cidade:'Sousa/PB',cep:'58.800-262',tel:'(83) 99909-1477',email:'sauteclicitacoes@gmail.com',socio:'Adson Danilo da Silva Feitosa',cpf:'071.012.224-12',cargo:'Sócio Administrador',banco:'',agencia:'',conta:''},
+  'ONLAV':  {razao:'ONLAV COMÉRCIO E SERVIÇOS LTDA',cnpj:'13.141.717/0001-03',endereco:'Rua Manoel Veloso Borges, 57 – Sesi em Bayeux PB',cidade:'Bayeux/PB',cep:'58.111-335',tel:'(83) 2179-7006',email:'licitacoesonlav@gmail.com',socio:'Ivan Marques Lisboa Junior',cpf:'070.186.804-09',cargo:'Sócio Proprietário',banco:'',agencia:'',conta:''},
+  'SOS':    {razao:'SOS SOLUÇÕES INTEGRADAS LTDA',cnpj:'38.714.702/0001-00',endereco:'R. João Pereira Santos Filho, 298 - Itapetinga',cidade:'Mossoró/RN',cep:'',tel:'(84) 2140-6187',email:'licitasossolucoesintegrada@gmail.com',socio:'',cpf:'',cargo:'Sócio Administrador',banco:'',agencia:'',conta:''},
+};
+
+// Logos em base64 (serão carregados do Firebase emp_data ou usados os padrões)
+var LOGOS = {};
+
+// ── Estado ──
+var empSelecionada = null;
+var tipoDoc = 'proposta';
+var outraDecl = 'vistoria';
+var EMPRESAS = []; // carregado do Firebase
+
+// Colunas padrão
+var COLS_PADRAO = [
+  {id:'item',  nome:'ITEM',         tipo:'num',   largura:50},
+  {id:'desc',  nome:'DESCRIÇÃO',    tipo:'texto', largura:300},
+  {id:'und',   nome:'UNIDADE',      tipo:'texto', largura:80},
+  {id:'qtd',   nome:'QTD.',         tipo:'num',   largura:60},
+  {id:'vunit', nome:'VALOR UNIT.',  tipo:'moeda', largura:110},
+  {id:'vtotal',nome:'VALOR TOTAL',  tipo:'calc',  largura:110},
+];
+
+var colunas = JSON.parse(JSON.stringify(COLS_PADRAO));
+var linhas = []; // [{id, cells:{colId: valor}}]
+var nextLinha = 1;
+
+// ── Init ──
+// init documentos — chamado pelo go()
+async function initDocumentos(){
+  document.getElementById('data_assina').value = new Date().toISOString().split('T')[0];
+  await carregarEmpresas();
+  initTabela();
+};
+
+async function carregarEmpresas(){
+  try{
+    var snap = await db.collection('config').doc('empresas').get();
+    if(snap.exists && snap.data().lista){
+      EMPRESAS = snap.data().lista;
+    } else {
+      // Fallback com empresas padrão
+      EMPRESAS = Object.keys(DADOS_FIXOS).map(function(k){
+        return {nome:k, cor: {VISE:'#eab308',SAUTEC:'#3b82f6',ONLAV:'#06b6d4',SOS:'#22c55e'}[k]||'#f97316'};
+      });
+    }
+  }catch(e){
+    EMPRESAS = Object.keys(DADOS_FIXOS).map(function(k){
+      return {nome:k, cor:{VISE:'#eab308',SAUTEC:'#3b82f6',ONLAV:'#06b6d4',SOS:'#22c55e'}[k]||'#f97316'};
+    });
+  }
+  renderEmpresas();
+  if(EMPRESAS.length) selEmp(EMPRESAS[0].nome);
+}
+
+function renderEmpresas(){
+  var g = document.getElementById('emp-grid');
+  g.innerHTML = EMPRESAS.map(function(e){
+    var cor = e.cor||'#f97316';
+    return '<button class="emp-btn'+(e.nome===empSelecionada?' on':'')+'" onclick="selEmp(\''+e.nome+'\')" '+
+      'style="'+(e.nome===empSelecionada?'border-color:'+cor+';':'')+'">'+
+      '<div class="emp-dot" style="background:'+cor+'"></div>'+
+      '<span style="color:'+(e.nome===empSelecionada?cor:'#999')+'">'+e.nome+'</span>'+
+    '</button>';
+  }).join('');
+}
+
+function selEmp(nome){
+  empSelecionada = nome;
+  renderEmpresas();
+  // Cidade padrão
+  var d = getDados();
+  if(d && d.cidade) document.getElementById('cidade_assina').value = d.cidade;
+}
+
+function getDados(){
+  if(!empSelecionada) return {};
+  // Merge dados fixos com dados do Firebase (se existir)
+  return DADOS_FIXOS[empSelecionada] || {razao:empSelecionada,cnpj:'',endereco:'',cidade:'',cep:'',tel:'',email:'',socio:'',cpf:'',cargo:'Sócio Administrador'};
+}
+
+// ── Tipos de documento ──
+function setTipo(t, btn){
+  tipoDoc = t;
+  document.querySelectorAll('.doc-btn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  var og = document.getElementById('outras-grid');
+  var ci = document.getElementById('card-itens');
+  var cc = document.getElementById('card-condicoes');
+  var cd = document.getElementById('card-decl-custom');
+  if(t==='proposta'){
+    og.style.display='none'; ci.style.display=''; cc.style.display=''; cd.style.display='none';
+  } else if(t==='decl_unificada'){
+    og.style.display='none'; ci.style.display='none'; cc.style.display='none'; cd.style.display='none';
+  } else {
+    og.style.display='flex'; ci.style.display='none'; cc.style.display='none';
+    cd.style.display = outraDecl==='personalizada' ? '' : 'none';
+  }
+}
+
+function setOutra(t, btn){
+  outraDecl = t;
+  document.querySelectorAll('.outras-btn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  document.getElementById('card-decl-custom').style.display = t==='personalizada' ? '' : 'none';
+}
+
+// ── TABELA EXCEL ──
+function initTabela(){
+  linhas = [];
+  addLinha();
+  renderTabela();
+}
+
+function addLinha(){
+  var id = nextLinha++;
+  var cells = {};
+  colunas.forEach(function(c){ cells[c.id]=''; });
+  // Preencher número automaticamente
+  var numIdx = colunas.findIndex(function(c){return c.id==='item';});
+  if(numIdx>=0) cells['item'] = String(linhas.length+1);
+  linhas.push({id:id, cells:cells});
+  renderTabela();
+}
+
+function rmLinha(id){
+  linhas = linhas.filter(function(l){return l.id!==id;});
+  // Renumerar
+  linhas.forEach(function(l,i){ if(l.cells['item']!==undefined) l.cells['item']=String(i+1); });
+  renderTabela();
+}
+
+function addColuna(nome, tipo){
+  var id = 'col_'+Date.now();
+  nome = nome || 'Nova Coluna';
+  tipo = tipo || 'texto';
+  // Inserir antes de VALOR TOTAL se existir
+  var vtIdx = colunas.findIndex(function(c){return c.id==='vtotal';});
+  var col = {id:id, nome:nome.toUpperCase(), tipo:tipo, largura:120};
+  if(vtIdx>=0) colunas.splice(vtIdx,0,col);
+  else colunas.push(col);
+  linhas.forEach(function(l){ l.cells[id]=''; });
+  renderTabela();
+}
+
+function rmColuna(id){
+  if(colunas.length<=2){ alert('Mínimo de 2 colunas'); return; }
+  colunas = colunas.filter(function(c){return c.id!==id;});
+  renderTabela();
+}
+
+function resetColunas(){
+  if(!confirm('Resetar colunas para o padrão?')) return;
+  colunas = JSON.parse(JSON.stringify(COLS_PADRAO));
+  linhas.forEach(function(l){
+    var novo = {};
+    colunas.forEach(function(c){ novo[c.id] = l.cells[c.id]||''; });
+    l.cells = novo;
+  });
+  renderTabela();
+}
+
+function renderTabela(){
+  renderHead();
+  renderBody();
+  calcTotal();
+  document.getElementById('col-count').textContent = colunas.length+' col · '+linhas.length+' lin';
+}
+
+function renderHead(){
+  var thead = document.getElementById('tbl-head');
+  var html = '<tr>';
+  // Colunas fixas não editáveis no nome (item e vtotal)
+  var fixed = ['item','vtotal'];
+  colunas.forEach(function(c){
+    var isFixed = fixed.indexOf(c.id)>=0;
+    var rmBtn = !isFixed ? '<button class="btn-rm-col" onclick="rmColuna(\''+c.id+'\')" title="Remover coluna">✕</button>' : '';
+    html += '<th style="width:'+c.largura+'px">'+
+      '<div class="th-inner">'+
+        '<input class="th-name" '+(isFixed?'readonly ':'')+
+          'value="'+esc(c.nome)+'" '+
+          'onchange="renomearCol(\''+c.id+'\',this.value)" '+
+          'title="Clique para renomear">'+
+        rmBtn+
+      '</div>'+
+    '</th>';
+  });
+  html += '<th style="width:30px"></th></tr>';
+  thead.innerHTML = html;
+}
+
+function renomearCol(id, nome){
+  var c = colunas.find(function(x){return x.id===id;});
+  if(c) c.nome = nome.toUpperCase();
+}
+
+function renderBody(){
+  var tbody = document.getElementById('tbl-body');
+  tbody.innerHTML = linhas.map(function(linha, ri){
+    var tds = colunas.map(function(c, ci){
+      var val = linha.cells[c.id]||'';
+      var isNum = c.id==='item';
+      var isCalc = c.id==='vtotal';
+      var isMoeda = c.tipo==='moeda';
+
+      if(isNum){
+        return '<td class="col-num"><input type="text" value="'+esc(val)+'" readonly tabindex="-1"></td>';
+      }
+      if(isCalc){
+        var vt = calcLinha(linha);
+        return '<td><input type="text" value="'+fmtMoeda(vt)+'" readonly tabindex="-1" style="text-align:right;font-weight:700;color:#f97316"></td>';
+      }
+      var inputType = isMoeda ? 'text' : 'text';
+      var align = (isMoeda||c.tipo==='num') ? 'text-align:right' : '';
+      return '<td><input type="'+inputType+'" value="'+esc(val)+'" '+
+        'style="'+align+'" '+
+        'data-row="'+linha.id+'" data-col="'+c.id+'" '+
+        'oninput="onCellInput(this)" '+
+        'onkeydown="onCellKey(event,'+ri+','+ci+')" '+
+        (isMoeda?'onfocus="onMoedaFocus(this)" onblur="onMoedaBlur(this)"':'')+
+        '></td>';
+    }).join('');
+    return '<tr>'+tds+'<td style="text-align:center;border:1px solid #2a2a2a">'+
+      '<button class="btn-rm-row" onclick="rmLinha('+linha.id+')" title="Remover linha">✕</button>'+
+    '</td></tr>';
+  }).join('');
+}
+
+function onCellInput(input){
+  var rowId = parseInt(input.getAttribute('data-row'));
+  var colId = input.getAttribute('data-col');
+  var linha = linhas.find(function(l){return l.id===rowId;});
+  if(!linha) return;
+  linha.cells[colId] = input.value;
+  // Recalcular total da linha se for moeda
+  var col = colunas.find(function(c){return c.id===colId;});
+  if(col && (col.tipo==='moeda'||col.tipo==='num')){
+    // Atualizar célula vtotal da linha
+    var vtCell = input.closest('tr').querySelector('input[readonly][style*="right"]');
+    if(vtCell){ vtCell.value = fmtMoeda(calcLinha(linha)); }
+    calcTotal();
+  }
+}
+
+function onMoedaFocus(input){
+  // Mostrar valor numérico para edição
+  var v = parseMoeda(input.value);
+  if(v) input.value = String(v).replace('.',',');
+}
+function onMoedaBlur(input){
+  var v = parseMoeda(input.value);
+  if(v) input.value = fmtMoeda(v);
+  else input.value = '';
+  var rowId = parseInt(input.getAttribute('data-row'));
+  var colId = input.getAttribute('data-col');
+  var linha = linhas.find(function(l){return l.id===rowId;});
+  if(linha) linha.cells[colId] = input.value;
+  calcTotal();
+  // Atualizar vtotal
+  var vtCell = input.closest('tr').querySelector('input[readonly][style*="right"]');
+  if(vtCell){ vtCell.value = fmtMoeda(calcLinha(linha)); }
+}
+
+function onCellKey(e, ri, ci){
+  // Tab → próxima célula
+  if(e.key==='Tab'){
+    e.preventDefault();
+    var cells = document.querySelectorAll('#tbl-body input:not([readonly])');
+    var arr = Array.from(cells);
+    var idx = arr.indexOf(e.target);
+    if(e.shiftKey){ if(idx>0) arr[idx-1].focus(); }
+    else { if(idx<arr.length-1) arr[idx+1].focus(); else{ addLinha(); setTimeout(function(){ var c2=document.querySelectorAll('#tbl-body input:not([readonly])'); c2[0].focus(); },50); } }
+  }
+  // Enter → nova linha
+  if(e.key==='Enter' && !e.shiftKey){
+    e.preventDefault();
+    addLinha();
+    setTimeout(function(){
+      var rows = document.querySelectorAll('#tbl-body tr');
+      var lastRow = rows[rows.length-1];
+      if(lastRow){ var firstInput = lastRow.querySelector('input:not([readonly])'); if(firstInput) firstInput.focus(); }
+    },30);
+  }
+}
+
+function calcLinha(linha){
+  // Procura colunas de quantidade e valor unitário
+  var qtdCol = colunas.find(function(c){return c.id==='qtd'||c.nome==='QTD.'||c.nome==='QUANTIDADE'||c.nome==='QTDE.';});
+  var vCol = colunas.find(function(c){return c.id==='vunit'||c.tipo==='moeda';});
+  if(!qtdCol||!vCol) return 0;
+  var qtd = parseFloat(String(linha.cells[qtdCol.id]||'').replace(',','.').replace(/[^\d.]/g,''))||0;
+  var vunit = parseMoeda(linha.cells[vCol.id])||0;
+  return qtd*vunit;
+}
+
+function calcTotal(){
+  var t = linhas.reduce(function(acc,l){ return acc+calcLinha(l); },0);
+  document.getElementById('total-global').textContent = fmtMoeda(t);
+  return t;
+}
+
+// ── Extração inteligente do edital ──
+async function extrairEdital(){
+  var texto = document.getElementById('edital-input').value.trim();
+  if(!texto){ alert('Cole o texto do edital primeiro'); return; }
+  var status = document.getElementById('ai-status');
+  status.style.display='block';
+  status.className='ai-status';
+  status.innerHTML='<span class="spin"></span>Analisando edital...';
+
+  try{
+    // Tentar API Anthropic com dangerous-direct-browser-access
+    var resp = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:4000,
+        messages:[{role:'user',content:buildPrompt(texto)}]
+      })
+    });
+    
+    if(resp.ok){
+      var data = await resp.json();
+      aplicarExtracao(JSON.parse(data.content[0].text.replace(/```json|```/g,'').trim()));
+      status.className='ai-status ok';
+      status.innerHTML='✅ Extraído com IA! Revise os campos e ajuste os valores.';
+    } else {
+      throw new Error('fallback');
+    }
+  }catch(e){
+    // Fallback: extração local por regex
+    var resultado = extrairLocal(texto);
+    aplicarExtracao(resultado);
+    status.className='ai-status ok';
+    status.innerHTML='✅ Extraído! '+(resultado.itens&&resultado.itens.length?resultado.itens.length+' item(ns) encontrado(s). ':'')+' Revise e ajuste os valores na tabela.';
+  }
+}
+
+function buildPrompt(texto){
+  return 'Analise este edital/termo de referência e retorne APENAS um JSON válido:\n'+
+    '{\n'+
+    '  "orgao": "nome do órgão",\n'+
+    '  "setor": "setor ou comissão",\n'+
+    '  "modalidade": "ex: PREGÃO ELETRÔNICO Nº 050/2026",\n'+
+    '  "processo": "número do processo",\n'+
+    '  "objeto": "descrição do objeto",\n'+
+    '  "colunas": [{"nome":"ITEM","tipo":"num"},{"nome":"DESCRIÇÃO","tipo":"texto"},{"nome":"UNIDADE","tipo":"texto"},{"nome":"QTD.","tipo":"num"},{"nome":"VALOR UNITÁRIO","tipo":"moeda"},{"nome":"VALOR TOTAL","tipo":"calc"}],\n'+
+    '  "itens": [{"desc":"descrição","und":"UNIDADE","qtd":1,"vunit":0}]\n'+
+    '}\n\nTexto:\n'+texto.substring(0,10000);
+}
+
+function aplicarExtracao(obj){
+  if(!obj) return;
+  if(obj.orgao) document.getElementById('orgao').value=obj.orgao;
+  if(obj.setor) document.getElementById('setor').value=obj.setor;
+  if(obj.modalidade) document.getElementById('modalidade').value=obj.modalidade;
+  if(obj.processo) document.getElementById('processo').value=obj.processo;
+  if(obj.objeto) document.getElementById('objeto').value=obj.objeto;
+
+  if(obj.colunas && obj.colunas.length>=2){
+    colunas=[];
+    obj.colunas.forEach(function(c,i){
+      var id=c.nome.toLowerCase().replace(/[^a-z0-9]/g,'_')||('col'+i);
+      if(c.nome.toUpperCase()==='ITEM') id='item';
+      else if(c.nome.toUpperCase().indexOf('DESCRI')>=0) id='desc';
+      else if(['UNIDADE','UND.','UND'].indexOf(c.nome.toUpperCase())>=0) id='und';
+      else if(['QTD.','QUANTIDADE','QTDE.'].indexOf(c.nome.toUpperCase())>=0) id='qtd';
+      else if(c.nome.toUpperCase().indexOf('UNIT')>=0) id='vunit';
+      else if(c.tipo==='calc'||c.nome.toUpperCase().indexOf('TOTAL')>=0) id='vtotal';
+      colunas.push({id:id,nome:c.nome.toUpperCase(),tipo:c.tipo||'texto',largura:id==='desc'?280:(id==='vtotal'||id==='vunit')?110:80});
+    });
+  } else {
+    colunas=JSON.parse(JSON.stringify(COLS_PADRAO));
+  }
+
+  if(obj.itens && obj.itens.length){
+    linhas=[];nextLinha=1;
+    obj.itens.forEach(function(it,i){
+      var id=nextLinha++;
+      var cells={};
+      colunas.forEach(function(c){cells[c.id]='';});
+      cells['item']=String(i+1);
+      if(cells['desc']!==undefined) cells['desc']=it.desc||'';
+      if(cells['und']!==undefined) cells['und']=it.und||'UNIDADE';
+      if(cells['qtd']!==undefined) cells['qtd']=String(it.qtd||1);
+      if(cells['vunit']!==undefined) cells['vunit']=it.vunit?fmtMoeda(it.vunit):'';
+      linhas.push({id:id,cells:cells});
+    });
+  }
+  renderTabela();
+}
+
+// ── Extração local (fallback regex) ──
+function extrairLocal(texto){
+  var resultado = {orgao:'',setor:'',modalidade:'',processo:'',objeto:'',colunas:null,itens:[]};
+  var linhasTxt = texto.split('\n').map(function(l){return l.trim();}).filter(Boolean);
+
+  // Órgão: primeira linha longa toda em maiúsculas
+  for(var i=0;i<Math.min(8,linhasTxt.length);i++){
+    var l=linhasTxt[i];
+    if(l.length>20 && l.toUpperCase()===l && !resultado.orgao){
+      resultado.orgao=l; continue;
+    }
+    if(resultado.orgao && l.length>10 && l.toUpperCase()===l && !resultado.setor){
+      resultado.setor=l; break;
+    }
+  }
+
+  // Modalidade
+  var rMod = /(?:pregão\s+eletrônico|pregao\s+eletronico|dispensa|concorrência|chamamento)\s+(?:n[ºo°]?\s*)?([\d\/\.]+)/i;
+  var mMod = texto.match(rMod);
+  if(mMod) resultado.modalidade = mMod[0].toUpperCase();
+
+  // Processo
+  var rProc = /processo\s+administrativo\s+n[ºo°]?\s*([A-Z0-9\/\-\.]+)/i;
+  var mProc = texto.match(rProc);
+  if(mProc) resultado.processo = mProc[1].trim();
+
+  // Objeto
+  var rObjM = texto.match(/OBJETO/i); var mObj2 = rObjM ? texto.substring(rObjM.index).split('\n')[0].replace(/OBJETO[^:]*:/i,'').trim() : '';
+  var mObj = texto.match(rObj);
+  if(mObj2) resultado.objeto = mObj2;
+
+  // Itens: linhas com padrão "número + texto + unidade + qtd + valor"
+  linhasTxt.forEach(function(linha){
+    var m = linha.match(/^(\d{1,3})\s+(.{10,100?}?)\s+(UNIDADE|UND\.?|UN\.?|SRV|SERVIÇO|MÊS|MES|HORA|KG|LT|LITRO|METRO|M2|M3|PCT|FRASCO)\s+(\d+(?:[.,]\d+)?)\s+(?:R\$\s*)?([\d.,]+)/i);
+    if(m){
+      resultado.itens.push({
+        desc: m[2].trim(),
+        und: m[3].toUpperCase(),
+        qtd: parseFloat(m[4].replace(',','.'))||1,
+        vunit: parseFloat(m[5].replace(/\./g,'').replace(',','.'))||0
+      });
+    }
+  });
+
+  return resultado;
+}
+
+// ── Geração do documento ──
+function fmtMoeda(n){
+  n=parseFloat(n)||0;
+  return 'R$ '+n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function parseMoeda(v){
+  var s=String(v||'').replace(/R\$\s*/g,'').replace(/\s/g,'').trim();
+  if(!s) return 0;
+  if(s.indexOf(',')!==-1) s=s.replace(/\./g,'').replace(',','.');
+  else s=s.replace(/[^\d.]/g,'');
+  return parseFloat(s)||0;
+}
+function esc(s){return String(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+function dataExtenso(ds){
+  if(!ds) return '';
+  var d=new Date(ds+'T12:00:00');
+  var m=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  return d.getDate()+' de '+m[d.getMonth()]+' de '+d.getFullYear();
+}
+function numExtenso(n){
+  n=Math.round(n*100)/100;
+  var ip=Math.floor(n); var ct=Math.round((n-ip)*100);
+  var u=['','um','dois','três','quatro','cinco','seis','sete','oito','nove','dez','onze','doze','treze','quatorze','quinze','dezesseis','dezessete','dezoito','dezenove'];
+  var d=['','','vinte','trinta','quarenta','cinquenta','sessenta','setenta','oitenta','noventa'];
+  var c=['','cem','duzentos','trezentos','quatrocentos','quinhentos','seiscentos','setecentos','oitocentos','novecentos'];
+  function cv(n){if(n===0)return '';if(n<20)return u[n];if(n<100)return d[Math.floor(n/10)]+(n%10?' e '+u[n%10]:'');if(n<1000)return c[Math.floor(n/100)]+(n%100?' e '+cv(n%100):'');if(n<1000000)return cv(Math.floor(n/1000))+' mil'+(n%1000?' e '+cv(n%1000):'');return cv(Math.floor(n/1000000))+' milhão'+(n%1000000?' e '+cv(n%1000000):'');}
+  var s=cv(ip)+' reais';
+  if(ct>0) s+=' e '+cv(ct)+' centavos';
+  return s;
+}
+
+function previsualizar(){ gerarDocumento(true); }
+
+function gerarDocumento(preview){
+  var emp = getDados();
+  var orgao=document.getElementById('orgao').value.trim().toUpperCase();
+  var setor=document.getElementById('setor').value.trim().toUpperCase();
+  var modal=document.getElementById('modalidade').value.trim().toUpperCase();
+  var proc=document.getElementById('processo').value.trim();
+  var obj=document.getElementById('objeto').value.trim();
+  var cidade=document.getElementById('cidade_assina').value.trim();
+  var dataFmt=dataExtenso(document.getElementById('data_assina').value);
+
+  // Logo da empresa
+  var empObj = EMPRESAS.find(function(e){return e.nome===empSelecionada;})||{};
+  var corEmp = empObj.cor||'#f97316';
+
+  var html = '';
+  if(tipoDoc==='proposta') html=gerarHTMLProposta(emp,orgao,setor,modal,proc,obj,cidade,dataFmt,corEmp);
+  else if(tipoDoc==='decl_unificada') html=gerarHTMLDeclUnif(emp,orgao,setor,modal,proc,cidade,dataFmt,corEmp);
+  else html=gerarHTMLOutraDecl(emp,orgao,setor,modal,proc,cidade,dataFmt,corEmp);
+
+  var win=window.open('','_blank');
+  win.document.write(html);
+  win.document.close();
+  if(!preview) setTimeout(function(){win.print();},800);
+}
+
+function cssBase(corEmp){
+  return '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Documento</title><style>'+
+    '*{box-sizing:border-box;margin:0;padding:0}'+
+    'body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#000;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
+    '.page{max-width:21cm;margin:0 auto;padding:2cm;min-height:29.7cm}'+
+    '.timbrado{border-bottom:3px solid '+corEmp+';padding-bottom:12px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}'+
+    '.timbrado-nome{font-size:11px;color:#555;text-align:right;line-height:1.6}'+
+    '.timbrado-logo{font-size:24px;font-weight:900;color:'+corEmp+'}'+
+    '.orgao-box{font-weight:700;font-size:11px;line-height:1.8;margin-bottom:16px}'+
+    '.objeto-box{background:#f8f8f8;border-left:4px solid '+corEmp+';padding:10px 14px;margin-bottom:20px;font-size:11px;line-height:1.7;text-align:justify}'+
+    '.titulo{font-size:15px;font-weight:900;text-align:center;text-decoration:underline;letter-spacing:1px;margin:20px 0}'+
+    '.intro{text-align:justify;line-height:1.9;margin-bottom:16px;font-size:12px}'+
+    '.tbl{width:100%;border-collapse:collapse;font-size:10px;margin:12px 0}'+
+    '.tbl th{background:'+corEmp+';color:#fff;padding:7px 8px;text-align:center;border:1px solid #999;font-size:9px;text-transform:uppercase;letter-spacing:.05em}'+
+    '.tbl td{padding:6px 7px;border:1px solid #ccc;vertical-align:top;text-align:center;line-height:1.5}'+
+    '.tbl td.desc{text-align:justify}'+
+    '.tbl tr:nth-child(even){background:#f5f5f5}'+
+    '.total-box{background:'+corEmp+';color:#fff;text-align:center;padding:10px;font-weight:700;font-size:12px;margin:8px 0}'+
+    '.conds{font-size:11px;line-height:1.9;margin:14px 0}'+
+    '.conds p{margin-bottom:3px}'+
+    '.decl-encargos{font-size:11px;line-height:1.8;text-align:justify;margin:14px 0;border-top:1px solid #ddd;padding-top:12px}'+
+    '.decl-encargos p{margin-bottom:8px}'+
+    '.assinatura{margin-top:40px;font-size:12px}'+
+    '.decl-item{margin:12px 0}'+
+    '.decl-item strong{display:block;margin-bottom:4px}'+
+    '.rodape{margin-top:30px;padding-top:10px;border-top:2px solid '+corEmp+';text-align:center;font-size:10px;color:#555}'+
+    '@media print{body{font-size:11px}@page{size:A4;margin:1.5cm}}'+
+    '</style></head><body><div class="page">';
+}
+
+function timbradoHTML(emp, corEmp){
+  return '<div class="timbrado">'+
+    '<div class="timbrado-logo">'+empSelecionada+'</div>'+
+    '<div class="timbrado-nome">'+
+      '<strong>'+emp.razao+'</strong><br>'+
+      'CNPJ: '+emp.cnpj+'<br>'+
+      emp.tel+' · '+emp.email+
+    '</div>'+
+  '</div>';
+}
+
+function orgaoHTML(orgao,setor,modal,proc){
+  return '<div class="orgao-box">'+
+    (orgao?'<strong>'+orgao+'</strong><br>':'')+
+    (setor?setor+'<br>':'')+
+    (modal?modal+'<br>':'')+
+    (proc?'PROCESSO ADMINISTRATIVO Nº '+proc:'')+
+  '</div>';
+}
+
+function introHTML(emp){
+  return '<p class="intro">A empresa <strong>'+emp.razao.toUpperCase()+'</strong> inscrita no CNPJ sob nº <strong>'+emp.cnpj+'</strong>, '+
+    'com sede a '+emp.endereco+', '+emp.cidade+(emp.cep?', CEP: '+emp.cep:'')+', '+
+    'por intermédio de seu(a) '+emp.cargo+', o(a) Sr.(a) '+emp.socio+
+    (emp.cpf?', inscrito no CPF sob o Nº <strong>'+emp.cpf+'</strong>':'')+', '+
+    'E-mail: '+emp.email+', Telefone: '+emp.tel+', declara que:</p>';
+}
+
+function assinaturaHTML(emp, cidade, dataFmt){
+  return '<div class="assinatura">'+
+    '<p style="text-align:right;margin-bottom:70px">'+cidade+', '+dataFmt+'</p>'+
+    '<div style="text-align:center;margin:0 auto;width:320px">'+
+      '<div style="border-top:1px solid #000;padding-top:8px">'+
+        '<strong>'+emp.socio.toUpperCase()+'</strong><br>'+
+        emp.cargo.toUpperCase()+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
+
+function rodapeHTML(emp){
+  return '<div class="rodape">'+
+    emp.razao+' &nbsp;·&nbsp; CNPJ: '+emp.cnpj+
+    (emp.email?' &nbsp;·&nbsp; '+emp.email:'')+
+  '</div>';
+}
+
+function gerarHTMLProposta(emp,orgao,setor,modal,proc,obj,cidade,dataFmt,corEmp){
+  var validade=document.getElementById('validade').value||60;
+  var pp=document.getElementById('prazo_pag').value;
+  var pe=document.getElementById('prazo_entrega').value;
+  var lp=document.getElementById('local_prestacao').value;
+  var total=calcTotal();
+  var totalFmt=fmtMoeda(total);
+  var totalExt=numExtenso(total);
+
+  var ths=colunas.map(function(c){return '<th>'+esc(c.nome)+'</th>';}).join('');
+  var trs=linhas.map(function(linha,ri){
+    var tds=colunas.map(function(c){
+      var v=linha.cells[c.id]||'';
+      if(c.id==='vtotal') v=fmtMoeda(calcLinha(linha));
+      var cls=c.id==='desc'?'desc':'';
+      return '<td class="'+cls+'">'+esc(v)+'</td>';
+    }).join('');
+    return '<tr>'+tds+'</tr>';
+  }).join('');
+
+  var banco=emp.banco?'<p><strong>DADOS BANCÁRIOS:</strong> Banco '+emp.banco+(emp.agencia?' · Agência '+emp.agencia:'')+(emp.conta?' · Conta Corrente '+emp.conta:'')+'</p>':'';
+
+  return cssBase(corEmp)+
+    timbradoHTML(emp,corEmp)+
+    orgaoHTML(orgao,setor,modal,proc)+
+    (obj?'<div class="objeto-box"><strong>OBJETO:</strong> '+esc(obj)+'</div>':'')+
+    '<h2 class="titulo">PROPOSTA COMERCIAL</h2>'+
+    introHTML(emp)+
+    '<table class="tbl"><thead><tr>'+ths+'</tr></thead><tbody>'+trs+'</tbody></table>'+
+    '<div class="total-box">O VALOR TOTAL GLOBAL é de '+totalFmt+' ('+totalExt+')</div>'+
+    '<div class="conds">'+
+      '<p>Validade da Proposta: '+validade+' ('+numExtenso(parseInt(validade))+') dias.</p>'+
+      '<p>Prazo de entrega ou serviço: '+pe+'</p>'+
+      '<p>Prazo de pagamento: '+pp+'</p>'+
+      '<p>Local de entrega ou prestação de serviços: '+lp+'</p>'+
+      banco+
+    '</div>'+
+    '<div class="decl-encargos">'+
+      '<p><strong>A PROPONENTE DECLARA QUE:</strong></p>'+
+      '<p>Nos preços propostos estão incluídos todos os encargos previdenciários, fiscais (ISS e outros), comerciais, trabalhistas, tributários, embalagens, fretes, seguros, tarifas, descarga, transporte, montagem, responsabilidade civil e demais despesas incidentes ou que venham a incidir direta ou indiretamente sobre o objeto desta licitação.</p>'+
+      '<p><strong>DA ASSINATURA DA ATA DE PREÇOS E CONTRATO:</strong><br>'+
+      'Se vencedor, na qualidade de representante legal da empresa, assinará a Ata e Contrato: Sr(a).: '+emp.socio+', CPF: '+emp.cpf+', residente e domiciliado em '+emp.cidade+'.</p>'+
+    '</div>'+
+    assinaturaHTML(emp,cidade,dataFmt)+
+    rodapeHTML(emp)+
+    '</div></body></html>';
+}
+
+var DECL_UNIFICADA_TEXTO = [
+  {t:'1. DECLARAÇÃO DE ENQUADRAMENTO COMO ME/EPP',p:'Que esta empresa se enquadra como Microempresa/Empresa de Pequeno Porte, nos termos da Lei Complementar nº 123/2006, encontrando-se devidamente registrada no registro de empresas mercantis ou no registro civil de pessoas jurídicas, conforme o caso, e que no ano-calendário de realização do presente certame não celebrou contratos com a Administração Pública cujos valores somados extrapolem a receita bruta máxima admitida para fins de enquadramento.'},
+  {t:'2. DECLARAÇÃO DE HABILITAÇÃO',p:'Que esta empresa atende plenamente todos os requisitos de habilitação exigidos para participar dessa licitação, comprometendo-se a manter todas as condições de habilitação durante toda a vigência do contrato.'},
+  {t:'3. DECLARAÇÃO DE INEXISTÊNCIA DE FATOS IMPEDITIVOS',p:'Que até a presente data inexistem fatos impeditivos para habilitação desta empresa no presente processo licitatório, tendo plena ciência da obrigatoriedade de declarar ocorrências posteriores.'},
+  {t:'4. DECLARAÇÃO SOBRE TRABALHO DE MENORES',p:'Que nesta empresa não há realização de trabalho noturno, perigoso ou insalubre por menores de 18 (dezoito) anos, nem a realização de qualquer trabalho por menores de 16 (dezesseis) anos, salvo na condição de aprendiz, a partir de 14 (quatorze) anos, em obediência ao disposto no art. 7º, inciso XXXIII, da Constituição Federal.'},
+  {t:'5. DECLARAÇÃO SOBRE TRABALHO DEGRADANTE OU FORÇADO',p:'Que esta empresa não possui, em sua cadeia produtiva, empregados executando trabalho degradante ou forçado, observando o disposto nos incisos III e IV do art. 1º e no inciso III do art. 5º da Constituição Federal.'},
+  {t:'6. DECLARAÇÃO DE INEXISTÊNCIA DE VÍNCULO',p:'Que não há dentre os sócios desta empresa cônjuge, companheiro, ou parente em linha reta ou colateral, por consanguinidade ou por afinidade, até o terceiro grau, dos agentes públicos e políticos definidos na legislação vigente.'},
+  {t:'7. DECLARAÇÃO DE CONCORDÂNCIA COM O EDITAL',p:'Que examinei, conheci e me submeto a todas as condições contidas no TR e seus anexos, bem como verifiquei todas as especificações nele contidas, não havendo qualquer discrepância entre quaisquer informações e/ou documentos que dele fazem parte, estando ciente de todas as condições que possam de qualquer forma influir nos custos.'},
+  {t:'8. DECLARAÇÃO DE ACESSIBILIDADE',p:'Que esta empresa atende às condições de acessibilidade, conforme o Estatuto da Pessoa com Deficiência (Lei nº 13.146/2015).'},
+  {t:'9. DECLARAÇÃO DE CUMPRIMENTO DE COTAS',p:'Que esta empresa cumpre as exigências de reserva de cargos prevista em lei para pessoa com deficiência ou para reabilitado da Previdência Social, atendendo às regras de acessibilidade previstas na legislação.'},
+  {t:'10. DECLARAÇÃO DE VERACIDADE',p:'Que as informações acima prestadas são verdadeiras e assumo total e irrestrita responsabilidade pelas mesmas, bem como pela documentação apresentada, estando ciente das penalidades cabíveis em caso de declaração falsa.'},
+];
+
+function gerarHTMLDeclUnif(emp,orgao,setor,modal,proc,cidade,dataFmt,corEmp){
+  var decls=DECL_UNIFICADA_TEXTO.map(function(d){
+    return '<div class="decl-item"><strong>'+d.t+'</strong><p style="text-align:justify;line-height:1.8">'+d.p+'</p></div>';
+  }).join('');
+  return cssBase(corEmp)+
+    timbradoHTML(emp,corEmp)+
+    orgaoHTML(orgao,setor,modal,proc)+
+    '<h2 class="titulo">DECLARAÇÃO UNIFICADA</h2>'+
+    introHTML(emp)+
+    decls+
+    '<p style="font-size:12px;margin-top:16px;text-align:justify">Por ser expressão da verdade, firmo a presente declaração.</p>'+
+    assinaturaHTML(emp,cidade,dataFmt)+
+    rodapeHTML(emp)+
+    '</div></body></html>';
+}
+
+var OUTRAS_TEXTOS = {
+  vistoria: {
+    titulo:'DECLARAÇÃO DE OPÇÃO DE NÃO REALIZAÇÃO DE VISTORIA',
+    texto: function(emp){ return 'declara para os devidos fins, por opção própria, não ter realizado a visita técnica assumindo, assim, <strong>CONCORDÂNCIA</strong> com todas as condições estabelecidas no Edital e seus Anexos, e que ainda, assume toda e qualquer responsabilidade pela ocorrência de eventuais prejuízos em virtude de sua omissão na verificação das condições do local de execução do objeto do certame.'; }
+  },
+  conhecimento: {
+    titulo:'DECLARAÇÃO DE TOMADA DE CONHECIMENTO',
+    texto: function(emp){ return 'declara que tomou conhecimento de todas as informações e das condições locais para o cumprimento das obrigações objeto da licitação, nos termos do VI do Art. 67 da Lei 14.133/21, e que assume integral responsabilidade pela sua proposta.'; }
+  },
+  capacidade: {
+    titulo:'DECLARAÇÃO DE CAPACIDADE TÉCNICA',
+    texto: function(emp){ return 'declara que possui capacidade técnica, instalações, aparelhamento e pessoal técnico adequados e disponíveis para a realização do objeto desta licitação, bem como que conhece e aceita todas as condições estabelecidas no edital.'; }
+  },
+};
+
+function gerarHTMLOutraDecl(emp,orgao,setor,modal,proc,cidade,dataFmt,corEmp){
+  var titulo,corpotexto;
+  if(outraDecl==='personalizada'){
+    titulo=document.getElementById('decl-titulo').value.trim().toUpperCase()||'DECLARAÇÃO';
+    corpotexto=document.getElementById('decl-texto').value.trim();
+    return cssBase(corEmp)+
+      timbradoHTML(emp,corEmp)+
+      orgaoHTML(orgao,setor,modal,proc)+
+      '<h2 class="titulo">'+titulo+'</h2>'+
+      introHTML(emp)+
+      '<p style="text-align:justify;line-height:1.9;margin-bottom:16px">'+corpotexto.replace(/\n/g,'<br>')+'</p>'+
+      '<p style="font-size:12px;margin-top:16px">Por ser expressão da verdade, firmo a presente declaração.</p>'+
+      assinaturaHTML(emp,cidade,dataFmt)+
+      rodapeHTML(emp)+
+      '</div></body></html>';
+  }
+  var modelo=OUTRAS_TEXTOS[outraDecl]||OUTRAS_TEXTOS.vistoria;
+  titulo=modelo.titulo;
+  return cssBase(corEmp)+
+    timbradoHTML(emp,corEmp)+
+    orgaoHTML(orgao,setor,modal,proc)+
+    '<h2 class="titulo">'+titulo+'</h2>'+
+    '<p class="intro">A empresa <strong>'+emp.razao.toUpperCase()+'</strong>, inscrita no CNPJ sob nº <strong>'+emp.cnpj+'</strong>, '+
+      'com sede na '+emp.endereco+', '+emp.cidade+(emp.cep?', CEP: '+emp.cep:'')+', '+
+      'por intermédio de seu(a) '+emp.cargo+', o(a) Sr.(a) '+emp.socio+
+      (emp.cpf?', inscrito no CPF sob o Nº <strong>'+emp.cpf+'</strong>':'')+', '+
+      'E-mail: '+emp.email+', Telefone: '+emp.tel+', '+modelo.texto(emp)+'</p>'+
+    '<p style="font-size:12px;margin-top:16px">Por ser expressão da verdade, firmo a presente declaração.</p>'+
+    assinaturaHTML(emp,cidade,dataFmt)+
+    rodapeHTML(emp)+
+    '</div></body></html>';
+}
+
 
 // ── Busca Global ──
 // ══ CALENDÁRIO ══════════════════════════════════════════════
