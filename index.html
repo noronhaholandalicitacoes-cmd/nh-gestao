@@ -829,7 +829,7 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
     </div>
     <div class="sb-item" id="nav-tarefas" onclick="go('tarefas',this)">
       <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-      <span>Afazeres</span>
+      <span>Tarefas</span>
       <span class="sb-badge" id="b-tarefas">—</span>
     </div>
 
@@ -1266,7 +1266,7 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
     <!-- MODAL NOVA TAREFA -->
     <div class="modal-overlay" id="mo-tarefa" style="display:none">
     <div class="modal" style="max-width:500px">
-      <div class="mhd"><div class="mhd-nh"></div><div class="mhd-info"><h2 id="tar-modal-title">Nova Tarefa</h2><p>Adicionar afazer ou anotação</p></div><button class="mx" onclick="closeM('tarefa')">×</button></div>
+      <div class="mhd"><div class="mhd-nh"></div><div class="mhd-info"><h2 id="tar-modal-title">Nova Tarefa</h2><p>Adicionar tarefa ou anotação</p></div><button class="mx" onclick="closeM('tarefa')">×</button></div>
       <div class="mbd"><div class="fg2">
         <div class="fg fc"><label>Título *</label><input type="text" id="tar-titulo" placeholder="O que precisa ser feito?"></div>
         <div class="fg fc"><label>Descrição / Anotação</label><textarea id="tar-desc" rows="3" placeholder="Detalhes, observações..."></textarea></div>
@@ -1810,7 +1810,7 @@ const TOPS={
   atestados:['Atestados','Controle de documentos técnicos'],
   financeiro:['Financeiro','Controle de gastos e recargas mensais do escritório · FINANCEIRO'],
   calendario:['Calendário','Disputas e reaberturas do mês · integrado com Google Calendar'],
-  tarefas:['Afazeres','Tarefas e anotações da semana · integrado com empresas'],
+  tarefas:['Tarefas','Tarefas e anotações da semana · integrado com empresas'],
   'emp-VISE':['Empresa — VISE','Portais, certidões e documentação · CNPJ 08.348.687/0001-62'],
   'emp-SAUTEC':['Empresa — SAUTEC','Portais, certidões e documentação · CNPJ 31.586.684/0001-89'],
   'emp-SOS':['Empresa — SOS','Portais, certidões e documentação · CNPJ 38.714.702/0001-00'],
@@ -2563,10 +2563,22 @@ function setSt(s){
   else{d.className='dot';t.textContent='N\u00e3o configurado';}
 }
 
+function showPage(id){
+  // Esconde TODAS as pages com display:none direto no style (mais confiável que classe CSS)
+  document.querySelectorAll('.page').forEach(function(p){
+    p.classList.remove('on');
+    p.style.display='none';
+  });
+  var target=document.getElementById(id);
+  if(target){
+    target.classList.add('on');
+    target.style.display='block';
+  }
+}
+
 function go(page,el){
   document.querySelectorAll('.sb-item').forEach(function(i){i.classList.remove('on');});
-  el.classList.add('on');
-  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('on');});
+  if(el && el.classList) el.classList.add('on');
   // Sempre voltar ao topo ao trocar de página
   window.scrollTo({top:0,behavior:'instant'});
   CUR=page;
@@ -2574,10 +2586,10 @@ function go(page,el){
   document.getElementById('tbTitle').textContent=info[0];
   document.getElementById('tbSub').textContent=info[1];
   if(page.indexOf('emp-')===0){
-    document.getElementById('page-empresa').classList.add('on');
+    showPage('page-empresa');
     buildEmpresa(page.replace('emp-',''));
   } else {
-    document.getElementById('page-'+page).classList.add('on');
+    showPage('page-'+page);
     if(page==='resumo') buildResumo();
     else if(page==='calendario') initCalendario();
     else if(page==='tarefas') initTarefas();
@@ -2586,7 +2598,6 @@ function go(page,el){
       loadPage(page);
       if(page==='financeiro'){
         buildFinResumo();
-        // Preencher input de recarga com valor salvo
         var recEl = document.getElementById('fin-recarga-val');
         if(recEl) recEl.value = fmtVal(_finRecarga);
       }
@@ -5420,8 +5431,10 @@ function initApp(){
   carregarEmpresas();
   carregarOptsCustom();
   setSt('load');
-  // Ativar página inicial via JS
-  document.getElementById('page-resumo').classList.add('on');
+  // Ativar página inicial via JS (display direto, mais confiável)
+  document.querySelectorAll('.page').forEach(function(p){ p.style.display='none'; });
+  var pr=document.getElementById('page-resumo');
+  if(pr){ pr.classList.add('on'); pr.style.display='block'; }
   loadAll();
   setTimeout(verificarVencimentos, 3000);
   setTimeout(iniciarNotificacoesCalendario, 5000);
@@ -7031,7 +7044,7 @@ function buscaGlobal(q){
   (window._tarefas||[]).forEach(function(t){
     var texto = (t.titulo+' '+(t.desc||'')+' '+(t.empresa||'')).toLowerCase();
     if(texto.indexOf(q) !== -1){
-      encontrados.push({k:'tarefas',nome:'Afazeres',id:'',emp:t.empresa||'Geral',licit:t.titulo,data:t.prazo||''});
+      encontrados.push({k:'tarefas',nome:'Tarefas',id:'',emp:t.empresa||'Geral',licit:t.titulo,data:t.prazo||''});
     }
   });
   if(!res){
