@@ -955,7 +955,7 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
 
     <!-- EMPRESAS CONFIG -->
 <div class="modal-overlay" id="mo-empresas" onclick="if(event.target===this)closeM('empresas')" style="display:none">
-<div class="modal" style="max-width:560px">
+<div class="modal" style="max-width:820px">
   <div class="mhd"><div class="mhd-nh"></div><div class="mhd-info"><h2>Gerenciar Empresas</h2><p>Cadastro completo das empresas do grupo NH</p></div><button class="mx" onclick="closeM('empresas')">×</button></div>
   <div class="mbd"><div class="fg2">
     <!-- Lista de empresas existentes -->
@@ -963,8 +963,8 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
     <div id="emp-lista" style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px"></div>
     <!-- Formulário nova empresa -->
     <div class="fsec">Nova Empresa</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-      <div class="fg"><label>Razão Social *</label><input type="text" id="emp-razao" placeholder="Razão Social LTDA"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+      <div class="fg" style="grid-column:1/3"><label>Razão Social *</label><input type="text" id="emp-razao" placeholder="Razão Social LTDA"></div>
       <div class="fg"><label>Nome Fantasia *</label><input type="text" id="emp-fantasia" placeholder="NOME"></div>
       <div class="fg"><label>CNPJ</label><input type="text" id="emp-cnpj" placeholder="00.000.000/0001-00" oninput="mascaraCNPJ(this)"></div>
       <div class="fg"><label>Endereço</label><input type="text" id="emp-endereco" placeholder="Rua, Nº, Bairro"></div>
@@ -992,7 +992,20 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
         </div>
       </div>
     </div>
-    <button class="btn btn-nh" onclick="adicionarEmpresa()" style="margin-top:8px;width:100%">+ Adicionar Empresa</button>
+    <div style="grid-column:1/-1;border-top:1px solid #2a2a2a;margin:4px 0;padding-top:12px;font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.08em;font-weight:700">Dados do Sócio Signatário</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:0">
+      <div class="fg" style="grid-column:1/3"><label>Nome do Sócio *</label><input type="text" id="emp-socio2" placeholder="Nome completo"></div>
+      <div class="fg"><label>Cargo</label><input type="text" id="emp-cargo2" placeholder="Sócio Administrador"></div>
+      <div class="fg"><label>CPF</label><input type="text" id="emp-cpf2" placeholder="000.000.000-00"></div>
+      <div class="fg"><label>Cidade/UF Assinatura</label><input type="text" id="emp-cidade2" placeholder="João Pessoa/PB"></div>
+      <div class="fg"><label>Banco</label><input type="text" id="emp-banco2" placeholder="Ex: Bradesco"></div>
+      <div class="fg"><label>Agência</label><input type="text" id="emp-agencia2" placeholder="0000"></div>
+      <div class="fg"><label>Conta Corrente</label><input type="text" id="emp-conta2" placeholder="00000-0"></div>
+      <div class="fg"><label>Telefone</label><input type="text" id="emp-tel2" placeholder="(83) 99999-9999"></div>
+      <div class="fg"><label>E-mail Licitações</label><input type="text" id="emp-email2" placeholder="licitacoes@empresa.com"></div>
+    </div>
+    <button class="btn btn-nh" onclick="adicionarEmpresa()" style="margin-top:12px;width:100%">+ Adicionar / Salvar Empresa</button>
   </div></div>
   <div class="mft"><button class="btn btn-ghost" onclick="closeM('empresas')">Fechar</button><button class="btn btn-nh" onclick="confirmarEmpresas()" id="btn-salvar-emp">Salvar Alterações</button></div>
 </div></div>
@@ -4614,13 +4627,16 @@ function renderListaEmpresas(){
   }
   lista.innerHTML = EMPRESAS.map(function(e,i){
     var cor = e.cor||'#f97316';
-    var extras = [e.cnpj,e.cidade,e.socio?'Sócio: '+e.socio:''].filter(Boolean).join(' · ');
-    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#111;border-radius:8px;border-left:3px solid '+cor+'">'+
-      '<div>'+
+    var extras = [e.cnpj, e.cidade, e.socio?'Sócio: '+e.socio:''].filter(Boolean).join(' · ');
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#111;border-radius:8px;border-left:3px solid '+cor+';gap:8px">'+
+      '<div style="flex:1;min-width:0">'+
         '<span style="font-weight:700;color:'+cor+'">'+e.nome+'</span>'+
-        (extras?'<div style="font-size:11px;color:#555;margin-top:2px">'+extras+'</div>':'')+
+        (extras?'<div style="font-size:11px;color:#666;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+extras+'</div>':'')+
       '</div>'+
-      '<button onclick="removerEmpresa('+i+')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#ef4444;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px">✕</button>'+
+      '<div style="display:flex;gap:6px;flex-shrink:0">'+
+        '<button onclick="editarEmpresa('+i+')" style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);color:#60a5fa;padding:3px 10px;border-radius:5px;cursor:pointer;font-size:11px;font-family:Outfit,sans-serif">✏ Editar</button>'+
+        '<button onclick="removerEmpresa('+i+')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#ef4444;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px">✕</button>'+
+      '</div>'+
     '</div>';
   }).join('');
 }
@@ -4637,17 +4653,51 @@ function adicionarEmpresa(){
   }
   EMPRESAS.push({
     nome:fantasia, razao:razao, cnpj:cnpj, cor:cor,
-    endereco:gv('emp-endereco'), cidade:gv('emp-cidade'), cep:gv('emp-cep'),
-    tel:gv('emp-tel'), email:gv('emp-email'),
-    socio:gv('emp-socio'), cpf:gv('emp-cpf'), cargo:gv('emp-cargo')||'Sócio Administrador',
-    banco:gv('emp-banco'), agencia:gv('emp-agencia'), conta:gv('emp-conta')
+    endereco:gv('emp-endereco'), cep:gv('emp-cep'),
+    socio: gv('emp-socio')||gv('emp-socio2'),
+    cpf:   gv('emp-cpf')  ||gv('emp-cpf2'),
+    cargo: gv('emp-cargo')||gv('emp-cargo2')||'Sócio Administrador',
+    cidade:gv('emp-cidade')||gv('emp-cidade2'),
+    tel:   gv('emp-tel')  ||gv('emp-tel2'),
+    email: gv('emp-email')||gv('emp-email2'),
+    banco: gv('emp-banco')||gv('emp-banco2'),
+    agencia:gv('emp-agencia')||gv('emp-agencia2'),
+    conta: gv('emp-conta')||gv('emp-conta2'),
   });
-  ['emp-razao','emp-fantasia','emp-cnpj','emp-endereco','emp-cidade','emp-cep',
-   'emp-tel','emp-email','emp-socio','emp-cpf','emp-cargo','emp-banco','emp-agencia','emp-conta']
+  ['emp-razao','emp-fantasia','emp-cnpj','emp-endereco','emp-cep',
+   'emp-socio','emp-cpf','emp-cargo','emp-cidade','emp-tel','emp-email',
+   'emp-banco','emp-agencia','emp-conta',
+   'emp-socio2','emp-cpf2','emp-cargo2','emp-cidade2','emp-tel2','emp-email2',
+   'emp-banco2','emp-agencia2','emp-conta2']
     .forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
   renderListaEmpresas();
   atualizarSelectsEmpresas();
   toast('Empresa adicionada! Clique em Salvar Alterações','ok');
+}
+
+function editarEmpresa(i){
+  var e = EMPRESAS[i];
+  if(!e) return;
+  // Preencher formulário com dados da empresa
+  var campos = {
+    'emp-razao':e.razao||'', 'emp-fantasia':e.nome||'', 'emp-cnpj':e.cnpj||'',
+    'emp-endereco':e.endereco||'', 'emp-cep':e.cep||'',
+    'emp-socio2':e.socio||'', 'emp-cpf2':e.cpf||'', 'emp-cargo2':e.cargo||'',
+    'emp-cidade2':e.cidade||'', 'emp-tel2':e.tel||'', 'emp-email2':e.email||'',
+    'emp-banco2':e.banco||'', 'emp-agencia2':e.agencia||'', 'emp-conta2':e.conta||''
+  };
+  Object.keys(campos).forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.value = campos[id];
+  });
+  if(e.cor){ document.getElementById('emp-novo-cor').value = e.cor; }
+  // Remover a empresa atual para que seja recriada ao adicionar
+  EMPRESAS.splice(i,1);
+  renderListaEmpresas();
+  // Scroll para o formulário
+  var btn = document.querySelector('[onclick="adicionarEmpresa()"]');
+  if(btn) btn.scrollIntoView({behavior:'smooth'});
+  toast('Edite os dados e clique em + Adicionar Empresa','ok');
 }
 
 function removerEmpresa(i){
@@ -5340,26 +5390,12 @@ var nextLinha = 1;
 // init documentos — chamado pelo go()
 async function initDocumentos(){
   document.getElementById('data_assina').value = new Date().toISOString().split('T')[0];
-  await carregarEmpresas();
+  await carregarEmpresasDoc();
   initTabela();
 };
 
-async function carregarEmpresas(){
-  try{
-    var snap = await db.collection('config').doc('empresas').get();
-    if(snap.exists && snap.data().lista){
-      EMPRESAS = snap.data().lista;
-    } else {
-      // Fallback com empresas padrão
-      EMPRESAS = Object.keys(DADOS_FIXOS).map(function(k){
-        return {nome:k, cor: {VISE:'#eab308',SAUTEC:'#3b82f6',ONLAV:'#06b6d4',SOS:'#22c55e'}[k]||'#f97316'};
-      });
-    }
-  }catch(e){
-    EMPRESAS = Object.keys(DADOS_FIXOS).map(function(k){
-      return {nome:k, cor:{VISE:'#eab308',SAUTEC:'#3b82f6',ONLAV:'#06b6d4',SOS:'#22c55e'}[k]||'#f97316'};
-    });
-  }
+async function carregarEmpresasDoc(){
+  // Usa o array EMPRESAS já carregado pelo sistema principal
   renderEmpresas();
   if(EMPRESAS.length) selEmp(EMPRESAS[0].nome);
 }
