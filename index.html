@@ -955,16 +955,20 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
 
     <!-- EMPRESAS CONFIG -->
 <div class="modal-overlay" id="mo-empresas" onclick="if(event.target===this)closeM('empresas')" style="display:none">
-<div class="modal" style="max-width:820px">
+<div class="modal" style="width:95vw;max-width:1200px;max-height:92vh">
   <div class="mhd"><div class="mhd-nh"></div><div class="mhd-info"><h2>Gerenciar Empresas</h2><p>Cadastro completo das empresas do grupo NH</p></div><button class="mx" onclick="closeM('empresas')">×</button></div>
-  <div class="mbd"><div class="fg2">
-    <!-- Lista de empresas existentes -->
-    <div class="fsec">Empresas Cadastradas</div>
-    <div id="emp-lista" style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px"></div>
-    <!-- Formulário nova empresa -->
-    <div class="fsec">Nova Empresa</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
-      <div class="fg" style="grid-column:1/3"><label>Razão Social *</label><input type="text" id="emp-razao" placeholder="Razão Social LTDA"></div>
+  <div class="mbd" style="padding:20px 24px">
+  <div style="display:grid;grid-template-columns:1fr 1.6fr;gap:24px;align-items:start">
+  <!-- COLUNA ESQUERDA: lista -->
+  <div>
+    <div class="fsec" style="margin-bottom:10px">Empresas Cadastradas</div>
+    <div id="emp-lista" style="display:flex;flex-direction:column;gap:6px;max-height:65vh;overflow-y:auto;padding-right:4px"></div>
+  </div>
+  <!-- COLUNA DIREITA: formulário -->
+  <div>
+    <div class="fsec" style="margin-bottom:10px">Nova Empresa / Editar</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="fg" style="grid-column:1/-1"><label>Razão Social *</label><input type="text" id="emp-razao" placeholder="Razão Social LTDA"></div>
       <div class="fg"><label>Nome Fantasia *</label><input type="text" id="emp-fantasia" placeholder="NOME"></div>
       <div class="fg"><label>CNPJ</label><input type="text" id="emp-cnpj" placeholder="00.000.000/0001-00" oninput="mascaraCNPJ(this)"></div>
       <div class="fg"><label>Endereço</label><input type="text" id="emp-endereco" placeholder="Rua, Nº, Bairro"></div>
@@ -994,7 +998,7 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
     </div>
     <div style="grid-column:1/-1;border-top:1px solid #2a2a2a;margin:4px 0;padding-top:12px;font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.08em;font-weight:700">Dados do Sócio Signatário</div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:0">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:0">
       <div class="fg" style="grid-column:1/3"><label>Nome do Sócio *</label><input type="text" id="emp-socio2" placeholder="Nome completo"></div>
       <div class="fg"><label>Cargo</label><input type="text" id="emp-cargo2" placeholder="Sócio Administrador"></div>
       <div class="fg"><label>CPF</label><input type="text" id="emp-cpf2" placeholder="000.000.000-00"></div>
@@ -1006,7 +1010,9 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
       <div class="fg"><label>E-mail Licitações</label><input type="text" id="emp-email2" placeholder="licitacoes@empresa.com"></div>
     </div>
     <button class="btn btn-nh" onclick="adicionarEmpresa()" style="margin-top:12px;width:100%">+ Adicionar / Salvar Empresa</button>
-  </div></div>
+  </div><!-- /col direita -->
+  </div><!-- /grid -->
+  </div><!-- /mbd -->
   <div class="mft"><button class="btn btn-ghost" onclick="closeM('empresas')">Fechar</button><button class="btn btn-nh" onclick="confirmarEmpresas()" id="btn-salvar-emp">Salvar Alterações</button></div>
 </div></div>
 
