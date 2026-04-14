@@ -1661,12 +1661,12 @@ async function carregarEmpresas(){
     if(!EMP_DATA[e.nome]) EMP_DATA[e.nome]={cnpj:e.cnpj||'',portais:[],docs:[]};
     if(!TOPS['emp-'+e.nome]) TOPS['emp-'+e.nome]=['Empresa — '+e.nome,'Portais, certidões e documentação'+(e.cnpj?' · CNPJ '+e.cnpj:'')];
   });
-  // Carregar certidões de TODAS as empresas do Firebase antes de renderizar o sidebar
-  try{
-    await Promise.all(EMPRESAS.map(function(e){ return loadEmpData(e.nome); }));
-  }catch(e){ console.log('Erro ao pré-carregar certidões:', e); }
-  // Só agora renderiza o sidebar — com dados corretos do Firebase
+  // Renderizar sidebar imediatamente com dados básicos
   atualizarSelectsEmpresas();
+  // Carregar certidões em background e atualizar badges depois
+  Promise.all(EMPRESAS.map(function(e){ return loadEmpData(e.nome); }))
+    .then(function(){ atualizarSelectsEmpresas(); })
+    .catch(function(e){ console.log('Certidões:', e); });
 }
 
 async function salvarEmpresas(){
