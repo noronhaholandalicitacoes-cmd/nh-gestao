@@ -1763,11 +1763,10 @@ function atualizarSelectsEmpresas(){
         });
         badgeHtml += '</div>';
       }
-      return '<div class="sb-item" id="'+nid+'" data-emp="'+e.nome+'" style="position:relative;justify-content:space-between;gap:6px">'+
-        '<div style="display:flex;align-items:center;gap:6px;min-width:0">'+
-        '<span style="width:8px;height:8px;border-radius:50%;background:'+cor+';flex-shrink:0;display:inline-block"></span>'+
-        '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+e.nome+'</span>'+
-        '</div>'+
+      return '<div class="sb-item" id="'+nid+'" data-emp="'+e.nome+'" '+
+        'style="position:relative;padding:0;border-left:3px solid '+cor+';border-radius:8px;background:#111;margin:2px 0;overflow:hidden;display:flex;align-items:center;justify-content:space-between;gap:4px;cursor:pointer" '+
+        'onclick="go(\'emp-'+e.nome+'\',this)">'+
+        '<span style="flex:1;font-size:12px;font-weight:700;color:'+cor+';padding:8px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.nome+'</span>'+
         badgeHtml+
         '</div>';
     }).join('');
