@@ -1260,7 +1260,7 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
         </button>
       </div>
       <!-- Kanban por prioridade -->
-      <div id="tar-board" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px"></div>
+      <div id="tar-board" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start;align-content:start"></div>
     </div>
 
     <!-- MODAL NOVA TAREFA -->
@@ -6067,17 +6067,18 @@ function gerarDocumento(preview){
 }
 
 function cssBase(corEmp, useTimbrado){
-  // Margens da página: se timbrado real, usa margens menores no topo/bottom para não sobrepor header/footer
-  var pageMargin = useTimbrado ? '0.5cm 2cm' : '2cm';
+  // Com timbrado real: página sem margem lateral, header/footer ocupam 100% da largura.
+  // O conteúdo interno tem padding lateral próprio via .conteudo.
   var pageAtPrint = useTimbrado
-    ? '@page{size:A4;margin:3cm 1.5cm 3.2cm}'
+    ? '@page{size:A4;margin:0}'
     : '@page{size:A4;margin:1.5cm}';
   return '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Documento</title><style>'+
     '*{box-sizing:border-box;margin:0;padding:0}'+
     'body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#000;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
-    '.page{max-width:21cm;margin:0 auto;padding:'+pageMargin+';min-height:29.7cm;position:relative}'+
-    '.timbrado-img{width:100%;display:block;margin-bottom:18px}'+
-    '.footer-img{width:100%;display:block;margin-top:30px}'+
+    '.page{width:21cm;margin:0 auto;min-height:29.7cm;display:flex;flex-direction:column}'+
+    '.timbrado-img{width:100%;display:block;margin:0}'+
+    '.footer-img{width:100%;display:block;margin:0}'+
+    '.conteudo{flex:1;padding:0.6cm 1.8cm 0.4cm;display:flex;flex-direction:column}'+
     '.timbrado-texto{border-bottom:3px solid '+corEmp+';padding-bottom:12px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}'+
     '.orgao-box{font-weight:700;font-size:11px;line-height:1.8;margin-bottom:16px}'+
     '.objeto-box{background:#f8f8f8;border-left:4px solid '+corEmp+';padding:10px 14px;margin-bottom:20px;font-size:11px;line-height:1.7;text-align:justify}'+
@@ -6097,7 +6098,9 @@ function cssBase(corEmp, useTimbrado){
     '.decl-item{margin:12px 0}'+
     '.decl-item strong{display:block;margin-bottom:4px}'+
     '.rodape-texto{margin-top:30px;padding-top:10px;border-top:2px solid '+corEmp+';text-align:center;font-size:10px;color:#555}'+
-    '@media print{body{font-size:11px}'+pageAtPrint+'}'+
+    '@media print{body{font-size:11px}'+pageAtPrint+
+      '.page{width:100%}'+
+    '}'+
     '</style></head><body><div class="page">';
 }
 
@@ -6183,8 +6186,10 @@ function gerarHTMLProposta(emp,orgao,setor,modal,proc,obj,cidade,dataFmt,corEmp)
   var banco=emp.banco?'<p><strong>DADOS BANCÁRIOS:</strong> Banco '+emp.banco+(emp.agencia?' · Agência '+emp.agencia:'')+(emp.conta?' · Conta Corrente '+emp.conta:'')+'</p>':'';
 
   var _tb = !!(TIMBRADOS[empSelecionada] && TIMBRADOS[empSelecionada].header);
+  var _cOpen = _tb ? '<div class="conteudo">' : '<div style="padding:2cm">';
+  var _cClose = '</div>';
   return cssBase(corEmp,_tb)+
-    timbradoHTML(emp,corEmp)+
+    timbradoHTML(emp,corEmp)+_cOpen+
     orgaoHTML(orgao,setor,modal,proc)+
     (obj?'<div class="objeto-box"><strong>OBJETO:</strong> '+esc(obj)+'</div>':'')+
     '<h2 class="titulo">PROPOSTA COMERCIAL</h2>'+
@@ -6204,7 +6209,7 @@ function gerarHTMLProposta(emp,orgao,setor,modal,proc,obj,cidade,dataFmt,corEmp)
       '<p><strong>DA ASSINATURA DA ATA DE PREÇOS E CONTRATO:</strong><br>'+
       'Se vencedor, na qualidade de representante legal da empresa, assinará a Ata e Contrato: Sr(a).: '+emp.socio+', CPF: '+emp.cpf+', residente e domiciliado em '+emp.cidade+'.</p>'+
     '</div>'+
-    assinaturaHTML(emp,cidade,dataFmt)+
+    assinaturaHTML(emp,cidade,dataFmt)+_cClose+
     rodapeHTML(emp)+
     '</div></body></html>';
 }
@@ -6227,14 +6232,16 @@ function gerarHTMLDeclUnif(emp,orgao,setor,modal,proc,cidade,dataFmt,corEmp){
     return '<div class="decl-item"><strong>'+d.t+'</strong><p style="text-align:justify;line-height:1.8">'+d.p+'</p></div>';
   }).join('');
   var _tb = !!(TIMBRADOS[empSelecionada] && TIMBRADOS[empSelecionada].header);
+  var _cOpen = _tb ? '<div class="conteudo">' : '<div style="padding:2cm">';
+  var _cClose = '</div>';
   return cssBase(corEmp,_tb)+
-    timbradoHTML(emp,corEmp)+
+    timbradoHTML(emp,corEmp)+_cOpen+
     orgaoHTML(orgao,setor,modal,proc)+
     '<h2 class="titulo">DECLARAÇÃO UNIFICADA</h2>'+
     introHTML(emp)+
     decls+
     '<p style="font-size:12px;margin-top:16px;text-align:justify">Por ser expressão da verdade, firmo a presente declaração.</p>'+
-    assinaturaHTML(emp,cidade,dataFmt)+
+    assinaturaHTML(emp,cidade,dataFmt)+_cClose+
     rodapeHTML(emp)+
     '</div></body></html>';
 }
@@ -6273,8 +6280,10 @@ function gerarHTMLOutraDecl(emp,orgao,setor,modal,proc,cidade,dataFmt,corEmp){
   var modelo=OUTRAS_TEXTOS[outraDecl]||OUTRAS_TEXTOS.vistoria;
   titulo=modelo.titulo;
   var _tb = !!(TIMBRADOS[empSelecionada] && TIMBRADOS[empSelecionada].header);
+  var _cOpen = _tb ? '<div class="conteudo">' : '<div style="padding:2cm">';
+  var _cClose = '</div>';
   return cssBase(corEmp,_tb)+
-    timbradoHTML(emp,corEmp)+
+    timbradoHTML(emp,corEmp)+_cOpen+
     orgaoHTML(orgao,setor,modal,proc)+
     '<h2 class="titulo">'+titulo+'</h2>'+
     '<p class="intro">A empresa <strong>'+emp.razao.toUpperCase()+'</strong>, inscrita no CNPJ sob nº <strong>'+emp.cnpj+'</strong>, '+
@@ -6283,7 +6292,7 @@ function gerarHTMLOutraDecl(emp,orgao,setor,modal,proc,cidade,dataFmt,corEmp){
       (emp.cpf?', inscrito no CPF sob o Nº <strong>'+emp.cpf+'</strong>':'')+', '+
       'E-mail: '+emp.email+', Telefone: '+emp.tel+', '+modelo.texto(emp)+'</p>'+
     '<p style="font-size:12px;margin-top:16px">Por ser expressão da verdade, firmo a presente declaração.</p>'+
-    assinaturaHTML(emp,cidade,dataFmt)+
+    assinaturaHTML(emp,cidade,dataFmt)+_cClose+
     rodapeHTML(emp)+
     '</div></body></html>';
 }
@@ -6689,9 +6698,12 @@ function renderTarefas(){
   var iconePrio = {alta:'🔴',media:'🟡',baixa:'🟢'};
   var nomePrio = {alta:'Alta Prioridade',media:'Média Prioridade',baixa:'Baixa Prioridade'};
 
+  board.style.gridTemplateColumns='repeat(3,1fr)';
+  board.style.alignItems='start';
+  board.style.alignContent='start';
   board.innerHTML = ['alta','media','baixa'].map(function(p){
     var items = grupos[p];
-    var h = '<div style="background:var(--s2);border:1px solid var(--b1);border-top:3px solid '+corPrio[p]+';border-radius:12px;padding:16px">';
+    var h = '<div style="background:var(--s2);border:1px solid var(--b1);border-top:3px solid '+corPrio[p]+';border-radius:12px;padding:16px;height:fit-content">';
     h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">';
     h += '<div style="font-size:12px;font-weight:700;color:'+corPrio[p]+';text-transform:uppercase;letter-spacing:.05em">'+iconePrio[p]+' '+nomePrio[p]+'</div>';
     h += '<span style="background:var(--s1);color:var(--t3);font-size:11px;padding:2px 8px;border-radius:10px">'+items.length+'</span>';
