@@ -6068,19 +6068,20 @@ function gerarDocumento(preview){
 
 function cssBase(corEmp, useTimbrado){
   if(useTimbrado){
-    return '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Documento</title><style>'+
+    // Usa Paged.js para header/footer reais em cada página via CSS Paged Media
+    // @top-center e @bottom-center são suportados pelo Paged.js polyfill
+    return '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Documento</title>'+
+      '<script src="https://unpkg.com/pagedjs/dist/paged.polyfill.js"><\/script>'+
+      '<style>'+
       '*{box-sizing:border-box;margin:0;padding:0}'+
       'body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#000;background:#fff;'+
            '-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
-      // Header fixo no topo — Chrome o repete em cada página ao imprimir
-      '#hdr{position:fixed;top:0;left:0;width:100%}'+
-      '#hdr img{width:100%;display:block}'+
-      // Footer fixo no rodapé — Chrome o repete em cada página ao imprimir
-      '#ftr{position:fixed;bottom:0;left:0;width:100%}'+
-      '#ftr img{width:100%;display:block}'+
-      // Conteúdo com margens exatas = altura do header/footer
-      // Isso garante que o texto nunca fique sob o header/footer
-      '#corpo{margin:2.47cm 1.8cm 2.16cm}'+
+      // Paged.js CSS Paged Media: header e footer em cada página
+      '@page{size:A4;margin:2.55cm 1.8cm 2.25cm}'+
+      // Named strings para header/footer via running elements
+      '#hdr-src{display:none}'+
+      // Conteúdo principal
+      '#corpo{font-size:12px}'+
       '.orgao-box{font-weight:700;font-size:11px;line-height:1.8;margin-bottom:16px}'+
       '.objeto-box{background:#f8f8f8;border-left:4px solid '+corEmp+';padding:10px 14px;margin-bottom:20px;font-size:11px;line-height:1.7;text-align:justify}'+
       '.titulo{font-size:15px;font-weight:900;text-align:center;text-decoration:underline;letter-spacing:1px;margin:20px 0}'+
@@ -6099,12 +6100,21 @@ function cssBase(corEmp, useTimbrado){
       '.decl-item{margin:12px 0}'+
       '.decl-item strong{display:block;margin-bottom:4px}'+
       '.rodape-texto{display:none}'+
-      // @page com margens exatas = header 2.47cm + footer 2.16cm
-      // margin lateral 0 porque as imagens são full-width
-      '@media print{body{font-size:11px}@page{size:A4;margin:2.47cm 0 2.16cm}}'+
+      // Paged.js: @top-center e @bottom-center recebem as imagens
+      '@media print{'+
+        '@page{'+
+          '@top-center{content:element(hdr)}'+
+          '@bottom-center{content:element(ftr)}'+
+        '}'+
+      '}'+
+      // running() elements: ficam fora do fluxo mas aparecem no header/footer de cada página
+      '#hdr-running{position:running(hdr);width:21cm;margin:0 -1.8cm}'+
+      '#hdr-running img{width:100%;display:block}'+
+      '#ftr-running{position:running(ftr);width:21cm;margin:0 -1.8cm}'+
+      '#ftr-running img{width:100%;display:block}'+
       '</style></head><body>';
   }
-  // Sem timbrado: layout simples com padding normal
+  // Sem timbrado: layout simples
   return '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Documento</title><style>'+
     '*{box-sizing:border-box;margin:0;padding:0}'+
     'body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#000;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
@@ -6136,8 +6146,9 @@ function cssBase(corEmp, useTimbrado){
 function timbradoHTML(emp, corEmp){
   var tb = TIMBRADOS[empSelecionada];
   if(tb && tb.header){
-    return '<div id="hdr"><img src="'+tb.header+'" alt="Cabeçalho '+empSelecionada+'"></div>'+
-           '<div id="ftr"><img src="'+tb.footer+'" alt="Rodapé '+empSelecionada+'"></div>'+
+    // running elements do Paged.js — ficam fora do fluxo e aparecem em cada página
+    return '<div id="hdr-running"><img src="'+tb.header+'" alt="Cabeçalho '+empSelecionada+'"></div>'+
+           '<div id="ftr-running"><img src="'+tb.footer+'" alt="Rodapé '+empSelecionada+'"></div>'+
            '<div id="corpo">';
   }
   return '<div class="timbrado-texto">'+
