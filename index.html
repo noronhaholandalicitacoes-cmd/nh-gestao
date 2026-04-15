@@ -6068,20 +6068,19 @@ function gerarDocumento(preview){
 
 function cssBase(corEmp, useTimbrado){
   if(useTimbrado){
-    // Técnica de tabela: thead/tfoot são repetidos pelo browser em cada página impressa
-    // É a forma mais confiável cross-browser para header/footer em documentos multi-página
     return '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Documento</title><style>'+
       '*{box-sizing:border-box;margin:0;padding:0}'+
-      'html,body{height:100%}'+
-      'body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#000;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
-      // Tabela principal ocupa toda a página
-      'table.layout{width:100%;border-collapse:collapse;height:100%}'+
-      // thead e tfoot são repetidos pelo browser em cada página
-      'thead.hdr td{padding:0}'+
-      'tfoot.ftr td{padding:0}'+
-      'thead.hdr img,tfoot.ftr img{width:100%;display:block}'+
-      // Célula de conteúdo tem padding lateral
-      'td.corpo{padding:0.5cm 1.8cm;vertical-align:top}'+
+      'body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#000;background:#fff;'+
+           '-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
+      // Header fixo no topo — Chrome o repete em cada página ao imprimir
+      '#hdr{position:fixed;top:0;left:0;width:100%}'+
+      '#hdr img{width:100%;display:block}'+
+      // Footer fixo no rodapé — Chrome o repete em cada página ao imprimir
+      '#ftr{position:fixed;bottom:0;left:0;width:100%}'+
+      '#ftr img{width:100%;display:block}'+
+      // Conteúdo com margens exatas = altura do header/footer
+      // Isso garante que o texto nunca fique sob o header/footer
+      '#corpo{margin:2.47cm 1.8cm 2.16cm}'+
       '.orgao-box{font-weight:700;font-size:11px;line-height:1.8;margin-bottom:16px}'+
       '.objeto-box{background:#f8f8f8;border-left:4px solid '+corEmp+';padding:10px 14px;margin-bottom:20px;font-size:11px;line-height:1.7;text-align:justify}'+
       '.titulo{font-size:15px;font-weight:900;text-align:center;text-decoration:underline;letter-spacing:1px;margin:20px 0}'+
@@ -6100,10 +6099,12 @@ function cssBase(corEmp, useTimbrado){
       '.decl-item{margin:12px 0}'+
       '.decl-item strong{display:block;margin-bottom:4px}'+
       '.rodape-texto{display:none}'+
-      '@media print{body{font-size:11px}@page{size:A4;margin:0}}'+
+      // @page com margens exatas = header 2.47cm + footer 2.16cm
+      // margin lateral 0 porque as imagens são full-width
+      '@media print{body{font-size:11px}@page{size:A4;margin:2.47cm 0 2.16cm}}'+
       '</style></head><body>';
   }
-  // Sem timbrado real: layout simples
+  // Sem timbrado: layout simples com padding normal
   return '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Documento</title><style>'+
     '*{box-sizing:border-box;margin:0;padding:0}'+
     'body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#000;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
@@ -6135,14 +6136,9 @@ function cssBase(corEmp, useTimbrado){
 function timbradoHTML(emp, corEmp){
   var tb = TIMBRADOS[empSelecionada];
   if(tb && tb.header){
-    // Técnica de tabela: thead e tfoot são repetidos pelo browser em cada página impressa
-    return '<table class="layout"><thead class="hdr"><tr><td>'+
-             '<img src="'+tb.header+'" alt="Cabeçalho '+empSelecionada+'">'+
-           '</td></tr></thead>'+
-           '<tfoot class="ftr"><tr><td>'+
-             '<img src="'+tb.footer+'" alt="Rodapé '+empSelecionada+'">'+
-           '</td></tr></tfoot>'+
-           '<tbody><tr><td class="corpo">';
+    return '<div id="hdr"><img src="'+tb.header+'" alt="Cabeçalho '+empSelecionada+'"></div>'+
+           '<div id="ftr"><img src="'+tb.footer+'" alt="Rodapé '+empSelecionada+'"></div>'+
+           '<div id="corpo">';
   }
   return '<div class="timbrado-texto">'+
     '<div style="font-size:28px;font-weight:900;color:'+corEmp+';letter-spacing:-1px;line-height:1">'+empSelecionada+
@@ -6188,8 +6184,7 @@ function assinaturaHTML(emp, cidade, dataFmt){
 function rodapeHTML(emp){
   var tb = TIMBRADOS[empSelecionada];
   if(tb && tb.footer){
-    // Fecha o corpo da tabela — tfoot já foi declarado no timbradoHTML
-    return '</td></tr></tbody></table>';
+    return '</div>';
   }
   return '<div class="rodape-texto">'+
     emp.razao+' &nbsp;·&nbsp; CNPJ: '+emp.cnpj+
