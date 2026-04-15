@@ -6068,20 +6068,24 @@ function gerarDocumento(preview){
 
 function cssBase(corEmp, useTimbrado){
   if(useTimbrado){
-    // Usa Paged.js para header/footer reais em cada página via CSS Paged Media
-    // @top-center e @bottom-center são suportados pelo Paged.js polyfill
     return '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Documento</title>'+
       '<script src="https://unpkg.com/pagedjs/dist/paged.polyfill.js"><\/script>'+
       '<style>'+
       '*{box-sizing:border-box;margin:0;padding:0}'+
       'body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#000;background:#fff;'+
            '-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
-      // Paged.js CSS Paged Media: header e footer em cada página
-      '@page{size:A4;margin:2.9cm 1.8cm 2.5cm}'+
-      // Named strings para header/footer via running elements
-      '#hdr-src{display:none}'+
-      // Conteúdo principal
-      '#corpo{font-size:12px}'+
+      // Header e footer fixed — Paged.js os repete em cada página
+      // width:100% + left:0 garante que vão de borda a borda do papel
+      '#hdr-fixed{position:fixed;top:0;left:0;width:100%;z-index:1000}'+
+      '#hdr-fixed img{width:100%;display:block}'+
+      '#ftr-fixed{position:fixed;bottom:0;left:0;width:100%;z-index:1000}'+
+      '#ftr-fixed img{width:100%;display:block}'+
+      // Numeração de página — Paged.js injeta via CSS counter
+      '.pg-num{position:fixed;top:0.55cm;right:0.3cm;font-size:9px;color:#666;'+
+              'font-family:Arial,sans-serif;z-index:1001}'+
+      '.pg-num::after{content:counter(page) " de " counter(pages)}'+
+      // Conteúdo: margens = altura exata das imagens + padding lateral
+      '#corpo{margin-top:2.47cm;margin-bottom:2.16cm;padding:0.3cm 1.8cm}'+
       '.orgao-box{font-weight:700;font-size:11px;line-height:1.8;margin-bottom:16px}'+
       '.objeto-box{background:#f8f8f8;border-left:4px solid '+corEmp+';padding:10px 14px;margin-bottom:20px;font-size:11px;line-height:1.7;text-align:justify}'+
       '.titulo{font-size:15px;font-weight:900;text-align:center;text-decoration:underline;letter-spacing:1px;margin:20px 0}'+
@@ -6094,24 +6098,17 @@ function cssBase(corEmp, useTimbrado){
       '.total-box{background:'+corEmp+';color:#fff;text-align:center;padding:10px;font-weight:700;font-size:12px;margin:8px 0}'+
       '.conds{font-size:11px;line-height:1.9;margin:14px 0}'+
       '.conds p{margin-bottom:3px}'+
-      '.decl-encargos{font-size:11px;line-height:1.8;text-align:justify;margin:14px 0;border-top:1px solid #ddd;padding-top:12px}'+'.decl-encargos strong{display:block;text-align:left;margin-bottom:4px}'+
+      '.decl-encargos{font-size:11px;line-height:1.8;text-align:justify;margin:14px 0;border-top:1px solid #ddd;padding-top:12px}'+
       '.decl-encargos p{margin-bottom:8px}'+
+      '.decl-encargos strong{display:block;text-align:left;margin-bottom:4px}'+
       '.assinatura{margin-top:40px;font-size:12px}'+
       '.decl-item{margin:12px 0}'+
       '.decl-item strong{display:block;margin-bottom:4px}'+
       '.rodape-texto{display:none}'+
-      // Paged.js: @top-center e @bottom-center recebem as imagens
-      '@media print{'+
-        '@page{'+
-          '@top-center{content:element(hdr)}'+'@top-right{content:counter(page) " de " counter(pages);font-size:9px;font-family:Arial,sans-serif;color:#666;padding-top:0.3cm;padding-right:0.2cm}'+
-          '@bottom-center{content:element(ftr)}'+
-        '}'+
-      '}'+
-      // running() elements: ficam fora do fluxo mas aparecem no header/footer de cada página
-      '#hdr-running{position:running(hdr);width:21cm;margin:0 -1.8cm}'+
-      '#hdr-running img{width:100%;display:block}'+
-      '#ftr-running{position:running(ftr);width:21cm;margin:0 -1.8cm}'+
-      '#ftr-running img{width:100%;display:block}'+
+      // @page: margens = exatamente a altura das imagens
+      // margem lateral 0 para as imagens irem de borda a borda
+      '@page{size:A4;margin:2.47cm 0 2.16cm 0}'+
+      '@media print{body{font-size:11px}}'+
       '</style></head><body>';
   }
   // Sem timbrado: layout simples
@@ -6147,9 +6144,9 @@ function cssBase(corEmp, useTimbrado){
 function timbradoHTML(emp, corEmp){
   var tb = TIMBRADOS[empSelecionada];
   if(tb && tb.header){
-    // running elements do Paged.js — ficam fora do fluxo e aparecem em cada página
-    return '<div id="hdr-running"><img src="'+tb.header+'" alt="Cabeçalho '+empSelecionada+'"></div>'+
-           '<div id="ftr-running"><img src="'+tb.footer+'" alt="Rodapé '+empSelecionada+'"></div>'+
+    return '<div id="hdr-fixed"><img src="'+tb.header+'" alt="Cabeçalho '+empSelecionada+'"></div>'+
+           '<div id="ftr-fixed"><img src="'+tb.footer+'" alt="Rodapé '+empSelecionada+'"></div>'+
+           '<div class="pg-num"></div>'+
            '<div id="corpo">';
   }
   return '<div class="timbrado-texto">'+
