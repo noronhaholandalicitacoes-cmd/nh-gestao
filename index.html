@@ -2598,7 +2598,6 @@ function go(page,el){
       loadPage(page);
       if(page==='financeiro'){
         buildFinResumo();
-        filtrarFinanceiroMes();
         var recEl = document.getElementById('fin-recarga-val');
         if(recEl) recEl.value = fmtVal(_finRecarga);
       }
@@ -2815,7 +2814,12 @@ async function _load(k){
       applyFilters(k);
     } else {
       FIL[k]=valid.slice();
-      if(el){renderStats(k,FIL[k]);renderPills(k,ALL[k],FIL[k]);renderTbl(k);}
+      // Financeiro: aplicar filtro de mês automaticamente após carregar
+      if(k==='financeiro'){
+        filtrarFinanceiroMes();
+      } else {
+        if(el){renderStats(k,FIL[k]);renderPills(k,ALL[k],FIL[k]);renderTbl(k);}
+      }
     }
     var b=document.getElementById('b-'+k);
     if(b){
@@ -5454,6 +5458,39 @@ function setTheme(dark){
   localStorage.setItem('nh_theme', dark ? 'dark' : 'light');
 }
 
+
+// ── Importação dados Março 2026 ──────────────────────────────
+async function importarDadosMarco(){
+  var COL = 'financeiro';
+  var snap = await db.collection(COL).get();
+  var temMarco = false;
+  snap.forEach(function(doc){
+    var arr = doc.data()._arr||[];
+    var data = String(arr[0]||'');
+    if(data.indexOf('/03/2026') !== -1) temMarco = true;
+  });
+  if(temMarco){ return; }
+  var snapId = await db.collection(COL).orderBy('_id','desc').limit(1).get();
+  var nextId = snapId.empty ? 1 : (snapId.docs[0].data()._id||0) + 1;
+  var lancamentos = [
+    [null,'05/03/2026','Portais','Portal Compras Públicas','Compras Públicas','R$ 165,00','Pago','Banco Inter','Pago acesso mensal pela empresa VISE.'],
+    [null,'13/03/2026','Portais','BNC','BNC','R$ 121,77','Pago','Banco Inter','Pagamento em atraso do BNC pela empresa SAUTEC.'],
+    [null,'16/03/2026','Informática','Aquisição de adaptador wireless','Kalunga SA','R$ 136,85','Pago','Banco Inter','Adaptador wireless para o computador de Charlayne.'],
+    [null,'18/03/2026','Portais','Pagamento mensal portal Compras Públicas - SAUTEC','Portal Compras Públicas','R$ 165,00','Pago','Banco Inter','Pago pelo cartão de crédito, sem saldo em conta.'],
+    [null,'24/03/2026','Portais','Pagamento portal BNC','BNC','R$ 118,00','Pago','Banco Inter','Boleto para participar do processo de licitação pela empresa VISE.'],
+    [null,'10/03/2026','Telefonia','Plano Business','TIM','R$ 30,00','Pago','Banco Inter','Recarga plano pré-pago TIM — telefone do escritório.']
+  ];
+  var batch = db.batch();
+  lancamentos.forEach(function(arr){
+    arr[0] = nextId;
+    var ref = db.collection(COL).doc(String(nextId));
+    batch.set(ref, {_id:nextId, _arr:arr, _createdAt:Date.now(), _updatedAt:Date.now()});
+    nextId++;
+  });
+  await batch.commit();
+  toast('✅ Dados de março importados!', 'ok');
+}
+
 function initApp(){
   setTheme(isDark);
   carregarEmpresas();
@@ -5463,7 +5500,7 @@ function initApp(){
   document.querySelectorAll('.page').forEach(function(p){ p.style.display='none'; });
   var pr=document.getElementById('page-resumo');
   if(pr){ pr.classList.add('on'); pr.style.display='block'; }
-  loadAll();
+  loadAll().then(function(){ setTimeout(importarDadosMarco, 2000); });
   setTimeout(verificarVencimentos, 3000);
   setTimeout(iniciarNotificacoesCalendario, 5000);
   carregarTarefas();
