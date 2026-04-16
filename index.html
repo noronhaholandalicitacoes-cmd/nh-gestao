@@ -2649,21 +2649,33 @@ var _finRecarga = parseFloat(localStorage.getItem('nh_recarga')||'1500');
 
 
 function finGetData(r){
-  // Suporta ambas as estruturas:
-  // Nova: [data, cat, desc, forn, val, status, conta, obs] - r[0]='05/04/2026'
-  // Antiga: [id, data, cat, desc, forn, val, status, conta, obs] - r[0]=3, r[1]='05/04/2026'
+  // Suporta todas as estruturas do financeiro:
+  // Nova:   [data, cat, desc, forn, val, status, conta, obs]  → r[0]='05/04/2026'
+  // Antiga: [id, cat, desc, forn, val, status, conta, obs]   → sem data no array!
+  //         (a data foi sobrescrita pelo ID no código antigo)
+  // Fallback: usa _createdAt (timestamp de quando foi salvo no Firebase)
   var v0 = String(r[0]||'');
-  if(v0.indexOf('/') !== -1) return v0; // r[0] já é uma data
+  if(v0.indexOf('/') !== -1) return v0; // r[0] é data
   var v1 = String(r[1]||'');
-  if(v1.indexOf('/') !== -1) return v1; // r[1] é a data (estrutura antiga com ID)
+  if(v1.indexOf('/') !== -1) return v1; // r[1] é data (caso intermediário)
+  // Fallback: usar _createdAt para determinar o mês
+  if(r._createdAt){
+    var d = new Date(r._createdAt);
+    var dd = ('0'+d.getDate()).slice(-2);
+    var mm = ('0'+(d.getMonth()+1)).slice(-2);
+    var yyyy = d.getFullYear();
+    return dd+'/'+mm+'/'+yyyy;
+  }
   return v0;
 }
 function finGetField(r, newIdx, oldIdx){
-  // newIdx: índice na estrutura nova (sem ID)
-  // oldIdx: índice na estrutura antiga (com ID em r[0])
-  var v0 = String(r[0]||'');
-  var hasIdInR0 = v0.indexOf('/') === -1 && !isNaN(parseInt(v0));
-  return hasIdInR0 ? r[oldIdx] : r[newIdx];
+  // newIdx: índice quando r[0] é data (estrutura nova)
+  // oldIdx: seria para estrutura com [id, data, ...] mas os registros antigos
+  //         têm [id, cat, desc, ...] sem data → mesmos índices que estrutura nova
+  // Ambas as estruturas têm cat/desc/forn/val/status/conta/obs nos mesmos índices (1-7)
+  // A diferença só é em r[0]: data (nova) vs ID (antiga)
+  // Como finGetData já resolve o r[0], os demais campos são sempre newIdx
+  return r[newIdx];
 }
 function filtrarFinanceiroMes(){
   // Filtra ALL.financeiro pelo mês/ano selecionado — suporta estrutura antiga (com ID em r[0]) e nova
@@ -2749,14 +2761,16 @@ function buildFinResumo(){
   if(elEmp){
     var porEmp = {};
     rows.forEach(function(r){
-      var emp = String(r[3]||'').trim()||'Geral';
+      // Agrupa por CATEGORIA (r[1] nova estrutura, r[2] antiga com ID em r[0])
+      var emp = String(finGetField(r,1,2)||'').trim()||'Outros';
+      var val = parseMoeda(finGetField(r,4,5)||0);
       if(!porEmp[emp]) porEmp[emp] = 0;
-      porEmp[emp] += parseMoeda(r[4]||0);
+      porEmp[emp] += val;
     });
     var emps = Object.keys(porEmp).sort(function(a,b){ return porEmp[b]-porEmp[a]; });
-    if(emps.length > 1){
+    if(emps.length > 0){
       elEmp.style.marginBottom = '16px';
-      elEmp.innerHTML = '<div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:8px">Gastos por empresa — '+meses[_finMes]+'</div>'+
+      elEmp.innerHTML = '<div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:8px">Gastos por categoria — '+meses[_finMes]+'</div>'+
         '<div style="display:flex;flex-direction:column;gap:6px">'+
         emps.map(function(emp){
           var val = porEmp[emp];
@@ -5499,6 +5513,40 @@ function setTheme(dark){
 }
 
 
+
+// ── Migração: adicionar data aos registros financeiros sem data ──────────────
+async function migrarFinanceiro(){
+  var snap = await db.collection('financeiro').get();
+  var batch = db.batch();
+  var count = 0;
+  snap.forEach(function(doc){
+    var data = doc.data();
+    var arr = data._arr||[];
+    var r0 = String(arr[0]||'');
+    // Se r[0] não é uma data dd/mm/yyyy, precisa migrar
+    if(arr.length > 0 && r0.indexOf('/') === -1){
+      var ts = data._createdAt || Date.now();
+      var d = new Date(ts);
+      var dd = ('0'+d.getDate()).slice(-2);
+      var mm = ('0'+(d.getMonth()+1)).slice(-2);
+      var yyyy = d.getFullYear();
+      var dataStr = dd+'/'+mm+'/'+yyyy;
+      // Inserir data no início do array, mantendo o resto
+      // arr atual: [ID_ou_algo, cat, desc, forn, val, status, conta, obs]
+      // arr novo:  [data, cat, desc, forn, val, status, conta, obs]
+      var newArr = [dataStr, arr[1], arr[2], arr[3], arr[4], arr[5], arr[6], arr[7]];
+      batch.update(doc.ref, {_arr: newArr, _updatedAt: Date.now()});
+      count++;
+    }
+  });
+  if(count > 0){
+    await batch.commit();
+    console.log('Migrados '+count+' registros financeiros sem data');
+    toast('✅ '+count+' registros financeiros atualizados com data', 'ok');
+    await _load('financeiro');
+  }
+}
+
 // ── Importação dados Março 2026 ──────────────────────────────
 async function importarDadosMarco(){
   var COL = 'financeiro';
@@ -5549,7 +5597,7 @@ function initApp(){
   document.querySelectorAll('.page').forEach(function(p){ p.style.display='none'; });
   var pr=document.getElementById('page-resumo');
   if(pr){ pr.classList.add('on'); pr.style.display='block'; }
-  loadAll().then(function(){ setTimeout(importarDadosMarco, 2000); });
+  loadAll().then(function(){ setTimeout(function(){ migrarFinanceiro().then(function(){ importarDadosMarco(); }); }, 2000); });
   setTimeout(verificarVencimentos, 3000);
   setTimeout(iniciarNotificacoesCalendario, 5000);
   carregarTarefas();
