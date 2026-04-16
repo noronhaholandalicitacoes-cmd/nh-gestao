@@ -3209,6 +3209,14 @@ function applyFilters(k){
   FIL[k]=ALL[k].filter(function(r){
     // Em Andamento: excluir ADJU=sim (esses estão em Finalizados)
     if(k==='andamento' && String(r[16]||'').toLowerCase().trim()==='sim') return false;
+    // Financeiro: filtrar por mês selecionado
+    if(k==='financeiro'){
+      var fdata=String(r[0]||'');
+      var fparts=fdata.split('/');
+      if(fparts.length===3){
+        if(parseInt(fparts[1])-1!==_finMes||parseInt(fparts[2])!==_finAno) return false;
+      }
+    }
     // Filtro empresa
     if(emp&&String(r[2]||'').trim()!==emp) return false;
     // Filtro busca
@@ -5462,33 +5470,42 @@ function setTheme(dark){
 // ── Importação dados Março 2026 ──────────────────────────────
 async function importarDadosMarco(){
   var COL = 'financeiro';
+  // Verificar se já existem dados de março
   var snap = await db.collection(COL).get();
   var temMarco = false;
   snap.forEach(function(doc){
     var arr = doc.data()._arr||[];
+    // No financeiro, r[0] = data (ex: "05/03/2026")
     var data = String(arr[0]||'');
     if(data.indexOf('/03/2026') !== -1) temMarco = true;
   });
-  if(temMarco){ return; }
+  if(temMarco){ console.log('Dados de março já existem, pulando importação'); return; }
+
+  // Financeiro NÃO usa ID no array — array começa direto com data
+  // Estrutura: [data, categoria, descricao, fornecedor, valor, status, conta, obs]
+  var lancamentos = [
+    ['05/03/2026','Portais','Portal Compras Públicas','Compras Públicas','R$ 165,00','Pago','Banco Inter','Pago acesso mensal pela empresa VISE.'],
+    ['13/03/2026','Portais','BNC','BNC','R$ 121,77','Pago','Banco Inter','Pagamento em atraso do BNC pela empresa SAUTEC.'],
+    ['16/03/2026','Informática','Aquisição de adaptador wireless','Kalunga SA','R$ 136,85','Pago','Banco Inter','Adaptador wireless para o computador de Charlayne.'],
+    ['18/03/2026','Portais','Pagamento mensal portal Compras Públicas - SAUTEC','Portal Compras Públicas','R$ 165,00','Pago','Banco Inter','Pago pelo cartão de crédito, sem saldo em conta.'],
+    ['24/03/2026','Portais','Pagamento portal BNC','BNC','R$ 118,00','Pago','Banco Inter','Boleto para participar do processo de licitação pela empresa VISE.'],
+    ['10/03/2026','Telefonia','Plano Business','TIM','R$ 30,00','Pago','Banco Inter','Recarga plano pré-pago TIM — telefone do escritório.']
+  ];
+
+  // Buscar próximo ID para o documento Firestore (não vai no array)
   var snapId = await db.collection(COL).orderBy('_id','desc').limit(1).get();
   var nextId = snapId.empty ? 1 : (snapId.docs[0].data()._id||0) + 1;
-  var lancamentos = [
-    [null,'05/03/2026','Portais','Portal Compras Públicas','Compras Públicas','R$ 165,00','Pago','Banco Inter','Pago acesso mensal pela empresa VISE.'],
-    [null,'13/03/2026','Portais','BNC','BNC','R$ 121,77','Pago','Banco Inter','Pagamento em atraso do BNC pela empresa SAUTEC.'],
-    [null,'16/03/2026','Informática','Aquisição de adaptador wireless','Kalunga SA','R$ 136,85','Pago','Banco Inter','Adaptador wireless para o computador de Charlayne.'],
-    [null,'18/03/2026','Portais','Pagamento mensal portal Compras Públicas - SAUTEC','Portal Compras Públicas','R$ 165,00','Pago','Banco Inter','Pago pelo cartão de crédito, sem saldo em conta.'],
-    [null,'24/03/2026','Portais','Pagamento portal BNC','BNC','R$ 118,00','Pago','Banco Inter','Boleto para participar do processo de licitação pela empresa VISE.'],
-    [null,'10/03/2026','Telefonia','Plano Business','TIM','R$ 30,00','Pago','Banco Inter','Recarga plano pré-pago TIM — telefone do escritório.']
-  ];
+
   var batch = db.batch();
   lancamentos.forEach(function(arr){
-    arr[0] = nextId;
     var ref = db.collection(COL).doc(String(nextId));
     batch.set(ref, {_id:nextId, _arr:arr, _createdAt:Date.now(), _updatedAt:Date.now()});
     nextId++;
   });
   await batch.commit();
-  toast('✅ Dados de março importados!', 'ok');
+  // Recarregar financeiro para exibir os novos dados
+  if(ALL['financeiro']) await _load('financeiro');
+  toast('✅ 6 lançamentos de março importados!', 'ok');
 }
 
 function initApp(){
