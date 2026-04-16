@@ -2647,16 +2647,32 @@ var _finAno  = new Date().getFullYear();
 var _finMes  = new Date().getMonth(); // 0-based
 var _finRecarga = parseFloat(localStorage.getItem('nh_recarga')||'1500');
 
+
+function finGetData(r){
+  // Suporta ambas as estruturas:
+  // Nova: [data, cat, desc, forn, val, status, conta, obs] - r[0]='05/04/2026'
+  // Antiga: [id, data, cat, desc, forn, val, status, conta, obs] - r[0]=3, r[1]='05/04/2026'
+  var v0 = String(r[0]||'');
+  if(v0.indexOf('/') !== -1) return v0; // r[0] já é uma data
+  var v1 = String(r[1]||'');
+  if(v1.indexOf('/') !== -1) return v1; // r[1] é a data (estrutura antiga com ID)
+  return v0;
+}
+function finGetField(r, newIdx, oldIdx){
+  // newIdx: índice na estrutura nova (sem ID)
+  // oldIdx: índice na estrutura antiga (com ID em r[0])
+  var v0 = String(r[0]||'');
+  var hasIdInR0 = v0.indexOf('/') === -1 && !isNaN(parseInt(v0));
+  return hasIdInR0 ? r[oldIdx] : r[newIdx];
+}
 function filtrarFinanceiroMes(){
-  // Filtra ALL.financeiro pelo mês/ano selecionado e atualiza FIL + renderiza cards
+  // Filtra ALL.financeiro pelo mês/ano selecionado — suporta estrutura antiga (com ID em r[0]) e nova
   FIL['financeiro'] = (ALL['financeiro']||[]).filter(function(r){
-    var data = String(r[0]||'');
+    var data = finGetData(r);
     var parts = data.split('/');
     if(parts.length===3){
       return parseInt(parts[1])-1 === _finMes && parseInt(parts[2]) === _finAno;
     }
-    var d = new Date(data);
-    if(!isNaN(d.getTime())) return d.getMonth()===_finMes && d.getFullYear()===_finAno;
     return false;
   });
   PG['financeiro'] = 1;
@@ -2709,15 +2725,11 @@ function buildFinResumo(){
 
   // Filtrar por mês selecionado
   var rows = (ALL.financeiro||[]).filter(function(r){
-    var data = String(r[0]||'');
-    // formato dd/mm/yyyy
+    var data = finGetData(r);
     var parts = data.split('/');
     if(parts.length===3){
       return parseInt(parts[1])-1 === _finMes && parseInt(parts[2]) === _finAno;
     }
-    // formato yyyy-mm-dd
-    var d = new Date(data);
-    if(!isNaN(d.getTime())) return d.getMonth()===_finMes && d.getFullYear()===_finAno;
     return false;
   });
 
@@ -2792,11 +2804,23 @@ async function _load(k){
         // Expor metadados para exibição nos cards
         if(docData._updatedAt) arr._updatedAt = docData._updatedAt;
         if(docData._createdAt) arr._createdAt = docData._createdAt;
+        // Guardar _id do documento para edição/exclusão (especialmente financeiro)
+        if(docData._id!==undefined) arr._docId = docData._id;
         valid.push(arr);
       }
     });
     // Ordem decrescente
-    valid.sort(function(a,b){return (parseInt(b[0])||0)-(parseInt(a[0])||0);});
+    if(k==='financeiro'){
+      // Financeiro: ordenar por data real (r[0] = 'dd/mm/yyyy')
+      valid.sort(function(a,b){
+        var pa=String(a[0]||'').split('/'); var pb=String(b[0]||'').split('/');
+        var da=pa.length===3?new Date(parseInt(pa[2]),parseInt(pa[1])-1,parseInt(pa[0])):new Date(0);
+        var db_=pb.length===3?new Date(parseInt(pb[2]),parseInt(pb[1])-1,parseInt(pb[0])):new Date(0);
+        return db_-da;
+      });
+    } else {
+      valid.sort(function(a,b){return (parseInt(b[0])||0)-(parseInt(a[0])||0);});
+    }
     ALL[k]=valid;
     // Em Andamento: excluir por padrão processos com ADJU=sim (esses ficam em Finalizados)
     if(k==='andamento'){
@@ -3209,13 +3233,13 @@ function applyFilters(k){
   FIL[k]=ALL[k].filter(function(r){
     // Em Andamento: excluir ADJU=sim (esses estão em Finalizados)
     if(k==='andamento' && String(r[16]||'').toLowerCase().trim()==='sim') return false;
-    // Financeiro: filtrar por mês selecionado
+    // Financeiro: filtrar por mês selecionado (suporta estrutura antiga e nova)
     if(k==='financeiro'){
-      var fdata=String(r[0]||'');
+      var fdata=finGetData(r);
       var fparts=fdata.split('/');
       if(fparts.length===3){
         if(parseInt(fparts[1])-1!==_finMes||parseInt(fparts[2])!==_finAno) return false;
-      }
+      } else { return false; }
     }
     // Filtro empresa
     if(emp&&String(r[2]||'').trim()!==emp) return false;
@@ -4022,7 +4046,7 @@ function renderCard(k,row,abs){
   } else if(k==='atestados'){
     cor=String(row[11]||'').trim()==='SIM'?'green':'red';
   } else if(k==='financeiro'){
-    var stf=String(row[5]||'').trim();
+    var stf=String(finGetField(row,5,6)||'').trim();
     cor=stf==='Pago'?'green':stf==='Atrasado'?'red':'yellow';
   }
 
@@ -4048,7 +4072,7 @@ function renderCard(k,row,abs){
   var titleProtected=(k==='andamento'||k==='finalizados');
   h+='<div class="kcard-licit">';
   if(k==='financeiro'){
-    h+=inlineCell(k,abs,2,row[2]);
+    h+=inlineCell(k,abs,finGetField(row,2,3)===row[2]?2:3,finGetField(row,2,3));
   } else if(titleProtected){
     h+=String(row[3]||'').trim();
   } else {
@@ -4076,7 +4100,7 @@ function renderCard(k,row,abs){
   if(k==='editais'||k==='ganhas'||k==='atestados'||k==='financeiro'){
     h+='<button class="btn-edit-card" onclick="event.stopPropagation();openEditCard(\''+k+'\','+abs+')" title="Editar">✏</button>';
   }
-  var rowId=parseInt(row[0]||0);
+  var rowId=k==='financeiro'?(row._docId||parseInt(row[0]||0)):parseInt(row[0]||0);
   // ⚡ Raio — proposta cadastrada (editais e andamento)
   if(k==='editais'||k==='andamento'){
     // Chave universal — usa licitação (col 3) para compartilhar entre editais e andamento
@@ -4263,10 +4287,10 @@ function renderCard(k,row,abs){
     if(at_link)  h+='<div class="kmeta"><span class="kmeta-lbl">Doc.</span>'+klink(at_link)+'</div>';
 
   } else if(k==='financeiro'){
-    var f_cat  =String(row[1]||'').trim();
-    var f_val  =String(row[4]||'').trim();
-    var f_conta=String(row[6]||'').trim();
-    var f_st   =String(row[5]||'').trim();
+    var f_cat  =String(finGetField(row,1,2)||'').trim();
+    var f_val  =String(finGetField(row,4,5)||'').trim();
+    var f_conta=String(finGetField(row,6,7)||'').trim();
+    var f_st   =String(finGetField(row,5,6)||'').trim();
     if(f_cat)   h+='<div class="kmeta"><span class="kmeta-lbl">Categoria</span><span class="kmeta-val">'+f_cat+'</span></div>';
     if(f_val)   h+='<div class="kmeta"><span class="kmeta-lbl">Valor</span><span class="kmeta-val hl">'+fmtValBR(f_val)+'</span></div>';
     if(f_conta) h+='<div class="kmeta"><span class="kmeta-lbl">Conta</span><span class="kmeta-val">'+f_conta+'</span></div>';
@@ -5325,10 +5349,17 @@ async function doSave(k){
   try{
     var rowId;
     if(isEdit){
-      rowId=parseInt(origRow?origRow[0]:(FIL[k][EROW[k]]?FIL[k][EROW[k]][0]:0));
+      // Financeiro: rowId vem de _docId (r[0] é a data, não o ID)
+      if(k==='financeiro'){
+        rowId = origRow._docId || parseInt(origRow[0]) || 1;
+      } else {
+        rowId=parseInt(origRow?origRow[0]:(FIL[k][EROW[k]]?FIL[k][EROW[k]][0]:0));
+      }
     } else {
       rowId=await fbGetNextId(col);
-      vals[0]=rowId;
+      // Financeiro não usa ID no array (vals[0] = data)
+      // Outras abas usam ID em vals[0]
+      if(k!=='financeiro') vals[0]=rowId;
     }
     await fbSave(col,rowId,vals);
 
@@ -5390,7 +5421,8 @@ async function doDel(k,idx){
   var row=FIL[k][idx];
   var label=k==='financeiro'?row[2]:row[3];
   if(!confirm('Excluir?\n"'+label+'"\n\nEsta ação não pode ser desfeita.')) return;
-  var rowId=String(row[0]||'').trim();
+  // Financeiro: _docId guarda o ID real do documento (row[0] é a data)
+  var rowId = (k==='financeiro' && row._docId) ? String(row._docId) : String(row[0]||'').trim();
   if(!rowId){
     try{
       var snap = await db.collection(FB_COLS[k])
