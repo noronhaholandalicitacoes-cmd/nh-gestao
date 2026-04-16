@@ -2598,6 +2598,7 @@ function go(page,el){
       loadPage(page);
       if(page==='financeiro'){
         buildFinResumo();
+        filtrarFinanceiroMes();
         var recEl = document.getElementById('fin-recarga-val');
         if(recEl) recEl.value = fmtVal(_finRecarga);
       }
@@ -2647,16 +2648,43 @@ var _finAno  = new Date().getFullYear();
 var _finMes  = new Date().getMonth(); // 0-based
 var _finRecarga = parseFloat(localStorage.getItem('nh_recarga')||'1500');
 
+function filtrarFinanceiroMes(){
+  // Filtra ALL.financeiro pelo mês/ano selecionado e atualiza FIL + renderiza cards
+  FIL['financeiro'] = (ALL['financeiro']||[]).filter(function(r){
+    var data = String(r[0]||'');
+    var parts = data.split('/');
+    if(parts.length===3){
+      return parseInt(parts[1])-1 === _finMes && parseInt(parts[2]) === _finAno;
+    }
+    var d = new Date(data);
+    if(!isNaN(d.getTime())) return d.getMonth()===_finMes && d.getFullYear()===_finAno;
+    return false;
+  });
+  PG['financeiro'] = 1;
+  var el = document.getElementById('tbl-financeiro');
+  if(el){
+    if(FIL['financeiro'].length===0){
+      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--t3);font-size:13px">Nenhum lançamento em '+['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][_finMes]+' '+_finAno+'</div>';
+      var pag = document.getElementById('pag-financeiro');
+      if(pag) pag.innerHTML='';
+    } else {
+      renderTbl('financeiro');
+    }
+  }
+}
+
 function finMes(d){
   _finMes += d;
   if(_finMes < 0){ _finMes = 11; _finAno--; }
   if(_finMes > 11){ _finMes = 0; _finAno++; }
   buildFinResumo();
+  filtrarFinanceiroMes();
 }
 function finMesHoje(){
   _finAno = new Date().getFullYear();
   _finMes = new Date().getMonth();
   buildFinResumo();
+  filtrarFinanceiroMes();
 }
 function salvarRecarga(){
   var el = document.getElementById('fin-recarga-val');
@@ -5337,7 +5365,7 @@ async function doSave(k){
     closeM(k);
     await loadPage(k);
     if(k==='editais') await loadPage('andamento');
-    if(k==='financeiro') buildFinResumo();
+    if(k==='financeiro'){ buildFinResumo(); filtrarFinanceiroMes(); }
     if(CUR==='resumo') buildResumo();
   }catch(e){
     btn.disabled=false;btn.textContent='Salvar';
@@ -6068,24 +6096,26 @@ function gerarDocumento(preview){
 
 function cssBase(corEmp, useTimbrado){
   if(useTimbrado){
-    return '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Documento</title>'+
-      '<script src="https://unpkg.com/pagedjs/dist/paged.polyfill.js"><\/script>'+
-      '<style>'+
+    // Estrutura inline: header e footer são partes do layout normal
+    // @page margin:0 + estrutura de tabela garante que header/footer
+    // fiquem no topo e fundo de CADA página sem depender de position:fixed
+    return '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Documento</title><style>'+
       '*{box-sizing:border-box;margin:0;padding:0}'+
+      'html,body{height:100%}'+
       'body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#000;background:#fff;'+
            '-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
-      // Header e footer fixed — Paged.js os repete em cada página
-      // width:100% + left:0 garante que vão de borda a borda do papel
-      '#hdr-fixed{position:fixed;top:0;left:0;width:100%;z-index:1000}'+
-      '#hdr-fixed img{width:100%;display:block}'+
-      '#ftr-fixed{position:fixed;bottom:0;left:0;width:100%;z-index:1000}'+
-      '#ftr-fixed img{width:100%;display:block}'+
-      // Numeração de página — Paged.js injeta via CSS counter
-      '.pg-num{position:fixed;top:0.55cm;right:0.3cm;font-size:9px;color:#666;'+
-              'font-family:Arial,sans-serif;z-index:1001}'+
-      '.pg-num::after{content:counter(page) " de " counter(pages)}'+
-      // Conteúdo: margens = altura exata das imagens + padding lateral
-      '#corpo{margin-top:2.47cm;margin-bottom:2.16cm;padding:0.3cm 1.8cm}'+
+      // Tabela de layout: ocupa 100% da altura da página
+      // thead/tfoot são repetidos pelo browser em cada página ao imprimir
+      'table.pg-layout{width:100%;border-collapse:collapse;border-spacing:0}'+
+      'table.pg-layout>thead>tr>td,table.pg-layout>tfoot>tr>td{padding:0;line-height:0;font-size:0}'+
+      'table.pg-layout>thead>tr>td img,table.pg-layout>tfoot>tr>td img{width:100%;display:block;line-height:0}'+
+      'table.pg-layout>tbody>tr>td{padding:0.4cm 1.8cm;vertical-align:top}'+
+      // Contador de página no canto direito do header
+      '.pg-count{position:absolute;top:0.5cm;right:0.4cm;font-size:9px;color:#555;font-family:Arial}'+
+      'thead{display:table-header-group}'+
+      'tfoot{display:table-footer-group}'+
+      'tbody{display:table-row-group}'+
+      // Estilos do conteúdo
       '.orgao-box{font-weight:700;font-size:11px;line-height:1.8;margin-bottom:16px}'+
       '.objeto-box{background:#f8f8f8;border-left:4px solid '+corEmp+';padding:10px 14px;margin-bottom:20px;font-size:11px;line-height:1.7;text-align:justify}'+
       '.titulo{font-size:15px;font-weight:900;text-align:center;text-decoration:underline;letter-spacing:1px;margin:20px 0}'+
@@ -6105,13 +6135,10 @@ function cssBase(corEmp, useTimbrado){
       '.decl-item{margin:12px 0}'+
       '.decl-item strong{display:block;margin-bottom:4px}'+
       '.rodape-texto{display:none}'+
-      // @page: margens = exatamente a altura das imagens
-      // margem lateral 0 para as imagens irem de borda a borda
-      '@page{size:A4;margin:2.47cm 0 2.16cm 0}'+
-      '@media print{body{font-size:11px}}'+
+      '@media print{@page{size:A4;margin:0}body{font-size:11px}}'+
       '</style></head><body>';
   }
-  // Sem timbrado: layout simples
+  // Sem timbrado
   return '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Documento</title><style>'+
     '*{box-sizing:border-box;margin:0;padding:0}'+
     'body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#000;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
@@ -6144,10 +6171,15 @@ function cssBase(corEmp, useTimbrado){
 function timbradoHTML(emp, corEmp){
   var tb = TIMBRADOS[empSelecionada];
   if(tb && tb.header){
-    return '<div id="hdr-fixed"><img src="'+tb.header+'" alt="Cabeçalho '+empSelecionada+'"></div>'+
-           '<div id="ftr-fixed"><img src="'+tb.footer+'" alt="Rodapé '+empSelecionada+'"></div>'+
-           '<div class="pg-num"></div>'+
-           '<div id="corpo">';
+    // thead e tfoot são repetidos pelo browser em CADA página ao imprimir
+    // É o método mais confiável cross-browser sem dependências externas
+    return '<table class="pg-layout"><thead><tr><td>'+
+             '<img src="'+tb.header+'" alt="Cabeçalho">'+
+           '</td></tr></thead>'+
+           '<tfoot><tr><td>'+
+             '<img src="'+tb.footer+'" alt="Rodapé">'+
+           '</td></tr></tfoot>'+
+           '<tbody><tr><td>';
   }
   return '<div class="timbrado-texto">'+
     '<div style="font-size:28px;font-weight:900;color:'+corEmp+';letter-spacing:-1px;line-height:1">'+empSelecionada+
@@ -6193,7 +6225,7 @@ function assinaturaHTML(emp, cidade, dataFmt){
 function rodapeHTML(emp){
   var tb = TIMBRADOS[empSelecionada];
   if(tb && tb.footer){
-    return '</div>';
+    return '</td></tr></tbody></table>';
   }
   return '<div class="rodape-texto">'+
     emp.razao+' &nbsp;·&nbsp; CNPJ: '+emp.cnpj+
@@ -6248,7 +6280,7 @@ function gerarHTMLProposta(emp,orgao,setor,modal,proc,obj,cidade,dataFmt,corEmp)
       'Se vencedor, na qualidade de representante legal da empresa, assinará a Ata e Contrato: Sr(a).: '+emp.socio+', CPF: '+emp.cpf+', residente e domiciliado em '+emp.cidade+'.</p>'+
     '</div>'+
     assinaturaHTML(emp,cidade,dataFmt)+
-    rodapeHTML(emp)+(_tb?'</body></html>':'</div></body></html>');
+    rodapeHTML(emp)+'</body></html>';
 }
 
 var DECL_UNIFICADA_TEXTO = [
@@ -6279,7 +6311,7 @@ function gerarHTMLDeclUnif(emp,orgao,setor,modal,proc,cidade,dataFmt,corEmp){
     decls+
     '<p style="font-size:12px;margin-top:16px;text-align:justify">Por ser expressão da verdade, firmo a presente declaração.</p>'+
     assinaturaHTML(emp,cidade,dataFmt)+
-    rodapeHTML(emp)+(_tb?'</body></html>':'</div></body></html>');
+    rodapeHTML(emp)+'</body></html>';
 }
 
 var OUTRAS_TEXTOS = {
@@ -6302,7 +6334,8 @@ function gerarHTMLOutraDecl(emp,orgao,setor,modal,proc,cidade,dataFmt,corEmp){
   if(outraDecl==='personalizada'){
     titulo=document.getElementById('decl-titulo').value.trim().toUpperCase()||'DECLARAÇÃO';
     corpotexto=document.getElementById('decl-texto').value.trim();
-    return cssBase(corEmp)+
+    var _tb = !!(TIMBRADOS[empSelecionada] && TIMBRADOS[empSelecionada].header);
+    return cssBase(corEmp,_tb)+
       timbradoHTML(emp,corEmp)+
       orgaoHTML(orgao,setor,modal,proc)+
       '<h2 class="titulo">'+titulo+'</h2>'+
@@ -6310,7 +6343,7 @@ function gerarHTMLOutraDecl(emp,orgao,setor,modal,proc,cidade,dataFmt,corEmp){
       '<p style="text-align:justify;line-height:1.9;margin-bottom:16px">'+corpotexto.replace(/\n/g,'<br>')+'</p>'+
       '<p style="font-size:12px;margin-top:16px">Por ser expressão da verdade, firmo a presente declaração.</p>'+
       assinaturaHTML(emp,cidade,dataFmt)+
-      rodapeHTML(emp)+(_tb?'</body></html>':'</div></body></html>');
+      rodapeHTML(emp)+'</body></html>';
   }
   var modelo=OUTRAS_TEXTOS[outraDecl]||OUTRAS_TEXTOS.vistoria;
   titulo=modelo.titulo;
@@ -6328,7 +6361,7 @@ function gerarHTMLOutraDecl(emp,orgao,setor,modal,proc,cidade,dataFmt,corEmp){
       'E-mail: '+emp.email+', Telefone: '+emp.tel+', '+modelo.texto(emp)+'</p>'+
     '<p style="font-size:12px;margin-top:16px">Por ser expressão da verdade, firmo a presente declaração.</p>'+
     assinaturaHTML(emp,cidade,dataFmt)+
-    rodapeHTML(emp)+(_tb?'</body></html>':'</div></body></html>');
+    rodapeHTML(emp)+'</body></html>';
 }
 
 
