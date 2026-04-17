@@ -614,6 +614,44 @@ select{color-scheme:dark;}
 .rkpi-sub{font-size:11px;color:var(--t3);margin-top:5px;position:relative;z-index:1}
 
 .r-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+
+/* ─── Filtro de período ───────────────────────────────── */
+.r-periodo{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.r-periodo-label{font-size:11px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.r-periodo-btn{
+  padding:6px 14px;border-radius:8px;border:1px solid var(--b1);
+  background:var(--s2);color:var(--t2);font-size:12px;font-weight:600;
+  cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;
+}
+.r-periodo-btn.on{background:var(--nh);color:#000;border-color:var(--nh)}
+.r-periodo-btn:hover:not(.on){border-color:var(--nh);color:var(--nh)}
+.r-periodo-sel{
+  padding:5px 10px;border-radius:8px;border:1px solid var(--b1);
+  background:var(--s2);color:var(--t1);font-size:12px;
+  font-family:'Outfit',sans-serif;outline:none;cursor:pointer;
+}
+.r-periodo-sel:focus{border-color:var(--nh)}
+
+/* ─── Gráfico histórico ───────────────────────────────── */
+.r-chart-wrap{background:var(--s2);border:1px solid var(--b1);border-radius:12px;padding:18px 19px;margin-bottom:14px}
+.r-chart-title{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px;display:flex;align-items:center;gap:7px}
+.r-chart-bars{display:flex;align-items:flex-end;gap:6px;height:110px;padding-bottom:24px;position:relative}
+.r-chart-bar-group{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;min-width:0}
+.r-chart-bars-inner{display:flex;gap:2px;align-items:flex-end;width:100%}
+.r-chart-bar{border-radius:3px 3px 0 0;transition:all .3s;cursor:default;min-height:2px}
+.r-chart-bar:hover{opacity:.8;filter:brightness(1.2)}
+.r-chart-lbl{font-size:9px;color:var(--t3);text-align:center;position:absolute;bottom:0;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r-chart-legend{display:flex;gap:14px;margin-top:10px;flex-wrap:wrap}
+.r-chart-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--t3)}
+.r-chart-legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+
+/* ─── Taxa de conversão ───────────────────────────────── */
+.r-conv-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(37,37,37,.6)}
+.r-conv-emp{font-size:12px;font-weight:700;min-width:80px;flex-shrink:0}
+.r-conv-bar-wrap{flex:1;background:var(--b1);border-radius:4px;height:8px;overflow:hidden}
+.r-conv-bar{height:100%;border-radius:4px;transition:width .5s}
+.r-conv-pct{font-size:12px;font-weight:800;min-width:38px;text-align:right;flex-shrink:0}
+.r-conv-nums{font-size:10px;color:var(--t3);min-width:70px;text-align:right;flex-shrink:0}
 .r-cards.c3{grid-template-columns:1fr 1fr 1fr}
 .rcard{background:var(--s2);border:1px solid var(--b1);border-radius:12px;padding:18px 19px}
 .rcard-title{
@@ -2947,46 +2985,213 @@ function calcValorGanhas(r){
   return parseV(r[7]);
 }
 
+// ── Estado do filtro de período do Resumo ──────────────────────
+var _rPeriodo = 'total'; // 'total' | 'mes' | 'trimestre' | 'ano'
+var _rMesSel  = new Date().getMonth();   // 0-based
+var _rAnoSel  = new Date().getFullYear();
+
+function setPeriodoResumo(p, btn){
+  _rPeriodo = p;
+  document.querySelectorAll('.r-periodo-btn').forEach(function(b){ b.classList.remove('on'); });
+  if(btn) btn.classList.add('on');
+  // Mostrar/ocultar seletores
+  var selMes = document.getElementById('r-sel-mes');
+  var selAno = document.getElementById('r-sel-ano');
+  if(selMes) selMes.style.display = (p==='mes'||p==='trimestre') ? '' : 'none';
+  if(selAno) selAno.style.display = (p==='ano'||p==='mes'||p==='trimestre') ? '' : 'none';
+  buildResumo();
+}
+
+function setMesResumo(v){
+  _rMesSel = parseInt(v);
+  buildResumo();
+}
+function setAnoResumo(v){
+  _rAnoSel = parseInt(v);
+  buildResumo();
+}
+
+// Filtra um array de registros pelo período selecionado
+// dataIdx = índice do campo de data no array
+function filtrarPeriodo(arr, dataIdx){
+  if(_rPeriodo === 'total') return arr;
+  return arr.filter(function(r){
+    var ds = String(r[dataIdx]||'').trim();
+    var d = null;
+    var m = ds.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if(m) d = new Date(parseInt(m[3]), parseInt(m[2])-1, parseInt(m[1]));
+    if(!d || isNaN(d.getTime())) return false;
+    if(_rPeriodo === 'mes')       return d.getMonth()===_rMesSel && d.getFullYear()===_rAnoSel;
+    if(_rPeriodo === 'trimestre'){
+      var trimSel = Math.floor(_rMesSel/3);
+      var trimD   = Math.floor(d.getMonth()/3);
+      return trimD===trimSel && d.getFullYear()===_rAnoSel;
+    }
+    if(_rPeriodo === 'ano')       return d.getFullYear()===_rAnoSel;
+    return true;
+  });
+}
+
+function buildPeriodoHTML(){
+  var meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  var anoAtual = new Date().getFullYear();
+  var anos = [];
+  for(var y=anoAtual; y>=anoAtual-4; y--) anos.push(y);
+
+  var mesOpts = meses.map(function(m,i){
+    return '<option value="'+i+'"'+(i===_rMesSel?' selected':'')+'>'+m+'</option>';
+  }).join('');
+  var anoOpts = anos.map(function(y){
+    return '<option value="'+y+'"'+(y===_rAnoSel?' selected':'')+'>'+y+'</option>';
+  }).join('');
+
+  return '<div class="r-periodo">'+
+    '<span class="r-periodo-label">Período:</span>'+
+    '<button class="r-periodo-btn'+(_rPeriodo==='total'?' on':'')+'" onclick="setPeriodoResumo(\'total\',this)">Total</button>'+
+    '<button class="r-periodo-btn'+(_rPeriodo==='mes'?' on':'')+'" onclick="setPeriodoResumo(\'mes\',this)">Mês</button>'+
+    '<button class="r-periodo-btn'+(_rPeriodo==='trimestre'?' on':'')+'" onclick="setPeriodoResumo(\'trimestre\',this)">Trimestre</button>'+
+    '<button class="r-periodo-btn'+(_rPeriodo==='ano'?' on':'')+'" onclick="setPeriodoResumo(\'ano\',this)">Ano</button>'+
+    '<select id="r-sel-mes" class="r-periodo-sel" onchange="setMesResumo(this.value)" style="display:'+(_rPeriodo==='mes'||_rPeriodo==='trimestre'?'':'none')+'">'+mesOpts+'</select>'+
+    '<select id="r-sel-ano" class="r-periodo-sel" onchange="setAnoResumo(this.value)" style="display:'+(_rPeriodo==='total'?'none':'')+'">'+anoOpts+'</select>'+
+    '<span style="font-size:12px;color:var(--t3);margin-left:4px" id="r-periodo-desc"></span>'+
+  '</div>';
+}
+
+function buildHistoricoHTML(){
+  // Últimos 12 meses — conta editais capturados, em andamento iniciados e ganhos
+  var meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  var agora = new Date();
+  var pontos = [];
+  for(var i=11; i>=0; i--){
+    var d = new Date(agora.getFullYear(), agora.getMonth()-i, 1);
+    var mm = d.getMonth(), yy = d.getFullYear();
+    var capturados = (ALL.editais||[]).filter(function(r){
+      var ds=String(r[1]||'').trim(); var m=ds.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      if(!m) return false;
+      return parseInt(m[2])-1===mm && parseInt(m[3])===yy;
+    }).length;
+    var andamento = (ALL.andamento||[]).filter(function(r){
+      var ds=String(r[1]||'').trim(); var m=ds.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      if(!m) return false;
+      return parseInt(m[2])-1===mm && parseInt(m[3])===yy;
+    }).length;
+    var ganhos = (ALL.andamento||[]).filter(function(r){
+      // Considerar ganhos: ADJU=sim + 1ª posição, data do processo no mês
+      var ds=String(r[1]||'').trim(); var m=ds.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      if(!m) return false;
+      if(parseInt(m[2])-1!==mm || parseInt(m[3])!==yy) return false;
+      return String(r[16]||'').toLowerCase().trim()==='sim' && is1Posicao(String(r[11]||'').trim());
+    }).length;
+    pontos.push({label:meses[mm]+(i===0?'':'/'+String(yy).slice(-2)), capturados:capturados, andamento:andamento, ganhos:ganhos});
+  }
+
+  var maxVal = Math.max(1, Math.max.apply(null, pontos.map(function(p){ return Math.max(p.capturados, p.andamento, p.ganhos); })));
+
+  var barsHTML = pontos.map(function(p,i){
+    var hC = Math.max(2, Math.round((p.capturados/maxVal)*90));
+    var hA = Math.max(2, Math.round((p.andamento/maxVal)*90));
+    var hG = p.ganhos>0 ? Math.max(2, Math.round((p.ganhos/maxVal)*90)) : 0;
+    return '<div class="r-chart-bar-group" style="position:relative">'+
+      '<div class="r-chart-bars-inner" style="align-items:flex-end;height:90px">'+
+        '<div class="r-chart-bar" style="height:'+hC+'px;background:var(--nh);flex:1" title="Capturados: '+p.capturados+'"></div>'+
+        '<div class="r-chart-bar" style="height:'+hA+'px;background:var(--b2_);flex:1" title="Andamento: '+p.andamento+'"></div>'+
+        (hG>0?'<div class="r-chart-bar" style="height:'+hG+'px;background:var(--g1);flex:1" title="Ganhos: '+p.ganhos+'"></div>':'<div style="flex:1"></div>')+
+      '</div>'+
+      '<div style="font-size:9px;color:var(--t3);text-align:center;margin-top:4px;white-space:nowrap">'+p.label+'</div>'+
+    '</div>';
+  }).join('');
+
+  return '<div class="r-chart-wrap">'+
+    '<div class="r-chart-title"><div class="rcard-title-dot" style="background:var(--nh)"></div>Histórico — Últimos 12 Meses</div>'+
+    '<div class="r-chart-bars">'+barsHTML+'</div>'+
+    '<div class="r-chart-legend">'+
+      '<div class="r-chart-legend-item"><div class="r-chart-legend-dot" style="background:var(--nh)"></div>Capturados</div>'+
+      '<div class="r-chart-legend-item"><div class="r-chart-legend-dot" style="background:var(--b2_)"></div>Em Andamento</div>'+
+      '<div class="r-chart-legend-item"><div class="r-chart-legend-dot" style="background:var(--g1)"></div>Ganhos</div>'+
+    '</div>'+
+  '</div>';
+}
+
+function buildConversaoHTML(edPeriodo, anPeriodo, emp){
+  // Taxa de conversão por empresa: capturados → participou → ganhou
+  var conv = {};
+  EMPRESAS.forEach(function(e){ conv[e.nome]={cap:0,part:0,gan:0,cor:e.cor||'var(--nh)'}; });
+
+  edPeriodo.forEach(function(r){
+    var e=String(r[2]||'').trim();
+    if(conv[e]){
+      conv[e].cap++;
+      if(String(r[10]||'').toUpperCase().trim()==='SIM') conv[e].part++;
+    }
+  });
+  anPeriodo.forEach(function(r){
+    var e=String(r[2]||'').trim();
+    if(!conv[e]) conv[e]={cap:0,part:0,gan:0,cor:'var(--nh)'};
+    if(String(r[16]||'').toLowerCase().trim()==='sim' && is1Posicao(String(r[11]||'').trim())){
+      conv[e].gan++;
+    }
+  });
+
+  var rows = Object.entries(conv)
+    .filter(function(x){ return x[1].cap>0||x[1].part>0||x[1].gan>0; })
+    .sort(function(a,b){ return (b[1].gan/Math.max(1,b[1].part))-(a[1].gan/Math.max(1,a[1].part)); });
+
+  if(!rows.length) return '<div class="rcard-row"><span class="rcard-row-k" style="color:var(--t3)">Sem dados no período</span></div>';
+
+  return rows.map(function(x){
+    var nome=x[0], d=x[1];
+    var pct = d.part>0 ? Math.round((d.gan/d.part)*100) : 0;
+    var cor = pct>=50?'#22c55e':pct>=25?'#eab308':pct>0?'#f97316':'var(--t3)';
+    var empCor = d.cor||'var(--nh)';
+    return '<div class="r-conv-row">'+
+      '<span class="r-conv-emp" style="color:'+empCor+'">'+nome+'</span>'+
+      '<div class="r-conv-bar-wrap"><div class="r-conv-bar" style="width:'+pct+'%;background:'+cor+'"></div></div>'+
+      '<span class="r-conv-pct" style="color:'+cor+'">'+pct+'%</span>'+
+      '<span class="r-conv-nums">'+d.gan+'/'+d.part+' part.</span>'+
+    '</div>';
+  }).join('');
+}
+
+function buildDescPeriodo(){
+  var meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  if(_rPeriodo==='total') return 'Todos os registros';
+  if(_rPeriodo==='mes') return meses[_rMesSel]+' '+_rAnoSel;
+  if(_rPeriodo==='trimestre'){
+    var t=Math.floor(_rMesSel/3)+1;
+    return t+'º Trimestre de '+_rAnoSel;
+  }
+  if(_rPeriodo==='ano') return 'Ano '+_rAnoSel;
+  return '';
+}
+
 function buildResumo(){
   var el=document.getElementById('resumo-body');
   if(!API){el.innerHTML=noConf();return;}
-  var ed=ALL.editais,an=ALL.andamento,fi=ALL.finalizados,ga=ALL.ganhas;
 
-  var part=ed.filter(function(r){return String(r[10]||'').toUpperCase().trim()==='SIM';}).length;
+  // Dados brutos
+  var edAll=ALL.editais||[], anAll=ALL.andamento||[], fiAll=ALL.finalizados||[], gaAll=ALL.ganhas||[];
 
-  // Em Andamento: usar mesmo filtro do badge lateral (status = 'EM ANDAMENTO')
-  var anAtivos=an.filter(function(r){return String(r[12]||'').toUpperCase().trim()==='EM ANDAMENTO';}).length;
-  var adj=an.filter(function(r){return String(r[16]||'').toLowerCase().trim()==='sim';}).length;
+  // Aplicar filtro de período
+  // Editais: data em r[1], andamento: r[1], finalizados: r[1], ganhas: r[1]
+  var ed = filtrarPeriodo(edAll, 1);
+  var an = filtrarPeriodo(anAll, 1);
+  var fi = filtrarPeriodo(fiAll, 1);
+  // Ganhas/contratos: período se filtro ativo, senão tudo (contratos são acumulativos)
+  var ga = _rPeriodo==='total' ? gaAll : filtrarPeriodo(gaAll, 1);
 
-  // Contratos ativos em execução
-  var emExec=ga.filter(function(r){return String(r[9]||'').trim().toUpperCase()==='EM EXECUÇÃO';}).length;
-  var tvAtivo=ga.filter(function(r){return String(r[9]||'').trim().toUpperCase()==='EM EXECUÇÃO';})
+  // KPIs do período
+  var part    = ed.filter(function(r){return String(r[10]||'').toUpperCase().trim()==='SIM';}).length;
+  var anAtivos= anAll.filter(function(r){return String(r[12]||'').toUpperCase().trim()==='EM ANDAMENTO';}).length;
+  var adj     = an.filter(function(r){return String(r[16]||'').toLowerCase().trim()==='sim';}).length;
+  var emExec  = gaAll.filter(function(r){return String(r[9]||'').trim().toUpperCase()==='EM EXECUÇÃO';}).length;
+  var tvAtivo = gaAll.filter(function(r){return String(r[9]||'').trim().toUpperCase()==='EM EXECUÇÃO';})
     .reduce(function(acc,r){return acc+calcValorGanhas(r);},0);
-  var totalVal=ga.reduce(function(acc,r){return acc+calcValorGanhas(r);},0);
+  var totalVal= gaAll.reduce(function(acc,r){return acc+calcValorGanhas(r);},0);
 
-  var EMPS=EMPRESAS.map(function(e){return e.nome;});
-  var empAn={};
-  an.filter(function(r){return String(r[12]||'').toUpperCase().trim()==='EM ANDAMENTO';})
-    .forEach(function(r){var e=String(r[2]||'').trim();empAn[e]=(empAn[e]||0)+1;});
-
-  var stMap={};
-  // Usar editais para licitações por estado (tem mais dados)
-  ed.forEach(function(r){
-    var m=String(r[6]||'').trim();
-    var re1=m.match(/\(([A-Z]{2})\)/);
-    var re2=m.match(/\s([A-Z]{2})$/);
-    var match=re1||re2;
-    if(match){var st=(re1?re1[1]:re2[1]);stMap[st]=(stMap[st]||0)+1;}
-  });
-  var topStates=Object.entries(stMap).sort(function(a,b){return b[1]-a[1];}).slice(0,5);
-  var empAnItems=EMPS.filter(function(e){return empAn[e];}).map(function(e){return [e,empAn[e]];});
-
-  // Ganhas por empresa = ADJU=sim E Classificação=1 posição no mesmo processo
+  // Ganhos no período
   var gaEmpC={};
   an.filter(function(r){
-    var adju=String(r[16]||'').toLowerCase().trim()==='sim';
-    var pos1=is1Posicao(String(r[11]||'').trim());
-    return adju && pos1;
+    return String(r[16]||'').toLowerCase().trim()==='sim' && is1Posicao(String(r[11]||'').trim());
   }).forEach(function(r){
     var e=String(r[2]||'').trim();
     if(e) gaEmpC[e]=(gaEmpC[e]||0)+1;
@@ -2994,53 +3199,110 @@ function buildResumo(){
   var gaEmpItems=Object.entries(gaEmpC).sort(function(a,b){return b[1]-a[1];});
   var totalGanhos=Object.values(gaEmpC).reduce(function(a,b){return a+b;},0);
 
+  // Em andamento por empresa no período
+  var empAn={};
+  an.filter(function(r){return String(r[12]||'').toUpperCase().trim()==='EM ANDAMENTO';})
+    .forEach(function(r){var e=String(r[2]||'').trim();empAn[e]=(empAn[e]||0)+1;});
+  var empAnItems=Object.entries(empAn).sort(function(a,b){return b[1]-a[1];});
+
+  // Editais capturados por empresa no período
+  var empEd={};
+  ed.forEach(function(r){var e=String(r[2]||'').trim();if(e)empEd[e]=(empEd[e]||0)+1;});
+
+  // Estados
+  var stMap={};
+  ed.forEach(function(r){
+    var m=String(r[6]||'').trim();
+    var re1=m.match(/\(([A-Z]{2})\)/), re2=m.match(/\s([A-Z]{2})$/);
+    var match=re1||re2;
+    if(match){var st=(re1?re1[1]:re2[1]);stMap[st]=(stMap[st]||0)+1;}
+  });
+  var topStates=Object.entries(stMap).sort(function(a,b){return b[1]-a[1];}).slice(0,5);
+
+  // Status contratos (sempre total)
   var gaStC={};
-  ga.forEach(function(r){var s=String(r[9]||'—').trim();gaStC[s]=(gaStC[s]||0)+1;});
+  gaAll.forEach(function(r){var s=String(r[9]||'—').trim();gaStC[s]=(gaStC[s]||0)+1;});
   var gaStItems=Object.entries(gaStC).sort(function(a,b){return b[1]-a[1];});
 
-  // Valor por empresa — só contratos em execução (faturamento ativo)
-  // Só aparecem empresas que têm contratos cadastrados em Licitações Ganhas com status EM EXECUÇÃO
+  // Faturamento ativo (sempre total — contratos são acumulativos)
   var empVal={};
-  ga.filter(function(r){return String(r[9]||'').trim().toUpperCase()==='EM EXECUÇÃO';})
+  gaAll.filter(function(r){return String(r[9]||'').trim().toUpperCase()==='EM EXECUÇÃO';})
     .forEach(function(r){var e=String(r[2]||'').trim();if(e)empVal[e]=(empVal[e]||0)+calcValorGanhas(r);});
-  // Só incluir empresas com valor > 0 (não mostrar R$0,00 para empresas sem contratos)
   var empValItems=Object.entries(empVal).filter(function(x){return x[1]>0;}).sort(function(a,b){return b[1]-a[1];});
 
-  // Valor conquistado por empresa — baseado em Licitações Ganhas (não em andamento)
-  // Soma todos os contratos cadastrados em Licitações Ganhas por empresa
+  // Valor conquistado (sempre total)
   var empValGanhos={};
-  ga.forEach(function(r){
+  gaAll.forEach(function(r){
     var e=String(r[2]||'').trim();
     if(!e) return;
     empValGanhos[e]=(empValGanhos[e]||0)+calcValorGanhas(r);
   });
-  // Só incluir empresas com valor > 0
   var empValGanhosItems=Object.entries(empValGanhos).filter(function(x){return x[1]>0;}).sort(function(a,b){return b[1]-a[1];});
 
+  // Atualizar descrição do período
+  var descEl=document.getElementById('r-periodo-desc');
+  if(descEl) descEl.textContent=buildDescPeriodo();
+
+  // Label do período para KPIs
+  var perLabel=_rPeriodo==='total'?'':' · '+buildDescPeriodo();
+
   el.innerHTML=
+    // Filtro de período
+    buildPeriodoHTML()+
+
+    // KPIs principais
     '<div class="r-kpis">'+
-      '<div class="r-kpi nh-accent"><div class="rkpi-lbl">Editais Capturados</div><div class="rkpi-val nh">'+ed.length+'</div><div class="rkpi-sub">'+part+' para participar</div></div>'+
-      '<div class="r-kpi"><div class="rkpi-lbl">Em Andamento</div><div class="rkpi-val" style="color:var(--y2)">'+anAtivos+'</div><div class="rkpi-sub">'+adj+' adjudicados</div></div>'+
-      '<div class="r-kpi"><div class="rkpi-lbl">Finalizados</div><div class="rkpi-val" style="color:var(--b2_)">'+fi.length+'</div><div class="rkpi-sub">ADJU = sim</div></div>'+
-      '<div class="r-kpi"><div class="rkpi-lbl">Contratos Ativos</div><div class="rkpi-val g">'+emExec+'</div><div class="rkpi-sub">'+fmtVal(tvAtivo)+'</div></div>'+
-      '<div class="r-kpi nh-accent"><div class="rkpi-lbl">Total Processos Ganhos</div><div class="rkpi-val" style="color:var(--nh)">'+totalGanhos+'</div><div class="rkpi-sub">processos finalizados ganhos</div></div>'+
-      (totalVal>0?'<div class="r-kpi" style="border-color:rgba(34,197,94,.3)"><div class="rkpi-lbl">Total Contratos Ganhos</div><div class="rkpi-val" style="font-size:18px;color:#22c55e">'+fmtVal(totalVal)+'</div><div class="rkpi-sub">soma de todos os contratos</div></div>':'')+
+      '<div class="r-kpi nh-accent">'+
+        '<div class="rkpi-lbl">Editais Capturados'+perLabel+'</div>'+
+        '<div class="rkpi-val nh">'+ed.length+'</div>'+
+        '<div class="rkpi-sub">'+part+' para participar</div>'+
+      '</div>'+
+      '<div class="r-kpi">'+
+        '<div class="rkpi-lbl">Processos Iniciados'+perLabel+'</div>'+
+        '<div class="rkpi-val" style="color:var(--y2)">'+an.length+'</div>'+
+        '<div class="rkpi-sub">'+anAtivos+' em andamento agora</div>'+
+      '</div>'+
+      '<div class="r-kpi">'+
+        '<div class="rkpi-lbl">Processos Ganhos'+perLabel+'</div>'+
+        '<div class="rkpi-val" style="color:var(--g2)">'+totalGanhos+'</div>'+
+        '<div class="rkpi-sub">'+
+          (an.length>0?Math.round(totalGanhos/an.length*100)+'% taxa de conversão':'—')+
+        '</div>'+
+      '</div>'+
+      '<div class="r-kpi"><div class="rkpi-lbl">Contratos Ativos (Total)</div><div class="rkpi-val g">'+emExec+'</div><div class="rkpi-sub">'+fmtVal(tvAtivo)+'</div></div>'+
+      (totalVal>0?'<div class="r-kpi" style="border-color:rgba(34,197,94,.3)"><div class="rkpi-lbl">Portfolio Total (Todos)</div><div class="rkpi-val" style="font-size:18px;color:#22c55e">'+fmtVal(totalVal)+'</div><div class="rkpi-sub">soma de todos os contratos</div></div>':'')+
+    '</div>'+
+
+    // Gráfico histórico
+    buildHistoricoHTML()+
+
+    // Taxa de conversão por empresa
+    '<div class="r-cards">'+
+      '<div class="rcard" style="grid-column:1/-1">'+
+        '<div class="rcard-title"><div class="rcard-title-dot" style="background:var(--g1)"></div>'+
+          'Taxa de Conversão por Empresa'+perLabel+
+          '<span style="margin-left:auto;font-size:10px;font-weight:400;color:var(--t3)">Capturados → Participou → Ganhou</span>'+
+        '</div>'+
+        '<div>'+buildConversaoHTML(ed,an)+'</div>'+
+      '</div>'+
+    '</div>'+
+
+    // Cards de detalhe
+    '<div class="r-cards">'+
+      '<div class="rcard"><div class="rcard-title"><div class="rcard-title-dot" style="background:var(--nh)"></div>Capturados por Empresa'+perLabel+'</div><div class="rcard-rows">'+
+        rcRows(Object.entries(empEd).sort(function(a,b){return b[1]-a[1];}), 'nh')+
+      '</div></div>'+
+      '<div class="rcard"><div class="rcard-title"><div class="rcard-title-dot" style="background:var(--g1)"></div>Ganhos por Empresa'+perLabel+'</div><div class="rcard-rows">'+rcRows(gaEmpItems,'g')+'</div></div>'+
     '</div>'+
     '<div class="r-cards">'+
-      '<div class="rcard"><div class="rcard-title"><div class="rcard-title-dot" style="background:var(--nh)"></div>Em Andamento por Empresa</div><div class="rcard-rows">'+rcRows(empAnItems,'nh')+'</div></div>'+
-      '<div class="rcard"><div class="rcard-title"><div class="rcard-title-dot" style="background:var(--g1)"></div>Ganhas por Empresa (ADJU+1º)</div><div class="rcard-rows">'+rcRows(gaEmpItems,'g')+'</div></div>'+
-    '</div>'+
-    '<div class="r-cards">'+
-      '<div class="rcard"><div class="rcard-title"><div class="rcard-title-dot" style="background:var(--b2_)"></div>Licitações por Estado</div><div class="rcard-rows">'+rcRows(topStates.map(function(x){return[x[0],x[1]];}),  'b')+'</div></div>'+
+      '<div class="rcard"><div class="rcard-title"><div class="rcard-title-dot" style="background:var(--b2_)"></div>Editais por Estado'+perLabel+'</div><div class="rcard-rows">'+rcRows(topStates.map(function(x){return[x[0],x[1]];}), 'b')+'</div></div>'+
       '<div class="rcard"><div class="rcard-title"><div class="rcard-title-dot" style="background:var(--p1)"></div>Contratos Ganhos — Status</div><div class="rcard-rows">'+rcRows(gaStItems,'p')+'</div></div>'+
     '</div>'+
     '<div class="r-cards">'+
       '<div class="rcard"><div class="rcard-title"><div class="rcard-title-dot" style="background:var(--nh)"></div>Faturamento Ativo por Empresa</div><div class="rcard-rows">'+
-        empValItems.map(function(x){
-          var cor=x[1]>0?'nh':'';
-          var val=x[1]>0?fmtVal(x[1]):'R$ 0,00';
-          return '<div class="rcard-row"><span class="rcard-row-k">'+x[0]+'</span><span class="rcard-row-v '+cor+'" style="font-size:12px">'+val+'</span></div>';
-        }).join('')+
+        (empValItems.length?empValItems.map(function(x){
+          return '<div class="rcard-row"><span class="rcard-row-k">'+x[0]+'</span><span class="rcard-row-v nh" style="font-size:12px">'+fmtVal(x[1])+'</span></div>';
+        }).join(''):'<div class="rcard-row"><span class="rcard-row-k" style="color:var(--t3)">Nenhum contrato ativo</span></div>')+
       '</div></div>'+
       '<div class="rcard"><div class="rcard-title"><div class="rcard-title-dot" style="background:#22c55e"></div>Valor Conquistado por Empresa</div><div class="rcard-rows">'+
         (empValGanhosItems.length?empValGanhosItems.map(function(x){
