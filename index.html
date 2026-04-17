@@ -2999,26 +2999,22 @@ function buildResumo(){
   var gaStItems=Object.entries(gaStC).sort(function(a,b){return b[1]-a[1];});
 
   // Valor por empresa — só contratos em execução (faturamento ativo)
+  // Só aparecem empresas que têm contratos cadastrados em Licitações Ganhas com status EM EXECUÇÃO
   var empVal={};
   ga.filter(function(r){return String(r[9]||'').trim().toUpperCase()==='EM EXECUÇÃO';})
     .forEach(function(r){var e=String(r[2]||'').trim();if(e)empVal[e]=(empVal[e]||0)+calcValorGanhas(r);});
-  var TODAS_EMPS=EMPRESAS.map(function(e){return e.nome;});
-  TODAS_EMPS.forEach(function(e){if(!empVal[e]) empVal[e]=0;});
-  var empValItems=Object.entries(empVal).sort(function(a,b){return b[1]-a[1];});
+  // Só incluir empresas com valor > 0 (não mostrar R$0,00 para empresas sem contratos)
+  var empValItems=Object.entries(empVal).filter(function(x){return x[1]>0;}).sort(function(a,b){return b[1]-a[1];});
 
-  // Valor conquistado por empresa — processos ganhos (ADJU=sim E 1 posição) usando valor final
+  // Valor conquistado por empresa — baseado em Licitações Ganhas (não em andamento)
+  // Soma todos os contratos cadastrados em Licitações Ganhas por empresa
   var empValGanhos={};
-  an.filter(function(r){
-    return String(r[16]||'').toLowerCase().trim()==='sim' && is1Posicao(String(r[11]||'').trim());
-  }).forEach(function(r){
+  ga.forEach(function(r){
     var e=String(r[2]||'').trim();
     if(!e) return;
-    // Pegar valor final (idx 8) ou valor estimado (idx 7)
-    var vf=parseMoeda(r[8]);
-    var ve=parseMoeda(r[7]);
-    empValGanhos[e]=(empValGanhos[e]||0)+(vf||ve);
+    empValGanhos[e]=(empValGanhos[e]||0)+calcValorGanhas(r);
   });
-  TODAS_EMPS.forEach(function(e){if(!empValGanhos[e]) empValGanhos[e]=0;});
+  // Só incluir empresas com valor > 0
   var empValGanhosItems=Object.entries(empValGanhos).filter(function(x){return x[1]>0;}).sort(function(a,b){return b[1]-a[1];});
 
   el.innerHTML=
@@ -6230,25 +6226,20 @@ function gerarDocumento(preview){
 
 function cssBase(corEmp, useTimbrado){
   if(useTimbrado){
-    // Estrutura inline: header e footer são partes do layout normal
-    // @page margin:0 + estrutura de tabela garante que header/footer
-    // fiquem no topo e fundo de CADA página sem depender de position:fixed
     return '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Documento</title><style>'+
       '*{box-sizing:border-box;margin:0;padding:0}'+
-      'html,body{height:100%}'+
       'body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#000;background:#fff;'+
            '-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
-      // Tabela de layout: ocupa 100% da altura da página
-      // thead/tfoot são repetidos pelo browser em cada página ao imprimir
-      'table.pg-layout{width:100%;border-collapse:collapse;border-spacing:0}'+
-      'table.pg-layout>thead>tr>td,table.pg-layout>tfoot>tr>td{padding:0;line-height:0;font-size:0}'+
-      'table.pg-layout>thead>tr>td img,table.pg-layout>tfoot>tr>td img{width:100%;display:block;line-height:0}'+
-      'table.pg-layout>tbody>tr>td{padding:0.4cm 1.8cm;vertical-align:top}'+
-      // Contador de página no canto direito do header
-      '.pg-count{position:absolute;top:0.5cm;right:0.4cm;font-size:9px;color:#555;font-family:Arial}'+
-      'thead{display:table-header-group}'+
-      'tfoot{display:table-footer-group}'+
-      'tbody{display:table-row-group}'+
+      // position:fixed repete em cada página no Chrome ao imprimir
+      // @page margins reservam o espaço exato = altura das imagens
+      '#hdr-f{position:fixed;top:0;left:0;width:100%;z-index:100}'+
+      '#hdr-f img{width:100%;display:block}'+
+      '#ftr-f{position:fixed;bottom:0;left:0;width:100%;z-index:100}'+
+      '#ftr-f img{width:100%;display:block}'+
+      // Numeração de página
+      '.pg-n{position:fixed;top:0.55cm;right:0.35cm;font-size:9px;color:#555;font-family:Arial;z-index:101}'+
+      // Conteúdo: padding = altura exata das imagens para não sobrepor
+      '#corpo{padding:2.6cm 1.8cm 2.3cm}'+
       // Estilos do conteúdo
       '.orgao-box{font-weight:700;font-size:11px;line-height:1.8;margin-bottom:16px}'+
       '.objeto-box{background:#f8f8f8;border-left:4px solid '+corEmp+';padding:10px 14px;margin-bottom:20px;font-size:11px;line-height:1.7;text-align:justify}'+
@@ -6269,10 +6260,20 @@ function cssBase(corEmp, useTimbrado){
       '.decl-item{margin:12px 0}'+
       '.decl-item strong{display:block;margin-bottom:4px}'+
       '.rodape-texto{display:none}'+
-      '@media print{@page{size:A4;margin:0}body{font-size:11px}}'+
-      '</style></head><body>';
+      // @page: margem top/bottom = altura exata das imagens, lateral 0
+      '@page{size:A4;margin:2.47cm 0 2.16cm 0}'+
+      '@media print{body{font-size:11px}}'+
+      '</style>'+
+      // Script inline para numeração de páginas
+      '<script>window.onload=function(){'+
+        'var c=document.getElementById("corpo");if(!c)return;'+
+        'var ph=(29.7-2.47-2.16)*96/2.54;'+
+        'var tot=Math.max(1,Math.ceil(c.scrollHeight/ph));'+
+        'document.querySelectorAll(".pg-n").forEach(function(el,i){el.textContent=(i+1)+" de "+tot;});'+
+      '};<\/script>'+
+      '</head><body>';
   }
-  // Sem timbrado
+  // Sem timbrado: layout simples com padding normal
   return '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Documento</title><style>'+
     '*{box-sizing:border-box;margin:0;padding:0}'+
     'body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#000;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
@@ -6305,15 +6306,10 @@ function cssBase(corEmp, useTimbrado){
 function timbradoHTML(emp, corEmp){
   var tb = TIMBRADOS[empSelecionada];
   if(tb && tb.header){
-    // thead e tfoot são repetidos pelo browser em CADA página ao imprimir
-    // É o método mais confiável cross-browser sem dependências externas
-    return '<table class="pg-layout"><thead><tr><td>'+
-             '<img src="'+tb.header+'" alt="Cabeçalho">'+
-           '</td></tr></thead>'+
-           '<tfoot><tr><td>'+
-             '<img src="'+tb.footer+'" alt="Rodapé">'+
-           '</td></tr></tfoot>'+
-           '<tbody><tr><td>';
+    return '<div id="hdr-f"><img src="'+tb.header+'" alt=""></div>'+
+           '<div id="ftr-f"><img src="'+tb.footer+'" alt=""></div>'+
+           '<div class="pg-n"></div>'+
+           '<div id="corpo">';
   }
   return '<div class="timbrado-texto">'+
     '<div style="font-size:28px;font-weight:900;color:'+corEmp+';letter-spacing:-1px;line-height:1">'+empSelecionada+
@@ -6359,7 +6355,7 @@ function assinaturaHTML(emp, cidade, dataFmt){
 function rodapeHTML(emp){
   var tb = TIMBRADOS[empSelecionada];
   if(tb && tb.footer){
-    return '</td></tr></tbody></table>';
+    return '</div>';
   }
   return '<div class="rodape-texto">'+
     emp.razao+' &nbsp;·&nbsp; CNPJ: '+emp.cnpj+
