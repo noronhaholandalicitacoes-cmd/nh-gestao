@@ -6229,17 +6229,21 @@ function cssBase(corEmp, useTimbrado){
     return '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Documento</title><style>'+
       '*{box-sizing:border-box;margin:0;padding:0}'+
       'body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#000;background:#fff;'+
-           '-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
+           '-webkit-print-color-adjust:exact;print-color-adjust:exact;min-height:29.7cm}'+
       // position:fixed repete em cada página no Chrome ao imprimir
       // @page margins reservam o espaço exato = altura das imagens
+      // min-height:29.7cm garante que o viewport tenha altura de página inteira
+      // evitando que position:fixed bottom:0 fique no meio da página
       '#hdr-f{position:fixed;top:0;left:0;width:100%;z-index:100}'+
       '#hdr-f img{width:100%;display:block}'+
       '#ftr-f{position:fixed;bottom:0;left:0;width:100%;z-index:100}'+
       '#ftr-f img{width:100%;display:block}'+
       // Numeração de página
-      '.pg-n{position:fixed;top:0.55cm;right:0.35cm;font-size:9px;color:#555;font-family:Arial;z-index:101}'+
+      '@page{counter-increment:page}'+
+'.pg-n{position:fixed;top:0.55cm;right:0.35cm;font-size:9px;color:#555;font-family:Arial;z-index:101}'+
+'.pg-n::after{content:counter(page) " de " counter(pages)}'+
       // Conteúdo: padding = altura exata das imagens para não sobrepor
-      '#corpo{padding:2.6cm 1.8cm 2.3cm}'+
+      '#corpo{padding:0.3cm 1.8cm}'+
       // Estilos do conteúdo
       '.orgao-box{font-weight:700;font-size:11px;line-height:1.8;margin-bottom:16px}'+
       '.objeto-box{background:#f8f8f8;border-left:4px solid '+corEmp+';padding:10px 14px;margin-bottom:20px;font-size:11px;line-height:1.7;text-align:justify}'+
@@ -6265,12 +6269,6 @@ function cssBase(corEmp, useTimbrado){
       '@media print{body{font-size:11px}}'+
       '</style>'+
       // Script inline para numeração de páginas
-      '<script>window.onload=function(){'+
-        'var c=document.getElementById("corpo");if(!c)return;'+
-        'var ph=(29.7-2.47-2.16)*96/2.54;'+
-        'var tot=Math.max(1,Math.ceil(c.scrollHeight/ph));'+
-        'document.querySelectorAll(".pg-n").forEach(function(el,i){el.textContent=(i+1)+" de "+tot;});'+
-      '};<\/script>'+
       '</head><body>';
   }
   // Sem timbrado: layout simples com padding normal
