@@ -11,6 +11,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NH Licitações</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -1253,7 +1254,11 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
 
   <div class="footer-btns">
     <button class="btn btn-ghost" onclick="previsualizar()">👁 Pré-visualizar</button>
-    <button class="btn btn-nh" onclick="gerarDocumento()">📄 Gerar Documento</button>
+    <button class="btn btn-nh" onclick="gerarDocumento()">📄 Gerar PDF</button>
+    <button class="btn" id="btn-word" onclick="gerarWord()" style="background:rgba(37,99,235,.15);border:1px solid rgba(37,99,235,.4);color:#60a5fa;gap:6px">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM8 17l2-6 2 6 2-6 2 6h-1l-1.5-4.5L12 17l-1.5-4.5L9 17H8z"/></svg>
+      Baixar Word
+    </button>
   </div>
 </div>
       </div>
@@ -6477,6 +6482,330 @@ function numExtenso(n){
 
 function previsualizar(){ gerarDocumento(true); }
 
+
+// ── Geração de Word (.docx) ──────────────────────────────────────────
+function gerarWord(){
+  if(typeof docx === 'undefined'){
+    toast('Biblioteca Word carregando, tente em instantes...', 'err');
+    return;
+  }
+  if(tipoDoc !== 'proposta'){
+    toast('Exportação Word disponível para Proposta Comercial', 'info');
+    return;
+  }
+
+  var emp     = getDados();
+  var orgao   = document.getElementById('orgao').value.trim().toUpperCase();
+  var setor   = document.getElementById('setor').value.trim().toUpperCase();
+  var modal   = document.getElementById('modalidade').value.trim().toUpperCase();
+  var proc    = document.getElementById('processo').value.trim();
+  var obj     = document.getElementById('objeto').value.trim();
+  var cidade  = document.getElementById('cidade_assina').value.trim();
+  var dataFmt = dataExtenso(document.getElementById('data_assina').value);
+  var validade= document.getElementById('validade').value || 60;
+  var ppag    = document.getElementById('prazo_pag').value;
+  var pentrega= document.getElementById('prazo_entrega').value;
+  var lprest  = document.getElementById('local_prestacao').value;
+  var total   = calcTotal();
+  var totalFmt= fmtMoeda(total);
+  var totalExt= numExtenso(total);
+  var empObj  = EMPRESAS.find(function(e){return e.nome===empSelecionada;})||{};
+  var corEmp  = (empObj.cor||'#f97316').replace('#','');
+
+  var {
+    Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+    AlignmentType, BorderStyle, WidthType, ShadingType, VerticalAlign,
+    Header, Footer, PageNumber, NumberFormat
+  } = docx;
+
+  // Cor principal como RGB hex sem #
+  var COR = corEmp || 'F97316';
+
+  // Helper: parágrafo simples
+  function p(text, opts){
+    opts = opts||{};
+    return new Paragraph({
+      alignment: opts.align || AlignmentType.LEFT,
+      spacing: { before: opts.before||0, after: opts.after||80 },
+      children: [new TextRun({
+        text: text||'',
+        bold: opts.bold||false,
+        size: opts.size||22,
+        font: 'Arial',
+        color: opts.color||'000000',
+        underline: opts.underline ? {} : undefined,
+        allCaps: opts.caps||false,
+      })]
+    });
+  }
+
+  // Helper: parágrafo com múltiplos runs
+  function pRuns(runs, opts){
+    opts = opts||{};
+    return new Paragraph({
+      alignment: opts.align || AlignmentType.JUSTIFIED,
+      spacing: { before: opts.before||0, after: opts.after||80 },
+      children: runs.map(function(r){
+        return new TextRun({
+          text: r.text||'',
+          bold: r.bold||false,
+          size: r.size||22,
+          font: 'Arial',
+          color: r.color||'000000',
+        });
+      })
+    });
+  }
+
+  // ── TABELA DE ITENS ─────────────────────────────────────────────
+  var TW = 9026; // largura total A4 com margens 1.27cm
+  var colWidths = {item:500, und:700, qtd:600, vunit:1100, vtotal:1200};
+  var descW = TW - colWidths.item - colWidths.und - colWidths.qtd - colWidths.vunit - colWidths.vtotal;
+
+  var cellBorder = { style: BorderStyle.SINGLE, size: 4, color: 'CCCCCC' };
+  var allBorders = { top:cellBorder, bottom:cellBorder, left:cellBorder, right:cellBorder };
+
+  // Header da tabela
+  function thCell(text, w){
+    return new TableCell({
+      borders: allBorders,
+      width: { size: w, type: WidthType.DXA },
+      shading: { fill: COR, type: ShadingType.CLEAR },
+      margins: { top:80, bottom:80, left:100, right:100 },
+      verticalAlign: VerticalAlign.CENTER,
+      children: [new Paragraph({
+        alignment: AlignmentType.CENTER,
+        children: [new TextRun({ text:text, bold:true, size:18, font:'Arial', color:'FFFFFF', allCaps:true })]
+      })]
+    });
+  }
+
+  // Célula de dado
+  function tdCell(text, w, align, bold){
+    return new TableCell({
+      borders: allBorders,
+      width: { size: w, type: WidthType.DXA },
+      margins: { top:80, bottom:80, left:100, right:100 },
+      verticalAlign: VerticalAlign.CENTER,
+      children: [new Paragraph({
+        alignment: align || AlignmentType.CENTER,
+        children: [new TextRun({ text: String(text||''), bold:bold||false, size:20, font:'Arial' })]
+      })]
+    });
+  }
+
+  // Linha de totais (célula amarela)
+  var totalRow = new TableRow({
+    children: [
+      new TableCell({
+        borders: allBorders,
+        width: { size: TW, type: WidthType.DXA },
+        columnSpan: 6,
+        shading: { fill: COR, type: ShadingType.CLEAR },
+        margins: { top:100, bottom:100, left:120, right:120 },
+        children: [new Paragraph({
+          alignment: AlignmentType.CENTER,
+          children: [new TextRun({
+            text: 'O VALOR TOTAL GLOBAL é de ' + totalFmt + ' (' + totalExt + ')',
+            bold: true, size: 22, font: 'Arial', color: 'FFFFFF'
+          })]
+        })]
+      })
+    ]
+  });
+
+  var tabelaRows = [
+    new TableRow({
+      tableHeader: true,
+      children: [
+        thCell('ITEM', colWidths.item),
+        thCell('DESCRIÇÃO', descW),
+        thCell('UNIDADE', colWidths.und),
+        thCell('QTD.', colWidths.qtd),
+        thCell('VALOR UNIT.', colWidths.vunit),
+        thCell('VALOR TOTAL', colWidths.vtotal),
+      ]
+    })
+  ].concat(linhas.map(function(l, i){
+    var vtotal = calcLinha(l);
+    return new TableRow({
+      children: [
+        tdCell(i+1, colWidths.item, AlignmentType.CENTER),
+        tdCell(l.cells.desc||'', descW, AlignmentType.LEFT),
+        tdCell(l.cells.und||'', colWidths.und, AlignmentType.CENTER),
+        tdCell(l.cells.qtd||'', colWidths.qtd, AlignmentType.CENTER),
+        tdCell(fmtMoeda(parseMoeda(l.cells.vunit||0)), colWidths.vunit, AlignmentType.CENTER),
+        tdCell(fmtMoeda(vtotal), colWidths.vtotal, AlignmentType.CENTER),
+      ]
+    });
+  })).concat([totalRow]);
+
+  var tabelaItens = new Table({
+    width: { size: TW, type: WidthType.DXA },
+    columnWidths: [colWidths.item, descW, colWidths.und, colWidths.qtd, colWidths.vunit, colWidths.vtotal],
+    rows: tabelaRows
+  });
+
+  // ── CONTEÚDO DO DOCUMENTO ────────────────────────────────────────
+  var children = [];
+
+  // Órgão
+  if(orgao) children.push(p(orgao, {bold:true, size:20, before:0, after:40}));
+  if(setor) children.push(p(setor, {bold:true, size:20, after:40}));
+  if(modal) children.push(p(modal, {bold:true, size:20, after:40}));
+  if(proc)  children.push(p('PROCESSO ADMINISTRATIVO Nº '+proc, {bold:true, size:20, after:160}));
+
+  // Objeto
+  if(obj){
+    children.push(new Paragraph({
+      spacing:{ before:0, after:160 },
+      border:{ left:{ style:BorderStyle.SINGLE, size:12, color:COR, space:8 } },
+      children:[
+        new TextRun({ text:'OBJETO: ', bold:true, size:22, font:'Arial' }),
+        new TextRun({ text:obj, size:22, font:'Arial' }),
+      ]
+    }));
+  }
+
+  // Título
+  children.push(p('PROPOSTA COMERCIAL', {
+    bold:true, size:28, caps:true, underline:true,
+    align:AlignmentType.CENTER, before:160, after:160
+  }));
+
+  // Intro empresa
+  var introText = 'A empresa ' + emp.razao.toUpperCase() +
+    ' inscrita no CNPJ sob nº ' + emp.cnpj +
+    ', com sede a ' + emp.endereco + ', ' + emp.cidade +
+    (emp.cep?', CEP: '+emp.cep:'') +
+    ', por intermédio de seu(a) ' + emp.cargo +
+    ', o(a) Sr.(a) ' + emp.socio +
+    (emp.cpf?', inscrito no CPF sob o Nº '+emp.cpf:'') +
+    ', E-mail: '+emp.email+', Telefone: '+emp.tel+', declara que:';
+
+  children.push(new Paragraph({
+    alignment: AlignmentType.JUSTIFIED,
+    spacing: { before:0, after:160 },
+    children: [
+      new TextRun({ text:'A empresa ', size:22, font:'Arial' }),
+      new TextRun({ text:emp.razao.toUpperCase(), bold:true, size:22, font:'Arial' }),
+      new TextRun({
+        text:' inscrita no CNPJ sob nº ',
+        size:22, font:'Arial'
+      }),
+      new TextRun({ text:emp.cnpj, bold:true, size:22, font:'Arial' }),
+      new TextRun({
+        text:', com sede a '+emp.endereco+', '+emp.cidade+
+          (emp.cep?', CEP: '+emp.cep:'')+
+          ', por intermédio de seu(a) '+emp.cargo+', o(a) Sr.(a) '+emp.socio+
+          (emp.cpf?', inscrito no CPF sob o Nº ':'')+
+          (emp.cpf?'':'')+', E-mail: '+emp.email+', Telefone: '+emp.tel+', declara que:',
+        size:22, font:'Arial'
+      }),
+    ]
+  }));
+
+  // Tabela de itens
+  children.push(tabelaItens);
+  children.push(p('', {after:80}));
+
+  // Condições
+  var banco = emp.banco ? 'Banco '+emp.banco+(emp.agencia?' · Agência '+emp.agencia:'')+(emp.conta?' · Conta Corrente '+emp.conta:'') : '';
+  children.push(p('Validade da Proposta: '+validade+' ('+numExtenso(parseInt(validade))+') dias.', {size:22, after:60}));
+  children.push(p('Prazo de entrega ou serviço: '+pentrega, {size:22, after:60}));
+  children.push(p('Prazo de pagamento: '+ppag, {size:22, after:60}));
+  children.push(p('Local de entrega ou prestação de serviços: '+lprest, {size:22, after:60}));
+  if(banco) children.push(pRuns([{text:'DADOS BANCÁRIOS: ',bold:true},{text:banco}], {after:160}));
+
+  // Separador
+  children.push(new Paragraph({
+    border:{ bottom:{ style:BorderStyle.SINGLE, size:4, color:'DDDDDD', space:1 } },
+    spacing:{ before:80, after:160 },
+    children:[]
+  }));
+
+  // Cláusulas
+  children.push(p('RESPONSABILIDADES E CONDIÇÕES DA PROPOSTA', {bold:true, size:22, caps:false, after:120}));
+  children.push(p('1. Autenticidade e Responsabilidade', {bold:true, size:22, after:60}));
+  children.push(p(getDocTexto('responsabilidades'), {align:AlignmentType.JUSTIFIED, size:22, after:120}));
+  children.push(p('2. Composição de Preços', {bold:true, size:22, after:60}));
+  children.push(p(getDocTexto('composicao_precos'), {align:AlignmentType.JUSTIFIED, size:22, after:120}));
+  children.push(p('3. Encargos Incluídos', {bold:true, size:22, after:60}));
+  children.push(p(getDocTexto('encargos'), {align:AlignmentType.JUSTIFIED, size:22, after:120}));
+  children.push(p('DA ASSINATURA DA ATA DE PREÇOS E CONTRATO:', {bold:true, size:22, after:60}));
+  children.push(p(
+    getDocTexto('assinatura_ata')
+      .replace('{socio}',emp.socio).replace('{cpf}',emp.cpf).replace('{cidade}',emp.cidade),
+    {align:AlignmentType.JUSTIFIED, size:22, after:240}
+  ));
+
+  // Data e assinatura
+  children.push(p(cidade+', '+dataFmt, {align:AlignmentType.RIGHT, size:22, before:240, after:480}));
+  children.push(new Paragraph({
+    alignment: AlignmentType.CENTER,
+    spacing: { before:0, after:60 },
+    border: { top: { style:BorderStyle.SINGLE, size:4, color:'000000', space:1 } },
+    children: [new TextRun({ text:emp.socio.toUpperCase(), bold:true, size:22, font:'Arial' })]
+  }));
+  children.push(p(emp.cargo.toUpperCase(), {align:AlignmentType.CENTER, size:22}));
+
+  // ── MONTAR DOCUMENTO ────────────────────────────────────────────
+  var doc = new Document({
+    sections: [{
+      properties: {
+        page: {
+          size: { width: 11906, height: 16838 }, // A4
+          margin: { top: 1134, right: 1134, bottom: 1021, left: 1134 } // ~2cm margens
+        }
+      },
+      headers: {
+        default: new Header({
+          children: [
+            new Paragraph({
+              spacing: { before:0, after:0 },
+              border: { bottom: { style:BorderStyle.SINGLE, size:6, color:COR, space:4 } },
+              children: [
+                new TextRun({ text: emp.razao + ' | CNPJ: ' + emp.cnpj, size:18, font:'Arial', color:'555555' }),
+                new TextRun({ text: '	' + emp.email, size:18, font:'Arial', color:'555555' }),
+              ]
+            })
+          ]
+        })
+      },
+      footers: {
+        default: new Footer({
+          children: [
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              border: { top: { style:BorderStyle.SINGLE, size:4, color:COR, space:4 } },
+              spacing: { before:60, after:0 },
+              children: [
+                new TextRun({ text: emp.razao + ' | CNPJ: ' + emp.cnpj, size:16, font:'Arial', color:'777777' }),
+              ]
+            })
+          ]
+        })
+      },
+      children: children
+    }]
+  });
+
+  // Download do arquivo
+  Packer.toBlob(doc).then(function(blob){
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    var nomeArquivo = 'Proposta_' + empSelecionada + '_' + (orgao||'').substring(0,20).replace(/\s+/g,'_') + '.docx';
+    a.download = nomeArquivo;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('✅ Word baixado: '+nomeArquivo, 'ok');
+  }).catch(function(e){
+    toast('Erro ao gerar Word: '+e.message, 'err');
+    console.error(e);
+  });
+}
+
 function gerarDocumento(preview){
   var emp = getDados();
   var orgao=document.getElementById('orgao').value.trim().toUpperCase();
@@ -6517,9 +6846,11 @@ function cssBase(corEmp, useTimbrado){
       '#ftr-f{position:fixed;bottom:0;left:0;width:100%;z-index:100}'+
       '#ftr-f img{width:100%;display:block}'+
       // Numeração: JS calcula total de páginas após imagens carregarem
-      '.pg-n{position:fixed;top:0.55cm;right:0.35cm;font-size:9px;color:#555;font-family:Arial,sans-serif;z-index:101;line-height:1}'+
+      '@page{counter-increment:page}'+
+'.pg-n{position:fixed;top:0.55cm;right:0.35cm;font-size:9px;color:#555;font-family:Arial,sans-serif;z-index:101;line-height:1}'+
+'.pg-n::after{content:counter(page) " de " counter(pages)}'+
       // Conteúdo: padding = altura exata das imagens para não sobrepor
-      '#corpo{padding-top:2.77cm;padding-left:1.8cm;padding-right:1.8cm;padding-bottom:2.36cm}'+
+      '#corpo{padding:0 1.8cm}'+
       // Estilos do conteúdo
       '.orgao-box{font-weight:700;font-size:11px;line-height:1.8;margin-bottom:16px}'+
       '.objeto-box{background:#f8f8f8;border-left:4px solid '+corEmp+';padding:10px 14px;margin-bottom:20px;font-size:11px;line-height:1.7;text-align:justify}'+
@@ -6536,15 +6867,15 @@ function cssBase(corEmp, useTimbrado){
       '.decl-encargos{font-size:11px;line-height:1.8;text-align:justify;margin:14px 0;border-top:1px solid #ddd;padding-top:12px}'+
       '.decl-encargos p{margin-bottom:8px}'+
       '.decl-encargos strong{display:block;text-align:left;margin-bottom:4px}'+
-      '.assinatura{margin-top:40px;font-size:12px}'+
+      '.assinatura{margin-top:50px;font-size:12px;padding-top:0.5cm}'+
       '.decl-item{margin:12px 0}'+
       '.decl-item strong{display:block;margin-bottom:4px}'+
       '.rodape-texto{display:none}'+
       // @page: margem top/bottom = altura exata das imagens, lateral 0
-      '@page{size:A4;margin:0}'+
+      '@page{size:A4;margin:2.47cm 0 2.16cm 0}'+
       '@media print{body{font-size:11px}}'+
       '</style>'+
-      '<script>window.addEventListener(\'load\',function(){setTimeout(function(){var ph=window.innerHeight;var b=document.getElementById(\'corpo\');if(!b)return;var tot=Math.max(1,Math.ceil(b.scrollHeight/ph));document.querySelectorAll(\'.pg-n\').forEach(function(el,i){el.textContent=(i+1)+\' de \'+tot;});},400);});<\/script>'+
+
       '</head><body>';
   }
   // Sem timbrado: layout simples com padding normal
@@ -6568,7 +6899,7 @@ function cssBase(corEmp, useTimbrado){
     '.decl-encargos{font-size:11px;line-height:1.8;text-align:justify;margin:14px 0;border-top:1px solid #ddd;padding-top:12px}'+
     '.decl-encargos p{margin-bottom:8px}'+
     '.decl-encargos strong{display:block;text-align:left;margin-bottom:4px}'+
-    '.assinatura{margin-top:40px;font-size:12px}'+
+    '.assinatura{margin-top:50px;font-size:12px;padding-top:0.5cm}'+
     '.decl-item{margin:12px 0}'+
     '.decl-item strong{display:block;margin-bottom:4px}'+
     '.rodape-texto{margin-top:30px;padding-top:10px;border-top:2px solid '+corEmp+';text-align:center;font-size:10px;color:#555}'+
