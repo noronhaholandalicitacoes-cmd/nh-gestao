@@ -6485,8 +6485,21 @@ function previsualizar(){ gerarDocumento(true); }
 
 // ── Geração de Word (.docx) ──────────────────────────────────────────
 function gerarWord(){
+  // Se o docx ainda não carregou, tentar carregar dinamicamente
   if(typeof docx === 'undefined'){
-    toast('Biblioteca Word carregando, tente em instantes...', 'err');
+    toast('⏳ Carregando biblioteca Word...', 'info');
+    var s = document.createElement('script');
+    s.src = 'https://unpkg.com/docx@8.5.0/build/index.js';
+    s.onload = function(){ setTimeout(gerarWord, 500); };
+    s.onerror = function(){
+      // Fallback: tentar jsdelivr
+      var s2 = document.createElement('script');
+      s2.src = 'https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.js';
+      s2.onload = function(){ setTimeout(gerarWord, 500); };
+      s2.onerror = function(){ toast('❌ Sem internet para carregar biblioteca Word. Conecte-se e tente novamente.', 'err'); };
+      document.head.appendChild(s2);
+    };
+    document.head.appendChild(s);
     return;
   }
   if(tipoDoc !== 'proposta'){
@@ -6836,22 +6849,21 @@ function cssBase(corEmp, useTimbrado){
     return '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Documento</title><style>'+
       '*{box-sizing:border-box;margin:0;padding:0}'+
       // html e body com height:100% são ESSENCIAIS para que a tabela preencha a página
-      'html,body{height:100%;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#000;background:#fff;'+
+      'body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#000;background:#fff;min-height:100vh;'+
            '-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
       // Tabela ocupa 100% da largura e 100% da altura (= página inteira)
-      'table.doc-layout{width:100%;height:100%;border-collapse:collapse;border-spacing:0}'+
-      // thead e tfoot são repetidos pelo browser em CADA página ao imprimir
-      // display:table-header-group e display:table-footer-group garantem isso
-      'thead.doc-hdr{display:table-header-group}'+
-      'tfoot.doc-ftr{display:table-footer-group}'+
-      'tbody.doc-body{display:table-row-group}'+
-      // Imagens occupam 100% da largura, sem padding
-      'thead.doc-hdr td,tfoot.doc-ftr td{padding:0;line-height:0;font-size:0}'+
-      'thead.doc-hdr img,tfoot.doc-ftr img{width:100%;display:block}'+
-      // Célula do corpo: padding lateral para o texto não encostar na borda
-      'tbody.doc-body td.doc-corpo{padding:0.4cm 1.8cm;vertical-align:top}'+
-      // Numeração no canto sup direito — posição relativa ao thead (não fixed)
-      '.pg-num{position:running(pgnum)}'+
+      // Header e footer fixos nas bordas do papel
+      // @page margin reserva o espaço exato, fixed usa esse espaço
+      '#doc-hdr{position:fixed;top:0;left:0;width:100%;z-index:100}'+
+      '#doc-hdr img{width:100%;display:block}'+
+      '#doc-ftr{position:fixed;bottom:0;left:0;width:100%;z-index:100}'+
+      '#doc-ftr img{width:100%;display:block}'+
+      // Numeração no canto sup direito do header
+      '.pg-n{position:fixed;top:0.55cm;right:0.35cm;font-size:9px;color:#555;font-family:Arial,sans-serif;z-index:101}'+
+      '@page{counter-increment:page}'+
+      '.pg-n::after{content:counter(page) " de " counter(pages)}'+
+      // Conteúdo: padding = altura das imagens para não sobrepor
+      '#doc-corpo{padding:0 1.8cm}'+
       // Estilos do conteúdo
       '.orgao-box{font-weight:700;font-size:11px;line-height:1.8;margin-bottom:16px}'+
       '.objeto-box{background:#f8f8f8;border-left:4px solid '+corEmp+';padding:10px 14px;margin-bottom:20px;font-size:11px;line-height:1.7;text-align:justify}'+
@@ -6873,7 +6885,7 @@ function cssBase(corEmp, useTimbrado){
       '.decl-item strong{display:block;margin-bottom:4px}'+
       '.rodape-texto{display:none}'+
       // @page sem margens — as imagens vão de borda a borda
-      '@page{size:A4;margin:0}'+
+      '@page{size:A4;margin:2.47cm 0 2.16cm 0}'+
       '@media print{body{font-size:11px}}'+
       '</style></head><body>';
   }
@@ -6910,12 +6922,10 @@ function cssBase(corEmp, useTimbrado){
 function timbradoHTML(emp, corEmp){
   var tb = TIMBRADOS[empSelecionada];
   if(tb && tb.header){
-    // Estrutura de tabela: thead e tfoot são repetidos pelo browser em cada página
-    // @page margin:0 + html,body height:100% garantem que as imagens vão de borda a borda
-    return '<table class="doc-layout">'+
-           '<thead class="doc-hdr"><tr><td><img src="'+tb.header+'" alt=""></td></tr></thead>'+
-           '<tfoot class="doc-ftr"><tr><td><img src="'+tb.footer+'" alt=""></td></tr></tfoot>'+
-           '<tbody class="doc-body"><tr><td class="doc-corpo">';
+    return '<div id="doc-hdr"><img src="'+tb.header+'" alt=""></div>'+
+           '<div id="doc-ftr"><img src="'+tb.footer+'" alt=""></div>'+
+           '<div class="pg-n"></div>'+
+           '<div id="doc-corpo">';
   }
   return '<div class="timbrado-texto">'+
     '<div style="font-size:28px;font-weight:900;color:'+corEmp+';letter-spacing:-1px;line-height:1">'+empSelecionada+
@@ -6961,7 +6971,7 @@ function assinaturaHTML(emp, cidade, dataFmt){
 function rodapeHTML(emp){
   var tb = TIMBRADOS[empSelecionada];
   if(tb && tb.footer){
-    return '</td></tr></tbody></table>';
+    return '</div>';
   }
   return '<div class="rodape-texto">'+
     emp.razao+' &nbsp;·&nbsp; CNPJ: '+emp.cnpj+
