@@ -1242,6 +1242,15 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
     </div>
   </div>
 
+  <!-- 6. TEXTOS DO DOCUMENTO -->
+  <div class="doc-card" id="card-doc-textos-wrap" style="display:none">
+    <div class="doc-card-title">
+      <div class="step-num">6</div> Textos do Documento
+      <span style="font-size:11px;font-weight:400;color:var(--t3);margin-left:8px">Pré-preenchidos · clique para editar</span>
+    </div>
+    <div id="card-doc-textos"></div>
+  </div>
+
   <div class="footer-btns">
     <button class="btn btn-ghost" onclick="previsualizar()">👁 Pré-visualizar</button>
     <button class="btn btn-nh" onclick="gerarDocumento()">📄 Gerar Documento</button>
@@ -6010,6 +6019,9 @@ async function initDocumentos(){
   document.getElementById('data_assina').value = new Date().toISOString().split('T')[0];
   await carregarEmpresasDoc();
   initTabela();
+  // Inicializar card de textos (proposta é o tipo padrão)
+  var ct = document.getElementById('card-doc-textos-wrap');
+  if(ct){ ct.style.display=''; atualizarCardTextos(); }
 };
 
 async function carregarEmpresasDoc(){
@@ -6069,13 +6081,17 @@ function setTipo(t, btn){
   var ci = document.getElementById('card-itens');
   var cc = document.getElementById('card-condicoes');
   var cd = document.getElementById('card-decl-custom');
+  var ct = document.getElementById('card-doc-textos-wrap');
   if(t==='proposta'){
     og.style.display='none'; ci.style.display=''; cc.style.display=''; cd.style.display='none';
+    if(ct){ ct.style.display=''; atualizarCardTextos(); }
   } else if(t==='decl_unificada'){
     og.style.display='none'; ci.style.display='none'; cc.style.display='none'; cd.style.display='none';
+    if(ct) ct.style.display='none';
   } else { // outras
     og.style.display='flex'; ci.style.display='none'; cc.style.display='none';
     cd.style.display = outraDecl==='personalizada' ? '' : 'none';
+    if(ct) ct.style.display='none';
   }
 }
 
@@ -6623,6 +6639,66 @@ function rodapeHTML(emp){
   '</div>';
 }
 
+// ── Textos editáveis dos documentos ─────────────────────────────
+var DOC_TEXTOS_DEFAULT = {
+  responsabilidades:
+    'Assume integralmente todas as transações, propostas e lances efetuados em seu nome, diretamente ou por representante legal, isentando a contratante de responsabilidades por uso indevido de credenciais de acesso.',
+  composicao_precos:
+    'Os valores apresentados contemplam todos os custos diretos e indiretos, incluindo tributos (ICMS e demais), encargos trabalhistas e previdenciários, fretes, seguros, montagem e demais despesas relacionadas à execução do objeto contratual.',
+  encargos:
+    'Nos preços propostos estão incluídos todos os encargos previdenciários, fiscais (ISS e outros), comerciais, trabalhistas, tributários, embalagens, fretes, seguros, tarifas, descarga, transporte, montagem, responsabilidade civil e demais despesas incidentes ou que venham a incidir direta ou indiretamente sobre o objeto desta licitação.',
+  assinatura_ata:
+    'Se vencedor, na qualidade de representante legal da empresa, assinará a Ata e Contrato: {socio}, CPF: {cpf}, residente e domiciliado em {cidade}.',
+};
+
+// Textos ativos (podem ser editados pelo usuário)
+var DOC_TEXTOS = Object.assign({}, DOC_TEXTOS_DEFAULT);
+
+function getDocTexto(key){
+  return DOC_TEXTOS[key] || DOC_TEXTOS_DEFAULT[key] || '';
+}
+
+function resetDocTexto(key){
+  DOC_TEXTOS[key] = DOC_TEXTOS_DEFAULT[key];
+  var el = document.getElementById('dt-'+key);
+  if(el) el.value = DOC_TEXTOS[key];
+}
+
+function updateDocTexto(key, val){
+  DOC_TEXTOS[key] = val;
+}
+
+function buildDocTextosHTML(){
+  // Só mostrar para proposta comercial
+  var tipo = document.querySelector('.doc-btn.on');
+  var tipoVal = tipo ? tipo.getAttribute('onclick')||'' : '';
+  if(tipoVal.indexOf('proposta') === -1) return '';
+
+  var blocos = [
+    {key:'responsabilidades', titulo:'Responsabilidades e Autenticidade'},
+    {key:'composicao_precos', titulo:'Composição de Preços'},
+    {key:'encargos', titulo:'Declaração de Encargos'},
+    {key:'assinatura_ata', titulo:'Assinatura da Ata / Contrato', hint:'Use {socio}, {cpf}, {cidade} para preencher automaticamente com os dados da empresa.'},
+  ];
+
+  return blocos.map(function(b){
+    var val = DOC_TEXTOS[b.key] || DOC_TEXTOS_DEFAULT[b.key];
+    return '<div class="doc-texto-bloco">'+
+      '<div class="doc-texto-bloco-titulo">'+
+        b.titulo+
+        '<button class="doc-texto-reset" onclick="resetDocTexto(\''+b.key+'\')">↺ Restaurar padrão</button>'+
+      '</div>'+
+      (b.hint ? '<div style="font-size:11px;color:var(--t3);margin-bottom:6px">'+b.hint+'</div>' : '')+
+      '<textarea id="dt-'+b.key+'" rows="3" oninput="updateDocTexto(\''+b.key+'\',this.value)">'+val+'</textarea>'+
+    '</div>';
+  }).join('');
+}
+
+function atualizarCardTextos(){
+  var card = document.getElementById('card-doc-textos');
+  if(card) card.innerHTML = buildDocTextosHTML();
+}
+
 function gerarHTMLProposta(emp,orgao,setor,modal,proc,obj,cidade,dataFmt,corEmp){
   var validade=document.getElementById('validade').value||60;
   var pp=document.getElementById('prazo_pag').value;
@@ -6664,10 +6740,12 @@ function gerarHTMLProposta(emp,orgao,setor,modal,proc,obj,cidade,dataFmt,corEmp)
       banco+
     '</div>'+
     '<div class="decl-encargos">'+
-      '<p><strong>A PROPONENTE DECLARA QUE:</strong></p>'+
-      '<p>Nos preços propostos estão incluídos todos os encargos previdenciários, fiscais (ISS e outros), comerciais, trabalhistas, tributários, embalagens, fretes, seguros, tarifas, descarga, transporte, montagem, responsabilidade civil e demais despesas incidentes ou que venham a incidir direta ou indiretamente sobre o objeto desta licitação.</p>'+
+      '<p><strong>RESPONSABILIDADES E CONDIÇÕES DA PROPOSTA</strong></p>'+
+      '<p><strong>1. Autenticidade e Responsabilidade</strong><br>'+getDocTexto('responsabilidades')+'</p>'+
+      '<p><strong>2. Composição de Preços</strong><br>'+getDocTexto('composicao_precos')+'</p>'+
+      '<p><strong>3. Encargos Incluídos</strong><br>'+getDocTexto('encargos')+'</p>'+
       '<p><strong>DA ASSINATURA DA ATA DE PREÇOS E CONTRATO:</strong><br>'+
-      'Se vencedor, na qualidade de representante legal da empresa, assinará a Ata e Contrato: Sr(a).: '+emp.socio+', CPF: '+emp.cpf+', residente e domiciliado em '+emp.cidade+'.</p>'+
+      getDocTexto('assinatura_ata').replace('{socio}',emp.socio).replace('{cpf}',emp.cpf).replace('{cidade}',emp.cidade)+'</p>'+
     '</div>'+
     assinaturaHTML(emp,cidade,dataFmt)+
     rodapeHTML(emp)+'</body></html>';
