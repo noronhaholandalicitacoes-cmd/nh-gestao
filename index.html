@@ -6507,7 +6507,7 @@ function cssBase(corEmp, useTimbrado){
     return '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Documento</title><style>'+
       '*{box-sizing:border-box;margin:0;padding:0}'+
       'body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#000;background:#fff;'+
-           '-webkit-print-color-adjust:exact;print-color-adjust:exact;min-height:29.7cm}'+
+           '-webkit-print-color-adjust:exact;print-color-adjust:exact;min-height:100vh}'+
       // position:fixed repete em cada página no Chrome ao imprimir
       // @page margins reservam o espaço exato = altura das imagens
       // min-height:29.7cm garante que o viewport tenha altura de página inteira
@@ -6516,12 +6516,10 @@ function cssBase(corEmp, useTimbrado){
       '#hdr-f img{width:100%;display:block}'+
       '#ftr-f{position:fixed;bottom:0;left:0;width:100%;z-index:100}'+
       '#ftr-f img{width:100%;display:block}'+
-      // Numeração de página
-      '@page{counter-increment:page}'+
-'.pg-n{position:fixed;top:0.55cm;right:0.35cm;font-size:9px;color:#555;font-family:Arial;z-index:101}'+
-'.pg-n::after{content:counter(page) " de " counter(pages)}'+
+      // Numeração: JS calcula total de páginas após imagens carregarem
+      '.pg-n{position:fixed;top:0.55cm;right:0.35cm;font-size:9px;color:#555;font-family:Arial,sans-serif;z-index:101;line-height:1}'+
       // Conteúdo: padding = altura exata das imagens para não sobrepor
-      '#corpo{padding:0.3cm 1.8cm}'+
+      '#corpo{padding-top:2.77cm;padding-left:1.8cm;padding-right:1.8cm;padding-bottom:2.36cm}'+
       // Estilos do conteúdo
       '.orgao-box{font-weight:700;font-size:11px;line-height:1.8;margin-bottom:16px}'+
       '.objeto-box{background:#f8f8f8;border-left:4px solid '+corEmp+';padding:10px 14px;margin-bottom:20px;font-size:11px;line-height:1.7;text-align:justify}'+
@@ -6543,10 +6541,10 @@ function cssBase(corEmp, useTimbrado){
       '.decl-item strong{display:block;margin-bottom:4px}'+
       '.rodape-texto{display:none}'+
       // @page: margem top/bottom = altura exata das imagens, lateral 0
-      '@page{size:A4;margin:2.47cm 0 2.16cm 0}'+
+      '@page{size:A4;margin:0}'+
       '@media print{body{font-size:11px}}'+
       '</style>'+
-      // Script inline para numeração de páginas
+      '<script>window.addEventListener(\'load\',function(){setTimeout(function(){var ph=window.innerHeight;var b=document.getElementById(\'corpo\');if(!b)return;var tot=Math.max(1,Math.ceil(b.scrollHeight/ph));document.querySelectorAll(\'.pg-n\').forEach(function(el,i){el.textContent=(i+1)+\' de \'+tot;});},400);});<\/script>'+
       '</head><body>';
   }
   // Sem timbrado: layout simples com padding normal
@@ -6740,12 +6738,15 @@ function gerarHTMLProposta(emp,orgao,setor,modal,proc,obj,cidade,dataFmt,corEmp)
       banco+
     '</div>'+
     '<div class="decl-encargos">'+
-      '<p><strong>RESPONSABILIDADES E CONDIÇÕES DA PROPOSTA</strong></p>'+
-      '<p><strong>1. Autenticidade e Responsabilidade</strong><br>'+getDocTexto('responsabilidades')+'</p>'+
-      '<p><strong>2. Composição de Preços</strong><br>'+getDocTexto('composicao_precos')+'</p>'+
-      '<p><strong>3. Encargos Incluídos</strong><br>'+getDocTexto('encargos')+'</p>'+
-      '<p><strong>DA ASSINATURA DA ATA DE PREÇOS E CONTRATO:</strong><br>'+
-      getDocTexto('assinatura_ata').replace('{socio}',emp.socio).replace('{cpf}',emp.cpf).replace('{cidade}',emp.cidade)+'</p>'+
+      '<p style="font-size:12px;font-weight:900;margin-bottom:10px">RESPONSABILIDADES E CONDIÇÕES DA PROPOSTA</p>'+
+      '<p style="margin-bottom:2px"><strong>1. Autenticidade e Responsabilidade</strong></p>'+
+      '<p style="margin-bottom:10px">'+getDocTexto('responsabilidades')+'</p>'+
+      '<p style="margin-bottom:2px"><strong>2. Composição de Preços</strong></p>'+
+      '<p style="margin-bottom:10px">'+getDocTexto('composicao_precos')+'</p>'+
+      '<p style="margin-bottom:2px"><strong>3. Encargos Incluídos</strong></p>'+
+      '<p style="margin-bottom:10px">'+getDocTexto('encargos')+'</p>'+
+      '<p style="margin-bottom:2px"><strong>DA ASSINATURA DA ATA DE PREÇOS E CONTRATO:</strong></p>'+
+      '<p>'+getDocTexto('assinatura_ata').replace('{socio}',emp.socio).replace('{cpf}',emp.cpf).replace('{cidade}',emp.cidade)+'</p>'+
     '</div>'+
     assinaturaHTML(emp,cidade,dataFmt)+
     rodapeHTML(emp)+'</body></html>';
