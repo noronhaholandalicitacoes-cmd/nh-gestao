@@ -1119,7 +1119,7 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
     <div class="doc-card-title"><div class="step-num">0</div> Processo e Análise IA</div>
     <div style="display:flex;gap:12px;align-items:start;flex-wrap:wrap;margin-bottom:12px">
       <div style="flex:1;min-width:250px">
-        <label style="font-size:11px;color:var(--t3);margin-bottom:4px;display:block">Selecionar processo (Editais ou Em Andamento)</label>
+        <label style="font-size:11px;color:var(--t3);margin-bottom:4px;display:block">Selecionar processo em andamento</label>
         <select id="doc-processo-sel" onchange="selecionarProcessoDoc(this.value)" style="width:100%;background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:10px 14px;border-radius:8px;font-size:13px;font-family:Outfit,sans-serif">
           <option value="">Selecione...</option>
         </select>
@@ -1197,20 +1197,9 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
     
     <div id="ai-status" class="ai-status" style="display:none"></div>
     <div class="row" style="margin-bottom:12px">
-      <div class="fg">
-        <label>Órgão / Entidade</label>
-        <input id="orgao" type="text" placeholder="Ex: FUNDAÇÃO PARAIBANA DE GESTÃO EM SAÚDE – PB SAÚDE">
-      </div>
-      <div class="fg">
-        <label>Setor / Comissão</label>
-        <input id="setor" type="text" placeholder="Ex: COMISSÃO PERMANENTE DE LICITAÇÃO" value="COMISSÃO PERMANENTE DE LICITAÇÃO">
-      </div>
-    </div>
-    <div class="row" style="margin-bottom:12px">
-      <div class="fg">
-        <label>Modalidade e Número</label>
-        <input id="modalidade" type="text" placeholder="Ex: PREGÃO ELETRÔNICO Nº 050/2026">
-      </div>
+      <div class="fg" style="display:none"><input id="orgao" type="text"></div>
+      <div class="fg" style="display:none"><input id="setor" type="text" value="COMISSÃO PERMANENTE DE LICITAÇÃO"></div>
+      <div class="fg" style="display:none"><input id="modalidade" type="text"></div>
       <div class="fg">
         <label>Processo Administrativo</label>
         <input id="processo" type="text" placeholder="Ex: PBS-PRC-2025/08783">
@@ -1971,6 +1960,239 @@ function limparFormula(rowId){
 }
 
 
+
+// ============================================================
+// TABELA DE ITENS — Proposta Comercial
+// ============================================================
+var colunas=[
+  {id:"item",   nome:"Item",   tipo:"num",   width:48},
+  {id:"desc",   nome:"Descrição / Especificação", tipo:"texto", width:300},
+  {id:"unid",   nome:"Unid.",  tipo:"texto", width:60},
+  {id:"qtd",    nome:"Qtd",    tipo:"num",   width:70},
+  {id:"vunit",  nome:"Vl. Unit. (R$)", tipo:"moeda", width:110},
+  {id:"vtotal", nome:"Vl. Total (R$)", tipo:"formula",width:120}
+];
+var linhas=[];
+var _nextRowId=1;
+var _nextColId=100;
+var docTipo="proposta";
+var outraDecl="vistoria";
+
+function setTipo(tipo,btn){
+  docTipo=tipo;
+  document.querySelectorAll(".doc-btn").forEach(function(b){b.classList.remove("on")});
+  if(btn)btn.classList.add("on");
+  var cardItens=document.getElementById("card-itens");
+  var cardCond=document.getElementById("card-condicoes");
+  var cardOtras=document.getElementById("outras-grid");
+  var cardDeclCustom=document.getElementById("card-decl-custom");
+  var cardDocTextos=document.getElementById("card-doc-textos-wrap");
+  if(cardItens)cardItens.style.display=tipo==="proposta"?"":"none";
+  if(cardCond)cardCond.style.display=tipo==="proposta"||tipo==="outras"?"":"none";
+  if(cardOtras)cardOtras.style.display=tipo==="outras"?"":"none";
+  if(cardDeclCustom)cardDeclCustom.style.display=(tipo==="outras"&&outraDecl==="personalizada")?"":"none";
+}
+
+function setOutra(tipo,btn){
+  outraDecl=tipo;
+  document.querySelectorAll(".outras-btn").forEach(function(b){b.classList.remove("on")});
+  if(btn)btn.classList.add("on");
+  var cardDeclCustom=document.getElementById("card-decl-custom");
+  if(cardDeclCustom)cardDeclCustom.style.display=tipo==="personalizada"?"":"none";
+}
+
+function addLinha(){
+  var cells={};
+  colunas.forEach(function(c){cells[c.id]="";});
+  cells.item=linhas.length+1;
+  linhas.push({id:_nextRowId++,cells:cells,formula:["qtd","vunit"]});
+  renderTabela();
+}
+
+function addColuna(){
+  var nome=prompt("Nome da nova coluna:");
+  if(!nome)return;
+  var id="col"+(_nextColId++);
+  var tipo=prompt("Tipo: texto | num | moeda","texto")||"texto";
+  colunas.splice(colunas.length-1,0,{id:id,nome:nome,tipo:tipo,width:100});
+  linhas.forEach(function(r){r.cells[id]="";});
+  renderTabela();
+}
+
+function removerColuna(colId){
+  if(["item","desc","vtotal"].indexOf(colId)>=0){toast("Esta coluna não pode ser removida","err");return;}
+  colunas=colunas.filter(function(c){return c.id!==colId;});
+  renderTabela();
+}
+
+function resetColunas(){
+  if(!confirm("Resetar colunas para o padrão?"))return;
+  colunas=[
+    {id:"item",   nome:"Item",   tipo:"num",   width:48},
+    {id:"desc",   nome:"Descrição / Especificação", tipo:"texto", width:300},
+    {id:"unid",   nome:"Unid.",  tipo:"texto", width:60},
+    {id:"qtd",    nome:"Qtd",    tipo:"num",   width:70},
+    {id:"vunit",  nome:"Vl. Unit. (R$)", tipo:"moeda", width:110},
+    {id:"vtotal", nome:"Vl. Total (R$)", tipo:"formula",width:120}
+  ];
+  linhas.forEach(function(r){r.formula=["qtd","vunit"];});
+  renderTabela();
+}
+
+function calcRowTotal(row){
+  var formula=row.formula||["qtd","vunit"];
+  var total=null;
+  formula.forEach(function(colId){
+    var v=parseMoeda(row.cells[colId]);
+    if(!isNaN(v)&&v>=0){total=total===null?v:total*v;}
+  });
+  return total===null?0:total;
+}
+
+function calcGlobalTotal(){
+  return linhas.reduce(function(acc,row){
+    return acc+(row.cells.vtotal!==undefined?parseMoeda(row.cells.vtotal):calcRowTotal(row));
+  },0);
+}
+
+function renderTabela(){
+  var head=document.getElementById("tbl-head");
+  var body=document.getElementById("tbl-body");
+  if(!head||!body)return;
+
+  // Cabeçalho
+  var thHtml='<tr><th class="col-num" style="width:36px"><div class="th-inner">#</div></th>';
+  colunas.forEach(function(c){
+    var canRemove=["item","desc","vtotal"].indexOf(c.id)<0;
+    thHtml+='<th style="width:'+c.width+'px"><div class="th-inner">'+
+      '<input class="th-name" value="'+c.nome+'" onchange="renomearColuna(\''+c.id+'\',this.value)">'+
+      (canRemove?'<button class="btn-rm-col" onclick="removerColuna(\''+c.id+'\')" title="Remover coluna">✕</button>':'')+
+      '</div></th>';
+  });
+  thHtml+='</tr>';
+  head.innerHTML=thHtml;
+
+  // Linhas
+  var tbHtml="";
+  linhas.forEach(function(row,ri){
+    // Recalcular vtotal
+    var total=calcRowTotal(row);
+    if(row.cells.vtotal===undefined||row.cells.vtotal==="")row.cells.vtotal=total;
+
+    tbHtml+='<tr>';
+    tbHtml+='<td class="col-num"><button onclick="removerLinha('+row.id+')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:11px;padding:2px 4px;width:100%">✕</button></td>';
+
+    colunas.forEach(function(c){
+      var val=row.cells[c.id];
+      if(val===undefined)val="";
+
+      if(c.tipo==="formula"||c.id==="vtotal"){
+        var t=calcRowTotal(row);
+        var fmt=t>0?fmtMoeda(t):"—";
+        tbHtml+='<td style="text-align:right;font-weight:700;color:var(--nh);padding:7px 9px;font-size:12px">'+fmt+'</td>';
+      } else if(c.tipo==="moeda"){
+        tbHtml+='<td><input type="text" value="'+String(val).replace(/"/g,"&quot;")+'" '+
+          'onblur="salvarCelula('+row.id+',\''+c.id+'\',this.value)" '+
+          'onfocus="this.select()" '+
+          'onkeydown="navTabela(event,'+ri+','+colunas.indexOf(c)+')" '+
+          'style="text-align:right" placeholder="0,00"></td>';
+      } else if(c.tipo==="num"){
+        tbHtml+='<td><input type="text" value="'+String(val).replace(/"/g,"&quot;")+'" '+
+          'onblur="salvarCelula('+row.id+',\''+c.id+'\',this.value)" '+
+          'onfocus="this.select()" '+
+          'onkeydown="navTabela(event,'+ri+','+colunas.indexOf(c)+')" '+
+          'style="text-align:center"></td>';
+      } else {
+        tbHtml+='<td><textarea rows="1" onblur="salvarCelula('+row.id+',\''+c.id+'\',this.value)" '+
+          'onkeydown="navTabela(event,'+ri+','+colunas.indexOf(c)+')" '+
+          'style="min-height:30px;line-height:1.4" placeholder="'+c.nome+'">'+String(val).replace(/</g,"&lt;").replace(/>/g,"&gt;")+'</textarea></td>';
+      }
+    });
+    tbHtml+='</tr>';
+  });
+
+  if(!linhas.length){
+    tbHtml='<tr><td colspan="'+  (colunas.length+1)+'" style="text-align:center;padding:24px;color:var(--t3);font-size:13px">Clique em + Linha para adicionar itens</td></tr>';
+  }
+  body.innerHTML=tbHtml;
+
+  // Total global
+  var total=calcGlobalTotal();
+  var tg=document.getElementById("total-global");
+  if(tg)tg.textContent=fmtMoeda(total);
+
+  // Contador de colunas
+  var cc=document.getElementById("col-count");
+  if(cc)cc.textContent=linhas.length+" linha(s) · "+colunas.length+" coluna(s)";
+
+  // Auto-resize textareas
+  body.querySelectorAll("textarea").forEach(function(ta){
+    ta.style.height="auto";ta.style.height=ta.scrollHeight+"px";
+  });
+}
+
+function salvarCelula(rowId,colId,val){
+  var row=linhas.find(function(r){return r.id===rowId;});
+  if(!row)return;
+  // Formatar moeda
+  var col=colunas.find(function(c){return c.id===colId;});
+  if(col&&col.tipo==="moeda"&&val){
+    var v=parseMoeda(val);
+    if(v>0)val=fmtMoeda(v);
+  }
+  row.cells[colId]=val;
+  renderTabela();
+}
+
+function removerLinha(rowId){
+  linhas=linhas.filter(function(r){return r.id!==rowId;});
+  // Renumerar
+  linhas.forEach(function(r,i){r.cells.item=i+1;});
+  renderTabela();
+}
+
+function renomearColuna(colId,nome){
+  var col=colunas.find(function(c){return c.id===colId;});
+  if(col)col.nome=nome;
+}
+
+function navTabela(e,ri,ci){
+  if(e.key==="Tab"){
+    e.preventDefault();
+    var allCells=document.querySelectorAll("#tbl-body input,#tbl-body textarea");
+    var cur=e.target;
+    var idx=Array.from(allCells).indexOf(cur);
+    var next=allCells[idx+1];
+    if(next)next.focus();else{addLinha();setTimeout(function(){var c2=document.querySelectorAll("#tbl-body input,#tbl-body textarea");if(c2.length)c2[c2.length-1].focus();},50);}
+  }
+  if(e.key==="Enter"&&!e.shiftKey&&e.target.tagName==="INPUT"){
+    e.preventDefault();
+    addLinha();
+    setTimeout(function(){var c2=document.querySelectorAll("#tbl-body input,#tbl-body textarea");if(c2.length)c2[c2.length-1].focus();},50);
+  }
+}
+
+function adicionarLinhaTabela(){addLinha();}
+
+function preencherTabelaComIA(textoIA){
+  // Parsear formato "ITEM | DESCRIÇÃO | UNIDADE | QTD"
+  var linhasTexto=textoIA.split("\n").filter(function(l){return l.includes("|")&&!/^item/i.test(l.trim());});
+  if(!linhasTexto.length)return;
+  linhas=[];_nextRowId=1;
+  linhasTexto.forEach(function(l){
+    var partes=l.split("|").map(function(p){return p.trim();});
+    if(partes.length<2)return;
+    var cells={item:_nextRowId,desc:partes[1]||"",unid:partes[2]||"un",qtd:partes[3]||"1",vunit:"",vtotal:""};
+    colunas.forEach(function(c){if(!(c.id in cells))cells[c.id]="";});
+    linhas.push({id:_nextRowId++,cells:cells,formula:["qtd","vunit"]});
+  });
+  renderTabela();
+  toast("✅ "+linhas.length+" itens extraídos do edital!","ok");
+}
+
+// Interceptar resposta de "Extrair Itens" para preencher tabela automaticamente
+var _origAnalisarIA=null;
+// ============================================================
 function gerarRelatorioFinanceiro(){
   var tipo=prompt("Tipo de relatório:\n- mes (mês atual)\n- ano (ano inteiro)","mes");
   if(!tipo)return;
@@ -2115,7 +2337,13 @@ function carregarIAKey(){var k=localStorage.getItem("nh_gemini_key")||"";var el=
 var _iaTexto="";
 var _iaFileBase64="";var _iaFileMime="";
 function carregarArquivoIA(input){var file=input.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(e){var b64=e.target.result.split(",")[1];_iaFileBase64=b64;_iaFileMime=file.type||"application/pdf";_iaTexto="";document.getElementById("ia-file-nome").textContent=file.name+" ("+Math.round(file.size/1024)+"KB)";document.getElementById("ia-texto").value="";toast("Arquivo carregado!","ok")};reader.readAsDataURL(file)}
-async function analisarIA(tipo){var key=localStorage.getItem("nh_gemini_key");if(!key){toast("Configure a API Key do Gemini","err");document.getElementById("ia-key-modal").style.display="flex";return}var texto=document.getElementById("ia-texto").value.trim()||_iaTexto||"";if(!_iaFileBase64&&(!texto||texto.length<10)){toast("Faça upload do PDF ou cole o texto do edital","err");return}var prompts={habilitacao:"Você é um especialista em licitações públicas brasileiras. Analise MINUCIOSAMENTE este edital/TR e liste ABSOLUTAMENTE TODOS os documentos de habilitação exigidos. NÃO OMITA NENHUM DOCUMENTO. Leia o edital inteiro, incluindo anexos. Organize em categorias:\n\n1. HABILITAÇÃO JURÍDICA — Liste cada documento exigido (ato constitutivo, registro comercial, etc.)\n\n2. QUALIFICAÇÃO TÉCNICA — Liste TODOS os atestados, certidões, registros em conselhos (CREA, CRF, CRM, etc.), declarações técnicas, certificações, visitas técnicas, laudos. Detalhe cada exigência com o texto exato do edital.\n\n3. QUALIFICAÇÃO ECONÔMICO-FINANCEIRA — Liste certidões de falência, balanço patrimonial, índices contábeis exigidos (LC, LG, SG) com valores mínimos, capital social mínimo, garantias.\n\n4. REGULARIDADE FISCAL E TRABALHISTA — Liste TODAS as certidões: CND Federal, Estadual, Municipal, FGTS, CNDT, Simples Nacional, etc. Informe validades quando mencionadas.\n\n5. DECLARAÇÕES — Liste todas as declarações exigidas (ME/EPP, menor aprendiz, nepotismo, idoneidade, etc.)\n\n6. DOCUMENTAÇÃO COMPLEMENTAR — Qualquer outro documento não listado acima.\n\nPara cada item, indique: o documento exigido, onde está no edital (item/página se possível), e se há alguma especificidade ou prazo. NÃO OMITA NENHUM DOCUMENTO. Esta lista será usada como checklist para preparação da proposta.",preencher:"Extraia do edital/TR os seguintes dados e retorne APENAS um JSON válido, sem markdown, sem explicação, sem backticks. O JSON deve ter exatamente esta estrutura:\n{\"orgao\":\"nome do órgão/entidade\",\"setor\":\"setor responsável ou comissão\",\"modalidade\":\"modalidade completa com número, ex: PREGÃO ELETRÔNICO Nº 13/2026\",\"processo\":\"número do processo administrativo\",\"objeto\":\"texto completo do objeto\",\"validade\":\"prazo de validade da proposta em dias (apenas número)\",\"prazo_entrega\":\"prazo de entrega ou execução\",\"prazo_pag\":\"prazo de pagamento\",\"local\":\"local de prestação do serviço ou entrega\",\"cidade\":\"cidade e UF\",\"tipo_doc\":\"proposta ou declaracao ou ambos\"}\nRetorne SOMENTE o JSON, nada mais.",itens:"Extraia TODOS os itens/lotes deste edital/TR e retorne em formato de tabela. Para cada item liste: ITEM (número), DESCRIÇÃO (completa), UNIDADE (serviço, unidade, mês, etc.), QUANTIDADE. Se houver lotes, liste cada lote e seus itens. Retorne no formato:\nITEM | DESCRIÇÃO | UNIDADE | QTD\n1 | descrição completa | und | 10\nSeja preciso nas quantidades e descrições.",declaracoes:"Liste TODAS as declarações exigidas neste edital e gere o TEXTO COMPLETO de cada uma, pronto para uso. Para cada declaração, gere o texto formal seguindo o padrão de licitações públicas. Inclua campos para [EMPRESA], [CNPJ], [REPRESENTANTE]. Declarações comuns: ME/EPP (Lei Complementar 123/2006), Inexistência de Fato Impeditivo, Menor Aprendiz (art. 7º CF), Elaboração Independente de Proposta, Não Utilização de Trabalho Degradante, Nepotismo, Idoneidade. Gere APENAS as que o edital exige.",resumo:"Faça um resumo executivo deste edital/TR de licitação. Inclua: objeto, órgão, valor estimado, prazo, principais requisitos, documentação exigida e prazos importantes. Seja objetivo e estruturado.",requisitos:"Liste todos os requisitos técnicos e de habilitação deste edital/TR. Organize em: 1) Requisitos técnicos 2) Qualificação técnica 3) Habilitação jurídica 4) Qualificação econômica 5) Documentação exigida. Destaque itens críticos.",riscos:"Analise os riscos e pontos de atenção deste edital/TR. Inclua: cláusulas restritivas, prazos apertados, exigências incomuns, penalidades, garantias exigidas, e qualquer item que possa ser questionado ou impugnado. Classifique cada risco como ALTO, MÉDIO ou BAIXO.",proposta:"Analise a viabilidade de participação neste edital/TR. Considere: complexidade do objeto, valor estimado vs mercado, prazos, riscos, concorrência provável, e recomende se vale participar. Dê uma nota de 1 a 10 para viabilidade.",perguntar:"Aguarde a pergunta do usuário sobre este edital."};var prompt=prompts[tipo]||prompts.resumo;if(tipo==="perguntar"){var pergunta=window.prompt("Faça sua pergunta sobre o edital:");if(!pergunta)return;prompt="Sobre este edital/TR, responda: "+pergunta}var resEl=document.getElementById("ia-resultado");var bodyEl=document.getElementById("ia-resultado-body");resEl.style.display="block";bodyEl.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:20px;height:20px"></div> Analisando '+(_iaFileBase64?'PDF':'texto')+'... (tenta até 3 modelos se houver sobrecarga)</div>';if(!_iaFileBase64&&texto.length<500)bodyEl.innerHTML+='<div style="font-size:11px;color:var(--t3);margin-top:6px">Sem PDF carregado — análise baseada apenas no objeto. Para resultado completo, faça upload do edital.</div>';try{var _parts=_iaFileBase64?[{inline_data:{mime_type:_iaFileMime,data:_iaFileBase64}},{text:prompt}]:[{text:prompt+"\n\n"+(texto.length>500?"EDITAL/TR COMPLETO:\n":"OBJETO DA LICITAÇÃO (edital não fornecido, análise baseada na Lei 14.133/2021):\n")+texto.substring(0,30000)}];var json=await chamarGemini(key,_parts,0.3,4000);var resposta=json.candidates&&json.candidates[0]&&json.candidates[0].content&&json.candidates[0].content.parts&&json.candidates[0].content.parts[0]&&json.candidates[0].content.parts[0].text||"Sem resposta";bodyEl.innerHTML=formatarRespostaIA(resposta)}catch(e){bodyEl.innerHTML='<div style="color:#ef4444">❌ Erro: '+e.message+"</div>"}}
+async function analisarIA(tipo){var key=localStorage.getItem("nh_gemini_key");if(!key){toast("Configure a API Key do Gemini","err");document.getElementById("ia-key-modal").style.display="flex";return}var texto=document.getElementById("ia-texto").value.trim()||_iaTexto||"";if(!_iaFileBase64&&(!texto||texto.length<10)){toast("Faça upload do PDF ou cole o texto do edital","err");return}var prompts={habilitacao:"Você é um especialista em licitações públicas brasileiras. Analise MINUCIOSAMENTE este edital/TR e liste ABSOLUTAMENTE TODOS os documentos de habilitação exigidos. NÃO OMITA NENHUM DOCUMENTO. Leia o edital inteiro, incluindo anexos. Organize em categorias:\n\n1. HABILITAÇÃO JURÍDICA — Liste cada documento exigido (ato constitutivo, registro comercial, etc.)\n\n2. QUALIFICAÇÃO TÉCNICA — Liste TODOS os atestados, certidões, registros em conselhos (CREA, CRF, CRM, etc.), declarações técnicas, certificações, visitas técnicas, laudos. Detalhe cada exigência com o texto exato do edital.\n\n3. QUALIFICAÇÃO ECONÔMICO-FINANCEIRA — Liste certidões de falência, balanço patrimonial, índices contábeis exigidos (LC, LG, SG) com valores mínimos, capital social mínimo, garantias.\n\n4. REGULARIDADE FISCAL E TRABALHISTA — Liste TODAS as certidões: CND Federal, Estadual, Municipal, FGTS, CNDT, Simples Nacional, etc. Informe validades quando mencionadas.\n\n5. DECLARAÇÕES — Liste todas as declarações exigidas (ME/EPP, menor aprendiz, nepotismo, idoneidade, etc.)\n\n6. DOCUMENTAÇÃO COMPLEMENTAR — Qualquer outro documento não listado acima.\n\nPara cada item, indique: o documento exigido, onde está no edital (item/página se possível), e se há alguma especificidade ou prazo. NÃO OMITA NENHUM DOCUMENTO. Esta lista será usada como checklist para preparação da proposta.",preencher:"Extraia do edital/TR os seguintes dados e retorne APENAS um JSON válido, sem markdown, sem explicação, sem backticks. O JSON deve ter exatamente esta estrutura:\n{\"orgao\":\"nome do órgão/entidade\",\"setor\":\"setor responsável ou comissão\",\"modalidade\":\"modalidade completa com número, ex: PREGÃO ELETRÔNICO Nº 13/2026\",\"processo\":\"número do processo administrativo\",\"objeto\":\"texto completo do objeto\",\"validade\":\"prazo de validade da proposta em dias (apenas número)\",\"prazo_entrega\":\"prazo de entrega ou execução\",\"prazo_pag\":\"prazo de pagamento\",\"local\":\"local de prestação do serviço ou entrega\",\"cidade\":\"cidade e UF\",\"tipo_doc\":\"proposta ou declaracao ou ambos\"}\nRetorne SOMENTE o JSON, nada mais.",itens:"Extraia TODOS os itens/lotes deste edital/TR e retorne em formato de tabela. Para cada item liste: ITEM (número), DESCRIÇÃO (completa), UNIDADE (serviço, unidade, mês, etc.), QUANTIDADE. Se houver lotes, liste cada lote e seus itens. Retorne no formato:\nITEM | DESCRIÇÃO | UNIDADE | QTD\n1 | descrição completa | und | 10\nSeja preciso nas quantidades e descrições.",declaracoes:"Liste TODAS as declarações exigidas neste edital e gere o TEXTO COMPLETO de cada uma, pronto para uso. Para cada declaração, gere o texto formal seguindo o padrão de licitações públicas. Inclua campos para [EMPRESA], [CNPJ], [REPRESENTANTE]. Declarações comuns: ME/EPP (Lei Complementar 123/2006), Inexistência de Fato Impeditivo, Menor Aprendiz (art. 7º CF), Elaboração Independente de Proposta, Não Utilização de Trabalho Degradante, Nepotismo, Idoneidade. Gere APENAS as que o edital exige.",resumo:"Faça um resumo executivo deste edital/TR de licitação. Inclua: objeto, órgão, valor estimado, prazo, principais requisitos, documentação exigida e prazos importantes. Seja objetivo e estruturado.",requisitos:"Liste todos os requisitos técnicos e de habilitação deste edital/TR. Organize em: 1) Requisitos técnicos 2) Qualificação técnica 3) Habilitação jurídica 4) Qualificação econômica 5) Documentação exigida. Destaque itens críticos.",riscos:"Analise os riscos e pontos de atenção deste edital/TR. Inclua: cláusulas restritivas, prazos apertados, exigências incomuns, penalidades, garantias exigidas, e qualquer item que possa ser questionado ou impugnado. Classifique cada risco como ALTO, MÉDIO ou BAIXO.",proposta:"Analise a viabilidade de participação neste edital/TR. Considere: complexidade do objeto, valor estimado vs mercado, prazos, riscos, concorrência provável, e recomende se vale participar. Dê uma nota de 1 a 10 para viabilidade.",perguntar:"Aguarde a pergunta do usuário sobre este edital."};var prompt=prompts[tipo]||prompts.resumo;if(tipo==="perguntar"){var pergunta=window.prompt("Faça sua pergunta sobre o edital:");if(!pergunta)return;prompt="Sobre este edital/TR, responda: "+pergunta}var resEl=document.getElementById("ia-resultado");var bodyEl=document.getElementById("ia-resultado-body");resEl.style.display="block";bodyEl.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:20px;height:20px"></div> Analisando '+(_iaFileBase64?'PDF':'texto')+'... (tenta até 3 modelos se houver sobrecarga)</div>';if(!_iaFileBase64&&texto.length<500)bodyEl.innerHTML+='<div style="font-size:11px;color:var(--t3);margin-top:6px">Sem PDF carregado — análise baseada apenas no objeto. Para resultado completo, faça upload do edital.</div>';try{var _parts=_iaFileBase64?[{inline_data:{mime_type:_iaFileMime,data:_iaFileBase64}},{text:prompt}]:[{text:prompt+"\n\n"+(texto.length>500?"EDITAL/TR COMPLETO:\n":"OBJETO DA LICITAÇÃO (edital não fornecido, análise baseada na Lei 14.133/2021):\n")+texto.substring(0,30000)}];var json=await chamarGemini(key,_parts,0.3,4000);var resposta=json.candidates&&json.candidates[0]&&json.candidates[0].content&&json.candidates[0].content.parts&&json.candidates[0].content.parts[0]&&json.candidates[0].content.parts[0].text||"Sem resposta";var formatted=formatarRespostaIA(resposta);
+    bodyEl.innerHTML=formatted;
+    // Se for extração de itens, preencher tabela automaticamente
+    if(tipo==="itens"){
+      try{preencherTabelaComIA(resposta);}catch(e2){}
+    }
+  }catch(e){bodyEl.innerHTML='<div style="color:#ef4444">❌ Erro: '+e.message+"</div>";}}
 function formatarRespostaIA(txt){return txt.replace(/^#### (.+)$/gm,'<div style="font-size:13px;font-weight:700;color:var(--nh);margin:12px 0 4px">$1</div>').replace(/^### (.+)$/gm,'<div style="font-size:14px;font-weight:700;color:var(--nh);margin:14px 0 6px">$1</div>').replace(/^## (.+)$/gm,'<div style="font-size:15px;font-weight:700;color:var(--t1);margin:16px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--b1)">$1</div>').replace(/^# (.+)$/gm,'<div style="font-size:16px;font-weight:700;color:var(--t1);margin:16px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--b1)">$1</div>').replace(/\*\*\*(.+?)\*\*\*/g,"<strong style=\"font-style:italic\">$1</strong>").replace(/\*\*(.+?)\*\*/g,"<strong style=\"color:var(--nh)\">$1</strong>").replace(/\*(.+?)\*/g,"<em style=\"color:var(--t2)\">$1</em>").replace(/^---$/gm,'<hr style="border:none;border-top:1px solid var(--b1);margin:12px 0">').replace(/^[\-\*] (.+)$/gm,'<div style="padding-left:16px;margin:3px 0;position:relative"><span style="position:absolute;left:4px;color:var(--nh)">•</span>$1</div>').replace(/^(\d+)\. (.+)$/gm,'<div style="padding-left:20px;margin:3px 0"><strong style="color:var(--nh)">$1.</strong> $2</div>').replace(/`([^`]+)`/g,'<code style="background:var(--s2);padding:1px 4px;border-radius:3px;font-size:12px">$1</code>').replace(/\n\n/g,'<div style="margin:8px 0"></div>').replace(/\n/g,"<br>")}
 
 function analisarEditalIA(btn){var tab=btn.getAttribute("data-tab");var idx=parseInt(btn.getAttribute("data-idx"));var row=FIL[tab]?FIL[tab][idx]:null;if(!row){toast("Registro não encontrado","err");return}var obj=String(row[4]||"").trim();if(!obj){toast("Objeto vazio","err");return}go("ia",document.getElementById("nav-ia"));setTimeout(function(){var el=document.getElementById("ia-texto");if(el){el.value=obj;window._iaTexto=obj}},300)}
@@ -2135,11 +2363,27 @@ function initDocumentos(){
   if(nomEl)nomEl.textContent="";
   var resEl=document.getElementById("ia-resultado");
   if(resEl)resEl.style.display="none";
-  // Inicializar tabela de itens se vazia
-  var tbl=document.getElementById("tabela-proposta");
-  if(tbl){var tbody=tbl.querySelector("tbody");if(tbody&&tbody.querySelectorAll("tr").length===0){for(var i=0;i<5;i++)adicionarLinhaTabela();}}
+  // Inicializar tabela com 5 linhas se vazia
+  if(!linhas.length){for(var i=0;i<5;i++)addLinha();}
+  else renderTabela();
+  // Garantir tipo inicial
+  setTipo("proposta",document.querySelector(".doc-btn.on"));
 }
-function popularProcessosDoc(){var sel=document.getElementById("doc-processo-sel");if(!sel)return;var editais=(ALL.editais||[]).slice().sort(function(a,b){return parseInt(b[0]||0)-parseInt(a[0]||0)});var andamentos=(ALL.andamento||[]).slice().sort(function(a,b){return parseInt(b[0]||0)-parseInt(a[0]||0)});sel.innerHTML='<option value="">Selecione um processo...</option>';if(editais.length){sel.innerHTML+='<optgroup label="── Editais Capturados ──">';editais.forEach(function(p){var id=p[0];var titulo=String(p[3]||"").trim();var emp=String(p[2]||"").trim();var part=String(p[10]||"").toUpperCase().trim();var badge=part==="SIM"?"✅ ":part==="NÃO"||part==="NAO"?"❌ ":"";sel.innerHTML+='<option value="e-'+id+'">'+badge+("#"+id+" — "+emp+" — "+titulo).substring(0,90)+"</option>"});sel.innerHTML+='</optgroup>';}if(andamentos.length){sel.innerHTML+='<optgroup label="── Em Andamento ──">';andamentos.forEach(function(p){var id=p[0];var titulo=String(p[3]||"").trim();var emp=String(p[2]||"").trim();sel.innerHTML+='<option value="a-'+id+'">'+("#"+id+" — "+emp+" — "+titulo).substring(0,90)+"</option>"});sel.innerHTML+='</optgroup>';}
+function popularProcessosDoc(){
+  var sel=document.getElementById("doc-processo-sel");
+  if(!sel)return;
+  var andamentos=(ALL.andamento||[]).filter(function(r){
+    return"sim"!==String(r[16]||"").toLowerCase().trim();
+  }).sort(function(a,b){return parseInt(b[0]||0)-parseInt(a[0]||0)});
+  sel.innerHTML='<option value="">Selecione um processo em andamento...</option>';
+  andamentos.forEach(function(p){
+    var id=p[0];
+    var titulo=String(p[3]||"").trim();
+    var emp=String(p[2]||"").trim();
+    var status=String(p[12]||"").trim();
+    var badge=status?"["+status+"] ":"";
+    sel.innerHTML+='<option value="a-'+id+'">'+badge+("#"+id+" — "+emp+" — "+titulo).substring(0,100)+"</option>";
+  });
 }
 function selecionarProcessoDoc(id){
   if(!id){
