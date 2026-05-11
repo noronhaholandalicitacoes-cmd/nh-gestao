@@ -2,32 +2,32 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-  <link rel="manifest" href="manifest.json">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="NH Licitações">
-  <meta name="theme-color" content="#f97316">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NH Licitações</title>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#0c0c0c;
-  --s1:#111111;
-  --s2:#161616;
-  --s3:#1c1c1c;
-  --b1:#252525;
-  --b2:#303030;
-  --nh:#f97316;   /* laranja NH */
-  --nho:#fb923c;  /* laranja claro */
-  --nhd:#ea6a00;  /* laranja escuro */
-  --nha:rgba(249,115,22,.12);
-  --nha2:rgba(249,115,22,.06);
-  --g1:#22c55e;
-  --g2:#4ade80;
+  < link  rel = "manifest"  href = "manifest.json" >
+  < meta  name = "mobile-web-app-capable"  content = "yes" >
+  < meta  name = "apple-mobile-web-app-capable"  content = "yes" >
+  < meta  name = "apple-mobile-web-app-status-bar-style"  content = "black-translucent" >
+  < meta  name = "apple-mobile-web-app-title"  content = "NH Licitações" >
+  < meta  name = "theme-color"  content = "#f97316" >
+< meta  name = "viewport"  content = "width=device-width, initial-scale=1.0" >
+< title > NH Licitações </ title >
+< script  src = " https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js " > </script>
+< script  src = " https://unpkg.com/docx@8.5.0/build/index.js " > </script>
+  < link  href = "https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap "  rel = "stylesheet " >
+< estilo >
+: raiz {
+  --bg :#0c0c0c;
+  --s1 :#111111;
+  --s2 :#161616;
+  --s3 :#1c1c1c;
+  --b1 :#252525;
+  --b2 :#303030;
+  --nh :#f97316;    /* laranja NH */
+  --nho :#fb923c;   /* laranja claro */
+  --nhd :#ea6a00;   /* laranja escuro */
+  --nha : rgba ( 249 , 115 , 22 , 0,12 ) ;
+  --nha2 : rgba ( 249 , 115 , 22 , 0,06 ) ;
+  --g1 :#22c55e;
+  --g2 :#4ade80;
   --y1:#eab308;
   --y2:#facc15;
   --r1:#ef4444;
@@ -2588,7 +2588,7 @@ function previsualizar(){
 }
 
 function gerarWord(){
-  if(typeof docx==='undefined'){ toast('Biblioteca Word não carregada. Recarregue a página.','err'); return; }
+  var _docx=typeof docx!=='undefined'?docx:(typeof window.docx!=='undefined'?window.docx:null);if(!_docx){ toast('Biblioteca Word não carregada. Aguarde o carregamento e tente novamente.','err'); return; }
   var d = _coletarDadosDoc();
   if(!d.emp){ toast('Selecione uma empresa no passo 1','err'); return; }
   try{
@@ -2596,59 +2596,59 @@ function gerarWord(){
     var cor = (emp.cor||'#f97316').replace('#','');
     var paras = [];
     // Cabeçalho da empresa
-    paras.push(new docx.Paragraph({
-      children:[new docx.TextRun({text:(emp.razao||emp.nome||'').toUpperCase(),bold:true,size:28,color:cor})],
+    paras.push(new _docx.Paragraph({
+      children:[new _docx.TextRun({text:(emp.razao||emp.nome||'').toUpperCase(),bold:true,size:28,color:cor})],
       spacing:{after:120}
     }));
-    paras.push(new docx.Paragraph({
-      children:[new docx.TextRun({text:'CNPJ: '+emp.cnpj+(emp.cidade?' | '+emp.cidade:''),size:18,color:'666666'})],
-      spacing:{after:360},border:{bottom:{style:docx.BorderStyle.SINGLE,size:6,color:cor}}
+    paras.push(new _docx.Paragraph({
+      children:[new _docx.TextRun({text:'CNPJ: '+emp.cnpj+(emp.cidade?' | '+emp.cidade:''),size:18,color:'666666'})],
+      spacing:{after:360},border:{bottom:{style:_docx.BorderStyle.SINGLE,size:6,color:cor}}
     }));
     // Dados do processo
-    if(d.orgao) paras.push(new docx.Paragraph({children:[new docx.TextRun({text:'Ao: '+d.orgao,size:20})],spacing:{after:80}}));
-    if(d.modalidade) paras.push(new docx.Paragraph({children:[new docx.TextRun({text:'Ref.: '+d.modalidade,size:20})],spacing:{after:80}}));
-    if(d.processo) paras.push(new docx.Paragraph({children:[new docx.TextRun({text:'Processo: '+d.processo,size:20})],spacing:{after:240}}));
+    if(d.orgao) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Ao: '+d.orgao,size:20})],spacing:{after:80}}));
+    if(d.modalidade) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Ref.: '+d.modalidade,size:20})],spacing:{after:80}}));
+    if(d.processo) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Processo: '+d.processo,size:20})],spacing:{after:240}}));
     // Título
     var titulo = docTipo==='proposta'?'PROPOSTA COMERCIAL':docTipo==='decl_unificada'?'DECLARAÇÃO UNIFICADA':'DECLARAÇÃO';
-    paras.push(new docx.Paragraph({
-      children:[new docx.TextRun({text:titulo,bold:true,size:26})],
-      alignment:docx.AlignmentType.CENTER,spacing:{after:300}
+    paras.push(new _docx.Paragraph({
+      children:[new _docx.TextRun({text:titulo,bold:true,size:26})],
+      alignment:_docx.AlignmentType.CENTER,spacing:{after:300}
     }));
     // Objeto
-    if(d.objeto) paras.push(new docx.Paragraph({
-      children:[new docx.TextRun({text:'Objeto: ',bold:true,size:22}),new docx.TextRun({text:d.objeto,size:22})],
+    if(d.objeto) paras.push(new _docx.Paragraph({
+      children:[new _docx.TextRun({text:'Objeto: ',bold:true,size:22}),new _docx.TextRun({text:d.objeto,size:22})],
       spacing:{after:200}
     }));
     // Tabela de itens (proposta)
     if(docTipo==='proposta' && linhas && linhas.length){
-      var headerRow = new docx.TableRow({children:colunas.map(function(c){
-        return new docx.TableCell({children:[new docx.Paragraph({children:[new docx.TextRun({text:c.nome,bold:true,size:18,color:'FFFFFF'})],alignment:docx.AlignmentType.CENTER})],shading:{fill:cor,type:docx.ShadingType.CLEAR,color:'auto'}});
+      var headerRow = new __docx.TableRow({children:colunas.map(function(c){
+        return new _docx.TableCell({children:[new _docx.Paragraph({children:[new _docx.TextRun({text:c.nome,bold:true,size:18,color:'FFFFFF'})],alignment:_docx.AlignmentType.CENTER})],shading:{fill:cor,type:_docx.ShadingType.CLEAR,color:'auto'}});
       })});
       var dataRows = linhas.map(function(r){
-        return new docx.TableRow({children:colunas.map(function(c){
+        return new __docx.TableRow({children:colunas.map(function(c){
           var v = r.cells[c.id]||'';
           if(c.tipo==='formula'||c.id==='vtotal'){ var t=calcRowTotal(r); v=t>0?fmtMoeda(t):'—'; }
-          return new docx.TableCell({children:[new docx.Paragraph({children:[new docx.TextRun({text:String(v),size:18})],alignment:(c.tipo==='num'||c.tipo==='moeda'||c.id==='vtotal')?docx.AlignmentType.RIGHT:docx.AlignmentType.LEFT})]});
+          return new _docx.TableCell({children:[new _docx.Paragraph({children:[new _docx.TextRun({text:String(v),size:18})],alignment:(c.tipo==='num'||c.tipo==='moeda'||c.id==='vtotal')?_docx.AlignmentType.RIGHT:_docx.AlignmentType.LEFT})]});
         })});
       });
-      paras.push(new docx.Table({rows:[headerRow].concat(dataRows),width:{size:100,type:docx.WidthType.PERCENTAGE}}));
-      paras.push(new docx.Paragraph({spacing:{after:200}}));
+      paras.push(new __docx.Table({rows:[headerRow].concat(dataRows),width:{size:100,type:_docx.WidthType.PERCENTAGE}}));
+      paras.push(new _docx.Paragraph({spacing:{after:200}}));
     }
     // Condições
-    if(d.validade) paras.push(new docx.Paragraph({children:[new docx.TextRun({text:'Validade da Proposta: ',bold:true,size:20}),new docx.TextRun({text:d.validade+' dias',size:20})],spacing:{after:100}}));
-    if(d.prazoEntrega) paras.push(new docx.Paragraph({children:[new docx.TextRun({text:'Prazo de Entrega/Execução: ',bold:true,size:20}),new docx.TextRun({text:d.prazoEntrega,size:20})],spacing:{after:100}}));
-    if(d.prazoPag) paras.push(new docx.Paragraph({children:[new docx.TextRun({text:'Prazo de Pagamento: ',bold:true,size:20}),new docx.TextRun({text:d.prazoPag,size:20})],spacing:{after:100}}));
+    if(d.validade) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Validade da Proposta: ',bold:true,size:20}),new _docx.TextRun({text:d.validade+' dias',size:20})],spacing:{after:100}}));
+    if(d.prazoEntrega) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Prazo de Entrega/Execução: ',bold:true,size:20}),new _docx.TextRun({text:d.prazoEntrega,size:20})],spacing:{after:100}}));
+    if(d.prazoPag) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Prazo de Pagamento: ',bold:true,size:20}),new _docx.TextRun({text:d.prazoPag,size:20})],spacing:{after:100}}));
     // Assinatura
     var cidadeData = (d.cidade||'____________')+', '+d.data;
-    paras.push(new docx.Paragraph({children:[new docx.TextRun({text:cidadeData,size:20})],alignment:docx.AlignmentType.RIGHT,spacing:{before:600,after:600}}));
-    paras.push(new docx.Paragraph({children:[new docx.TextRun({text:'_'.repeat(50),size:20})],alignment:docx.AlignmentType.CENTER,spacing:{after:80}}));
-    paras.push(new docx.Paragraph({children:[new docx.TextRun({text:(emp.razao||emp.nome||'').toUpperCase(),bold:true,size:20})],alignment:docx.AlignmentType.CENTER,spacing:{after:80}}));
-    if(emp.cnpj) paras.push(new docx.Paragraph({children:[new docx.TextRun({text:'CNPJ: '+emp.cnpj,size:18,color:'666666'})],alignment:docx.AlignmentType.CENTER,spacing:{after:80}}));
-    if(emp.socio) paras.push(new docx.Paragraph({children:[new docx.TextRun({text:emp.socio,size:20})],alignment:docx.AlignmentType.CENTER,spacing:{after:60}}));
-    if(emp.cargo) paras.push(new docx.Paragraph({children:[new docx.TextRun({text:emp.cargo,size:18,color:'666666'})],alignment:docx.AlignmentType.CENTER}));
+    paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:cidadeData,size:20})],alignment:_docx.AlignmentType.RIGHT,spacing:{before:600,after:600}}));
+    paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'_'.repeat(50),size:20})],alignment:_docx.AlignmentType.CENTER,spacing:{after:80}}));
+    paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:(emp.razao||emp.nome||'').toUpperCase(),bold:true,size:20})],alignment:_docx.AlignmentType.CENTER,spacing:{after:80}}));
+    if(emp.cnpj) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'CNPJ: '+emp.cnpj,size:18,color:'666666'})],alignment:_docx.AlignmentType.CENTER,spacing:{after:80}}));
+    if(emp.socio) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:emp.socio,size:20})],alignment:_docx.AlignmentType.CENTER,spacing:{after:60}}));
+    if(emp.cargo) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:emp.cargo,size:18,color:'666666'})],alignment:_docx.AlignmentType.CENTER}));
 
-    var doc = new docx.Document({sections:[{properties:{},children:paras}]});
-    docx.Packer.toBlob(doc).then(function(blob){
+    var doc = new __docx.Document({sections:[{properties:{},children:paras}]});
+    _docx.Packer.toBlob(doc).then(function(blob){
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
       a.href = url;
@@ -2948,7 +2948,7 @@ function selecionarProcessoDoc(id){
   toast("Processo carregado: #"+row[0]+" — "+emp,"ok");
 }
 
-async function preencherComIA(){var key=localStorage.getItem("nh_gemini_key");if(!key){toast("Configure a API Key do Gemini","err");document.getElementById("ia-key-modal").style.display="flex";return}var texto=document.getElementById("ia-texto")?document.getElementById("ia-texto").value.trim():"";texto=texto||_iaTexto||"";if(!_iaFileBase64&&(!texto||texto.length<10)){toast("Faça upload do PDF ou cole o texto do edital","err");return}var resEl=document.getElementById("ia-resultado");var bodyEl=document.getElementById("ia-resultado-body");resEl.style.display="block";bodyEl.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:20px;height:20px"></div> Extraindo dados do edital para preencher formulário...</div>';var prompts={preencher:"Extraia do edital/TR os dados abaixo e retorne APENAS JSON válido sem markdown.\nEstrutura exata:\n{\"orgao\":\"nome do órgão/entidade\",\"setor\":\"setor ou comissão\",\"modalidade\":\"modalidade e número\",\"processo\":\"número do processo\",\"objeto\":\"texto completo do objeto\",\"validade\":\"dias de validade da proposta\",\"prazo_entrega\":\"prazo de entrega ou execução\",\"prazo_pag\":\"prazo de pagamento\",\"local\":\"local de prestação ou entrega\",\"cidade\":\"cidade e UF do órgão\",\"tipo_doc\":\"proposta ou declaracao ou ambos\",\"itens\":[{\"item\":1,\"desc\":\"descrição do item\",\"unid\":\"und\",\"qtd\":1}]}\nPara itens: extraia TODOS os itens/lotes com descrição completa, unidade e quantidade. Se não houver, retorne [].\nRetorne SOMENTE o JSON."};try{var _parts2=_iaFileBase64?[{inline_data:{mime_type:_iaFileMime,data:_iaFileBase64}},{text:prompts.preencher}]:[{text:prompts.preencher+"\n\nEDITAL/TR:\n"+texto.substring(0,30000)}];var json=await chamarGemini(key,_parts2,0.1,2000);var resposta=json.candidates&&json.candidates[0]&&json.candidates[0].content&&json.candidates[0].content.parts&&json.candidates[0].content.parts[0]&&json.candidates[0].content.parts[0].text||"";var clean=resposta.replace(/```json/g,"").replace(/```/g,"").trim();var dados=JSON.parse(clean);var sv=function(id,v){var el=document.getElementById(id);if(el&&v)el.value=v};
+async function preencherComIA(){var key=localStorage.getItem("nh_gemini_key");if(!key){toast("Configure a API Key do Gemini","err");document.getElementById("ia-key-modal").style.display="flex";return}var texto=document.getElementById("ia-texto")?document.getElementById("ia-texto").value.trim():"";texto=texto||_iaTexto||"";if(!_iaFileBase64&&(!texto||texto.length<10)){toast("Faça upload do PDF ou cole o texto do edital","err");return}var resEl=document.getElementById("ia-resultado");var bodyEl=document.getElementById("ia-resultado-body");resEl.style.display="block";bodyEl.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:20px;height:20px"></div> Extraindo dados do edital para preencher formulário...</div>';var prompts={preencher:"Extraia do edital/TR os dados abaixo e retorne APENAS JSON válido sem markdown.\nEstrutura exata:\n{\"orgao\":\"nome do órgão/entidade\",\"setor\":\"setor ou comissão\",\"modalidade\":\"modalidade e número\",\"processo\":\"número do processo\",\"objeto\":\"texto completo do objeto\",\"validade\":\"dias de validade da proposta\",\"prazo_entrega\":\"prazo de entrega ou execução\",\"prazo_pag\":\"prazo de pagamento\",\"local\":\"local de prestação ou entrega\",\"cidade\":\"cidade e UF do órgão\",\"tipo_doc\":\"proposta ou declaracao ou ambos\",\"itens\":[{\"item\":1,\"desc\":\"descrição do item\",\"unid\":\"und\",\"qtd\":1}]}\nPara itens: extraia TODOS os itens/lotes com descrição completa, unidade e quantidade. Se não houver, retorne [].\nRetorne SOMENTE o JSON."};try{var _parts2=_iaFileBase64?[{inline_data:{mime_type:_iaFileMime,data:_iaFileBase64}},{text:prompts.preencher}]:[{text:prompts.preencher+"\n\nEDITAL/TR:\n"+texto.substring(0,30000)}];var json=await chamarGemini(key,_parts2,0.1,2000);var resposta=json.candidates&&json.candidates[0]&&json.candidates[0].content&&json.candidates[0].content.parts&&json.candidates[0].content.parts[0]&&json.candidates[0].content.parts[0].text||"";var clean=resposta.replace(/```json/g,"").replace(/```/g,"").trim();var jsonMatch=clean.match(/\{[\s\S]*\}/);if(!jsonMatch){throw new Error("Resposta da IA não contém JSON válido. Tente novamente.")}var dados=JSON.parse(jsonMatch[0]);var sv=function(id,v){var el=document.getElementById(id);if(el&&v)el.value=v};
           sv("orgao",dados.orgao);sv("setor",dados.setor);sv("modalidade",dados.modalidade);sv("processo",dados.processo);sv("objeto",dados.objeto);sv("validade",dados.validade);sv("prazo_entrega",dados.prazo_entrega);sv("prazo_pag",dados.prazo_pag);sv("local_prestacao",dados.local);
           // Cidade de assinatura = cidade da empresa selecionada
           var _empSel=document.getElementById("doc_empresa");var _empNome=_empSel?_empSel.value:"";var _empD=EMPRESAS.find(function(e){return e.nome===_empNome;});
