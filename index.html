@@ -2592,7 +2592,53 @@ function selecionarProcessoDoc(id){
 
 async function preencherComIA(){var key=localStorage.getItem("nh_gemini_key");if(!key){toast("Configure a API Key do Gemini","err");document.getElementById("ia-key-modal").style.display="flex";return}var texto=document.getElementById("ia-texto")?document.getElementById("ia-texto").value.trim():"";texto=texto||_iaTexto||"";if(!_iaFileBase64&&(!texto||texto.length<10)){toast("Faça upload do PDF ou cole o texto do edital","err");return}var resEl=document.getElementById("ia-resultado");var bodyEl=document.getElementById("ia-resultado-body");resEl.style.display="block";bodyEl.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:20px;height:20px"></div> Extraindo dados do edital para preencher formulário...</div>';var prompts={preencher:"Extraia do edital/TR os seguintes dados e retorne APENAS um JSON válido, sem markdown, sem explicação, sem backticks. O JSON deve ter exatamente esta estrutura:\n{\"orgao\":\"nome do órgão/entidade\",\"setor\":\"setor responsável ou comissão\",\"modalidade\":\"modalidade completa com número\",\"processo\":\"número do processo administrativo\",\"objeto\":\"texto completo do objeto\",\"validade\":\"prazo de validade da proposta em dias (apenas número)\",\"prazo_entrega\":\"prazo de entrega ou execução\",\"prazo_pag\":\"prazo de pagamento\",\"local\":\"local de prestação do serviço ou entrega\",\"cidade\":\"cidade e UF\",\"tipo_doc\":\"proposta ou declaracao ou ambos\"}\nRetorne SOMENTE o JSON."};try{var _parts2=_iaFileBase64?[{inline_data:{mime_type:_iaFileMime,data:_iaFileBase64}},{text:prompts.preencher}]:[{text:prompts.preencher+"\n\nEDITAL/TR:\n"+texto.substring(0,30000)}];var json=await chamarGemini(key,_parts2,0.1,2000);var resposta=json.candidates&&json.candidates[0]&&json.candidates[0].content&&json.candidates[0].content.parts&&json.candidates[0].content.parts[0]&&json.candidates[0].content.parts[0].text||"";var clean=resposta.replace(/```json/g,"").replace(/```/g,"").trim();var dados=JSON.parse(clean);var sv=function(id,v){var el=document.getElementById(id);if(el&&v)el.value=v};sv("orgao",dados.orgao);sv("setor",dados.setor);sv("modalidade",dados.modalidade);sv("processo",dados.processo);sv("objeto",dados.objeto);sv("validade",dados.validade);sv("prazo_entrega",dados.prazo_entrega);sv("prazo_pag",dados.prazo_pag);sv("local_prestacao",dados.local);sv("cidade_assina",dados.cidade);var preenchidos=Object.values(dados).filter(function(v){return v&&v.length>0}).length;bodyEl.innerHTML='<div style="color:#22c55e;font-weight:600">✅ '+preenchidos+" campos preenchidos automaticamente!</div><div style=\"margin-top:8px;font-size:12px;color:var(--t3)\">Verifique os dados nos cards abaixo e ajuste se necessário.</div><div style=\"margin-top:8px;font-size:11px;color:var(--t3);line-height:1.6\">"+Object.entries(dados).map(function(e){return"<span style=\"color:var(--nh)\">"+e[0]+":</span> "+String(e[1]||"—").substring(0,80)}).join("<br>")+"</div>"}catch(e){bodyEl.innerHTML='<div style="color:#ef4444">Erro: '+e.message+"</div>"}}
 
-async function chamarGemini(key,parts,temp,maxTok){var modelos=["gemini-2.5-flash","gemini-2.0-flash","gemini-2.0-flash-lite"];for(var m=0;m<modelos.length;m++){try{var r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+modelos[m]+":generateContent?key="+key,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts:parts}],generationConfig:{temperature:temp||0.3,maxOutputTokens:maxTok||4000}})});if(r.ok){var j=await r.json();if(j.candidates&&j.candidates[0])return j}var err=await r.json().catch(function(){return{}});if(err.error&&err.error.message&&err.error.message.indexOf("high demand")>=0){continue}throw new Error(err.error&&err.error.message||"Erro "+r.status)}catch(e){if(m===modelos.length-1)throw e;continue}}throw new Error("Todos os modelos Gemini indisponíveis. Verifique se sua API Key está correta e com cota disponível.")}
+async function chamarGemini(key,parts,temp,maxTok){
+  var modelos=["gemini-2.5-flash","gemini-2.0-flash","gemini-2.0-flash-lite"];
+  for(var m=0;m<modelos.length;m++){
+    try{
+      var r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+modelos[m]+":generateContent?key="+key,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts:parts}],generationConfig:{temperature:temp||0.3,maxOutputTokens:maxTok||4000}})});
+      if(r.ok){var j=await r.json();if(j.candidates&&j.candidates[0])return j;}
+      var errBody=await r.json().catch(function(){return{};});
+      var errMsg=errBody.error&&errBody.error.message||"Erro "+r.status;
+      // Quota esgotada — extrair tempo de retry e aguardar
+      if(r.status===429||errMsg.indexOf("quota")>=0||errMsg.indexOf("Quota")>=0||errMsg.indexOf("RESOURCE_EXHAUSTED")>=0){
+        // Tentar próximo modelo
+        if(m<modelos.length-1){continue;}
+        // Último modelo — verificar se tem retry-after
+        var retryMatch=errMsg.match(/retry in ([\d.]+)s/i);
+        var waitSec=retryMatch?Math.ceil(parseFloat(retryMatch[1]))+2:30;
+        // Mostrar countdown no bodyEl se disponível
+        var _bodyEl=document.getElementById("ia-resultado-body");
+        if(_bodyEl){
+          var _t=waitSec;
+          _bodyEl.innerHTML='<div style="color:#eab308;font-weight:600">⏳ Cota temporária atingida. Tentando novamente em <span id="ia-countdown">'+_t+'</span>s...</div><div style="font-size:11px;color:var(--t3);margin-top:6px">O plano gratuito do Gemini tem limite de requisições por minuto.</div>';
+          await new Promise(function(res){
+            var _iv=setInterval(function(){
+              _t--;
+              var _el=document.getElementById("ia-countdown");
+              if(_el)_el.textContent=_t;
+              if(_t<=0){clearInterval(_iv);res();}
+            },1000);
+          });
+          _bodyEl.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:20px;height:20px"></div> Tentando novamente...</div>';
+        } else {
+          await new Promise(function(res){setTimeout(res,waitSec*1000);});
+        }
+        // Retry com o primeiro modelo
+        m=-1; continue;
+      }
+      if(errMsg.indexOf("high demand")>=0){continue;}
+      throw new Error(errMsg);
+    }catch(e){
+      if(e.message&&(e.message.indexOf("quota")>=0||e.message.indexOf("Quota")>=0||e.message.indexOf("429")>=0)){
+        if(m<modelos.length-1){continue;}
+      }
+      if(m===modelos.length-1)throw e;
+      continue;
+    }
+  }
+  throw new Error("Todos os modelos Gemini indisponíveis. Verifique sua API Key.");
+}
 
 </script>
 
