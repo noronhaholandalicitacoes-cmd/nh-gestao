@@ -2308,6 +2308,361 @@ function preencherTabelaComIA(textoIA){
 // Interceptar resposta de "Extrair Itens" para preencher tabela automaticamente
 var _origAnalisarIA=null;
 // ============================================================
+
+// ============================================================
+// MÓDULO DOCUMENTOS — Empresa, Geração PDF e Word
+// ============================================================
+var empSelecionada = '';
+
+function renderEmpGrid(){
+  var grid = document.getElementById('emp-grid');
+  if(!grid) return;
+  if(!EMPRESAS||!EMPRESAS.length){
+    grid.innerHTML='<div style="color:var(--t3);font-size:13px">Nenhuma empresa cadastrada. Acesse Gerenciar Empresas.</div>';
+    return;
+  }
+  grid.innerHTML = EMPRESAS.map(function(e){
+    var cor = e.cor||'#f97316';
+    var sel = empSelecionada===e.nome;
+    return '<button onclick="selecionarEmpresa(\''+e.nome+'\')" style="'
+      +'padding:10px 18px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;'
+      +'font-family:Outfit,sans-serif;transition:all .15s;'
+      +'background:'+(sel?cor:'rgba(255,255,255,.05)')+';'
+      +'border:2px solid '+(sel?cor:'rgba(255,255,255,.1)')+';'
+      +'color:'+(sel?'#000':cor)+';">'
+      +e.nome+'</button>';
+  }).join('');
+}
+
+function selecionarEmpresa(nome){
+  empSelecionada = nome;
+  renderEmpGrid();
+  // Preencher cidade de assinatura com a cidade da empresa
+  var emp = EMPRESAS.find(function(e){return e.nome===nome;});
+  if(emp&&emp.cidade){
+    var cidEl = document.getElementById('cidade_assina');
+    if(cidEl && !cidEl.value) cidEl.value = emp.cidade;
+  }
+}
+
+function _getEmpData(){
+  if(empSelecionada){
+    var e = EMPRESAS.find(function(e){return e.nome===empSelecionada;});
+    if(e) return e;
+  }
+  // fallback para DADOS_FIXOS se disponível
+  if(DADOS_FIXOS&&DADOS_FIXOS[empSelecionada]) return DADOS_FIXOS[empSelecionada];
+  return null;
+}
+
+function _gv(id){ var el=document.getElementById(id); return el?el.value.trim():''; }
+
+function cssBase(titulo, temTimbrado){
+  return '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">'
+    +'<title>'+titulo+'</title>'
+    +'<style>'
+    +'*{box-sizing:border-box;margin:0;padding:0}'
+    +'body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#1f2937;background:#fff;'
+    +'padding:'+(temTimbrado?'0':'30px 40px')+';-webkit-print-color-adjust:exact;print-color-adjust:exact}'
+    +'.titulo{font-size:14px;font-weight:700;text-align:center;text-transform:uppercase;margin:20px 0 14px;letter-spacing:.04em}'
+    +'.intro{text-align:justify;line-height:1.9;margin-bottom:14px}'
+    +'.orgao-box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:12px 16px;margin-bottom:16px;font-size:11px}'
+    +'.orgao-row{margin-bottom:4px}'
+    +'.orgao-lbl{font-weight:700;color:#374151}'
+    +'.assinatura{margin-top:40px;text-align:center}'
+    +'.assinatura-linha{border-top:1px solid #374151;width:280px;margin:0 auto 6px}'
+    +'table{width:100%;border-collapse:collapse;margin:12px 0;font-size:11px}'
+    +'th{background:#1f2937;color:#fff;padding:7px 8px;text-align:left;font-size:10px;text-transform:uppercase}'
+    +'td{padding:6px 8px;border-bottom:1px solid #e5e7eb}'
+    +'tr:nth-child(even) td{background:#f9fafb}'
+    +'.total-row td{font-weight:700;background:#f0fdf4!important;border-top:2px solid #16a34a}'
+    +'@media print{@page{margin:1.5cm;size:A4}body{padding:'+(temTimbrado?'0':'20px')+'}'
+    +'tr{page-break-inside:avoid}}'
+    +'</style></head><body>';
+}
+
+function timbradoHTML(emp, titulo){
+  if(!emp) return '<div style="padding:30px 40px 0"><h1 style="font-size:18px;font-weight:900;color:#f97316;margin-bottom:4px">NH Licitações</h1></div>';
+  var cor = emp.cor||'#f97316';
+  return '<div style="background:'+cor+';padding:18px 40px;display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">'
+    +'<div>'
+    +'<div style="font-size:16px;font-weight:900;color:#fff;letter-spacing:-.3px">'+emp.razao+'</div>'
+    +'<div style="font-size:11px;color:rgba(255,255,255,.8);margin-top:2px">CNPJ: '+emp.cnpj+(emp.cep?' · CEP: '+emp.cep:'')+'</div>'
+    +'</div>'
+    +'<div style="text-align:right;color:rgba(255,255,255,.9);font-size:11px">'
+    +(emp.tel?'<div>'+emp.tel+'</div>':'')
+    +(emp.email?'<div>'+emp.email+'</div>':'')
+    +'</div>'
+    +'</div>'
+    +'<div style="padding:0 40px">';
+}
+
+function orgaoHTML(orgao, setor, modalidade, processo){
+  var rows = '';
+  if(orgao) rows += '<div class="orgao-row"><span class="orgao-lbl">Ao: </span>'+orgao+'</div>';
+  if(setor) rows += '<div class="orgao-row"><span class="orgao-lbl">Setor: </span>'+setor+'</div>';
+  if(modalidade) rows += '<div class="orgao-row"><span class="orgao-lbl">Ref.: </span>'+modalidade+'</div>';
+  if(processo) rows += '<div class="orgao-row"><span class="orgao-lbl">Processo: </span>'+processo+'</div>';
+  return rows ? '<div class="orgao-box">'+rows+'</div>' : '';
+}
+
+function introHTML(emp){
+  if(!emp) return '';
+  return '<p class="intro">A empresa <strong>'+(emp.razao||emp.nome||'').toUpperCase()+'</strong>, '
+    +'inscrita no CNPJ sob o nº <strong>'+emp.cnpj+'</strong>, '
+    +'com sede em '+emp.endereco+(emp.cidade?', '+emp.cidade:'')+(emp.cep?', CEP: '+emp.cep:'')
+    +', por intermédio de seu(a) '+(emp.cargo||'Sócio Administrador')
+    +', o(a) Sr.(a) <strong>'+(emp.socio||'')+'</strong>'
+    +(emp.cpf?', portador do CPF nº <strong>'+emp.cpf+'</strong>':'')+', </p>';
+}
+
+function assinaturaHTML(emp, cidade, data){
+  var cidadeData = (cidade||'_____________')+', '+(data||new Date().toLocaleDateString('pt-BR'));
+  return '<div class="assinatura">'
+    +'<p style="margin-bottom:40px;font-size:11px">'+cidadeData+'</p>'
+    +'<div class="assinatura-linha"></div>'
+    +(emp?'<p style="font-size:11px;font-weight:700">'+(emp.razao||emp.nome||'')+'</p>'
+    +'<p style="font-size:10px;color:#6b7280">CNPJ: '+emp.cnpj+'</p>'
+    +(emp.socio?'<p style="font-size:11px;margin-top:4px">'+emp.socio+'</p>':'')
+    +(emp.cargo?'<p style="font-size:10px;color:#6b7280">'+emp.cargo+'</p>':''):'')
+    +'</div>';
+}
+
+function rodapeHTML(emp){
+  var temTimbrado = emp && TIMBRADOS[emp.nome||empSelecionada];
+  return (temTimbrado?'</div>':'')+'</body></html>';
+}
+
+var OUTRAS_TEXTOS = {
+  vistoria: {
+    titulo: 'DECLARAÇÃO DE VISTORIA / NÃO VISTORIA',
+    texto: function(e){
+      return 'DECLARA para os devidos fins que OPTOU POR NÃO REALIZAR VISTORIA nas instalações '
+        +'e locais onde serão prestados os serviços/fornecidos os materiais objeto do presente certame, '
+        +'assumindo total responsabilidade por essa decisão e não podendo alegar posteriormente '
+        +'desconhecimento das condições do local para qualquer fim.';
+    }
+  },
+  conhecimento: {
+    titulo: 'DECLARAÇÃO DE TOMADA DE CONHECIMENTO',
+    texto: function(e){
+      return 'DECLARA que tomou pleno conhecimento de todas as condições e exigências constantes '
+        +'do Edital e seus Anexos, bem como de todas as informações relativas ao objeto desta '
+        +'licitação, estando ciente e de acordo com todos os seus termos.';
+    }
+  },
+  capacidade: {
+    titulo: 'DECLARAÇÃO DE CAPACIDADE TÉCNICA E OPERACIONAL',
+    texto: function(e){
+      return 'DECLARA que possui capacidade técnica e operacional para o fornecimento do objeto '
+        +'desta licitação, contando com estrutura física, equipamentos e pessoal técnico '
+        +'qualificado necessários para o perfeito cumprimento do contrato.';
+    }
+  },
+  personalizada: {
+    titulo: 'DECLARAÇÃO',
+    texto: function(e){ return ''; }
+  }
+};
+
+function _coletarDadosDoc(){
+  return {
+    emp: _getEmpData(),
+    orgao: _gv('orgao'),
+    setor: _gv('setor'),
+    modalidade: _gv('modalidade'),
+    processo: _gv('processo'),
+    objeto: _gv('objeto'),
+    validade: _gv('validade'),
+    prazoEntrega: _gv('prazo_entrega'),
+    prazoPag: _gv('prazo_pag'),
+    local: _gv('local_prestacao'),
+    cidade: _gv('cidade_assina'),
+    data: new Date().toLocaleDateString('pt-BR'),
+    tipo: docTipo
+  };
+}
+
+function _gerarHTMLProposta(d){
+  var emp = d.emp;
+  var temTimbrado = emp && TIMBRADOS[emp.nome||empSelecionada] && TIMBRADOS[emp.nome||empSelecionada].header;
+  var html = cssBase('Proposta Comercial', temTimbrado);
+  html += timbradoHTML(emp, 'Proposta Comercial');
+  html += orgaoHTML(d.orgao, d.setor, d.modalidade, d.processo);
+  html += '<h2 class="titulo">PROPOSTA COMERCIAL</h2>';
+  if(d.objeto) html += '<p style="margin-bottom:12px;line-height:1.7"><strong>Objeto:</strong> '+d.objeto+'</p>';
+  // Tabela de itens
+  if(linhas && linhas.length){
+    html += '<table><thead><tr>';
+    colunas.forEach(function(c){ html += '<th>'+c.nome+'</th>'; });
+    html += '</tr></thead><tbody>';
+    var total = 0;
+    linhas.forEach(function(r){
+      html += '<tr>';
+      colunas.forEach(function(c){
+        var v = r.cells[c.id]||'';
+        if(c.tipo==='formula'||c.id==='vtotal'){
+          var t = calcRowTotal(r);
+          total += t;
+          v = t>0 ? fmtMoeda(t) : '—';
+        }
+        html += '<td'+(c.id==='vtotal'?' style="text-align:right;font-weight:700"':'')
+          +(c.tipo==='num'||c.tipo==='moeda'?' style="text-align:right"':'')+'>'+v+'</td>';
+      });
+      html += '</tr>';
+    });
+    if(total>0){
+      html += '<tr class="total-row"><td colspan="'+(colunas.length-1)+'"><strong>TOTAL GERAL</strong></td>'
+        +'<td style="text-align:right;font-weight:700">'+fmtMoeda(total)+'</td></tr>';
+    }
+    html += '</tbody></table>';
+  }
+  if(d.validade) html += '<p style="margin:10px 0;font-size:11px"><strong>Validade da Proposta:</strong> '+d.validade+' dias</p>';
+  if(d.prazoEntrega) html += '<p style="margin:4px 0;font-size:11px"><strong>Prazo de Entrega/Execução:</strong> '+d.prazoEntrega+'</p>';
+  if(d.prazoPag) html += '<p style="margin:4px 0;font-size:11px"><strong>Prazo de Pagamento:</strong> '+d.prazoPag+'</p>';
+  if(d.local) html += '<p style="margin:4px 0;font-size:11px"><strong>Local de Prestação:</strong> '+d.local+'</p>';
+  if(emp&&emp.banco) html += '<p style="margin:10px 0;font-size:11px"><strong>Dados Bancários:</strong> '+emp.banco
+    +(emp.agencia?' — Ag. '+emp.agencia:'')+(emp.conta?' — C/C '+emp.conta:'')+'</p>';
+  html += assinaturaHTML(emp, d.cidade, d.data);
+  html += rodapeHTML(emp);
+  return html;
+}
+
+function _gerarHTMLDecl(d){
+  var emp = d.emp;
+  var temTimbrado = emp && TIMBRADOS[emp.nome||empSelecionada] && TIMBRADOS[emp.nome||empSelecionada].header;
+  var html = cssBase('Declaração Unificada', temTimbrado);
+  html += timbradoHTML(emp, 'Declaração Unificada');
+  html += orgaoHTML(d.orgao, d.setor, d.modalidade, d.processo);
+  html += '<h2 class="titulo">DECLARAÇÃO UNIFICADA</h2>';
+  html += introHTML(emp);
+  html += '<p class="intro">para fins do disposto no Edital supramencionado, <strong>DECLARA</strong> que:</p>';
+  var declaracoes = [
+    'Não possui em seu quadro de pessoal empregados menores de 18 anos em trabalho noturno, perigoso ou insalubre e menores de 16 anos em qualquer trabalho, salvo na condição de aprendiz, a partir de 14 anos (CF/1988, art. 7°, XXXIII);',
+    'Não está impedida de contratar ou licitar com órgãos da Administração Pública Federal, Estadual, do Distrito Federal ou Municipal;',
+    'Não foi declarada inidônea por nenhum órgão ou entidade da Administração Pública Federal, Estadual, do Distrito Federal ou Municipal;',
+    'Não possui, em seu quadro societário, servidor público da ativa ou empregado de empresa pública ou de sociedade de economia mista;',
+    'Não há superveniência de fato impeditivo para habilitação neste certame;',
+    'Está ciente e concorda com as condições contidas no Edital e seus Anexos;',
+    'Cumpre os requisitos para a concessão do benefício de Microempresa ou Empresa de Pequeno Porte, nos termos da Lei Complementar nº 123/2006 e suas alterações, se aplicável;',
+    'Não possui relação de parentesco com agentes públicos que tenham participado dos procedimentos licitatórios;',
+    'As informações prestadas são verdadeiras e estão devidamente comprovadas, responsabilizando-se pela veracidade das declarações ora apresentadas;',
+    'Está regular perante o Ministério do Trabalho no que se refere ao cumprimento das normas de segurança e medicina do trabalho.'
+  ];
+  html += '<ol style="padding-left:18px;line-height:1.9">';
+  declaracoes.forEach(function(dec){ html += '<li style="margin-bottom:8px;text-align:justify">'+dec+'</li>'; });
+  html += '</ol>';
+  html += '<p style="margin-top:14px;font-size:11px">Por ser expressão da verdade, firmamos a presente declaração.</p>';
+  html += assinaturaHTML(emp, d.cidade, d.data);
+  html += rodapeHTML(emp);
+  return html;
+}
+
+function gerarDocumento(){
+  var d = _coletarDadosDoc();
+  if(!d.emp){ toast('Selecione uma empresa no passo 1','err'); return; }
+  var html = '';
+  if(docTipo==='proposta') html = _gerarHTMLProposta(d);
+  else if(docTipo==='decl_unificada') html = _gerarHTMLDecl(d);
+  else if(docTipo==='outras') html = gerarHTMLOutraDecl(d.emp,d.orgao,d.setor,d.modalidade,d.processo,d.cidade,d.data,false);
+  else html = _gerarHTMLProposta(d);
+  var w = window.open('','_blank');
+  if(!w){ toast('Popup bloqueado. Permita popups para este site.','err'); return; }
+  w.document.write(html);
+  w.document.close();
+  setTimeout(function(){ w.print(); }, 600);
+}
+
+function previsualizar(){
+  var d = _coletarDadosDoc();
+  if(!d.emp){ toast('Selecione uma empresa no passo 1','err'); return; }
+  var html = '';
+  if(docTipo==='proposta') html = _gerarHTMLProposta(d);
+  else if(docTipo==='decl_unificada') html = _gerarHTMLDecl(d);
+  else if(docTipo==='outras') html = gerarHTMLOutraDecl(d.emp,d.orgao,d.setor,d.modalidade,d.processo,d.cidade,d.data,false);
+  else html = _gerarHTMLProposta(d);
+  var w = window.open('','_blank');
+  if(!w){ toast('Popup bloqueado.','err'); return; }
+  w.document.write(html);
+  w.document.close();
+}
+
+function gerarWord(){
+  if(typeof docx==='undefined'){ toast('Biblioteca Word não carregada. Recarregue a página.','err'); return; }
+  var d = _coletarDadosDoc();
+  if(!d.emp){ toast('Selecione uma empresa no passo 1','err'); return; }
+  try{
+    var emp = d.emp;
+    var cor = (emp.cor||'#f97316').replace('#','');
+    var paras = [];
+    // Cabeçalho da empresa
+    paras.push(new docx.Paragraph({
+      children:[new docx.TextRun({text:(emp.razao||emp.nome||'').toUpperCase(),bold:true,size:28,color:cor})],
+      spacing:{after:120}
+    }));
+    paras.push(new docx.Paragraph({
+      children:[new docx.TextRun({text:'CNPJ: '+emp.cnpj+(emp.cidade?' | '+emp.cidade:''),size:18,color:'666666'})],
+      spacing:{after:360},border:{bottom:{style:docx.BorderStyle.SINGLE,size:6,color:cor}}
+    }));
+    // Dados do processo
+    if(d.orgao) paras.push(new docx.Paragraph({children:[new docx.TextRun({text:'Ao: '+d.orgao,size:20})],spacing:{after:80}}));
+    if(d.modalidade) paras.push(new docx.Paragraph({children:[new docx.TextRun({text:'Ref.: '+d.modalidade,size:20})],spacing:{after:80}}));
+    if(d.processo) paras.push(new docx.Paragraph({children:[new docx.TextRun({text:'Processo: '+d.processo,size:20})],spacing:{after:240}}));
+    // Título
+    var titulo = docTipo==='proposta'?'PROPOSTA COMERCIAL':docTipo==='decl_unificada'?'DECLARAÇÃO UNIFICADA':'DECLARAÇÃO';
+    paras.push(new docx.Paragraph({
+      children:[new docx.TextRun({text:titulo,bold:true,size:26})],
+      alignment:docx.AlignmentType.CENTER,spacing:{after:300}
+    }));
+    // Objeto
+    if(d.objeto) paras.push(new docx.Paragraph({
+      children:[new docx.TextRun({text:'Objeto: ',bold:true,size:22}),new docx.TextRun({text:d.objeto,size:22})],
+      spacing:{after:200}
+    }));
+    // Tabela de itens (proposta)
+    if(docTipo==='proposta' && linhas && linhas.length){
+      var headerRow = new docx.TableRow({children:colunas.map(function(c){
+        return new docx.TableCell({children:[new docx.Paragraph({children:[new docx.TextRun({text:c.nome,bold:true,size:18,color:'FFFFFF'})],alignment:docx.AlignmentType.CENTER})],shading:{fill:cor,type:docx.ShadingType.CLEAR,color:'auto'}});
+      })});
+      var dataRows = linhas.map(function(r){
+        return new docx.TableRow({children:colunas.map(function(c){
+          var v = r.cells[c.id]||'';
+          if(c.tipo==='formula'||c.id==='vtotal'){ var t=calcRowTotal(r); v=t>0?fmtMoeda(t):'—'; }
+          return new docx.TableCell({children:[new docx.Paragraph({children:[new docx.TextRun({text:String(v),size:18})],alignment:(c.tipo==='num'||c.tipo==='moeda'||c.id==='vtotal')?docx.AlignmentType.RIGHT:docx.AlignmentType.LEFT})]});
+        })});
+      });
+      paras.push(new docx.Table({rows:[headerRow].concat(dataRows),width:{size:100,type:docx.WidthType.PERCENTAGE}}));
+      paras.push(new docx.Paragraph({spacing:{after:200}}));
+    }
+    // Condições
+    if(d.validade) paras.push(new docx.Paragraph({children:[new docx.TextRun({text:'Validade da Proposta: ',bold:true,size:20}),new docx.TextRun({text:d.validade+' dias',size:20})],spacing:{after:100}}));
+    if(d.prazoEntrega) paras.push(new docx.Paragraph({children:[new docx.TextRun({text:'Prazo de Entrega/Execução: ',bold:true,size:20}),new docx.TextRun({text:d.prazoEntrega,size:20})],spacing:{after:100}}));
+    if(d.prazoPag) paras.push(new docx.Paragraph({children:[new docx.TextRun({text:'Prazo de Pagamento: ',bold:true,size:20}),new docx.TextRun({text:d.prazoPag,size:20})],spacing:{after:100}}));
+    // Assinatura
+    var cidadeData = (d.cidade||'____________')+', '+d.data;
+    paras.push(new docx.Paragraph({children:[new docx.TextRun({text:cidadeData,size:20})],alignment:docx.AlignmentType.RIGHT,spacing:{before:600,after:600}}));
+    paras.push(new docx.Paragraph({children:[new docx.TextRun({text:'_'.repeat(50),size:20})],alignment:docx.AlignmentType.CENTER,spacing:{after:80}}));
+    paras.push(new docx.Paragraph({children:[new docx.TextRun({text:(emp.razao||emp.nome||'').toUpperCase(),bold:true,size:20})],alignment:docx.AlignmentType.CENTER,spacing:{after:80}}));
+    if(emp.cnpj) paras.push(new docx.Paragraph({children:[new docx.TextRun({text:'CNPJ: '+emp.cnpj,size:18,color:'666666'})],alignment:docx.AlignmentType.CENTER,spacing:{after:80}}));
+    if(emp.socio) paras.push(new docx.Paragraph({children:[new docx.TextRun({text:emp.socio,size:20})],alignment:docx.AlignmentType.CENTER,spacing:{after:60}}));
+    if(emp.cargo) paras.push(new docx.Paragraph({children:[new docx.TextRun({text:emp.cargo,size:18,color:'666666'})],alignment:docx.AlignmentType.CENTER}));
+
+    var doc = new docx.Document({sections:[{properties:{},children:paras}]});
+    docx.Packer.toBlob(doc).then(function(blob){
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = titulo+'_'+(emp.nome||'doc')+'_'+new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')+'.docx';
+      a.click();
+      URL.revokeObjectURL(url);
+      toast('✅ Word gerado!','ok');
+    });
+  }catch(err){
+    console.error(err);
+    toast('Erro ao gerar Word: '+err.message,'err');
+  }
+}
+
 function gerarRelatorioFinanceiro(){
   var tipo=prompt("Tipo de relatório:\n- mes (mês atual)\n- ano (ano inteiro)","mes");
   if(!tipo)return;
@@ -2481,6 +2836,7 @@ async function analisarIA(tipo){var key=localStorage.getItem('nh_gemini_key');if
 function initDocumentos(){
   popularProcessosDoc();
   carregarIAKey();
+  renderEmpGrid();
   var el=document.getElementById("ia-texto");
   if(el)el.value="";
   _iaFileBase64="";_iaTexto="";
