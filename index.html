@@ -2350,11 +2350,11 @@ function renderEmpGrid(){
 function selecionarEmpresa(nome){
   empSelecionada = nome;
   renderEmpGrid();
-  // Preencher cidade de assinatura com a cidade da empresa
-  var emp = EMPRESAS.find(function(e){return e.nome===nome;});
-  if(emp&&emp.cidade){
+  // Preencher cidade de assinatura com a cidade da empresa (sempre sobrescreve)
+  var _empS = EMPRESAS.find(function(e){return e.nome===nome;}) || (DADOS_FIXOS&&DADOS_FIXOS[nome]?Object.assign({nome:nome},DADOS_FIXOS[nome]):null);
+  if(_empS&&_empS.cidade){
     var cidEl = document.getElementById('cidade_assina');
-    if(cidEl && !cidEl.value) cidEl.value = emp.cidade;
+    if(cidEl) cidEl.value = _empS.cidade.split('/')[0].trim();
   }
 }
 
@@ -2523,7 +2523,11 @@ function _coletarDadosDoc(){
     prazoEntrega: _gv('prazo_entrega'),
     prazoPag: _gv('prazo_pag'),
     local: _gv('local_prestacao'),
-    cidade: _gv('cidade_assina'),
+    cidade: (function(){
+      var _empD2 = EMPRESAS.find(function(e){return e.nome===empSelecionada;}) || (DADOS_FIXOS&&DADOS_FIXOS[empSelecionada]?Object.assign({nome:empSelecionada},DADOS_FIXOS[empSelecionada]):null);
+      if(_empD2&&_empD2.cidade) return _empD2.cidade.split('/')[0].trim();
+      return _gv('cidade_assina');
+    })(),
     data: (function(){var _de=document.getElementById('data_assina');if(_de&&_de.value){var _dp=_de.value.split('-');return _dp[2]+'/'+_dp[1]+'/'+_dp[0];}return new Date().toLocaleDateString('pt-BR');})(),
     tipo: docTipo
   };
@@ -2633,7 +2637,20 @@ function previsualizar(){
 }
 
 function gerarWord(){
-  var _docx=typeof docx!=='undefined'?docx:(typeof window.docx!=='undefined'?window.docx:null);if(!_docx){ toast('Biblioteca Word não carregada. Aguarde o carregamento e tente novamente.','err'); return; }
+  var _docx=null;
+  if(typeof docx!=='undefined') _docx=docx;
+  else if(typeof window.docx!=='undefined') _docx=window.docx;
+  else if(typeof window.docxModule!=='undefined') _docx=window.docxModule;
+  if(!_docx){
+    // Tentar recarregar a lib dinamicamente
+    toast('Carregando biblioteca Word...','info');
+    var _s=document.createElement('script');
+    _s.src='https://unpkg.com/docx@8.5.0/build/index.js';
+    _s.onload=function(){ setTimeout(function(){ gerarWord(); },500); };
+    _s.onerror=function(){ toast('Biblioteca Word indisponível. Use Gerar PDF.','err'); };
+    document.head.appendChild(_s);
+    return;
+  }
   var d = _coletarDadosDoc();
   if(!d.emp){ toast('Selecione uma empresa no passo 1','err'); return; }
   try{
@@ -3003,7 +3020,7 @@ async function preencherComIA(){var key=localStorage.getItem("nh_gemini_key");if
           sv("orgao",dados.orgao);sv("setor",dados.setor);sv("modalidade",dados.modalidade);sv("processo",dados.processo);sv("objeto",dados.objeto);if(dados.validade){  var _vNum=String(dados.validade).match(/\d+/);  var _vEl=document.getElementById("validade");  if(_vEl&&_vNum)_vEl.value=_vNum[0];}sv("prazo_entrega",dados.prazo_entrega);sv("prazo_pag",dados.prazo_pag);sv("local_prestacao",dados.local);var _hoje=new Date();var _dataHoje=_hoje.getFullYear()+"-"+("0"+(_hoje.getMonth()+1)).slice(-2)+"-"+("0"+_hoje.getDate()).slice(-2);var _dataEl=document.getElementById("data_assina");if(_dataEl&&!_dataEl.value)_dataEl.value=_dataHoje;
           // Cidade de assinatura = cidade da empresa selecionada
           var _empSel=document.getElementById("doc_empresa");var _empNome=_empSel?_empSel.value:"";var _empD=EMPRESAS.find(function(e){return e.nome===_empNome;});
-          var _cidEmp=_empD&&_empD.cidade?_empD.cidade.split("/")[0].trim():"";var _cidEl=document.getElementById("cidade_assina");if(_cidEl){if(_cidEmp)_cidEl.value=_cidEmp;else if(dados.cidade)_cidEl.value=dados.cidade;}var _nItens=0;await new Promise(function(res){setTimeout(res,3000);});try{var _promptItens='Liste os itens/lotes deste edital. Retorne SOMENTE um array JSON: [{"item":1,"desc":"descricao","unid":"und","qtd":1}]';var _partsItens=_iaFileBase64?[{inline_data:{mime_type:_iaFileMime,data:_iaFileBase64}},{text:_promptItens}]:[{text:_promptItens+"\n\nEDITAL:\n"+texto.substring(0,20000)}];var _urlItens="https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key="+key;var _respRaw=await Promise.race([  fetch(_urlItens,{method:"POST",headers:{"Content-Type":"application/json"},    body:JSON.stringify({contents:[{parts:_partsItens}],generationConfig:{temperature:0.1,maxOutputTokens:3000}})}),  new Promise(function(_,r){setTimeout(function(){r(new Error("timeout"))},15000)})]);if(_respRaw.ok){  var _jItens=await _respRaw.json();  var _respItens=_jItens.candidates&&_jItens.candidates[0]&&_jItens.candidates[0].content&&_jItens.candidates[0].content.parts&&_jItens.candidates[0].content.parts[0]&&_jItens.candidates[0].content.parts[0].text||"";  var _cleanItens=_respItens.replace(/```json/g,"").replace(/```/g,"").trim();  var _arrMatch=_cleanItens.match(/\[[\s\S]*\]/);  if(_arrMatch){    try{      var _itensArr=JSON.parse(_arrMatch[0]);      if(Array.isArray(_itensArr)&&_itensArr.length){preencherTabelaComIA(_itensArr);_nItens=_itensArr.length;}    }catch(pe){console.warn("Parse itens:",pe);}  }}}catch(e2){console.warn("Itens não extraídos:",e2);}
+          var _cidEmp=_empD&&_empD.cidade?_empD.cidade.split("/")[0].trim():"";var _cidEl=document.getElementById("cidade_assina");if(_cidEl){if(_cidEmp)_cidEl.value=_cidEmp;else if(dados.cidade)_cidEl.value=dados.cidade;}var _nItens=0;await new Promise(function(res){setTimeout(res,3000);});try{var _promptItens='Extraia os itens/lotes do Termo de Referência ou Anexo I. Liste TODOS os itens numerados com descricao sucinta, unidade e quantidade. Retorne SOMENTE array JSON: [{"item":1,"desc":"descricao do item","unid":"Servicos","qtd":60}]. Sem texto adicional.';var _partsItens=_iaFileBase64?[{inline_data:{mime_type:_iaFileMime,data:_iaFileBase64}},{text:_promptItens}]:[{text:_promptItens+"\n\nEDITAL:\n"+texto.substring(0,20000)}];var _urlItens="https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key="+key;var _respRaw=await Promise.race([  fetch(_urlItens,{method:"POST",headers:{"Content-Type":"application/json"},    body:JSON.stringify({contents:[{parts:_partsItens}],generationConfig:{temperature:0.1,maxOutputTokens:3000}})}),  new Promise(function(_,r){setTimeout(function(){r(new Error("timeout"))},15000)})]);if(_respRaw.ok){  var _jItens=await _respRaw.json();  var _respItens=_jItens.candidates&&_jItens.candidates[0]&&_jItens.candidates[0].content&&_jItens.candidates[0].content.parts&&_jItens.candidates[0].content.parts[0]&&_jItens.candidates[0].content.parts[0].text||"";  var _cleanItens=_respItens.replace(/```json/g,"").replace(/```/g,"").trim();  var _arrMatch=_cleanItens.match(/\[[\s\S]*\]/);  if(_arrMatch){    try{      var _itensArr=JSON.parse(_arrMatch[0]);      if(Array.isArray(_itensArr)&&_itensArr.length){preencherTabelaComIA(_itensArr);_nItens=_itensArr.length;}    }catch(pe){console.warn("Parse itens:",pe);}  }}}catch(e2){console.warn("Itens não extraídos:",e2);}
           // Preencher tabela de itens
           var _itensIA=dados.itens;if(Array.isArray(_itensIA)&&_itensIA.length>0){
             linhas=[];_nextRowId=1;
