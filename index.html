@@ -2286,20 +2286,36 @@ function navTabela(e,ri,ci){
 
 function adicionarLinhaTabela(){addLinha();}
 
-function preencherTabelaComIA(textoIA){
-  // Parsear formato "ITEM | DESCRIÇÃO | UNIDADE | QTD"
-  var linhasTexto=textoIA.split("\n").filter(function(l){return l.includes("|")&&!/^item/i.test(l.trim());});
-  if(!linhasTexto.length)return;
+function preencherTabelaComIA(input){
+  var itensArr=[];
+  // Aceitar array de objetos diretamente
+  if(Array.isArray(input)){
+    itensArr=input;
+  } else {
+    // Parsear texto no formato "ITEM | DESC | UNID | QTD"
+    var linhasTexto=String(input).split("\n").filter(function(l){
+      return l.includes("|")&&!/^[\s]*item[\s]*\|/i.test(l.trim());
+    });
+    linhasTexto.forEach(function(l){
+      var p=l.split("|").map(function(x){return x.trim();});
+      if(p.length>=2) itensArr.push({item:p[0],desc:p[1]||"",unid:p[2]||"un",qtd:p[3]||"1"});
+    });
+  }
+  if(!itensArr.length)return;
   linhas=[];_nextRowId=1;
-  linhasTexto.forEach(function(l){
-    var partes=l.split("|").map(function(p){return p.trim();});
-    if(partes.length<2)return;
-    var cells={item:_nextRowId,desc:partes[1]||"",unid:partes[2]||"un",qtd:partes[3]||"1",vunit:"",vtotal:""};
+  itensArr.forEach(function(it){
+    var cells={
+      item:_nextRowId,
+      desc:String(it.desc||it.descricao||it.description||it[1]||"").trim(),
+      unid:String(it.unid||it.unidade||it.unit||it[2]||"un").trim(),
+      qtd:String(it.qtd||it.quantidade||it.qty||it[3]||"1").trim(),
+      vunit:"",vtotal:""
+    };
     colunas.forEach(function(c){if(!(c.id in cells))cells[c.id]="";});
     linhas.push({id:_nextRowId++,cells:cells,formula:["qtd","vunit"]});
   });
   renderTabela();
-  toast("✅ "+linhas.length+" itens extraídos do edital!","ok");
+  toast("✅ "+linhas.length+" itens extraídos!","ok");
 }
 
 // Interceptar resposta de "Extrair Itens" para preencher tabela automaticamente
@@ -2354,44 +2370,62 @@ function _getEmpData(){
 
 function _gv(id){ var el=document.getElementById(id); return el?el.value.trim():''; }
 
-function cssBase(titulo, temTimbrado){
+function cssBase(titulo, cor){
+  cor = cor||'#f97316';
   return '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">'
     +'<title>'+titulo+'</title>'
     +'<style>'
     +'*{box-sizing:border-box;margin:0;padding:0}'
     +'body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#1f2937;background:#fff;'
-    +'padding:'+(temTimbrado?'0':'30px 40px')+';-webkit-print-color-adjust:exact;print-color-adjust:exact}'
-    +'.titulo{font-size:14px;font-weight:700;text-align:center;text-transform:uppercase;margin:20px 0 14px;letter-spacing:.04em}'
+    +'-webkit-print-color-adjust:exact;print-color-adjust:exact;margin:0;padding:0}'
+    +'.page-wrap{min-height:100vh;display:flex;flex-direction:column}'
+    +'.cabecalho{background:'+cor+';padding:16px 36px;display:flex;align-items:center;justify-content:space-between}'
+    +'.cab-razao{font-size:15px;font-weight:900;color:#fff;letter-spacing:-.3px}'
+    +'.cab-cnpj{font-size:10px;color:rgba(255,255,255,.8);margin-top:2px}'
+    +'.cab-contato{text-align:right;color:rgba(255,255,255,.9);font-size:10px;line-height:1.6}'
+    +'.corpo{flex:1;padding:24px 36px}'
+    +'.rodape{background:#f3f4f6;border-top:3px solid '+cor+';padding:10px 36px;'
+    +'display:flex;align-items:center;justify-content:space-between;font-size:9px;color:#6b7280}'
+    +'.rodape-marca{font-weight:700;color:'+cor+'}'
+    +'.titulo{font-size:14px;font-weight:700;text-align:center;text-transform:uppercase;margin:18px 0 14px;letter-spacing:.04em}'
     +'.intro{text-align:justify;line-height:1.9;margin-bottom:14px}'
     +'.orgao-box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:12px 16px;margin-bottom:16px;font-size:11px}'
     +'.orgao-row{margin-bottom:4px}'
     +'.orgao-lbl{font-weight:700;color:#374151}'
-    +'.assinatura{margin-top:40px;text-align:center}'
+    +'.bloco{background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:14px 16px;margin:14px 0;font-size:11px}'
+    +'.bloco-titulo{font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;font-size:10px}'
+    +'.assinatura{margin-top:36px;text-align:center;page-break-inside:avoid}'
     +'.assinatura-linha{border-top:1px solid #374151;width:280px;margin:0 auto 6px}'
     +'table{width:100%;border-collapse:collapse;margin:12px 0;font-size:11px}'
-    +'th{background:#1f2937;color:#fff;padding:7px 8px;text-align:left;font-size:10px;text-transform:uppercase}'
-    +'td{padding:6px 8px;border-bottom:1px solid #e5e7eb}'
-    +'tr:nth-child(even) td{background:#f9fafb}'
+    +'th{background:'+cor+';color:#fff;padding:7px 8px;text-align:left;font-size:10px;text-transform:uppercase;font-weight:700}'
+    +'td{padding:6px 8px;border-bottom:1px solid #e5e7eb;vertical-align:top}'
+    +'tr:nth-child(even) td{background:#fafafa}'
     +'.total-row td{font-weight:700;background:#f0fdf4!important;border-top:2px solid #16a34a}'
-    +'@media print{@page{margin:1.5cm;size:A4}body{padding:'+(temTimbrado?'0':'20px')+'}'
-    +'tr{page-break-inside:avoid}}'
-    +'</style></head><body>';
+    +'@media print{'
+    +'@page{margin:0;size:A4}'
+    +'body{margin:0;padding:0}'
+    +'.page-wrap{min-height:297mm}'
+    +'.cabecalho{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}'
+    +'.rodape{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;position:fixed;bottom:0;left:0;right:0}'
+    +'tr{page-break-inside:avoid}'
+    +'}'
+    +'</style></head><body><div class="page-wrap">';
 }
 
 function timbradoHTML(emp, titulo){
-  if(!emp) return '<div style="padding:30px 40px 0"><h1 style="font-size:18px;font-weight:900;color:#f97316;margin-bottom:4px">NH Licitações</h1></div>';
+  if(!emp){return '<div class="cabecalho"><div><div class="cab-razao">NH Licitações</div></div></div><div class="corpo">';}
   var cor = emp.cor||'#f97316';
-  return '<div style="background:'+cor+';padding:18px 40px;display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">'
+  return '<div class="cabecalho" style="background:'+cor+'">'
     +'<div>'
-    +'<div style="font-size:16px;font-weight:900;color:#fff;letter-spacing:-.3px">'+emp.razao+'</div>'
-    +'<div style="font-size:11px;color:rgba(255,255,255,.8);margin-top:2px">CNPJ: '+emp.cnpj+(emp.cep?' · CEP: '+emp.cep:'')+'</div>'
+    +'<div class="cab-razao">'+emp.razao+'</div>'
+    +'<div class="cab-cnpj">CNPJ: '+emp.cnpj+(emp.endereco?' &nbsp;|&nbsp; '+emp.endereco:'')+(emp.cidade?' — '+emp.cidade:'')+'</div>'
     +'</div>'
-    +'<div style="text-align:right;color:rgba(255,255,255,.9);font-size:11px">'
+    +'<div class="cab-contato">'
     +(emp.tel?'<div>'+emp.tel+'</div>':'')
     +(emp.email?'<div>'+emp.email+'</div>':'')
     +'</div>'
     +'</div>'
-    +'<div style="padding:0 40px">';
+    +'<div class="corpo">';
 }
 
 function orgaoHTML(orgao, setor, modalidade, processo){
@@ -2414,20 +2448,35 @@ function introHTML(emp){
 }
 
 function assinaturaHTML(emp, cidade, data){
-  var cidadeData = (cidade||'_____________')+', '+(data||new Date().toLocaleDateString('pt-BR'));
+  // cidade de assinatura: usar cidade da empresa se disponível
+  var cidadeUso = cidade||( emp&&emp.cidade ? emp.cidade.split('/')[0].trim() : '' )||'_____________';
+  var dataUso   = data||new Date().toLocaleDateString('pt-BR');
+  var cidadeData = cidadeUso+', '+dataUso;
   return '<div class="assinatura">'
-    +'<p style="margin-bottom:40px;font-size:11px">'+cidadeData+'</p>'
+    +'<p style="margin-bottom:48px;font-size:11px;text-align:right">'+cidadeData+'</p>'
+    +'<div style="display:inline-block;text-align:center">'
     +'<div class="assinatura-linha"></div>'
-    +(emp?'<p style="font-size:11px;font-weight:700">'+(emp.razao||emp.nome||'')+'</p>'
-    +'<p style="font-size:10px;color:#6b7280">CNPJ: '+emp.cnpj+'</p>'
-    +(emp.socio?'<p style="font-size:11px;margin-top:4px">'+emp.socio+'</p>':'')
-    +(emp.cargo?'<p style="font-size:10px;color:#6b7280">'+emp.cargo+'</p>':''):'')
+    +(emp
+      ? '<p style="font-size:11px;font-weight:700;text-transform:uppercase">'+(emp.razao||emp.nome||'')+'</p>'
+      +'<p style="font-size:10px;color:#6b7280">CNPJ: '+emp.cnpj+'</p>'
+      +(emp.socio?'<p style="font-size:11px;margin-top:6px;font-weight:600">'+emp.socio+'</p>':'')
+      +(emp.cargo?'<p style="font-size:10px;color:#6b7280">'+emp.cargo+'</p>':'')
+      +(emp.cpf?'<p style="font-size:10px;color:#6b7280">CPF: '+emp.cpf+'</p>':'')
+      : '<p style="font-size:11px">Assinatura</p>')
+    +'</div>'
     +'</div>';
 }
 
 function rodapeHTML(emp){
-  var temTimbrado = emp && TIMBRADOS[emp.nome||empSelecionada];
-  return (temTimbrado?'</div>':'')+'</body></html>';
+  var cor = (emp&&emp.cor)||'#f97316';
+  var rodape = '</div>'  // fecha .corpo
+    +'<div class="rodape" style="border-top-color:'+cor+'">'
+    +'<div class="rodape-marca" style="color:'+cor+'">'+(emp?emp.razao:'NH Licitações')+'</div>'
+    +'<div>Documento gerado pelo sistema NH Licitações · '+new Date().toLocaleDateString('pt-BR')+'</div>'
+    +'<div>'+(emp&&emp.cnpj?'CNPJ: '+emp.cnpj:'')+'</div>'
+    +'</div>'
+    +'</div></body></html>';
+  return rodape;
 }
 
 var OUTRAS_TEXTOS = {
@@ -2481,9 +2530,9 @@ function _coletarDadosDoc(){
 }
 
 function _gerarHTMLProposta(d){
-  var emp = d.emp;
-  var temTimbrado = emp && TIMBRADOS[emp.nome||empSelecionada] && TIMBRADOS[emp.nome||empSelecionada].header;
-  var html = cssBase('Proposta Comercial', temTimbrado);
+  var emp = d.emp || (empSelecionada&&DADOS_FIXOS[empSelecionada]?Object.assign({nome:empSelecionada,cor:EMPCORES[empSelecionada]||'#f97316'},DADOS_FIXOS[empSelecionada]):null);
+  var cor = (emp&&emp.cor)||EMPCORES[empSelecionada]||'#f97316';
+  var html = cssBase('Proposta Comercial', cor);
   html += timbradoHTML(emp, 'Proposta Comercial');
   html += orgaoHTML(d.orgao, d.setor, d.modalidade, d.processo);
   html += '<h2 class="titulo">PROPOSTA COMERCIAL</h2>';
