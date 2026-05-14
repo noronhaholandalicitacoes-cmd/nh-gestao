@@ -2897,12 +2897,12 @@ function gerarRelatorioFinanceiro(){
   });
   h+='<tr class="total-row"><td>TOTAL</td><td class="val">'+fmtMoeda(totalSaida)+'</td></tr>';
   h+='</table>';
-  h+='<h2>Detalhamento</h2><table><tr><th>Data</th><th>Empresa</th><th>Categoria</th><th>Descrição</th><th>Fornecedor</th><th class="val">Valor</th><th>Status</th></tr>';
+  h+='<h2>Detalhamento</h2><table><tr><th>Data</th><th>Empresa</th><th>Categoria</th><th>Descrição</th><th>Fornecedor</th><th class="val">Valor</th><th>Status</th><th>Observações</th></tr>';
   registros.forEach(function(r){
     var dt=finGetData(r);
-    h+='<tr><td>'+dt+'</td><td>'+String(r[8]||"").trim()+'</td><td>'+String(r[1]||"").trim()+'</td><td>'+String(r[2]||"").trim()+'</td><td>'+String(r[3]||"").trim()+'</td><td class="val">'+fmtMoeda(parseMoeda(r[4])||0)+'</td><td>'+String(r[5]||"").trim()+'</td></tr>';
+    h+='<tr><td>'+dt+'</td><td>'+String(r[8]||"").trim()+'</td><td>'+String(r[1]||"").trim()+'</td><td>'+String(r[2]||"").trim()+'</td><td>'+String(r[3]||"").trim()+'</td><td class="val">'+fmtMoeda(parseMoeda(r[4])||0)+'</td><td>'+String(r[5]||"").trim()+'</td><td style="font-size:11px;color:#555">'+String(r[6]||"").trim()+'</td></tr>';
   });
-  h+='<tr class="total-row"><td colspan="5">TOTAL GERAL</td><td class="val">'+fmtMoeda(totalSaida)+'</td><td></td></tr>';
+  h+='<tr class="total-row"><td colspan="5">TOTAL GERAL</td><td class="val">'+fmtMoeda(totalSaida)+'</td><td colspan="2"></td></tr>';
   h+='</table></body></html>';
   var win=window.open("","_blank");
   win.document.write(h);
