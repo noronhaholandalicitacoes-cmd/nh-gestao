@@ -447,6 +447,7 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
       <div class="topbar-emp-dot" id="emp-dot"></div>
       <div class="topbar-emp-name" id="emp-nome-top"></div>
     </div>
+    <button class="topbar-logout" id="btn-gestao-acessos" onclick="abrirGestaoAcessos()" style="display:none;background:rgba(249,115,22,.12);border-color:rgba(249,115,22,.3);color:#f97316;margin-right:6px">🔑 Acessos</button>
     <button class="topbar-logout" onclick="fazerLogout()">Sair</button>
   </div>
 
@@ -454,7 +455,30 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
     <!-- Stats -->
     <div class="stats" id="stats-area"></div>
 
-    <!-- Filtros -->
+    <!-- Dashboard GROWTH (gráficos por empresa) -->
+    <div id="dashboard-area" style="display:none;margin-bottom:24px"></div>
+
+    <!-- Toolbar: busca + ordenação + imprimir -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+      <div class="busca-wrap">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:.4;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input id="inp-busca" placeholder="Buscar contrato..." oninput="renderContratos()"
+          style="background:none;border:none;color:var(--t1);font-family:'DM Sans',sans-serif;font-size:13px;flex:1;outline:none">
+      </div>
+      <select id="sel-ordem" onchange="renderContratos()"
+        style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:8px 12px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:12px;outline:none;cursor:pointer">
+        <option value="recente">Mais recente</option>
+        <option value="vencimento">Vencimento</option>
+        <option value="valor">Maior valor</option>
+        <option value="az">A → Z</option>
+      </select>
+      <button class="btn-imprimir-todos" onclick="imprimirTodos()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+        Imprimir Todos
+      </button>
+    </div>
+
+    <!-- Filtros por status -->
     <div class="filtros" id="filtros-area">
       <button class="filtro-btn on" onclick="filtrar('todos',this)">Todos</button>
       <button class="filtro-btn" onclick="filtrar('em_execucao',this)">Em Execução</button>
@@ -462,10 +486,58 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
       <button class="filtro-btn" onclick="filtrar('finalizado',this)">Finalizados</button>
     </div>
 
-    <!-- Contratos -->
-    <div class="section-title" id="section-title-contratos">Licitações Ganhas</div>
+    <!-- Filtros por empresa (apenas GROWTH) -->
+    <div class="filtros" id="filtros-empresa-area" style="margin-bottom:16px"></div>
+
+    <!-- Título + contagem -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div class="section-title" id="section-title-contratos" style="margin-bottom:0">Gerenciamento de Contratos</div>
+      <span id="contratos-contagem" style="font-size:12px;color:var(--t2)"></span>
+    </div>
+
+    <!-- Lista de contratos -->
     <div id="contratos-area" class="contratos">
       <div class="spin"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL GESTÃO DE ACESSOS ── -->
+<div id="modal-acessos" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#111118;border:1px solid #2a2a38;border-radius:20px;width:100%;max-width:620px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.8)">
+    <!-- Header -->
+    <div style="padding:24px 28px 20px;border-bottom:1px solid #1e1e28;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:#f0f0f8">🔑 Gestão de Acessos</div>
+        <div style="font-size:12px;color:#5a5a72;margin-top:3px">Gerencie logins e senhas das empresas do portal</div>
+      </div>
+      <button onclick="fecharGestaoAcessos()" style="background:rgba(255,255,255,.06);border:1px solid #2a2a38;color:#9898b0;width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>
+
+    <!-- Lista de acessos -->
+    <div style="flex:1;overflow-y:auto;padding:20px 28px" id="lista-acessos"></div>
+
+    <!-- Formulário adicionar novo -->
+    <div style="padding:20px 28px;border-top:1px solid #1e1e28;background:#0d0d12;flex-shrink:0">
+      <div style="font-size:11px;font-weight:700;color:#5a5a72;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">Adicionar Nova Empresa</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end">
+        <div>
+          <div style="font-size:10px;color:#5a5a72;margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em">Nome da Empresa</div>
+          <input id="novo-login" type="text" placeholder="Ex: EMPRESA" autocapitalize="characters"
+            style="width:100%;background:#18181f;border:1px solid #2a2a38;color:#f0f0f8;padding:9px 12px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color .15s"
+            onfocus="this.style.borderColor='rgba(249,115,22,.6)'" onblur="this.style.borderColor='#2a2a38'"
+            onkeydown="if(event.key==='Enter')document.getElementById('nova-senha').focus()">
+        </div>
+        <div>
+          <div style="font-size:10px;color:#5a5a72;margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em">Senha</div>
+          <input id="nova-senha" type="text" placeholder="Ex: empresa@2026"
+            style="width:100%;background:#18181f;border:1px solid #2a2a38;color:#f0f0f8;padding:9px 12px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color .15s"
+            onfocus="this.style.borderColor='rgba(249,115,22,.6)'" onblur="this.style.borderColor='#2a2a38'"
+            onkeydown="if(event.key==='Enter')adicionarAcesso()">
+        </div>
+        <button onclick="adicionarAcesso()" style="background:linear-gradient(90deg,#f97316,#dc2626);color:#fff;border:none;padding:9px 18px;border-radius:8px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:opacity .15s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">+ Adicionar</button>
+      </div>
+      <div id="msg-acesso" style="font-size:12px;margin-top:10px;display:none;padding:8px 12px;border-radius:6px"></div>
     </div>
   </div>
 </div>
@@ -515,7 +587,7 @@ let filtroAtual = 'todos';
 const EMPRESAS_SISTEMA = ['VISE','SOS','SOS FILIAL','SAUTEC','ONLAV','ENGEMED','POTIGUAR'];
 
 // ─── LOGIN ───────────────────────────────────────────────────────
-function fazerLogin(){
+async function fazerLogin(){
   const emp = document.getElementById('inp-empresa').value.trim().toUpperCase();
   const senha = document.getElementById('inp-senha').value.trim();
   const err = document.getElementById('login-err');
@@ -524,20 +596,38 @@ function fazerLogin(){
   err.style.display = 'none';
   if(!emp || !senha){err.textContent='Preencha todos os campos.';err.style.display='block';return;}
 
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+
+  // Carregar senhas atualizadas do Firestore antes de validar
+  try{
+    const doc = await db.collection('config').doc('portal_acessos').get();
+    if(doc.exists && doc.data().senhas){
+      Object.keys(SENHAS).forEach(k => delete SENHAS[k]);
+      Object.assign(SENHAS, doc.data().senhas);
+    }
+  } catch(e){ /* usa defaults locais se offline */ }
+
   const senhaCorreta = SENHAS[emp];
   if(!senhaCorreta || senha !== senhaCorreta){
     err.textContent = 'Empresa ou senha incorretos.';
     err.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Entrar no Portal';
     return;
   }
-
-  btn.disabled = true;
-  btn.textContent = 'Entrando...';
 
   // Salvar sessão
   sessionStorage.setItem('nh_portal_emp', emp);
   empAtual = emp;
   isAdmin  = (emp === 'GROWTH');
+
+  // Admin: carregar acessos do Firestore (para que outros possam logar com senhas atualizadas)
+  if(isAdmin){
+    await carregarAcessosFirestore();
+    document.getElementById('btn-gestao-acessos').style.display = '';
+  }
+
   iniciarPortal();
 }
 
@@ -740,7 +830,7 @@ async function carregarContratos(){
     gerarDashboard();
     // Atualizar título da seção
     const st = document.getElementById('section-title-contratos');
-    if(st) st.textContent = isAdmin ? 'Todos os Contratos — Visão Gerencial' : 'Meus Contratos';
+    if(st) st.textContent = isAdmin ? 'Gerenciamento de Contratos — Visão Geral' : 'Gerenciamento de Contratos';
     // Filtros por empresa para GROWTH
     if(isAdmin){
       const fe = document.getElementById('filtros-empresa-area');
@@ -869,10 +959,16 @@ function renderContratos(){
   if(!lista.length){
     document.getElementById('contratos-area').innerHTML = `
       <div class="empty"><div class="empty-icon">📋</div><p>Nenhum contrato encontrado neste filtro.</p></div>`;
+    const c = document.getElementById('contratos-contagem');
+    if(c) c.textContent = '';
     return;
   }
 
-  document.getElementById('contratos-area').innerHTML = lista.map(({id,arr}) => {
+  const contEl = document.getElementById('contratos-contagem');
+  if(contEl) contEl.textContent = lista.length + ' contrato' + (lista.length !== 1 ? 's' : '');
+
+  document.getElementById('contratos-area').innerHTML = lista.map((entry) => {
+    const {id,arr} = entry;
     const status = String(arr[9]||'').trim() || 'EM EXECUÇÃO';
     const statusUp = status.toUpperCase();
     const cor = statusUp==='FINALIZADO'?'azul':statusUp==='RESCINDIDO'?'vermelho':statusUp==='SUSPENSO'?'amarelo':'verde';
@@ -1212,8 +1308,147 @@ async function salvarAlteracoes(id){
   }
 }
 
+// ─── GESTÃO DE ACESSOS (GROWTH) ──────────────────────────────────
+// Os acessos são salvos no Firestore em 'config/portal_acessos'
+// Na memória, o objeto SENHAS é sempre mantido atualizado
+
+let acessosCarregados = false;
+
+async function carregarAcessosFirestore(){
+  try{
+    const doc = await db.collection('config').doc('portal_acessos').get();
+    if(doc.exists){
+      const data = doc.data();
+      if(data.senhas){
+        // Mescla com os defaults — Firestore é a fonte da verdade
+        Object.keys(SENHAS).forEach(k => delete SENHAS[k]);
+        Object.assign(SENHAS, data.senhas);
+      }
+    } else {
+      // Primeira vez: salvar os defaults no Firestore
+      await db.collection('config').doc('portal_acessos').set({ senhas: {...SENHAS} });
+    }
+    acessosCarregados = true;
+  } catch(e){
+    console.warn('Não foi possível carregar acessos do Firestore:', e.message);
+  }
+}
+
+async function salvarAcessosFirestore(){
+  await db.collection('config').doc('portal_acessos').set({ senhas: {...SENHAS} });
+}
+
+function abrirGestaoAcessos(){
+  document.getElementById('modal-acessos').style.display = 'flex';
+  renderListaAcessos();
+}
+
+function fecharGestaoAcessos(){
+  document.getElementById('modal-acessos').style.display = 'none';
+  document.getElementById('msg-acesso').style.display = 'none';
+  document.getElementById('novo-login').value = '';
+  document.getElementById('nova-senha').value = '';
+}
+
+function renderListaAcessos(){
+  const lista = document.getElementById('lista-acessos');
+  const entries = Object.entries(SENHAS);
+  if(!entries.length){
+    lista.innerHTML = '<div style="text-align:center;color:#5a5a72;padding:30px">Nenhum acesso cadastrado</div>';
+    return;
+  }
+  lista.innerHTML = entries.map(([login, senha]) => {
+    const cor = CORES[login] || '#6b7280';
+    const initials = login.split(' ').map(w=>w[0]).join('').slice(0,2);
+    const isGrowth = login === 'GROWTH';
+    return `
+    <div id="row-${login.replace(/ /g,'_')}" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:#18181f;border:1px solid #22222c;border-radius:10px;margin-bottom:8px">
+      <div style="width:34px;height:34px;border-radius:8px;background:${cor}22;border:1px solid ${cor}44;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:${cor};flex-shrink:0">${initials}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:700;color:#f0f0f8;margin-bottom:2px">${login} ${isGrowth?'<span style="font-size:10px;background:rgba(249,115,22,.15);color:#f97316;padding:2px 7px;border-radius:4px;margin-left:4px">ADMIN</span>':''}</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input id="inp-senha-${login.replace(/ /g,'_')}" type="text" value="${senha}"
+            style="background:#0d0d12;border:1px solid #2a2a38;color:#9898b0;padding:5px 10px;border-radius:6px;font-family:monospace;font-size:12px;outline:none;flex:1;min-width:0;transition:border-color .15s"
+            onfocus="this.style.borderColor='rgba(249,115,22,.6)'" onblur="this.style.borderColor='#2a2a38'"
+            onkeydown="if(event.key==='Enter')salvarSenha('${login}')">
+          <button onclick="salvarSenha('${login}')" style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);color:#4ade80;padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;transition:opacity .15s" onmouseover="this.style.opacity='.7'" onmouseout="this.style.opacity='1'">💾 Salvar</button>
+          ${!isGrowth ? `<button onclick="excluirAcesso('${login}')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;transition:opacity .15s" onmouseover="this.style.opacity='.7'" onmouseout="this.style.opacity='1'" title="Excluir">🗑</button>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function salvarSenha(login){
+  const key = login.replace(/ /g,'_');
+  const inp = document.getElementById('inp-senha-'+key);
+  if(!inp) return;
+  const novaSenha = inp.value.trim();
+  if(!novaSenha){ mostrarMsgAcesso('Senha não pode ser vazia.','erro'); return; }
+  SENHAS[login] = novaSenha;
+  try{
+    await salvarAcessosFirestore();
+    mostrarMsgAcesso(`✓ Senha de ${login} atualizada!`, 'ok');
+  } catch(e){
+    mostrarMsgAcesso('Erro ao salvar: '+e.message, 'erro');
+  }
+}
+
+async function excluirAcesso(login){
+  if(!confirm(`Remover acesso de "${login}"?`)) return;
+  delete SENHAS[login];
+  try{
+    await salvarAcessosFirestore();
+    renderListaAcessos();
+    mostrarMsgAcesso(`✓ Acesso de ${login} removido.`, 'ok');
+  } catch(e){
+    SENHAS[login] = ''; // rollback parcial
+    mostrarMsgAcesso('Erro ao excluir: '+e.message, 'erro');
+  }
+}
+
+async function adicionarAcesso(){
+  const login = document.getElementById('novo-login').value.trim().toUpperCase();
+  const senha  = document.getElementById('nova-senha').value.trim();
+  if(!login || !senha){ mostrarMsgAcesso('Preencha nome e senha.','erro'); return; }
+  if(SENHAS[login]){ mostrarMsgAcesso(`"${login}" já existe. Altere a senha na lista acima.`,'erro'); return; }
+  SENHAS[login] = senha;
+  try{
+    await salvarAcessosFirestore();
+    document.getElementById('novo-login').value = '';
+    document.getElementById('nova-senha').value = '';
+    renderListaAcessos();
+    mostrarMsgAcesso(`✓ "${login}" adicionado com sucesso!`, 'ok');
+  } catch(e){
+    delete SENHAS[login];
+    mostrarMsgAcesso('Erro ao salvar: '+e.message, 'erro');
+  }
+}
+
+function mostrarMsgAcesso(texto, tipo){
+  const el = document.getElementById('msg-acesso');
+  el.textContent = texto;
+  el.style.display = 'block';
+  if(tipo==='ok'){
+    el.style.background = 'rgba(34,197,94,.1)';
+    el.style.border = '1px solid rgba(34,197,94,.25)';
+    el.style.color = '#4ade80';
+  } else {
+    el.style.background = 'rgba(239,68,68,.1)';
+    el.style.border = '1px solid rgba(239,68,68,.25)';
+    el.style.color = '#f87171';
+  }
+  setTimeout(()=>{ el.style.display='none'; }, 4000);
+}
+
+// Fechar modal clicando fora
+document.addEventListener('click', e => {
+  const modal = document.getElementById('modal-acessos');
+  if(modal && modal.style.display==='flex' && e.target===modal) fecharGestaoAcessos();
+});
+
 // ─── INIT ────────────────────────────────────────────────────────
-window.addEventListener('load', ()=>{
+window.addEventListener('load', async ()=>{
   document.getElementById('loading').style.display = 'none';
 
   // Verificar sessão
@@ -1222,6 +1457,10 @@ window.addEventListener('load', ()=>{
     empAtual = empSessao;
     isAdmin  = (empSessao === 'GROWTH');
     document.getElementById('login-screen').style.display = 'none';
+    if(isAdmin){
+      await carregarAcessosFirestore();
+      document.getElementById('btn-gestao-acessos').style.display = '';
+    }
     iniciarPortal();
   } else {
     document.getElementById('login-screen').style.display = 'flex';
