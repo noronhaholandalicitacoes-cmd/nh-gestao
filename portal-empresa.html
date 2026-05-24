@@ -663,131 +663,274 @@ async function iniciarPortal(){
   await carregarContratos();
 }
 
-// ─── DASHBOARD POR EMPRESA (GROWTH) ──────────────────────────────
+// ─── DASHBOARD ───────────────────────────────────────────────────
 function parseMoedaV(s){return parseFloat(String(s||'').replace(/[^\d,]/g,'').replace(',','.'))||0;}
 
 function gerarDashboard(){
   const dash = document.getElementById('dashboard-area');
-  if(!isAdmin || !dash) return;
-  dash.style.display = 'block';
+  if(!dash) return;
 
   const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const fmtM = v => {
+    if(v>=1e6) return 'R$ '+(v/1e6).toFixed(2).replace('.',',')+'M';
+    if(v>=1e3) return 'R$ '+(v/1e3).toFixed(1).replace('.',',')+'K';
+    return 'R$ '+v.toFixed(2).replace('.',',');
+  };
 
-  // Agrupar por empresa
+  const empresasParaMostrar = isAdmin ? EMPRESAS_SISTEMA : [empAtual];
+
   const porEmp = {};
-  EMPRESAS_SISTEMA.forEach(e => { porEmp[e] = {contratos:[],portfolio:0,ativo:0,ganhou:0,participou:0}; });
+  empresasParaMostrar.forEach(e => {
+    porEmp[e] = {contratos:[], portfolio:0, ativo:0, ganhou:0, recomp:0, vencer30:0, vencer90:0, finalizados:0};
+  });
 
   dadosGanhas.forEach(({arr}) => {
     const emp = String(arr[2]||'').trim().toUpperCase();
-    if(!porEmp[emp]) porEmp[emp] = {contratos:[],portfolio:0,ativo:0,ganhou:0,participou:0};
+    if(!porEmp[emp]) return;
+    porEmp[emp].contratos.push(arr);
+    const val = parseMoedaV(arr[7]);
+    porEmp[emp].portfolio += val;
+    const status = String(arr[9]||'').toUpperCase().trim();
+    const finalizado = status==='FINALIZADO'||status==='RESCINDIDO';
+    if(!finalizado) porEmp[emp].ativo += val;
+    else porEmp[emp].finalizados++;
+    porEmp[emp].ganhou++;
+    if(String(arr[13]||'').toUpperCase().trim()==='SIM') porEmp[emp].recomp++;
+
+    // Vencimento
+    const vd = arr[39]||arr[32]||arr[25]||arr[18]||arr[12]||'';
+    if(vd && !finalizado){
+      const p=vd.split('/');
+      if(p.length===3){
+        const dt=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
+        const dias=Math.round((dt-hoje)/86400000);
+        if(dias>=0&&dias<=30) porEmp[emp].vencer30++;
+        else if(dias>30&&dias<=90) porEmp[emp].vencer90++;
+      }
+    }
+  });
+
+  const cards = empresasParaMostrar.map(emp => {
+    const d = porEmp[emp] || {contratos:[],portfolio:0,ativo:0,ganhou:0,recomp:0,vencer30:0,vencer90:0,finalizados:0};
+    const cor = CORES[emp] || '#6b7280';
+    const initials = emp.split(' ').map(w=>w[0]).join('').slice(0,2);
+    const ativos = d.ganhou - d.finalizados;
+    const taxaAtivo = d.portfolio>0 ? Math.round(d.ativo/d.portfolio*100) : 0;
+
+    // Gráfico 12 meses
+    const meses = [];
+    for(let i=11;i>=0;i--){
+      const ref=new Date(hoje); ref.setMonth(ref.getMonth()-i);
+      meses.push({label:ref.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}),v:0,mes:ref.getMonth(),ano:ref.getFullYear()});
+    }
+    d.contratos.forEach(arr=>{
+      const p=String(arr[1]||'').split('/');
+      if(p.length===3){
+        const dt=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
+        meses.forEach(m=>{if(dt.getMonth()===m.mes&&dt.getFullYear()===m.ano) m.v++;});
+      }
+    });
+
+    const vals=meses.map(m=>m.v);
+    const maxV=Math.max(...vals,1);
+    const W=280,H=50;
+    const pts=vals.map((v,i)=>`${(i/(vals.length-1))*W},${H-(v/maxV)*(H-8)}`).join(' ');
+    const ptsFill=`0,${H} ${pts} ${W},${H}`;
+    const safeEmp=emp.replace(/ /g,'_');
+
+    // Alertas de vencimento
+    const alertaVenc = d.vencer30>0
+      ? `<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:7px;padding:7px 12px;margin-bottom:10px;font-size:11px;color:#f87171;display:flex;align-items:center;gap:6px"><span>⚠️</span> <strong>${d.vencer30}</strong> contrato${d.vencer30!==1?'s':''} vence${d.vencer30!==1?'m':''} em até 30 dias</div>`
+      : d.vencer90>0
+      ? `<div style="background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.2);border-radius:7px;padding:7px 12px;margin-bottom:10px;font-size:11px;color:#facc15;display:flex;align-items:center;gap:6px"><span>⏰</span> <strong>${d.vencer90}</strong> contrato${d.vencer90!==1?'s':''} vence${d.vencer90!==1?'m':''} em até 90 dias</div>`
+      : '';
+
+    return `
+    <div style="background:#0a0a12;border:1px solid #1a1a28;border-left:3px solid ${cor};border-radius:14px;padding:20px;min-width:0">
+
+      <!-- Cabeçalho empresa -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <div style="width:36px;height:36px;border-radius:9px;background:${cor}22;border:1px solid ${cor}44;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:${cor};flex-shrink:0">${initials}</div>
+        <div style="flex:1">
+          <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#f0f0f8">${emp}</div>
+          <div style="font-size:11px;color:#4a4a6a;margin-top:1px">${d.ganhou} contrato${d.ganhou!==1?'s':''} · ${ativos} em execução</div>
+        </div>
+      </div>
+
+      <!-- Alerta vencimento -->
+      ${alertaVenc}
+
+      <!-- KPIs principais -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+        <div style="background:#111120;border:1px solid #1e1e30;border-radius:9px;padding:12px">
+          <div style="font-size:9px;color:${cor};text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:5px">Portfólio Total</div>
+          <div style="font-size:17px;font-weight:800;font-family:'Syne',sans-serif;color:#f0f0f8">${fmtM(d.portfolio)}</div>
+          <div style="font-size:10px;color:#3a3a5a;margin-top:3px">${d.ganhou} contrato${d.ganhou!==1?'s':''}</div>
+        </div>
+        <div style="background:#111120;border:1px solid #1e1e30;border-radius:9px;padding:12px">
+          <div style="font-size:9px;color:${cor};text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:5px">Valor Ativo</div>
+          <div style="font-size:17px;font-weight:800;font-family:'Syne',sans-serif;color:${cor}">${fmtM(d.ativo)}</div>
+          <div style="font-size:10px;color:#3a3a5a;margin-top:3px">${ativos} em exec. · ${taxaAtivo}% do portfólio</div>
+        </div>
+      </div>
+
+      <!-- KPIs secundários -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px">
+        <div style="background:#0d0d18;border:1px solid #1a1a28;border-radius:8px;padding:9px 8px;text-align:center">
+          <div style="font-size:18px;font-weight:800;font-family:'Syne',sans-serif;color:${cor}">${d.ganhou}</div>
+          <div style="font-size:9px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.06em;margin-top:2px">Total</div>
+        </div>
+        <div style="background:#0d0d18;border:1px solid #1a1a28;border-radius:8px;padding:9px 8px;text-align:center">
+          <div style="font-size:18px;font-weight:800;font-family:'Syne',sans-serif;color:#22c55e">${ativos}</div>
+          <div style="font-size:9px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.06em;margin-top:2px">Ativos</div>
+        </div>
+        <div style="background:#0d0d18;border:1px solid ${d.vencer30>0?'rgba(239,68,68,.3)':d.vencer90>0?'rgba(234,179,8,.25)':'#1a1a28'};border-radius:8px;padding:9px 8px;text-align:center">
+          <div style="font-size:18px;font-weight:800;font-family:'Syne',sans-serif;color:${d.vencer30>0?'#f87171':d.vencer90>0?'#facc15':'#3a3a5a'}">${d.vencer30+d.vencer90}</div>
+          <div style="font-size:9px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.06em;margin-top:2px">A Vencer</div>
+        </div>
+        <div style="background:#0d0d18;border:1px solid ${d.recomp>0?'rgba(249,115,22,.25)':'#1a1a28'};border-radius:8px;padding:9px 8px;text-align:center">
+          <div style="font-size:18px;font-weight:800;font-family:'Syne',sans-serif;color:${d.recomp>0?'#fb923c':'#3a3a5a'}">${d.recomp}</div>
+          <div style="font-size:9px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.06em;margin-top:2px">Recomp.</div>
+        </div>
+      </div>
+
+      <!-- Gráfico 12 meses -->
+      <div>
+        <div style="font-size:9px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">CONTRATOS GANHOS — 12 MESES</div>
+        <svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" style="display:block;overflow:visible">
+          <defs>
+            <linearGradient id="gr_${safeEmp}" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="${cor}" stop-opacity="0.35"/>
+              <stop offset="100%" stop-color="${cor}" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <polygon points="${ptsFill}" fill="url(#gr_${safeEmp})"/>
+          <polyline points="${pts}" fill="none" stroke="${cor}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          ${vals.map((v,i)=>v>0?`<circle cx="${(i/(vals.length-1))*W}" cy="${H-(v/maxV)*(H-8)}" r="2.5" fill="${cor}"/>
+            <text x="${(i/(vals.length-1))*W}" y="${H-(v/maxV)*(H-8)-6}" text-anchor="middle" fill="${cor}" font-size="8" font-weight="700">${v}</text>`:'').join('')}
+        </svg>
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:#3a3a5a;margin-top:4px">
+          <span>${meses[0].label}</span><span>${meses[5].label}</span><span>${meses[11].label}</span>
+        </div>
+      </div>
+
+    </div>`;
+  });
+
+  const cols = isAdmin ? 'repeat(auto-fill,minmax(320px,1fr))' : '1fr';
+  dash.style.display = 'block';
+  dash.innerHTML = `
+    <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px">
+      <span style="width:3px;height:16px;background:#f97316;border-radius:2px;display:inline-block"></span>
+      ${isAdmin ? 'Dashboard — Todas as Empresas' : 'Resumo dos Contratos — '+empAtual}
+    </div>
+    <div style="display:grid;grid-template-columns:${cols};gap:14px">${cards.join('')}</div>
+    <div style="height:1px;background:rgba(255,255,255,.06);margin:20px 0"></div>`;
+}
+
+  // Agrupar dados por empresa
+  const porEmp = {};
+  empresasParaMostrar.forEach(e => {
+    porEmp[e] = {contratos:[], portfolio:0, ativo:0, ganhou:0, recomp:0};
+  });
+
+  dadosGanhas.forEach(({arr}) => {
+    const emp = String(arr[2]||'').trim().toUpperCase();
+    if(!porEmp[emp]) return;
     porEmp[emp].contratos.push(arr);
     const val = parseMoedaV(arr[7]);
     porEmp[emp].portfolio += val;
     const status = String(arr[9]||'').toUpperCase().trim();
     if(status !== 'FINALIZADO' && status !== 'RESCINDIDO') porEmp[emp].ativo += val;
     porEmp[emp].ganhou++;
+    if(String(arr[13]||'').toUpperCase().trim() === 'SIM') porEmp[emp].recomp++;
   });
 
-  // Buscar dados de editais e andamento do Firebase para taxa de conversão
-  // Por ora usa os dados de ganhas disponíveis
-
-  const fmtM = v => {
-    if(v >= 1e6) return 'R$ '+(v/1e6).toFixed(2).replace('.',',')+'M';
-    if(v >= 1e3) return 'R$ '+(v/1e3).toFixed(1).replace('.',',')+'K';
-    return 'R$ '+v.toFixed(0);
-  };
-
-  const cards = EMPRESAS_SISTEMA.map(emp => {
-    const d = porEmp[emp] || {contratos:[],portfolio:0,ativo:0,ganhou:0};
+  const cards = empresasParaMostrar.map(emp => {
+    const d = porEmp[emp] || {contratos:[],portfolio:0,ativo:0,ganhou:0,recomp:0};
     const cor = CORES[emp] || '#6b7280';
     const initials = emp.split(' ').map(w=>w[0]).join('').slice(0,2);
+    const ativos = d.contratos.filter(a=>String(a[9]||'').toUpperCase()!=='FINALIZADO'&&String(a[9]||'').toUpperCase()!=='RESCINDIDO').length;
+    const taxa = d.ganhou>0 ? Math.round(d.ativo/d.portfolio*100) : 0;
 
-    // Dados mensais dos últimos 12 meses para o gráfico
+    // Gráfico 12 meses — ganhos por mês
     const meses = [];
     for(let i=11;i>=0;i--){
-      const d2 = new Date(hoje);
-      d2.setMonth(d2.getMonth()-i);
-      meses.push({
-        label: d2.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}),
-        ganhas: 0, participacoes: 0
-      });
+      const ref = new Date(hoje);
+      ref.setMonth(ref.getMonth()-i);
+      meses.push({label: ref.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}), v:0});
     }
     d.contratos.forEach(arr => {
-      const dtStr = String(arr[1]||'');
-      const p = dtStr.split('/');
+      const p = String(arr[1]||'').split('/');
       if(p.length===3){
         const dt = new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
-        for(let i=0;i<12;i++){
-          const m = meses[i].label;
-          const mRef = dt.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'});
-          if(m===mRef) meses[i].ganhas++;
-        }
+        meses.forEach(m => {
+          const ref = new Date(hoje);
+          ref.setMonth(ref.getMonth()-(11-meses.indexOf(m)));
+          if(dt.getMonth()===ref.getMonth()&&dt.getFullYear()===ref.getFullYear()) m.v++;
+        });
       }
     });
 
-    // SVG sparkline
-    const vals = meses.map(m=>m.ganhas);
+    const vals = meses.map(m=>m.v);
     const maxV = Math.max(...vals,1);
-    const pts = vals.map((v,i)=>`${(i/(vals.length-1))*280},${40-(v/maxV)*36}`).join(' ');
-    const ptsFill = `0,40 ${pts} 280,40`;
+    const W=280, H=44;
+    const pts = vals.map((v,i)=>`${(i/(vals.length-1))*W},${H-(v/maxV)*(H-6)}`).join(' ');
+    const ptsFill = `0,${H} ${pts} ${W},${H}`;
+    const safeEmp = emp.replace(/ /g,'_');
 
     return `
-    <div style="background:#0f1117;border:1px solid #1e2030;border-left:3px solid ${cor};border-radius:14px;padding:18px 20px;min-width:0">
-      <!-- Header empresa -->
+    <div style="background:#0a0a12;border:1px solid #1a1a28;border-left:3px solid ${cor};border-radius:14px;padding:18px 20px;min-width:0">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
         <div style="width:32px;height:32px;border-radius:8px;background:${cor}22;border:1px solid ${cor}44;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:${cor};flex-shrink:0">${initials}</div>
         <div>
           <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#e0e0f0">${emp}</div>
-          <div style="font-size:10px;color:#4a4a6a">${d.ganhou} contrato${d.ganhou!==1?'s':''} ganho${d.ganhou!==1?'s':''} · ${d.contratos.filter(a=>String(a[9]||'').toUpperCase()!=='FINALIZADO').length} ativo${d.contratos.filter(a=>String(a[9]||'').toUpperCase()!=='FINALIZADO').length!==1?'s':''}</div>
+          <div style="font-size:10px;color:#4a4a6a">${d.ganhou} contrato${d.ganhou!==1?'s':''} ganho${d.ganhou!==1?'s':''} · ${ativos} ativo${ativos!==1?'s':''}</div>
         </div>
       </div>
-
-      <!-- KPIs -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
-        <div style="background:#161820;border:1px solid #1e2030;border-radius:8px;padding:10px 12px">
+        <div style="background:#111120;border:1px solid #1a1a28;border-radius:8px;padding:10px 12px">
           <div style="font-size:9px;color:${cor};text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:4px">$ Portfólio</div>
           <div style="font-size:15px;font-weight:800;font-family:'Syne',sans-serif;color:#e0e0f0">${fmtM(d.portfolio)}</div>
           <div style="font-size:10px;color:#4a4a6a;margin-top:2px">${d.ganhou} contrato${d.ganhou!==1?'s':''}</div>
         </div>
-        <div style="background:#161820;border:1px solid #1e2030;border-radius:8px;padding:10px 12px">
+        <div style="background:#111120;border:1px solid #1a1a28;border-radius:8px;padding:10px 12px">
           <div style="font-size:9px;color:${cor};text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:4px">% Ativo</div>
           <div style="font-size:15px;font-weight:800;font-family:'Syne',sans-serif;color:${cor}">${fmtM(d.ativo)}</div>
-          <div style="font-size:10px;color:#4a4a6a;margin-top:2px">${d.contratos.filter(a=>String(a[9]||'').toUpperCase()!=='FINALIZADO').length} em exec. · ${d.ganhou>0?Math.round(d.ativo/d.portfolio*100):0}%</div>
+          <div style="font-size:10px;color:#4a4a6a;margin-top:2px">${ativos} em exec. · ${taxa}%</div>
         </div>
       </div>
-
-      <!-- Sparkline -->
       <div style="margin-bottom:10px">
         <div style="font-size:9px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">EVOLUÇÃO — 12 MESES</div>
-        <svg viewBox="0 0 280 44" width="100%" height="44" style="display:block;overflow:visible">
+        <svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" style="display:block;overflow:visible">
           <defs>
-            <linearGradient id="gr_${emp.replace(/ /g,'_')}" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id="gr_${safeEmp}" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stop-color="${cor}" stop-opacity="0.3"/>
               <stop offset="100%" stop-color="${cor}" stop-opacity="0"/>
             </linearGradient>
           </defs>
-          <polygon points="${ptsFill}" fill="url(#gr_${emp.replace(/ /g,'_')})"/>
+          <polygon points="${ptsFill}" fill="url(#gr_${safeEmp})"/>
           <polyline points="${pts}" fill="none" stroke="${cor}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          ${vals.map((v,i)=>v>0?`<circle cx="${(i/(vals.length-1))*280}" cy="${40-(v/maxV)*36}" r="2.5" fill="${cor}"/>`:'').join('')}
+          ${vals.map((v,i)=>v>0?`<circle cx="${(i/(vals.length-1))*W}" cy="${H-(v/maxV)*(H-6)}" r="2.5" fill="${cor}"/>`:'').join('')}
         </svg>
         <div style="display:flex;justify-content:space-between;font-size:8px;color:#3a3a5a;margin-top:2px">
-          <span>${meses[0].label}</span>
-          <span>${meses[5].label}</span>
-          <span>${meses[11].label}</span>
+          <span>${meses[0].label}</span><span>${meses[5].label}</span><span>${meses[11].label}</span>
         </div>
       </div>
-
-      <!-- Rodapé stats -->
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding-top:10px;border-top:1px solid #1a1c28">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding-top:10px;border-top:1px solid #1a1c28">
         <div style="text-align:center">
           <div style="font-size:8px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.06em">Ganhou</div>
           <div style="font-size:16px;font-weight:800;font-family:'Syne',sans-serif;color:${cor};margin-top:2px">${d.ganhou}</div>
         </div>
-        <div style="text-align:center;border-left:1px solid #1a1c28;border-right:1px solid #1a1c28">
+        <div style="text-align:center;border-left:1px solid #1a1c28">
           <div style="font-size:8px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.06em">Em Exec.</div>
-          <div style="font-size:16px;font-weight:800;font-family:'Syne',sans-serif;color:#22c55e;margin-top:2px">${d.contratos.filter(a=>String(a[9]||'').toUpperCase()!=='FINALIZADO').length}</div>
+          <div style="font-size:16px;font-weight:800;font-family:'Syne',sans-serif;color:#22c55e;margin-top:2px">${ativos}</div>
         </div>
-        <div style="text-align:center">
+        <div style="text-align:center;border-left:1px solid #1a1c28">
+          <div style="font-size:8px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.06em">Recomp.</div>
+          <div style="font-size:16px;font-weight:800;font-family:'Syne',sans-serif;color:#f97316;margin-top:2px">${d.recomp}</div>
+        </div>
+        <div style="text-align:center;border-left:1px solid #1a1c28">
           <div style="font-size:8px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.06em">Portfólio</div>
           <div style="font-size:13px;font-weight:800;font-family:'Syne',sans-serif;color:#e0e0f0;margin-top:2px">${fmtM(d.portfolio)}</div>
         </div>
@@ -795,14 +938,14 @@ function gerarDashboard(){
     </div>`;
   });
 
+  const cols = isAdmin ? 'repeat(auto-fill,minmax(300px,1fr))' : '1fr';
+  dash.style.display = 'block';
   dash.innerHTML = `
-    <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px">
+    <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px">
       <span style="width:3px;height:16px;background:#f97316;border-radius:2px;display:inline-block"></span>
-      Dashboard por Empresa
+      ${isAdmin ? 'Dashboard por Empresa' : 'Resumo — '+empAtual}
     </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px">
-      ${cards.join('')}
-    </div>`;
+    <div style="display:grid;grid-template-columns:${cols};gap:14px">${cards.join('')}</div>`;
 }
 
 async function carregarContratos(){
@@ -1032,27 +1175,44 @@ function renderBody(id, arr, entry){
     }
   }
 
-  // Aditivos
+  // ── Recomposição contratual (arr[13])
+  const recomp = String(arr[13]||'').toUpperCase().trim() === 'SIM';
+  const recompHTML = recomp ? `
+    <div style="background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.25);border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+      <span style="font-size:14px">🔄</span>
+      <span style="font-size:12px;font-weight:700;color:#fb923c">Recomposição Contratual prevista neste contrato</span>
+    </div>` : '';
+
+  // ── Aditivos (4 aditivos, bases 13/20/27/34)
   let aditivos = '';
   const aditivosDefs = [
-    {lbl:'Aditivo 1', base:13},
-    {lbl:'Aditivo 2', base:20},
-    {lbl:'Aditivo 3', base:27},
-    {lbl:'Aditivo 4', base:34},
+    {lbl:'1º Aditivo', base:13},
+    {lbl:'2º Aditivo', base:20},
+    {lbl:'3º Aditivo', base:27},
+    {lbl:'4º Aditivo', base:34},
   ];
   aditivosDefs.forEach(({lbl,base})=>{
-    if(arr[base]||arr[base+1]||arr[base+3]){
+    if(arr[base]||arr[base+1]||arr[base+2]||arr[base+3]){
+      const tipo   = arr[base]   || '';
+      const vig    = arr[base+1] || '';
+      const dtAssi = arr[base+2] || '';
+      const novoV  = arr[base+3] || '';
+      const recompAdit = String(arr[base+4]||'').toUpperCase().trim()==='SIM';
+      const statusAdit = arr[base+5] || '';
+      const valorAdit  = arr[base+6] || '';
       aditivos += `
-      <div class="aditivo-item">
-        <div class="aditivo-titulo">${lbl}</div>
+      <div class="aditivo-item" style="${recompAdit?'border-left:3px solid #f97316;':''}">
+        <div class="aditivo-titulo" style="display:flex;align-items:center;justify-content:space-between">
+          <span>${lbl}</span>
+          ${recompAdit?'<span style="font-size:9px;background:rgba(249,115,22,.15);color:#fb923c;padding:2px 7px;border-radius:4px;font-weight:700">🔄 RECOMP.</span>':''}
+        </div>
         <div class="aditivo-grid">
-          ${arr[base]?`<div class="aditivo-field"><div class="aditivo-field-lbl">Tipo</div><div class="aditivo-field-val">${arr[base]}</div></div>`:''}
-          ${arr[base+1]?`<div class="aditivo-field"><div class="aditivo-field-lbl">Vigência</div><div class="aditivo-field-val">${arr[base+1]} meses</div></div>`:''}
-          ${arr[base+2]?`<div class="aditivo-field"><div class="aditivo-field-lbl">Dt. Assinatura</div><div class="aditivo-field-val">${arr[base+2]}</div></div>`:''}
-          ${arr[base+3]?`<div class="aditivo-field"><div class="aditivo-field-lbl">Novo Vencimento</div><div class="aditivo-field-val">${arr[base+3]}</div></div>`:''}
-          ${arr[base+4]?`<div class="aditivo-field"><div class="aditivo-field-lbl">Recomp.</div><div class="aditivo-field-val">${arr[base+4]}</div></div>`:''}
-          ${arr[base+5]?`<div class="aditivo-field"><div class="aditivo-field-lbl">Status</div><div class="aditivo-field-val">${arr[base+5]}</div></div>`:''}
-          ${arr[base+6]?`<div class="aditivo-field"><div class="aditivo-field-lbl">Valor</div><div class="aditivo-field-val">${arr[base+6]}</div></div>`:''}
+          ${tipo?`<div class="aditivo-field"><div class="aditivo-field-lbl">Tipo</div><div class="aditivo-field-val">${tipo}</div></div>`:''}
+          ${vig?`<div class="aditivo-field"><div class="aditivo-field-lbl">Vigência</div><div class="aditivo-field-val">${vig} meses</div></div>`:''}
+          ${dtAssi?`<div class="aditivo-field"><div class="aditivo-field-lbl">Dt. Assinatura</div><div class="aditivo-field-val">${dtAssi}</div></div>`:''}
+          ${novoV?`<div class="aditivo-field"><div class="aditivo-field-lbl">Novo Vencimento</div><div class="aditivo-field-val">${novoV}</div></div>`:''}
+          ${valorAdit?`<div class="aditivo-field"><div class="aditivo-field-lbl">Valor Reajuste</div><div class="aditivo-field-val">${valorAdit}</div></div>`:''}
+          ${statusAdit?`<div class="aditivo-field"><div class="aditivo-field-lbl">Status</div><div class="aditivo-field-val">${statusAdit}</div></div>`:''}
         </div>
       </div>`;
     }
@@ -1060,11 +1220,12 @@ function renderBody(id, arr, entry){
 
   const linkPasta = arr[42]||arr[19]||'';
   const obs = arr[41]||'';
+  const ultimaEdicao = entry._portalUltimaEdicao || '';
 
   return `
     ${vencAlert}
+    ${recompHTML}
     <div class="ccard-meta">
-      ${arr[4]?`<div class="cmeta"><span class="cmeta-lbl">Objeto</span></div>`:''}
       ${arr[5]?`<div class="cmeta"><span class="cmeta-lbl">Local</span><span class="cmeta-val">${arr[5]}</span></div>`:''}
       ${arr[6]?`<div class="cmeta"><span class="cmeta-lbl">Município</span><span class="cmeta-val">${arr[6]}</span></div>`:''}
       ${arr[7]?`<div class="cmeta"><span class="cmeta-lbl">Valor</span><span class="cmeta-val hl">${arr[7]}</span></div>`:''}
@@ -1072,12 +1233,14 @@ function renderBody(id, arr, entry){
       ${arr[10]?`<div class="cmeta"><span class="cmeta-lbl">Vigência</span><span class="cmeta-val">${arr[10]} meses</span></div>`:''}
       ${arr[11]?`<div class="cmeta"><span class="cmeta-lbl">Dt. Assinatura</span><span class="cmeta-val">${arr[11]}</span></div>`:''}
       ${venc?`<div class="cmeta"><span class="cmeta-lbl">Vencimento</span><span class="cmeta-val">${venc}</span></div>`:''}
+      ${recomp?`<div class="cmeta"><span class="cmeta-lbl" style="color:#f97316">Recomposição</span><span class="cmeta-val" style="color:#fb923c">Sim</span></div>`:''}
     </div>
     ${arr[4]?`<p style="font-size:13px;color:var(--t2);line-height:1.7;margin-bottom:14px">${arr[4]}</p>`:''}
     ${linkPasta?`<a href="${linkPasta}" target="_blank" class="link-pasta">📁 Abrir Pasta do Contrato <span style="opacity:.6">↗</span></a>`:''}
-    ${aditivos?`<div class="aditivos-wrap"><div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Aditivos</div>${aditivos}</div>`:''}
+    ${aditivos?`<div class="aditivos-wrap"><div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Aditivos / Recomposições</div>${aditivos}</div>`:''}
+
     <div class="edit-section">
-      <div class="edit-section-title">Atualizar Contrato</div>
+      <div class="edit-section-title">✏️ Atualizar Contrato</div>
       <div class="edit-grid">
         <div class="edit-field">
           <label>Status do Contrato</label>
@@ -1091,18 +1254,20 @@ function renderBody(id, arr, entry){
           </select>
         </div>
         <div class="edit-field">
-          <label>Vencimento Contrato</label>
+          <label>Vencimento do Contrato</label>
           <input type="text" id="edit-venc-${id}" placeholder="DD/MM/AAAA" value="${arr[12]||''}" onchange="marcarAlterado('${id}')">
         </div>
       </div>
       <div class="edit-field" style="margin-bottom:12px">
         <label>Observações</label>
-        <textarea class="obs-area" id="edit-obs-${id}" placeholder="Adicione observações sobre este contrato..." onchange="marcarAlterado('${id}')">${obs}</textarea>
+        <textarea class="obs-area" id="edit-obs-${id}" placeholder="Adicione observações sobre este contrato..." oninput="marcarAlterado('${id}')">${obs}</textarea>
       </div>
-      <button class="save-btn" id="save-btn-${id}" onclick="salvarAlteracoes('${id}')">
-        💾 Salvar Alterações
-      </button>
-      <div class="last-edit" id="last-edit-${id}">${entry._portalUltimaEdicao ? 'Última edição: '+entry._portalUltimaEdicao : ''}</div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <button class="save-btn" id="save-btn-${id}" onclick="salvarAlteracoes('${id}')">
+          💾 Salvar Alterações
+        </button>
+        ${ultimaEdicao ? `<div class="last-edit" id="last-edit-${id}">✎ Última edição: ${ultimaEdicao}</div>` : `<div class="last-edit" id="last-edit-${id}"></div>`}
+      </div>
     </div>
   `;
 }
