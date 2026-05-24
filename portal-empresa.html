@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal NH Licitações — Acesso Empresas</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #0a0a0f;
+  --s1: #111118;
+  --s2: #18181f;
+  --s3: #22222c;
+  --b1: #2a2a38;
+  --b2: #3a3a4a;
+  --nh: #f97316;
+  --nha: rgba(249,115,22,.12);
+  --g1: #22c55e;
+  --r1: #ef4444;
+  --y1: #eab308;
+  --b_: #3b82f6;
+  --t1: #f0f0f8;
+  --t2: #9898b0;
+  --t3: #5a5a72;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* ── TELA DE LOGIN ── */
+#login-screen{
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;padding:20px;
+  position:relative;overflow:hidden;
+  background:#1a1035;
+}
+
+/* Fundo animado */
+.login-bg{position:absolute;inset:0;pointer-events:none}
+.login-orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.35;animation:orbFloat 8s ease-in-out infinite}
+.orb1{width:500px;height:500px;background:radial-gradient(circle,#7c3aed,transparent);top:-150px;left:-150px;animation-delay:0s}
+.orb2{width:400px;height:400px;background:radial-gradient(circle,#f97316,transparent);bottom:-100px;right:-100px;animation-delay:3s}
+.orb3{width:300px;height:300px;background:radial-gradient(circle,#3b82f6,transparent);top:50%;left:50%;transform:translate(-50%,-50%);animation-delay:6s}
+@keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(20px,-20px) scale(1.05)}66%{transform:translate(-15px,15px) scale(.95)}}
+.orb1{animation:orbFloat1 10s ease-in-out infinite}
+.orb2{animation:orbFloat2 12s ease-in-out infinite}
+.orb3{animation:orbFloat3 8s ease-in-out infinite}
+@keyframes orbFloat1{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,30px)}}
+@keyframes orbFloat2{0%,100%{transform:translate(0,0)}50%{transform:translate(-30px,-40px)}}
+@keyframes orbFloat3{0%,100%{transform:translate(-50%,-50%)}50%{transform:translate(-45%,-55%)}}
+
+/* Hero */
+.login-hero{
+  position:relative;z-index:1;
+  width:100%;max-width:460px;
+  display:flex;flex-direction:column;align-items:center;
+  animation:fadeUp .5s ease;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+
+/* Badge status */
+.login-status-badge{
+  display:inline-flex;align-items:center;gap:7px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+  backdrop-filter:blur(12px);
+  padding:6px 14px;border-radius:20px;
+  font-size:11px;font-weight:600;color:rgba(255,255,255,.7);
+  letter-spacing:.08em;margin-bottom:32px;
+}
+.login-status-dot{
+  width:7px;height:7px;border-radius:50%;background:#22c55e;
+  box-shadow:0 0 8px #22c55e;animation:pulse 2s infinite;
+}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.7;transform:scale(1.3)}}
+
+/* Logo animada */
+.login-logo-wrap{
+  position:relative;width:100px;height:100px;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:28px;
+}
+.login-logo-ring{
+  position:absolute;border-radius:50%;border:2px solid transparent;
+  animation:ringRotate 6s linear infinite;
+}
+.ring1{width:100%;height:100%;border-top-color:rgba(249,115,22,.6);border-right-color:rgba(249,115,22,.2);animation-duration:4s}
+.ring2{width:80%;height:80%;border-top-color:rgba(124,58,237,.6);border-left-color:rgba(124,58,237,.2);animation-direction:reverse;animation-duration:6s}
+.ring3{width:60%;height:60%;border-bottom-color:rgba(59,130,246,.6);border-right-color:rgba(59,130,246,.2);animation-duration:8s}
+@keyframes ringRotate{to{transform:rotate(360deg)}}
+.login-logo-icon{
+  position:relative;z-index:2;
+  background:linear-gradient(135deg,#f97316,#dc2626);
+  border-radius:16px;
+  width:52px;height:52px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 30px rgba(249,115,22,.5);
+  animation:logoPulse 3s ease-in-out infinite;
+}
+@keyframes logoPulse{0%,100%{box-shadow:0 0 20px rgba(249,115,22,.4)}50%{box-shadow:0 0 40px rgba(249,115,22,.7)}}
+.login-logo-icon svg{display:block}
+
+/* Título hero */
+.login-hero-title{
+  font-family:'Syne',sans-serif;font-size:52px;font-weight:800;
+  text-align:center;line-height:1.1;margin-bottom:10px;
+}
+.title-white{color:#fff}
+.title-gradient{
+  background:linear-gradient(90deg,#f97316,#a855f7);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.login-hero-sub{font-size:14px;color:rgba(255,255,255,.45);margin-bottom:36px;text-align:center}
+
+/* Form */
+.login-form{
+  width:100%;background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.1);
+  backdrop-filter:blur(20px);
+  border-radius:20px;padding:32px;
+}
+.login-field{margin-bottom:16px}
+.login-field label{display:block;font-size:11px;font-weight:600;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px}
+.login-field input{
+  width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+  color:#fff;padding:13px 15px;border-radius:10px;
+  font-family:'DM Sans',sans-serif;font-size:14px;outline:none;
+  transition:all .15s;
+}
+.login-field input:focus{border-color:rgba(249,115,22,.6);background:rgba(255,255,255,.1);box-shadow:0 0 0 3px rgba(249,115,22,.1)}
+.login-field input::placeholder{color:rgba(255,255,255,.25)}
+
+.login-btn{
+  width:100%;
+  background:linear-gradient(90deg,#f97316,#dc2626);
+  color:#fff;border:none;
+  padding:14px;border-radius:10px;font-family:'Syne',sans-serif;
+  font-size:14px;font-weight:700;cursor:pointer;margin-top:8px;
+  transition:all .2s;letter-spacing:.03em;
+  box-shadow:0 4px 20px rgba(249,115,22,.3);
+}
+.login-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(249,115,22,.5)}
+.login-btn:active{transform:translateY(0)}
+.login-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+.login-err{
+  background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);
+  color:#fca5a5;padding:10px 14px;border-radius:8px;font-size:13px;
+  margin-top:12px;display:none;text-align:center;
+}
+
+/* ── PORTAL PRINCIPAL ── */
+#portal{display:none}
+
+.topbar{
+  height:60px;background:var(--s1);border-bottom:1px solid var(--b1);
+  display:flex;align-items:center;padding:0 28px;gap:16px;
+  position:sticky;top:0;z-index:100;
+}
+.topbar-logo{display:flex;align-items:center;gap:10px}
+.topbar-lm{width:36px;height:36px;border-radius:9px;background:var(--nh);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;color:#000}
+.topbar-name{font-family:'Syne',sans-serif;font-weight:700;font-size:15px}
+.topbar-name span{color:var(--nh)}
+.topbar-sep{flex:1}
+.topbar-emp{
+  display:flex;align-items:center;gap:8px;
+  background:var(--s2);border:1px solid var(--b1);
+  padding:7px 14px;border-radius:8px;font-size:13px;
+}
+.topbar-emp-dot{width:8px;height:8px;border-radius:50%}
+.topbar-emp-name{font-weight:600}
+.topbar-logout{
+  background:transparent;border:1px solid var(--b1);color:var(--t2);
+  padding:7px 13px;border-radius:8px;font-size:12px;cursor:pointer;
+  font-family:'DM Sans',sans-serif;transition:all .15s;
+}
+.topbar-logout:hover{color:var(--t1);border-color:var(--b2)}
+
+.content{padding:28px;max-width:1400px;margin:0 auto}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px}
+.stat{
+  background:var(--s1);border:1px solid var(--b1);border-radius:12px;
+  padding:18px 20px;position:relative;overflow:hidden;
+}
+.stat-glow{position:absolute;top:-20px;right:-20px;width:70px;height:70px;border-radius:50%;opacity:.08}
+.stat-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:7px}
+.stat-val{font-size:22px;font-weight:700;font-family:'Syne',sans-serif}
+.stat-val.nh{color:var(--nh)}
+.stat-val.g{color:var(--g1)}
+.stat-val.y{color:var(--y1)}
+.stat-val.r{color:var(--r1)}
+.stat-sub{font-size:11px;color:var(--t3);margin-top:4px}
+
+/* Seção */
+.section-title{
+  font-family:'Syne',sans-serif;font-size:16px;font-weight:700;
+  color:var(--t1);margin-bottom:16px;display:flex;align-items:center;gap:8px;
+}
+.section-title::before{content:'';width:3px;height:16px;background:var(--nh);border-radius:2px}
+
+/* Filtros */
+.filtros{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.filtro-btn{
+  padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;
+  border:1px solid var(--b1);color:var(--t3);background:var(--s2);
+  cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;
+}
+.filtro-btn:hover{border-color:var(--b2);color:var(--t2)}
+.filtro-btn.on{border-color:var(--nh);color:var(--nh);background:var(--nha)}
+
+/* Cards de contrato */
+.contratos{display:flex;flex-direction:column;gap:14px}
+.ccard{
+  background:var(--s1);border:1px solid var(--b1);
+  border-left:4px solid var(--b2);border-radius:14px;
+  overflow:hidden;transition:all .18s;
+}
+.ccard:hover{background:var(--s2)}
+.ccard.verde{border-left-color:var(--g1)}
+.ccard.vermelho{border-left-color:var(--r1)}
+.ccard.amarelo{border-left-color:var(--y1)}
+.ccard.azul{border-left-color:var(--b_)}
+.ccard.laranja{border-left-color:var(--nh)}
+
+.ccard-header{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  padding:18px 22px 14px;cursor:pointer;gap:16px;
+}
+.ccard-id{
+  font-size:11px;font-weight:700;color:var(--t3);
+  background:var(--s3);padding:3px 9px;border-radius:5px;
+  font-family:'DM Sans',monospace;flex-shrink:0;
+}
+.ccard-titulo{font-size:15px;font-weight:600;color:var(--t1);line-height:1.4;flex:1}
+.ccard-badges{display:flex;gap:6px;align-items:center;flex-shrink:0;flex-wrap:wrap}
+.badge{
+  display:inline-flex;align-items:center;padding:3px 10px;
+  border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;
+}
+.b-green{background:rgba(34,197,94,.12);color:#4ade80}
+.b-red{background:rgba(239,68,68,.12);color:#f87171}
+.b-yellow{background:rgba(234,179,8,.12);color:#facc15}
+.b-blue{background:rgba(59,130,246,.12);color:#60a5fa}
+.b-gray{background:rgba(82,82,82,.15);color:var(--t2)}
+.b-orange{background:rgba(249,115,22,.12);color:#fb923c}
+
+.ccard-body{display:none;padding:0 22px 20px}
+.ccard-body.open{display:block}
+
+.ccard-meta{
+  display:flex;flex-wrap:wrap;gap:12px 28px;
+  padding:12px 0;border-top:1px solid rgba(255,255,255,.05);
+  border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:16px;
+}
+.cmeta{display:flex;align-items:center;gap:6px}
+.cmeta-lbl{font-size:11px;font-weight:700;color:var(--nh);text-transform:uppercase;letter-spacing:.06em}
+.cmeta-val{font-size:13px;color:var(--t1);font-weight:500}
+.cmeta-val.hl{color:var(--nh);font-weight:700;font-size:15px}
+
+/* Aditivos */
+.aditivos-wrap{margin-bottom:16px}
+.aditivo-item{
+  background:var(--s2);border:1px solid var(--b1);border-radius:8px;
+  padding:12px 15px;margin-bottom:8px;font-size:12px;
+}
+.aditivo-titulo{font-weight:700;color:var(--t2);margin-bottom:6px;font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+.aditivo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+.aditivo-field{display:flex;flex-direction:column;gap:2px}
+.aditivo-field-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em}
+.aditivo-field-val{font-size:12px;color:var(--t1)}
+
+/* Link pasta */
+.link-pasta{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--nha);border:1px solid rgba(249,115,22,.25);
+  color:var(--nh);padding:7px 14px;border-radius:8px;
+  font-size:12px;font-weight:600;text-decoration:none;
+  transition:all .15s;margin-bottom:16px;
+}
+.link-pasta:hover{background:rgba(249,115,22,.2);transform:translateY(-1px)}
+
+/* Obs e Edição */
+.edit-section{border-top:1px solid rgba(255,255,255,.05);padding-top:16px}
+.edit-section-title{font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+
+.obs-area{
+  width:100%;background:var(--s2);border:1px solid var(--b1);
+  color:var(--t1);padding:10px 13px;border-radius:8px;
+  font-family:'DM Sans',sans-serif;font-size:13px;
+  resize:vertical;min-height:80px;line-height:1.6;outline:none;
+  transition:border-color .15s;
+}
+.obs-area:focus{border-color:var(--nh);box-shadow:0 0 0 3px rgba(249,115,22,.08)}
+
+.edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.edit-field{display:flex;flex-direction:column;gap:5px}
+.edit-field label{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.edit-field select,.edit-field input{
+  background:var(--s2);border:1px solid var(--b1);color:var(--t1);
+  padding:8px 11px;border-radius:8px;font-family:'DM Sans',sans-serif;
+  font-size:13px;outline:none;transition:border-color .15s;
+}
+.edit-field select:focus,.edit-field input:focus{border-color:var(--nh)}
+
+.save-btn{
+  background:var(--nh);color:#000;border:none;
+  padding:9px 20px;border-radius:8px;font-family:'Syne',sans-serif;
+  font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;
+  display:inline-flex;align-items:center;gap:6px;
+}
+.save-btn:hover{background:#fb923c;transform:translateY(-1px)}
+.save-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+.last-edit{font-size:11px;color:var(--t3);margin-top:8px;font-style:italic}
+
+/* Spinner */
+.spin{width:20px;height:20px;border:2px solid var(--b1);border-top-color:var(--nh);border-radius:50%;animation:spin .7s linear infinite;margin:60px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Busca */
+.busca-wrap{
+  display:flex;align-items:center;gap:8px;
+  background:var(--s2);border:1px solid var(--b1);
+  border-radius:9px;padding:8px 13px;flex:1;max-width:340px;
+  transition:border-color .15s;
+}
+.busca-wrap:focus-within{border-color:var(--nh)}
+
+/* Botão imprimir todos */
+.btn-imprimir-todos{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--s2);border:1px solid var(--b1);
+  color:var(--t2);padding:8px 14px;border-radius:9px;
+  font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;
+  cursor:pointer;transition:all .15s;white-space:nowrap;
+}
+.btn-imprimir-todos:hover{border-color:var(--nh);color:var(--nh)}
+
+/* Empty */
+.empty{text-align:center;padding:60px 20px;color:var(--t3)}
+.empty-icon{font-size:40px;margin-bottom:12px;opacity:.4}
+
+/* Alerta vencimento */
+.venc-alert{
+  background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);
+  border-radius:8px;padding:10px 14px;margin-bottom:12px;
+  font-size:12px;color:#f87171;display:flex;align-items:center;gap:8px;
+}
+.venc-ok{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.2);color:#4ade80}
+.venc-prox{background:rgba(234,179,8,.08);border-color:rgba(234,179,8,.2);color:#facc15}
+
+/* Loading overlay */
+#loading{
+  position:fixed;inset:0;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:16px;z-index:999;
+}
+.loading-logo{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--nh)}
+.loading-sub{font-size:13px;color:var(--t3)}
+
+/* Responsive */
+@media(max-width:640px){
+  .content{padding:16px}
+  .edit-grid{grid-template-columns:1fr}
+  .topbar{padding:0 16px}
+  .topbar-emp-name{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loading">
+  <div class="loading-logo">NH</div>
+  <div class="loading-sub">Carregando portal...</div>
+</div>
+
+<!-- Login -->
+<div id="login-screen" style="display:none">
+  <!-- Fundo animado igual ao site -->
+  <div class="login-bg">
+    <div class="login-orb orb1"></div>
+    <div class="login-orb orb2"></div>
+    <div class="login-orb orb3"></div>
+    <div class="login-particles"></div>
+  </div>
+
+  <div class="login-hero">
+    <!-- Status badge -->
+    <div class="login-status-badge">
+      <span class="login-status-dot"></span>
+      SISTEMA ATIVO · NH LICITAÇÕES 2.0
+    </div>
+
+    <!-- Logo animada -->
+    <div class="login-logo-wrap">
+      <div class="login-logo-ring ring1"></div>
+      <div class="login-logo-ring ring2"></div>
+      <div class="login-logo-ring ring3"></div>
+      <div class="login-logo-icon">
+        <svg viewBox="0 0 48 48" fill="none" width="52" height="52">
+          <rect x="4" y="4" width="40" height="40" rx="12" fill="url(#lg1)"/>
+          <text x="24" y="32" text-anchor="middle" fill="#fff" font-family="Syne,sans-serif" font-weight="800" font-size="18">NH</text>
+          <defs>
+            <linearGradient id="lg1" x1="0" y1="0" x2="48" y2="48">
+              <stop offset="0%" stop-color="#f97316"/>
+              <stop offset="100%" stop-color="#dc2626"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Título grande -->
+    <div class="login-hero-title">
+      <span class="title-white">Portal de</span><br>
+      <span class="title-gradient">Licitações</span>
+    </div>
+    <div class="login-hero-sub">Acesse seus contratos com segurança</div>
+
+    <!-- Formulário -->
+    <div class="login-form">
+      <div class="login-field">
+        <label>Empresa</label>
+        <input type="text" id="inp-empresa" placeholder="Ex: VISE" autocomplete="off" autocapitalize="characters">
+      </div>
+      <div class="login-field">
+        <label>Senha</label>
+        <input type="password" id="inp-senha" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="login-btn" id="btn-login" onclick="fazerLogin()">Entrar no Portal</button>
+      <div class="login-err" id="login-err">Empresa ou senha incorretos.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Portal -->
+<div id="portal">
+  <div class="topbar">
+    <div class="topbar-logo">
+      <div class="topbar-lm">NH</div>
+      <div class="topbar-name">NH <span>Licitações</span></div>
+    </div>
+    <div class="topbar-sep"></div>
+    <div class="topbar-emp">
+      <div class="topbar-emp-dot" id="emp-dot"></div>
+      <div class="topbar-emp-name" id="emp-nome-top"></div>
+    </div>
+    <button class="topbar-logout" onclick="fazerLogout()">Sair</button>
+  </div>
+
+  <div class="content">
+    <!-- Stats -->
+    <div class="stats" id="stats-area"></div>
+
+    <!-- Filtros -->
+    <div class="filtros" id="filtros-area">
+      <button class="filtro-btn on" onclick="filtrar('todos',this)">Todos</button>
+      <button class="filtro-btn" onclick="filtrar('em_execucao',this)">Em Execução</button>
+      <button class="filtro-btn" onclick="filtrar('vencer',this)">Próx. Vencer</button>
+      <button class="filtro-btn" onclick="filtrar('finalizado',this)">Finalizados</button>
+    </div>
+
+    <!-- Contratos -->
+    <div class="section-title" id="section-title-contratos">Licitações Ganhas</div>
+    <div id="contratos-area" class="contratos">
+      <div class="spin"></div>
+    </div>
+  </div>
+</div>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-firestore-compat.js"></script>
+<script>
+// ─── FIREBASE ────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyBhcpJP9dRM0SEJsGfcNUXYb1rTMdEDw6M",
+  authDomain: "nh-licitacoes.firebaseapp.com",
+  projectId: "nh-licitacoes",
+  storageBucket: "nh-licitacoes.appspot.com",
+  messagingSenderId: "1046481988071",
+  appId: "1:1046481988071:web:nh-licitacoes"
+};
+if(!firebase.apps || !firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// ─── SENHAS POR EMPRESA ──────────────────────────────────────────
+// Para alterar: mude a senha da empresa aqui
+const SENHAS = {
+  'VISE':      'vise2024',
+  'SOS':       'sos2024',
+  'SOS FILIAL':'sosfilial2024',
+  'SAUTEC':    'sautec2024',
+  'ONLAV':     'onlav2024',
+  'ENGEMED':   'engemed2024',
+  'POTIGUAR':  'potiguar2024',
+  'GROWTH':    'growth2024',
+};
+
+// Cores das empresas
+const CORES = {
+  'VISE':'#eab308','SOS':'#22c55e','SOS FILIAL':'#3b82f6',
+  'SAUTEC':'#a855f7','ONLAV':'#f97316','ENGEMED':'#ef4444','POTIGUAR':'#06b6d4',
+  'GROWTH':'#8b5cf6'
+};
+
+// ─── ESTADO ──────────────────────────────────────────────────────
+let empAtual = '';
+let isAdmin  = false; // GROWTH tem acesso total
+let dadosGanhas = [];
+let filtroAtual = 'todos';
+const EMPRESAS_SISTEMA = ['VISE','SOS','SOS FILIAL','SAUTEC','ONLAV','ENGEMED','POTIGUAR'];
+
+// ─── LOGIN ───────────────────────────────────────────────────────
+function fazerLogin(){
+  const emp = document.getElementById('inp-empresa').value.trim().toUpperCase();
+  const senha = document.getElementById('inp-senha').value.trim();
+  const err = document.getElementById('login-err');
+  const btn = document.getElementById('btn-login');
+
+  err.style.display = 'none';
+  if(!emp || !senha){err.textContent='Preencha todos os campos.';err.style.display='block';return;}
+
+  const senhaCorreta = SENHAS[emp];
+  if(!senhaCorreta || senha !== senhaCorreta){
+    err.textContent = 'Empresa ou senha incorretos.';
+    err.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Entrando...';
+
+  // Salvar sessão
+  sessionStorage.setItem('nh_portal_emp', emp);
+  empAtual = emp;
+  isAdmin  = (emp === 'GROWTH');
+  iniciarPortal();
+}
+
+document.getElementById('inp-senha').addEventListener('keydown', e => {
+  if(e.key === 'Enter') fazerLogin();
+});
+document.getElementById('inp-empresa').addEventListener('keydown', e => {
+  if(e.key === 'Enter') document.getElementById('inp-senha').focus();
+});
+
+function fazerLogout(){
+  sessionStorage.removeItem('nh_portal_emp');
+  empAtual = '';
+  dadosGanhas = [];
+  document.getElementById('portal').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('btn-login').disabled = false;
+  document.getElementById('btn-login').textContent = 'Entrar';
+  document.getElementById('inp-empresa').value = '';
+  document.getElementById('inp-senha').value = '';
+}
+
+// ─── PORTAL ──────────────────────────────────────────────────────
+async function iniciarPortal(){
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('portal').style.display = 'block';
+
+  // Topbar
+  const cor = CORES[empAtual] || '#f97316';
+  document.getElementById('emp-dot').style.background = cor;
+  document.getElementById('emp-nome-top').textContent = empAtual;
+
+  await carregarContratos();
+}
+
+// ─── DASHBOARD POR EMPRESA (GROWTH) ──────────────────────────────
+function parseMoedaV(s){return parseFloat(String(s||'').replace(/[^\d,]/g,'').replace(',','.'))||0;}
+
+function gerarDashboard(){
+  const dash = document.getElementById('dashboard-area');
+  if(!isAdmin || !dash) return;
+  dash.style.display = 'block';
+
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+
+  // Agrupar por empresa
+  const porEmp = {};
+  EMPRESAS_SISTEMA.forEach(e => { porEmp[e] = {contratos:[],portfolio:0,ativo:0,ganhou:0,participou:0}; });
+
+  dadosGanhas.forEach(({arr}) => {
+    const emp = String(arr[2]||'').trim().toUpperCase();
+    if(!porEmp[emp]) porEmp[emp] = {contratos:[],portfolio:0,ativo:0,ganhou:0,participou:0};
+    porEmp[emp].contratos.push(arr);
+    const val = parseMoedaV(arr[7]);
+    porEmp[emp].portfolio += val;
+    const status = String(arr[9]||'').toUpperCase().trim();
+    if(status !== 'FINALIZADO' && status !== 'RESCINDIDO') porEmp[emp].ativo += val;
+    porEmp[emp].ganhou++;
+  });
+
+  // Buscar dados de editais e andamento do Firebase para taxa de conversão
+  // Por ora usa os dados de ganhas disponíveis
+
+  const fmtM = v => {
+    if(v >= 1e6) return 'R$ '+(v/1e6).toFixed(2).replace('.',',')+'M';
+    if(v >= 1e3) return 'R$ '+(v/1e3).toFixed(1).replace('.',',')+'K';
+    return 'R$ '+v.toFixed(0);
+  };
+
+  const cards = EMPRESAS_SISTEMA.map(emp => {
+    const d = porEmp[emp] || {contratos:[],portfolio:0,ativo:0,ganhou:0};
+    const cor = CORES[emp] || '#6b7280';
+    const initials = emp.split(' ').map(w=>w[0]).join('').slice(0,2);
+
+    // Dados mensais dos últimos 12 meses para o gráfico
+    const meses = [];
+    for(let i=11;i>=0;i--){
+      const d2 = new Date(hoje);
+      d2.setMonth(d2.getMonth()-i);
+      meses.push({
+        label: d2.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}),
+        ganhas: 0, participacoes: 0
+      });
+    }
+    d.contratos.forEach(arr => {
+      const dtStr = String(arr[1]||'');
+      const p = dtStr.split('/');
+      if(p.length===3){
+        const dt = new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
+        for(let i=0;i<12;i++){
+          const m = meses[i].label;
+          const mRef = dt.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'});
+          if(m===mRef) meses[i].ganhas++;
+        }
+      }
+    });
+
+    // SVG sparkline
+    const vals = meses.map(m=>m.ganhas);
+    const maxV = Math.max(...vals,1);
+    const pts = vals.map((v,i)=>`${(i/(vals.length-1))*280},${40-(v/maxV)*36}`).join(' ');
+    const ptsFill = `0,40 ${pts} 280,40`;
+
+    return `
+    <div style="background:#0f1117;border:1px solid #1e2030;border-left:3px solid ${cor};border-radius:14px;padding:18px 20px;min-width:0">
+      <!-- Header empresa -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <div style="width:32px;height:32px;border-radius:8px;background:${cor}22;border:1px solid ${cor}44;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:${cor};flex-shrink:0">${initials}</div>
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#e0e0f0">${emp}</div>
+          <div style="font-size:10px;color:#4a4a6a">${d.ganhou} contrato${d.ganhou!==1?'s':''} ganho${d.ganhou!==1?'s':''} · ${d.contratos.filter(a=>String(a[9]||'').toUpperCase()!=='FINALIZADO').length} ativo${d.contratos.filter(a=>String(a[9]||'').toUpperCase()!=='FINALIZADO').length!==1?'s':''}</div>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+        <div style="background:#161820;border:1px solid #1e2030;border-radius:8px;padding:10px 12px">
+          <div style="font-size:9px;color:${cor};text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:4px">$ Portfólio</div>
+          <div style="font-size:15px;font-weight:800;font-family:'Syne',sans-serif;color:#e0e0f0">${fmtM(d.portfolio)}</div>
+          <div style="font-size:10px;color:#4a4a6a;margin-top:2px">${d.ganhou} contrato${d.ganhou!==1?'s':''}</div>
+        </div>
+        <div style="background:#161820;border:1px solid #1e2030;border-radius:8px;padding:10px 12px">
+          <div style="font-size:9px;color:${cor};text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:4px">% Ativo</div>
+          <div style="font-size:15px;font-weight:800;font-family:'Syne',sans-serif;color:${cor}">${fmtM(d.ativo)}</div>
+          <div style="font-size:10px;color:#4a4a6a;margin-top:2px">${d.contratos.filter(a=>String(a[9]||'').toUpperCase()!=='FINALIZADO').length} em exec. · ${d.ganhou>0?Math.round(d.ativo/d.portfolio*100):0}%</div>
+        </div>
+      </div>
+
+      <!-- Sparkline -->
+      <div style="margin-bottom:10px">
+        <div style="font-size:9px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">EVOLUÇÃO — 12 MESES</div>
+        <svg viewBox="0 0 280 44" width="100%" height="44" style="display:block;overflow:visible">
+          <defs>
+            <linearGradient id="gr_${emp.replace(/ /g,'_')}" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="${cor}" stop-opacity="0.3"/>
+              <stop offset="100%" stop-color="${cor}" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <polygon points="${ptsFill}" fill="url(#gr_${emp.replace(/ /g,'_')})"/>
+          <polyline points="${pts}" fill="none" stroke="${cor}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          ${vals.map((v,i)=>v>0?`<circle cx="${(i/(vals.length-1))*280}" cy="${40-(v/maxV)*36}" r="2.5" fill="${cor}"/>`:'').join('')}
+        </svg>
+        <div style="display:flex;justify-content:space-between;font-size:8px;color:#3a3a5a;margin-top:2px">
+          <span>${meses[0].label}</span>
+          <span>${meses[5].label}</span>
+          <span>${meses[11].label}</span>
+        </div>
+      </div>
+
+      <!-- Rodapé stats -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding-top:10px;border-top:1px solid #1a1c28">
+        <div style="text-align:center">
+          <div style="font-size:8px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.06em">Ganhou</div>
+          <div style="font-size:16px;font-weight:800;font-family:'Syne',sans-serif;color:${cor};margin-top:2px">${d.ganhou}</div>
+        </div>
+        <div style="text-align:center;border-left:1px solid #1a1c28;border-right:1px solid #1a1c28">
+          <div style="font-size:8px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.06em">Em Exec.</div>
+          <div style="font-size:16px;font-weight:800;font-family:'Syne',sans-serif;color:#22c55e;margin-top:2px">${d.contratos.filter(a=>String(a[9]||'').toUpperCase()!=='FINALIZADO').length}</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:8px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.06em">Portfólio</div>
+          <div style="font-size:13px;font-weight:800;font-family:'Syne',sans-serif;color:#e0e0f0;margin-top:2px">${fmtM(d.portfolio)}</div>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  dash.innerHTML = `
+    <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px">
+      <span style="width:3px;height:16px;background:#f97316;border-radius:2px;display:inline-block"></span>
+      Dashboard por Empresa
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px">
+      ${cards.join('')}
+    </div>`;
+}
+
+async function carregarContratos(){
+  document.getElementById('contratos-area').innerHTML = '<div class="spin"></div>';
+  try{
+    const snap = await db.collection('ganhas').get();
+    const todos = [];
+    snap.forEach(doc => {
+      const d = doc.data();
+      const arr = d._arr || [];
+      const emp = String(arr[2]||'').trim().toUpperCase();
+      // GROWTH vê todos; outras empresas veem só os seus
+      if(isAdmin || emp === empAtual){
+        todos.push({
+          id: doc.id,
+          arr,
+          _portalUltimaEdicao: d._portalUltimaEdicao || '',
+          _portalLog: d._portalLog || []
+        });
+      }
+    });
+    dadosGanhas = todos;
+    renderContratos();
+    renderStats();
+    gerarDashboard();
+    // Atualizar título da seção
+    const st = document.getElementById('section-title-contratos');
+    if(st) st.textContent = isAdmin ? 'Todos os Contratos — Visão Gerencial' : 'Meus Contratos';
+    // Filtros por empresa para GROWTH
+    if(isAdmin){
+      const fe = document.getElementById('filtros-empresa-area');
+      if(fe){
+        const emps = [...new Set(dadosGanhas.map(({arr})=>String(arr[2]||'').trim().toUpperCase()).filter(Boolean))].sort();
+        fe.innerHTML = emps.map(e=>`<button class="filtro-btn" onclick="filtrarEmpresa('${e}',this)" style="border-color:${CORES[e]||'#444'};color:${CORES[e]||'#888'}">${e}</button>`).join('');
+      }
+    }
+  }catch(e){
+    document.getElementById('contratos-area').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><p>Erro ao carregar: ${e.message}</p></div>`;
+  }
+}
+
+function renderStats(){
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  let execucao=0, finalizados=0, vencer=0, total=dadosGanhas.length;
+
+  dadosGanhas.forEach(({arr})=>{
+    const status = String(arr[9]||'').toUpperCase().trim();
+    if(status==='FINALIZADO') finalizados++;
+    else execucao++;
+
+    // Vencimento efetivo
+    const vd = arr[39]||arr[32]||arr[25]||arr[18]||arr[12]||'';
+    if(vd){
+      const p = vd.split('/');
+      if(p.length===3){
+        const dt = new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
+        const dias = Math.round((dt-hoje)/86400000);
+        if(dias>=0 && dias<=90) vencer++;
+      }
+    }
+  });
+
+  document.getElementById('stats-area').innerHTML = `
+    <div class="stat"><div class="stat-glow" style="background:#f97316"></div>
+      <div class="stat-lbl">Total Contratos</div>
+      <div class="stat-val nh">${total}</div>
+    </div>
+    <div class="stat"><div class="stat-glow" style="background:#22c55e"></div>
+      <div class="stat-lbl">Em Execução</div>
+      <div class="stat-val g">${execucao}</div>
+    </div>
+    <div class="stat"><div class="stat-glow" style="background:#eab308"></div>
+      <div class="stat-lbl">Próx. Vencer (90d)</div>
+      <div class="stat-val y">${vencer}</div>
+    </div>
+    <div class="stat"><div class="stat-glow" style="background:#6b7280"></div>
+      <div class="stat-lbl">Finalizados</div>
+      <div class="stat-val">${finalizados}</div>
+    </div>
+  `;
+}
+
+let filtroEmpresa = '';
+function filtrar(tipo, btn){
+  filtroAtual = tipo;
+  filtroEmpresa = '';
+  document.querySelectorAll('.filtro-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderContratos();
+}
+function filtrarEmpresa(emp, btn){
+  filtroEmpresa = filtroEmpresa === emp ? '' : emp;
+  document.querySelectorAll('#filtros-empresa-area .filtro-btn').forEach(b=>b.classList.remove('on'));
+  if(filtroEmpresa) btn.classList.add('on');
+  renderContratos();
+}
+
+function parseDateBR(s){if(!s)return null;const p=s.split('/');if(p.length!==3)return null;return new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));}
+function parseMoedaPortal(s){return parseFloat(String(s||'').replace(/[^0-9,]/g,'').replace(',','.'))||0;}
+
+function renderContratos(){
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  let lista = [...dadosGanhas];
+
+  // Filtro por status
+  if(filtroAtual === 'em_execucao'){
+    lista = lista.filter(({arr})=>String(arr[9]||'').toUpperCase().trim() !== 'FINALIZADO');
+  } else if(filtroAtual === 'finalizado'){
+    lista = lista.filter(({arr})=>String(arr[9]||'').toUpperCase().trim() === 'FINALIZADO');
+  } else if(filtroAtual === 'vencer'){
+    lista = lista.filter(({arr})=>{
+      const vd = arr[39]||arr[32]||arr[25]||arr[18]||arr[12]||'';
+      if(!vd) return false;
+      const p = vd.split('/');
+      if(p.length!==3) return false;
+      const dt = new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
+      const dias = Math.round((dt-hoje)/86400000);
+      return dias>=0 && dias<=90;
+    });
+  }
+
+  // Filtro empresa (GROWTH)
+  if(filtroEmpresa){
+    lista = lista.filter(({arr})=>String(arr[2]||'').trim().toUpperCase()===filtroEmpresa);
+  }
+
+  // Busca
+  const busca = (document.getElementById('inp-busca')?.value||'').toLowerCase().trim();
+  if(busca){
+    lista = lista.filter(({arr})=>{
+      return [arr[3],arr[4],arr[5],arr[6],arr[8]].some(v=>String(v||'').toLowerCase().includes(busca));
+    });
+  }
+
+  // Ordenação
+  const ordem = document.getElementById('sel-ordem')?.value || 'recente';
+  lista.sort((a,b)=>{
+    if(ordem==='recente'){
+      const da=parseDateBR(a.arr[1]),db2=parseDateBR(b.arr[1]);
+      return (db2||0)-(da||0);
+    } else if(ordem==='vencimento'){
+      const va=a.arr[39]||a.arr[32]||a.arr[25]||a.arr[18]||a.arr[12]||'';
+      const vb=b.arr[39]||b.arr[32]||b.arr[25]||b.arr[18]||b.arr[12]||'';
+      const da=parseDateBR(va),db2=parseDateBR(vb);
+      return (da||new Date(9999,0))-(db2||new Date(9999,0));
+    } else if(ordem==='valor'){
+      return parseMoedaPortal(b.arr[7])-parseMoedaPortal(a.arr[7]);
+    } else if(ordem==='az'){
+      return String(a.arr[3]||'').localeCompare(String(b.arr[3]||''));
+    }
+    return 0;
+  });
+
+  if(!lista.length){
+    document.getElementById('contratos-area').innerHTML = `
+      <div class="empty"><div class="empty-icon">📋</div><p>Nenhum contrato encontrado neste filtro.</p></div>`;
+    return;
+  }
+
+  document.getElementById('contratos-area').innerHTML = lista.map(({id,arr}) => {
+    const status = String(arr[9]||'').trim() || 'EM EXECUÇÃO';
+    const statusUp = status.toUpperCase();
+    const cor = statusUp==='FINALIZADO'?'azul':statusUp==='RESCINDIDO'?'vermelho':statusUp==='SUSPENSO'?'amarelo':'verde';
+
+    // Vencimento efetivo (último aditivo ou contrato)
+    const venc = arr[39]||arr[32]||arr[25]||arr[18]||arr[12]||'';
+    let vencBadge = '';
+    if(venc){
+      const p=venc.split('/');
+      if(p.length===3){
+        const dt=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
+        const dias=Math.round((dt-hoje)/86400000);
+        if(dias<0) vencBadge='<span class="badge b-red">Vencido</span>';
+        else if(dias<=30) vencBadge='<span class="badge b-red">Vence em '+dias+'d</span>';
+        else if(dias<=90) vencBadge='<span class="badge b-yellow">Vence em '+dias+'d</span>';
+      }
+    }
+
+    const recomp = String(arr[13]||'').toUpperCase().trim()==='SIM'?'<span class="badge b-orange">Recomp.</span>':'';
+    const statusBadge = `<span class="badge ${cor==='verde'?'b-green':cor==='azul'?'b-blue':cor==='vermelho'?'b-red':'b-yellow'}">${status}</span>`;
+
+    return `
+    <div class="ccard ${cor}" id="ccard-${id}">
+      <div class="ccard-header" onclick="toggleCard('${id}')">
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span class="ccard-id">#${arr[0]||'?'}</span>
+            <span style="font-size:11px;color:var(--t3)">${arr[1]||''}</span>
+          </div>
+          <div class="ccard-titulo">${arr[3]||'Sem título'}</div>
+          ${isAdmin && arr[2] ? `<div style="font-size:11px;color:${CORES[arr[2].trim().toUpperCase()]||'#888'};font-weight:700;margin-top:3px">${arr[2].trim().toUpperCase()}</div>` : ''}
+        </div>
+        <div class="ccard-badges">
+          ${statusBadge}${vencBadge}${recomp}
+          <button onclick="event.stopPropagation();imprimirContrato('${id}')" title="Imprimir PDF" style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2);color:var(--nh);width:30px;height:30px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;transition:all .15s" onmouseover="this.style.background='rgba(249,115,22,.25)'" onmouseout="this.style.background='rgba(249,115,22,.1)'">
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></svg>
+          </button>
+          <span style="color:var(--t3);font-size:18px;transition:transform .2s" id="arrow-${id}">›</span>
+        </div>
+      </div>
+      <div class="ccard-body" id="body-${id}">
+        ${renderBody(id, arr, entry)}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderBody(id, arr, entry){
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const venc = arr[39]||arr[32]||arr[25]||arr[18]||arr[12]||'';
+  let vencAlert = '';
+  if(venc){
+    const p=venc.split('/');
+    if(p.length===3){
+      const dt=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
+      const dias=Math.round((dt-hoje)/86400000);
+      if(dias<0) vencAlert=`<div class="venc-alert">⚠️ Contrato vencido há ${Math.abs(dias)} dias (${venc})</div>`;
+      else if(dias<=30) vencAlert=`<div class="venc-alert">⚠️ Contrato vence em ${dias} dias (${venc})</div>`;
+      else if(dias<=90) vencAlert=`<div class="venc-alert venc-prox">⏰ Contrato vence em ${dias} dias (${venc})</div>`;
+      else vencAlert=`<div class="venc-alert venc-ok">✓ Contrato vigente — vence em ${dias} dias (${venc})</div>`;
+    }
+  }
+
+  // Aditivos
+  let aditivos = '';
+  const aditivosDefs = [
+    {lbl:'Aditivo 1', base:13},
+    {lbl:'Aditivo 2', base:20},
+    {lbl:'Aditivo 3', base:27},
+    {lbl:'Aditivo 4', base:34},
+  ];
+  aditivosDefs.forEach(({lbl,base})=>{
+    if(arr[base]||arr[base+1]||arr[base+3]){
+      aditivos += `
+      <div class="aditivo-item">
+        <div class="aditivo-titulo">${lbl}</div>
+        <div class="aditivo-grid">
+          ${arr[base]?`<div class="aditivo-field"><div class="aditivo-field-lbl">Tipo</div><div class="aditivo-field-val">${arr[base]}</div></div>`:''}
+          ${arr[base+1]?`<div class="aditivo-field"><div class="aditivo-field-lbl">Vigência</div><div class="aditivo-field-val">${arr[base+1]} meses</div></div>`:''}
+          ${arr[base+2]?`<div class="aditivo-field"><div class="aditivo-field-lbl">Dt. Assinatura</div><div class="aditivo-field-val">${arr[base+2]}</div></div>`:''}
+          ${arr[base+3]?`<div class="aditivo-field"><div class="aditivo-field-lbl">Novo Vencimento</div><div class="aditivo-field-val">${arr[base+3]}</div></div>`:''}
+          ${arr[base+4]?`<div class="aditivo-field"><div class="aditivo-field-lbl">Recomp.</div><div class="aditivo-field-val">${arr[base+4]}</div></div>`:''}
+          ${arr[base+5]?`<div class="aditivo-field"><div class="aditivo-field-lbl">Status</div><div class="aditivo-field-val">${arr[base+5]}</div></div>`:''}
+          ${arr[base+6]?`<div class="aditivo-field"><div class="aditivo-field-lbl">Valor</div><div class="aditivo-field-val">${arr[base+6]}</div></div>`:''}
+        </div>
+      </div>`;
+    }
+  });
+
+  const linkPasta = arr[42]||arr[19]||'';
+  const obs = arr[41]||'';
+
+  return `
+    ${vencAlert}
+    <div class="ccard-meta">
+      ${arr[4]?`<div class="cmeta"><span class="cmeta-lbl">Objeto</span></div>`:''}
+      ${arr[5]?`<div class="cmeta"><span class="cmeta-lbl">Local</span><span class="cmeta-val">${arr[5]}</span></div>`:''}
+      ${arr[6]?`<div class="cmeta"><span class="cmeta-lbl">Município</span><span class="cmeta-val">${arr[6]}</span></div>`:''}
+      ${arr[7]?`<div class="cmeta"><span class="cmeta-lbl">Valor</span><span class="cmeta-val hl">${arr[7]}</span></div>`:''}
+      ${arr[8]?`<div class="cmeta"><span class="cmeta-lbl">Contrato</span><span class="cmeta-val">${arr[8]}</span></div>`:''}
+      ${arr[10]?`<div class="cmeta"><span class="cmeta-lbl">Vigência</span><span class="cmeta-val">${arr[10]} meses</span></div>`:''}
+      ${arr[11]?`<div class="cmeta"><span class="cmeta-lbl">Dt. Assinatura</span><span class="cmeta-val">${arr[11]}</span></div>`:''}
+      ${venc?`<div class="cmeta"><span class="cmeta-lbl">Vencimento</span><span class="cmeta-val">${venc}</span></div>`:''}
+    </div>
+    ${arr[4]?`<p style="font-size:13px;color:var(--t2);line-height:1.7;margin-bottom:14px">${arr[4]}</p>`:''}
+    ${linkPasta?`<a href="${linkPasta}" target="_blank" class="link-pasta">📁 Abrir Pasta do Contrato <span style="opacity:.6">↗</span></a>`:''}
+    ${aditivos?`<div class="aditivos-wrap"><div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Aditivos</div>${aditivos}</div>`:''}
+    <div class="edit-section">
+      <div class="edit-section-title">Atualizar Contrato</div>
+      <div class="edit-grid">
+        <div class="edit-field">
+          <label>Status do Contrato</label>
+          <select id="edit-status-${id}" onchange="marcarAlterado('${id}')">
+            <option value="">— manter atual —</option>
+            <option value="EM EXECUÇÃO" ${arr[9]==='EM EXECUÇÃO'?'selected':''}>Em Execução</option>
+            <option value="AGUARDANDO CONTRATO" ${arr[9]==='AGUARDANDO CONTRATO'?'selected':''}>Aguardando Contrato</option>
+            <option value="SUSPENSO" ${arr[9]==='SUSPENSO'?'selected':''}>Suspenso</option>
+            <option value="RESCINDIDO" ${arr[9]==='RESCINDIDO'?'selected':''}>Rescindido</option>
+            <option value="FINALIZADO" ${arr[9]==='FINALIZADO'?'selected':''}>Finalizado</option>
+          </select>
+        </div>
+        <div class="edit-field">
+          <label>Vencimento Contrato</label>
+          <input type="text" id="edit-venc-${id}" placeholder="DD/MM/AAAA" value="${arr[12]||''}" onchange="marcarAlterado('${id}')">
+        </div>
+      </div>
+      <div class="edit-field" style="margin-bottom:12px">
+        <label>Observações</label>
+        <textarea class="obs-area" id="edit-obs-${id}" placeholder="Adicione observações sobre este contrato..." onchange="marcarAlterado('${id}')">${obs}</textarea>
+      </div>
+      <button class="save-btn" id="save-btn-${id}" onclick="salvarAlteracoes('${id}')">
+        💾 Salvar Alterações
+      </button>
+      <div class="last-edit" id="last-edit-${id}">${entry._portalUltimaEdicao ? 'Última edição: '+entry._portalUltimaEdicao : ''}</div>
+    </div>
+  `;
+}
+
+let abertos = {};
+
+// ─── IMPRIMIR PDF ────────────────────────────────────────────────
+function gerarHTMLImpressao(entries){
+  const cor = CORES[empAtual] || '#f97316';
+  const hoje = new Date().toLocaleDateString('pt-BR');
+  let html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
+  <title>Contratos ${empAtual} - NH Licitações</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:Arial,sans-serif;font-size:11px;color:#1f2937;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .cabecalho{background:${cor};padding:16px 28px;display:flex;justify-content:space-between;align-items:center}
+    .cab-nome{font-size:16px;font-weight:900;color:#fff}
+    .cab-sub{font-size:10px;color:rgba(255,255,255,.8);margin-top:2px}
+    .cab-data{font-size:10px;color:rgba(255,255,255,.8);text-align:right}
+    .corpo{padding:20px 28px}
+    .contrato{border:1px solid #e5e7eb;border-left:4px solid ${cor};border-radius:8px;padding:16px;margin-bottom:14px;page-break-inside:avoid}
+    .c-titulo{font-size:13px;font-weight:700;color:#111;margin-bottom:8px}
+    .c-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+    .c-field{display:flex;flex-direction:column;gap:2px}
+    .c-lbl{font-size:9px;font-weight:700;color:${cor};text-transform:uppercase;letter-spacing:.06em}
+    .c-val{font-size:11px;color:#374151}
+    .c-obs{background:#f9fafb;border-radius:5px;padding:8px 10px;font-size:10px;color:#6b7280;margin-top:8px}
+    .c-obs-lbl{font-weight:700;color:#374151;margin-bottom:3px}
+    .badge-status{display:inline-block;padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700}
+    .b-exec{background:#dcfce7;color:#166534}
+    .b-fin{background:#dbeafe;color:#1e40af}
+    .b-venc{background:#fee2e2;color:#991b1b}
+    .b-sus{background:#fef9c3;color:#854d0e}
+    .rodape{background:#f3f4f6;border-top:3px solid ${cor};padding:10px 28px;display:flex;justify-content:space-between;font-size:9px;color:#6b7280;position:fixed;bottom:0;left:0;right:0}
+    .log-edit{font-size:9px;color:#9ca3af;margin-top:6px;font-style:italic}
+    @media print{@page{margin:0;size:A4}.rodape{position:fixed;bottom:0}}
+    .venc-alert{background:#fee2e2;border-radius:4px;padding:4px 8px;font-size:9px;color:#991b1b;margin-top:6px;display:inline-block}
+    .venc-prox{background:#fef9c3;color:#854d0e}
+  </style></head><body>
+  <div class="cabecalho">
+    <div><div class="cab-nome">${empAtual}</div><div class="cab-sub">Portal NH Licitações — Relatório de Contratos</div></div>
+    <div class="cab-data">Emitido em ${hoje}<br>${entries.length} contrato(s)</div>
+  </div>
+  <div class="corpo">`;
+
+  const hoje2 = new Date(); hoje2.setHours(0,0,0,0);
+  entries.forEach(({arr, _portalUltimaEdicao})=>{
+    const status = String(arr[9]||'').trim() || 'EM EXECUÇÃO';
+    const statusUp = status.toUpperCase();
+    const badgeCls = statusUp==='FINALIZADO'?'b-fin':statusUp==='RESCINDIDO'||statusUp==='SUSPENSO'?'b-sus':statusUp.includes('VENCID')?'b-venc':'b-exec';
+    const venc = arr[39]||arr[32]||arr[25]||arr[18]||arr[12]||'';
+    let vencAlert = '';
+    if(venc){
+      const p=venc.split('/');
+      if(p.length===3){
+        const dt=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
+        const dias=Math.round((dt-hoje2)/86400000);
+        if(dias<0) vencAlert=`<div class="venc-alert">⚠ Vencido há ${Math.abs(dias)} dias</div>`;
+        else if(dias<=90) vencAlert=`<div class="venc-alert venc-prox">⏰ Vence em ${dias} dias</div>`;
+      }
+    }
+    const linkPasta = arr[42]||arr[19]||'';
+    const obs = arr[41]||'';
+
+    html += `<div class="contrato">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+        <div class="c-titulo">#${arr[0]||'?'} — ${arr[3]||'Sem título'}</div>
+        <span class="badge-status ${badgeCls}">${status}</span>
+      </div>
+      ${vencAlert}
+      <div class="c-grid">
+        ${arr[5]?`<div class="c-field"><div class="c-lbl">Local</div><div class="c-val">${arr[5]}</div></div>`:''}
+        ${arr[6]?`<div class="c-field"><div class="c-lbl">Município</div><div class="c-val">${arr[6]}</div></div>`:''}
+        ${arr[7]?`<div class="c-field"><div class="c-lbl">Valor</div><div class="c-val">${arr[7]}</div></div>`:''}
+        ${arr[8]?`<div class="c-field"><div class="c-lbl">Contrato</div><div class="c-val">${arr[8]}</div></div>`:''}
+        ${arr[10]?`<div class="c-field"><div class="c-lbl">Vigência</div><div class="c-val">${arr[10]} meses</div></div>`:''}
+        ${arr[11]?`<div class="c-field"><div class="c-lbl">Dt. Assinatura</div><div class="c-val">${arr[11]}</div></div>`:''}
+        ${venc?`<div class="c-field"><div class="c-lbl">Vencimento</div><div class="c-val">${venc}</div></div>`:''}
+        ${arr[13]==='SIM'?`<div class="c-field"><div class="c-lbl">Recomp.</div><div class="c-val">Sim</div></div>`:''}
+        ${linkPasta?`<div class="c-field"><div class="c-lbl">Pasta</div><div class="c-val" style="word-break:break-all;font-size:9px">${linkPasta}</div></div>`:''}
+      </div>
+      ${arr[4]?`<div style="font-size:10px;color:#6b7280;margin-bottom:6px;line-height:1.5">${arr[4]}</div>`:''}
+      ${obs?`<div class="c-obs"><div class="c-obs-lbl">Observações</div>${obs}</div>`:''}
+      ${_portalUltimaEdicao?`<div class="log-edit">✎ Última edição: ${_portalUltimaEdicao}</div>`:''}
+    </div>`;
+  });
+
+  html += `</div>
+  <div class="rodape">
+    <span>${empAtual} · NH Licitações Portal</span>
+    <span>${entries.length} contrato(s) · Emitido em ${hoje}</span>
+  </div>
+  <script>window.print();window.onafterprint=function(){window.close()};<\/script>
+  </body></html>`;
+  return html;
+}
+
+function imprimirContrato(id){
+  const entry = dadosGanhas.find(e=>e.id===id);
+  if(!entry) return;
+  const w = window.open('','_blank','width=900,height=700');
+  w.document.write(gerarHTMLImpressao([entry]));
+  w.document.close();
+}
+
+function imprimirTodos(){
+  // Imprimir contratos na ordem/filtro atual
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  let lista = [...dadosGanhas];
+  const busca = (document.getElementById('inp-busca')?.value||'').toLowerCase().trim();
+  if(busca) lista = lista.filter(({arr})=>[arr[3],arr[4],arr[5],arr[6]].some(v=>String(v||'').toLowerCase().includes(busca)));
+  if(filtroAtual==='em_execucao') lista=lista.filter(({arr})=>String(arr[9]||'').toUpperCase()!=='FINALIZADO');
+  else if(filtroAtual==='finalizado') lista=lista.filter(({arr})=>String(arr[9]||'').toUpperCase()==='FINALIZADO');
+  if(!lista.length){alert('Nenhum contrato para imprimir.');return;}
+  const w = window.open('','_blank','width=900,height=700');
+  w.document.write(gerarHTMLImpressao(lista));
+  w.document.close();
+}
+function toggleCard(id){
+  const body = document.getElementById('body-'+id);
+  const arrow = document.getElementById('arrow-'+id);
+  if(abertos[id]){
+    body.classList.remove('open');
+    arrow.style.transform = 'rotate(0deg)';
+    abertos[id] = false;
+  } else {
+    body.classList.add('open');
+    arrow.style.transform = 'rotate(90deg)';
+    abertos[id] = true;
+  }
+}
+
+function marcarAlterado(id){
+  const btn = document.getElementById('save-btn-'+id);
+  if(btn) btn.style.background = '#22c55e';
+}
+
+async function salvarAlteracoes(id){
+  const btn = document.getElementById('save-btn-'+id);
+  const entry = dadosGanhas.find(e=>e.id===id);
+  if(!entry) return;
+
+  btn.disabled = true;
+  btn.textContent = 'Salvando...';
+
+  try{
+    const arr = [...entry.arr];
+    // Garantir tamanho mínimo do array
+    while(arr.length < 43) arr.push('');
+
+    const novoStatus = document.getElementById('edit-status-'+id)?.value;
+    const novoVenc   = document.getElementById('edit-venc-'+id)?.value?.trim();
+    const novaObs    = document.getElementById('edit-obs-'+id)?.value?.trim();
+
+    if(novoStatus) arr[9]  = novoStatus;
+    if(novoVenc)   arr[12] = novoVenc;
+    arr[41] = novaObs !== undefined ? novaObs : (arr[41]||'');
+
+    // Log separado — NÃO usa arr[43] para não conflitar com o sistema principal
+    // Salva em campo _portalLog no documento do Firestore
+    const agora = new Date().toLocaleString('pt-BR');
+    const logEntry = {
+      empresa: empAtual,
+      data: agora,
+      status: novoStatus || arr[9] || '',
+      obs: arr[41] || ''
+    };
+
+    // Atualiza _arr E adiciona _portalLog (campo separado, não sobrescrito pelo sistema)
+    await db.collection('ganhas').doc(id).update({
+      _arr: arr,
+      _portalLog: firebase.firestore.FieldValue.arrayUnion(logEntry),
+      _portalUltimaEdicao: `${empAtual} em ${agora}`
+    });
+
+    entry.arr = arr;
+    if(!entry._portalUltimaEdicao) entry._portalUltimaEdicao = '';
+    entry._portalUltimaEdicao = `${empAtual} em ${agora}`;
+
+    btn.disabled = false;
+    btn.textContent = '✓ Salvo!';
+    btn.style.background = '#22c55e';
+
+    const lastEdit = document.getElementById('last-edit-'+id);
+    if(lastEdit) lastEdit.textContent = `Última edição: ${empAtual} em ${agora}`;
+
+    setTimeout(()=>{
+      btn.textContent = '💾 Salvar Alterações';
+      btn.style.background = '';
+    }, 3000);
+
+    renderStats();
+
+  }catch(e){
+    btn.disabled = false;
+    btn.textContent = '❌ Erro';
+    btn.style.background = '#ef4444';
+    setTimeout(()=>{
+      btn.textContent = '💾 Salvar Alterações';
+      btn.style.background = '';
+    }, 3000);
+    alert('Erro ao salvar: ' + e.message);
+  }
+}
+
+// ─── INIT ────────────────────────────────────────────────────────
+window.addEventListener('load', ()=>{
+  document.getElementById('loading').style.display = 'none';
+
+  // Verificar sessão
+  const empSessao = sessionStorage.getItem('nh_portal_emp');
+  if(empSessao && SENHAS[empSessao]){
+    empAtual = empSessao;
+    isAdmin  = (empSessao === 'GROWTH');
+    document.getElementById('login-screen').style.display = 'none';
+    iniciarPortal();
+  } else {
+    document.getElementById('login-screen').style.display = 'flex';
+  }
+});
+</script>
+</body>
+</html>
