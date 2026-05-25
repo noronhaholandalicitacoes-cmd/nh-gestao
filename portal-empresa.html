@@ -553,9 +553,9 @@ const firebaseConfig = {
   apiKey: "AIzaSyBhcpJP9dRM0SEJsGfcNUXYb1rTMdEDw6M",
   authDomain: "nh-licitacoes.firebaseapp.com",
   projectId: "nh-licitacoes",
-  storageBucket: "nh-licitacoes.appspot.com",
-  messagingSenderId: "1046481988071",
-  appId: "1:1046481988071:web:nh-licitacoes"
+  storageBucket: "nh-licitacoes.firebasestorage.app",
+  messagingSenderId: "1081646053691",
+  appId: "1:1081646053691:web:a8abcb5792d026ade71f1e"
 };
 if(!firebase.apps || !firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
@@ -828,127 +828,6 @@ function gerarDashboard(){
     <div style="display:grid;grid-template-columns:${cols};gap:14px">${cards.join('')}</div>
     <div style="height:1px;background:rgba(255,255,255,.06);margin:20px 0"></div>`;
 }
-
-  // Agrupar dados por empresa
-  const porEmp = {};
-  empresasParaMostrar.forEach(e => {
-    porEmp[e] = {contratos:[], portfolio:0, ativo:0, ganhou:0, recomp:0};
-  });
-
-  dadosGanhas.forEach(({arr}) => {
-    const emp = String(arr[2]||'').trim().toUpperCase();
-    if(!porEmp[emp]) return;
-    porEmp[emp].contratos.push(arr);
-    const val = parseMoedaV(arr[7]);
-    porEmp[emp].portfolio += val;
-    const status = String(arr[9]||'').toUpperCase().trim();
-    if(status !== 'FINALIZADO' && status !== 'RESCINDIDO') porEmp[emp].ativo += val;
-    porEmp[emp].ganhou++;
-    if(String(arr[13]||'').toUpperCase().trim() === 'SIM') porEmp[emp].recomp++;
-  });
-
-  const cards = empresasParaMostrar.map(emp => {
-    const d = porEmp[emp] || {contratos:[],portfolio:0,ativo:0,ganhou:0,recomp:0};
-    const cor = CORES[emp] || '#6b7280';
-    const initials = emp.split(' ').map(w=>w[0]).join('').slice(0,2);
-    const ativos = d.contratos.filter(a=>String(a[9]||'').toUpperCase()!=='FINALIZADO'&&String(a[9]||'').toUpperCase()!=='RESCINDIDO').length;
-    const taxa = d.ganhou>0 ? Math.round(d.ativo/d.portfolio*100) : 0;
-
-    // Gráfico 12 meses — ganhos por mês
-    const meses = [];
-    for(let i=11;i>=0;i--){
-      const ref = new Date(hoje);
-      ref.setMonth(ref.getMonth()-i);
-      meses.push({label: ref.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}), v:0});
-    }
-    d.contratos.forEach(arr => {
-      const p = String(arr[1]||'').split('/');
-      if(p.length===3){
-        const dt = new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
-        meses.forEach(m => {
-          const ref = new Date(hoje);
-          ref.setMonth(ref.getMonth()-(11-meses.indexOf(m)));
-          if(dt.getMonth()===ref.getMonth()&&dt.getFullYear()===ref.getFullYear()) m.v++;
-        });
-      }
-    });
-
-    const vals = meses.map(m=>m.v);
-    const maxV = Math.max(...vals,1);
-    const W=280, H=44;
-    const pts = vals.map((v,i)=>`${(i/(vals.length-1))*W},${H-(v/maxV)*(H-6)}`).join(' ');
-    const ptsFill = `0,${H} ${pts} ${W},${H}`;
-    const safeEmp = emp.replace(/ /g,'_');
-
-    return `
-    <div style="background:#0a0a12;border:1px solid #1a1a28;border-left:3px solid ${cor};border-radius:14px;padding:18px 20px;min-width:0">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
-        <div style="width:32px;height:32px;border-radius:8px;background:${cor}22;border:1px solid ${cor}44;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:${cor};flex-shrink:0">${initials}</div>
-        <div>
-          <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#e0e0f0">${emp}</div>
-          <div style="font-size:10px;color:#4a4a6a">${d.ganhou} contrato${d.ganhou!==1?'s':''} ganho${d.ganhou!==1?'s':''} · ${ativos} ativo${ativos!==1?'s':''}</div>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
-        <div style="background:#111120;border:1px solid #1a1a28;border-radius:8px;padding:10px 12px">
-          <div style="font-size:9px;color:${cor};text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:4px">$ Portfólio</div>
-          <div style="font-size:15px;font-weight:800;font-family:'Syne',sans-serif;color:#e0e0f0">${fmtM(d.portfolio)}</div>
-          <div style="font-size:10px;color:#4a4a6a;margin-top:2px">${d.ganhou} contrato${d.ganhou!==1?'s':''}</div>
-        </div>
-        <div style="background:#111120;border:1px solid #1a1a28;border-radius:8px;padding:10px 12px">
-          <div style="font-size:9px;color:${cor};text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:4px">% Ativo</div>
-          <div style="font-size:15px;font-weight:800;font-family:'Syne',sans-serif;color:${cor}">${fmtM(d.ativo)}</div>
-          <div style="font-size:10px;color:#4a4a6a;margin-top:2px">${ativos} em exec. · ${taxa}%</div>
-        </div>
-      </div>
-      <div style="margin-bottom:10px">
-        <div style="font-size:9px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">EVOLUÇÃO — 12 MESES</div>
-        <svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" style="display:block;overflow:visible">
-          <defs>
-            <linearGradient id="gr_${safeEmp}" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="${cor}" stop-opacity="0.3"/>
-              <stop offset="100%" stop-color="${cor}" stop-opacity="0"/>
-            </linearGradient>
-          </defs>
-          <polygon points="${ptsFill}" fill="url(#gr_${safeEmp})"/>
-          <polyline points="${pts}" fill="none" stroke="${cor}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          ${vals.map((v,i)=>v>0?`<circle cx="${(i/(vals.length-1))*W}" cy="${H-(v/maxV)*(H-6)}" r="2.5" fill="${cor}"/>`:'').join('')}
-        </svg>
-        <div style="display:flex;justify-content:space-between;font-size:8px;color:#3a3a5a;margin-top:2px">
-          <span>${meses[0].label}</span><span>${meses[5].label}</span><span>${meses[11].label}</span>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding-top:10px;border-top:1px solid #1a1c28">
-        <div style="text-align:center">
-          <div style="font-size:8px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.06em">Ganhou</div>
-          <div style="font-size:16px;font-weight:800;font-family:'Syne',sans-serif;color:${cor};margin-top:2px">${d.ganhou}</div>
-        </div>
-        <div style="text-align:center;border-left:1px solid #1a1c28">
-          <div style="font-size:8px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.06em">Em Exec.</div>
-          <div style="font-size:16px;font-weight:800;font-family:'Syne',sans-serif;color:#22c55e;margin-top:2px">${ativos}</div>
-        </div>
-        <div style="text-align:center;border-left:1px solid #1a1c28">
-          <div style="font-size:8px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.06em">Recomp.</div>
-          <div style="font-size:16px;font-weight:800;font-family:'Syne',sans-serif;color:#f97316;margin-top:2px">${d.recomp}</div>
-        </div>
-        <div style="text-align:center;border-left:1px solid #1a1c28">
-          <div style="font-size:8px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.06em">Portfólio</div>
-          <div style="font-size:13px;font-weight:800;font-family:'Syne',sans-serif;color:#e0e0f0;margin-top:2px">${fmtM(d.portfolio)}</div>
-        </div>
-      </div>
-    </div>`;
-  });
-
-  const cols = isAdmin ? 'repeat(auto-fill,minmax(300px,1fr))' : '1fr';
-  dash.style.display = 'block';
-  dash.innerHTML = `
-    <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px">
-      <span style="width:3px;height:16px;background:#f97316;border-radius:2px;display:inline-block"></span>
-      ${isAdmin ? 'Dashboard por Empresa' : 'Resumo — '+empAtual}
-    </div>
-    <div style="display:grid;grid-template-columns:${cols};gap:14px">${cards.join('')}</div>`;
-}
-
 async function carregarContratos(){
   document.getElementById('contratos-area').innerHTML = '<div class="spin"></div>';
   try{
