@@ -267,7 +267,12 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
 .aditivo-titulo{font-weight:700;color:var(--t2);margin-bottom:6px;font-size:11px;text-transform:uppercase;letter-spacing:.06em}
 .aditivo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
 .aditivo-field{display:flex;flex-direction:column;gap:2px}
-.aditivo-field-lbl{font-size:10px;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.mc-field{display:flex;flex-direction:column;gap:5px}
+.mc-label{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.07em}
+.mc-input{background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:8px 11px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color .15s;width:100%}
+.mc-input:focus{border-color:var(--nh)}
+.mc-input option{background:#1a1a28}
+textarea.mc-input{resize:vertical;min-height:64px}
 .aditivo-field-val{font-size:13px;color:var(--t1);font-weight:500}
 
 /* Link pasta */
@@ -464,6 +469,7 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
       <div class="topbar-emp-name" id="emp-nome-top"></div>
     </div>
     <button class="topbar-logout" id="btn-gestao-acessos" onclick="abrirGestaoAcessos()" style="display:none;background:rgba(249,115,22,.12);border-color:rgba(249,115,22,.3);color:#f97316;margin-right:6px">🔑 Acessos</button>
+    <button class="topbar-logout" id="btn-novo-contrato" onclick="abrirModalContrato(null)" style="display:none;background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.3);color:#4ade80;margin-right:6px">+ Novo Contrato</button>
     <button class="topbar-logout" onclick="fazerLogout()">Sair</button>
   </div>
 
@@ -478,7 +484,7 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
       <div class="busca-wrap">
         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:.4;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-        <input id="inp-busca" placeholder="Buscar contrato..." oninput="renderContratos()"
+        <input id="inp-busca" placeholder="Buscar contrato, objeto, município..." oninput="renderContratos()"
           style="background:none;border:none;color:var(--t1);font-family:'DM Sans',sans-serif;font-size:13px;flex:1;outline:none">
       </div>
       <select id="sel-ordem" onchange="renderContratos()"
@@ -488,22 +494,26 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
         <option value="valor">Maior valor</option>
         <option value="az">A → Z</option>
       </select>
+      <button id="btn-expandir-tudo" onclick="toggleExpandirTudo()" style="display:none;background:var(--s2);border:1px solid var(--b1);color:var(--t2);padding:7px 12px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;white-space:nowrap">⊞ Expandir tudo</button>
+      <button id="btn-exportar-excel" onclick="exportarExcelPortal()" style="display:none;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:#22c55e;padding:7px 12px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">
+        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Excel
+      </button>
       <button class="btn-imprimir-todos" onclick="imprimirTodos()">
         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-        Imprimir Todos
+        Imprimir
       </button>
     </div>
 
-    <!-- Filtros por status -->
-    <div class="filtros" id="filtros-area">
-      <button class="filtro-btn on" onclick="filtrar('todos',this)">Todos</button>
-      <button class="filtro-btn" onclick="filtrar('em_execucao',this)">Em Execução</button>
-      <button class="filtro-btn" onclick="filtrar('vencer',this)">Próx. Vencer</button>
-      <button class="filtro-btn" onclick="filtrar('finalizado',this)">Finalizados</button>
-    </div>
+    <!-- Filtros por status (dinâmicos igual ao sistema) -->
+    <div class="filtros" id="filtros-area" style="margin-bottom:8px"></div>
 
     <!-- Filtros por empresa (apenas GROWTH) -->
-    <div class="filtros" id="filtros-empresa-area" style="margin-bottom:16px"></div>
+    <div class="filtros" id="filtros-empresa-area" style="margin-bottom:12px"></div>
+
+    <!-- Total filtrado -->
+    <div id="portal-total-bar" style="display:none;margin-bottom:12px;font-size:13px;color:var(--t2);background:var(--s2);border:1px solid var(--b1);border-radius:8px;padding:8px 14px">
+      <span>Total filtrado: </span><strong id="portal-total-val" style="color:var(--nh)">R$ 0,00</strong>
+    </div>
 
     <!-- Título + contagem -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
@@ -515,10 +525,157 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
     <div id="contratos-area" class="contratos">
       <div class="spin"></div>
     </div>
+    <!-- Paginação -->
+    <div id="pag-contratos" style="display:flex;gap:6px;justify-content:center;margin-top:20px;flex-wrap:wrap"></div>
   </div>
 </div>
 
-<!-- ── MODAL GESTÃO DE ACESSOS ── -->
+
+<!-- ── MODAL NOVO/EDITAR CONTRATO (apenas GROWTH) ── -->
+<div id="modal-contrato" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:600;align-items:center;justify-content:center;padding:16px;overflow-y:auto">
+  <div style="background:#111118;border:1px solid #2a2a38;border-radius:16px;width:100%;max-width:740px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.9)">
+    <!-- Header -->
+    <div style="position:sticky;top:0;background:#111118;padding:20px 24px 16px;border-bottom:1px solid #1e1e28;display:flex;align-items:center;justify-content:space-between;z-index:1">
+      <div>
+        <div id="mc-titulo" style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:#f0f0f8">Novo Contrato</div>
+        <div style="font-size:11px;color:#5a5a72;margin-top:2px">Todos os campos marcados com * são obrigatórios</div>
+      </div>
+      <button onclick="fecharModalContrato()" style="background:rgba(255,255,255,.06);border:1px solid #2a2a38;color:#9898b0;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px">✕</button>
+    </div>
+
+    <!-- Campos -->
+    <div style="padding:20px 24px;display:grid;grid-template-columns:1fr 1fr;gap:12px" id="mc-campos">
+      <!-- Linha 1 -->
+      <div class="mc-field">
+        <label class="mc-label">Data *</label>
+        <input type="date" id="mc-data" class="mc-input">
+      </div>
+      <div class="mc-field">
+        <label class="mc-label">Empresa *</label>
+        <select id="mc-empresa" class="mc-input">
+          <option value="">Selecione...</option>
+          <option>VISE</option><option>SOS</option><option>SOS FILIAL</option>
+          <option>SAUTEC</option><option>ONLAV</option><option>ENGEMED</option>
+        </select>
+      </div>
+      <!-- Linha 2 -->
+      <div class="mc-field" style="grid-column:1/-1">
+        <label class="mc-label">Licitação *</label>
+        <input type="text" id="mc-licit" class="mc-input" placeholder="Ex: PE 001/2026 - PREFEITURA MUNICIPAL">
+      </div>
+      <!-- Linha 3 -->
+      <div class="mc-field" style="grid-column:1/-1">
+        <label class="mc-label">Objeto</label>
+        <textarea id="mc-objeto" class="mc-input" rows="2" placeholder="Descrição do objeto do contrato..." style="resize:vertical"></textarea>
+      </div>
+      <!-- Linha 4 -->
+      <div class="mc-field"><label class="mc-label">Local</label><input type="text" id="mc-local" class="mc-input"></div>
+      <div class="mc-field"><label class="mc-label">Município/UF</label><input type="text" id="mc-mun" class="mc-input" placeholder="Ex: João Pessoa/PB"></div>
+      <!-- Linha 5 -->
+      <div class="mc-field"><label class="mc-label">Valor do Contrato</label><input type="text" id="mc-valor" class="mc-input" placeholder="R$ 0,00" oninput="mcMascara(this)"></div>
+      <div class="mc-field"><label class="mc-label">Nº do Contrato</label><input type="text" id="mc-contrato" class="mc-input"></div>
+      <!-- Linha 6 -->
+      <div class="mc-field">
+        <label class="mc-label">Status do Contrato</label>
+        <select id="mc-status" class="mc-input">
+          <option value="">—</option>
+          <option>AGUARDANDO CONTRATO</option><option>EM EXECUÇÃO</option>
+          <option>FINALIZADO</option><option>SUSPENSO</option><option>RESCINDIDO</option>
+        </select>
+      </div>
+      <div class="mc-field"><label class="mc-label">Vigência (meses)</label><input type="number" id="mc-vig" class="mc-input" min="1"></div>
+      <!-- Linha 7 -->
+      <div class="mc-field"><label class="mc-label">Data Assinatura</label><input type="date" id="mc-dtcont" class="mc-input"></div>
+      <div class="mc-field"><label class="mc-label">Vencimento</label><input type="date" id="mc-venc" class="mc-input"></div>
+      <!-- Linha 8 -->
+      <div class="mc-field" style="grid-column:1/-1">
+        <label class="mc-label">Link da Pasta</label>
+        <input type="url" id="mc-link" class="mc-input" placeholder="https://drive.google.com/...">
+      </div>
+      <div class="mc-field" style="grid-column:1/-1">
+        <label class="mc-label">Observações</label>
+        <textarea id="mc-obs" class="mc-input" rows="2" placeholder="Observações sobre o contrato..." style="resize:vertical"></textarea>
+      </div>
+
+      <!-- Recomposições: 4 abas -->
+      <div style="grid-column:1/-1;margin-top:4px">
+        <div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;display:flex;align-items:center;gap:8px">
+          <span style="width:3px;height:12px;background:var(--nh);border-radius:2px;display:inline-block"></span>
+          Recomposições / Aditivos
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:12px">
+          <button type="button" id="mctab-1" onclick="mcShowRecomp(1)" style="padding:5px 12px;font-size:11px;font-weight:600;border-radius:6px;cursor:pointer;border:1px solid rgba(249,115,22,.3);background:rgba(249,115,22,.15);color:var(--nh)">Recomp 1</button>
+          <button type="button" id="mctab-2" onclick="mcShowRecomp(2)" style="padding:5px 12px;font-size:11px;font-weight:600;border-radius:6px;cursor:pointer;border:1px solid var(--b1);background:var(--s2);color:var(--t2)">Recomp 2</button>
+          <button type="button" id="mctab-3" onclick="mcShowRecomp(3)" style="padding:5px 12px;font-size:11px;font-weight:600;border-radius:6px;cursor:pointer;border:1px solid var(--b1);background:var(--s2);color:var(--t2)">Recomp 3</button>
+          <button type="button" id="mctab-4" onclick="mcShowRecomp(4)" style="padding:5px 12px;font-size:11px;font-weight:600;border-radius:6px;cursor:pointer;border:1px solid var(--b1);background:var(--s2);color:var(--t2)">Recomp 4</button>
+        </div>
+        <!-- Paineis de recomposição -->
+        <div id="mcpanel-1" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="mc-field"><label class="mc-label">Recomposição?</label><select id="mc-recomp1" class="mc-input"><option value="">—</option><option>SIM</option><option>NÃO</option></select></div>
+          <div class="mc-field"><label class="mc-label">Tipo</label><input type="text" id="mc-trecomp1" class="mc-input"></div>
+          <div class="mc-field"><label class="mc-label">Status Recomp.</label><select id="mc-strecomp1" class="mc-input"><option value="">—</option><option>Em Análise</option><option>Em Tramitação</option><option>Concluído</option></select></div>
+          <div class="mc-field"><label class="mc-label">Nova Data Venc.</label><input type="date" id="mc-novadata1" class="mc-input" oninput="mcCalcVenc(1)"></div>
+          <div class="mc-field"><label class="mc-label">Vigência (meses)</label><input type="number" id="mc-vigr1" class="mc-input" min="1" oninput="mcCalcVenc(1)"></div>
+          <div class="mc-field"><label class="mc-label">Venc. Recomp. (auto)</label><input type="date" id="mc-vencr1" class="mc-input" readonly style="opacity:.6"></div>
+          <div class="mc-field" style="grid-column:1/-1"><label class="mc-label">Valor Final</label><input type="text" id="mc-vfin1" class="mc-input" placeholder="R$ 0,00" oninput="mcMascara(this)"></div>
+        </div>
+        <div id="mcpanel-2" style="display:none;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="mc-field"><label class="mc-label">Recomposição?</label><select id="mc-recomp2" class="mc-input"><option value="">—</option><option>SIM</option><option>NÃO</option></select></div>
+          <div class="mc-field"><label class="mc-label">Tipo</label><input type="text" id="mc-trecomp2" class="mc-input"></div>
+          <div class="mc-field"><label class="mc-label">Status Recomp.</label><select id="mc-strecomp2" class="mc-input"><option value="">—</option><option>Em Análise</option><option>Em Tramitação</option><option>Concluído</option></select></div>
+          <div class="mc-field"><label class="mc-label">Nova Data Venc.</label><input type="date" id="mc-novadata2" class="mc-input" oninput="mcCalcVenc(2)"></div>
+          <div class="mc-field"><label class="mc-label">Vigência (meses)</label><input type="number" id="mc-vigr2" class="mc-input" min="1" oninput="mcCalcVenc(2)"></div>
+          <div class="mc-field"><label class="mc-label">Venc. Recomp. (auto)</label><input type="date" id="mc-vencr2" class="mc-input" readonly style="opacity:.6"></div>
+          <div class="mc-field" style="grid-column:1/-1"><label class="mc-label">Valor Final</label><input type="text" id="mc-vfin2" class="mc-input" placeholder="R$ 0,00" oninput="mcMascara(this)"></div>
+        </div>
+        <div id="mcpanel-3" style="display:none;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="mc-field"><label class="mc-label">Recomposição?</label><select id="mc-recomp3" class="mc-input"><option value="">—</option><option>SIM</option><option>NÃO</option></select></div>
+          <div class="mc-field"><label class="mc-label">Tipo</label><input type="text" id="mc-trecomp3" class="mc-input"></div>
+          <div class="mc-field"><label class="mc-label">Status Recomp.</label><select id="mc-strecomp3" class="mc-input"><option value="">—</option><option>Em Análise</option><option>Em Tramitação</option><option>Concluído</option></select></div>
+          <div class="mc-field"><label class="mc-label">Nova Data Venc.</label><input type="date" id="mc-novadata3" class="mc-input" oninput="mcCalcVenc(3)"></div>
+          <div class="mc-field"><label class="mc-label">Vigência (meses)</label><input type="number" id="mc-vigr3" class="mc-input" min="1" oninput="mcCalcVenc(3)"></div>
+          <div class="mc-field"><label class="mc-label">Venc. Recomp. (auto)</label><input type="date" id="mc-vencr3" class="mc-input" readonly style="opacity:.6"></div>
+          <div class="mc-field" style="grid-column:1/-1"><label class="mc-label">Valor Final</label><input type="text" id="mc-vfin3" class="mc-input" placeholder="R$ 0,00" oninput="mcMascara(this)"></div>
+        </div>
+        <div id="mcpanel-4" style="display:none;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="mc-field"><label class="mc-label">Recomposição?</label><select id="mc-recomp4" class="mc-input"><option value="">—</option><option>SIM</option><option>NÃO</option></select></div>
+          <div class="mc-field"><label class="mc-label">Tipo</label><input type="text" id="mc-trecomp4" class="mc-input"></div>
+          <div class="mc-field"><label class="mc-label">Status Recomp.</label><select id="mc-strecomp4" class="mc-input"><option value="">—</option><option>Em Análise</option><option>Em Tramitação</option><option>Concluído</option></select></div>
+          <div class="mc-field"><label class="mc-label">Nova Data Venc.</label><input type="date" id="mc-novadata4" class="mc-input" oninput="mcCalcVenc(4)"></div>
+          <div class="mc-field"><label class="mc-label">Vigência (meses)</label><input type="number" id="mc-vigr4" class="mc-input" min="1" oninput="mcCalcVenc(4)"></div>
+          <div class="mc-field"><label class="mc-label">Venc. Recomp. (auto)</label><input type="date" id="mc-vencr4" class="mc-input" readonly style="opacity:.6"></div>
+          <div class="mc-field" style="grid-column:1/-1"><label class="mc-label">Valor Final</label><input type="text" id="mc-vfin4" class="mc-input" placeholder="R$ 0,00" oninput="mcMascara(this)"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="padding:16px 24px;border-top:1px solid #1e1e28;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#0d0d12;border-radius:0 0 16px 16px">
+      <div id="mc-erro" style="font-size:12px;color:#f87171;display:none"></div>
+      <div style="display:flex;gap:10px;margin-left:auto">
+        <button onclick="fecharModalContrato()" style="background:var(--s2);border:1px solid var(--b1);color:var(--t2);padding:9px 18px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer">Cancelar</button>
+        <button id="mc-salvar-btn" onclick="mcSalvar()" style="background:linear-gradient(90deg,#f97316,#dc2626);color:#fff;border:none;padding:9px 22px;border-radius:8px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer">💾 Salvar Contrato</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL CONFIRMAR EXCLUSÃO COM SENHA ── -->
+<div id="modal-excluir" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:700;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#111118;border:1px solid rgba(239,68,68,.3);border-radius:16px;width:100%;max-width:420px;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,.9)">
+    <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#f87171;margin-bottom:6px">🗑 Confirmar Exclusão</div>
+    <div id="me-desc" style="font-size:13px;color:var(--t2);margin-bottom:20px;line-height:1.6"></div>
+    <div class="mc-field" style="margin-bottom:16px">
+      <label class="mc-label">Digite a senha de autorização para excluir</label>
+      <input type="password" id="me-senha" class="mc-input" placeholder="Senha de exclusão...">
+    </div>
+    <div id="me-erro" style="font-size:12px;color:#f87171;margin-bottom:12px;display:none"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button onclick="fecharModalExcluir()" style="background:var(--s2);border:1px solid var(--b1);color:var(--t2);padding:8px 16px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer">Cancelar</button>
+      <button onclick="confirmarExclusao()" style="background:rgba(239,68,68,.9);color:#fff;border:none;padding:8px 20px;border-radius:8px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer">Confirmar Exclusão</button>
+    </div>
+  </div>
+</div> -->
 <div id="modal-acessos" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;align-items:center;justify-content:center;padding:20px">
   <div style="background:#111118;border:1px solid #2a2a38;border-radius:20px;width:100%;max-width:620px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.8)">
     <!-- Header -->
@@ -560,6 +717,7 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
 
 
 
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-firestore-compat.js"></script>
 <script>
@@ -599,6 +757,8 @@ let empAtual = '';
 let isAdmin  = false;
 let dadosGanhas = [];
 let filtroAtual = 'todos';
+let _pgAtual = 1;
+const PS_PORTAL = 20; // registros por página
 const EMPRESAS_SISTEMA = ['VISE','SOS','SOS FILIAL','SAUTEC','ONLAV','ENGEMED'];
 
 // ─── LOGIN ───────────────────────────────────────────────────────
@@ -652,6 +812,215 @@ document.addEventListener('DOMContentLoaded', ()=>{
   if(inpSenha) inpSenha.addEventListener('keydown', e=>{ if(e.key==='Enter') fazerLogin(); });
   if(inpEmp)   inpEmp.addEventListener('keydown',   e=>{ if(e.key==='Enter' && inpSenha) inpSenha.focus(); });
 });
+
+// ── MODAL CONTRATO (GROWTH) ──────────────────────────────────────
+const SENHA_EXCLUSAO = 'growth@del2026'; // senha para excluir
+let _mcEditId = null; // null = novo, string = id do doc a editar
+let _mcExcluirId = null;
+
+function mcMascara(el){
+  var a=el.value.replace(/\D/g,'');
+  if(a){var t=parseInt(a,10)/100;el.value='R$ '+t.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+  else el.value='';
+}
+
+function mcCalcVenc(n){
+  var nd=document.getElementById('mc-novadata'+n);
+  var vg=document.getElementById('mc-vigr'+n);
+  var vc=document.getElementById('mc-vencr'+n);
+  if(!nd||!vg||!vc)return;
+  if(nd.value&&vg.value){
+    var d=new Date(nd.value);
+    d.setMonth(d.getMonth()+parseInt(vg.value)||0);
+    vc.value=d.getFullYear()+'-'+(String(d.getMonth()+1).padStart(2,'0'))+'-'+(String(d.getDate()).padStart(2,'0'));
+  } else vc.value='';
+}
+
+function mcShowRecomp(n){
+  for(var i=1;i<=4;i++){
+    var panel=document.getElementById('mcpanel-'+i);
+    var tab=document.getElementById('mctab-'+i);
+    if(panel) panel.style.display=i===n?'grid':'none';
+    if(tab){
+      if(i===n){tab.style.background='rgba(249,115,22,.15)';tab.style.color='var(--nh)';tab.style.borderColor='rgba(249,115,22,.3)';}
+      else{tab.style.background='var(--s2)';tab.style.color='var(--t2)';tab.style.borderColor='var(--b1)';}
+    }
+  }
+}
+
+function mcGv(id){var el=document.getElementById(id);return el?el.value.trim():'';}
+function mcSv(id,v){var el=document.getElementById(id);if(el){if(el.type==='date'&&v&&v.indexOf('/')!==-1){var p=v.split('/');if(p.length===3)el.value=p[2]+'-'+p[1]+'-'+p[0];else el.value=v;}else el.value=v||'';}}
+function mcGvDate(id){var v=mcGv(id);if(!v)return '';var p=v.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:v;}
+
+function abrirModalContrato(entry){
+  _mcEditId = null;
+  // Limpar todos os campos
+  ['mc-data','mc-empresa','mc-licit','mc-objeto','mc-local','mc-mun','mc-valor',
+   'mc-contrato','mc-status','mc-vig','mc-dtcont','mc-venc','mc-link','mc-obs'].forEach(id=>{
+    var el=document.getElementById(id);
+    if(el){if(el.tagName==='SELECT')el.selectedIndex=0;else el.value='';}
+  });
+  for(var i=1;i<=4;i++){
+    ['mc-recomp','mc-trecomp','mc-strecomp','mc-novadata','mc-vigr','mc-vencr','mc-vfin'].forEach(f=>{
+      var el=document.getElementById(f+i);
+      if(el){if(el.tagName==='SELECT')el.selectedIndex=0;else el.value='';}
+    });
+  }
+
+  if(entry){
+    // Editar existente
+    _mcEditId = entry.id;
+    document.getElementById('mc-titulo').textContent = 'Editar Contrato';
+    var arr=entry.arr;
+    mcSv('mc-data',arr[1]); mcSv('mc-empresa',arr[2]); mcSv('mc-licit',arr[3]);
+    mcSv('mc-objeto',arr[4]); mcSv('mc-local',arr[5]); mcSv('mc-mun',arr[6]);
+    mcSv('mc-valor',arr[7]); mcSv('mc-contrato',arr[8]); mcSv('mc-status',arr[9]);
+    mcSv('mc-vig',arr[10]); mcSv('mc-dtcont',arr[11]); mcSv('mc-venc',arr[12]);
+    mcSv('mc-link',arr[42]||arr[21]||''); mcSv('mc-obs',arr[41]||'');
+    // Recomposições
+    var rIdxs=[[13,14,15,16,17,18,19],[20,21,22,23,24,25,26],[27,28,29,30,31,32,33],[34,35,36,37,38,39,40]];
+    for(var n=1;n<=4;n++){
+      var idx=rIdxs[n-1];
+      mcSv('mc-recomp'+n,arr[idx[0]]); mcSv('mc-trecomp'+n,arr[idx[1]]);
+      mcSv('mc-strecomp'+n,arr[idx[2]]); mcSv('mc-novadata'+n,arr[idx[3]]);
+      mcSv('mc-vigr'+n,arr[idx[4]]); mcSv('mc-vencr'+n,arr[idx[5]]);
+      mcSv('mc-vfin'+n,arr[idx[6]]);
+    }
+  } else {
+    document.getElementById('mc-titulo').textContent = 'Novo Contrato';
+    var hoje=new Date();
+    document.getElementById('mc-data').value=hoje.toISOString().split('T')[0];
+  }
+
+  document.getElementById('mc-erro').style.display='none';
+  mcShowRecomp(1);
+  var modal=document.getElementById('modal-contrato');
+  modal.style.display='flex';
+  // Fechar clicando fora
+  modal.onclick=function(e){if(e.target===modal)fecharModalContrato();};
+}
+
+function fecharModalContrato(){
+  document.getElementById('modal-contrato').style.display='none';
+}
+
+async function mcSalvar(){
+  var btn=document.getElementById('mc-salvar-btn');
+  var erroEl=document.getElementById('mc-erro');
+  erroEl.style.display='none';
+
+  var data=mcGvDate('mc-data');
+  var emp=mcGv('mc-empresa');
+  var licit=mcGv('mc-licit');
+  if(!data||!emp||!licit){
+    erroEl.textContent='Preencha os campos obrigatórios: Data, Empresa e Licitação.';
+    erroEl.style.display='block'; return;
+  }
+
+  btn.disabled=true; btn.textContent='Salvando...';
+
+  // Montar array de 43 posições igual ao sistema
+  var arr=[];
+  for(var i=0;i<43;i++) arr.push('');
+
+  arr[1]=data; arr[2]=emp; arr[3]=licit;
+  arr[4]=mcGv('mc-objeto'); arr[5]=mcGv('mc-local'); arr[6]=mcGv('mc-mun');
+  arr[7]=mcGv('mc-valor'); arr[8]=mcGv('mc-contrato'); arr[9]=mcGv('mc-status');
+  arr[10]=mcGv('mc-vig'); arr[11]=mcGvDate('mc-dtcont'); arr[12]=mcGvDate('mc-venc');
+  arr[41]=mcGv('mc-obs'); arr[42]=mcGv('mc-link');
+
+  var rIdxs=[[13,14,15,16,17,18,19],[20,21,22,23,24,25,26],[27,28,29,30,31,32,33],[34,35,36,37,38,39,40]];
+  for(var n=1;n<=4;n++){
+    var idx=rIdxs[n-1];
+    arr[idx[0]]=mcGv('mc-recomp'+n); arr[idx[1]]=mcGv('mc-trecomp'+n);
+    arr[idx[2]]=mcGv('mc-strecomp'+n); arr[idx[3]]=mcGvDate('mc-novadata'+n);
+    arr[idx[4]]=mcGv('mc-vigr'+n); arr[idx[5]]=mcGvDate('mc-vencr'+n);
+    arr[idx[6]]=mcGv('mc-vfin'+n);
+  }
+
+  try{
+    if(_mcEditId){
+      // Atualizar existente
+      arr[0] = dadosGanhas.find(e=>e.id===_mcEditId)?.arr[0] || _mcEditId;
+      var logEntry = 'GROWTH editou em '+new Date().toLocaleString('pt-BR');
+      await db.collection('ganhas').doc(_mcEditId).update({
+        _arr: arr, _updatedAt: Date.now(),
+        _portalUltimaEdicao: logEntry,
+        _portalLog: firebase.firestore.FieldValue.arrayUnion(logEntry)
+      });
+    } else {
+      // Novo contrato — gerar próximo ID
+      var snap = await db.collection('ganhas').orderBy('_id','desc').limit(1).get();
+      var nextId = snap.empty ? 1 : (snap.docs[0].data()._id||0)+1;
+      arr[0] = nextId;
+      var logEntryN = 'GROWTH criou em '+new Date().toLocaleString('pt-BR');
+      await db.collection('ganhas').doc(String(nextId)).set({
+        _id: nextId, _arr: arr, _updatedAt: Date.now(), _createdAt: Date.now(),
+        _portalUltimaEdicao: logEntryN,
+        _portalLog: [logEntryN]
+      });
+    }
+    fecharModalContrato();
+    await carregarContratos();
+    portalToast(_mcEditId ? '✅ Contrato atualizado!' : '✅ Contrato criado com sucesso!', 'ok');
+  } catch(e){
+    erroEl.textContent='Erro ao salvar: '+e.message;
+    erroEl.style.display='block';
+  }
+  btn.disabled=false; btn.textContent='💾 Salvar Contrato';
+}
+
+// ── EXCLUSÃO COM SENHA ───────────────────────────────────────────
+function abrirModalExcluir(id, titulo){
+  if(!isAdmin){ portalToast('Apenas o GROWTH pode excluir.','err'); return; }
+  _mcExcluirId = id;
+  document.getElementById('me-desc').textContent =
+    'Você está prestes a excluir permanentemente o contrato:\n"'+(titulo||id)+'"';
+  document.getElementById('me-senha').value='';
+  document.getElementById('me-erro').style.display='none';
+  var modal=document.getElementById('modal-excluir');
+  modal.style.display='flex';
+  modal.onclick=function(e){if(e.target===modal)fecharModalExcluir();};
+  setTimeout(()=>document.getElementById('me-senha').focus(),100);
+}
+
+function fecharModalExcluir(){
+  document.getElementById('modal-excluir').style.display='none';
+  _mcExcluirId=null;
+}
+
+async function confirmarExclusao(){
+  var senha=document.getElementById('me-senha').value;
+  var erroEl=document.getElementById('me-erro');
+  if(senha!==SENHA_EXCLUSAO){
+    erroEl.textContent='Senha incorreta. Verifique e tente novamente.';
+    erroEl.style.display='block'; return;
+  }
+  erroEl.style.display='none';
+  try{
+    await db.collection('ganhas').doc(_mcExcluirId).delete();
+    dadosGanhas = dadosGanhas.filter(e=>e.id!==_mcExcluirId);
+    renderContratos(); renderStats(); gerarDashboard();
+    fecharModalExcluir();
+    portalToast('🗑 Contrato excluído.','ok');
+  } catch(e){
+    erroEl.textContent='Erro ao excluir: '+e.message;
+    erroEl.style.display='block';
+  }
+}
+
+function portalToast(msg, tipo){
+  var el=document.createElement('div');
+  el.style.cssText='position:fixed;bottom:24px;right:24px;z-index:9999;background:'+(tipo==='ok'?'rgba(34,197,94,.9)':'rgba(239,68,68,.9)')+';color:#fff;padding:12px 20px;border-radius:10px;font-family:DM Sans,sans-serif;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.4)';
+  el.textContent=msg;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 3500);
+}
+
+function abrirModalContratoById(id){
+  var entry = dadosGanhas.find(e=>e.id===id);
+  if(entry) abrirModalContrato(entry);
+}
 
 function fazerLogout(){
   sessionStorage.removeItem('nh_portal_emp');
@@ -1027,6 +1396,15 @@ async function carregarContratos(){
     // Atualizar título da seção
     const st = document.getElementById('section-title-contratos');
     if(st) st.textContent = isAdmin ? 'Gerenciamento de Contratos — Visão Geral' : 'Gerenciamento de Contratos';
+    // Botões extras GROWTH
+    if(isAdmin){
+      const btnExp = document.getElementById('btn-expandir-tudo');
+      const btnXls = document.getElementById('btn-exportar-excel');
+      const btnNovo = document.getElementById('btn-novo-contrato');
+      if(btnExp) btnExp.style.display = '';
+      if(btnXls) btnXls.style.display = '';
+      if(btnNovo) btnNovo.style.display = '';
+    }
     // Filtros por empresa para GROWTH
     if(isAdmin){
       const fe = document.getElementById('filtros-empresa-area');
@@ -1195,11 +1573,11 @@ function renderContratos(){
     lista = lista.filter(({arr})=>String(arr[2]||'').trim().toUpperCase()===filtroEmpresa);
   }
 
-  // Busca
+  // Busca — todos os campos (igual ao sistema)
   const busca = (document.getElementById('inp-busca')?.value||'').toLowerCase().trim();
   if(busca){
     lista = lista.filter(({arr})=>{
-      return [arr[3],arr[4],arr[5],arr[6],arr[8]].some(v=>String(v||'').toLowerCase().includes(busca));
+      return arr.some(v=>String(v||'').toLowerCase().includes(busca));
     });
   }
 
@@ -1233,7 +1611,24 @@ function renderContratos(){
   const contEl = document.getElementById('contratos-contagem');
   if(contEl) contEl.textContent = lista.length + ' contrato' + (lista.length !== 1 ? 's' : '');
 
-  document.getElementById('contratos-area').innerHTML = lista.map((entry) => {
+  // Total filtrado (igual ao sistema)
+  const totalFiltrado = lista.reduce((s,{arr})=>s+calcValorGanhas(arr),0);
+  const totalBar = document.getElementById('portal-total-bar');
+  const totalVal = document.getElementById('portal-total-val');
+  const todosTotal = dadosGanhas.length;
+  if(totalBar && totalVal){
+    const mostrar = lista.length < todosTotal;
+    totalBar.style.display = mostrar ? 'block' : 'none';
+    if(mostrar) totalVal.textContent = new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(totalFiltrado);
+  }
+
+  // Paginação
+  const totalPags = Math.ceil(lista.length / PS_PORTAL);
+  if(_pgAtual > totalPags) _pgAtual = 1;
+  const inicio = (_pgAtual-1)*PS_PORTAL;
+  const listaPag = lista.slice(inicio, inicio+PS_PORTAL);
+
+  document.getElementById('contratos-area').innerHTML = listaPag.map((entry) => {
     const {id,arr} = entry;
     const status = String(arr[9]||'').trim() || 'EM EXECUÇÃO';
     const statusUp = status.toUpperCase();
@@ -1272,6 +1667,10 @@ function renderContratos(){
           <button onclick="event.stopPropagation();imprimirContrato('${id}')" title="Imprimir PDF" style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2);color:var(--nh);width:30px;height:30px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;transition:all .15s" onmouseover="this.style.background='rgba(249,115,22,.25)'" onmouseout="this.style.background='rgba(249,115,22,.1)'">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></svg>
           </button>
+          ${isAdmin ? `
+          <button onclick="event.stopPropagation();abrirModalContratoById('${id}')" title="Editar contrato completo" style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);color:#60a5fa;width:30px;height:30px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px" onmouseover="this.style.background='rgba(59,130,246,.2)'" onmouseout="this.style.background='rgba(59,130,246,.1)'">✏</button>
+          <button onclick="event.stopPropagation();abrirModalExcluir('${id}','${String(arr[3]||'').replace(/'/g,'').replace(/"/g,'').substring(0,40)}')" title="Excluir contrato" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#f87171;width:30px;height:30px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px" onmouseover="this.style.background='rgba(239,68,68,.18)'" onmouseout="this.style.background='rgba(239,68,68,.08)'">🗑</button>
+          ` : ''}
           <span style="color:var(--t3);font-size:18px;transition:transform .2s" id="arrow-${id}">›</span>
         </div>
       </div>
@@ -1280,6 +1679,22 @@ function renderContratos(){
       </div>
     </div>`;
   }).join('');
+
+  // Renderizar paginação
+  const pagEl = document.getElementById('pag-contratos');
+  if(pagEl){
+    if(totalPags <= 1){ pagEl.innerHTML = ''; }
+    else {
+      var pgHtml = '';
+      function pbS(on){ return 'style="background:'+(on?'var(--nh)':'var(--s2)')+';border:1px solid '+(on?'var(--nh)':'var(--b1)')+';color:'+(on?'#000':'var(--t2)')+';padding:6px 12px;border-radius:7px;cursor:pointer;font-size:13px;font-weight:700;min-width:36px"'; }
+      if(_pgAtual>1) pgHtml += '<button '+pbS(false)+' onclick="irPagina('+(_pgAtual-1)+')">&#8249;</button>';
+      for(var pp=Math.max(1,_pgAtual-2);pp<=Math.min(totalPags,_pgAtual+2);pp++){
+        pgHtml += '<button '+pbS(pp===_pgAtual)+' onclick="irPagina('+pp+')">'+pp+'</button>';
+      }
+      if(_pgAtual<totalPags) pgHtml += '<button '+pbS(false)+' onclick="irPagina('+(_pgAtual+1)+')">&#8250;</button>';
+      pagEl.innerHTML = pgHtml;
+    }
+  }
 }
 
 function renderBody(id, arr, entry){
@@ -1481,12 +1896,56 @@ function gerarHTMLImpressao(entries){
   return html;
 }
 
-function imprimirContrato(id){
-  const entry = dadosGanhas.find(e=>e.id===id);
-  if(!entry) return;
-  const w = window.open('','_blank','width=900,height=700');
-  w.document.write(gerarHTMLImpressao([entry]));
-  w.document.close();
+function irPagina(p){
+  _pgAtual = p;
+  renderContratos();
+  document.getElementById('contratos-area')?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ─── EXPANDIR / RECOLHER TUDO ────────────────────────────────────
+let _todoExpandido = false;
+function toggleExpandirTudo(){
+  _todoExpandido = !_todoExpandido;
+  document.querySelectorAll('.ccard').forEach(el=>{
+    if(_todoExpandido) el.classList.remove('collapsed');
+    else el.classList.add('collapsed');
+  });
+  const btn = document.getElementById('btn-expandir-tudo');
+  if(btn) btn.textContent = _todoExpandido ? '⊟ Recolher tudo' : '⊞ Expandir tudo';
+}
+
+// ─── EXPORTAR EXCEL ──────────────────────────────────────────────
+function exportarExcelPortal(){
+  if(typeof XLSX === 'undefined'){ alert('SheetJS não carregado. Recarregue a página.'); return; }
+  const lista = dadosGanhas;
+  if(!lista.length){ alert('Nenhum dado para exportar.'); return; }
+
+  const fmtVal = v => { const n=calcValorGanhas(typeof v==='object'?v:[]); return n>0?n:parseMoedaV(v); };
+  const s = v => String(v||'').trim();
+
+  const cols = ['#','Data','Empresa','Licitação','Objeto','Local','Município','Valor','Contrato',
+    'Status Contrato','Vigência (m)','Dt Assinatura','Vencimento','Recomposição',
+    'Tipo Recomp.','Status Recomp.','Nova Data Venc.','Vig. Recomp.','Venc. Recomp.','Valor Final',
+    'Observações','Link Pasta'];
+
+  const rows = [cols];
+  lista.forEach(({arr})=>{
+    rows.push([
+      s(arr[0]),s(arr[1]),s(arr[2]),s(arr[3]),s(arr[4]),s(arr[5]),s(arr[6]),
+      parseMoedaV(arr[7])||s(arr[7]),
+      s(arr[8]),s(arr[9]),s(arr[10]),s(arr[11]),s(arr[12]),s(arr[13]),
+      s(arr[14]),s(arr[15]),s(arr[16]),s(arr[17]),s(arr[18]),
+      parseMoedaV(arr[19])||s(arr[19]),
+      s(arr[41]),s(arr[42])
+    ]);
+  });
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = cols.map((_,i)=>({wch:Math.min(50,Math.max(10,rows.reduce((mx,r)=>Math.max(mx,String(r[i]||'').length),0)))}));
+  XLSX.utils.book_append_sheet(wb, ws, 'Contratos');
+  const data = new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
+  XLSX.writeFile(wb, `NH_Contratos_${empAtual||'GROWTH'}_${data}.xlsx`);
 }
 
 function imprimirTodos(){
