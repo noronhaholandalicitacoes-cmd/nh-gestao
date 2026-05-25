@@ -267,8 +267,8 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
 .aditivo-titulo{font-weight:700;color:var(--t2);margin-bottom:6px;font-size:11px;text-transform:uppercase;letter-spacing:.06em}
 .aditivo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
 .aditivo-field{display:flex;flex-direction:column;gap:2px}
-.aditivo-field-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em}
-.aditivo-field-val{font-size:12px;color:var(--t1)}
+.aditivo-field-lbl{font-size:10px;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.aditivo-field-val{font-size:13px;color:var(--t1);font-weight:500}
 
 /* Link pasta */
 .link-pasta{
@@ -454,7 +454,7 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
         </svg>
         <div>
           <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:#f0f0f8;line-height:1.1">NH <span style="color:#f97316">Licitações</span></div>
-          <div style="font-size:9px;color:#4a4a6a;font-weight:500;letter-spacing:.05em;text-transform:uppercase">Gerenciamento de Contratos</div>
+          <div style="font-size:10px;color:#6b7280;font-weight:600;letter-spacing:.04em">Gerenciamento de Contratos</div>
         </div>
       </div>
     </div>
@@ -508,7 +508,7 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
     <!-- Título + contagem -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
       <div class="section-title" id="section-title-contratos" style="margin-bottom:0">Gerenciamento de Contratos</div>
-      <span id="contratos-contagem" style="font-size:12px;color:var(--t2)"></span>
+      <span id="contratos-contagem" style="font-size:12px;font-weight:600;color:var(--t2)"></span>
     </div>
 
     <!-- Lista de contratos -->
@@ -679,11 +679,20 @@ async function iniciarPortal(){
 }
 
 // ─── DASHBOARD ───────────────────────────────────────────────────
-function parseMoedaV(s){return parseFloat(String(s||'').replace(/[^\d,]/g,'').replace(',','.'))||0;}
+// Aceita "R$ 1.234.567,89" (formato BR), "1234567.89" e números
+function parseMoedaV(s){
+  if(typeof s === 'number') return isNaN(s) ? 0 : s;
+  var a = String(s||'').replace(/R\$\s*/g,'').replace(/\s/g,'').trim();
+  if(!a) return 0;
+  if(a.indexOf(',') !== -1) a = a.replace(/\./g,'').replace(',','.');
+  else a = a.replace(/[^\d.]/g,'');
+  var v = parseFloat(a);
+  return isNaN(v)||v<0 ? 0 : v;
+}
 
-// Igual ao sistema NH: usa valor do último aditivo (arr[40/33/26/19]) ou original (arr[7])
+// Igual ao sistema NH: usa valor do último aditivo preenchido ou original
 function calcValorGanhas(arr){
-  const v = parseMoedaV(arr[40])||parseMoedaV(arr[33])||parseMoedaV(arr[26])||parseMoedaV(arr[19]);
+  var v = parseMoedaV(arr[40])||parseMoedaV(arr[33])||parseMoedaV(arr[26])||parseMoedaV(arr[19]);
   return v > 0 ? v : parseMoedaV(arr[7]);
 }
 
@@ -751,7 +760,7 @@ function gerarDashboard(){
 
     const vals=meses.map(m=>m.v);
     const maxV=Math.max(...vals,1);
-    const W=500, H=90;
+    const W=400, H=68;
     const xStep = W/(vals.length-1);
     const pts=vals.map((v,i)=>`${i*xStep},${H-(v/maxV)*(H-12)}`).join(' ');
     const ptsFill=`0,${H} ${pts} ${W},${H}`;
