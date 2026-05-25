@@ -706,7 +706,7 @@ function gerarDashboard(){
 
   const porEmp = {};
   empresasParaMostrar.forEach(e => {
-    porEmp[e] = {contratos:[], portfolio:0, ativo:0, ganhou:0, recomp:0, vencer30:0, vencer90:0, finalizados:0, vencidos:0};
+    porEmp[e] = {contratos:[], portfolio:0, ativo:0, ganhou:0, recomp:0, vencer30:0, vencer90:0, finalizados:0, vencidos:0, aguard:0};
   });
 
   dadosGanhas.forEach(({arr}) => {
@@ -719,6 +719,7 @@ function gerarDashboard(){
     const finalizado = status==='FINALIZADO'||status==='RESCINDIDO';
     const exec = status==='EM EXECUÇÃO'||status==='EM EXECUCAO';
     if(finalizado) porEmp[emp].finalizados++;
+    else if(status==='AGUARDANDO CONTRATO') porEmp[emp].aguard++;
     porEmp[emp].ganhou++;
     if(String(arr[13]||'').toUpperCase().trim()==='SIM') porEmp[emp].recomp++;
 
@@ -738,7 +739,7 @@ function gerarDashboard(){
   });
 
   const cards = empresasParaMostrar.map(emp => {
-    const d = porEmp[emp] || {contratos:[],portfolio:0,ativo:0,ganhou:0,recomp:0,vencer30:0,vencer90:0,finalizados:0,vencidos:0};
+    const d = porEmp[emp] || {contratos:[],portfolio:0,ativo:0,ganhou:0,recomp:0,vencer30:0,vencer90:0,finalizados:0,vencidos:0,aguard:0};
     const cor = CORES[emp] || '#6b7280';
     const initials = emp.split(' ').map(w=>w[0]).join('').slice(0,2);
     const ativos = d.ganhou - d.finalizados - d.vencidos;
@@ -856,30 +857,134 @@ function gerarDashboard(){
         '</div>' +
       '</div>' +
 
-      '<div style="background:#060610;border:1px solid #12121e;border-radius:10px;padding:12px 16px 10px">' +
-        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">' +
-          '<div style="font-size:9px;color:#4a4a6a;text-transform:uppercase;letter-spacing:.12em;font-weight:700">Contratos Ganhos — 12 Meses</div>' +
-          '<div style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:2px;background:'+cor+';display:inline-block;border-radius:2px"></span><span style="font-size:8px;color:#3a3a5a;font-weight:600">Ganhos</span></div>' +
-        '</div>' +
-        '<svg viewBox="0 0 '+VW+' '+VH+'" width="100%" height="130" style="display:block">' +
-          '<defs>' +
-            '<linearGradient id="gr_'+safeEmp+'" x1="0" y1="0" x2="0" y2="1">' +
-              '<stop offset="0%" stop-color="'+cor+'" stop-opacity="0.35"/>' +
-              '<stop offset="60%" stop-color="'+cor+'" stop-opacity="0.08"/>' +
-              '<stop offset="100%" stop-color="'+cor+'" stop-opacity="0"/>' +
-            '</linearGradient>' +
-            '<filter id="glow_'+safeEmp+'" x="-20%" y="-50%" width="140%" height="200%">' +
-              '<feGaussianBlur stdDeviation="2" result="blur"/>' +
-              '<feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>' +
-            '</filter>' +
-          '</defs>' +
-          gridLines +
-          xTicks +
-          '<polygon points="'+ptsFill+'" fill="url(#gr_'+safeEmp+')"/>' +
-          '<polyline points="'+ptsLine+'" fill="none" stroke="'+cor+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow_'+safeEmp+')"/>' +
-          pontos +
-          xLabels +
-        '</svg>' +
+      // ── 3 GRÁFICOS LADO A LADO ─────────────────────────────────
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">' +
+
+      // GRÁFICO 1 — Linha: Contratos Ganhos 12 meses
+      (function(){
+        var GW=320,GH=80,PL=6,PR=6,PT=18,PB=22;
+        var VW2=GW+PL+PR, VH2=GH+PT+PB;
+        var xS=GW/(vals.length-1);
+        var pa=vals.map(function(v,i){
+          return {cx:(PL+i*xS).toFixed(1), cy:(PT+GH-(v/maxV)*(GH-6)).toFixed(1), v:v};
+        });
+        var line=pa.map(function(p){return p.cx+','+p.cy;}).join(' ');
+        var fill=PL+','+(PT+GH)+' '+line+' '+(PL+GW)+','+(PT+GH);
+        var gls=[0.33,0.66,1].map(function(f){
+          var y=(PT+GH-f*(GH-6)).toFixed(1);
+          return '<line x1="'+PL+'" y1="'+y+'" x2="'+(PL+GW)+'" y2="'+y+'" stroke="rgba(255,255,255,.04)" stroke-width="1"/>';
+        }).join('');
+        var pts2=pa.map(function(p){
+          if(p.v===0)return '';
+          return '<circle cx="'+p.cx+'" cy="'+p.cy+'" r="3" fill="#08080f" stroke="'+cor+'" stroke-width="1.8"/>'+
+            '<text x="'+p.cx+'" y="'+(parseFloat(p.cy)-7)+'" text-anchor="middle" fill="'+cor+'" font-size="8.5" font-weight="800">'+p.v+'</text>';
+        }).join('');
+        var xlbls=[0,3,6,9,11].map(function(i){
+          return '<text x="'+(PL+i*xS).toFixed(1)+'" y="'+(PT+GH+15)+'" text-anchor="middle" fill="#4a4a6a" font-size="7.5">'+meses[i].label+'</text>';
+        }).join('');
+        return '<div style="background:#060610;border:1px solid #12121e;border-radius:10px;padding:10px 12px 8px">'+
+          '<div style="font-size:8px;color:#4a4a6a;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:6px">📈 Contratos Ganhos / Mês</div>'+
+          '<svg viewBox="0 0 '+VW2+' '+VH2+'" width="100%" height="110" style="display:block">'+
+            '<defs>'+
+              '<linearGradient id="g1_'+safeEmp+'" x1="0" y1="0" x2="0" y2="1">'+
+                '<stop offset="0%" stop-color="'+cor+'" stop-opacity="0.3"/>'+
+                '<stop offset="100%" stop-color="'+cor+'" stop-opacity="0"/>'+
+              '</linearGradient>'+
+              '<filter id="gw1_'+safeEmp+'"><feGaussianBlur stdDeviation="1.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'+
+            '</defs>'+
+            gls+
+            '<polygon points="'+fill+'" fill="url(#g1_'+safeEmp+')"/>'+
+            '<polyline points="'+line+'" fill="none" stroke="'+cor+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#gw1_'+safeEmp+')"/>'+
+            pts2+xlbls+
+          '</svg>'+
+        '</div>';
+      })() +
+
+      // GRÁFICO 2 — Barras: Status dos contratos
+      (function(){
+        var statusData=[
+          {lbl:'Em Exec.', v:ativos,       cor:'#22c55e'},
+          {lbl:'A Vencer', v:d.vencer30+d.vencer90, cor:'#eab308'},
+          {lbl:'Vencidos', v:d.vencidos,   cor:'#ef4444'},
+          {lbl:'Aguard.',  v:d.aguard,     cor:'#3b82f6'},
+          {lbl:'Finalizados', v:d.finalizados, cor:'#6b7280'},
+          {lbl:'Recomp.',  v:d.recomp,     cor:'#f97316'},
+        ];
+        var BW=280, BH=80, PAD=18, BPAD=22;
+        var VBW=BW+PAD*2, VBH=BH+BPAD+16;
+        var maxBar=Math.max.apply(null,statusData.map(function(s){return s.v;}));
+        maxBar=Math.max(maxBar,1);
+        var barW=(BW/statusData.length)*0.55;
+        var barGap=(BW/statusData.length);
+        var bars=statusData.map(function(s,i){
+          var bh=Math.max((s.v/maxBar)*(BH-4),s.v>0?4:0);
+          var bx=PAD+i*barGap+(barGap-barW)/2;
+          var by=BPAD+BH-bh;
+          return '<rect x="'+bx.toFixed(1)+'" y="'+by.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="3" fill="'+s.cor+'" opacity="0.85"/>'+
+            (s.v>0?'<text x="'+(bx+barW/2).toFixed(1)+'" y="'+(by-5).toFixed(1)+'" text-anchor="middle" fill="'+s.cor+'" font-size="9" font-weight="800">'+s.v+'</text>':'')+
+            '<text x="'+(bx+barW/2).toFixed(1)+'" y="'+(BPAD+BH+13)+'" text-anchor="middle" fill="#4a4a6a" font-size="7">'+s.lbl+'</text>';
+        }).join('');
+        var bGls=[0.33,0.66,1].map(function(f){
+          var y=(BPAD+BH-f*(BH-4)).toFixed(1);
+          return '<line x1="'+PAD+'" y1="'+y+'" x2="'+(PAD+BW)+'" y2="'+y+'" stroke="rgba(255,255,255,.04)" stroke-width="1"/>';
+        }).join('');
+        return '<div style="background:#060610;border:1px solid #12121e;border-radius:10px;padding:10px 12px 8px">'+
+          '<div style="font-size:8px;color:#4a4a6a;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:6px">📊 Status dos Contratos</div>'+
+          '<svg viewBox="0 0 '+VBW+' '+VBH+'" width="100%" height="110" style="display:block">'+
+            bGls+bars+
+          '</svg>'+
+        '</div>';
+      })() +
+
+      // GRÁFICO 3 — Rosca: Portfólio vs Ativo vs Finalizados
+      (function(){
+        var cx=70, cy=55, R=42, r=26;
+        var total3=d.portfolio>0?d.portfolio:1;
+        var segs=[
+          {v:d.ativo,    cor:cor,       lbl:'Ativo'},
+          {v:d.portfolio-d.ativo, cor:cor+'55', lbl:'Inativo'},
+        ];
+        // Calcular arcos
+        function polar(ang,rad){
+          return [(cx+rad*Math.cos(ang)).toFixed(2),(cy+rad*Math.sin(ang)).toFixed(2)];
+        }
+        var startAng=-Math.PI/2;
+        var paths=segs.map(function(s){
+          var slice=(s.v/total3)*Math.PI*2;
+          if(slice<0.001)return '';
+          var endAng=startAng+slice;
+          var large=slice>Math.PI?1:0;
+          var o1=polar(startAng,R), i1=polar(startAng,r);
+          var o2=polar(endAng,R),   i2=polar(endAng,r);
+          var d2='M '+o1[0]+' '+o1[1]+' A '+R+' '+R+' 0 '+large+' 1 '+o2[0]+' '+o2[1]+
+            ' L '+i2[0]+' '+i2[1]+' A '+r+' '+r+' 0 '+large+' 0 '+i1[0]+' '+i1[1]+' Z';
+          startAng=endAng;
+          return '<path d="'+d2+'" fill="'+s.cor+'" opacity="0.9"/>';
+        }).join('');
+        var pct=d.portfolio>0?Math.round(d.ativo/d.portfolio*100):0;
+        var SVW=280, SVH=120;
+        var legendas=[
+          {cor:cor,         lbl:'Ativo',    val:fmtM(d.ativo)},
+          {cor:cor+'55',    lbl:'Inativo',  val:fmtM(d.portfolio-d.ativo)},
+          {cor:'#f97316',   lbl:'Recomp.',  val:d.recomp+' contrato'+(d.recomp!==1?'s':'')},
+        ];
+        var legHTML=legendas.map(function(l,i){
+          return '<rect x="145" y="'+(20+i*24)+'" width="8" height="8" rx="2" fill="'+l.cor+'"/>'+
+            '<text x="158" y="'+(28+i*24)+'" fill="#8888a0" font-size="8.5">'+l.lbl+'</text>'+
+            '<text x="270" y="'+(28+i*24)+'" text-anchor="end" fill="#c0c0d8" font-size="8.5" font-weight="700">'+l.val+'</text>';
+        }).join('');
+        return '<div style="background:#060610;border:1px solid #12121e;border-radius:10px;padding:10px 12px 8px">'+
+          '<div style="font-size:8px;color:#4a4a6a;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:6px">🍩 Portfólio — Composição</div>'+
+          '<svg viewBox="0 0 '+SVW+' '+SVH+'" width="100%" height="110" style="display:block">'+
+            '<circle cx="'+cx+'" cy="'+cy+'" r="'+R+'" fill="rgba(255,255,255,.03)" stroke="rgba(255,255,255,.06)" stroke-width="1"/>'+
+            paths+
+            '<text x="'+cx+'" y="'+(cy-6)+'" text-anchor="middle" fill="#f0f0f8" font-size="14" font-weight="800">'+pct+'%</text>'+
+            '<text x="'+cx+'" y="'+(cy+8)+'" text-anchor="middle" fill="#4a4a6a" font-size="7.5">ativo</text>'+
+            legHTML+
+          '</svg>'+
+        '</div>';
+      })() +
+
       '</div>' +
 
     '</div>';
