@@ -373,6 +373,7 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
 <!-- Loading -->
 <div id="loading">
   <div class="loading-logo">NH</div>
+  <div style="width:28px;height:28px;border:2px solid rgba(249,115,22,.2);border-top-color:#f97316;border-radius:50%;animation:spin .7s linear infinite"></div>
   <div class="loading-sub">Carregando portal...</div>
 </div>
 
@@ -631,11 +632,11 @@ async function fazerLogin(){
   iniciarPortal();
 }
 
-document.getElementById('inp-senha').addEventListener('keydown', e => {
-  if(e.key === 'Enter') fazerLogin();
-});
-document.getElementById('inp-empresa').addEventListener('keydown', e => {
-  if(e.key === 'Enter') document.getElementById('inp-senha').focus();
+document.addEventListener('DOMContentLoaded', ()=>{
+  const inpSenha = document.getElementById('inp-senha');
+  const inpEmp   = document.getElementById('inp-empresa');
+  if(inpSenha) inpSenha.addEventListener('keydown', e=>{ if(e.key==='Enter') fazerLogin(); });
+  if(inpEmp)   inpEmp.addEventListener('keydown',   e=>{ if(e.key==='Enter' && inpSenha) inpSenha.focus(); });
 });
 
 function fazerLogout(){
@@ -1614,22 +1615,35 @@ document.addEventListener('click', e => {
 
 // ─── INIT ────────────────────────────────────────────────────────
 window.addEventListener('load', async ()=>{
+  // Aguardar Firebase estar pronto (até 5s)
+  let tentativas = 0;
+  while(typeof firebase === 'undefined' || !firebase.apps){
+    await new Promise(r=>setTimeout(r,100));
+    if(++tentativas > 50) break;
+  }
+
   document.getElementById('loading').style.display = 'none';
 
   // Verificar sessão
   const empSessao = sessionStorage.getItem('nh_portal_emp');
-  if(empSessao && SENHAS[empSessao]){
-    empAtual = empSessao;
-    isAdmin  = (empSessao === 'GROWTH');
-    document.getElementById('login-screen').style.display = 'none';
-    if(isAdmin){
-      await carregarAcessosFirestore();
-      document.getElementById('btn-gestao-acessos').style.display = '';
+  if(empSessao){
+    // Carregar senhas do Firestore antes de validar sessão
+    try{
+      const doc = await db.collection('config').doc('portal_acessos').get();
+      if(doc.exists && doc.data().senhas) Object.assign(SENHAS, doc.data().senhas);
+    }catch(e){}
+
+    if(SENHAS[empSessao]){
+      empAtual = empSessao;
+      isAdmin  = (empSessao === 'GROWTH');
+      document.getElementById('login-screen').style.display = 'none';
+      if(isAdmin) document.getElementById('btn-gestao-acessos').style.display = '';
+      iniciarPortal();
+      return;
     }
-    iniciarPortal();
-  } else {
-    document.getElementById('login-screen').style.display = 'flex';
   }
+
+  document.getElementById('login-screen').style.display = 'flex';
 });
 </script>
 </body>
