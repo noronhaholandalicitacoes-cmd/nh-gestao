@@ -760,28 +760,30 @@ function gerarDashboard(){
 
     const vals=meses.map(m=>m.v);
     const maxV=Math.max(...vals,1);
-    const W=400, H=68;
+    const W=300, H=56;
     const xStep = W/(vals.length-1);
-    const pts=vals.map((v,i)=>`${i*xStep},${H-(v/maxV)*(H-12)}`).join(' ');
-    const ptsFill=`0,${H} ${pts} ${W},${H}`;
+    const pts=vals.map((v,i)=>((i*xStep).toFixed(1))+','+(H-(v/maxV)*(H-10)).toFixed(1)).join(' ');
+    const ptsFill='0,'+H+' '+pts+' '+W+','+H;
     const safeEmp=emp.replace(/ /g,'_');
 
     // Grid lines horizontais
-    const gridLines = [0.25,0.5,0.75,1].map(f=>{
-      const y = H-(f*(H-12));
-      return `<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="rgba(255,255,255,.04)" stroke-width="1"/>`;
+    const gridLines = [0.33,0.66,1].map(function(f){
+      var y = (H-(f*(H-10))).toFixed(1);
+      return '<line x1="0" y1="'+y+'" x2="'+W+'" y2="'+y+'" stroke="rgba(255,255,255,.04)" stroke-width="1"/>';
     }).join('');
 
-    // Pontos e labels
-    const pontos = vals.map((v,i)=>{
+    // Pontos e labels — fonte menor para caber no card
+    const pontos = vals.map(function(v,i){
       if(v===0) return '';
-      const cx=i*xStep, cy=H-(v/maxV)*(H-12);
-      return `<circle cx="${cx}" cy="${cy}" r="3.5" fill="#0a0a12" stroke="${cor}" stroke-width="2"/>
-        <text x="${cx}" y="${cy-9}" text-anchor="middle" fill="${cor}" font-size="9" font-weight="800" opacity=".95">${v}</text>`;
+      var cx=(i*xStep).toFixed(1), cy=(H-(v/maxV)*(H-10)).toFixed(1);
+      return '<circle cx="'+cx+'" cy="'+cy+'" r="3" fill="#0a0a12" stroke="'+cor+'" stroke-width="1.5"/>'+
+        '<text x="'+cx+'" y="'+(parseFloat(cy)-7)+'" text-anchor="middle" fill="'+cor+'" font-size="8" font-weight="700">'+v+'</text>';
     }).join('');
 
-    // Labels eixo X (apenas 3: início, meio, fim)
-    const xLabels = [0,5,11].map(i=>`<text x="${i*xStep}" y="${H+14}" text-anchor="middle" fill="#3a3a5a" font-size="8">${meses[i].label}</text>`).join('');
+    // Labels eixo X
+    const xLabels = [0,5,11].map(function(i){
+      return '<text x="'+(i*xStep).toFixed(1)+'" y="'+(H+13)+'" text-anchor="middle" fill="#3a3a5a" font-size="7">'+meses[i].label+'</text>';
+    }).join('');
 
     const alertaVenc = d.vencer30>0
       ? '<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:7px;padding:7px 12px;margin-bottom:10px;font-size:11px;color:#f87171;display:flex;align-items:center;gap:6px"><span>⚠️</span> <strong>'+d.vencer30+'</strong> contrato'+(d.vencer30!==1?'s':'')+' vence'+(d.vencer30!==1?'m':'')+' em até 30 dias</div>'
@@ -837,12 +839,12 @@ function gerarDashboard(){
       '</div>' +
 
       // Gráfico maior e profissional
-      '<div style="background:#060610;border:1px solid #12121e;border-radius:10px;padding:14px 16px 20px">' +
+      '<div style="background:#060610;border:1px solid #12121e;border-radius:10px;padding:10px 14px 16px">' +
         '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">' +
           '<div style="font-size:9px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.1em;font-weight:700">Contratos ganhos — 12 meses</div>' +
           '<div style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:2px;background:'+cor+';display:inline-block;border-radius:2px"></span><span style="font-size:9px;color:#3a3a5a">Ganhos</span></div>' +
         '</div>' +
-        '<svg viewBox="0 0 '+W+' '+(H+20)+'" width="100%" style="display:block;overflow:visible">' +
+        '<svg viewBox="0 0 '+W+' '+(H+18)+'" width="100%" height="'+(H+18)+'" style="display:block;overflow:visible;max-height:'+(H+18)+'px">' +
           '<defs>' +
             '<linearGradient id="gr_'+safeEmp+'" x1="0" y1="0" x2="0" y2="1">' +
               '<stop offset="0%" stop-color="'+cor+'" stop-opacity="0.4"/>' +
