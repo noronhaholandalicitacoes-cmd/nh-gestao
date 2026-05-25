@@ -793,7 +793,7 @@ function gerarDashboard(){
     var xLabels = ptsArr.map(function(p,i){
       var lbl = meses[i].label;
       var bold = i===0||i===5||i===11 ? ' font-weight="600"' : '';
-      var col = i===0||i===5||i===11 ? '#5a5a7a' : '#3a3a58';
+      var col = i===0||i===5||i===11 ? '#7878a0' : '#5a5a7a';
       return '<text x="'+p.cx+'" y="'+(PAD_T+GH+16)+'" text-anchor="middle" fill="'+col+'" font-size="7.5"'+bold+'>'+lbl+'</text>';
     }).join('');
 
@@ -817,7 +817,7 @@ function gerarDashboard(){
         '<div style="width:38px;height:38px;border-radius:10px;background:'+cor+'22;border:1px solid '+cor+'44;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:'+cor+';flex-shrink:0">'+initials+'</div>' +
         '<div style="flex:1">' +
           '<div style="font-family:\'Syne\',sans-serif;font-size:15px;font-weight:800;color:#f0f0f8">'+emp+'</div>' +
-          '<div style="font-size:11px;color:#4a4a6a;margin-top:1px">'+d.ganhou+' contrato'+(d.ganhou!==1?'s':'')+' · '+ativos+' em execução</div>' +
+          '<div style="font-size:12px;color:#7878a0;margin-top:2px">'+d.ganhou+' contrato'+(d.ganhou!==1?'s':'')+' · '+ativos+' em execução</div>' +
         '</div>' +
       '</div>' +
 
@@ -828,12 +828,12 @@ function gerarDashboard(){
         '<div style="background:#111120;border:1px solid #1e1e30;border-radius:9px;padding:12px">' +
           '<div style="font-size:9px;color:'+cor+';text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:4px">Portfólio Total</div>' +
           '<div style="font-size:16px;font-weight:800;font-family:\'Syne\',sans-serif;color:#f0f0f8">'+fmtM(d.portfolio)+'</div>' +
-          '<div style="font-size:10px;color:#3a3a5a;margin-top:2px">'+d.ganhou+' contrato'+(d.ganhou!==1?'s':'')+'</div>' +
+          '<div style="font-size:11px;color:#6868a0;margin-top:3px">'+d.ganhou+' contrato'+(d.ganhou!==1?'s':'')+'</div>' +
         '</div>' +
         '<div style="background:#111120;border:1px solid #1e1e30;border-radius:9px;padding:12px">' +
           '<div style="font-size:9px;color:'+cor+';text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:4px">Valor Ativo</div>' +
           '<div style="font-size:16px;font-weight:800;font-family:\'Syne\',sans-serif;color:'+cor+'">'+fmtM(d.ativo)+'</div>' +
-          '<div style="font-size:10px;color:#3a3a5a;margin-top:2px">'+ativos+' em exec. · '+taxaAtivo+'% do portfólio</div>' +
+          '<div style="font-size:11px;color:#6868a0;margin-top:3px">'+ativos+' em exec. · '+taxaAtivo+'% do portfólio</div>' +
         '</div>' +
       '</div>' +
 
@@ -841,19 +841,19 @@ function gerarDashboard(){
       '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:16px">' +
         '<div style="background:#0d0d18;border:1px solid #1a1a28;border-radius:8px;padding:9px 6px;text-align:center">' +
           '<div style="font-size:20px;font-weight:800;font-family:\'Syne\',sans-serif;color:'+cor+'">'+d.ganhou+'</div>' +
-          '<div style="font-size:8px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.06em;margin-top:2px">Total</div>' +
+          '<div style="font-size:9px;color:#7878a0;text-transform:uppercase;letter-spacing:.06em;margin-top:3px">Total</div>' +
         '</div>' +
         '<div style="background:#0d0d18;border:1px solid #1a1a28;border-radius:8px;padding:9px 6px;text-align:center">' +
           '<div style="font-size:20px;font-weight:800;font-family:\'Syne\',sans-serif;color:#22c55e">'+ativos+'</div>' +
-          '<div style="font-size:8px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.06em;margin-top:2px">Ativos</div>' +
+          '<div style="font-size:9px;color:#7878a0;text-transform:uppercase;letter-spacing:.06em;margin-top:3px">Ativos</div>' +
         '</div>' +
         '<div style="background:#0d0d18;border:1px solid '+(d.vencer30>0?'rgba(239,68,68,.3)':d.vencer90>0?'rgba(234,179,8,.25)':'#1a1a28')+';border-radius:8px;padding:9px 6px;text-align:center">' +
           '<div style="font-size:20px;font-weight:800;font-family:\'Syne\',sans-serif;color:'+(d.vencer30>0?'#f87171':d.vencer90>0?'#facc15':'#3a3a5a')+'">'+( d.vencer30+d.vencer90)+'</div>' +
-          '<div style="font-size:8px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.06em;margin-top:2px">A Vencer</div>' +
+          '<div style="font-size:9px;color:#7878a0;text-transform:uppercase;letter-spacing:.06em;margin-top:3px">A Vencer</div>' +
         '</div>' +
         '<div style="background:#0d0d18;border:1px solid '+(d.recomp>0?'rgba(249,115,22,.25)':'#1a1a28')+';border-radius:8px;padding:9px 6px;text-align:center">' +
           '<div style="font-size:20px;font-weight:800;font-family:\'Syne\',sans-serif;color:'+(d.recomp>0?'#fb923c':'#3a3a5a')+'">'+d.recomp+'</div>' +
-          '<div style="font-size:8px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.06em;margin-top:2px">Recomp.</div>' +
+          '<div style="font-size:9px;color:#7878a0;text-transform:uppercase;letter-spacing:.06em;margin-top:3px">Recomp.</div>' +
         '</div>' +
       '</div>' +
 
@@ -880,10 +880,10 @@ function gerarDashboard(){
             '<text x="'+p.cx+'" y="'+(parseFloat(p.cy)-7)+'" text-anchor="middle" fill="'+cor+'" font-size="8.5" font-weight="800">'+p.v+'</text>';
         }).join('');
         var xlbls=[0,3,6,9,11].map(function(i){
-          return '<text x="'+(PL+i*xS).toFixed(1)+'" y="'+(PT+GH+15)+'" text-anchor="middle" fill="#4a4a6a" font-size="7.5">'+meses[i].label+'</text>';
+          return '<text x="'+(PL+i*xS).toFixed(1)+'" y="'+(PT+GH+15)+'" text-anchor="middle" fill="#7878a8" font-size="8.5">'+meses[i].label+'</text>';
         }).join('');
         return '<div style="background:#060610;border:1px solid #12121e;border-radius:10px;padding:8px 12px;height:100%;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden">'+
-          '<div style="font-size:8px;color:#4a4a6a;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:6px">📈 Contratos Ganhos / Mês</div>'+
+          '<div style="font-size:9px;color:#8080aa;text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:6px">📈 Contratos Ganhos / Mês</div>'+
           '<svg viewBox="0 0 '+VW2+' '+VH2+'" width="100%" height="100%" style="display:block;flex:1;min-height:0;overflow:hidden">'+
             '<defs>'+
               '<linearGradient id="g1_'+safeEmp+'" x1="0" y1="0" x2="0" y2="1">'+
@@ -922,14 +922,14 @@ function gerarDashboard(){
           var by=BPAD+BH-bh;
           return '<rect x="'+bx.toFixed(1)+'" y="'+by.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="3" fill="'+s.cor+'" opacity="0.85"/>'+
             (s.v>0?'<text x="'+(bx+barW/2).toFixed(1)+'" y="'+(by-5).toFixed(1)+'" text-anchor="middle" fill="'+s.cor+'" font-size="9" font-weight="800">'+s.v+'</text>':'')+
-            '<text x="'+(bx+barW/2).toFixed(1)+'" y="'+(BPAD+BH+13)+'" text-anchor="middle" fill="#4a4a6a" font-size="7">'+s.lbl+'</text>';
+            '<text x="'+(bx+barW/2).toFixed(1)+'" y="'+(BPAD+BH+13)+'" text-anchor="middle" fill="#8080a8" font-size="8.5">'+s.lbl+'</text>';
         }).join('');
         var bGls=[0.33,0.66,1].map(function(f){
           var y=(BPAD+BH-f*(BH-4)).toFixed(1);
           return '<line x1="'+PAD+'" y1="'+y+'" x2="'+(PAD+BW)+'" y2="'+y+'" stroke="rgba(255,255,255,.04)" stroke-width="1"/>';
         }).join('');
         return '<div style="background:#060610;border:1px solid #12121e;border-radius:10px;padding:8px 12px;height:100%;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden">'+
-          '<div style="font-size:8px;color:#4a4a6a;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:6px">📊 Status dos Contratos</div>'+
+          '<div style="font-size:9px;color:#8080aa;text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:6px">📊 Status dos Contratos</div>'+
           '<svg viewBox="0 0 '+VBW+' '+VBH+'" width="100%" height="100%" style="display:block;flex:1;min-height:0;overflow:hidden">'+
             bGls+bars+
           '</svg>'+
@@ -970,16 +970,16 @@ function gerarDashboard(){
         ];
         var legHTML=legendas.map(function(l,i){
           return '<rect x="118" y="'+(14+i*22)+'" width="7" height="7" rx="2" fill="'+l.cor+'"/>'+
-            '<text x="129" y="'+(21+i*22)+'" fill="#8888a0" font-size="8">'+l.lbl+'</text>'+
-            '<text x="235" y="'+(21+i*22)+'" text-anchor="end" fill="#c0c0d8" font-size="8" font-weight="700">'+l.val+'</text>';
+            '<text x="129" y="'+(21+i*22)+'" fill="#b0b0cc" font-size="9">'+l.lbl+'</text>'+
+            '<text x="235" y="'+(21+i*22)+'" text-anchor="end" fill="#e8e8f8" font-size="9" font-weight="700">'+l.val+'</text>';
         }).join('');
         return '<div style="background:#060610;border:1px solid #12121e;border-radius:10px;padding:8px 12px;height:100%;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden">'+
-          '<div style="font-size:8px;color:#4a4a6a;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:6px">🍩 Portfólio — Composição</div>'+
+          '<div style="font-size:9px;color:#8080aa;text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:6px">🍩 Portfólio — Composição</div>'+
           '<svg viewBox="0 0 '+SVW+' '+SVH+'" width="100%" height="100%" style="display:block;flex:1;min-height:0;overflow:hidden">'+
             '<circle cx="'+cx+'" cy="'+cy+'" r="'+R+'" fill="rgba(255,255,255,.03)" stroke="rgba(255,255,255,.06)" stroke-width="1"/>'+
             paths+
             '<text x="'+cx+'" y="'+(cy-4)+'" text-anchor="middle" fill="#f0f0f8" font-size="12" font-weight="800">'+pct+'%</text>'+
-            '<text x="'+cx+'" y="'+(cy+7)+'" text-anchor="middle" fill="#4a4a6a" font-size="7">ativo</text>'+
+            '<text x="'+cx+'" y="'+(cy+7)+'" text-anchor="middle" fill="#8080a8" font-size="8.5">ativo</text>'+
             legHTML+
           '</svg>'+
         '</div>';
@@ -1078,7 +1078,7 @@ function renderStats(){
     return '<div style="background:#111120;border:1px solid #1e1e30;border-left:3px solid '+cor+';border-radius:10px;padding:12px 14px;min-width:0">'+
       '<div style="font-size:10px;color:'+cor+';text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:4px">'+lbl+'</div>'+
       '<div style="font-size:22px;font-weight:800;font-family:\'Syne\',sans-serif;color:#f0f0f8">'+n+'</div>'+
-      (sub?'<div style="font-size:10px;color:#4a4a6a;margin-top:2px;font-weight:600">'+sub+'</div>':'')+
+      (sub?'<div style="font-size:11px;color:#6868a0;margin-top:3px;font-weight:600">'+sub+'</div>':'')+
     '</div>';
   };
 
