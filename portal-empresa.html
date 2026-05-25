@@ -175,7 +175,7 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
 }
 .topbar-logout:hover{color:var(--t1);border-color:var(--b2)}
 
-.content{padding:28px;max-width:1400px;margin:0 auto}
+.content{padding:28px 36px}
 
 /* Stats */
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px}
@@ -867,55 +867,116 @@ async function carregarContratos(){
   }
 }
 
+function fmtM(v){
+  if(v>=1e6) return 'R$ '+(v/1e6).toFixed(2).replace('.',',')+'M';
+  if(v>=1e3) return 'R$ '+(v/1e3).toFixed(1).replace('.',',')+'K';
+  return 'R$ '+v.toFixed(2).replace('.',',');
+}
+
 function renderStats(){
+  const el = document.getElementById('stats-area');
+  if(!el) return;
   const hoje = new Date(); hoje.setHours(0,0,0,0);
-  let execucao=0, finalizados=0, vencer=0, total=dadosGanhas.length;
+  const rows = dadosGanhas.map(e=>e.arr);
 
-  dadosGanhas.forEach(({arr})=>{
-    const status = String(arr[9]||'').toUpperCase().trim();
-    if(status==='FINALIZADO') finalizados++;
-    else execucao++;
+  let total=0,emExec=0,valExec=0,aguard=0,valAguard=0,
+      vencidos=0,valVenc=0,finalizados=0,valFin=0,
+      proxVenc=0,valProx=0,recomp=0,valRecomp=0,suspenso=0,rescindido=0,valTotal=0;
 
-    // Vencimento efetivo
-    const vd = arr[39]||arr[32]||arr[25]||arr[18]||arr[12]||'';
-    if(vd){
-      const p = vd.split('/');
-      if(p.length===3){
-        const dt = new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
-        const dias = Math.round((dt-hoje)/86400000);
-        if(dias>=0 && dias<=90) vencer++;
-      }
-    }
+  rows.forEach(arr=>{
+    const st=String(arr[9]||'').trim().toUpperCase();
+    const v=parseMoedaV(arr[7]);
+    total++; valTotal+=v;
+    // Vencimento efetivo (último aditivo ou original)
+    const vd=String(arr[39]||'').trim()||String(arr[32]||'').trim()||String(arr[25]||'').trim()||String(arr[18]||'').trim()||String(arr[12]||'').trim();
+    let dtVenc=null;
+    if(vd){const p=vd.split('/');if(p.length===3)dtVenc=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));}
+    if(st==='EM EXECUÇÃO'||st==='EM EXECUCAO'){
+      if(dtVenc&&dtVenc<hoje){vencidos++;valVenc+=v;}
+      else{emExec++;valExec+=v;if(dtVenc){const d=Math.round((dtVenc-hoje)/86400000);if(d>0&&d<=90){proxVenc++;valProx+=v;}}}
+    }else if(st==='FINALIZADO'){finalizados++;valFin+=v;}
+    else if(st==='AGUARDANDO CONTRATO'){aguard++;valAguard+=v;}
+    else if(st==='SUSPENSO') suspenso++;
+    else if(st==='RESCINDIDO') rescindido++;
+    if(String(arr[13]||'').toUpperCase().trim()==='SIM'){recomp++;valRecomp+=v;}
   });
 
-  document.getElementById('stats-area').innerHTML = `
-    <div class="stat"><div class="stat-glow" style="background:#f97316"></div>
-      <div class="stat-lbl">Total Contratos</div>
-      <div class="stat-val nh">${total}</div>
-    </div>
-    <div class="stat"><div class="stat-glow" style="background:#22c55e"></div>
-      <div class="stat-lbl">Em Execução</div>
-      <div class="stat-val g">${execucao}</div>
-    </div>
-    <div class="stat"><div class="stat-glow" style="background:#eab308"></div>
-      <div class="stat-lbl">Próx. Vencer (90d)</div>
-      <div class="stat-val y">${vencer}</div>
-    </div>
-    <div class="stat"><div class="stat-glow" style="background:#6b7280"></div>
-      <div class="stat-lbl">Finalizados</div>
-      <div class="stat-val">${finalizados}</div>
-    </div>
-  `;
+  const sc = function(lbl,n,cor,sub){
+    return '<div style="background:#111120;border:1px solid #1e1e30;border-left:3px solid '+cor+';border-radius:10px;padding:12px 14px;min-width:0">'+
+      '<div style="font-size:10px;color:'+cor+';text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:4px">'+lbl+'</div>'+
+      '<div style="font-size:22px;font-weight:800;font-family:\'Syne\',sans-serif;color:#f0f0f8">'+n+'</div>'+
+      (sub?'<div style="font-size:10px;color:#4a4a6a;margin-top:2px;font-weight:600">'+sub+'</div>':'')+
+    '</div>';
+  };
+
+  let html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:14px">';
+  html += sc('Total',total,'#f97316',valTotal>0?fmtM(valTotal):'');
+  html += sc('Em Execu\u00e7\u00e3o',emExec,'#22c55e',valExec>0?fmtM(valExec):'');
+  if(aguard>0)    html += sc('Aguardando',aguard,'#eab308',valAguard>0?fmtM(valAguard):'');
+  if(vencidos>0)  html += sc('Vencidos',vencidos,'#ef4444',valVenc>0?fmtM(valVenc):'');
+  html += sc('Finalizados',finalizados,'#3b82f6',valFin>0?fmtM(valFin):'');
+  if(proxVenc>0)  html += sc('Pr\u00f3x. Vencer 90d',proxVenc,'#eab308',valProx>0?fmtM(valProx):'');
+  if(recomp>0)    html += sc('Recomp. Contratual',recomp,'#f97316',valRecomp>0?fmtM(valRecomp):'');
+  if(suspenso>0)  html += sc('Suspenso',suspenso,'#eab308','');
+  if(rescindido>0)html += sc('Rescindido',rescindido,'#ef4444','');
+  html += '</div>';
+  el.innerHTML = html;
+  renderStatusPills();
+}
+
+// ─── STATUS PILLS (igual ao sistema) ─────────────────────────────
+let filtroStatus = null;
+function renderStatusPills(){
+  const el = document.getElementById('filtros-area');
+  if(!el) return;
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const rows = dadosGanhas.map(e=>e.arr);
+
+  const cnt = {exec:0,venc:0,prox:0,fin:0,recomp:0,susp:0,resc:0,aguard:0};
+  rows.forEach(arr=>{
+    const st=String(arr[9]||'').trim().toUpperCase();
+    const vd=String(arr[39]||'').trim()||String(arr[32]||'').trim()||String(arr[25]||'').trim()||String(arr[18]||'').trim()||String(arr[12]||'').trim();
+    let dtVenc=null;
+    if(vd){const p=vd.split('/');if(p.length===3)dtVenc=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));}
+    if(st==='EM EXECUÇÃO'||st==='EM EXECUCAO'){
+      if(dtVenc&&dtVenc<hoje) cnt.venc++;
+      else{ cnt.exec++; if(dtVenc){const d=Math.round((dtVenc-hoje)/86400000);if(d>0&&d<=90)cnt.prox++;} }
+    }else if(st==='FINALIZADO') cnt.fin++;
+    else if(st==='AGUARDANDO CONTRATO') cnt.aguard++;
+    else if(st==='SUSPENSO') cnt.susp++;
+    else if(st==='RESCINDIDO') cnt.resc++;
+    if(String(arr[13]||'').toUpperCase().trim()==='SIM') cnt.recomp++;
+  });
+
+  const defs=[
+    {k:null,  lbl:'Todos',              cor:'#f97316',n:rows.length},
+    {k:'exec', lbl:'Em Execução',       cor:'#22c55e',n:cnt.exec},
+    {k:'venc', lbl:'Vencidos',          cor:'#ef4444',n:cnt.venc},
+    {k:'prox', lbl:'Próx. Vencer 90d',  cor:'#eab308',n:cnt.prox},
+    {k:'aguard',lbl:'Aguardando',       cor:'#eab308',n:cnt.aguard},
+    {k:'fin',  lbl:'Finalizados',       cor:'#3b82f6',n:cnt.fin},
+    {k:'recomp',lbl:'Recomp. Contratual',cor:'#f97316',n:cnt.recomp},
+    {k:'susp', lbl:'Suspenso',          cor:'#eab308',n:cnt.susp},
+    {k:'resc', lbl:'Rescindido',        cor:'#ef4444',n:cnt.resc},
+  ];
+
+  el.innerHTML = defs.filter(d=>d.n>0||d.k===null).map(d=>{
+    const on = filtroStatus===d.k;
+    const estilo = on ? `border-color:${d.cor};background:${d.cor}22;color:${d.cor};` : '';
+    return `<button class="filtro-btn${on?' on':''}" style="${estilo}" onclick="setFiltroStatus(${d.k===null?'null':`'${d.k}'`},this)">
+      <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${d.cor};margin-right:5px;vertical-align:middle"></span>
+      ${d.lbl} (${d.n})
+    </button>`;
+  }).join('');
+}
+
+function setFiltroStatus(k, btn){
+  filtroStatus = k;
+  renderStatusPills();
+  renderContratos();
 }
 
 let filtroEmpresa = '';
-function filtrar(tipo, btn){
-  filtroAtual = tipo;
-  filtroEmpresa = '';
-  document.querySelectorAll('.filtro-btn').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
-  renderContratos();
-}
 function filtrarEmpresa(emp, btn){
   filtroEmpresa = filtroEmpresa === emp ? '' : emp;
   document.querySelectorAll('#filtros-empresa-area .filtro-btn').forEach(b=>b.classList.remove('on'));
@@ -930,20 +991,29 @@ function renderContratos(){
   const hoje = new Date(); hoje.setHours(0,0,0,0);
   let lista = [...dadosGanhas];
 
-  // Filtro por status
-  if(filtroAtual === 'em_execucao'){
-    lista = lista.filter(({arr})=>String(arr[9]||'').toUpperCase().trim() !== 'FINALIZADO');
-  } else if(filtroAtual === 'finalizado'){
-    lista = lista.filter(({arr})=>String(arr[9]||'').toUpperCase().trim() === 'FINALIZADO');
-  } else if(filtroAtual === 'vencer'){
+  // Filtro por status (idêntico ao sistema NH)
+  if(filtroStatus){
     lista = lista.filter(({arr})=>{
-      const vd = arr[39]||arr[32]||arr[25]||arr[18]||arr[12]||'';
-      if(!vd) return false;
-      const p = vd.split('/');
-      if(p.length!==3) return false;
-      const dt = new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
-      const dias = Math.round((dt-hoje)/86400000);
-      return dias>=0 && dias<=90;
+      const st=String(arr[9]||'').trim().toUpperCase();
+      const vd=String(arr[39]||'').trim()||String(arr[32]||'').trim()||String(arr[25]||'').trim()||String(arr[18]||'').trim()||String(arr[12]||'').trim();
+      let dtVenc=null;
+      if(vd){const p=vd.split('/');if(p.length===3)dtVenc=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));}
+      const exec = st==='EM EXECUÇÃO'||st==='EM EXECUCAO';
+      const vencido = exec && dtVenc && dtVenc<hoje;
+      if(filtroStatus==='exec')   return exec && !vencido;
+      if(filtroStatus==='venc')   return vencido;
+      if(filtroStatus==='prox'){
+        if(!exec||vencido) return false;
+        if(!dtVenc) return false;
+        const d=Math.round((dtVenc-hoje)/86400000);
+        return d>0&&d<=90;
+      }
+      if(filtroStatus==='fin')    return st==='FINALIZADO';
+      if(filtroStatus==='aguard') return st==='AGUARDANDO CONTRATO';
+      if(filtroStatus==='recomp') return String(arr[13]||'').toUpperCase().trim()==='SIM';
+      if(filtroStatus==='susp')   return st==='SUSPENSO';
+      if(filtroStatus==='resc')   return st==='RESCINDIDO';
+      return true;
     });
   }
 
@@ -1041,117 +1111,110 @@ function renderContratos(){
 
 function renderBody(id, arr, entry){
   const hoje = new Date(); hoje.setHours(0,0,0,0);
-  const venc = arr[39]||arr[32]||arr[25]||arr[18]||arr[12]||'';
+  const venc = String(arr[39]||'').trim()||String(arr[32]||'').trim()||String(arr[25]||'').trim()||String(arr[18]||'').trim()||String(arr[12]||'').trim();
+
   let vencAlert = '';
   if(venc){
     const p=venc.split('/');
     if(p.length===3){
       const dt=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
       const dias=Math.round((dt-hoje)/86400000);
-      if(dias<0) vencAlert=`<div class="venc-alert">⚠️ Contrato vencido há ${Math.abs(dias)} dias (${venc})</div>`;
-      else if(dias<=30) vencAlert=`<div class="venc-alert">⚠️ Contrato vence em ${dias} dias (${venc})</div>`;
-      else if(dias<=90) vencAlert=`<div class="venc-alert venc-prox">⏰ Contrato vence em ${dias} dias (${venc})</div>`;
-      else vencAlert=`<div class="venc-alert venc-ok">✓ Contrato vigente — vence em ${dias} dias (${venc})</div>`;
+      if(dias<0)       vencAlert='<div class="venc-alert">\u26a0\ufe0f Contrato vencido h\xe1 '+Math.abs(dias)+' dias ('+venc+')</div>';
+      else if(dias<=30) vencAlert='<div class="venc-alert">\u26a0\ufe0f Contrato vence em '+dias+' dias ('+venc+')</div>';
+      else if(dias<=90) vencAlert='<div class="venc-alert venc-prox">\u23f0 Contrato vence em '+dias+' dias ('+venc+')</div>';
+      else              vencAlert='<div class="venc-alert venc-ok">\u2713 Contrato vigente \u2014 vence em '+dias+' dias ('+venc+')</div>';
     }
   }
 
-  // ── Recomposição contratual (arr[13])
-  const recomp = String(arr[13]||'').toUpperCase().trim() === 'SIM';
-  const recompHTML = recomp ? `
-    <div style="background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.25);border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px">
-      <span style="font-size:14px">🔄</span>
-      <span style="font-size:12px;font-weight:700;color:#fb923c">Recomposição Contratual prevista neste contrato</span>
-    </div>` : '';
+  const hasRecomp = String(arr[13]||'').toUpperCase().trim()==='SIM';
+  const recompBanner = hasRecomp ?
+    '<div style="background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.25);border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px"><span>\ud83d\udd04</span><span style="font-size:12px;font-weight:700;color:#fb923c">Recompos\xe7\xe3o Contratual prevista neste contrato</span></div>'
+    : '';
 
-  // ── Aditivos (4 aditivos, bases 13/20/27/34)
-  let aditivos = '';
-  const aditivosDefs = [
-    {lbl:'1º Aditivo', base:13},
-    {lbl:'2º Aditivo', base:20},
-    {lbl:'3º Aditivo', base:27},
-    {lbl:'4º Aditivo', base:34},
+  // 4 Recomposicoes - indices identicos ao sistema NH
+  // Recomp1:[13..19] Recomp2:[20..26] Recomp3:[27..33] Recomp4:[34..40]
+  const recompDefs = [
+    {n:1, idxs:[13,14,15,16,17,18,19]},
+    {n:2, idxs:[20,21,22,23,24,25,26]},
+    {n:3, idxs:[27,28,29,30,31,32,33]},
+    {n:4, idxs:[34,35,36,37,38,39,40]},
   ];
-  aditivosDefs.forEach(({lbl,base})=>{
-    if(arr[base]||arr[base+1]||arr[base+2]||arr[base+3]){
-      const tipo   = arr[base]   || '';
-      const vig    = arr[base+1] || '';
-      const dtAssi = arr[base+2] || '';
-      const novoV  = arr[base+3] || '';
-      const recompAdit = String(arr[base+4]||'').toUpperCase().trim()==='SIM';
-      const statusAdit = arr[base+5] || '';
-      const valorAdit  = arr[base+6] || '';
-      aditivos += `
-      <div class="aditivo-item" style="${recompAdit?'border-left:3px solid #f97316;':''}">
-        <div class="aditivo-titulo" style="display:flex;align-items:center;justify-content:space-between">
-          <span>${lbl}</span>
-          ${recompAdit?'<span style="font-size:9px;background:rgba(249,115,22,.15);color:#fb923c;padding:2px 7px;border-radius:4px;font-weight:700">🔄 RECOMP.</span>':''}
-        </div>
-        <div class="aditivo-grid">
-          ${tipo?`<div class="aditivo-field"><div class="aditivo-field-lbl">Tipo</div><div class="aditivo-field-val">${tipo}</div></div>`:''}
-          ${vig?`<div class="aditivo-field"><div class="aditivo-field-lbl">Vigência</div><div class="aditivo-field-val">${vig} meses</div></div>`:''}
-          ${dtAssi?`<div class="aditivo-field"><div class="aditivo-field-lbl">Dt. Assinatura</div><div class="aditivo-field-val">${dtAssi}</div></div>`:''}
-          ${novoV?`<div class="aditivo-field"><div class="aditivo-field-lbl">Novo Vencimento</div><div class="aditivo-field-val">${novoV}</div></div>`:''}
-          ${valorAdit?`<div class="aditivo-field"><div class="aditivo-field-lbl">Valor Reajuste</div><div class="aditivo-field-val">${valorAdit}</div></div>`:''}
-          ${statusAdit?`<div class="aditivo-field"><div class="aditivo-field-lbl">Status</div><div class="aditivo-field-val">${statusAdit}</div></div>`:''}
-        </div>
-      </div>`;
-    }
+  let recompsHTML = '';
+  recompDefs.forEach(function(def){
+    const idxs = def.idxs;
+    const sim  = String(arr[idxs[0]]||'').trim();
+    const tipo = String(arr[idxs[1]]||'').trim();
+    const stR  = String(arr[idxs[2]]||'').trim();
+    const ndv  = String(arr[idxs[3]]||'').trim();
+    const vigM = String(arr[idxs[4]]||'').trim();
+    const vencR= String(arr[idxs[5]]||'').trim();
+    const valF = String(arr[idxs[6]]||'').trim();
+    if(!sim && !tipo && !ndv && !vencR) return;
+    const corSt = stR==='Conclu\xeddo'?'#22c55e':stR==='Em Tramita\xe7\xe3o'?'#eab308':stR==='Em An\xe1lise'?'#3b82f6':'#6b7280';
+    const ehR = sim.toUpperCase()==='SIM';
+    const bodyId = 'rc-'+id+'-'+def.n;
+    recompsHTML +=
+      '<div style="border:1px solid #222230;border-radius:10px;overflow:hidden;margin-top:10px'+(ehR?';border-left:3px solid #f97316':'')+'">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#0d0d18;cursor:pointer;user-select:none" onclick="var b=document.getElementById(\'' + bodyId + '\');b.style.display=b.style.display===\'none\'?\'grid\':\'none\'">' +
+      '<div style="display:flex;align-items:center;gap:10px">' +
+      '<span style="font-size:12px;font-weight:800;color:var(--nh)">Recomp '+def.n+'</span>' +
+      (tipo?'<span style="font-size:11px;color:#888">'+tipo.substring(0,30)+'</span>':'') +
+      (ehR?'<span style="font-size:9px;background:rgba(249,115,22,.15);color:#fb923c;padding:2px 6px;border-radius:4px;font-weight:700">\ud83d\udd04 SIM</span>':'') +
+      '</div><div style="display:flex;align-items:center;gap:8px">' +
+      (stR?'<span style="font-size:11px;font-weight:700;color:'+corSt+';background:'+corSt+'22;padding:2px 8px;border-radius:10px">'+stR+'</span>':'') +
+      (vencR?'<span style="font-size:11px;color:#aaa">Vence: <b style="color:#e5e5e5">'+vencR+'</b></span>':'') +
+      '</div></div>' +
+      '<div id="'+bodyId+'" style="display:none;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:0;padding:12px 14px;background:#0a0a12">' +
+      (sim?'<div class="aditivo-field"><div class="aditivo-field-lbl">Recomp.?</div><div class="aditivo-field-val">'+sim+'</div></div>':'') +
+      (tipo?'<div class="aditivo-field"><div class="aditivo-field-lbl">Tipo</div><div class="aditivo-field-val">'+tipo+'</div></div>':'') +
+      (stR?'<div class="aditivo-field"><div class="aditivo-field-lbl">Status</div><div class="aditivo-field-val" style="color:'+corSt+'">'+stR+'</div></div>':'') +
+      (ndv?'<div class="aditivo-field"><div class="aditivo-field-lbl">Nova Data Venc.</div><div class="aditivo-field-val">'+ndv+'</div></div>':'') +
+      (vigM?'<div class="aditivo-field"><div class="aditivo-field-lbl">Vig\xeancia (m)</div><div class="aditivo-field-val">'+vigM+'</div></div>':'') +
+      (vencR?'<div class="aditivo-field"><div class="aditivo-field-lbl">Venc. Recomp.</div><div class="aditivo-field-val" style="color:#f97316;font-weight:700">'+vencR+'</div></div>':'') +
+      (valF?'<div class="aditivo-field"><div class="aditivo-field-lbl">Valor Final</div><div class="aditivo-field-val" style="color:#4ade80;font-weight:700">'+valF+'</div></div>':'') +
+      '</div></div>';
   });
 
-  const linkPasta = arr[42]||arr[19]||'';
+  const linkPasta = arr[42]||arr[21]||'';
   const obs = arr[41]||'';
   const ultimaEdicao = entry._portalUltimaEdicao || '';
 
-  return `
-    ${vencAlert}
-    ${recompHTML}
-    <div class="ccard-meta">
-      ${arr[5]?`<div class="cmeta"><span class="cmeta-lbl">Local</span><span class="cmeta-val">${arr[5]}</span></div>`:''}
-      ${arr[6]?`<div class="cmeta"><span class="cmeta-lbl">Município</span><span class="cmeta-val">${arr[6]}</span></div>`:''}
-      ${arr[7]?`<div class="cmeta"><span class="cmeta-lbl">Valor</span><span class="cmeta-val hl">${arr[7]}</span></div>`:''}
-      ${arr[8]?`<div class="cmeta"><span class="cmeta-lbl">Contrato</span><span class="cmeta-val">${arr[8]}</span></div>`:''}
-      ${arr[10]?`<div class="cmeta"><span class="cmeta-lbl">Vigência</span><span class="cmeta-val">${arr[10]} meses</span></div>`:''}
-      ${arr[11]?`<div class="cmeta"><span class="cmeta-lbl">Dt. Assinatura</span><span class="cmeta-val">${arr[11]}</span></div>`:''}
-      ${venc?`<div class="cmeta"><span class="cmeta-lbl">Vencimento</span><span class="cmeta-val">${venc}</span></div>`:''}
-      ${recomp?`<div class="cmeta"><span class="cmeta-lbl" style="color:#f97316">Recomposição</span><span class="cmeta-val" style="color:#fb923c">Sim</span></div>`:''}
-    </div>
-    ${arr[4]?`<p style="font-size:13px;color:var(--t2);line-height:1.7;margin-bottom:14px">${arr[4]}</p>`:''}
-    ${linkPasta?`<a href="${linkPasta}" target="_blank" class="link-pasta">📁 Abrir Pasta do Contrato <span style="opacity:.6">↗</span></a>`:''}
-    ${aditivos?`<div class="aditivos-wrap"><div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Aditivos / Recomposições</div>${aditivos}</div>`:''}
-
-    <div class="edit-section">
-      <div class="edit-section-title">✏️ Atualizar Contrato</div>
-      <div class="edit-grid">
-        <div class="edit-field">
-          <label>Status do Contrato</label>
-          <select id="edit-status-${id}" onchange="marcarAlterado('${id}')">
-            <option value="">— manter atual —</option>
-            <option value="EM EXECUÇÃO" ${arr[9]==='EM EXECUÇÃO'?'selected':''}>Em Execução</option>
-            <option value="AGUARDANDO CONTRATO" ${arr[9]==='AGUARDANDO CONTRATO'?'selected':''}>Aguardando Contrato</option>
-            <option value="SUSPENSO" ${arr[9]==='SUSPENSO'?'selected':''}>Suspenso</option>
-            <option value="RESCINDIDO" ${arr[9]==='RESCINDIDO'?'selected':''}>Rescindido</option>
-            <option value="FINALIZADO" ${arr[9]==='FINALIZADO'?'selected':''}>Finalizado</option>
-          </select>
-        </div>
-        <div class="edit-field">
-          <label>Vencimento do Contrato</label>
-          <input type="text" id="edit-venc-${id}" placeholder="DD/MM/AAAA" value="${arr[12]||''}" onchange="marcarAlterado('${id}')">
-        </div>
-      </div>
-      <div class="edit-field" style="margin-bottom:12px">
-        <label>Observações</label>
-        <textarea class="obs-area" id="edit-obs-${id}" placeholder="Adicione observações sobre este contrato..." oninput="marcarAlterado('${id}')">${obs}</textarea>
-      </div>
-      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <button class="save-btn" id="save-btn-${id}" onclick="salvarAlteracoes('${id}')">
-          💾 Salvar Alterações
-        </button>
-        ${ultimaEdicao ? `<div class="last-edit" id="last-edit-${id}">✎ Última edição: ${ultimaEdicao}</div>` : `<div class="last-edit" id="last-edit-${id}"></div>`}
-      </div>
-    </div>
-  `;
+  return vencAlert + recompBanner +
+    '<div class="ccard-meta">' +
+    (arr[5]?'<div class="cmeta"><span class="cmeta-lbl">Local</span><span class="cmeta-val">'+arr[5]+'</span></div>':'') +
+    (arr[6]?'<div class="cmeta"><span class="cmeta-lbl">Munic\xedpio</span><span class="cmeta-val">'+arr[6]+'</span></div>':'') +
+    (arr[7]?'<div class="cmeta"><span class="cmeta-lbl">Valor</span><span class="cmeta-val hl">'+arr[7]+'</span></div>':'') +
+    (arr[8]?'<div class="cmeta"><span class="cmeta-lbl">Contrato</span><span class="cmeta-val">'+arr[8]+'</span></div>':'') +
+    (arr[10]?'<div class="cmeta"><span class="cmeta-lbl">Vig\xeancia</span><span class="cmeta-val">'+arr[10]+' meses</span></div>':'') +
+    (arr[11]?'<div class="cmeta"><span class="cmeta-lbl">Dt. Assinatura</span><span class="cmeta-val">'+arr[11]+'</span></div>':'') +
+    (venc?'<div class="cmeta"><span class="cmeta-lbl">Vencimento</span><span class="cmeta-val">'+venc+'</span></div>':'') +
+    (hasRecomp?'<div class="cmeta"><span class="cmeta-lbl" style="color:#f97316">Recomposi\xe7\xe3o</span><span class="cmeta-val" style="color:#fb923c;font-weight:700">Sim</span></div>':'') +
+    '</div>' +
+    (arr[4]?'<p style="font-size:13px;color:var(--t2);line-height:1.7;margin-bottom:14px">'+arr[4]+'</p>':'') +
+    (linkPasta?'<a href="'+linkPasta+'" target="_blank" class="link-pasta">\ud83d\udcc1 Abrir Pasta do Contrato <span style="opacity:.6">\u2197</span></a>':'') +
+    (recompsHTML?'<div class="aditivos-wrap"><div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Recomposi\xe7\xf5es / Aditivos</div>'+recompsHTML+'</div>':'') +
+    '<div class="edit-section">' +
+    '<div class="edit-section-title">\u270f\ufe0f Atualizar Contrato</div>' +
+    '<div class="edit-grid">' +
+    '<div class="edit-field"><label>Status do Contrato</label>' +
+    '<select id="edit-status-'+id+'" onchange="marcarAlterado(\''+id+'\')">'+
+    '<option value="">\u2014 manter atual \u2014</option>'+
+    '<option value="EM EXECU\xc7\xc3O"'+(arr[9]==='EM EXECU\xc7\xc3O'?' selected':'')+'>Em Execu\xe7\xe3o</option>'+
+    '<option value="AGUARDANDO CONTRATO"'+(arr[9]==='AGUARDANDO CONTRATO'?' selected':'')+'>Aguardando Contrato</option>'+
+    '<option value="SUSPENSO"'+(arr[9]==='SUSPENSO'?' selected':'')+'>Suspenso</option>'+
+    '<option value="RESCINDIDO"'+(arr[9]==='RESCINDIDO'?' selected':'')+'>Rescindido</option>'+
+    '<option value="FINALIZADO"'+(arr[9]==='FINALIZADO'?' selected':'')+'>Finalizado</option>'+
+    '</select></div>' +
+    '<div class="edit-field"><label>Vencimento do Contrato</label>'+
+    '<input type="text" id="edit-venc-'+id+'" placeholder="DD/MM/AAAA" value="'+(arr[12]||'')+'" onchange="marcarAlterado(\''+id+'\')"></div>' +
+    '</div>' +
+    '<div class="edit-field" style="margin-bottom:12px"><label>Observa\xe7\xf5es</label>'+
+    '<textarea class="obs-area" id="edit-obs-'+id+'" placeholder="Adicione observa\xe7\xf5es sobre este contrato..." oninput="marcarAlterado(\''+id+'\')">'+obs+'</textarea></div>' +
+    '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">'+
+    '<button class="save-btn" id="save-btn-'+id+'" onclick="salvarAlteracoes(\''+id+'\')">\ud83d\udcbe Salvar Altera\xe7\xf5es</button>'+
+    '<div class="last-edit" id="last-edit-'+id+'">'+(ultimaEdicao?'\u270e \xdaltima edi\xe7\xe3o: '+ultimaEdicao:'')+'</div>'+
+    '</div></div>';
 }
-
 let abertos = {};
 
 // ─── IMPRIMIR PDF ────────────────────────────────────────────────
