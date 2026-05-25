@@ -760,29 +760,28 @@ function gerarDashboard(){
 
     const vals=meses.map(m=>m.v);
     const maxV=Math.max(...vals,1);
-    const W=300, H=56;
+    // viewBox fixo — width="100%" faz escalar para o card, preserveAspectRatio mantém proporção
+    const W=500, H=80;
+    const PAD_B=22; // espaço para labels eixo X
     const xStep = W/(vals.length-1);
-    const pts=vals.map((v,i)=>((i*xStep).toFixed(1))+','+(H-(v/maxV)*(H-10)).toFixed(1)).join(' ');
+    const pts=vals.map(function(v,i){return (i*xStep).toFixed(1)+','+(H-(v/maxV)*(H-14)).toFixed(1);}).join(' ');
     const ptsFill='0,'+H+' '+pts+' '+W+','+H;
     const safeEmp=emp.replace(/ /g,'_');
 
-    // Grid lines horizontais
     const gridLines = [0.33,0.66,1].map(function(f){
-      var y = (H-(f*(H-10))).toFixed(1);
-      return '<line x1="0" y1="'+y+'" x2="'+W+'" y2="'+y+'" stroke="rgba(255,255,255,.04)" stroke-width="1"/>';
+      var y=(H-(f*(H-14))).toFixed(1);
+      return '<line x1="0" y1="'+y+'" x2="'+W+'" y2="'+y+'" stroke="rgba(255,255,255,.05)" stroke-width="1"/>';
     }).join('');
 
-    // Pontos e labels — fonte menor para caber no card
     const pontos = vals.map(function(v,i){
       if(v===0) return '';
-      var cx=(i*xStep).toFixed(1), cy=(H-(v/maxV)*(H-10)).toFixed(1);
-      return '<circle cx="'+cx+'" cy="'+cy+'" r="3" fill="#0a0a12" stroke="'+cor+'" stroke-width="1.5"/>'+
-        '<text x="'+cx+'" y="'+(parseFloat(cy)-7)+'" text-anchor="middle" fill="'+cor+'" font-size="8" font-weight="700">'+v+'</text>';
+      var cx=(i*xStep).toFixed(1), cy=(H-(v/maxV)*(H-14)).toFixed(1);
+      return '<circle cx="'+cx+'" cy="'+cy+'" r="4" fill="#0a0a12" stroke="'+cor+'" stroke-width="2"/>'+
+        '<text x="'+cx+'" y="'+(parseFloat(cy)-10)+'" text-anchor="middle" fill="'+cor+'" font-size="11" font-weight="800">'+v+'</text>';
     }).join('');
 
-    // Labels eixo X
     const xLabels = [0,5,11].map(function(i){
-      return '<text x="'+(i*xStep).toFixed(1)+'" y="'+(H+13)+'" text-anchor="middle" fill="#3a3a5a" font-size="7">'+meses[i].label+'</text>';
+      return '<text x="'+(i*xStep).toFixed(1)+'" y="'+(H+17)+'" text-anchor="middle" fill="#4a4a6a" font-size="10">'+meses[i].label+'</text>';
     }).join('');
 
     const alertaVenc = d.vencer30>0
@@ -844,7 +843,7 @@ function gerarDashboard(){
           '<div style="font-size:9px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.1em;font-weight:700">Contratos ganhos — 12 meses</div>' +
           '<div style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:2px;background:'+cor+';display:inline-block;border-radius:2px"></span><span style="font-size:9px;color:#3a3a5a">Ganhos</span></div>' +
         '</div>' +
-        '<svg viewBox="0 0 '+W+' '+(H+18)+'" width="100%" height="'+(H+18)+'" style="display:block;overflow:visible;max-height:'+(H+18)+'px">' +
+        '<svg viewBox="0 -8 '+W+' '+(H+PAD_B)+'" width="100%" preserveAspectRatio="none" style="display:block;width:100%;height:120px">' +
           '<defs>' +
             '<linearGradient id="gr_'+safeEmp+'" x1="0" y1="0" x2="0" y2="1">' +
               '<stop offset="0%" stop-color="'+cor+'" stop-opacity="0.4"/>' +
