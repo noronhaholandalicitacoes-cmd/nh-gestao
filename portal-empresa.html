@@ -858,11 +858,11 @@ function gerarDashboard(){
       '</div>' +
 
       // ── 3 GRÁFICOS LADO A LADO ─────────────────────────────────
-      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;height:150px;align-items:stretch">' +
 
       // GRÁFICO 1 — Linha: Contratos Ganhos 12 meses
       (function(){
-        var GW=320,GH=80,PL=6,PR=6,PT=18,PB=22;
+        var GW=280,GH=60,PL=4,PR=4,PT=16,PB=20;
         var VW2=GW+PL+PR, VH2=GH+PT+PB;
         var xS=GW/(vals.length-1);
         var pa=vals.map(function(v,i){
@@ -882,9 +882,9 @@ function gerarDashboard(){
         var xlbls=[0,3,6,9,11].map(function(i){
           return '<text x="'+(PL+i*xS).toFixed(1)+'" y="'+(PT+GH+15)+'" text-anchor="middle" fill="#4a4a6a" font-size="7.5">'+meses[i].label+'</text>';
         }).join('');
-        return '<div style="background:#060610;border:1px solid #12121e;border-radius:10px;padding:10px 12px 8px">'+
+        return '<div style="background:#060610;border:1px solid #12121e;border-radius:10px;padding:8px 12px;height:100%;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden">'+
           '<div style="font-size:8px;color:#4a4a6a;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:6px">📈 Contratos Ganhos / Mês</div>'+
-          '<svg viewBox="0 0 '+VW2+' '+VH2+'" width="100%" height="110" style="display:block">'+
+          '<svg viewBox="0 0 '+VW2+' '+VH2+'" width="100%" height="100%" style="display:block;flex:1;min-height:0;overflow:hidden">'+
             '<defs>'+
               '<linearGradient id="g1_'+safeEmp+'" x1="0" y1="0" x2="0" y2="1">'+
                 '<stop offset="0%" stop-color="'+cor+'" stop-opacity="0.3"/>'+
@@ -910,7 +910,7 @@ function gerarDashboard(){
           {lbl:'Finalizados', v:d.finalizados, cor:'#6b7280'},
           {lbl:'Recomp.',  v:d.recomp,     cor:'#f97316'},
         ];
-        var BW=280, BH=80, PAD=18, BPAD=22;
+        var BW=240, BH=60, PAD=14, BPAD=18;
         var VBW=BW+PAD*2, VBH=BH+BPAD+16;
         var maxBar=Math.max.apply(null,statusData.map(function(s){return s.v;}));
         maxBar=Math.max(maxBar,1);
@@ -928,9 +928,9 @@ function gerarDashboard(){
           var y=(BPAD+BH-f*(BH-4)).toFixed(1);
           return '<line x1="'+PAD+'" y1="'+y+'" x2="'+(PAD+BW)+'" y2="'+y+'" stroke="rgba(255,255,255,.04)" stroke-width="1"/>';
         }).join('');
-        return '<div style="background:#060610;border:1px solid #12121e;border-radius:10px;padding:10px 12px 8px">'+
+        return '<div style="background:#060610;border:1px solid #12121e;border-radius:10px;padding:8px 12px;height:100%;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden">'+
           '<div style="font-size:8px;color:#4a4a6a;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:6px">📊 Status dos Contratos</div>'+
-          '<svg viewBox="0 0 '+VBW+' '+VBH+'" width="100%" height="110" style="display:block">'+
+          '<svg viewBox="0 0 '+VBW+' '+VBH+'" width="100%" height="100%" style="display:block;flex:1;min-height:0;overflow:hidden">'+
             bGls+bars+
           '</svg>'+
         '</div>';
@@ -938,7 +938,7 @@ function gerarDashboard(){
 
       // GRÁFICO 3 — Rosca: Portfólio vs Ativo vs Finalizados
       (function(){
-        var cx=70, cy=55, R=42, r=26;
+        var cx=55, cy=46, R=34, r=21;
         var total3=d.portfolio>0?d.portfolio:1;
         var segs=[
           {v:d.ativo,    cor:cor,       lbl:'Ativo'},
@@ -962,24 +962,24 @@ function gerarDashboard(){
           return '<path d="'+d2+'" fill="'+s.cor+'" opacity="0.9"/>';
         }).join('');
         var pct=d.portfolio>0?Math.round(d.ativo/d.portfolio*100):0;
-        var SVW=280, SVH=120;
+        var SVW=240, SVH=100;
         var legendas=[
           {cor:cor,         lbl:'Ativo',    val:fmtM(d.ativo)},
           {cor:cor+'55',    lbl:'Inativo',  val:fmtM(d.portfolio-d.ativo)},
           {cor:'#f97316',   lbl:'Recomp.',  val:d.recomp+' contrato'+(d.recomp!==1?'s':'')},
         ];
         var legHTML=legendas.map(function(l,i){
-          return '<rect x="145" y="'+(20+i*24)+'" width="8" height="8" rx="2" fill="'+l.cor+'"/>'+
-            '<text x="158" y="'+(28+i*24)+'" fill="#8888a0" font-size="8.5">'+l.lbl+'</text>'+
-            '<text x="270" y="'+(28+i*24)+'" text-anchor="end" fill="#c0c0d8" font-size="8.5" font-weight="700">'+l.val+'</text>';
+          return '<rect x="118" y="'+(14+i*22)+'" width="7" height="7" rx="2" fill="'+l.cor+'"/>'+
+            '<text x="129" y="'+(21+i*22)+'" fill="#8888a0" font-size="8">'+l.lbl+'</text>'+
+            '<text x="235" y="'+(21+i*22)+'" text-anchor="end" fill="#c0c0d8" font-size="8" font-weight="700">'+l.val+'</text>';
         }).join('');
-        return '<div style="background:#060610;border:1px solid #12121e;border-radius:10px;padding:10px 12px 8px">'+
+        return '<div style="background:#060610;border:1px solid #12121e;border-radius:10px;padding:8px 12px;height:100%;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden">'+
           '<div style="font-size:8px;color:#4a4a6a;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:6px">🍩 Portfólio — Composição</div>'+
-          '<svg viewBox="0 0 '+SVW+' '+SVH+'" width="100%" height="110" style="display:block">'+
+          '<svg viewBox="0 0 '+SVW+' '+SVH+'" width="100%" height="100%" style="display:block;flex:1;min-height:0;overflow:hidden">'+
             '<circle cx="'+cx+'" cy="'+cy+'" r="'+R+'" fill="rgba(255,255,255,.03)" stroke="rgba(255,255,255,.06)" stroke-width="1"/>'+
             paths+
-            '<text x="'+cx+'" y="'+(cy-6)+'" text-anchor="middle" fill="#f0f0f8" font-size="14" font-weight="800">'+pct+'%</text>'+
-            '<text x="'+cx+'" y="'+(cy+8)+'" text-anchor="middle" fill="#4a4a6a" font-size="7.5">ativo</text>'+
+            '<text x="'+cx+'" y="'+(cy-4)+'" text-anchor="middle" fill="#f0f0f8" font-size="12" font-weight="800">'+pct+'%</text>'+
+            '<text x="'+cx+'" y="'+(cy+7)+'" text-anchor="middle" fill="#4a4a6a" font-size="7">ativo</text>'+
             legHTML+
           '</svg>'+
         '</div>';
