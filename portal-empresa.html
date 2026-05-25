@@ -394,20 +394,20 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
       SISTEMA ATIVO · NH LICITAÇÕES 2.0
     </div>
 
-    <!-- Logo animada -->
+    <!-- Logo igual à imagem -->
     <div class="login-logo-wrap">
       <div class="login-logo-ring ring1"></div>
       <div class="login-logo-ring ring2"></div>
       <div class="login-logo-ring ring3"></div>
       <div class="login-logo-icon">
-        <svg viewBox="0 0 48 48" fill="none" width="52" height="52">
-          <rect x="4" y="4" width="40" height="40" rx="12" fill="url(#lg1)"/>
-          <text x="24" y="32" text-anchor="middle" fill="#fff" font-family="Syne,sans-serif" font-weight="800" font-size="18">NH</text>
+        <svg viewBox="0 0 48 48" fill="none" width="56" height="56">
+          <circle cx="24" cy="24" r="24" fill="url(#lg_circ)"/>
+          <text x="24" y="31" text-anchor="middle" fill="#fff" font-family="Syne,sans-serif" font-weight="800" font-size="16">NH</text>
           <defs>
-            <linearGradient id="lg1" x1="0" y1="0" x2="48" y2="48">
-              <stop offset="0%" stop-color="#f97316"/>
-              <stop offset="100%" stop-color="#dc2626"/>
-            </linearGradient>
+            <radialGradient id="lg_circ" cx="35%" cy="30%" r="70%">
+              <stop offset="0%" stop-color="#fb923c"/>
+              <stop offset="100%" stop-color="#b45309"/>
+            </radialGradient>
           </defs>
         </svg>
       </div>
@@ -440,8 +440,23 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
 <div id="portal">
   <div class="topbar">
     <div class="topbar-logo">
-      <div class="topbar-lm">NH</div>
-      <div class="topbar-name">NH <span>Licitações</span></div>
+      <!-- Logo igual à imagem: ícone laranja circular + texto -->
+      <div style="display:flex;align-items:center;gap:10px">
+        <svg width="38" height="38" viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="24" fill="url(#tl_grad)"/>
+          <text x="24" y="31" text-anchor="middle" fill="#fff" font-family="Syne,sans-serif" font-weight="800" font-size="16">NH</text>
+          <defs>
+            <radialGradient id="tl_grad" cx="35%" cy="30%" r="70%">
+              <stop offset="0%" stop-color="#fb923c"/>
+              <stop offset="100%" stop-color="#b45309"/>
+            </radialGradient>
+          </defs>
+        </svg>
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:#f0f0f8;line-height:1.1">NH <span style="color:#f97316">Licitações</span></div>
+          <div style="font-size:9px;color:#4a4a6a;font-weight:500;letter-spacing:.05em;text-transform:uppercase">Gerenciamento de Contratos</div>
+        </div>
+      </div>
     </div>
     <div class="topbar-sep"></div>
     <div class="topbar-emp">
@@ -569,23 +584,22 @@ const SENHAS = {
   'SAUTEC':    'sautec2024',
   'ONLAV':     'onlav2024',
   'ENGEMED':   'engemed2024',
-  'POTIGUAR':  'potiguar2024',
   'GROWTH':    'growth2024',
 };
 
 // Cores das empresas
 const CORES = {
   'VISE':'#eab308','SOS':'#22c55e','SOS FILIAL':'#3b82f6',
-  'SAUTEC':'#a855f7','ONLAV':'#f97316','ENGEMED':'#ef4444','POTIGUAR':'#06b6d4',
+  'SAUTEC':'#a855f7','ONLAV':'#f97316','ENGEMED':'#ef4444',
   'GROWTH':'#8b5cf6'
 };
 
 // ─── ESTADO ──────────────────────────────────────────────────────
 let empAtual = '';
-let isAdmin  = false; // GROWTH tem acesso total
+let isAdmin  = false;
 let dadosGanhas = [];
 let filtroAtual = 'todos';
-const EMPRESAS_SISTEMA = ['VISE','SOS','SOS FILIAL','SAUTEC','ONLAV','ENGEMED','POTIGUAR'];
+const EMPRESAS_SISTEMA = ['VISE','SOS','SOS FILIAL','SAUTEC','ONLAV','ENGEMED'];
 
 // ─── LOGIN ───────────────────────────────────────────────────────
 async function fazerLogin(){
@@ -667,58 +681,61 @@ async function iniciarPortal(){
 // ─── DASHBOARD ───────────────────────────────────────────────────
 function parseMoedaV(s){return parseFloat(String(s||'').replace(/[^\d,]/g,'').replace(',','.'))||0;}
 
+// Igual ao sistema NH: usa valor do último aditivo (arr[40/33/26/19]) ou original (arr[7])
+function calcValorGanhas(arr){
+  const v = parseMoedaV(arr[40])||parseMoedaV(arr[33])||parseMoedaV(arr[26])||parseMoedaV(arr[19]);
+  return v > 0 ? v : parseMoedaV(arr[7]);
+}
+
 function gerarDashboard(){
   const dash = document.getElementById('dashboard-area');
   if(!dash) return;
 
   const hoje = new Date(); hoje.setHours(0,0,0,0);
-  const fmtM = v => {
-    if(v>=1e6) return 'R$ '+(v/1e6).toFixed(2).replace('.',',')+'M';
-    if(v>=1e3) return 'R$ '+(v/1e3).toFixed(1).replace('.',',')+'K';
-    return 'R$ '+v.toFixed(2).replace('.',',');
-  };
 
   const empresasParaMostrar = isAdmin ? EMPRESAS_SISTEMA : [empAtual];
 
   const porEmp = {};
   empresasParaMostrar.forEach(e => {
-    porEmp[e] = {contratos:[], portfolio:0, ativo:0, ganhou:0, recomp:0, vencer30:0, vencer90:0, finalizados:0};
+    porEmp[e] = {contratos:[], portfolio:0, ativo:0, ganhou:0, recomp:0, vencer30:0, vencer90:0, finalizados:0, vencidos:0};
   });
 
   dadosGanhas.forEach(({arr}) => {
     const emp = String(arr[2]||'').trim().toUpperCase();
     if(!porEmp[emp]) return;
     porEmp[emp].contratos.push(arr);
-    const val = parseMoedaV(arr[7]);
+    const val = calcValorGanhas(arr);
     porEmp[emp].portfolio += val;
     const status = String(arr[9]||'').toUpperCase().trim();
     const finalizado = status==='FINALIZADO'||status==='RESCINDIDO';
-    if(!finalizado) porEmp[emp].ativo += val;
-    else porEmp[emp].finalizados++;
+    const exec = status==='EM EXECUÇÃO'||status==='EM EXECUCAO';
+    if(finalizado) porEmp[emp].finalizados++;
     porEmp[emp].ganhou++;
     if(String(arr[13]||'').toUpperCase().trim()==='SIM') porEmp[emp].recomp++;
 
-    // Vencimento
-    const vd = arr[39]||arr[32]||arr[25]||arr[18]||arr[12]||'';
-    if(vd && !finalizado){
+    // Vencimento efetivo (último aditivo ou original)
+    const vd = String(arr[39]||'').trim()||String(arr[32]||'').trim()||String(arr[25]||'').trim()||String(arr[18]||'').trim()||String(arr[12]||'').trim();
+    if(vd){
       const p=vd.split('/');
       if(p.length===3){
         const dt=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
         const dias=Math.round((dt-hoje)/86400000);
-        if(dias>=0&&dias<=30) porEmp[emp].vencer30++;
-        else if(dias>30&&dias<=90) porEmp[emp].vencer90++;
+        if(exec){
+          if(dias<0){ porEmp[emp].vencidos++; }
+          else { porEmp[emp].ativo += val; if(dias<=30) porEmp[emp].vencer30++; else if(dias<=90) porEmp[emp].vencer90++; }
+        }
       }
-    }
+    } else if(exec){ porEmp[emp].ativo += val; }
   });
 
   const cards = empresasParaMostrar.map(emp => {
-    const d = porEmp[emp] || {contratos:[],portfolio:0,ativo:0,ganhou:0,recomp:0,vencer30:0,vencer90:0,finalizados:0};
+    const d = porEmp[emp] || {contratos:[],portfolio:0,ativo:0,ganhou:0,recomp:0,vencer30:0,vencer90:0,finalizados:0,vencidos:0};
     const cor = CORES[emp] || '#6b7280';
     const initials = emp.split(' ').map(w=>w[0]).join('').slice(0,2);
-    const ativos = d.ganhou - d.finalizados;
+    const ativos = d.ganhou - d.finalizados - d.vencidos;
     const taxaAtivo = d.portfolio>0 ? Math.round(d.ativo/d.portfolio*100) : 0;
 
-    // Gráfico 12 meses
+    // Gráfico 12 meses — maior e mais profissional
     const meses = [];
     for(let i=11;i>=0;i--){
       const ref=new Date(hoje); ref.setMonth(ref.getMonth()-i);
@@ -734,100 +751,122 @@ function gerarDashboard(){
 
     const vals=meses.map(m=>m.v);
     const maxV=Math.max(...vals,1);
-    const W=280,H=50;
-    const pts=vals.map((v,i)=>`${(i/(vals.length-1))*W},${H-(v/maxV)*(H-8)}`).join(' ');
+    const W=500, H=90;
+    const xStep = W/(vals.length-1);
+    const pts=vals.map((v,i)=>`${i*xStep},${H-(v/maxV)*(H-12)}`).join(' ');
     const ptsFill=`0,${H} ${pts} ${W},${H}`;
     const safeEmp=emp.replace(/ /g,'_');
 
-    // Alertas de vencimento
+    // Grid lines horizontais
+    const gridLines = [0.25,0.5,0.75,1].map(f=>{
+      const y = H-(f*(H-12));
+      return `<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="rgba(255,255,255,.04)" stroke-width="1"/>`;
+    }).join('');
+
+    // Pontos e labels
+    const pontos = vals.map((v,i)=>{
+      if(v===0) return '';
+      const cx=i*xStep, cy=H-(v/maxV)*(H-12);
+      return `<circle cx="${cx}" cy="${cy}" r="3.5" fill="#0a0a12" stroke="${cor}" stroke-width="2"/>
+        <text x="${cx}" y="${cy-9}" text-anchor="middle" fill="${cor}" font-size="9" font-weight="800" opacity=".95">${v}</text>`;
+    }).join('');
+
+    // Labels eixo X (apenas 3: início, meio, fim)
+    const xLabels = [0,5,11].map(i=>`<text x="${i*xStep}" y="${H+14}" text-anchor="middle" fill="#3a3a5a" font-size="8">${meses[i].label}</text>`).join('');
+
     const alertaVenc = d.vencer30>0
-      ? `<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:7px;padding:7px 12px;margin-bottom:10px;font-size:11px;color:#f87171;display:flex;align-items:center;gap:6px"><span>⚠️</span> <strong>${d.vencer30}</strong> contrato${d.vencer30!==1?'s':''} vence${d.vencer30!==1?'m':''} em até 30 dias</div>`
+      ? '<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:7px;padding:7px 12px;margin-bottom:10px;font-size:11px;color:#f87171;display:flex;align-items:center;gap:6px"><span>⚠️</span> <strong>'+d.vencer30+'</strong> contrato'+(d.vencer30!==1?'s':'')+' vence'+(d.vencer30!==1?'m':'')+' em até 30 dias</div>'
       : d.vencer90>0
-      ? `<div style="background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.2);border-radius:7px;padding:7px 12px;margin-bottom:10px;font-size:11px;color:#facc15;display:flex;align-items:center;gap:6px"><span>⏰</span> <strong>${d.vencer90}</strong> contrato${d.vencer90!==1?'s':''} vence${d.vencer90!==1?'m':''} em até 90 dias</div>`
+      ? '<div style="background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.2);border-radius:7px;padding:7px 12px;margin-bottom:10px;font-size:11px;color:#facc15;display:flex;align-items:center;gap:6px"><span>⏰</span> <strong>'+d.vencer90+'</strong> contrato'+(d.vencer90!==1?'s':'')+' vence'+(d.vencer90!==1?'m':'')+' em até 90 dias</div>'
       : '';
 
-    return `
-    <div style="background:#0a0a12;border:1px solid #1a1a28;border-left:3px solid ${cor};border-radius:14px;padding:20px;min-width:0">
+    return '<div style="background:#0a0a12;border:1px solid #1a1a28;border-left:3px solid '+cor+';border-radius:14px;padding:20px;min-width:0">' +
 
-      <!-- Cabeçalho empresa -->
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-        <div style="width:36px;height:36px;border-radius:9px;background:${cor}22;border:1px solid ${cor}44;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:${cor};flex-shrink:0">${initials}</div>
-        <div style="flex:1">
-          <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#f0f0f8">${emp}</div>
-          <div style="font-size:11px;color:#4a4a6a;margin-top:1px">${d.ganhou} contrato${d.ganhou!==1?'s':''} · ${ativos} em execução</div>
-        </div>
-      </div>
+      // Cabeçalho
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">' +
+        '<div style="width:38px;height:38px;border-radius:10px;background:'+cor+'22;border:1px solid '+cor+'44;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:'+cor+';flex-shrink:0">'+initials+'</div>' +
+        '<div style="flex:1">' +
+          '<div style="font-family:\'Syne\',sans-serif;font-size:15px;font-weight:800;color:#f0f0f8">'+emp+'</div>' +
+          '<div style="font-size:11px;color:#4a4a6a;margin-top:1px">'+d.ganhou+' contrato'+(d.ganhou!==1?'s':'')+' · '+ativos+' em execução</div>' +
+        '</div>' +
+      '</div>' +
 
-      <!-- Alerta vencimento -->
-      ${alertaVenc}
+      alertaVenc +
 
-      <!-- KPIs principais -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
-        <div style="background:#111120;border:1px solid #1e1e30;border-radius:9px;padding:12px">
-          <div style="font-size:9px;color:${cor};text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:5px">Portfólio Total</div>
-          <div style="font-size:17px;font-weight:800;font-family:'Syne',sans-serif;color:#f0f0f8">${fmtM(d.portfolio)}</div>
-          <div style="font-size:10px;color:#3a3a5a;margin-top:3px">${d.ganhou} contrato${d.ganhou!==1?'s':''}</div>
-        </div>
-        <div style="background:#111120;border:1px solid #1e1e30;border-radius:9px;padding:12px">
-          <div style="font-size:9px;color:${cor};text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:5px">Valor Ativo</div>
-          <div style="font-size:17px;font-weight:800;font-family:'Syne',sans-serif;color:${cor}">${fmtM(d.ativo)}</div>
-          <div style="font-size:10px;color:#3a3a5a;margin-top:3px">${ativos} em exec. · ${taxaAtivo}% do portfólio</div>
-        </div>
-      </div>
+      // KPIs portfólio / ativo
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">' +
+        '<div style="background:#111120;border:1px solid #1e1e30;border-radius:9px;padding:12px">' +
+          '<div style="font-size:9px;color:'+cor+';text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:4px">Portfólio Total</div>' +
+          '<div style="font-size:16px;font-weight:800;font-family:\'Syne\',sans-serif;color:#f0f0f8">'+fmtM(d.portfolio)+'</div>' +
+          '<div style="font-size:10px;color:#3a3a5a;margin-top:2px">'+d.ganhou+' contrato'+(d.ganhou!==1?'s':'')+'</div>' +
+        '</div>' +
+        '<div style="background:#111120;border:1px solid #1e1e30;border-radius:9px;padding:12px">' +
+          '<div style="font-size:9px;color:'+cor+';text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:4px">Valor Ativo</div>' +
+          '<div style="font-size:16px;font-weight:800;font-family:\'Syne\',sans-serif;color:'+cor+'">'+fmtM(d.ativo)+'</div>' +
+          '<div style="font-size:10px;color:#3a3a5a;margin-top:2px">'+ativos+' em exec. · '+taxaAtivo+'% do portfólio</div>' +
+        '</div>' +
+      '</div>' +
 
-      <!-- KPIs secundários -->
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px">
-        <div style="background:#0d0d18;border:1px solid #1a1a28;border-radius:8px;padding:9px 8px;text-align:center">
-          <div style="font-size:18px;font-weight:800;font-family:'Syne',sans-serif;color:${cor}">${d.ganhou}</div>
-          <div style="font-size:9px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.06em;margin-top:2px">Total</div>
-        </div>
-        <div style="background:#0d0d18;border:1px solid #1a1a28;border-radius:8px;padding:9px 8px;text-align:center">
-          <div style="font-size:18px;font-weight:800;font-family:'Syne',sans-serif;color:#22c55e">${ativos}</div>
-          <div style="font-size:9px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.06em;margin-top:2px">Ativos</div>
-        </div>
-        <div style="background:#0d0d18;border:1px solid ${d.vencer30>0?'rgba(239,68,68,.3)':d.vencer90>0?'rgba(234,179,8,.25)':'#1a1a28'};border-radius:8px;padding:9px 8px;text-align:center">
-          <div style="font-size:18px;font-weight:800;font-family:'Syne',sans-serif;color:${d.vencer30>0?'#f87171':d.vencer90>0?'#facc15':'#3a3a5a'}">${d.vencer30+d.vencer90}</div>
-          <div style="font-size:9px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.06em;margin-top:2px">A Vencer</div>
-        </div>
-        <div style="background:#0d0d18;border:1px solid ${d.recomp>0?'rgba(249,115,22,.25)':'#1a1a28'};border-radius:8px;padding:9px 8px;text-align:center">
-          <div style="font-size:18px;font-weight:800;font-family:'Syne',sans-serif;color:${d.recomp>0?'#fb923c':'#3a3a5a'}">${d.recomp}</div>
-          <div style="font-size:9px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.06em;margin-top:2px">Recomp.</div>
-        </div>
-      </div>
+      // KPIs contadores
+      '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:16px">' +
+        '<div style="background:#0d0d18;border:1px solid #1a1a28;border-radius:8px;padding:9px 6px;text-align:center">' +
+          '<div style="font-size:20px;font-weight:800;font-family:\'Syne\',sans-serif;color:'+cor+'">'+d.ganhou+'</div>' +
+          '<div style="font-size:8px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.06em;margin-top:2px">Total</div>' +
+        '</div>' +
+        '<div style="background:#0d0d18;border:1px solid #1a1a28;border-radius:8px;padding:9px 6px;text-align:center">' +
+          '<div style="font-size:20px;font-weight:800;font-family:\'Syne\',sans-serif;color:#22c55e">'+ativos+'</div>' +
+          '<div style="font-size:8px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.06em;margin-top:2px">Ativos</div>' +
+        '</div>' +
+        '<div style="background:#0d0d18;border:1px solid '+(d.vencer30>0?'rgba(239,68,68,.3)':d.vencer90>0?'rgba(234,179,8,.25)':'#1a1a28')+';border-radius:8px;padding:9px 6px;text-align:center">' +
+          '<div style="font-size:20px;font-weight:800;font-family:\'Syne\',sans-serif;color:'+(d.vencer30>0?'#f87171':d.vencer90>0?'#facc15':'#3a3a5a')+'">'+( d.vencer30+d.vencer90)+'</div>' +
+          '<div style="font-size:8px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.06em;margin-top:2px">A Vencer</div>' +
+        '</div>' +
+        '<div style="background:#0d0d18;border:1px solid '+(d.recomp>0?'rgba(249,115,22,.25)':'#1a1a28')+';border-radius:8px;padding:9px 6px;text-align:center">' +
+          '<div style="font-size:20px;font-weight:800;font-family:\'Syne\',sans-serif;color:'+(d.recomp>0?'#fb923c':'#3a3a5a')+'">'+d.recomp+'</div>' +
+          '<div style="font-size:8px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.06em;margin-top:2px">Recomp.</div>' +
+        '</div>' +
+      '</div>' +
 
-      <!-- Gráfico 12 meses -->
-      <div>
-        <div style="font-size:9px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">CONTRATOS GANHOS — 12 MESES</div>
-        <svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" style="display:block;overflow:visible">
-          <defs>
-            <linearGradient id="gr_${safeEmp}" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="${cor}" stop-opacity="0.35"/>
-              <stop offset="100%" stop-color="${cor}" stop-opacity="0"/>
-            </linearGradient>
-          </defs>
-          <polygon points="${ptsFill}" fill="url(#gr_${safeEmp})"/>
-          <polyline points="${pts}" fill="none" stroke="${cor}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          ${vals.map((v,i)=>v>0?`<circle cx="${(i/(vals.length-1))*W}" cy="${H-(v/maxV)*(H-8)}" r="2.5" fill="${cor}"/>
-            <text x="${(i/(vals.length-1))*W}" y="${H-(v/maxV)*(H-8)-6}" text-anchor="middle" fill="${cor}" font-size="8" font-weight="700">${v}</text>`:'').join('')}
-        </svg>
-        <div style="display:flex;justify-content:space-between;font-size:9px;color:#3a3a5a;margin-top:4px">
-          <span>${meses[0].label}</span><span>${meses[5].label}</span><span>${meses[11].label}</span>
-        </div>
-      </div>
+      // Gráfico maior e profissional
+      '<div style="background:#060610;border:1px solid #12121e;border-radius:10px;padding:14px 16px 20px">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">' +
+          '<div style="font-size:9px;color:#3a3a5a;text-transform:uppercase;letter-spacing:.1em;font-weight:700">Contratos ganhos — 12 meses</div>' +
+          '<div style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:2px;background:'+cor+';display:inline-block;border-radius:2px"></span><span style="font-size:9px;color:#3a3a5a">Ganhos</span></div>' +
+        '</div>' +
+        '<svg viewBox="0 0 '+W+' '+(H+20)+'" width="100%" style="display:block;overflow:visible">' +
+          '<defs>' +
+            '<linearGradient id="gr_'+safeEmp+'" x1="0" y1="0" x2="0" y2="1">' +
+              '<stop offset="0%" stop-color="'+cor+'" stop-opacity="0.4"/>' +
+              '<stop offset="70%" stop-color="'+cor+'" stop-opacity="0.08"/>' +
+              '<stop offset="100%" stop-color="'+cor+'" stop-opacity="0"/>' +
+            '</linearGradient>' +
+            '<filter id="glow_'+safeEmp+'">' +
+              '<feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>' +
+              '<feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>' +
+            '</filter>' +
+          '</defs>' +
+          gridLines +
+          '<polygon points="'+ptsFill+'" fill="url(#gr_'+safeEmp+')"/>' +
+          '<polyline points="'+pts+'" fill="none" stroke="'+cor+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow_'+safeEmp+')"/>' +
+          pontos +
+          xLabels +
+        '</svg>' +
+      '</div>' +
 
-    </div>`;
+    '</div>';
   });
 
-  const cols = isAdmin ? 'repeat(auto-fill,minmax(320px,1fr))' : '1fr';
+  const cols = isAdmin ? 'repeat(auto-fill,minmax(340px,1fr))' : '1fr';
+  const titulo = isAdmin ? 'Dashboard — Todas as Empresas' : ('Resumo dos Contratos — ' + empAtual);
+  const barStyle = 'width:3px;height:16px;background:#f97316;border-radius:2px;display:inline-block';
   dash.style.display = 'block';
-  dash.innerHTML = `
-    <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px">
-      <span style="width:3px;height:16px;background:#f97316;border-radius:2px;display:inline-block"></span>
-      ${isAdmin ? 'Dashboard — Todas as Empresas' : 'Resumo dos Contratos — '+empAtual}
-    </div>
-    <div style="display:grid;grid-template-columns:${cols};gap:14px">${cards.join('')}</div>
-    <div style="height:1px;background:rgba(255,255,255,.06);margin:20px 0"></div>`;
+  dash.innerHTML =
+    '<div style="font-family:\'Syne\',sans-serif;font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px">' +
+    '<span style="'+barStyle+'"></span>'+titulo+'</div>' +
+    '<div style="display:grid;grid-template-columns:'+cols+';gap:16px">'+cards.join('')+'</div>' +
+    '<div style="height:1px;background:rgba(255,255,255,.06);margin:22px 0"></div>';
 }
+
 async function carregarContratos(){
   document.getElementById('contratos-area').innerHTML = '<div class="spin"></div>';
   try{
@@ -885,7 +924,7 @@ function renderStats(){
 
   rows.forEach(arr=>{
     const st=String(arr[9]||'').trim().toUpperCase();
-    const v=parseMoedaV(arr[7]);
+    const v=calcValorGanhas(arr);
     total++; valTotal+=v;
     // Vencimento efetivo (último aditivo ou original)
     const vd=String(arr[39]||'').trim()||String(arr[32]||'').trim()||String(arr[25]||'').trim()||String(arr[18]||'').trim()||String(arr[12]||'').trim();
