@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portal NH Licitações — Acesso Empresas</title>
+<title>NH Gerenciamento de Contratos</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><circle cx='24' cy='24' r='24' fill='%23b45309'/><circle cx='24' cy='24' r='22' fill='url(%23g)'/><text x='24' y='31' text-anchor='middle' fill='white' font-family='Arial Black,sans-serif' font-weight='900' font-size='15'>NH</text><defs><radialGradient id='g' cx='35%25' cy='30%25' r='70%25'><stop offset='0%25' stop-color='%23fb923c'/><stop offset='100%25' stop-color='%23b45309'/></radialGradient></defs></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 
 <style>
@@ -518,7 +519,13 @@ textarea.mc-input{resize:vertical;min-height:64px}
     <!-- Título + contagem -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
       <div class="section-title" id="section-title-contratos" style="margin-bottom:0">Gerenciamento de Contratos</div>
-      <span id="contratos-contagem" style="font-size:12px;font-weight:600;color:var(--t2)"></span>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span id="contratos-contagem" style="font-size:12px;font-weight:600;color:var(--t2)"></span>
+        <button onclick="abrirModalContrato(null)" style="background:rgba(34,197,94,.15);border:1.5px solid rgba(34,197,94,.4);color:#4ade80;padding:7px 16px;border-radius:9px;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:all .15s" onmouseover="this.style.background='rgba(34,197,94,.25)'" onmouseout="this.style.background='rgba(34,197,94,.15)'">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+          Novo Contrato
+        </button>
+      </div>
     </div>
 
     <!-- Lista de contratos -->
@@ -666,7 +673,7 @@ textarea.mc-input{resize:vertical;min-height:64px}
     <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#f87171;margin-bottom:6px">🗑 Confirmar Exclusão</div>
     <div id="me-desc" style="font-size:13px;color:var(--t2);margin-bottom:20px;line-height:1.6"></div>
     <div class="mc-field" style="margin-bottom:16px">
-      <label class="mc-label">Digite a senha de autorização para excluir</label>
+      <label class="mc-label">Digite sua senha de acesso para confirmar a exclusão</label>
       <input type="password" id="me-senha" class="mc-input" placeholder="Senha de exclusão...">
     </div>
     <div id="me-erro" style="font-size:12px;color:#f87171;margin-bottom:12px;display:none"></div>
@@ -890,9 +897,18 @@ function abrirModalContrato(entry){
     document.getElementById('mc-titulo').textContent = 'Novo Contrato';
     var hoje=new Date();
     document.getElementById('mc-data').value=hoje.toISOString().split('T')[0];
+    // Empresa comum: pré-preencher e travar o campo empresa
+    if(!isAdmin){
+      var empSel = document.getElementById('mc-empresa');
+      if(empSel){ empSel.value = empAtual; empSel.disabled = true; }
+    }
   }
 
-  document.getElementById('mc-erro').style.display='none';
+    // Empresa comum: travar campo empresa
+    if(!isAdmin){
+      var empSel2 = document.getElementById('mc-empresa');
+      if(empSel2) empSel2.disabled = true;
+    }
   mcShowRecomp(1);
   var modal=document.getElementById('modal-contrato');
   modal.style.display='flex';
@@ -901,6 +917,8 @@ function abrirModalContrato(entry){
 }
 
 function fecharModalContrato(){
+  var empSel = document.getElementById('mc-empresa');
+  if(empSel) empSel.disabled = false;
   document.getElementById('modal-contrato').style.display='none';
 }
 
@@ -990,22 +1008,39 @@ function fecharModalExcluir(){
 }
 
 async function confirmarExclusao(){
-  var senha=document.getElementById('me-senha').value;
-  var erroEl=document.getElementById('me-erro');
-  if(senha!==SENHA_EXCLUSAO){
-    erroEl.textContent='Senha incorreta. Verifique e tente novamente.';
-    erroEl.style.display='block'; return;
+  var senha = document.getElementById('me-senha').value;
+  var erroEl = document.getElementById('me-erro');
+
+  // Verifica a senha contra as senhas do portal (config/portal_acessos)
+  var senhaCorreta = false;
+  try{
+    var doc = await db.collection('config').doc('portal_acessos').get();
+    if(doc.exists){
+      var acessos = doc.data() || {};
+      // GROWTH usa senha de exclusão especial ou própria senha
+      if(isAdmin){
+        senhaCorreta = (senha === SENHA_EXCLUSAO) || (acessos['GROWTH'] && senha === acessos['GROWTH']);
+      } else {
+        // Empresa comum: usa sua própria senha de login
+        senhaCorreta = acessos[empAtual] && senha === acessos[empAtual];
+      }
+    }
+  } catch(e){ console.warn(e); }
+
+  if(!senhaCorreta){
+    erroEl.textContent = 'Senha incorreta. Use sua senha de acesso ao portal.';
+    erroEl.style.display = 'block'; return;
   }
-  erroEl.style.display='none';
+  erroEl.style.display = 'none';
   try{
     await db.collection('ganhas').doc(_mcExcluirId).delete();
-    dadosGanhas = dadosGanhas.filter(e=>e.id!==_mcExcluirId);
+    dadosGanhas = dadosGanhas.filter(e => e.id !== _mcExcluirId);
     renderContratos(); renderStats(); gerarDashboard();
     fecharModalExcluir();
-    portalToast('🗑 Contrato excluído.','ok');
+    portalToast('🗑 Contrato excluído.', 'ok');
   } catch(e){
-    erroEl.textContent='Erro ao excluir: '+e.message;
-    erroEl.style.display='block';
+    erroEl.textContent = 'Erro ao excluir: ' + e.message;
+    erroEl.style.display = 'block';
   }
 }
 
@@ -1405,6 +1440,34 @@ async function carregarContratos(){
       if(btnXls) btnXls.style.display = '';
       if(btnNovo) btnNovo.style.display = '';
     }
+
+    // ── Listener em tempo real — atualiza automaticamente quando empresa edita ──
+    if(!window._portalListener){
+      window._portalListener = db.collection('ganhas').onSnapshot(function(snap){
+        var houve = false;
+        snap.docChanges().forEach(function(change){
+          if(change.type === 'modified'){
+            var d = change.doc.data();
+            var arr = d._arr || [];
+            var docId = change.doc.id;
+            var idx = dadosGanhas.findIndex(function(e){ return e.id === docId; });
+            if(idx >= 0){
+              var antigaObs = dadosGanhas[idx].arr[41] || '';
+              var novaObs = arr[41] || '';
+              var editor = d._portalUltimaEdicao || '';
+              // Notifica GROWTH quando empresa (não GROWTH) edita
+              if(isAdmin && editor && editor.indexOf('GROWTH') === -1 && novaObs !== antigaObs){
+                portalToast('📢 ' + editor.split(' em ')[0] + ' atualizou um contrato', 'ok');
+              }
+              dadosGanhas[idx].arr = arr;
+              dadosGanhas[idx]._portalUltimaEdicao = editor;
+              houve = true;
+            }
+          }
+        });
+        if(houve){ renderContratos(); renderStats(); gerarDashboard(); }
+      }, function(err){ console.warn('Listener:', err.message); });
+    }
     // Filtros por empresa para GROWTH
     if(isAdmin){
       const fe = document.getElementById('filtros-empresa-area');
@@ -1667,10 +1730,8 @@ function renderContratos(){
           <button onclick="event.stopPropagation();imprimirContrato('${id}')" title="Imprimir PDF" style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2);color:var(--nh);width:30px;height:30px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;transition:all .15s" onmouseover="this.style.background='rgba(249,115,22,.25)'" onmouseout="this.style.background='rgba(249,115,22,.1)'">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></svg>
           </button>
-          ${isAdmin ? `
           <button onclick="event.stopPropagation();abrirModalContratoById('${id}')" title="Editar contrato completo" style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);color:#60a5fa;width:30px;height:30px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px" onmouseover="this.style.background='rgba(59,130,246,.2)'" onmouseout="this.style.background='rgba(59,130,246,.1)'">✏</button>
           <button onclick="event.stopPropagation();abrirModalExcluir('${id}','${String(arr[3]||'').replace(/'/g,'').replace(/"/g,'').substring(0,40)}')" title="Excluir contrato" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#f87171;width:30px;height:30px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px" onmouseover="this.style.background='rgba(239,68,68,.18)'" onmouseout="this.style.background='rgba(239,68,68,.08)'">🗑</button>
-          ` : ''}
           <span style="color:var(--t3);font-size:18px;transition:transform .2s" id="arrow-${id}">›</span>
         </div>
       </div>
