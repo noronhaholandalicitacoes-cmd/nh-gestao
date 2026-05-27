@@ -1124,6 +1124,19 @@ function calcValorGanhas(arr){
   return v > 0 ? v : parseMoedaV(arr[7]);
 }
 
+// Formata valor numérico como R$ 1.234,56
+function fmtMoedaP(v){
+  if(typeof v === 'string') v = parseMoedaV(v);
+  if(!v || isNaN(v) || v === 0) return '';
+  return 'R$ ' + v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+// Retorna valor formatado de arr[7] ou campo de valor qualquer
+function fmtValPortal(s){
+  var n = parseMoedaV(s);
+  if(n > 0) return fmtMoedaP(n);
+  return String(s||'').trim();
+}
+
 function gerarDashboard(){
   const dash = document.getElementById('dashboard-area');
   if(!dash) return;
@@ -1854,7 +1867,7 @@ function renderBody(id, arr, entry){
     '<div class="ccard-meta">' +
     (arr[5]?'<div class="cmeta"><span class="cmeta-lbl">Local</span><span class="cmeta-val">'+arr[5]+'</span></div>':'') +
     (arr[6]?'<div class="cmeta"><span class="cmeta-lbl">Munic\xedpio</span><span class="cmeta-val">'+arr[6]+'</span></div>':'') +
-    (arr[7]?'<div class="cmeta"><span class="cmeta-lbl">Valor</span><span class="cmeta-val hl">'+arr[7]+'</span></div>':'') +
+    (arr[7]?'<div class="cmeta"><span class="cmeta-lbl">Valor</span><span class="cmeta-val hl">'+fmtValPortal(arr[7])+'</span></div>':'') +
     (arr[8]?'<div class="cmeta"><span class="cmeta-lbl">Contrato</span><span class="cmeta-val">'+arr[8]+'</span></div>':'') +
     (arr[10]?'<div class="cmeta"><span class="cmeta-lbl">Vig\xeancia</span><span class="cmeta-val">'+arr[10]+' meses</span></div>':'') +
     (arr[11]?'<div class="cmeta"><span class="cmeta-lbl">Dt. Assinatura</span><span class="cmeta-val">'+arr[11]+'</span></div>':'') +
@@ -1964,7 +1977,7 @@ function gerarHTMLImpressao(entries, opts){
       ${opts.basico ? `<div class="c-grid">
         ${arr[5]?`<div class="c-field"><div class="c-lbl" style="color:${borderCor}">Local</div><div class="c-val">${arr[5]}</div></div>`:''}
         ${arr[6]?`<div class="c-field"><div class="c-lbl" style="color:${borderCor}">Município</div><div class="c-val">${arr[6]}</div></div>`:''}
-        ${arr[7]?`<div class="c-field"><div class="c-lbl" style="color:${borderCor}">Valor</div><div class="c-val">${arr[7]}</div></div>`:''}
+        ${arr[7]?`<div class="c-field"><div class="c-lbl" style="color:${borderCor}">Valor</div><div class="c-val">${fmtValPortal(arr[7])}</div></div>`:''}
         ${arr[8]?`<div class="c-field"><div class="c-lbl" style="color:${borderCor}">Contrato</div><div class="c-val">${arr[8]}</div></div>`:''}
         ${arr[10]?`<div class="c-field"><div class="c-lbl" style="color:${borderCor}">Vigência</div><div class="c-val">${arr[10]} meses</div></div>`:''}
         ${arr[11]?`<div class="c-field"><div class="c-lbl" style="color:${borderCor}">Dt. Assinatura</div><div class="c-val">${arr[11]}</div></div>`:''}
@@ -1990,7 +2003,7 @@ function gerarHTMLImpressao(entries, opts){
               ${ndv?`<div><div style="font-size:8px;color:#9ca3af;font-weight:700;text-transform:uppercase">Nova Data Venc.</div><div style="font-size:10px;color:#374151">${ndv}</div></div>`:''}
               ${vigM?`<div><div style="font-size:8px;color:#9ca3af;font-weight:700;text-transform:uppercase">Vigência (m)</div><div style="font-size:10px;color:#374151">${vigM} meses</div></div>`:''}
               ${vencR?`<div><div style="font-size:8px;color:#9ca3af;font-weight:700;text-transform:uppercase">Venc. Recomp.</div><div style="font-size:10px;font-weight:700;color:#ea580c">${vencR}</div></div>`:''}
-              ${valF?`<div style="grid-column:1/-1"><div style="font-size:8px;color:#9ca3af;font-weight:700;text-transform:uppercase">Valor Final</div><div style="font-size:11px;font-weight:800;color:#15803d">${valF}</div></div>`:''}
+              ${valF?`<div style="grid-column:1/-1"><div style="font-size:8px;color:#9ca3af;font-weight:700;text-transform:uppercase">Valor Final</div><div style="font-size:11px;font-weight:800;color:#15803d">${fmtValPortal(valF)}</div></div>`:''}
             </div>
           </div>`;
         }).filter(Boolean).join('');
