@@ -2132,8 +2132,7 @@ function imprimirContrato(id){
   abrirModalPrint();
 }
 
-function abrirModalPrint(lista){
-  _printLista = lista || null; // null = usar lista filtrada atual
+function abrirModalPrint(){
   var modal = document.getElementById('modal-print');
   modal.style.display = 'flex';
   modal.onclick = function(e){ if(e.target===modal) fecharModalPrint(); };
@@ -2141,11 +2140,12 @@ function abrirModalPrint(lista){
 
 function fecharModalPrint(){
   document.getElementById('modal-print').style.display = 'none';
-  _printLista = null;
 }
 
 function confirmarImpressao(){
-  var lista = _printLista || getListaFiltrada();
+  // Captura a lista ANTES de qualquer outra operação
+  var lista = _printLista && _printLista.length ? _printLista : getListaFiltrada();
+  
   if(!lista.length){ alert('Nenhum contrato para imprimir.'); fecharModalPrint(); return; }
   var opts = {
     basico:  document.getElementById('popt-basico').checked,
@@ -2155,7 +2155,9 @@ function confirmarImpressao(){
     link:    document.getElementById('popt-link').checked,
     log:     document.getElementById('popt-log').checked,
   };
+  // Fecha modal e limpa DEPOIS de capturar lista e opts
   fecharModalPrint();
+  _printLista = null;
   var w = window.open('','_blank','width=920,height=700');
   if(!w){ portalToast('Permita pop-ups para imprimir.','err'); return; }
   w.document.write(gerarHTMLImpressao(lista, opts));
@@ -2195,7 +2197,7 @@ function getListaFiltrada(){
 }
 
 function imprimirTodos(){
-  _printLista = null; // usa lista filtrada atual
+  _printLista = null;
   abrirModalPrint();
 }
 function toggleCard(id){
