@@ -470,7 +470,6 @@ textarea.mc-input{resize:vertical;min-height:64px}
       <div class="topbar-emp-name" id="emp-nome-top"></div>
     </div>
     <button class="topbar-logout" id="btn-gestao-acessos" onclick="abrirGestaoAcessos()" style="display:none;background:rgba(249,115,22,.12);border-color:rgba(249,115,22,.3);color:#f97316;margin-right:6px">🔑 Acessos</button>
-    <button class="topbar-logout" id="btn-novo-contrato" onclick="abrirModalContrato(null)" style="display:none;background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.3);color:#4ade80;margin-right:6px">+ Novo Contrato</button>
     <button class="topbar-logout" onclick="fazerLogout()">Sair</button>
   </div>
 
@@ -784,9 +783,12 @@ async function fazerLogin(){
   // Carregar senhas atualizadas do Firestore antes de validar
   try{
     const doc = await db.collection('config').doc('portal_acessos').get();
-    if(doc.exists && doc.data().senhas){
+    if(doc.exists && doc.data()){
+      const d = doc.data();
+      // Suporta dois formatos: {senhas:{...}} (legado) e {VISE:'...', SOS:'...'} (novo)
+      const mapa = d.senhas || d;
       Object.keys(SENHAS).forEach(k => delete SENHAS[k]);
-      Object.assign(SENHAS, doc.data().senhas);
+      Object.assign(SENHAS, mapa);
     }
   } catch(e){ /* usa defaults locais se offline */ }
 
@@ -1438,10 +1440,8 @@ async function carregarContratos(){
     if(isAdmin){
       const btnExp = document.getElementById('btn-expandir-tudo');
       const btnXls = document.getElementById('btn-exportar-excel');
-      const btnNovo = document.getElementById('btn-novo-contrato');
       if(btnExp) btnExp.style.display = '';
       if(btnXls) btnXls.style.display = '';
-      if(btnNovo) btnNovo.style.display = '';
     }
 
     // ── Listener em tempo real — atualiza automaticamente quando empresa edita ──
@@ -2019,6 +2019,15 @@ function exportarExcelPortal(){
   XLSX.writeFile(wb, `NH_Contratos_${empAtual||'GROWTH'}_${data}.xlsx`);
 }
 
+function imprimirContrato(id){
+  var entry = dadosGanhas.find(function(e){ return e.id === id; });
+  if(!entry){ portalToast('Contrato não encontrado.','err'); return; }
+  var w = window.open('','_blank','width=920,height=700');
+  if(!w){ portalToast('Permita pop-ups para imprimir.','err'); return; }
+  w.document.write(gerarHTMLImpressao([entry]));
+  w.document.close();
+}
+
 function imprimirTodos(){
   // Imprimir contratos na ordem/filtro atual
   const hoje = new Date(); hoje.setHours(0,0,0,0);
@@ -2130,14 +2139,13 @@ async function carregarAcessosFirestore(){
     const doc = await db.collection('config').doc('portal_acessos').get();
     if(doc.exists){
       const data = doc.data();
-      if(data.senhas){
-        // Mescla com os defaults — Firestore é a fonte da verdade
-        Object.keys(SENHAS).forEach(k => delete SENHAS[k]);
-        Object.assign(SENHAS, data.senhas);
-      }
+      // Suporta {senhas:{...}} (legado) e {VISE:'...', SOS:'...'} (novo formato do sistema NH)
+      const mapa = data.senhas || data;
+      Object.keys(SENHAS).forEach(k => delete SENHAS[k]);
+      Object.assign(SENHAS, mapa);
     } else {
-      // Primeira vez: salvar os defaults no Firestore
-      await db.collection('config').doc('portal_acessos').set({ senhas: {...SENHAS} });
+      // Primeira vez: salvar os defaults no Firestore no novo formato
+      await db.collection('config').doc('portal_acessos').set({...SENHAS});
     }
     acessosCarregados = true;
   } catch(e){
@@ -2146,7 +2154,8 @@ async function carregarAcessosFirestore(){
 }
 
 async function salvarAcessosFirestore(){
-  await db.collection('config').doc('portal_acessos').set({ senhas: {...SENHAS} });
+  // Salva no novo formato direto (sem o wrapper 'senhas')
+  await db.collection('config').doc('portal_acessos').set({...SENHAS});
 }
 
 function abrirGestaoAcessos(){
