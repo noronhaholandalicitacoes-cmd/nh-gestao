@@ -673,8 +673,8 @@ textarea.mc-input{resize:vertical;min-height:64px}
     <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#f87171;margin-bottom:6px">🗑 Confirmar Exclusão</div>
     <div id="me-desc" style="font-size:13px;color:var(--t2);margin-bottom:20px;line-height:1.6"></div>
     <div class="mc-field" style="margin-bottom:16px">
-      <label class="mc-label">Digite sua senha de acesso para confirmar a exclusão</label>
-      <input type="password" id="me-senha" class="mc-input" placeholder="Senha de exclusão...">
+      <label class="mc-label">Senha de exclusão (definida no Sistema NH)</label>
+      <input type="password" id="me-senha" class="mc-input" placeholder="Digite a senha de exclusão...">
     </div>
     <div id="me-erro" style="font-size:12px;color:#f87171;margin-bottom:12px;display:none"></div>
     <div style="display:flex;gap:10px;justify-content:flex-end">
@@ -821,7 +821,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
 });
 
 // ── MODAL CONTRATO (GROWTH) ──────────────────────────────────────
-const SENHA_EXCLUSAO = 'growth@del2026'; // senha para excluir
 let _mcEditId = null; // null = novo, string = id do doc a editar
 let _mcExcluirId = null;
 
@@ -989,8 +988,10 @@ async function mcSalvar(){
 }
 
 // ── EXCLUSÃO COM SENHA ───────────────────────────────────────────
+var SENHA_EXCLUSAO = 'growth@del2026'; // fallback local — substituído pelo Firebase
+
 function abrirModalExcluir(id, titulo){
-  if(!isAdmin){ portalToast('Apenas o GROWTH pode excluir.','err'); return; }
+  if(!isAdmin){ portalToast('Apenas o GROWTH pode excluir contratos.','err'); return; }
   _mcExcluirId = id;
   document.getElementById('me-desc').textContent =
     'Você está prestes a excluir permanentemente o contrato:\n"'+(titulo||id)+'"';
@@ -1008,30 +1009,32 @@ function fecharModalExcluir(){
 }
 
 async function confirmarExclusao(){
-  var senha = document.getElementById('me-senha').value;
+  var senha = document.getElementById('me-senha').value.trim();
   var erroEl = document.getElementById('me-erro');
+  erroEl.style.display='none';
 
-  // Verifica a senha contra as senhas do portal (config/portal_acessos)
-  var senhaCorreta = false;
+  if(!senha){ erroEl.textContent='Digite a senha de exclusão.'; erroEl.style.display='block'; return; }
+
+  // Busca senha de exclusão no Firebase (config/senha_exclusao)
+  var senhaValida = false;
   try{
-    var doc = await db.collection('config').doc('portal_acessos').get();
-    if(doc.exists){
-      var acessos = doc.data() || {};
-      // GROWTH usa senha de exclusão especial ou própria senha
-      if(isAdmin){
-        senhaCorreta = (senha === SENHA_EXCLUSAO) || (acessos['GROWTH'] && senha === acessos['GROWTH']);
-      } else {
-        // Empresa comum: usa sua própria senha de login
-        senhaCorreta = acessos[empAtual] && senha === acessos[empAtual];
-      }
+    var docSnap = await db.collection('config').doc('senha_exclusao').get();
+    if(docSnap.exists && docSnap.data().senha){
+      senhaValida = (senha === docSnap.data().senha);
+    } else {
+      // Fallback: senha hardcoded (será substituída ao alterar pelo sistema NH)
+      senhaValida = (senha === SENHA_EXCLUSAO);
     }
-  } catch(e){ console.warn(e); }
-
-  if(!senhaCorreta){
-    erroEl.textContent = 'Senha incorreta. Use sua senha de acesso ao portal.';
-    erroEl.style.display = 'block'; return;
+  } catch(e){
+    // Em caso de erro de leitura, usa fallback
+    senhaValida = (senha === SENHA_EXCLUSAO);
   }
-  erroEl.style.display = 'none';
+
+  if(!senhaValida){
+    erroEl.textContent='Senha incorreta. Altere a senha de exclusão no Sistema NH (Configurações → Senha de Exclusão).';
+    erroEl.style.display='block'; return;
+  }
+
   try{
     await db.collection('ganhas').doc(_mcExcluirId).delete();
     dadosGanhas = dadosGanhas.filter(e => e.id !== _mcExcluirId);
@@ -1731,7 +1734,7 @@ function renderContratos(){
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></svg>
           </button>
           <button onclick="event.stopPropagation();abrirModalContratoById('${id}')" title="Editar contrato completo" style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);color:#60a5fa;width:30px;height:30px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px" onmouseover="this.style.background='rgba(59,130,246,.2)'" onmouseout="this.style.background='rgba(59,130,246,.1)'">✏</button>
-          <button onclick="event.stopPropagation();abrirModalExcluir('${id}','${String(arr[3]||'').replace(/'/g,'').replace(/"/g,'').substring(0,40)}')" title="Excluir contrato" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#f87171;width:30px;height:30px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px" onmouseover="this.style.background='rgba(239,68,68,.18)'" onmouseout="this.style.background='rgba(239,68,68,.08)'">🗑</button>
+          ${isAdmin ? `<button onclick="event.stopPropagation();abrirModalExcluir('${id}','${String(arr[3]||'').replace(/'/g,'').replace(/"/g,'').substring(0,40)}')" title="Excluir contrato (apenas GROWTH)" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#f87171;width:30px;height:30px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px" onmouseover="this.style.background='rgba(239,68,68,.18)'" onmouseout="this.style.background='rgba(239,68,68,.08)'">🗑</button>` : ''}
           <span style="color:var(--t3);font-size:18px;transition:transform .2s" id="arrow-${id}">›</span>
         </div>
       </div>
