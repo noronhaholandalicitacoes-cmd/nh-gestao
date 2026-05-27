@@ -428,16 +428,22 @@ textarea.mc-input{resize:vertical;min-height:64px}
 
     <!-- Formulário -->
     <div class="login-form">
-      <div class="login-field">
-        <label>Empresa</label>
-        <input type="text" id="inp-empresa" placeholder="Ex: VISE" autocomplete="off" autocapitalize="characters">
-      </div>
-      <div class="login-field">
-        <label>Senha</label>
-        <input type="password" id="inp-senha" placeholder="••••••••" autocomplete="current-password">
-      </div>
-      <button class="login-btn" id="btn-login" onclick="fazerLogin()">Entrar no Portal</button>
-      <div class="login-err" id="login-err">Empresa ou senha incorretos.</div>
+      <form autocomplete="off" onsubmit="return false" style="display:contents">
+        <div class="login-field">
+          <label>Empresa</label>
+          <input type="text" id="inp-empresa" placeholder="Ex: VISE"
+            autocomplete="off" autocapitalize="characters"
+            name="portal_empresa_nh" readonly onfocus="this.removeAttribute('readonly')">
+        </div>
+        <div class="login-field">
+          <label>Senha</label>
+          <input type="password" id="inp-senha" placeholder="••••••••"
+            autocomplete="new-password"
+            name="portal_senha_nh" readonly onfocus="this.removeAttribute('readonly')">
+        </div>
+        <button class="login-btn" id="btn-login" onclick="fazerLogin()">Entrar no Portal</button>
+        <div class="login-err" id="login-err">Empresa ou senha incorretos.</div>
+      </form>
     </div>
   </div>
 </div>
@@ -497,7 +503,7 @@ textarea.mc-input{resize:vertical;min-height:64px}
       <button id="btn-exportar-excel" onclick="exportarExcelPortal()" style="display:none;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:#22c55e;padding:7px 12px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">
         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Excel
       </button>
-      <button class="btn-imprimir-todos" onclick="imprimirTodos()">
+      <button class="btn-imprimir-todos" onclick="abrirModalPrint()">
         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
         Imprimir
       </button>
@@ -682,6 +688,61 @@ textarea.mc-input{resize:vertical;min-height:64px}
   </div>
 </div> -->
 
+
+<!-- ── MODAL OPÇÕES DE IMPRESSÃO ── -->
+<div id="modal-print" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:800;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#111118;border:1px solid #2a2a38;border-radius:16px;width:100%;max-width:480px;box-shadow:0 24px 80px rgba(0,0,0,.9)">
+    <div style="padding:20px 24px 16px;border-bottom:1px solid #1e1e28;display:flex;align-items:center;justify-content:space-between">
+      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#f0f0f8">🖨 Opções de Impressão</div>
+      <button onclick="fecharModalPrint()" style="background:rgba(255,255,255,.06);border:1px solid #2a2a38;color:#9898b0;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px">✕</button>
+    </div>
+    <div style="padding:20px 24px">
+      <div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px">Selecione o que incluir no relatório:</div>
+
+      <!-- Checkboxes de seções -->
+      <div style="display:flex;flex-direction:column;gap:8px" id="print-opcoes">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 12px;background:var(--s2);border:1px solid var(--b1);border-radius:8px">
+          <input type="checkbox" id="popt-basico" checked style="width:15px;height:15px;accent-color:var(--nh);cursor:pointer">
+          <span style="font-size:13px;color:var(--t1);font-weight:600">Dados básicos do contrato</span>
+          <span style="font-size:11px;color:var(--t3);margin-left:auto">Nº, Status, Local, Valor, Datas</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 12px;background:var(--s2);border:1px solid var(--b1);border-radius:8px">
+          <input type="checkbox" id="popt-objeto" checked style="width:15px;height:15px;accent-color:var(--nh);cursor:pointer">
+          <span style="font-size:13px;color:var(--t1);font-weight:600">Objeto do contrato</span>
+          <span style="font-size:11px;color:var(--t3);margin-left:auto">Descrição completa</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 12px;background:var(--s2);border:1px solid var(--b1);border-radius:8px">
+          <input type="checkbox" id="popt-obs" checked style="width:15px;height:15px;accent-color:var(--nh);cursor:pointer">
+          <span style="font-size:13px;color:var(--t1);font-weight:600">Observações</span>
+          <span style="font-size:11px;color:var(--t3);margin-left:auto">Campo de anotações</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 12px;background:var(--s2);border:1px solid rgba(249,115,22,.3);border-radius:8px">
+          <input type="checkbox" id="popt-recomp" checked style="width:15px;height:15px;accent-color:#f97316;cursor:pointer">
+          <span style="font-size:13px;color:var(--nh);font-weight:600">Recomposições / Aditivos</span>
+          <span style="font-size:11px;color:var(--t3);margin-left:auto">Todas as 4 recomposições</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 12px;background:var(--s2);border:1px solid var(--b1);border-radius:8px">
+          <input type="checkbox" id="popt-link" style="width:15px;height:15px;accent-color:var(--nh);cursor:pointer">
+          <span style="font-size:13px;color:var(--t1);font-weight:600">Link da pasta</span>
+          <span style="font-size:11px;color:var(--t3);margin-left:auto">URL do Google Drive</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 12px;background:var(--s2);border:1px solid var(--b1);border-radius:8px">
+          <input type="checkbox" id="popt-log" style="width:15px;height:15px;accent-color:var(--nh);cursor:pointer">
+          <span style="font-size:13px;color:var(--t1);font-weight:600">Última edição</span>
+          <span style="font-size:11px;color:var(--t3);margin-left:auto">Quem e quando editou</span>
+        </label>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:18px;justify-content:flex-end">
+        <button onclick="fecharModalPrint()" style="background:var(--s2);border:1px solid var(--b1);color:var(--t2);padding:9px 18px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer">Cancelar</button>
+        <button onclick="confirmarImpressao()" style="background:linear-gradient(90deg,#f97316,#dc2626);color:#fff;border:none;padding:9px 22px;border-radius:8px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer">
+          <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+          Imprimir
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js"></script>
@@ -1828,7 +1889,9 @@ function renderBody(id, arr, entry){
 let abertos = {};
 
 // ─── IMPRIMIR PDF ────────────────────────────────────────────────
-function gerarHTMLImpressao(entries){
+function gerarHTMLImpressao(entries, opts){
+  // Defaults: tudo ativo se opts não for passado
+  if(!opts) opts = {basico:true,objeto:true,obs:true,recomp:true,link:false,log:false};
   const titulo = isAdmin ? 'GROWTH — Todas as Empresas' : empAtual;
   const cor = isAdmin ? '#8b5cf6' : (CORES[empAtual] || '#f97316');
   const hoje = new Date().toLocaleDateString('pt-BR');
@@ -1898,7 +1961,7 @@ function gerarHTMLImpressao(entries){
         <span class="badge-status ${badgeCls}">${status}</span>
       </div>
       ${vencAlert}
-      <div class="c-grid">
+      ${opts.basico ? `<div class="c-grid">
         ${arr[5]?`<div class="c-field"><div class="c-lbl" style="color:${borderCor}">Local</div><div class="c-val">${arr[5]}</div></div>`:''}
         ${arr[6]?`<div class="c-field"><div class="c-lbl" style="color:${borderCor}">Município</div><div class="c-val">${arr[6]}</div></div>`:''}
         ${arr[7]?`<div class="c-field"><div class="c-lbl" style="color:${borderCor}">Valor</div><div class="c-val">${arr[7]}</div></div>`:''}
@@ -1907,11 +1970,34 @@ function gerarHTMLImpressao(entries){
         ${arr[11]?`<div class="c-field"><div class="c-lbl" style="color:${borderCor}">Dt. Assinatura</div><div class="c-val">${arr[11]}</div></div>`:''}
         ${venc?`<div class="c-field"><div class="c-lbl" style="color:${borderCor}">Vencimento</div><div class="c-val">${venc}</div></div>`:''}
         ${arr[13]==='SIM'?`<div class="c-field"><div class="c-lbl" style="color:#f97316">Recomp.</div><div class="c-val" style="color:#f97316;font-weight:700">Sim</div></div>`:''}
-        ${linkPasta?`<div class="c-field"><div class="c-lbl" style="color:${borderCor}">Pasta</div><div class="c-val" style="word-break:break-all;font-size:9px">${linkPasta}</div></div>`:''}
-      </div>
-      ${arr[4]?`<div style="font-size:10px;color:#6b7280;margin-bottom:6px;line-height:1.5">${arr[4]}</div>`:''}
-      ${obs?`<div class="c-obs"><div class="c-obs-lbl">Observações</div>${obs}</div>`:''}
-      ${_portalUltimaEdicao?`<div class="log-edit">✎ Última edição: ${_portalUltimaEdicao}</div>`:''}
+      </div>` : ''}
+      ${opts.link && linkPasta ? `<div style="margin:6px 0 8px"><span style="font-size:9px;font-weight:700;color:${borderCor}">PASTA: </span><span style="font-size:9px;color:#374151;word-break:break-all">${linkPasta}</span></div>` : ''}
+      ${opts.objeto && arr[4] ? `<div style="font-size:10px;color:#6b7280;margin-bottom:8px;line-height:1.5;padding:6px 8px;background:#f9fafb;border-radius:4px"><strong style="color:#374151">Objeto: </strong>${arr[4]}</div>` : ''}
+      ${opts.recomp ? (() => {
+        const rGrupos = [[13,14,15,16,17,18,19],[20,21,22,23,24,25,26],[27,28,29,30,31,32,33],[34,35,36,37,38,39,40]];
+        const rHtml = rGrupos.map((idx,i) => {
+          const sim=String(arr[idx[0]]||'').trim(), tipo=String(arr[idx[1]]||'').trim(),
+                stR=String(arr[idx[2]]||'').trim(), ndv=String(arr[idx[3]]||'').trim(),
+                vigM=String(arr[idx[4]]||'').trim(), vencR=String(arr[idx[5]]||'').trim(),
+                valF=String(arr[idx[6]]||'').trim();
+          if(!sim&&!tipo&&!stR&&!ndv&&!valF) return '';
+          return `<div style="border:1px solid #e5e7eb;border-left:3px solid #f97316;border-radius:6px;padding:8px 10px;margin-bottom:6px;background:#fffbf5">
+            <div style="font-size:9px;font-weight:800;color:#f97316;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">Recomposição ${i+1}</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+              ${sim?`<div><div style="font-size:8px;color:#9ca3af;font-weight:700;text-transform:uppercase">Recomp?</div><div style="font-size:10px;font-weight:700;color:#f97316">${sim}</div></div>`:''}
+              ${tipo?`<div><div style="font-size:8px;color:#9ca3af;font-weight:700;text-transform:uppercase">Tipo</div><div style="font-size:10px;color:#374151">${tipo}</div></div>`:''}
+              ${stR?`<div><div style="font-size:8px;color:#9ca3af;font-weight:700;text-transform:uppercase">Status</div><div style="font-size:10px;font-weight:600;color:#1d4ed8">${stR}</div></div>`:''}
+              ${ndv?`<div><div style="font-size:8px;color:#9ca3af;font-weight:700;text-transform:uppercase">Nova Data Venc.</div><div style="font-size:10px;color:#374151">${ndv}</div></div>`:''}
+              ${vigM?`<div><div style="font-size:8px;color:#9ca3af;font-weight:700;text-transform:uppercase">Vigência (m)</div><div style="font-size:10px;color:#374151">${vigM} meses</div></div>`:''}
+              ${vencR?`<div><div style="font-size:8px;color:#9ca3af;font-weight:700;text-transform:uppercase">Venc. Recomp.</div><div style="font-size:10px;font-weight:700;color:#ea580c">${vencR}</div></div>`:''}
+              ${valF?`<div style="grid-column:1/-1"><div style="font-size:8px;color:#9ca3af;font-weight:700;text-transform:uppercase">Valor Final</div><div style="font-size:11px;font-weight:800;color:#15803d">${valF}</div></div>`:''}
+            </div>
+          </div>`;
+        }).filter(Boolean).join('');
+        return rHtml ? `<div style="margin-top:8px"><div style="font-size:9px;font-weight:700;color:#f97316;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">Recomposições / Aditivos</div>${rHtml}</div>` : '';
+      })() : ''}
+      ${opts.obs && obs ? `<div class="c-obs"><div class="c-obs-lbl">Observações</div>${obs}</div>` : ''}
+      ${opts.log && _portalUltimaEdicao ? `<div class="log-edit">✎ Última edição: ${_portalUltimaEdicao}</div>` : ''}
     </div>`;
   });
 
@@ -2042,11 +2128,41 @@ function exportarExcelPortal(){
 function imprimirContrato(id){
   var entry = dadosGanhas.find(function(e){ return e.id === id; });
   if(!entry){ portalToast('Contrato não encontrado.','err'); return; }
+  _printLista = [entry];
+  abrirModalPrint();
+}
+
+function abrirModalPrint(lista){
+  _printLista = lista || null; // null = usar lista filtrada atual
+  var modal = document.getElementById('modal-print');
+  modal.style.display = 'flex';
+  modal.onclick = function(e){ if(e.target===modal) fecharModalPrint(); };
+}
+
+function fecharModalPrint(){
+  document.getElementById('modal-print').style.display = 'none';
+  _printLista = null;
+}
+
+function confirmarImpressao(){
+  var lista = _printLista || getListaFiltrada();
+  if(!lista.length){ alert('Nenhum contrato para imprimir.'); fecharModalPrint(); return; }
+  var opts = {
+    basico:  document.getElementById('popt-basico').checked,
+    objeto:  document.getElementById('popt-objeto').checked,
+    obs:     document.getElementById('popt-obs').checked,
+    recomp:  document.getElementById('popt-recomp').checked,
+    link:    document.getElementById('popt-link').checked,
+    log:     document.getElementById('popt-log').checked,
+  };
+  fecharModalPrint();
   var w = window.open('','_blank','width=920,height=700');
   if(!w){ portalToast('Permita pop-ups para imprimir.','err'); return; }
-  w.document.write(gerarHTMLImpressao([entry]));
+  w.document.write(gerarHTMLImpressao(lista, opts));
   w.document.close();
 }
+
+var _printLista = null;
 
 // Retorna a lista com todos os filtros ativos aplicados (igual ao renderContratos)
 function getListaFiltrada(){
@@ -2079,12 +2195,8 @@ function getListaFiltrada(){
 }
 
 function imprimirTodos(){
-  const lista = getListaFiltrada();
-  if(!lista.length){ alert('Nenhum contrato para imprimir.'); return; }
-  const w = window.open('','_blank','width=920,height=700');
-  if(!w){ portalToast('Permita pop-ups para imprimir.','err'); return; }
-  w.document.write(gerarHTMLImpressao(lista));
-  w.document.close();
+  _printLista = null; // usa lista filtrada atual
+  abrirModalPrint();
 }
 function toggleCard(id){
   const body = document.getElementById('body-'+id);
