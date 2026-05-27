@@ -1157,17 +1157,33 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
     <!-- ATESTADOS -->
     <div class="page" id="page-atestados">
       <div class="stats" id="st-atestados"></div>
+
+      <!-- Barra de alerta para atestados pendentes -->
+      <div id="at-alerta-bar" style="display:none;margin-bottom:14px;padding:12px 16px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:10px;display:none;align-items:center;gap:10px">
+        <svg width="16" height="16" fill="none" stroke="#f87171" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        <span id="at-alerta-txt" style="font-size:13px;color:#f87171;font-weight:600"></span>
+        <button onclick="setStatusFilterAtestados('pendente')" style="margin-left:auto;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#f87171;padding:4px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">Ver pendentes</button>
+      </div>
+
       <div class="toolbar">
         <button class="btn btn-nh" onclick="openM('atestados')">
           <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
           Novo Atestado
         </button>
-        <div class="search"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><input placeholder="Buscar..." id="q-atestados" oninput="doQ('atestados')"></div>
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
-        <div class="pills" id="pills-atestados" style="margin-bottom:0;flex:1"></div>
+        <button class="btn" style="background:rgba(167,139,250,.1);border-color:rgba(167,139,250,.3);color:#a78bfa" onclick="migrarAtestadosPendentes()" title="Importar contratos finalizados/vencidos sem atestado">
+          <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+          Sincronizar de Ganhas
+        </button>
+        <div class="search"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><input placeholder="Buscar atestado, licitação, emitente..." id="q-atestados" oninput="doQ('atestados')"></div>
         <button class="btn-toggle-all" id="tga-atestados" onclick="toggleAllCards('atestados')">&#8964; Expandir tudo</button>
       </div>
+
+      <!-- Pills de empresa -->
+      <div class="pills" id="pills-atestados"></div>
+
+      <!-- Pills de status específicos de atestados -->
+      <div class="pills" id="status-pills-atestados" style="margin-bottom:16px"></div>
+
       <div id="tbl-atestados" class="tbl-wrap"><div class="load"><div class="spin"></div>Carregando...</div></div>
       <div class="pag" id="pag-atestados"></div>
     </div>
@@ -1673,34 +1689,49 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
 
 <!-- ATESTADOS -->
 <div class="overlay" id="mo-atestados">
-<div class="modal">
-  <div class="mhd"><div class="mhd-nh"></div><div class="mhd-info"><h2 id="mht-atestados">Novo Atestado</h2><p>Controle de documentos técnicos</p></div><button class="mx" onclick="closeM('atestados')">×</button></div>
+<div class="modal" style="max-width:680px">
+  <div class="mhd"><div class="mhd-nh"></div><div class="mhd-info"><h2 id="mht-atestados">Novo Atestado</h2><p>Controle de atestados de capacidade técnica</p></div><button class="mx" onclick="closeM('atestados')">×</button></div>
   <div class="mbd"><div class="fg2">
-    <div class="fsec">Identificação</div>
+    <!-- Origem (preenchido automaticamente se vier de Ganhas) -->
+    <div class="fsec" style="display:flex;align-items:center;justify-content:space-between">
+      <span>Identificação</span>
+      <span id="at-origem-badge" style="display:none;font-size:10px;background:rgba(167,139,250,.15);color:#a78bfa;border:1px solid rgba(167,139,250,.3);padding:2px 8px;border-radius:10px;font-weight:700">📋 Migrado de Licitações Ganhas</span>
+    </div>
+    <input type="hidden" id="at-ganhas-id">
     <div class="fg"><label>Data *</label><input type="date" id="at-data"></div>
-    <div class="fg"><label>Empresa *</label><select id="at-emp"><option value="">Selecione...</option><option>VISE</option><option>SOS</option><option>SAUTEC</option><option>SOS FILIAL</option><option>ONLAV</option><option>ENGEMED</option><option>POTIGUAR</option></select></div>
-    <div class="fg fc"><label>Licitação</label><input type="text" id="at-licit"></div>
-    <div class="fg fc"><label>Objeto</label><textarea id="at-obj"></textarea></div>
+    <div class="fg"><label>Empresa *</label><select id="at-emp"><option value="">Selecione...</option></select></div>
+    <div class="fg fc"><label>Licitação *</label><input type="text" id="at-licit"></div>
+    <div class="fg fc"><label>Objeto</label><textarea id="at-obj" rows="2"></textarea></div>
     <div class="fg"><label>Local de Execução</label><input type="text" id="at-local"></div>
     <div class="fg"><label>Município / Estado</label><input type="text" id="at-mun"></div>
+
     <div class="fsec">Contrato</div>
-    <div class="fg"><label>Contrato</label><input type="text" id="at-cont"></div>
+    <div class="fg"><label>Nº do Contrato</label><input type="text" id="at-cont"></div>
     <div class="fg"><label>Data Assinatura</label><input type="date" id="at-dtcont"></div>
-    <div class="fg fc"><label>Vigência Até</label><input type="date" id="at-vig"></div>
-    <div class="fsec">Documentos</div>
+    <div class="fg"><label>Vigência Até (data fim)</label><input type="date" id="at-vig"></div>
+    <div class="fg"><label>Valor do Contrato</label><input type="text" id="at-valor" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
+
+    <div class="fsec">Atestado de Capacidade Técnica</div>
     <div class="fg"><label>Atestado Requerido?</label><select id="at-req"><option value="">-</option><option>SIM</option><option>NÃO</option></select></div>
     <div class="fg"><label>Atestado Recebido?</label><select id="at-receb"><option value="">-</option><option>SIM</option><option>NÃO</option></select></div>
     <div class="fg"><label>Data Recebimento</label><input type="date" id="at-dtreceb"></div>
-    <div class="fg"><label>Emitente</label><input type="text" id="at-emit"></div>
-    <div class="fg"><label>CAT Nº</label><input type="text" id="at-cat"></div>
+    <div class="fg"><label>Emitente (órgão/empresa)</label><input type="text" id="at-emit" placeholder="Nome do órgão ou empresa emitente"></div>
+
+    <div class="fsec">CAT — Certidão de Acervo Técnico</div>
+    <div class="fg"><label>CAT Nº</label><input type="text" id="at-cat" placeholder="Ex: 00000/2026"></div>
     <div class="fg"><label>CAT Situação</label><select id="at-catst"><option value="">-</option><option>ATIVO</option><option>PENDENTE</option><option>VENCIDO</option></select></div>
-    <div class="fg"><label>ART Nº</label><input type="text" id="at-art"></div>
+
+    <div class="fsec">ART — Anotação de Responsabilidade Técnica</div>
+    <div class="fg"><label>ART Nº</label><input type="text" id="at-art" placeholder="Ex: 00000000000000"></div>
     <div class="fg"><label>ART Situação</label><select id="at-artst"><option value="">-</option><option>ATIVO</option><option>PENDENTE</option><option>VENCIDO</option></select></div>
-    <div class="fg"><label>Status Geral</label><select id="at-status"><option value="">-</option><option>COMPLETO</option><option>PENDENTE</option><option>EM ANDAMENTO</option></select></div>
-    <div class="fg fc"><label>Observações</label><textarea id="at-obs"></textarea></div>
-    <div class="fg fc"><label>Link do Documento</label><input type="url" id="at-link"></div>
+    <div class="fg"><label>Responsável Técnico</label><input type="text" id="at-resp" placeholder="Nome do engenheiro/responsável"></div>
+
+    <div class="fsec">Situação Geral</div>
+    <div class="fg"><label>Status Geral</label><select id="at-status"><option value="">-</option><option>COMPLETO</option><option>PENDENTE</option><option>EM ANDAMENTO</option><option>ARQUIVADO</option></select></div>
+    <div class="fg fc"><label>Observações</label><textarea id="at-obs" rows="3" placeholder="Anotações sobre o atestado, pendências, prazos..."></textarea></div>
+    <div class="fg fc"><label>Link do Documento</label><input type="url" id="at-link" placeholder="https://drive.google.com/..."></div>
   </div></div>
-  <div class="mft"><button class="btn btn-ghost" onclick="closeM('atestados')">Cancelar</button><button class="btn btn-nh" onclick="doSave('atestados')" id="sb-atestados"> Salvar</button></div>
+  <div class="mft"><button class="btn btn-ghost" onclick="closeM('atestados')">Cancelar</button><button class="btn btn-nh" onclick="doSave('atestados')" id="sb-atestados">💾 Salvar</button></div>
 </div></div>
 
 <!-- FINANCEIRO -->
@@ -2087,7 +2118,543 @@ function _popularTarEmp(){
 }async function toggleTarefa(e){var a=(window._tarefas||[]).find(function(a){return a.id===e});if(a){var t="concluida"===a.status?"pendente":"concluida";try{await db.collection("tarefas").doc(e).update({status:t});a.status=t;atualizarBadgeTarefas();renderTarefas();"concluida"===t?toast("✅ Tarefa concluída!","ok"):toast("Tarefa reaberta","info");}catch(err){toast("Erro: "+err.message,"err");}}}async function excluirTarefa(e){if(confirm("Excluir esta tarefa?"))try{await db.collection("tarefas").doc(e).delete(),window._tarefas=(window._tarefas||[]).filter(function(a){return a.id!==e}),atualizarBadgeTarefas(),renderTarefas(),toast("Tarefa excluída","info")}catch(e){toast("Erro: "+e.message,"err")}}function verificarNotificacoesTarefas(){var e=new Date;(window._tarefas||[]).filter(function(e){return"concluida"!==e.status&&e.prazo&&e.notif}).forEach(function(a){var t=new Date(a.prazo);if(t.setHours(23,59,0,0),Math.round((t-e)/6e4)===parseInt(a.notif)){var o=document.createElement("div");o.style.cssText="position:fixed;bottom:20px;left:20px;z-index:9998;background:var(--s1);border:2px solid #eab308;border-radius:12px;padding:16px 20px;max-width:320px;box-shadow:0 8px 24px rgba(0,0,0,.5);animation:slideIn .3s ease",o.innerHTML='<div style="display:flex;gap:10px;align-items:flex-start"><div style="font-size:22px">📋</div><div style="flex:1"><div style="font-size:13px;font-weight:800;color:#eab308;margin-bottom:4px">Tarefa pendente!</div><div style="font-size:12px;color:var(--t1);font-weight:600">'+a.titulo+"</div>"+(a.empresa?'<div style="font-size:11px;color:var(--t3);margin-top:2px">'+a.empresa+"</div>":"")+'</div><button onclick="this.parentNode.parentNode.remove()" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:18px">×</button></div>',document.body.appendChild(o),setTimeout(function(){o.parentNode&&o.remove()},2e4)}})}async function excluirEventoCal(e,a,t){if(confirm("Excluir este evento do calendário?\nIsso vai limpar a data de "+t+" do processo.")){var o=ALL.andamento.findIndex(function(t){return String(t[2]||"").trim()===e&&-1!==String(t[3]||"").trim().toLowerCase().indexOf(a.toLowerCase())});if(-1!==o){var i=ALL.andamento[o].slice(),n=parseInt(i[0]);"disputa"===t?i[10]="":i[13]="",await fbSave("andamento",n,i),ALL.andamento[o]=i,FIL.andamento=ALL.andamento.slice(),toast("Evento removido!","ok"),renderListaSemanal(),renderCalendario()}else toast("Processo não encontrado","err")}}function fecharPreviewCal(){var e=document.getElementById("cal-preview");e&&e.remove()}function marcarSalvoEAtualizar(e){var a=(window._calEventos||[])[e];a&&(marcarEventoSalvo(a),setTimeout(function(){renderCalendario()},500))}function marcarSalvoPreview(e){var a=(window._calEventos||[])[e];a&&marcarEventoSalvo(a)}function mostrarPreviewEvento(e){var a=(window._calEventos||[])[e];if(a){var t="disputa"===a.tipo?"#f97316":"#3b82f6",o=EMPCORES[a.emp]||"#888",i="disputa"===a.tipo?"⚡":"🔄",n=criarLinkGoogleCal(a),r=document.getElementById("cal-preview");r&&r.remove();var s=document.createElement("div");s.id="cal-preview",s.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2000;display:flex;align-items:center;justify-content:center",s.onclick=function(e){e.target===s&&fecharPreviewCal()},s.innerHTML='<div style="background:var(--s1);border:1px solid var(--b1);border-top:4px solid '+t+';border-radius:14px;padding:28px;max-width:500px;width:90%;max-height:85vh;overflow-y:auto"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"><div style="font-size:16px;font-weight:800;color:'+t+'">'+i+" "+a.tipo.toUpperCase()+'</div><button onclick="fecharPreviewCal()" style="background:none;border:none;color:var(--t3);font-size:22px;cursor:pointer;line-height:1">×</button></div><div style="font-size:15px;font-weight:700;color:var(--t1);margin-bottom:12px;line-height:1.4">'+a.licit+'</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px"><div><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em">Empresa</div><div style="font-size:13px;color:'+o+';font-weight:700;margin-top:2px">'+a.emp+'</div></div><div><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em">Data/Hora</div><div style="font-size:13px;color:var(--t1);margin-top:2px">'+a.hora+"</div></div>"+(a.local?'<div><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em">Local</div><div style="font-size:13px;color:var(--t1);margin-top:2px">'+a.local+(a.mun?" - "+a.mun:"")+"</div></div>":"")+(a.portal?'<div><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em">Portal</div><div style="font-size:13px;color:var(--t1);margin-top:2px">'+a.portal+"</div></div>":"")+(a.vest?'<div><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em">Valor Est.</div><div style="font-size:13px;color:var(--nh);font-weight:700;margin-top:2px">R$ '+a.vest+"</div></div>":"")+"</div>"+(a.obj?'<div style="margin-bottom:12px"><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Objeto</div><div style="font-size:12px;color:var(--t2);line-height:1.6;background:var(--s2);padding:10px 12px;border-radius:8px">'+a.obj+"</div></div>":"")+(a.resumo?'<div style="margin-bottom:16px"><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Resumo / Justificativa</div><div style="font-size:12px;color:var(--t2);line-height:1.6;background:var(--s2);padding:10px 12px;border-radius:8px">'+a.resumo+"</div></div>":"")+(isEventoSalvo(a)?'<div style="text-align:center;background:rgba(34,197,94,.1);color:#22c55e;border:1px solid rgba(34,197,94,.3);padding:12px;border-radius:8px;font-weight:700;font-size:14px">✅ Salvo no Google Calendar</div>':'<a href="'+n+'" target="_blank" onclick="marcarSalvoPreview('+e+');fecharPreviewCal()" style="display:block;text-align:center;background:#22c55e;color:#000;text-decoration:none;padding:12px;border-radius:8px;font-weight:700;font-size:14px">📅 Salvar no Google Calendar</a>')+"</div>",document.body.appendChild(s)}}function salvarNoGoogleCal(e,a){toast("Abrindo Google Calendar...","ok")}var _notifTimer=null;function iniciarNotificacoesCalendario(){_notifTimer&&clearInterval(_notifTimer),verificarNotificacoesCalendario(),_notifTimer=setInterval(function(){verificarNotificacoesCalendario(),verificarNotificacoesTarefas()},6e4)}function verificarNotificacoesCalendario(){var e=new Date,a=ALL.andamento||[],t=[];a.forEach(function(a){var o=String(a[2]||"").trim(),i=String(a[3]||"").trim().substring(0,50),n=String(a[10]||"").trim(),r=String(a[13]||"").trim();function s(a,n){var r=parseDataCal(a);if(r){var s=a.match(/(\d{1,2})[h:](\d{2})/i);s&&r.setHours(parseInt(s[1]),parseInt(s[2]),0,0);var d=r.getTime()-e.getTime(),l=Math.round(d/6e4);60!==l&&30!==l&&15!==l&&5!==l&&0!==l||t.push({tipo:n,emp:o,licit:i,diffMin:l,hora:a})}}s(n,"disputa"),s(r,"reabertura")}),t.length>0&&mostrarNotificacoesCalendario(t)}function mostrarNotificacoesCalendario(e){e.forEach(function(e){var a="disputa"===e.tipo?"#f97316":"#3b82f6",t="disputa"===e.tipo?"⚡":"🔄",o=0===e.diffMin?"AGORA!":"em "+e.diffMin+" minutos",i=document.createElement("div");i.style.cssText="position:fixed;bottom:20px;right:20px;z-index:9998;background:var(--s1);border:2px solid "+a+";border-radius:12px;padding:16px 20px;max-width:340px;box-shadow:0 8px 24px rgba(0,0,0,.5);animation:slideIn .3s ease",i.innerHTML='<div style="display:flex;align-items:flex-start;gap:12px"><div style="font-size:28px;animation:pulse 1s infinite">'+t+'</div><div style="flex:1"><div style="font-size:14px;font-weight:900;color:'+a+';margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">🚨 '+e.tipo+" "+o+'</div><div style="font-size:13px;color:var(--t1);font-weight:700;margin-bottom:4px">'+e.emp+'</div><div style="font-size:12px;color:var(--t2);line-height:1.4">'+e.licit+'</div><div style="font-size:11px;color:'+a+';margin-top:6px;font-weight:600">🕐 '+e.hora+'</div></div><button onclick="this.parentNode.parentNode.remove()" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:20px;padding:0;line-height:1">×</button></div>';try{var n=new(window.AudioContext||window.webkitAudioContext),r=n.createOscillator(),s=n.createGain();r.connect(s),s.connect(n.destination),r.frequency.value=880,s.gain.value=.3,r.start(),r.stop(n.currentTime+.3)}catch(e){}document.body.appendChild(i),setTimeout(function(){i.parentNode&&i.remove()},3e4)})}var _calInited=!1;function initCalendario(){_calInited||(_calInited=!0),renderCalendario(),renderListaSemanal(),iniciarNotificacoesCalendario()}function buscaGlobal(e){e=e.trim().toLowerCase();var a=document.getElementById("busca-resultado");if(e){var t=[],o={editais:"Editais",andamento:"Em Andamento",ganhas:"Ganhas",finalizados:"Finalizados",atestados:"Atestados",financeiro:"Financeiro"};if(["editais","andamento","ganhas","finalizados","atestados","financeiro"].forEach(function(a){(ALL[a]||[]).forEach(function(i){-1!==i.join(" ").toLowerCase().indexOf(e)&&t.push({k:a,nome:o[a],id:i[0],emp:i[2],licit:String(i[3]||"").substring(0,50),data:i[1]})})}),(window._tarefas||[]).forEach(function(a){-1!==(a.titulo+" "+(a.desc||"")+" "+(a.empresa||"")).toLowerCase().indexOf(e)&&t.push({k:"tarefas",nome:"Tarefas",id:"",emp:a.empresa||"Geral",licit:a.titulo,data:a.prazo||""})}),!a){(a=document.createElement("div")).id="busca-resultado",a.style.cssText="position:absolute;top:100%;left:0;right:0;background:var(--s1);border:1px solid var(--b1);border-radius:10px;z-index:999;max-height:340px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.4);margin-top:4px";var i=document.getElementById("busca-global");i&&i.parentNode&&(i.parentNode.style.position="relative",i.parentNode.appendChild(a))}if(t.length){var n=t.slice(0,12).map(function(e){return'<div class="busca-item" data-aba="'+e.k+'" style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:10px"><span style="font-size:10px;background:var(--s2);padding:2px 6px;border-radius:4px;color:var(--t3);white-space:nowrap">'+esc(e.nome)+'</span><div><div style="font-size:13px;color:var(--t1)">#'+esc(e.id)+" "+esc(String(e.licit||"").substring(0,45))+'</div><div style="font-size:11px;color:var(--t3)">'+esc(e.emp)+" · "+esc(e.data)+"</div></div></div>"}).join("");t.length>12&&(n+='<div style="padding:10px;font-size:12px;color:var(--t3);text-align:center">+'+(t.length-12)+" resultados</div>"),a.innerHTML=n,a.querySelectorAll(".busca-item").forEach(function(e){e.addEventListener("mouseover",function(){this.style.background="var(--s2)"}),e.addEventListener("mouseout",function(){this.style.background=""}),e.addEventListener("click",function(){var e=this.getAttribute("data-aba"),a=document.getElementById("nav-"+e);if(a||document.querySelectorAll(".sb-item").forEach(function(t){-1!==(t.getAttribute("onclick")||"").indexOf(e)&&(a=t)}),a)go(e,a);else{var t=document.querySelector(".sb-item.on")||document.querySelector(".sb-item");go(e,t||document.body)}var o=document.getElementById("busca-global");o&&(o.value="");var i=document.getElementById("busca-resultado");i&&i.remove()})})}else a.innerHTML='<div style="padding:16px;color:var(--t3);font-size:13px;text-align:center">Nenhum resultado para "'+e+'"</div>'}else a&&a.remove()}document.addEventListener("change",function(e){e.target.classList.contains("tar-check")&&toggleTarefa(e.target.getAttribute("data-tid"))}),document.addEventListener("click",function(e){var a=e.target.closest(".cal-excluir-btn");if(a)return e.stopPropagation(),void excluirEventoCal(decodeURIComponent(a.getAttribute("data-exc-emp")),decodeURIComponent(a.getAttribute("data-exc-licit")),a.getAttribute("data-exc-tipo"))}),document.addEventListener("click",function(e){var a=e.target.closest(".tar-btn-edit");if(a)return e.stopPropagation(),void editarTarefa(a.getAttribute("data-tid-edit"));var t=e.target.closest(".tar-btn-del");if(t)return e.stopPropagation(),void excluirTarefa(t.getAttribute("data-tid-del"));var o=e.target.closest("[data-emp]");if(o){go("emp-"+o.getAttribute("data-emp"),o)}else{var i=e.target.closest(".emp-cor-opt");if(i){var n=parseInt(i.getAttribute("data-ci")),r=i.getAttribute("data-cor");!isNaN(n)&&EMPRESAS[n]&&(EMPRESAS[n].cor=r,renderListaEmpresas())}else;}}),document.addEventListener("click",function(e){if(!e.target.closest("#busca-global")&&!e.target.closest("#busca-resultado")){var a=document.getElementById("busca-resultado");a&&a.remove()}});
 function recalcVencGanhas(ri){var r=(FIL.ganhas||[])[ri];if(!r)return;if(r[11]&&r[10]&&!String(r[12]||"").trim()){var d=parseBRDate(String(r[11]));if(d){d.setMonth(d.getMonth()+(parseInt(r[10])||0));r[12]=("0"+d.getDate()).slice(-2)+"/"+("0"+(d.getMonth()+1)).slice(-2)+"/"+d.getFullYear()}}[[13,17,18],[20,24,25],[27,31,32],[34,38,39]].forEach(function(x){if(r[x[0]]&&r[x[1]]){var d2=parseBRDate(String(r[x[0]]));if(d2){d2.setMonth(d2.getMonth()+(parseInt(r[x[1]])||0));r[x[2]]=("0"+d2.getDate()).slice(-2)+"/"+("0"+(d2.getMonth()+1)).slice(-2)+"/"+d2.getFullYear()}}});}
 
-// ─── PORTAL CONFIG ───────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+// ATESTADOS — Sistema Completo Integrado com Licitações Ganhas
+// ══════════════════════════════════════════════════════════════════
+
+var STATUS_FILTER_AT = null; // filtro de status específico de atestados
+
+// ── Mapeamento de campos do array de atestados ────────────────────
+// [0]=ID [1]=Data [2]=Empresa [3]=Licitação [4]=Objeto [5]=Local
+// [6]=Município [7]=Contrato [8]=DtAssinatura [9]=Vigência(data)
+// [10]=Req? [11]=Recebido? [12]=DtRecebimento [13]=Emitente
+// [14]=CAT_Nº [15]=CAT_Sit [16]=ART_Nº [17]=ART_Sit [18]=Status
+// [19]=Obs [20]=Link [21]=GanhasId [22]=Valor [23]=RespTec
+
+// ── Stats de atestados com detalhamento real ──────────────────────
+function renderStatsAtestados(lista){
+  var el = document.getElementById("st-atestados");
+  if(!el) return;
+  var total = lista.length;
+  var completo=0, pendente=0, emAndamento=0, semAtestado=0, comCAT=0, comART=0;
+  lista.forEach(function(a){
+    var st = String(a[18]||"").toUpperCase().trim();
+    var rec = String(a[11]||"").toUpperCase().trim();
+    if(st==="COMPLETO") completo++;
+    else if(st==="PENDENTE") pendente++;
+    else if(st==="EM ANDAMENTO") emAndamento++;
+    if(rec==="NÃO"||(!rec&&st==="PENDENTE")) semAtestado++;
+    if(String(a[14]||"").trim()) comCAT++;
+    if(String(a[16]||"").trim()) comART++;
+  });
+  el.innerHTML =
+    sc("Total Atestados",total,"nh") +
+    sc("Completos",completo,"green") +
+    sc("Em Andamento",emAndamento,"blue") +
+    sc("Pendentes",pendente,"red") +
+    sc("Com CAT",comCAT,"yellow") +
+    sc("Com ART",comART,"purple");
+
+  // Alerta de pendentes
+  var alertaBar = document.getElementById("at-alerta-bar");
+  var alertaTxt = document.getElementById("at-alerta-txt");
+  if(alertaBar && alertaTxt){
+    if(pendente > 0){
+      alertaTxt.textContent = "⚠ "+pendente+" atestado(s) PENDENTE(S) — solicite ao cliente com urgência";
+      alertaBar.style.display = "flex";
+    } else {
+      alertaBar.style.display = "none";
+    }
+  }
+}
+
+// ── Pills de status de atestados ──────────────────────────────────
+function renderStatusPillsAtestados(lista){
+  var el = document.getElementById("status-pills-atestados");
+  if(!el) return;
+  var cats = {
+    completo:   {lbl:"✅ Completo",    cor:"#22c55e", bg:"rgba(34,197,94,.12)",   count:0},
+    andamento:  {lbl:"🔄 Em Andamento",cor:"#3b82f6", bg:"rgba(59,130,246,.12)",  count:0},
+    pendente:   {lbl:"⚠ Pendente",    cor:"#ef4444", bg:"rgba(239,68,68,.12)",    count:0},
+    semreceb:   {lbl:"📭 Não Recebido",cor:"#f97316", bg:"rgba(249,115,22,.12)",  count:0},
+    comcat:     {lbl:"📄 Com CAT",     cor:"#a78bfa", bg:"rgba(167,139,250,.12)", count:0},
+    comart:     {lbl:"📐 Com ART",     cor:"#eab308", bg:"rgba(234,179,8,.12)",   count:0},
+    migrado:    {lbl:"🔗 De Ganhas",   cor:"#8b5cf6", bg:"rgba(139,92,246,.12)",  count:0},
+  };
+  lista.forEach(function(a){
+    var st = String(a[18]||"").toUpperCase().trim();
+    var rec = String(a[11]||"").toUpperCase().trim();
+    if(st==="COMPLETO")    cats.completo.count++;
+    else if(st==="EM ANDAMENTO") cats.andamento.count++;
+    else if(st==="PENDENTE")     cats.pendente.count++;
+    if(rec==="NÃO")              cats.semreceb.count++;
+    if(String(a[14]||"").trim()) cats.comcat.count++;
+    if(String(a[16]||"").trim()) cats.comart.count++;
+    if(String(a[21]||"").trim()) cats.migrado.count++;
+  });
+  var html = '<div class="pill'+(null===STATUS_FILTER_AT?" on":"")+'" onclick="setStatusFilterAtestados(null)">Todos os status</div>';
+  Object.keys(cats).forEach(function(k){
+    var c = cats[k];
+    if(!c.count) return;
+    var on = STATUS_FILTER_AT === k;
+    html += '<div class="pill'+(on?" on":"")+'" onclick="setStatusFilterAtestados(\''+k+'\')" style="border-color:'+c.cor+';'+(on?"background:"+c.bg+";color:"+c.cor+";":"")+'"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+c.cor+';margin-right:5px;vertical-align:middle"></span>'+c.lbl+" ("+c.count+")</div>";
+  });
+  el.innerHTML = html;
+}
+
+function setStatusFilterAtestados(k){
+  STATUS_FILTER_AT = k;
+  applyFilters("atestados");
+}
+
+// ── Injetar filtro de status nos applyFilters para atestados ──────
+var _origApplyFilters = applyFilters;
+applyFilters = function(e){
+  _origApplyFilters(e);
+  if(e === "atestados"){
+    // aplicar filtro de status específico sobre o resultado
+    if(STATUS_FILTER_AT){
+      FIL.atestados = FIL.atestados.filter(function(a){
+        var st = String(a[18]||"").toUpperCase().trim();
+        var rec = String(a[11]||"").toUpperCase().trim();
+        if(STATUS_FILTER_AT==="completo")  return st==="COMPLETO";
+        if(STATUS_FILTER_AT==="andamento") return st==="EM ANDAMENTO";
+        if(STATUS_FILTER_AT==="pendente")  return st==="PENDENTE";
+        if(STATUS_FILTER_AT==="semreceb")  return rec==="NÃO";
+        if(STATUS_FILTER_AT==="comcat")    return !!String(a[14]||"").trim();
+        if(STATUS_FILTER_AT==="comart")    return !!String(a[16]||"").trim();
+        if(STATUS_FILTER_AT==="migrado")   return !!String(a[21]||"").trim();
+        return true;
+      });
+      renderTbl("atestados");
+    }
+    renderStatsAtestados(FIL.atestados);
+    renderStatusPillsAtestados(ALL.atestados || []);
+  }
+};
+
+// Interceptar loadPage para atestados
+var _origLoadPage = loadPage;
+loadPage = function(e){
+  return _origLoadPage(e).then ? _origLoadPage(e).then(function(){
+    if(e==="atestados"){
+      renderStatsAtestados(FIL.atestados||[]);
+      renderStatusPillsAtestados(ALL.atestados||[]);
+      verificarAtestadosPendentesDeGanhas();
+    }
+  }) : (function(){
+    if(e==="atestados"){
+      setTimeout(function(){
+        renderStatsAtestados(FIL.atestados||[]);
+        renderStatusPillsAtestados(ALL.atestados||[]);
+        verificarAtestadosPendentesDeGanhas();
+      }, 400);
+    }
+  })();
+};
+
+// ── Verificar contratos finalizados/vencidos sem atestado ─────────
+function verificarAtestadosPendentesDeGanhas(){
+  var hoje = new Date(); hoje.setHours(0,0,0,0);
+  var ganhas = ALL.ganhas || [];
+  var atestados = ALL.atestados || [];
+  var pendentes = [];
+
+  ganhas.forEach(function(g){
+    var st = String(g[9]||"").toUpperCase().trim();
+    var venc = String(g[39]||g[32]||g[25]||g[18]||g[12]||"").trim();
+    var finalizado = st==="FINALIZADO" || st==="RESCINDIDO";
+    var vencido = false;
+    if(venc && (st==="EM EXECUÇÃO"||st==="EM EXECUCAO")){
+      var p=venc.split("/");
+      if(p.length===3){ var d=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0])); vencido=d<hoje; }
+    }
+    if(!(finalizado||vencido)) return;
+    // Verifica se já tem atestado vinculado
+    var licit = String(g[3]||"").trim().toLowerCase();
+    var emp = String(g[2]||"").trim();
+    var temAtestado = atestados.some(function(a){
+      return (String(a[21]||"").trim()===String(g[0]||"").trim()) ||
+             (String(a[3]||"").trim().toLowerCase()===licit && String(a[2]||"").trim()===emp);
+    });
+    if(!temAtestado) pendentes.push(g);
+  });
+
+  var alertaBar = document.getElementById("at-alerta-bar");
+  var alertaTxt = document.getElementById("at-alerta-txt");
+  if(alertaBar && alertaTxt && pendentes.length > 0){
+    var ja = atestados.filter(function(a){ return String(a[18]||"").toUpperCase()==="PENDENTE"; }).length;
+    var msg = pendentes.length+" contrato(s) finalizado(s)/vencido(s) sem atestado vinculado";
+    if(ja>0) msg += " · "+ja+" pendente(s) na lista";
+    alertaTxt.textContent = "⚠ "+msg;
+    alertaBar.style.display = "flex";
+  }
+}
+
+// ── Migrar contratos de Ganhas para Atestados automaticamente ─────
+async function migrarAtestadosPendentes(){
+  var hoje = new Date(); hoje.setHours(0,0,0,0);
+  var ganhas = ALL.ganhas || [];
+  var atestados = ALL.atestados || [];
+  var migrados = 0;
+
+  for(var i=0; i<ganhas.length; i++){
+    var g = ganhas[i];
+    var st = String(g[9]||"").toUpperCase().trim();
+    var venc = String(g[39]||g[32]||g[25]||g[18]||g[12]||"").trim();
+    var finalizado = st==="FINALIZADO" || st==="RESCINDIDO";
+    var vencido = false;
+    if(venc && (st==="EM EXECUÇÃO"||st==="EM EXECUCAO")){
+      var p=venc.split("/");
+      if(p.length===3){ var d=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0])); vencido=d<hoje; }
+    }
+    if(!(finalizado||vencido)) continue;
+    // Checa se já existe
+    var licit = String(g[3]||"").trim().toLowerCase();
+    var emp = String(g[2]||"").trim();
+    var existe = atestados.some(function(a){
+      return (String(a[21]||"").trim()===String(g[0]||"").trim()) ||
+             (String(a[3]||"").trim().toLowerCase()===licit && String(a[2]||"").trim()===emp);
+    });
+    if(existe) continue;
+    // Criar atestado
+    try{
+      var nextId = await fbGetNextId("atestados");
+      var vigDate = String(g[12]||"").trim(); // vencimento do contrato = vigência até
+      var arr = new Array(24).fill("");
+      arr[0] = nextId;
+      arr[1] = new Date().toLocaleDateString("pt-BR"); // data de criação
+      arr[2] = emp;
+      arr[3] = String(g[3]||"").trim();
+      arr[4] = String(g[4]||"").trim();
+      arr[5] = String(g[5]||"").trim();
+      arr[6] = String(g[6]||"").trim();
+      arr[7] = String(g[8]||"").trim(); // nº contrato
+      arr[8] = String(g[11]||"").trim(); // dt assinatura
+      arr[9] = vigDate; // vigência até
+      arr[10] = "SIM"; // requerido = sim (presumido)
+      arr[11] = "NÃO"; // não recebido ainda
+      arr[18] = "PENDENTE";
+      arr[19] = "Migrado automaticamente de Licitações Ganhas em "+new Date().toLocaleDateString("pt-BR")+(finalizado?" — Contrato FINALIZADO":" — Contrato VENCIDO");
+      arr[21] = String(g[0]||"").trim(); // id do registro em ganhas
+      arr[22] = String(g[7]||"").trim(); // valor
+      await fbSave("atestados", nextId, arr);
+      ALL.atestados.push(arr);
+      migrados++;
+    } catch(e){ toast("Erro ao migrar: "+e.message,"err"); }
+  }
+
+  if(migrados > 0){
+    await loadPage("atestados");
+    toast("✅ "+migrados+" atestado(s) criado(s) de Licitações Ganhas!","ok");
+  } else {
+    toast("Nenhum contrato novo para sincronizar — tudo em dia!","ok");
+  }
+}
+
+// ── Criar atestado automaticamente quando contrato é finalizado ───
+async function criarAtestadoDeGanhas(g){
+  if(!g) return;
+  var atestados = ALL.atestados || [];
+  var licit = String(g[3]||"").trim().toLowerCase();
+  var emp = String(g[2]||"").trim();
+  // Não duplicar
+  var existe = atestados.some(function(a){
+    return (String(a[21]||"").trim()===String(g[0]||"").trim()) ||
+           (String(a[3]||"").trim().toLowerCase()===licit && String(a[2]||"").trim()===emp);
+  });
+  if(existe) return;
+  try{
+    var nextId = await fbGetNextId("atestados");
+    var arr = new Array(24).fill("");
+    arr[0] = nextId;
+    arr[1] = new Date().toLocaleDateString("pt-BR");
+    arr[2] = emp;
+    arr[3] = String(g[3]||"").trim();
+    arr[4] = String(g[4]||"").trim();
+    arr[5] = String(g[5]||"").trim();
+    arr[6] = String(g[6]||"").trim();
+    arr[7] = String(g[8]||"").trim();
+    arr[8] = String(g[11]||"").trim();
+    arr[9] = String(g[12]||"").trim();
+    arr[10] = "SIM";
+    arr[11] = "NÃO";
+    arr[18] = "PENDENTE";
+    arr[19] = "Criado automaticamente quando contrato mudou para FINALIZADO em "+new Date().toLocaleDateString("pt-BR");
+    arr[21] = String(g[0]||"").trim();
+    arr[22] = String(g[7]||"").trim();
+    await fbSave("atestados", nextId, arr);
+    ALL.atestados.push(arr);
+    var bAt = document.getElementById("b-atestados");
+    if(bAt) bAt.textContent = ALL.atestados.length;
+    toast("📋 Atestado pendente criado automaticamente para "+emp,"info");
+  } catch(e){ console.warn("Erro ao criar atestado:", e.message); }
+}
+
+// ── Interceptar saveCell para detectar quando Ganhas → FINALIZADO ─
+var _origSaveCell = saveCell;
+saveCell = function(e, a, t, o){
+  _origSaveCell(e, a, t, o);
+  // Quando status de contrato em Ganhas muda para FINALIZADO
+  if(e==="ganhas" && t===9){
+    var st = String(o||"").toUpperCase().trim();
+    if(st==="FINALIZADO" || st==="RESCINDIDO"){
+      var row = FIL.ganhas ? FIL.ganhas[a] : null;
+      if(row) setTimeout(function(){ criarAtestadoDeGanhas(row); }, 800);
+    }
+  }
+};
+
+// ── doEdit atualizado para atestados (novos campos) ───────────────
+var _origDoEdit = doEdit;
+doEdit = function(e, a){
+  _origDoEdit(e, a);
+  if(e==="atestados"){
+    var t = FIL.atestados[a];
+    if(!t) return;
+    // Novos campos adicionados
+    setv("at-valor", t[22]||"");
+    setv("at-resp",  t[23]||"");
+    var gId = String(t[21]||"").trim();
+    var badge = document.getElementById("at-origem-badge");
+    var hidGId = document.getElementById("at-ganhas-id");
+    if(badge) badge.style.display = gId ? "inline-block" : "none";
+    if(hidGId) hidGId.value = gId;
+  }
+};
+
+// ── doSave atualizado para atestados (novos campos) ───────────────
+var _origDoSave = doSave;
+doSave = function(e){
+  if(e !== "atestados") return _origDoSave(e);
+  // Salvar com os novos campos
+  var a=[];
+  var campos=[{id:"at-data",lbl:"Data"},{id:"at-emp",lbl:"Empresa"},{id:"at-licit",lbl:"Licitação"}];
+  campos.forEach(function(c){
+    var el=document.getElementById(c.id);
+    if(el&&el.value.trim()){el.style.borderColor="";el.style.borderWidth="";}
+    else{a.push(c.lbl);if(el){el.style.borderColor="var(--r1)";el.style.borderWidth="2px";}}
+  });
+  if(a.length){toast("Campos obrigatórios: "+a.join(", "),"err");return;}
+  var btn=document.getElementById("sb-atestados");
+  btn.disabled=true; btn.textContent="Salvando...";
+  var isEdit = null!==EROW.atestados;
+  var n = isEdit ? FIL.atestados[EROW.atestados] : null;
+  var y=function(id){var el=document.getElementById(id);if(!el)return"";var v=el.value;return v&&v.indexOf("-")!==-1&&el.type==="date"?formatDateBR(v):v;};
+  var dataVal=y("at-data"); var dtcont=y("at-dtcont"); var dtvig=y("at-vig"); var dtreceb=y("at-dtreceb");
+  var o = [
+    n?n[0]:"", dataVal, sv("at-emp"), sv("at-licit"), sv("at-obj")||"",
+    sv("at-local")||"", sv("at-mun")||"", sv("at-cont")||"",
+    dtcont, dtvig, sv("at-req"), sv("at-receb"), dtreceb, sv("at-emit"),
+    sv("at-cat"), sv("at-catst"), sv("at-art"), sv("at-artst"),
+    sv("at-status"), sv("at-obs"), sv("at-link"),
+    document.getElementById("at-ganhas-id")?document.getElementById("at-ganhas-id").value:"",
+    sv("at-valor")||"", sv("at-resp")||""
+  ];
+  fbGetNextId("atestados").then(function(nextId){
+    var docId = isEdit ? parseInt(n[0]) : nextId;
+    if(!isEdit) o[0]=docId;
+    return fbSave("atestados", docId, o).then(function(){
+      btn.disabled=false; btn.textContent="💾 Salvar";
+      toast(isEdit?"Atualizado!":"Atestado salvo!","ok");
+      closeM("atestados");
+      return loadPage("atestados");
+    });
+  }).catch(function(err){
+    btn.disabled=false; btn.textContent="💾 Salvar";
+    toast("Erro: "+err.message,"err");
+  });
+};
+
+// ── Botão "Criar Atestado" direto do card de Ganhas ──────────────
+function abrirAtestadoDeGanhas(idx){
+  var g = FIL.ganhas[idx];
+  if(!g) return;
+  // Abrir modal de atestados pré-preenchido
+  EROW.atestados = null;
+  clearF("atestados");
+  document.getElementById("mht-atestados").textContent = "Novo Atestado — de Licitações Ganhas";
+  var badge = document.getElementById("at-origem-badge");
+  if(badge) badge.style.display = "inline-block";
+  var hidGId = document.getElementById("at-ganhas-id");
+  if(hidGId) hidGId.value = String(g[0]||"");
+  setv("at-data", new Date().toISOString().split("T")[0]);
+  setv("at-emp",   g[2]||"");
+  setv("at-licit", g[3]||"");
+  setv("at-obj",   g[4]||"");
+  setv("at-local", g[5]||"");
+  setv("at-mun",   g[6]||"");
+  setv("at-cont",  g[8]||"");
+  setv("at-dtcont",isoDate(String(g[11]||"")));
+  setv("at-vig",   isoDate(String(g[12]||"")));
+  setv("at-valor", g[7]||"");
+  setv("at-req",   "SIM");
+  setv("at-status","PENDENTE");
+  document.getElementById("mo-atestados").classList.add("open");
+}
+
+// ── Adicionar botão "📋 Atestado" nos cards de Ganhas (finalizados) ─
+// Vai injetar via CSS + evento após renderizar
+document.addEventListener("click", function(e){
+  var btn = e.target.closest(".btn-criar-atestado");
+  if(btn){
+    e.stopPropagation();
+    var idx = parseInt(btn.getAttribute("data-idx"));
+    abrirAtestadoDeGanhas(idx);
+  }
+});
+
+// ── Renderização aprimorada dos cards de atestados ────────────────
+// Sobrescrevemos renderCard apenas para atestados com lógica rica
+var _origRenderCard = renderCard;
+renderCard = function(e, a, t){
+  if(e !== "atestados") return _origRenderCard(e, a, t);
+
+  var id = String(a[0]||"").trim();
+  var emp = String(a[2]||"").trim();
+  var licit = String(a[3]||"").trim();
+  var st = String(a[18]||"").toUpperCase().trim();
+  var recebido = String(a[11]||"").toUpperCase().trim();
+  var requerido = String(a[10]||"").toUpperCase().trim();
+  var vigencia = String(a[9]||"").trim();
+  var catNum = String(a[14]||"").trim();
+  var artNum = String(a[16]||"").trim();
+  var ganhasId = String(a[21]||"").trim();
+  var valor = String(a[22]||"").trim();
+  var respTec = String(a[23]||"").trim();
+
+  var r = empColor(emp), bg = empBg(emp);
+
+  // Cor do card por status
+  var cardCor = st==="COMPLETO"?"green":st==="EM ANDAMENTO"?"blue":st==="PENDENTE"?"red":"dark";
+
+  // Badge de status rico
+  var stBadgeHtml = st==="COMPLETO"
+    ? '<span class="badge b-green">✅ COMPLETO</span>'
+    : st==="EM ANDAMENTO"
+    ? '<span class="badge b-blue">🔄 EM ANDAMENTO</span>'
+    : st==="PENDENTE"
+    ? '<span class="badge b-red">⚠ PENDENTE</span>'
+    : st==="ARQUIVADO"
+    ? '<span class="badge b-gray">📦 ARQUIVADO</span>'
+    : '<span class="badge b-gray">—</span>';
+
+  // Alerta de vigência
+  var vigAlert = "";
+  if(vigencia){
+    var pp=vigencia.split("/");
+    if(pp.length===3){
+      var dt=new Date(parseInt(pp[2]),parseInt(pp[1])-1,parseInt(pp[0]));
+      var hoje2=new Date();hoje2.setHours(0,0,0,0);
+      var dias=Math.round((dt-hoje2)/86400000);
+      if(dias<0) vigAlert='<span style="font-size:11px;background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3);padding:2px 8px;border-radius:5px;font-weight:700">⏰ Vencido há '+Math.abs(dias)+'d</span>';
+      else if(dias<=90) vigAlert='<span style="font-size:11px;background:rgba(234,179,8,.15);color:#fbbf24;border:1px solid rgba(234,179,8,.3);padding:2px 8px;border-radius:5px;font-weight:700">⏰ '+dias+'d</span>';
+    }
+  }
+
+  var p = '<div class="kcard '+cardCor+' collapsed" id="row-atestados-'+t+'">';
+  p += '<div class="kcard-top" onclick="this.parentElement.classList.toggle(\'collapsed\')">';
+  p += '<div style="flex:1;min-width:0">';
+  p += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">';
+  p += '<span class="kcard-id">#'+id+'</span>';
+  if(emp) p += '<span class="emp-badge" style="color:'+r+';background:'+bg+';border:1px solid '+r+'55">'+emp+'</span>';
+  if(ganhasId) p += '<span title="Vinculado a Licitações Ganhas #'+ganhasId+'" style="font-size:10px;background:rgba(139,92,246,.12);color:#a78bfa;border:1px solid rgba(139,92,246,.3);padding:2px 7px;border-radius:10px;font-weight:700">🔗 Ganhas #'+ganhasId+'</span>';
+  p += stBadgeHtml;
+  if(vigAlert) p += vigAlert;
+  if(a._updatedAt){var u=new Date(a._updatedAt),um=(("0"+u.getDate()).slice(-2)+"/"+("0"+(u.getMonth()+1)).slice(-2)+" "+("0"+u.getHours()).slice(-2)+":"+("0"+u.getMinutes()).slice(-2));p+='<span style="font-size:10px;color:var(--t4);background:var(--s3);padding:2px 8px;border-radius:5px;margin-left:auto">✎ '+um+'</span>';}
+  p += '</div>';
+  p += '<div class="kcard-licit">'+inlineCell("atestados",t,3,a[3])+'</div>';
+  var obj=String(a[4]||"").trim();
+  if(obj) p += '<div class="kcard-obj">'+obj+'</div>';
+  p += '</div>';
+
+  // Botões de ação
+  p += '<div style="display:flex;flex-direction:row;gap:6px;align-items:center;flex-shrink:0;padding-top:2px">';
+  p += '<button class="btn-edit-card" onclick="event.stopPropagation();openEditCard(\'atestados\','+t+')" title="Editar">✏</button>';
+  if(a[20]&&String(a[20]).trim()) p += '<a href="'+String(a[20]).trim()+'" target="_blank" class="klink" style="width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center" title="Abrir documento">↗</a>';
+  p += '<span style="width:1px;height:18px;background:var(--b1);display:inline-block;margin:0 4px"></span>';
+  p += '<button class="btn-del" onclick="event.stopPropagation();doDel(\'atestados\','+t+')" title="Excluir">✕</button>';
+  p += '</div></div>';
+
+  // Meta linha
+  p += '<div class="kcard-meta">';
+  if(String(a[5]||"").trim()) p += '<div class="kmeta"><span class="kmeta-lbl">Local</span><span class="kmeta-val">'+a[5]+'</span></div>';
+  if(String(a[6]||"").trim()) p += '<div class="kmeta"><span class="kmeta-lbl">Município</span><span class="kmeta-val">'+a[6]+'</span></div>';
+  if(String(a[7]||"").trim()) p += '<div class="kmeta"><span class="kmeta-lbl">Contrato</span><span class="kmeta-val">'+a[7]+'</span></div>';
+  if(valor) p += '<div class="kmeta"><span class="kmeta-lbl">Valor</span><span class="kmeta-val hl">'+fmtValBR(valor)+'</span></div>';
+  if(vigencia) p += '<div class="kmeta"><span class="kmeta-lbl">Vigência Até</span><span class="kmeta-val">'+vigencia+'</span></div>';
+  p += '<div class="kmeta"><span class="kmeta-lbl">Requerido</span>'+badge("atestados",10,a[10])+'</div>';
+  p += '<div class="kmeta"><span class="kmeta-lbl">Recebido</span>'+badge("atestados",11,a[11])+'</div>';
+  if(catNum) p += '<div class="kmeta"><span class="kmeta-lbl">CAT Nº</span><span class="kmeta-val" style="color:#a78bfa;font-weight:700">'+catNum+'</span></div>';
+  if(artNum) p += '<div class="kmeta"><span class="kmeta-lbl">ART Nº</span><span class="kmeta-val" style="color:#eab308;font-weight:700">'+artNum+'</span></div>';
+  if(respTec) p += '<div class="kmeta"><span class="kmeta-lbl">Resp. Técnico</span><span class="kmeta-val">'+respTec+'</span></div>';
+  if(String(a[20]||"").trim()) p += '<div class="kmeta"><span class="kmeta-lbl">Doc.</span>'+klink(a[20])+'</div>';
+  p += '</div>';
+
+  // Corpo editável expandido
+  p += '<div class="kcard-body">';
+
+  // Progresso visual dos documentos
+  var items = [
+    {lbl:"Atestado Req.",  ok: requerido==="SIM"},
+    {lbl:"Atestado Receb.",ok: recebido==="SIM"},
+    {lbl:"CAT",            ok: !!catNum},
+    {lbl:"ART",            ok: !!artNum},
+    {lbl:"Link Doc.",      ok: !!String(a[20]||"").trim()},
+  ];
+  var okCount = items.filter(function(i){return i.ok;}).length;
+  var pct = Math.round(okCount/items.length*100);
+  p += '<div style="margin-bottom:14px;padding:12px 14px;background:rgba(0,0,0,.2);border-radius:8px">';
+  p += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
+  p += '<span style="font-size:11px;font-weight:700;color:var(--t3)">PROGRESSO DO ATESTADO</span>';
+  p += '<span style="font-size:12px;font-weight:800;color:'+(pct===100?"#22c55e":pct>=60?"#eab308":"#ef4444")+'">'+pct+'%</span>';
+  p += '</div>';
+  p += '<div style="background:var(--b1);border-radius:4px;height:6px;margin-bottom:10px"><div style="width:'+pct+'%;background:'+(pct===100?"#22c55e":pct>=60?"#eab308":"#ef4444")+';height:100%;border-radius:4px;transition:width .4s"></div></div>';
+  p += '<div style="display:flex;gap:8px;flex-wrap:wrap">';
+  items.forEach(function(item){
+    p += '<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:'+(item.ok?"rgba(34,197,94,.1)":"rgba(239,68,68,.1)")+';color:'+(item.ok?"#4ade80":"#f87171")+';border:1px solid '+(item.ok?"rgba(34,197,94,.2)":"rgba(239,68,68,.2)")+'">'+(item.ok?"✓ ":"✗ ")+item.lbl+'</span>';
+  });
+  p += '</div></div>';
+
+  p += kfieldEdit("Atestado Req.?",  a[10],10,"atestados",t);
+  p += kfieldEdit("Atestado Recebido?",a[11],11,"atestados",t);
+  p += kfieldEdit("Data Recebimento", a[12],12,"atestados",t);
+  p += kfieldEdit("Emitente",         a[13],13,"atestados",t);
+  p += kfieldEdit("CAT Nº",           a[14],14,"atestados",t);
+  p += kfieldEdit("CAT Situação",     a[15],15,"atestados",t);
+  p += kfieldEdit("ART Nº",           a[16],16,"atestados",t);
+  p += kfieldEdit("ART Situação",     a[17],17,"atestados",t);
+  p += kfieldEdit("Responsável Téc.", a[23],23,"atestados",t);
+  p += kfieldEdit("Status Geral",     a[18],18,"atestados",t);
+  p += kfieldEdit("Observações",      a[19],19,"atestados",t);
+  p += kfieldLink("Link do Documento",a[20],20,"atestados",t);
+  p += '</div></div>';
+  return p;
+};
+
+// ── Adicionar botão "📋 Atestado" nos cards de Ganhas (FINALIZADO) ─
+// Injetado no renderCard original via wrapper
+var _renderCardComAtestado = renderCard;
+renderCard = function(e, a, t){
+  var html = _renderCardComAtestado(e, a, t);
+  if(e === "ganhas"){
+    var st = String(a[9]||"").toUpperCase().trim();
+    if(st==="FINALIZADO"||st==="RESCINDIDO"){
+      // Injeta botão antes do btn-del
+      html = html.replace(
+        '<button class="btn-del" onclick="event.stopPropagation();doDel(\'ganhas\','+t+')"',
+        '<button class="btn-criar-atestado" data-idx="'+t+'" title="Criar Atestado" style="background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);color:#a78bfa;padding:4px 8px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700" onclick="event.stopPropagation()">📋 Atestado</button> <button class="btn-del" onclick="event.stopPropagation();doDel(\'ganhas\','+t+')"'
+      );
+    }
+  }
+  return html;
+};
+
+// ── Estatísticas de atestados no Resumo Geral ─────────────────────
+TOPS["atestados"] = ["Atestados de Capacidade Técnica","Controle de CAT, ART e documentos pós-contrato · integrado com Ganhas"];
+
+</script>
+  <!-- Modal WhatsApp -->
 TOPS["portal-config"] = ["Portal Empresas — Configurações","Senhas de acesso, senha de exclusão e link do portal"];
 
 async function initPortalConfig(){
