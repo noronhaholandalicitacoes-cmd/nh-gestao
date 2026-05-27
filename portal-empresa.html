@@ -469,7 +469,6 @@ textarea.mc-input{resize:vertical;min-height:64px}
       <div class="topbar-emp-dot" id="emp-dot"></div>
       <div class="topbar-emp-name" id="emp-nome-top"></div>
     </div>
-    <button class="topbar-logout" id="btn-gestao-acessos" onclick="abrirGestaoAcessos()" style="display:none;background:rgba(249,115,22,.12);border-color:rgba(249,115,22,.3);color:#f97316;margin-right:6px">🔑 Acessos</button>
     <button class="topbar-logout" onclick="fazerLogout()">Sair</button>
   </div>
 
@@ -682,45 +681,6 @@ textarea.mc-input{resize:vertical;min-height:64px}
     </div>
   </div>
 </div> -->
-<div id="modal-acessos" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;align-items:center;justify-content:center;padding:20px">
-  <div style="background:#111118;border:1px solid #2a2a38;border-radius:20px;width:100%;max-width:620px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.8)">
-    <!-- Header -->
-    <div style="padding:24px 28px 20px;border-bottom:1px solid #1e1e28;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
-      <div>
-        <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:#f0f0f8">🔑 Gestão de Acessos</div>
-        <div style="font-size:12px;color:#5a5a72;margin-top:3px">Gerencie logins e senhas das empresas do portal</div>
-      </div>
-      <button onclick="fecharGestaoAcessos()" style="background:rgba(255,255,255,.06);border:1px solid #2a2a38;color:#9898b0;width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center">✕</button>
-    </div>
-
-    <!-- Lista de acessos -->
-    <div style="flex:1;overflow-y:auto;padding:20px 28px" id="lista-acessos"></div>
-
-    <!-- Formulário adicionar novo -->
-    <div style="padding:20px 28px;border-top:1px solid #1e1e28;background:#0d0d12;flex-shrink:0">
-      <div style="font-size:11px;font-weight:700;color:#5a5a72;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">Adicionar Nova Empresa</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end">
-        <div>
-          <div style="font-size:10px;color:#5a5a72;margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em">Nome da Empresa</div>
-          <input id="novo-login" type="text" placeholder="Ex: EMPRESA" autocapitalize="characters"
-            style="width:100%;background:#18181f;border:1px solid #2a2a38;color:#f0f0f8;padding:9px 12px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color .15s"
-            onfocus="this.style.borderColor='rgba(249,115,22,.6)'" onblur="this.style.borderColor='#2a2a38'"
-            onkeydown="if(event.key==='Enter')document.getElementById('nova-senha').focus()">
-        </div>
-        <div>
-          <div style="font-size:10px;color:#5a5a72;margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em">Senha</div>
-          <input id="nova-senha" type="text" placeholder="Ex: empresa@2026"
-            style="width:100%;background:#18181f;border:1px solid #2a2a38;color:#f0f0f8;padding:9px 12px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color .15s"
-            onfocus="this.style.borderColor='rgba(249,115,22,.6)'" onblur="this.style.borderColor='#2a2a38'"
-            onkeydown="if(event.key==='Enter')adicionarAcesso()">
-        </div>
-        <button onclick="adicionarAcesso()" style="background:linear-gradient(90deg,#f97316,#dc2626);color:#fff;border:none;padding:9px 18px;border-radius:8px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:opacity .15s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">+ Adicionar</button>
-      </div>
-      <div id="msg-acesso" style="font-size:12px;margin-top:10px;display:none;padding:8px 12px;border-radius:6px"></div>
-    </div>
-  </div>
-</div>
-
 
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -808,8 +768,6 @@ async function fazerLogin(){
 
   // Admin: carregar acessos do Firestore (para que outros possam logar com senhas atualizadas)
   if(isAdmin){
-    await carregarAcessosFirestore();
-    document.getElementById('btn-gestao-acessos').style.display = '';
   }
 
   iniciarPortal();
@@ -1957,8 +1915,70 @@ function gerarHTMLImpressao(entries){
     </div>`;
   });
 
-  html += `</div>
-  <div class="rodape">
+  // ── Bloco de totais por categoria (respeita os filtros ativos) ──
+  const _hoje2 = new Date(); _hoje2.setHours(0,0,0,0);
+  function _dias(venc){
+    if(!venc) return null;
+    var p=String(venc).split('/'); if(p.length!==3) return null;
+    return Math.round((new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]))-_hoje2)/86400000);
+  }
+  function _vencFinal(arr){ return arr[39]||arr[32]||arr[25]||arr[18]||arr[12]||''; }
+  function _status(arr){ return String(arr[9]||'').trim().toUpperCase(); }
+
+  var totCats = {
+    total:      { lbl:'Total Geral',         cor:'#8b5cf6', n:0, val:0 },
+    exec:       { lbl:'Em Execução',         cor:'#22c55e', n:0, val:0 },
+    aguard:     { lbl:'Aguardando',          cor:'#3b82f6', n:0, val:0 },
+    vencido:    { lbl:'Vencidos',            cor:'#ef4444', n:0, val:0 },
+    prox:       { lbl:'Próximos a Vencer',   cor:'#f59e0b', n:0, val:0 },
+    finalizado: { lbl:'Realizados',          cor:'#6b7280', n:0, val:0 },
+    recomp:     { lbl:'Recomposição Contratual', cor:'#f97316', n:0, val:0 },
+  };
+
+  entries.forEach(function(e){
+    var arr=e.arr, st=_status(arr), v=calcValorGanhas(arr)||0;
+    var venc=_vencFinal(arr), dias=_dias(venc);
+    var isExec = st==='EM EXECUÇÃO'||st==='';
+    var vencido = isExec && dias!==null && dias<0;
+    var proxVencer = isExec && dias!==null && dias>=0 && dias<=90;
+
+    totCats.total.n++; totCats.total.val+=v;
+    if(st==='AGUARDANDO CONTRATO'){ totCats.aguard.n++; totCats.aguard.val+=v; }
+    else if(st==='FINALIZADO'||st==='RESCINDIDO'||st==='SUSPENSO'){ totCats.finalizado.n++; totCats.finalizado.val+=v; }
+    else if(vencido){ totCats.vencido.n++; totCats.vencido.val+=v; }
+    else if(proxVencer){ totCats.prox.n++; totCats.prox.val+=v; }
+    else if(isExec){ totCats.exec.n++; totCats.exec.val+=v; }
+    if(arr[13]==='SIM'){ totCats.recomp.n++; totCats.recomp.val+=v; }
+  });
+
+  function _fmtR(n){ return 'R$ '+n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+  // Só mostra categorias com pelo menos 1 contrato (exceto Total que sempre aparece)
+  var linhasTot = Object.entries(totCats)
+    .filter(function(kv){ return kv[0]==='total'||kv[1].n>0; })
+    .map(function(kv){
+      var k=kv[0], c=kv[1];
+      return '<tr>'
+        +'<td style="padding:7px 12px;font-weight:'+(k==='total'?'800':'600')+';color:'+c.cor+';font-size:'+(k==='total'?'11':'10')+'px">'+c.lbl+'</td>'
+        +'<td style="padding:7px 12px;text-align:center;font-weight:700;color:'+c.cor+';font-size:'+(k==='total'?'14':'13')+'px">'+c.n+'</td>'
+        +'<td style="padding:7px 12px;text-align:right;font-weight:700;color:'+c.cor+';font-size:'+(k==='total'?'13':'12')+'px">'+_fmtR(c.val)+'</td>'
+        +'</tr>';
+    }).join('');
+
+  html += '</div>'
+    +'<div style="page-break-inside:avoid;margin:24px 28px 80px;border:1.5px solid #e5e7eb;border-radius:10px;overflow:hidden">'
+    +'<div style="background:#f3f4f6;padding:10px 14px;font-size:10px;font-weight:800;color:#374151;text-transform:uppercase;letter-spacing:.08em;border-bottom:1.5px solid #e5e7eb">Resumo do Relatório</div>'
+    +'<table style="width:100%;border-collapse:collapse">'
+    +'<thead><tr style="background:#f9fafb;border-bottom:1px solid #e5e7eb">'
+    +'<th style="padding:7px 12px;text-align:left;font-size:9px;color:#6b7280;text-transform:uppercase;letter-spacing:.07em;font-weight:700">Categoria</th>'
+    +'<th style="padding:7px 12px;text-align:center;font-size:9px;color:#6b7280;text-transform:uppercase;letter-spacing:.07em;font-weight:700">Qtd</th>'
+    +'<th style="padding:7px 12px;text-align:right;font-size:9px;color:#6b7280;text-transform:uppercase;letter-spacing:.07em;font-weight:700">Valor Total</th>'
+    +'</tr></thead>'
+    +'<tbody style="border-top:1px solid #e5e7eb">'+linhasTot+'</tbody>'
+    +'</table>'
+    +'</div>';
+
+  html += `<div class="rodape">
     <span>${titulo} · NH Licitações Portal</span>
     <span>${entries.length} contrato(s) · Emitido em ${hoje}</span>
   </div>
@@ -2028,16 +2048,41 @@ function imprimirContrato(id){
   w.document.close();
 }
 
-function imprimirTodos(){
-  // Imprimir contratos na ordem/filtro atual
+// Retorna a lista com todos os filtros ativos aplicados (igual ao renderContratos)
+function getListaFiltrada(){
   const hoje = new Date(); hoje.setHours(0,0,0,0);
   let lista = [...dadosGanhas];
-  const busca = (document.getElementById('inp-busca')?.value||'').toLowerCase().trim();
-  if(busca) lista = lista.filter(({arr})=>[arr[3],arr[4],arr[5],arr[6]].some(v=>String(v||'').toLowerCase().includes(busca)));
-  if(filtroAtual==='em_execucao') lista=lista.filter(({arr})=>String(arr[9]||'').toUpperCase()!=='FINALIZADO');
-  else if(filtroAtual==='finalizado') lista=lista.filter(({arr})=>String(arr[9]||'').toUpperCase()==='FINALIZADO');
-  if(!lista.length){alert('Nenhum contrato para imprimir.');return;}
-  const w = window.open('','_blank','width=900,height=700');
+
+  if(filtroStatus){
+    lista = lista.filter(({arr})=>{
+      const st=String(arr[9]||'').trim().toUpperCase();
+      const vd=arr[39]||arr[32]||arr[25]||arr[18]||arr[12]||'';
+      let dtVenc=null;
+      if(vd){const p=String(vd).split('/');if(p.length===3)dtVenc=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));}
+      const exec=st==='EM EXECUÇÃO'||st==='EM EXECUCAO';
+      const vencido=exec&&dtVenc&&dtVenc<hoje;
+      if(filtroStatus==='exec')   return exec&&!vencido;
+      if(filtroStatus==='venc')   return vencido;
+      if(filtroStatus==='prox'){if(!exec||vencido||!dtVenc)return false;return Math.round((dtVenc-hoje)/86400000)>0&&Math.round((dtVenc-hoje)/86400000)<=90;}
+      if(filtroStatus==='fin')    return st==='FINALIZADO';
+      if(filtroStatus==='aguard') return st==='AGUARDANDO CONTRATO';
+      if(filtroStatus==='recomp') return String(arr[13]||'').toUpperCase().trim()==='SIM';
+      if(filtroStatus==='susp')   return st==='SUSPENSO';
+      if(filtroStatus==='resc')   return st==='RESCINDIDO';
+      return true;
+    });
+  }
+  if(filtroEmpresa) lista=lista.filter(({arr})=>String(arr[2]||'').trim().toUpperCase()===filtroEmpresa);
+  const busca=(document.getElementById('inp-busca')?.value||'').toLowerCase().trim();
+  if(busca) lista=lista.filter(({arr})=>arr.some(v=>String(v||'').toLowerCase().includes(busca)));
+  return lista;
+}
+
+function imprimirTodos(){
+  const lista = getListaFiltrada();
+  if(!lista.length){ alert('Nenhum contrato para imprimir.'); return; }
+  const w = window.open('','_blank','width=920,height=700');
+  if(!w){ portalToast('Permita pop-ups para imprimir.','err'); return; }
   w.document.write(gerarHTMLImpressao(lista));
   w.document.close();
 }
@@ -2128,145 +2173,6 @@ async function salvarAlteracoes(id){
   }
 }
 
-// ─── GESTÃO DE ACESSOS (GROWTH) ──────────────────────────────────
-// Os acessos são salvos no Firestore em 'config/portal_acessos'
-// Na memória, o objeto SENHAS é sempre mantido atualizado
-
-let acessosCarregados = false;
-
-async function carregarAcessosFirestore(){
-  try{
-    const doc = await db.collection('config').doc('portal_acessos').get();
-    if(doc.exists){
-      const data = doc.data();
-      // Suporta {senhas:{...}} (legado) e {VISE:'...', SOS:'...'} (novo formato do sistema NH)
-      const mapa = data.senhas || data;
-      Object.keys(SENHAS).forEach(k => delete SENHAS[k]);
-      Object.assign(SENHAS, mapa);
-    } else {
-      // Primeira vez: salvar os defaults no Firestore no novo formato
-      await db.collection('config').doc('portal_acessos').set({...SENHAS});
-    }
-    acessosCarregados = true;
-  } catch(e){
-    console.warn('Não foi possível carregar acessos do Firestore:', e.message);
-  }
-}
-
-async function salvarAcessosFirestore(){
-  // Salva no novo formato direto (sem o wrapper 'senhas')
-  await db.collection('config').doc('portal_acessos').set({...SENHAS});
-}
-
-function abrirGestaoAcessos(){
-  document.getElementById('modal-acessos').style.display = 'flex';
-  renderListaAcessos();
-}
-
-function fecharGestaoAcessos(){
-  document.getElementById('modal-acessos').style.display = 'none';
-  document.getElementById('msg-acesso').style.display = 'none';
-  document.getElementById('novo-login').value = '';
-  document.getElementById('nova-senha').value = '';
-}
-
-function renderListaAcessos(){
-  const lista = document.getElementById('lista-acessos');
-  const entries = Object.entries(SENHAS);
-  if(!entries.length){
-    lista.innerHTML = '<div style="text-align:center;color:#5a5a72;padding:30px">Nenhum acesso cadastrado</div>';
-    return;
-  }
-  lista.innerHTML = entries.map(([login, senha]) => {
-    const cor = CORES[login] || '#6b7280';
-    const initials = login.split(' ').map(w=>w[0]).join('').slice(0,2);
-    const isGrowth = login === 'GROWTH';
-    return `
-    <div id="row-${login.replace(/ /g,'_')}" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:#18181f;border:1px solid #22222c;border-radius:10px;margin-bottom:8px">
-      <div style="width:34px;height:34px;border-radius:8px;background:${cor}22;border:1px solid ${cor}44;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:${cor};flex-shrink:0">${initials}</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:700;color:#f0f0f8;margin-bottom:2px">${login} ${isGrowth?'<span style="font-size:10px;background:rgba(249,115,22,.15);color:#f97316;padding:2px 7px;border-radius:4px;margin-left:4px">ADMIN</span>':''}</div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <input id="inp-senha-${login.replace(/ /g,'_')}" type="text" value="${senha}"
-            style="background:#0d0d12;border:1px solid #2a2a38;color:#9898b0;padding:5px 10px;border-radius:6px;font-family:monospace;font-size:12px;outline:none;flex:1;min-width:0;transition:border-color .15s"
-            onfocus="this.style.borderColor='rgba(249,115,22,.6)'" onblur="this.style.borderColor='#2a2a38'"
-            onkeydown="if(event.key==='Enter')salvarSenha('${login}')">
-          <button onclick="salvarSenha('${login}')" style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);color:#4ade80;padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;transition:opacity .15s" onmouseover="this.style.opacity='.7'" onmouseout="this.style.opacity='1'">💾 Salvar</button>
-          ${!isGrowth ? `<button onclick="excluirAcesso('${login}')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;transition:opacity .15s" onmouseover="this.style.opacity='.7'" onmouseout="this.style.opacity='1'" title="Excluir">🗑</button>` : ''}
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-async function salvarSenha(login){
-  const key = login.replace(/ /g,'_');
-  const inp = document.getElementById('inp-senha-'+key);
-  if(!inp) return;
-  const novaSenha = inp.value.trim();
-  if(!novaSenha){ mostrarMsgAcesso('Senha não pode ser vazia.','erro'); return; }
-  SENHAS[login] = novaSenha;
-  try{
-    await salvarAcessosFirestore();
-    mostrarMsgAcesso(`✓ Senha de ${login} atualizada!`, 'ok');
-  } catch(e){
-    mostrarMsgAcesso('Erro ao salvar: '+e.message, 'erro');
-  }
-}
-
-async function excluirAcesso(login){
-  if(!confirm(`Remover acesso de "${login}"?`)) return;
-  delete SENHAS[login];
-  try{
-    await salvarAcessosFirestore();
-    renderListaAcessos();
-    mostrarMsgAcesso(`✓ Acesso de ${login} removido.`, 'ok');
-  } catch(e){
-    SENHAS[login] = ''; // rollback parcial
-    mostrarMsgAcesso('Erro ao excluir: '+e.message, 'erro');
-  }
-}
-
-async function adicionarAcesso(){
-  const login = document.getElementById('novo-login').value.trim().toUpperCase();
-  const senha  = document.getElementById('nova-senha').value.trim();
-  if(!login || !senha){ mostrarMsgAcesso('Preencha nome e senha.','erro'); return; }
-  if(SENHAS[login]){ mostrarMsgAcesso(`"${login}" já existe. Altere a senha na lista acima.`,'erro'); return; }
-  SENHAS[login] = senha;
-  try{
-    await salvarAcessosFirestore();
-    document.getElementById('novo-login').value = '';
-    document.getElementById('nova-senha').value = '';
-    renderListaAcessos();
-    mostrarMsgAcesso(`✓ "${login}" adicionado com sucesso!`, 'ok');
-  } catch(e){
-    delete SENHAS[login];
-    mostrarMsgAcesso('Erro ao salvar: '+e.message, 'erro');
-  }
-}
-
-function mostrarMsgAcesso(texto, tipo){
-  const el = document.getElementById('msg-acesso');
-  el.textContent = texto;
-  el.style.display = 'block';
-  if(tipo==='ok'){
-    el.style.background = 'rgba(34,197,94,.1)';
-    el.style.border = '1px solid rgba(34,197,94,.25)';
-    el.style.color = '#4ade80';
-  } else {
-    el.style.background = 'rgba(239,68,68,.1)';
-    el.style.border = '1px solid rgba(239,68,68,.25)';
-    el.style.color = '#f87171';
-  }
-  setTimeout(()=>{ el.style.display='none'; }, 4000);
-}
-
-// Fechar modal clicando fora
-document.addEventListener('click', e => {
-  const modal = document.getElementById('modal-acessos');
-  if(modal && modal.style.display==='flex' && e.target===modal) fecharGestaoAcessos();
-});
-
 // ─── INIT ────────────────────────────────────────────────────────
 window.addEventListener('load', async ()=>{
   // Aguardar Firebase estar pronto (até 5s)
@@ -2291,7 +2197,6 @@ window.addEventListener('load', async ()=>{
       empAtual = empSessao;
       isAdmin  = (empSessao === 'GROWTH');
       document.getElementById('login-screen').style.display = 'none';
-      if(isAdmin) document.getElementById('btn-gestao-acessos').style.display = '';
       iniciarPortal();
       return;
     }
