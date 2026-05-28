@@ -1710,7 +1710,6 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
     <div class="fg"><label>Valor do Contrato</label><input type="text" id="at-valor" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
 
     <div class="fsec">Atestado de Capacidade Técnica</div>
-    <div class="fg"><label>Órgão Emitente</label><input type="text" id="at-emit" placeholder="Nome do órgão / contratante que emite o atestado"></div>
     <div class="fg"><label>Data de Recebimento</label><input type="date" id="at-dtreceb" title="Data em que o atestado foi entregue à empresa"></div>
     <div class="fg"><label>Atestado Recebido?</label><select id="at-receb"><option value="">-</option><option>SIM</option><option>NÃO</option><option>EM SOLICITAÇÃO</option></select></div>
 
@@ -2585,7 +2584,10 @@ renderCard = function(e, a, t){
   if(String(a[7]||"").trim()) p += '<div class="kmeta"><span class="kmeta-lbl">Contrato</span><span class="kmeta-val">'+a[7]+'</span></div>';
   if(valor) p += '<div class="kmeta"><span class="kmeta-lbl">Valor</span><span class="kmeta-val hl">'+fmtValBR(valor)+'</span></div>';
   if(vigencia) p += '<div class="kmeta"><span class="kmeta-lbl">Vigência até</span><span class="kmeta-val">'+vigencia+'</span></div>';
-  p += '<div class="kmeta"><span class="kmeta-lbl">Recebido</span>'+badge("atestados",11,a[11])+'</div>';
+  var _recSt = String(a[11]||'').toUpperCase().trim();
+  var _recCor = _recSt==='SIM'?'#22c55e':_recSt==='EM SOLICITAÇÃO'?'#60a5fa':'#f87171';
+  var _recLbl = _recSt==='SIM'?'✅ Recebido':_recSt==='EM SOLICITAÇÃO'?'📤 Solicitado':'⏳ Pendente';
+  p += '<div class="kmeta"><span class="kmeta-lbl">Atestado</span><span class="kmeta-val" style="color:'+_recCor+';font-weight:700">'+_recLbl+'</span></div>';
   if(catNum) p += '<div class="kmeta"><span class="kmeta-lbl">CAT</span><span class="kmeta-val" style="color:#a78bfa;font-weight:700">'+catNum+'</span></div>';
   if(artNum) p += '<div class="kmeta"><span class="kmeta-lbl">ART</span><span class="kmeta-val" style="color:#eab308;font-weight:700">'+artNum+'</span></div>';
   if(respTec) p += '<div class="kmeta"><span class="kmeta-lbl">Resp. Técnico</span><span class="kmeta-val">'+respTec+'</span></div>';
@@ -2616,9 +2618,11 @@ renderCard = function(e, a, t){
   });
   p += '</div></div>';
 
-  p += kfieldEdit("Recebido?",          a[11],11,"atestados",t);
+  p += '<div class="kfield"><div class="kfield-lbl">Status do Atestado</div><div style="display:flex;gap:8px;margin-top:4px">'
+     + '<button onclick="event.stopPropagation();toggleAtStatus(\''+t+'\',\'solicitado\')" style="flex:1;padding:7px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid '+(String(a[11]||'').toUpperCase()==='EM SOLICITAÇÃO'?'rgba(59,130,246,.5);background:rgba(59,130,246,.15);color:#60a5fa':'rgba(255,255,255,.1);background:transparent;color:var(--t3)')+'">📤 Solicitado</button>'
+     + '<button onclick="event.stopPropagation();toggleAtStatus(\''+t+'\',\'recebido\')" style="flex:1;padding:7px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid '+(String(a[11]||'').toUpperCase()==='SIM'?'rgba(34,197,94,.5);background:rgba(34,197,94,.15);color:#4ade80':'rgba(255,255,255,.1);background:transparent;color:var(--t3)')+'">✅ Recebido</button>'
+     + '</div></div>';
   p += kfieldEdit("Data Recebimento",   a[12],12,"atestados",t);
-  p += kfieldEdit("Órgão Emitente",     a[13],13,"atestados",t);
   p += kfieldEdit("CAT Nº",             a[14],14,"atestados",t);
   p += kfieldEdit("ART Nº",             a[16],16,"atestados",t);
   p += kfieldEdit("Responsável Téc.",   a[23],23,"atestados",t);
@@ -2649,6 +2653,28 @@ renderCard = function(e, a, t){
 
 // ── Estatísticas de atestados no Resumo Geral ─────────────────────
 TOPS["atestados"] = ["Atestados de Capacidade Técnica","Controle de CAT, ART e documentos pós-contrato · integrado com Ganhas"];
+
+function toggleAtStatus(rowIdx, tipo){
+  var a = FIL.atestados[rowIdx];
+  if(!a) return;
+  var atual = String(a[11]||'').toUpperCase().trim();
+  var novoVal;
+  if(tipo === 'solicitado'){
+    novoVal = atual === 'EM SOLICITAÇÃO' ? 'NÃO' : 'EM SOLICITAÇÃO';
+  } else {
+    novoVal = atual === 'SIM' ? 'NÃO' : 'SIM';
+  }
+  saveCell('atestados', rowIdx, 11, novoVal);
+  // Atualizar status geral automaticamente
+  if(novoVal === 'SIM' && String(a[18]||'').toUpperCase().trim() === 'PENDENTE'){
+    saveCell('atestados', rowIdx, 18, 'RECEBIDO');
+  }
+  if(novoVal === 'EM SOLICITAÇÃO' && (!a[18]||String(a[18]||'').toUpperCase().trim() === 'PENDENTE')){
+    saveCell('atestados', rowIdx, 18, 'EM SOLICITAÇÃO');
+  }
+  // Re-renderizar o card
+  setTimeout(function(){ renderTbl('atestados'); }, 400);
+}
 
 // ─── PORTAL CONFIG ───────────────────────────────────────────────
 TOPS["portal-config"] = ["Portal Empresas — Configurações","Senhas de acesso, senha de exclusão e link do portal"];
