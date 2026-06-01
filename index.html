@@ -2608,19 +2608,26 @@ renderCard = function(e, a, t){
   var pct = Math.round(okCount/items.length*100);
   p += '<div style="margin-bottom:14px;padding:12px 14px;background:rgba(0,0,0,.2);border-radius:8px">';
   p += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
-  p += '<span style="font-size:11px;font-weight:700;color:var(--t3)">PROGRESSO DO ATESTADO</span>';
-  p += '<span style="font-size:12px;font-weight:800;color:'+(pct===100?"#22c55e":pct>=60?"#eab308":"#ef4444")+'">'+pct+'%</span>';
-  p += '</div>';
-  p += '<div style="background:var(--b1);border-radius:4px;height:6px;margin-bottom:10px"><div style="width:'+pct+'%;background:'+(pct===100?"#22c55e":pct>=60?"#eab308":"#ef4444")+';height:100%;border-radius:4px;transition:width .4s"></div></div>';
+  // Progresso — CAT e ART só entram se preenchidos (opcionais)
+  var _recSt2 = String(a[11]||'').toUpperCase().trim();
+  var _pItems = [{lbl:"Recebido", ok: _recSt2==='SIM'||_recSt2==='RECEBIDO'}];
+  if(catNum) _pItems.push({lbl:"CAT", ok: true});
+  if(artNum) _pItems.push({lbl:"ART", ok: true});
+  _pItems.push({lbl:"Link Doc.", ok: !!String(a[20]||'').trim()});
+  var _okCnt = _pItems.filter(function(i){return i.ok;}).length;
+  var _pct2 = Math.round(_okCnt/_pItems.length*100);
+  var _cor2 = _pct2===100?'#22c55e':_pct2>=60?'#eab308':'#ef4444';
+  p += '<span class="at-pct-val" style="font-size:12px;font-weight:800;color:'+_cor2+'">'+_pct2+'%</span>';
+  p += '<div style="background:var(--b1);border-radius:4px;height:6px;margin-bottom:10px"><div class="at-pct-bar" style="width:'+_pct2+'%;background:'+_cor2+';height:100%;border-radius:4px;transition:width .4s"></div></div>';
   p += '<div style="display:flex;gap:8px;flex-wrap:wrap">';
-  items.forEach(function(item){
-    p += '<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:'+(item.ok?"rgba(34,197,94,.1)":"rgba(239,68,68,.1)")+';color:'+(item.ok?"#4ade80":"#f87171")+';border:1px solid '+(item.ok?"rgba(34,197,94,.2)":"rgba(239,68,68,.2)")+'">'+(item.ok?"✓ ":"✗ ")+item.lbl+'</span>';
+  _pItems.forEach(function(item){
+    p += '<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:'+(item.ok?'rgba(34,197,94,.1)':'rgba(239,68,68,.1)')+';color:'+(item.ok?'#4ade80':'#f87171')+';border:1px solid '+(item.ok?'rgba(34,197,94,.2)':'rgba(239,68,68,.2)')+'">'+(item.ok?'✓ ':'✗ ')+item.lbl+'</span>';
   });
   p += '</div></div>';
 
   p += '<div class="kfield"><div class="kfield-lbl">Status do Atestado</div><div style="display:flex;gap:8px;margin-top:4px">'
-     + '<button onclick="event.stopPropagation();toggleAtStatus(\''+t+'\',\'solicitado\')" style="flex:1;padding:7px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid '+(String(a[11]||'').toUpperCase()==='EM SOLICITAÇÃO'?'rgba(59,130,246,.5);background:rgba(59,130,246,.15);color:#60a5fa':'rgba(255,255,255,.1);background:transparent;color:var(--t3)')+'">📤 Solicitado</button>'
-     + '<button onclick="event.stopPropagation();toggleAtStatus(\''+t+'\',\'recebido\')" style="flex:1;padding:7px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid '+(String(a[11]||'').toUpperCase()==='SIM'?'rgba(34,197,94,.5);background:rgba(34,197,94,.15);color:#4ade80':'rgba(255,255,255,.1);background:transparent;color:var(--t3)')+'">✅ Recebido</button>'
+     + '<button class="at-toggle-btn" onclick="event.stopPropagation();toggleAtStatus(\''+t+'\',\'solicitado\')" style="flex:1;padding:7px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid '+(String(a[11]||'').toUpperCase()==='EM SOLICITAÇÃO'?'rgba(59,130,246,.5);background:rgba(59,130,246,.15);color:#60a5fa':'rgba(255,255,255,.1);background:transparent;color:var(--t3)')+'">📤 Solicitado</button>'
+     + '<button class="at-toggle-btn" onclick="event.stopPropagation();toggleAtStatus(\''+t+'\',\'recebido\')" style="flex:1;padding:7px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid '+(String(a[11]||'').toUpperCase()==='SIM'?'rgba(34,197,94,.5);background:rgba(34,197,94,.15);color:#4ade80':'rgba(255,255,255,.1);background:transparent;color:var(--t3)')+'">✅ Recebido</button>'
      + '</div></div>';
   p += kfieldEdit("Data Recebimento",   a[12],12,"atestados",t);
   p += kfieldEdit("CAT Nº",             a[14],14,"atestados",t);
@@ -2666,14 +2673,54 @@ function toggleAtStatus(rowIdx, tipo){
   }
   saveCell('atestados', rowIdx, 11, novoVal);
   // Atualizar status geral automaticamente
-  if(novoVal === 'SIM' && String(a[18]||'').toUpperCase().trim() === 'PENDENTE'){
+  if(novoVal === 'SIM' && (!String(a[18]||'').trim() || String(a[18]||'').toUpperCase().trim() === 'PENDENTE')){
     saveCell('atestados', rowIdx, 18, 'RECEBIDO');
   }
   if(novoVal === 'EM SOLICITAÇÃO' && (!a[18]||String(a[18]||'').toUpperCase().trim() === 'PENDENTE')){
     saveCell('atestados', rowIdx, 18, 'EM SOLICITAÇÃO');
   }
-  // Re-renderizar o card
-  setTimeout(function(){ renderTbl('atestados'); }, 400);
+  // Atualizar APENAS os botões e progresso do card sem recolher
+  setTimeout(function(){
+    var cardEl = document.getElementById('row-atestados-'+rowIdx);
+    if(!cardEl) return;
+    var novoA = FIL.atestados[rowIdx];
+    if(!novoA) return;
+    var recSt = String(novoA[11]||'').toUpperCase().trim();
+    // Atualizar botões
+    var btns = cardEl.querySelectorAll('.at-toggle-btn');
+    if(btns[0]){ // Solicitado
+      var isSol = recSt === 'EM SOLICITAÇÃO';
+      btns[0].style.borderColor = isSol ? 'rgba(59,130,246,.5)' : 'rgba(255,255,255,.1)';
+      btns[0].style.background  = isSol ? 'rgba(59,130,246,.15)' : 'transparent';
+      btns[0].style.color       = isSol ? '#60a5fa' : 'var(--t3)';
+    }
+    if(btns[1]){ // Recebido
+      var isRec = recSt === 'SIM';
+      btns[1].style.borderColor = isRec ? 'rgba(34,197,94,.5)' : 'rgba(255,255,255,.1)';
+      btns[1].style.background  = isRec ? 'rgba(34,197,94,.15)' : 'transparent';
+      btns[1].style.color       = isRec ? '#4ade80' : 'var(--t3)';
+    }
+    // Atualizar kmeta de atestado no topo recolhido
+    var recCor = recSt==='SIM'?'#22c55e':recSt==='EM SOLICITAÇÃO'?'#60a5fa':'#f87171';
+    var recLbl = recSt==='SIM'?'✅ Recebido':recSt==='EM SOLICITAÇÃO'?'📤 Solicitado':'⏳ Pendente';
+    var kmetaAt = cardEl.querySelector('.at-status-kmeta');
+    if(kmetaAt){ kmetaAt.style.color = recCor; kmetaAt.textContent = recLbl; }
+    // Recalcular progresso
+    var catNum = String(novoA[14]||'').trim();
+    var artNum = String(novoA[16]||'').trim();
+    var linkDoc = String(novoA[20]||'').trim();
+    var items = [{ok: recSt==='SIM'||recSt==='RECEBIDO'}];
+    if(catNum) items.push({ok: true});
+    if(artNum) items.push({ok: true});
+    items.push({ok: !!linkDoc});
+    var okCount = items.filter(function(i){return i.ok;}).length;
+    var pct = Math.round(okCount/items.length*100);
+    var pctEl = cardEl.querySelector('.at-pct-val');
+    var barEl = cardEl.querySelector('.at-pct-bar');
+    var cor = pct===100?'#22c55e':pct>=60?'#eab308':'#ef4444';
+    if(pctEl){ pctEl.style.color = cor; pctEl.textContent = pct+'%'; }
+    if(barEl){ barEl.style.width = pct+'%'; barEl.style.background = cor; }
+  }, 450);
 }
 
 // ─── PORTAL CONFIG ───────────────────────────────────────────────
