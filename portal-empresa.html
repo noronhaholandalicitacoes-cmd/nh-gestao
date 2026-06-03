@@ -1740,9 +1740,10 @@ function renderContratos(){
       if(p.length===3){
         const dt=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
         const dias=Math.round((dt-hoje)/86400000);
-        if(dias<0) vencBadge='<span class="badge b-red">Vencido</span>';
-        else if(dias<=30) vencBadge='<span class="badge b-red">Vence em '+dias+'d</span>';
-        else if(dias<=90) vencBadge='<span class="badge b-yellow">Vence em '+dias+'d</span>';
+        const meses=Math.round(dias/30);
+        const vcls=dias<0?'b-red':dias<=30?'b-orange':dias<=90?'b-yellow':'b-green';
+        const vtxt=dias<0?'Vencido há '+Math.abs(dias)+'d':dias===0?'Vence HOJE':dias<=60?'Vence em '+dias+'d':'Vence em '+meses+' meses';
+        vencBadge='<span class="badge '+vcls+'">⏱ '+vtxt+'</span>';
       }
     }
 
