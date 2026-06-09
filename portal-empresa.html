@@ -1447,12 +1447,12 @@ async function carregarAlertas(){
   var box=document.getElementById('alertas-area'); if(!box) return;
   try{
     const snap = await db.collection('andamento').get();
-    var al=[];
+    var _nrm=function(x){return String(x||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]/g,"");};var contratados={};(dadosGanhas||[]).forEach(function(c){if(c&&c.arr)contratados[_nrm(c.arr[3])]=1;});var al=[];
     snap.forEach(function(doc){
       var arr=(doc.data()._arr)||[];
       var emp=String(arr[2]||'').trim().toUpperCase();
       var cls=String(arr[11]||'').trim();
-      if((isAdmin || emp===empAtual) && /^1(\D|$)/.test(cls)){ al.push(arr); }
+      if((isAdmin || emp===empAtual) && /^1(\D|$)/.test(cls) && !contratados[_nrm(arr[3])]){ al.push(arr); }
     });
     if(!al.length){ box.innerHTML=''; return; }
     box.innerHTML = al.map(function(arr){
