@@ -1452,7 +1452,7 @@ async function carregarAlertas(){
       var arr=(doc.data()._arr)||[];
       var emp=String(arr[2]||'').trim().toUpperCase();
       var cls=String(arr[11]||'').trim();
-      if((isAdmin || emp===empAtual) && /^1(\D|$)/.test(cls) && !contratados[_nrm(arr[3])]){ al.push(arr); }
+      if((isAdmin || emp===empAtual) && /^1(\D|$)/.test(cls) && "sim"!==String(arr[16]||'').toLowerCase().trim() && !contratados[_nrm(arr[3])]){ al.push(arr); }
     });
     if(!al.length){ box.innerHTML=''; return; }
     box.innerHTML = al.map(function(arr){
