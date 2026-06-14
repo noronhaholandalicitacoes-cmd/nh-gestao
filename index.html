@@ -794,8 +794,9 @@ body.ro-mode .btn-edit-card,body.ro-mode .btn-del,body.ro-mode .btn-cert-add,bod
 .btn-density:hover{background:var(--s3)}
 .btn-density.on{color:var(--nh);border-color:rgba(249,115,22,.4);background:var(--nha2)}
 body.compact .kcard{padding:10px 16px!important;margin-bottom:7px!important;border-radius:9px!important;border-left-width:4px!important}
-body.compact .kcard-licit{font-size:14px!important;line-height:1.35!important}
-body.compact .kcard-top{gap:8px!important}
+body.compact .kcard-licit{font-size:14px!important;line-height:1.35!important;display:inline-block;vertical-align:middle;max-width:72%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0!important}
+body.compact .kcard-licit + div:not(.kcard-obj){display:inline-block!important;margin:0 0 0 10px!important;vertical-align:middle}
+body.compact .kcard-top{gap:8px!important;margin-bottom:4px!important}
 </style>
   <!-- Firebase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js"></script>
@@ -986,9 +987,9 @@ body.compact .kcard-top{gap:8px!important}
     <div class="page" id="page-andamento">
       <div class="stats" id="st-andamento"></div>
       <div class="toolbar">
-        <span style="font-size:11px;color:var(--t3);background:transparent;border:none;padding:4px 2px">⚡ Populado automaticamente via Editais</span>
+        
         <div class="search"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><input placeholder="Buscar..." id="q-andamento" oninput="doQ('andamento')"></div>
-        <span style="font-size:11px;color:var(--t3);background:transparent;border:none;padding:4px 2px">⚡ ADJU = sim → Finalizados</span>
+        
         <button onclick="imprimirAba('andamento')" title="Imprimir / PDF" style="background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.25);color:var(--nh);padding:6px 12px;border-radius:7px;cursor:pointer;font-family:Outfit,sans-serif;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>Imprimir</button>
         <button onclick="exportarExcel('andamento')" title="Exportar Excel" style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);color:#22c55e;padding:6px 12px;border-radius:7px;cursor:pointer;font-family:Outfit,sans-serif;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Excel</button>
         <button id="btn-prahoje" onclick="filtrarPraHoje()" style="background:rgba(249,115,22,.15);color:var(--nh);border:1px solid rgba(249,115,22,.3);padding:6px 14px;font-size:12px;font-weight:700;border-radius:7px;cursor:pointer;font-family:Outfit,sans-serif;transition:all .15s;display:inline-flex;align-items:center;gap:6px">📅 Pra Hoje</button>
