@@ -3606,61 +3606,77 @@ var _togglesLoaded=false;async function loadTogglesFromFirebase(){if(_togglesLoa
 function saveDateTime(e,a,t,el){var row=el.parentElement;var dEl=row.querySelector("input:first-child");var hEl=row.querySelector("input:last-child");var val=(dEl?dEl.value.trim():"")+(hEl&&hEl.value.trim()?" "+hEl.value.trim():"");saveCell(e,a,t,val)}
 
 function initPNCPDates(){carregarMunicipios("PB");var h=new Date,d=new Date(h);d.setDate(d.getDate()-7);var f=function(d){return d.toISOString().split("T")[0]};var di=document.getElementById("pncp-dt-ini");var df=document.getElementById("pncp-dt-fim");if(di&&!di.value)di.value=f(d);if(df&&!df.value)df.value=f(h)}
+async function carregarMunicipios(uf){
+  var sel=document.getElementById('pncp-mun');if(!sel)return;
+  sel.innerHTML='<option value="">Todos Municípios</option>';
+  if(!uf)return;
+  sel.innerHTML='<option value="">Carregando...</option>';
+  try{
+    var r=await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados/'+uf+'/municipios');
+    var ms=await r.json();
+    ms.sort(function(a,b){return String(a.nome).localeCompare(String(b.nome))});
+    var h='<option value="">Todos Municípios</option>';
+    ms.forEach(function(m){h+='<option value="'+m.id+'">'+m.nome+'</option>';});
+    sel.innerHTML=h;
+  }catch(e){
+    sel.innerHTML='<option value="">Todos Municípios</option>';
+    if(typeof toast==='function')toast('Não foi possível carregar municípios','err');
+  }
+}
+async function _pncpFetch(url){
+  var proxies=["https://api.allorigins.win/raw?url=","https://corsproxy.io/?url=","https://api.codetabs.com/v1/proxy?quest="];
+  var lastErr="";
+  for(var i=0;i<proxies.length;i++){
+    try{
+      var resp=await Promise.race([
+        fetch(proxies[i]+encodeURIComponent(url),{cache:"no-cache"}),
+        new Promise(function(_,rj){setTimeout(function(){rj(new Error("timeout"))},12000)})
+      ]);
+      if(!resp.ok){lastErr="HTTP "+resp.status;continue;}
+      var txt=await resp.text();var obj;
+      try{obj=JSON.parse(txt);}catch(pe){lastErr="JSON inválido";continue;}
+      if(obj&&obj.contents){try{obj=JSON.parse(obj.contents);}catch(pe2){}}
+      if(Array.isArray(obj))obj={data:obj,totalPaginas:1};
+      if(obj&&obj.data!==undefined)return obj;
+      lastErr="Resposta inválida";
+    }catch(e){lastErr=(e&&e.message)||"erro";continue;}
+  }
+  throw new Error(lastErr||"falha");
+}
 async function buscarPNCP(){
   var st=document.getElementById("pncp-status");
   var termo=document.getElementById("pncp-termo").value.trim();
   var uf=document.getElementById("pncp-uf").value;
   var mod=document.getElementById("pncp-modalidade").value;
+  var munCod=document.getElementById("pncp-mun").value;
   var di=document.getElementById("pncp-dt-ini").value;
   var df=document.getElementById("pncp-dt-fim").value;
   if(!di||!df){toast("Informe as datas de início e fim","err");return}
   st.textContent="Buscando no PNCP...";st.style.color="var(--nh)";
-  var dIni=di.replace(/-/g,"");
-  var dFim=df.replace(/-/g,"");
-  var baseUrl="https://pncp.gov.br/api/consulta/v1/contratacoes/publicacao?dataInicial="+dIni+"&dataFinal="+dFim+"&tamanhoPagina=50&pagina=1";
-  if(mod)baseUrl+="&codigoModalidadeContratacao="+mod;
-  if(uf)baseUrl+="&uf="+uf;
-  
-  var proxies=[
-    "https://api.allorigins.win/raw?url=",
-    "https://corsproxy.io/?",
-    "https://api.codetabs.com/v1/proxy?quest="
-  ];
-  
-  var data=null;
-  var lastErr="";
-  
-  for(var pi=0;pi<proxies.length;pi++){
-    try{
-      st.textContent="Tentando conexão "+(pi+1)+"/"+proxies.length+"...";
-      var resp=await Promise.race([
-        fetch(proxies[pi]+encodeURIComponent(baseUrl),{cache:"no-cache"}),
-        new Promise(function(_,r){setTimeout(function(){r(new Error("timeout"))},10000)})
-      ]);
-      if(!resp.ok){lastErr="HTTP "+resp.status;continue;}
-      var json=await resp.json();
-      var arr=json.data||json;
-      if(Array.isArray(arr)&&arr.length>=0){data=arr;break;}
-      // allorigins wraps: json.contents
-      if(json.contents){try{arr=JSON.parse(json.contents);if(Array.isArray(arr)){data=arr;break;}}catch(pe){}}
-      lastErr="Resposta inválida";
-    }catch(e){lastErr=e.message;continue;}
+  var dIni=di.replace(/-/g,"");var dFim=df.replace(/-/g,"");
+  function buildUrl(pg){
+    var u="https://pncp.gov.br/api/consulta/v1/contratacoes/publicacao?dataInicial="+dIni+"&dataFinal="+dFim+"&tamanhoPagina=50&pagina="+pg;
+    if(mod)u+="&codigoModalidadeContratacao="+mod;
+    if(uf)u+="&uf="+uf;
+    if(munCod)u+="&codigoMunicipioIbge="+munCod;
+    return u;
   }
-  
-  if(data===null){
-    st.innerHTML='Não foi possível conectar ao PNCP via proxy. '+
-      '<a href="https://pncp.gov.br/app/editais?q='+encodeURIComponent(termo)+'&uf='+uf+'" '+
-      'target="_blank" style="color:var(--nh);text-decoration:underline">Abrir PNCP direto ↗</a>'+
-      '<br><small style="color:var(--t3)">Erro: '+lastErr+'</small>';
-    st.style.color="#ef4444";
-    return;
+  var data=[],totalPag=1,MAX=10,erro="";
+  try{
+    var first=await _pncpFetch(buildUrl(1));
+    data=first.data||[];
+    totalPag=Math.min(first.totalPaginas||1,MAX);
+    for(var pg=2;pg<=totalPag;pg++){
+      st.textContent="Carregando página "+pg+"/"+totalPag+"...";
+      try{var more=await _pncpFetch(buildUrl(pg));if(more.data&&more.data.length)data=data.concat(more.data);}catch(ep){break;}
+    }
+  }catch(e){erro=(e&&e.message)||"falha";}
+  if(erro){
+    st.innerHTML='Não foi possível conectar ao PNCP. <a href="https://pncp.gov.br/app/editais?q='+encodeURIComponent(termo)+'&uf='+uf+'" target="_blank" style="color:var(--nh);text-decoration:underline">Abrir PNCP direto ↗</a><br><small style="color:var(--t3)">Erro: '+erro+'</small>';
+    st.style.color="#ef4444";return;
   }
-  
-  var mun=document.getElementById("pncp-mun").value.trim().toLowerCase();
-  if(mun){data=data.filter(function(e){var m=String((e.unidadeOrgao||{}).municipioNome||"").toLowerCase();return m.indexOf(mun)>=0});}
   if(termo){var ts=termo.toLowerCase().split(/\s+/);data=data.filter(function(e){var o=String(e.objetoCompra||"").toLowerCase();var g=String((e.orgaoEntidade||{}).razaoSocial||"").toLowerCase();return ts.some(function(t){return o.indexOf(t)>=0||g.indexOf(t)>=0});});}
-  
-  st.textContent=data.length+" resultado(s) encontrado(s)";
+  st.textContent=data.length+" resultado(s) encontrado(s)"+(totalPag>=MAX?" (máx "+(MAX*50)+")":"");
   st.style.color=data.length>0?"var(--g2)":"var(--t3)";
   renderPNCPResults(data);
 }
