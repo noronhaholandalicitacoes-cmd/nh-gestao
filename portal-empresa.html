@@ -1803,7 +1803,8 @@ function renderContratos(){
         ataBadges='<span class="badge b-green" title="Saldo da ata">Saldo '+bk(sal)+' ('+pc+'%)</span>'+'<span class="badge b-blue" title="Carona disponível (teto 2x)">Carona '+bk(disp)+'</span>';
       }
     }
-    const statusBadge = `<span class="badge ${cor==='verde'?'b-green':cor==='azul'?'b-blue':cor==='vermelho'?'b-red':'b-yellow'}">${status}</span>`;
+    const sbCls = statusUp==='SERÁ ENCERRADO'?'b-orange':(cor==='verde'?'b-green':cor==='azul'?'b-blue':cor==='vermelho'?'b-red':'b-yellow');
+    const statusBadge = `<span class="badge ${sbCls}">${status}</span>`;
 
     return `
     <div class="ccard ${cor}" id="ccard-${id}">
