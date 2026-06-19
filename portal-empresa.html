@@ -1775,7 +1775,34 @@ function renderContratos(){
       }
     }
 
-    const recomp = String(arr[13]||'').toUpperCase().trim()==='SIM'?'<span class="badge b-orange">Recomp.</span>':'';
+    let situacao='';
+    (function(){
+      const ovr=String(arr[43]||'').trim();
+      if(ovr && ovr.charAt(0)!=='('){
+        const cl=/Não prorrog|Será encerr/i.test(ovr)?'b-red':/Prorrogado/i.test(ovr)?'b-green':'b-orange';
+        situacao='<span class="badge '+cl+'">'+ovr+'</span>';
+      } else if(statusUp!=='FINALIZADO' && statusUp!=='RESCINDIDO' && statusUp!=='SUSPENSO'){
+        let rA=false,rT=false,rC=false,rN=false;
+        [[13,15],[20,22],[27,29],[34,36]].forEach(function(pp){
+          const r=String(arr[pp[0]]||'').toUpperCase().trim(), s=String(arr[pp[1]]||'').toUpperCase().trim();
+          if(r==='SIM'){ s.indexOf('CONCLU')>=0?rC=true:(s.indexOf('TRAMIT')>=0||s.indexOf('AN')>=0?rT=true:rA=true); }
+          else if(r==='NÃO'||r==='NAO'){ rN=true; }
+        });
+        if(rT) situacao='<span class="badge b-orange">Recomposição em andamento</span>';
+        else if(rA) situacao='<span class="badge b-orange">Aguardando recomposição</span>';
+        else if(rC) situacao='<span class="badge b-green">Prorrogado</span>';
+        else if(rN) situacao='<span class="badge b-red">Não prorrogável</span>';
+      }
+    })();
+    let ataBadges='';
+    if(String(arr[44]||'').toUpperCase().trim()==='SIM'){
+      const pm=function(s){return parseFloat(String(s||'').replace(/[^\d,]/g,'').replace(/\./g,'').replace(',','.'))||0;};
+      const bk=function(n){n=Math.round(n);if(n>=1e6)return'R$ '+(n/1e6).toFixed(n%1e6?1:0).replace('.',',')+' mi';if(n>=1e3)return'R$ '+Math.round(n/1e3)+' mil';return'R$ '+n;};
+      const tot=pm(arr[45]), con=pm(arr[46]), car=pm(arr[47]);
+      if(tot>0){ const sal=tot-con, pc=Math.round(sal/tot*100), disp=2*tot-car;
+        ataBadges='<span class="badge b-green" title="Saldo da ata">Saldo '+bk(sal)+' ('+pc+'%)</span>'+'<span class="badge b-blue" title="Carona disponível (teto 2x)">Carona '+bk(disp)+'</span>';
+      }
+    }
     const statusBadge = `<span class="badge ${cor==='verde'?'b-green':cor==='azul'?'b-blue':cor==='vermelho'?'b-red':'b-yellow'}">${status}</span>`;
 
     return `
@@ -1790,7 +1817,7 @@ function renderContratos(){
           ${isAdmin && arr[2] ? `<div style="font-size:11px;color:${CORES[arr[2].trim().toUpperCase()]||'#888'};font-weight:700;margin-top:3px">${arr[2].trim().toUpperCase()}</div>` : ''}
         </div>
         <div class="ccard-badges">
-          ${statusBadge}${vencBadge}${recomp}
+          ${statusBadge}${vencBadge}${situacao}${ataBadges}
           <button onclick="event.stopPropagation();imprimirContrato('${id}')" title="Imprimir PDF" style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2);color:var(--nh);width:30px;height:30px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;transition:all .15s" onmouseover="this.style.background='rgba(249,115,22,.25)'" onmouseout="this.style.background='rgba(249,115,22,.1)'">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></svg>
           </button>
