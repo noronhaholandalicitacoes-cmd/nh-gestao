@@ -2110,42 +2110,19 @@ function carregarArquivoBD(input){
 async function extrairItensBD(){
   var key=localStorage.getItem("nh_gemini_key");
   if(!key)return toast("Configure a API Key do Gemini nas configurações de IA","err");
+  toast("🔍 Analisando com IA...","ok");
   var prompt='Analise esta tabela de itens (pode ser de um edital, ata de registro de preços, proposta ou resultado de licitação). Extraia TODOS os itens encontrados. Para cada item retorne os campos: desc (descrição/nome do item), qtd (quantidade numérica, só números), vunit (valor unitário, só números sem R$), vtotal (valor total, só números sem R$), conc (nome do fornecedor/concorrente vencedor se houver, senão vazio), vconc (valor do concorrente/vencedor se diferente do valor unitário, senão vazio), mun (município e UF se visível no documento, ex: "Currais Novos - RN", senão vazio). Responda SOMENTE com array JSON sem texto, markdown ou explicação: [{"desc":"...","qtd":"...","vunit":"...","vtotal":"...","conc":"...","vconc":"...","mun":"..."}]';
-  var parts=[{inline_data:{mime_type:_bdFileMime,data:_bdFileBase64}},{text:prompt}];
-  var url="https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key="+key;
-  var maxTentativas=3,espera=8000;
-  for(var tentativa=1;tentativa<=maxTentativas;tentativa++){
-    try{
-      if(tentativa===1)toast("🔍 Analisando com IA...","ok");
-      else toast("⏳ Aguardando limite da API (tentativa "+tentativa+"/"+maxTentativas+")...","ok");
-      var resp=await Promise.race([
-        fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({contents:[{parts:parts}],generationConfig:{temperature:0.1,maxOutputTokens:4000}})}),
-        new Promise(function(_,r){setTimeout(function(){r(new Error("timeout"))},35000)})
-      ]);
-      if(resp.status===429){
-        if(tentativa<maxTentativas){
-          await new Promise(function(res){setTimeout(res,espera*tentativa)});
-          continue;
-        }
-        throw new Error("Limite da API atingido. Aguarde 1 minuto e tente novamente.");
-      }
-      if(!resp.ok)throw new Error("Gemini HTTP "+resp.status);
-      var j=await resp.json();
-      var raw=j.candidates&&j.candidates[0]&&j.candidates[0].content&&j.candidates[0].content.parts&&j.candidates[0].content.parts[0]&&j.candidates[0].content.parts[0].text;
-      if(!raw)throw new Error("Resposta vazia da IA");
-      var clean=raw.replace(/```json/g,"").replace(/```/g,"").trim();
-      var itens=JSON.parse(clean);
-      if(!Array.isArray(itens)||!itens.length)throw new Error("Nenhum item encontrado no documento");
-      preencherPlanilhaBD(itens);
-      toast("✅ "+itens.length+" item(ns) extraído(s)! Revise e salve.","ok");
-      return;
-    }catch(e){
-      if(tentativa===maxTentativas||e.message.indexOf("Limite")===0||e.message.indexOf("timeout")!==-1){
-        toast("Erro na extração: "+e.message,"err");
-        return;
-      }
-    }
+  try{
+    var parts=[{inline_data:{mime_type:_bdFileMime,data:_bdFileBase64}},{text:prompt}];
+    var j=await chamarGemini(key,parts,0.1,4000);
+    var raw=j.candidates[0].content.parts[0].text;
+    var clean=raw.replace(/```json/g,"").replace(/```/g,"").trim();
+    var itens=JSON.parse(clean);
+    if(!Array.isArray(itens)||!itens.length)throw new Error("Nenhum item encontrado no documento");
+    preencherPlanilhaBD(itens);
+    toast("✅ "+itens.length+" item(ns) extraído(s)! Revise e salve.","ok");
+  }catch(e){
+    toast("Erro na extração: "+e.message,"err");
   }
 }
 function preencherPlanilhaBD(itens){
