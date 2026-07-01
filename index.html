@@ -964,7 +964,7 @@ body:not(.compact) .kcard-top{gap:16px!important;margin-bottom:8px!important;}
       </button>
       <div id="user-info" style="display:none;align-items:center;gap:6px">
         <span id="user-name" style="font-size:11px;color:var(--t2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
-        <button id="btn-usuarios" onclick="abrirUsuarios()" style="background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);color:#818cf8;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:Outfit,sans-serif;font-size:11px;font-weight:700;margin-right:8px">👥 Usuários</button><button onclick="exportarExcelCompleto()" style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);color:#22c55e;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:Outfit,sans-serif;font-size:11px;font-weight:700;margin-right:8px">📊 Exportar Tudo</button><button onclick="logoutGoogle()" style="background:none;border:none;color:var(--t3);font-size:11px;cursor:pointer;padding:2px 6px;border-radius:4px;border:1px solid var(--b1)">Sair</button>
+        <button id="btn-usuarios" onclick="abrirUsuarios()" style="background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);color:#818cf8;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:Outfit,sans-serif;font-size:11px;font-weight:700;margin-right:8px">👥 Usuários</button><button onclick="exportarExcelCompleto()" style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);color:#22c55e;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:Outfit,sans-serif;font-size:11px;font-weight:700;margin-right:8px">📊 Exportar Tudo</button><button onclick="exportarBackupCompleto()" id="btn-backup" title="Baixa um arquivo com TODOS os dados do sistema (para guardar em local seguro)" style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);color:#3b82f6;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:Outfit,sans-serif;font-size:11px;font-weight:700;margin-right:8px">💾 Backup</button><button onclick="logoutGoogle()" style="background:none;border:none;color:var(--t3);font-size:11px;cursor:pointer;padding:2px 6px;border-radius:4px;border:1px solid var(--b1)">Sair</button>
       </div>
     </div>
   </div>
@@ -2093,6 +2093,52 @@ function renderTblValores(){
     pg.innerHTML=pHtml;}}
 }
 function hoverTrOn(el){el.style.background="var(--s3)"}function hoverTrOff(el){var bg=el.dataset.bg;el.style.background="s1"===bg?"var(--s1)":"var(--s2)"}
+async function exportarBackupCompleto(){
+  var btn=document.getElementById("btn-backup");
+  if(btn){btn.disabled=true;btn.textContent="⏳ Gerando...";}
+  try{
+    var colecoes=["editais","andamento","finalizados","ganhas","atestados","financeiro","valores"];
+    var backup={
+      _meta:{
+        sistema:"NH Licitações",
+        geradoEm:new Date().toISOString(),
+        geradoPor:(typeof USER_EMAIL!=="undefined"&&USER_EMAIL)||"",
+        versao:1
+      },
+      colecoes:{},
+      config:{}
+    };
+    var totalDocs=0;
+    for(var c=0;c<colecoes.length;c++){
+      var nome=colecoes[c];
+      var snap=await db.collection(nome).get();
+      var docs=[];
+      snap.forEach(function(d){var data=d.data();data.__docId=d.id;docs.push(data);});
+      backup.colecoes[nome]=docs;
+      totalDocs+=docs.length;
+      if(btn)btn.textContent="⏳ "+nome+" ("+docs.length+")...";
+    }
+    // Coleção config — todos os documentos (portal_acessos, senha_exclusao, empresas, toggles...)
+    var snapCfg=await db.collection("config").get();
+    snapCfg.forEach(function(d){backup.config[d.id]=d.data();});
+    totalDocs+=Object.keys(backup.config).length;
+    backup._meta.totalDocumentos=totalDocs;
+    // Gera o arquivo e dispara o download
+    var json=JSON.stringify(backup,null,1);
+    var blob=new Blob([json],{type:"application/json"});
+    var hoje=new Date(),dt=hoje.getFullYear()+"-"+("0"+(hoje.getMonth()+1)).slice(-2)+"-"+("0"+hoje.getDate()).slice(-2);
+    var a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download="backup-nh-licitacoes-"+dt+".json";
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    setTimeout(function(){URL.revokeObjectURL(a.href)},2000);
+    toast("💾 Backup gerado: "+totalDocs+" documentos ("+Math.round(json.length/1024)+" KB). Guarde o arquivo em local seguro!","ok");
+  }catch(e){
+    toast("Erro ao gerar backup: "+e.message,"err");
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent="💾 Backup";}
+  }
+}
 var _bdFileBase64="",_bdFileMime="",_bdFileName="";
 function carregarArquivoBD(input){
   var file=input.files[0];
