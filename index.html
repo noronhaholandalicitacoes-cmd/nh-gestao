@@ -2114,10 +2114,26 @@ async function extrairItensBD(){
   var prompt='Analise esta tabela de itens (pode ser de um edital, ata de registro de preços, proposta ou resultado de licitação). Extraia TODOS os itens encontrados. Para cada item retorne os campos: desc (descrição/nome do item), qtd (quantidade numérica, só números), vunit (valor unitário, só números sem R$), vtotal (valor total, só números sem R$), conc (nome do fornecedor/concorrente vencedor se houver, senão vazio), vconc (valor do concorrente/vencedor se diferente do valor unitário, senão vazio), mun (município e UF se visível no documento, ex: "Currais Novos - RN", senão vazio). Responda SOMENTE com array JSON sem texto, markdown ou explicação: [{"desc":"...","qtd":"...","vunit":"...","vtotal":"...","conc":"...","vconc":"...","mun":"..."}]';
   try{
     var parts=[{inline_data:{mime_type:_bdFileMime,data:_bdFileBase64}},{text:prompt}];
-    var j=await chamarGemini(key,parts,0.1,4000);
+    var j=await chamarGemini(key,parts,0.1,8000);
     var raw=j.candidates[0].content.parts[0].text;
     var clean=raw.replace(/```json/g,"").replace(/```/g,"").trim();
-    var itens=JSON.parse(clean);
+    var itens;
+    try{
+      itens=JSON.parse(clean);
+    }catch(parseErr){
+      // JSON cortado — tenta recuperar o que já foi extraído fechando o array
+      var lastComma=clean.lastIndexOf(",{");
+      var lastObj=clean.lastIndexOf(",");
+      var truncated=lastComma>0?clean.substring(0,lastComma)+"]":clean.substring(0,lastObj)+"]";
+      // remove objeto incompleto no final
+      try{itens=JSON.parse(truncated);}catch(e2){
+        // tenta fechar um objeto aberto
+        var lastOpen=clean.lastIndexOf("{");
+        var partial=clean.substring(0,lastOpen)+"]";
+        itens=JSON.parse(partial);
+      }
+      if(itens&&itens.length)toast("⚠️ JSON parcialmente recuperado — "+itens.length+" item(ns). Verifique se faltou algum.","ok");
+    }
     if(!Array.isArray(itens)||!itens.length)throw new Error("Nenhum item encontrado no documento");
     preencherPlanilhaBD(itens);
     toast("✅ "+itens.length+" item(ns) extraído(s)! Revise e salve.","ok");
