@@ -12,7 +12,7 @@
 <title>NH Licitações</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><defs><radialGradient id='g' cx='35%25' cy='30%25' r='70%25'><stop offset='0%25' stop-color='%23fb923c'/><stop offset='100%25' stop-color='%23b45309'/></radialGradient></defs><circle cx='24' cy='24' r='24' fill='url(%23g)'/><text x='24' y='31' text-anchor='middle' fill='white' font-family='Arial Black,sans-serif' font-weight='900' font-size='15'>NH</text></svg>">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -3745,11 +3745,16 @@ function gerarWord(){
   if(!_docx){
     // Tentar recarregar a lib dinamicamente
     toast('Carregando biblioteca Word...','info');
-    var _s=document.createElement('script');
-    _s.src='https://unpkg.com/docx@8.5.0/build/index.js';
-    _s.onload=function(){ setTimeout(function(){ gerarWord(); },500); };
-    _s.onerror=function(){ toast('Biblioteca Word indisponível. Use Gerar PDF.','err'); };
-    document.head.appendChild(_s);
+    var _cdns=['https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js','https://unpkg.com/docx@8.5.0/build/index.umd.js'];
+    var _tryLoad=function(_i){
+      if(_i>=_cdns.length){ toast('Biblioteca Word indisponível. Use Gerar PDF.','err'); return; }
+      var _s=document.createElement('script');
+      _s.src=_cdns[_i];
+      _s.onload=function(){ setTimeout(function(){ gerarWord(); },500); };
+      _s.onerror=function(){ _tryLoad(_i+1); };
+      document.head.appendChild(_s);
+    };
+    _tryLoad(0);
     return;
   }
   var d = _coletarDadosDoc();
