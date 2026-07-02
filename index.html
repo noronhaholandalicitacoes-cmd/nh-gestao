@@ -256,8 +256,9 @@ select{color-scheme:dark}
   font-size:14px;font-weight:700;
   color:var(--t1);line-height:1.4;
   white-space:normal;word-break:break-word;
-  margin-bottom:4px;
+  display:inline;margin:0;
 }
+.kcard-licit + div:not(.kcard-obj){display:inline-block;margin:0 0 0 8px;vertical-align:middle;}
 .kcard-licit input[type=text]{
   font-size:17px!important;font-weight:700!important;
   color:var(--t1)!important;width:100%!important;
@@ -804,7 +805,8 @@ body.ro-mode .btn-edit-card,body.ro-mode .btn-del,body.ro-mode .btn-cert-add,bod
 .btn-density.on{color:var(--nh);border-color:rgba(249,115,22,.4);background:var(--nha2)}
 /* compact = padrão, normal = espaçoso */
 body:not(.compact) .kcard{padding:20px 24px!important;margin-bottom:12px!important;}
-body:not(.compact) .kcard-licit{font-size:16px!important;margin-bottom:6px!important;}
+body:not(.compact) .kcard-licit{font-size:16px!important;margin-bottom:6px!important;display:block!important;}
+body:not(.compact) .kcard-licit + div:not(.kcard-obj){display:block!important;margin:6px 0 0!important;}
 body:not(.compact) .kcard-top{gap:16px!important;margin-bottom:8px!important;}
 .valores-emp-card{border:1.5px solid;border-radius:16px;padding:30px 24px;min-height:140px;cursor:pointer;display:flex;flex-direction:column;justify-content:center;transition:transform .15s ease,box-shadow .15s ease}
 .valores-emp-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,.4)}
@@ -4188,7 +4190,7 @@ async function preencherComIA(){var key=localStorage.getItem("nh_gemini_key");if
           sv("orgao",dados.orgao);sv("setor",dados.setor);sv("modalidade",dados.modalidade);sv("processo",dados.processo);sv("objeto",dados.objeto);if(dados.validade){  var _vNum=String(dados.validade).match(/\d+/);  var _vEl=document.getElementById("validade");  if(_vEl&&_vNum)_vEl.value=_vNum[0];}sv("prazo_entrega",dados.prazo_entrega);sv("prazo_pag",dados.prazo_pag);sv("local_prestacao",dados.local);var _hoje=new Date();var _dataHoje=_hoje.getFullYear()+"-"+("0"+(_hoje.getMonth()+1)).slice(-2)+"-"+("0"+_hoje.getDate()).slice(-2);var _dataEl=document.getElementById("data_assina");if(_dataEl&&!_dataEl.value)_dataEl.value=_dataHoje;
           // Cidade de assinatura = cidade da empresa selecionada
           var _empSel=document.getElementById("doc_empresa");var _empNome=_empSel?_empSel.value:"";var _empD=EMPRESAS.find(function(e){return e.nome===_empNome;});
-          var _cidEmp=_empD&&_empD.cidade?_empD.cidade.split("/")[0].trim():"";var _cidEl=document.getElementById("cidade_assina");if(_cidEl){if(_cidEmp)_cidEl.value=_cidEmp;else if(dados.cidade)_cidEl.value=dados.cidade;}var _nItens=0;await new Promise(function(res){setTimeout(res,3000);});try{var _promptItens='Leia este documento e extraia TODOS os itens listados no Termo de Referência, Anexo I ou tabela de itens. Para cada item retorne: numero do item, descricao resumida (nome do equipamento/servico), unidade de medida e quantidade. Formato de resposta - SOMENTE array JSON sem texto: [{"item":1,"desc":"Bipap com frequencia respiratoria","unid":"Servicos","qtd":60},{"item":2,"desc":"Concentrador de Oxigenio 5l/min","unid":"Servicos","qtd":180}]';var _partsItens=_iaFileBase64?[{inline_data:{mime_type:_iaFileMime,data:_iaFileBase64}},{text:_promptItens}]:[{text:_promptItens+"\n\nEDITAL:\n"+texto.substring(0,20000)}];var _urlItens="https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key="+key;var _respRaw=await Promise.race([  fetch(_urlItens,{method:"POST",headers:{"Content-Type":"application/json"},    body:JSON.stringify({contents:[{parts:_partsItens}],generationConfig:{temperature:0.1,maxOutputTokens:3000}})}),  new Promise(function(_,r){setTimeout(function(){r(new Error("timeout"))},15000)})]);if(_respRaw.ok){  var _jItens=await _respRaw.json();  var _respItens=_jItens.candidates&&_jItens.candidates[0]&&_jItens.candidates[0].content&&_jItens.candidates[0].content.parts&&_jItens.candidates[0].content.parts[0]&&_jItens.candidates[0].content.parts[0].text||"";  var _cleanItens=_respItens.replace(/```json/g,"").replace(/```/g,"").trim();  var _arrMatch=_cleanItens.match(/\[[\s\S]*\]/);  if(_arrMatch){    try{      var _itensArr=JSON.parse(_arrMatch[0]);      if(Array.isArray(_itensArr)&&_itensArr.length){preencherTabelaComIA(_itensArr);_nItens=_itensArr.length;}    }catch(pe){console.warn("Parse itens:",pe);}  }}}catch(e2){console.warn("Itens não extraídos:",e2);}
+          var _cidEmp=_empD&&_empD.cidade?_empD.cidade.split("/")[0].trim():"";var _cidEl=document.getElementById("cidade_assina");if(_cidEl){if(_cidEmp)_cidEl.value=_cidEmp;else if(dados.cidade)_cidEl.value=dados.cidade;}var _nItens=0;await new Promise(function(res){setTimeout(res,3000);});try{var _promptItens='Leia este documento e extraia TODOS os itens listados no Termo de Referência, Anexo I ou tabela de itens. Para cada item retorne: numero do item, descricao resumida (nome do equipamento/servico), unidade de medida e quantidade. Formato de resposta - SOMENTE array JSON sem texto: [{"item":1,"desc":"Bipap com frequencia respiratoria","unid":"Servicos","qtd":60},{"item":2,"desc":"Concentrador de Oxigenio 5l/min","unid":"Servicos","qtd":180}]';var _partsItens=_iaFileBase64?[{inline_data:{mime_type:_iaFileMime,data:_iaFileBase64}},{text:_promptItens}]:[{text:_promptItens+"\n\nEDITAL:\n"+texto.substring(0,20000)}];bodyEl.innerHTML+='<div style="margin-top:6px;font-size:12px;color:var(--t3)">Extraindo itens da tabela...</div>';var _jItens=await chamarGemini(key,_partsItens,0.1,8000);{  var _respItens=_jItens.candidates&&_jItens.candidates[0]&&_jItens.candidates[0].content&&_jItens.candidates[0].content.parts&&_jItens.candidates[0].content.parts[0]&&_jItens.candidates[0].content.parts[0].text||"";  var _cleanItens=_respItens.replace(/```json/g,"").replace(/```/g,"").trim();  var _arrMatch=_cleanItens.match(/\[[\s\S]*\]/);  if(_arrMatch){    try{      var _itensArr=JSON.parse(_arrMatch[0]);      if(Array.isArray(_itensArr)&&_itensArr.length){preencherTabelaComIA(_itensArr);_nItens=_itensArr.length;}    }catch(pe){console.warn("Parse itens:",pe);}  }}}catch(e2){console.warn("Itens não extraídos:",e2);}
           // Preencher tabela de itens
           var _itensIA=dados.itens;if(Array.isArray(_itensIA)&&_itensIA.length>0){
             linhas=[];_nextRowId=1;
@@ -4199,7 +4201,7 @@ async function preencherComIA(){var key=localStorage.getItem("nh_gemini_key");if
             });
             renderTabela();
           }
-          var _nItens=Array.isArray(_itensIA)?_itensIA.length:0;var preenchidos=Object.values(dados).filter(function(v){return v&&(typeof v==="string"?v.length>0:Array.isArray(v)?v.length>0:false)}).length;
+          if(Array.isArray(_itensIA)&&_itensIA.length)_nItens=_itensIA.length;var preenchidos=Object.values(dados).filter(function(v){return v&&(typeof v==="string"?v.length>0:Array.isArray(v)?v.length>0:false)}).length;
           bodyEl.innerHTML='<div style="color:#22c55e;font-weight:600">✅ '+preenchidos+" campos preenchidos"+(_nItens>0?" · "+_nItens+" itens na tabela":"")+'!</div><div style="margin-top:8px;font-size:12px;color:var(--t3)">Verifique os dados e ajuste se necessário.</div><div style="margin-top:8px;font-size:11px;color:var(--t3);line-height:1.6">'+Object.entries(dados).filter(function(e){return e[0]!=="itens"&&e[1]}).map(function(e){return'<span style="color:var(--nh)">'+e[0]+":</span> "+String(e[1]||"—").substring(0,80)}).join("<br>")+(_nItens>0?'<br><span style="color:var(--nh)">itens:</span> '+_nItens+" item(s) extraído(s) na tabela":"")+"</div>";
         }catch(e){bodyEl.innerHTML='<div style="color:#ef4444">Erro: '+e.message+"</div>"}}
 
