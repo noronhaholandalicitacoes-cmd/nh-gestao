@@ -1,4 +1,4 @@
-const CACHE = 'nh-gestao-v1';
+const CACHE = 'nh-gestao-v2';
 const ASSETS = [
   '/nh-gestao/index.html',
   'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap',
