@@ -372,7 +372,7 @@ textarea.mc-input{resize:vertical;min-height:64px}
   .topbar{padding:0 16px}
   .topbar-emp-name{display:none}
 }
-#alertas-area{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}.alerta-card{display:flex;gap:12px;align-items:flex-start;background:linear-gradient(135deg,rgba(249,115,22,.12),rgba(234,179,8,.07));border:1px solid rgba(249,115,22,.35);border-left:4px solid #f97316;border-radius:12px;padding:14px 16px}.alerta-ico{font-size:22px;line-height:1;flex-shrink:0}.alerta-body{flex:1;min-width:0}.alerta-tit{font-weight:800;font-size:14px;color:#fbbf24;margin-bottom:3px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.alerta-emp{font-size:10.5px;font-weight:700;background:rgba(249,115,22,.2);color:#fdba74;padding:2px 8px;border-radius:20px}.alerta-txt{font-size:12.5px;color:var(--t2,#b8b8c8);line-height:1.5;margin-bottom:6px}.alerta-proc{font-size:13px;color:var(--t1,#e8e8f0);margin-bottom:10px;word-break:break-word}.alerta-btn{display:inline-flex;align-items:center;gap:6px;background:#f97316;color:#fff;text-decoration:none;font-weight:700;font-size:12.5px;padding:8px 14px;border-radius:8px}.alerta-btn:hover{background:#ea6a0c}.alerta-semlink{font-size:12px;color:var(--t3,#888);font-style:italic}</style>
+</style>
 </head>
 <body>
 
@@ -533,7 +533,6 @@ textarea.mc-input{resize:vertical;min-height:64px}
     </div>
 
     <!-- Lista de contratos -->
-    <div id="alertas-area"></div>
     <div id="contratos-area" class="contratos">
       <div class="spin"></div>
     </div>
@@ -758,8 +757,8 @@ const firebaseConfig = {
   messagingSenderId: "1081646053691",
   appId: "1:1081646053691:web:a8abcb5792d026ade71f1e"
 };
-if(!firebase.apps || !firebase.apps.length) firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+(function(){try{if(!localStorage.getItem("nh_idb_limpo_v1")){var _dbs=["firestore/[DEFAULT]/nh-licitacoes/main","firebaseLocalStorageDb"];if(window.indexedDB&&indexedDB.databases){indexedDB.databases().then(function(list){(list||[]).forEach(function(d){if(d&&d.name&&d.name.indexOf("firestore")!==-1){try{indexedDB.deleteDatabase(d.name);}catch(e){}}});});}else{_dbs.forEach(function(n){try{indexedDB.deleteDatabase(n);}catch(e){}});}localStorage.setItem("nh_idb_limpo_v1","1");}}catch(e){}})();if(!firebase.apps || !firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();db.settings({experimentalAutoDetectLongPolling:true,merge:true});
 
 // ─── SENHAS POR EMPRESA ──────────────────────────────────────────
 // Para alterar: mude a senha da empresa aqui
@@ -1443,32 +1442,6 @@ function gerarDashboard(){
     '<div style="height:1px;background:rgba(255,255,255,.06);margin:22px 0"></div>';
 }
 
-async function carregarAlertas(){
-  var box=document.getElementById('alertas-area'); if(!box) return;
-  try{
-    const snap = await db.collection('andamento').get();
-    var _nrm=function(x){return String(x||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]/g,"");};var contratados={};(dadosGanhas||[]).forEach(function(c){if(c&&c.arr)contratados[_nrm(c.arr[3])]=1;});var al=[];
-    snap.forEach(function(doc){
-      var arr=(doc.data()._arr)||[];
-      var emp=String(arr[2]||'').trim().toUpperCase();
-      var cls=String(arr[11]||'').trim();
-      if((isAdmin || emp===empAtual) && /^1(\D|$)/.test(cls) && "sim"!==String(arr[16]||'').toLowerCase().trim() && !contratados[_nrm(arr[3])]){ al.push(arr); }
-    });
-    if(!al.length){ box.innerHTML=''; return; }
-    box.innerHTML = al.map(function(arr){
-      var lic=(arr[3]||'Processo').toString();
-      var obj=(arr[4]||'').toString();
-      var link=(arr[19]||'').toString().trim();
-      var empline = (isAdmin && arr[2]) ? '<span class="alerta-emp">'+String(arr[2]).trim().toUpperCase()+'</span>' : '';
-      var btn = link ? '<a href="'+link+'" target="_blank" rel="noopener" class="alerta-btn">📁 Verificar TR / pasta do processo</a>' : '<span class="alerta-semlink">Link da pasta ainda nao informado no sistema</span>';
-      return '<div class="alerta-card"><div class="alerta-ico">🔔</div><div class="alerta-body">'
-        +'<div class="alerta-tit">Possível novo contrato a caminho '+empline+'</div>'
-        +'<div class="alerta-txt">O processo abaixo ficou em <b>1ª posição</b>. Vale verificar o TR para a empresa já se preparar.</div>'
-        +'<div class="alerta-proc"><b>'+lic+'</b>'+(obj?' — '+obj:'')+'</div>'+btn
-        +'</div></div>';
-    }).join('');
-  }catch(e){ box.innerHTML=''; }
-}
 async function carregarContratos(){
   document.getElementById('contratos-area').innerHTML = '<div class="spin"></div>';
   try{
@@ -1492,7 +1465,6 @@ async function carregarContratos(){
     renderContratos();
     renderStats();
     gerarDashboard();
-    carregarAlertas();
     // Atualizar título da seção
     const st = document.getElementById('section-title-contratos');
     if(st) st.textContent = isAdmin ? 'Gerenciamento de Contratos — Visão Geral' : 'Gerenciamento de Contratos';
@@ -1763,48 +1735,19 @@ function renderContratos(){
     // Vencimento efetivo (último aditivo ou contrato)
     const venc = arr[39]||arr[32]||arr[25]||arr[18]||arr[12]||'';
     let vencBadge = '';
-    if(venc && cor==='verde'){
+    if(venc){
       const p=venc.split('/');
       if(p.length===3){
         const dt=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
         const dias=Math.round((dt-hoje)/86400000);
-        const meses=Math.round(dias/30);
-        const vcls=dias<0?'b-red':dias<=30?'b-orange':dias<=90?'b-yellow':'b-green';
-        const vtxt=dias<0?'Vencido há '+Math.abs(dias)+'d':dias===0?'Vence HOJE':dias<=60?'Vence em '+dias+'d':'Vence em '+meses+' meses';
-        vencBadge='<span class="badge '+vcls+'">⏱ '+vtxt+'</span>';
+        if(dias<0) vencBadge='<span class="badge b-red">Vencido</span>';
+        else if(dias<=30) vencBadge='<span class="badge b-red">Vence em '+dias+'d</span>';
+        else if(dias<=90) vencBadge='<span class="badge b-yellow">Vence em '+dias+'d</span>';
       }
     }
 
-    let situacao='';
-    (function(){
-      const ovr=String(arr[43]||'').trim();
-      if(ovr && ovr.charAt(0)!=='('){
-        const cl=/Não prorrog|Será encerr/i.test(ovr)?'b-red':/Prorrogado/i.test(ovr)?'b-green':'b-orange';
-        situacao='<span class="badge '+cl+'">'+ovr+'</span>';
-      } else if(statusUp!=='FINALIZADO' && statusUp!=='RESCINDIDO' && statusUp!=='SUSPENSO'){
-        let rA=false,rT=false,rC=false,rN=false;
-        [[13,15],[20,22],[27,29],[34,36]].forEach(function(pp){
-          const r=String(arr[pp[0]]||'').toUpperCase().trim(), s=String(arr[pp[1]]||'').toUpperCase().trim();
-          if(r==='SIM'){ s.indexOf('CONCLU')>=0?rC=true:(s.indexOf('TRAMIT')>=0||s.indexOf('AN')>=0?rT=true:rA=true); }
-          else if(r==='NÃO'||r==='NAO'){ rN=true; }
-        });
-        if(rT) situacao='<span class="badge b-orange">Recomposição em andamento</span>';
-        else if(rA) situacao='<span class="badge b-orange">Aguardando recomposição</span>';
-        else if(rC) situacao='<span class="badge b-green">Prorrogado</span>';
-        else if(rN) situacao='<span class="badge b-red">Não prorrogável</span>';
-      }
-    })();
-    let ataBadges='';
-    if(String(arr[44]||'').toUpperCase().trim()==='SIM'){
-      const pm=function(s){return parseFloat(String(s||'').replace(/[^\d,]/g,'').replace(/\./g,'').replace(',','.'))||0;};
-      const bk=function(n){n=Math.round(n);if(n>=1e6)return'R$ '+(n/1e6).toFixed(n%1e6?1:0).replace('.',',')+' mi';if(n>=1e3)return'R$ '+Math.round(n/1e3)+' mil';return'R$ '+n;};
-      const tot=pm(arr[45]), con=pm(arr[46]), car=pm(arr[47]);
-      if(tot>0){ const sal=tot-con, pc=Math.round(sal/tot*100), disp=2*tot-car;
-        ataBadges='<span class="badge b-green" title="Saldo da ata">Saldo '+bk(sal)+' ('+pc+'%)</span>'+'<span class="badge b-blue" title="Carona disponível (teto 2x)">Carona '+bk(disp)+'</span>';
-      }
-    }
-    const sbCls = statusUp==='SERÁ ENCERRADO'?'b-orange':(cor==='verde'?'b-green':cor==='azul'?'b-blue':cor==='vermelho'?'b-red':'b-yellow');
-    const statusBadge = `<span class="badge ${sbCls}">${status}</span>`;
+    const recomp = String(arr[13]||'').toUpperCase().trim()==='SIM'?'<span class="badge b-orange">Recomp.</span>':'';
+    const statusBadge = `<span class="badge ${cor==='verde'?'b-green':cor==='azul'?'b-blue':cor==='vermelho'?'b-red':'b-yellow'}">${status}</span>`;
 
     return `
     <div class="ccard ${cor}" id="ccard-${id}">
@@ -1818,7 +1761,7 @@ function renderContratos(){
           ${isAdmin && arr[2] ? `<div style="font-size:11px;color:${CORES[arr[2].trim().toUpperCase()]||'#888'};font-weight:700;margin-top:3px">${arr[2].trim().toUpperCase()}</div>` : ''}
         </div>
         <div class="ccard-badges">
-          ${statusBadge}${vencBadge}${situacao}${ataBadges}
+          ${statusBadge}${vencBadge}${recomp}
           <button onclick="event.stopPropagation();imprimirContrato('${id}')" title="Imprimir PDF" style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2);color:var(--nh);width:30px;height:30px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;transition:all .15s" onmouseover="this.style.background='rgba(249,115,22,.25)'" onmouseout="this.style.background='rgba(249,115,22,.1)'">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></svg>
           </button>
