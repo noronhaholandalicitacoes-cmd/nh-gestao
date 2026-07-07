@@ -189,7 +189,19 @@ var FILTRO_STATUS='pendente';
 var FILTRO_RESP='todos';
 var FILTRO_EMP='todos';
 
-var EMP_CORES={'VISE':'#eab308','SAUTEC':'#3b82f6','SOS':'#22c55e','SOS FILIAL':'#ef4444','ONLAV':'#10b981','ENGEMED':'#ec4899','POTIGUAR':'#f97316'};
+var EMP_CORES={'VISE':'#eab308','SAUTEC':'#3b82f6','SOS':'#22c55e','SOS FILIAL':'#ef4444','ONLAV':'#06b6d4','ENGEMED':'#ec4899','POTIGUAR':'#f97316'};
+// Cores reais vêm do Firebase (config/empresas) — o objeto acima é só fallback
+// de segurança para o caso de falha de conexão antes do fetch completar.
+async function carregarCoresEmpresas(){
+  try{
+    var snap=await db.collection('config').doc('empresas').get();
+    if(snap.exists&&snap.data().lista){
+      snap.data().lista.forEach(function(emp){
+        if(emp.nome&&emp.cor) EMP_CORES[emp.nome.toUpperCase().trim()]=emp.cor;
+      });
+    }
+  }catch(e){/* mantém fallback em caso de erro */}
+}
 
 var _pendentes={};
 
@@ -217,6 +229,7 @@ function isNao(p){var s=String(p||'').toUpperCase().trim();return s==='NÃO'||s=
 
 async function carregar(){
   try{
+    await carregarCoresEmpresas();
     var snap=await db.collection('editais').orderBy('_id','desc').get();
     TODOS=[];
     snap.forEach(function(doc){
