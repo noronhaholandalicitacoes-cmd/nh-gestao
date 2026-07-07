@@ -773,10 +773,22 @@ const SENHAS = {
 };
 
 // Cores das empresas
-const CORES = {
-  'VISE':'#eab308','SOS':'#22c55e','SOS FILIAL':'#3b82f6',
-  'SAUTEC':'#a855f7','ONLAV':'#f97316','ENGEMED':'#ef4444',
-  'GROWTH':'#8b5cf6'
+let CORES = {
+  'VISE':'#eab308','SOS':'#22c55e','SOS FILIAL':'#ef4444',
+  'SAUTEC':'#3b82f6','ONLAV':'#06b6d4','ENGEMED':'#ec4899',
+  'POTIGUAR':'#f97316','GROWTH':'#8b5cf6'
+};
+// Cores reais vêm do Firebase (config/empresas) — isso é só um fallback
+// de segurança para o caso de falha de conexão antes do fetch completar.
+async function carregarCoresEmpresas(){
+  try{
+    var snap = await db.collection('config').doc('empresas').get();
+    if(snap.exists && snap.data().lista){
+      snap.data().lista.forEach(function(emp){
+        if(emp.nome && emp.cor) CORES[emp.nome.toUpperCase().trim()] = emp.cor;
+      });
+    }
+  }catch(e){/* mantém fallback em caso de erro */}
 };
 
 // ─── ESTADO ──────────────────────────────────────────────────────
@@ -1095,6 +1107,7 @@ function fazerLogout(){
 
 // ─── PORTAL ──────────────────────────────────────────────────────
 async function iniciarPortal(){
+  await carregarCoresEmpresas();
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('portal').style.display = 'block';
 
