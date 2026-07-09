@@ -414,6 +414,10 @@ textarea.mc-input{resize:vertical;min-height:64px}
 .graf-svg{display:block;width:100%;height:auto;overflow:visible}
 @media(max-width:1100px){.graf-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:700px){.graf-grid{grid-template-columns:1fr}}
+
+.mc-sec-title{font-size:11px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;padding-top:6px;border-top:1px solid var(--b1)}
+.mc-ata-calc{font-size:11.5px;color:#9fb0d8;line-height:1.5;padding-top:20px}
+.mc-ata-calc b{font-weight:800}
 </style>
 </head>
 <body>
@@ -524,11 +528,11 @@ textarea.mc-input{resize:vertical;min-height:64px}
     <!-- Stats -->
     <div class="stats" id="stats-area"></div>
 
-    <!-- Quadro de Avisos -->
-    <div id="avisos-area" style="margin-bottom:24px"></div>
-
     <!-- Dashboard GROWTH (gráficos por empresa) -->
     <div id="dashboard-area" style="display:none;margin-bottom:24px"></div>
+
+    <!-- Quadro de Avisos -->
+    <div id="avisos-area" style="margin-bottom:24px"></div>
 
     <!-- Toolbar: busca + ordenação + imprimir -->
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
@@ -643,6 +647,41 @@ textarea.mc-input{resize:vertical;min-height:64px}
       <!-- Linha 7 -->
       <div class="mc-field"><label class="mc-label">Data Assinatura</label><input type="date" id="mc-dtcont" class="mc-input"></div>
       <div class="mc-field"><label class="mc-label">Vencimento</label><input type="date" id="mc-venc" class="mc-input"></div>
+      <!-- Situação / Próxima Ação -->
+      <div class="mc-field"><label class="mc-label">Situação</label>
+        <select id="mc-situacao" class="mc-input">
+          <option value="">— automático —</option>
+          <option>Não prorrogável</option><option>Será encerrado</option>
+          <option>Aguardando recomposição</option><option>Recomposição em andamento</option>
+          <option>Prorrogado</option>
+        </select></div>
+      <div class="mc-field"><label class="mc-label">Próxima Ação</label>
+        <select id="mc-proxacao" class="mc-input">
+          <option value="">— não definida —</option>
+          <option>Solicitar prorrogação</option><option>Solicitar reajuste</option>
+          <option>Solicitar recomposição</option><option>Aguardar assinatura</option>
+          <option>Acompanhar execução</option><option>Acompanhar publicação</option>
+          <option>Arquivar</option><option>Sem providências</option>
+        </select></div>
+
+      <!-- Ata de Registro de Preços -->
+      <div style="grid-column:1/-1;margin-top:6px">
+        <div class="mc-sec-title">📋 Ata de Registro de Preços</div>
+      </div>
+      <div class="mc-field"><label class="mc-label">É Ata de Registro de Preços?</label>
+        <select id="mc-srp" class="mc-input" onchange="mcCalcAta()">
+          <option value="">Não</option><option>SIM</option>
+        </select></div>
+      <div class="mc-field"><label class="mc-label">Ata · Vigência até</label>
+        <input type="date" id="mc-atavig" class="mc-input"></div>
+      <div class="mc-field"><label class="mc-label">Ata · Valor total registrado</label>
+        <input type="text" id="mc-atatotal" class="mc-input" placeholder="R$ 0,00" oninput="mcMascara(this);mcCalcAta()"></div>
+      <div class="mc-field"><label class="mc-label">Ata · Valor já consumido</label>
+        <input type="text" id="mc-atacons" class="mc-input" placeholder="R$ 0,00" oninput="mcMascara(this);mcCalcAta()"></div>
+      <div class="mc-field"><label class="mc-label">Ata · Carona já cedida</label>
+        <input type="text" id="mc-atacarona" class="mc-input" placeholder="R$ 0,00" oninput="mcMascara(this);mcCalcAta()"></div>
+      <div class="mc-field"><div id="mc-ata-calc" class="mc-ata-calc"></div></div>
+
       <!-- Linha 8 -->
       <div class="mc-field" style="grid-column:1/-1">
         <label class="mc-label">Link da Pasta</label>
@@ -651,6 +690,11 @@ textarea.mc-input{resize:vertical;min-height:64px}
       <div class="mc-field" style="grid-column:1/-1">
         <label class="mc-label">Observações</label>
         <textarea id="mc-obs" class="mc-input" rows="2" placeholder="Observações sobre o contrato..." style="resize:vertical"></textarea>
+      </div>
+
+      <div class="mc-field" style="grid-column:1/-1">
+        <label class="mc-label">Responsável pela alteração <span style="color:#ef4444">*</span></label>
+        <input type="text" id="mc-autor" class="mc-input" placeholder="Seu nome completo">
       </div>
 
       <!-- Recomposições: 4 abas -->
@@ -770,6 +814,11 @@ textarea.mc-input{resize:vertical;min-height:64px}
           <input type="checkbox" id="popt-link" style="width:15px;height:15px;accent-color:var(--nh);cursor:pointer">
           <span style="font-size:13px;color:var(--t1);font-weight:600">Link da pasta</span>
           <span style="font-size:11px;color:var(--t3);margin-left:auto">URL do Google Drive</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 12px;background:var(--s2);border:1px solid var(--b1);border-radius:8px">
+          <input type="checkbox" id="popt-exec" checked style="width:15px;height:15px;accent-color:var(--nh);cursor:pointer">
+          <span style="font-size:13px;color:var(--t1);font-weight:600">Relatório executivo</span>
+          <span style="font-size:11px;color:var(--t3);margin-left:auto">capa, dashboard, alertas, resumo</span>
         </label>
         <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 12px;background:var(--s2);border:1px solid var(--b1);border-radius:8px">
           <input type="checkbox" id="popt-log" style="width:15px;height:15px;accent-color:var(--nh);cursor:pointer">
@@ -940,7 +989,8 @@ function abrirModalContrato(entry){
   _mcEditId = null;
   // Limpar todos os campos
   ['mc-data','mc-empresa','mc-licit','mc-objeto','mc-local','mc-mun','mc-valor',
-   'mc-contrato','mc-status','mc-vig','mc-dtcont','mc-venc','mc-link','mc-obs'].forEach(id=>{
+   'mc-contrato','mc-status','mc-vig','mc-dtcont','mc-venc','mc-link','mc-obs',
+   'mc-situacao','mc-proxacao','mc-srp','mc-atatotal','mc-atacons','mc-atacarona','mc-atavig'].forEach(id=>{
     var el=document.getElementById(id);
     if(el){if(el.tagName==='SELECT')el.selectedIndex=0;else el.value='';}
   });
@@ -950,6 +1000,10 @@ function abrirModalContrato(entry){
       if(el){if(el.tagName==='SELECT')el.selectedIndex=0;else el.value='';}
     });
   }
+  var _elAutor=document.getElementById('mc-autor');
+  if(_elAutor) _elAutor.value = localStorage.getItem('nh_portal_autor')||'';
+  var _elCalc=document.getElementById('mc-ata-calc');
+  if(_elCalc) _elCalc.innerHTML='';
 
   if(entry){
     // Editar existente
@@ -961,11 +1015,18 @@ function abrirModalContrato(entry){
     mcSv('mc-valor',arr[7]); mcSv('mc-contrato',arr[8]); mcSv('mc-status',arr[9]);
     mcSv('mc-vig',arr[10]); mcSv('mc-dtcont',arr[11]); mcSv('mc-venc',arr[12]);
     mcSv('mc-link',arr[42]||arr[21]||''); mcSv('mc-obs',arr[41]||'');
+    mcSv('mc-situacao',arr[43]||''); mcSv('mc-proxacao',arr[49]||'');
+    mcSv('mc-srp',arr[44]||''); mcSv('mc-atatotal',arr[45]||'');
+    mcSv('mc-atacons',arr[46]||''); mcSv('mc-atacarona',arr[47]||'');
+    mcSv('mc-atavig',arr[48]||'');
+    mcCalcAta();
     // Recomposições
     var rIdxs=[[13,14,15,16,17,18,19],[20,21,22,23,24,25,26],[27,28,29,30,31,32,33],[34,35,36,37,38,39,40]];
     for(var n=1;n<=4;n++){
       var idx=rIdxs[n-1];
-      mcSv('mc-recomp'+n,arr[idx[0]]); mcSv('mc-trecomp'+n,arr[idx[1]]);
+      mcSv('mc-recomp'+n,arr[idx[0]]);
+      var _tp=String(arr[idx[1]]||'');
+      mcSv('mc-trecomp'+n, /^https?:/i.test(_tp)?'':_tp);   // link antigo gravado por engano em [21]
       mcSv('mc-strecomp'+n,arr[idx[2]]); mcSv('mc-novadata'+n,arr[idx[3]]);
       mcSv('mc-vigr'+n,arr[idx[4]]); mcSv('mc-vencr'+n,arr[idx[5]]);
       mcSv('mc-vfin'+n,arr[idx[6]]);
@@ -999,6 +1060,23 @@ function fecharModalContrato(){
   document.getElementById('modal-contrato').style.display='none';
 }
 
+
+function _brlKp(v){
+  if(!v||isNaN(v)) return 'R$ 0,00';
+  return 'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function mcCalcAta(){
+  var d=document.getElementById('mc-ata-calc'); if(!d) return;
+  var srp=document.getElementById('mc-srp');
+  if(!srp || srp.value!=='SIM'){ d.innerHTML=''; return; }
+  var tot=parseMoedaV((document.getElementById('mc-atatotal')||{}).value)||0;
+  var con=parseMoedaV((document.getElementById('mc-atacons')||{}).value)||0;
+  var car=parseMoedaV((document.getElementById('mc-atacarona')||{}).value)||0;
+  var saldo=tot-con, perc=tot>0?Math.round(saldo/tot*100):0, limite=2*tot, disp=limite-car;
+  d.innerHTML='Saldo da ata: <b style="color:#4ade80">'+_brlKp(saldo)+'</b> ('+perc+'%)<br>'
+    +'Carona dispon\u00edvel: <b style="color:#fb923c">'+_brlKp(disp)+'</b> <span style="color:#6b6b6b">(teto 2\u00d7 = '+_brlKp(limite)+')</span>';
+}
+
 async function mcSalvar(){
   var btn=document.getElementById('mc-salvar-btn');
   var erroEl=document.getElementById('mc-erro');
@@ -1007,22 +1085,36 @@ async function mcSalvar(){
   var data=mcGvDate('mc-data');
   var emp=mcGv('mc-empresa');
   var licit=mcGv('mc-licit');
+  var autor=(document.getElementById('mc-autor')?.value||'').trim();
   if(!data||!emp||!licit){
     erroEl.textContent='Preencha os campos obrigatórios: Data, Empresa e Licitação.';
     erroEl.style.display='block'; return;
   }
+  if(autor.length<3){
+    erroEl.textContent='Informe o nome do responsável pela alteração.';
+    erroEl.style.display='block';
+    document.getElementById('mc-autor')?.focus();
+    return;
+  }
+  localStorage.setItem('nh_portal_autor', autor);
 
   btn.disabled=true; btn.textContent='Salvando...';
 
-  // Montar array de 43 posições igual ao sistema
-  var arr=[];
-  for(var i=0;i<43;i++) arr.push('');
+  // Parte do registro EXISTENTE para não apagar campos que este modal não edita
+  var _base = _mcEditId ? (dadosGanhas.find(e=>e.id===_mcEditId)?.arr || []) : [];
+  var arr = _base.slice();
+  while(arr.length<50) arr.push('');
+  for(var _z=0;_z<arr.length;_z++) if(arr[_z]===undefined||arr[_z]===null) arr[_z]='';
 
   arr[1]=data; arr[2]=emp; arr[3]=licit;
   arr[4]=mcGv('mc-objeto'); arr[5]=mcGv('mc-local'); arr[6]=mcGv('mc-mun');
   arr[7]=mcGv('mc-valor'); arr[8]=mcGv('mc-contrato'); arr[9]=mcGv('mc-status');
   arr[10]=mcGv('mc-vig'); arr[11]=mcGvDate('mc-dtcont'); arr[12]=mcGvDate('mc-venc');
   arr[41]=mcGv('mc-obs'); arr[42]=mcGv('mc-link');
+  arr[43]=mcGv('mc-situacao');
+  arr[44]=mcGv('mc-srp'); arr[45]=mcGv('mc-atatotal');
+  arr[46]=mcGv('mc-atacons'); arr[47]=mcGv('mc-atacarona'); arr[48]=mcGvDate('mc-atavig');
+  arr[49]=mcGv('mc-proxacao');
 
   var rIdxs=[[13,14,15,16,17,18,19],[20,21,22,23,24,25,26],[27,28,29,30,31,32,33],[34,35,36,37,38,39,40]];
   for(var n=1;n<=4;n++){
@@ -1034,24 +1126,30 @@ async function mcSalvar(){
   }
 
   try{
+    var _agora = new Date().toLocaleString('pt-BR');
     if(_mcEditId){
       // Atualizar existente
       arr[0] = dadosGanhas.find(e=>e.id===_mcEditId)?.arr[0] || _mcEditId;
-      var logEntry = 'GROWTH editou em '+new Date().toLocaleString('pt-BR');
+      var logEntry = { autor: autor, empresa: empAtual, data: _agora, acao: 'Contrato editado pelo portal' };
       await db.collection('ganhas').doc(_mcEditId).update({
         _arr: arr, _updatedAt: Date.now(),
-        _portalUltimaEdicao: logEntry,
+        _portalUltimaEdicao: autor+' ('+empAtual+') em '+_agora,
         _portalLog: firebase.firestore.FieldValue.arrayUnion(logEntry)
       });
     } else {
-      // Novo contrato — gerar próximo ID
+      // Novo contrato — próximo ID livre (não reutiliza documento existente)
       var snap = await db.collection('ganhas').orderBy('_id','desc').limit(1).get();
       var nextId = snap.empty ? 1 : (snap.docs[0].data()._id||0)+1;
+      for(var _g=0; _g<50; _g++){
+        var _d = await db.collection('ganhas').doc(String(nextId)).get();
+        if(!_d.exists) break;
+        nextId++;
+      }
       arr[0] = nextId;
-      var logEntryN = 'GROWTH criou em '+new Date().toLocaleString('pt-BR');
+      var logEntryN = { autor: autor, empresa: empAtual, data: _agora, acao: 'Contrato criado pelo portal' };
       await db.collection('ganhas').doc(String(nextId)).set({
         _id: nextId, _arr: arr, _updatedAt: Date.now(), _createdAt: Date.now(),
-        _portalUltimaEdicao: logEntryN,
+        _portalUltimaEdicao: autor+' ('+empAtual+') em '+_agora,
         _portalLog: [logEntryN]
       });
     }
@@ -2018,6 +2116,10 @@ function renderHistorico(entry){
   const log = (entry && entry._portalLog) || [];
   if(!log.length) return '';
   const itens = log.slice().reverse().slice(0,8).map(function(l){
+    if(typeof l === 'string'){   // entradas antigas gravadas como texto
+      return '<li><span class="hist-quem">Registro antigo</span>'
+        + '<div class="hist-oq">'+pEsc(l)+'</div></li>';
+    }
     const quem = pEsc(l.autor || l.empresa || '—');
     const quando = pEsc(l.data || '');
     const oq = [];
@@ -2026,6 +2128,7 @@ function renderHistorico(entry){
     if(l.proxAcao) oq.push('pr\u00f3xima a\u00e7\u00e3o \u2192 '+pEsc(l.proxAcao));
     if(l.venc) oq.push('vencimento \u2192 '+pEsc(l.venc));
     if(l.obsAlterada) oq.push('observa\u00e7\u00f5es atualizadas');
+    if(l.acao) oq.push(pEsc(l.acao));
     return '<li><span class="hist-quem">'+quem+'</span>'
       +'<span class="hist-quando">'+quando+'</span>'
       +(oq.length?'<div class="hist-oq">'+oq.join(' \u00b7 ')+'</div>':'')
@@ -2165,9 +2268,328 @@ function renderBody(id, arr, entry){
 let abertos = {};
 
 // ─── IMPRIMIR PDF ────────────────────────────────────────────────
+/* ════════════════════════════════════════════════════════════
+   RELATÓRIO EXECUTIVO — Portal de Contratos
+   Mesmas regras da aba "Licitações Ganhas" do sistema NH.
+   Não inclui a seção de conferência de cadastro.
+   Nenhuma observação é reescrita ou reinterpretada.
+   ════════════════════════════════════════════════════════════ */
+
+function rpHoje(){ var d=new Date(); d.setHours(0,0,0,0); return d; }
+function rpD(s){
+  if(!s) return null;
+  var m=String(s).trim().split(' ')[0].match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(!m) return null;
+  var d=new Date(+m[3],+m[2]-1,+m[1]);
+  return isNaN(d.getTime())?null:d;
+}
+/* Vencimento vigente: último aditivo, senão o original */
+function rpVenc(a){ return String(a[39]||'').trim()||String(a[32]||'').trim()||String(a[25]||'').trim()||String(a[18]||'').trim()||String(a[12]||'').trim(); }
+/* Valor vigente: valor final do último aditivo, senão o original — igual a calcValorGanhas() */
+function rpValor(a){
+  var v=parseMoedaV(a[40])||parseMoedaV(a[33])||parseMoedaV(a[26])||parseMoedaV(a[19]);
+  return v>0?v:(parseMoedaV(a[7])||0);
+}
+function rpDias(a){ var d=rpD(rpVenc(a)); return d?Math.round((d-rpHoje())/864e5):null; }
+function rpSt(a){ return String(a[9]||'').toUpperCase().trim(); }
+function rpEncerrado(a){ var s=rpSt(a); return s==='FINALIZADO'||s==='RESCINDIDO'||s==='CANCELADO'; }
+function rpExec(a){ var s=rpSt(a); return s==='EM EXECUÇÃO'||s==='EM EXECUCAO'; }
+function rpAguard(a){ return rpSt(a).indexOf('AGUARDANDO')===0; }
+function rpEmerg(a){ return /emergenc/i.test(String(a[3]||'')+' '+String(a[4]||'')+' '+String(a[41]||'')); }
+
+/* Situação [43]; se vazia, derivada do status dos aditivos */
+function rpSituacao(a){
+  var ovr=String(a[43]||'').trim();
+  if(ovr && ovr.charAt(0)!=='(') return ovr;
+  var st=rpSt(a);
+  if(st==='FINALIZADO'||st==='RESCINDIDO'||st==='SUSPENSO') return '';
+  if(st==='SERÁ ENCERRADO'||st==='SERA ENCERRADO') return 'Será encerrado';
+  var A=false,T=false,C=false,N=false;
+  [[13,15],[20,22],[27,29],[34,36]].forEach(function(p){
+    var rec=String(a[p[0]]||'').toUpperCase().trim(), sta=String(a[p[1]]||'').toUpperCase().trim();
+    if(rec==='SIM'){
+      if(sta.indexOf('CONCLU')>=0) C=true;
+      else if(sta.indexOf('TRAMIT')>=0||sta.indexOf('AN')>=0) T=true;
+      else A=true;
+    } else if(rec==='NÃO'||rec==='NAO') N=true;
+  });
+  if(T) return 'Recomposição em andamento';
+  if(A) return 'Aguardando recomposição';
+  if(C) return 'Prorrogado';
+  if(N) return 'Não prorrogável';
+  return '';
+}
+function rpNaoProrr(a){ return rpSituacao(a)==='Não prorrogável'; }
+
+/* Classificação de risco — regra fixa, publicada no rodapé */
+function rpRisco(a){
+  if(rpEncerrado(a)) return {n:0,ic:'🟢',lb:'Baixo',mot:'Contrato encerrado'};
+  var d=rpDias(a);
+  if(rpExec(a)&&d!==null&&d<0) return {n:2,ic:'🔴',lb:'Alto',mot:'Vencido há '+Math.abs(d)+' dia(s) e ainda marcado como Em Execução'};
+  if(rpEmerg(a)) return {n:2,ic:'🔴',lb:'Alto',mot:'Contrato emergencial'};
+  if(rpNaoProrr(a)&&d!==null&&d<=90) return {n:2,ic:'🔴',lb:'Alto',mot:'Não prorrogável, vence em '+d+' dia(s)'};
+  if(d!==null&&d>=0&&d<=30) return {n:2,ic:'🔴',lb:'Alto',mot:'Vence em '+d+' dia(s)'};
+  if(d!==null&&d>30&&d<=60) return {n:1,ic:'🟡',lb:'Médio',mot:'Vence em '+d+' dia(s)'};
+  if(rpNaoProrr(a)) return {n:1,ic:'🟡',lb:'Médio',mot:'Contrato não prorrogável'};
+  var s=rpSituacao(a);
+  if(s==='Aguardando recomposição'||s==='Recomposição em andamento') return {n:1,ic:'🟡',lb:'Médio',mot:s};
+  if(rpAguard(a)) return {n:1,ic:'🟡',lb:'Médio',mot:'Aguardando contrato'};
+  if(!rpVenc(a)) return {n:1,ic:'🟡',lb:'Médio',mot:'Vencimento não informado'};
+  return {n:0,ic:'🟢',lb:'Baixo',mot:'Contrato regular'};
+}
+
+/* Padroniza apenas separadores. Nenhum dígito é alterado. */
+function rpProc(s){
+  var t=String(s||'').trim(); if(!t) return '';
+  // Regex literais: sem escape duplo, sem new RegExp
+  t=t.replace(/\b(PE|PP|PR|DL|IN|TP|CC|CN|CP|ARP|SRP|RDC|CH|ATA)\s*(?:n[ºo°.]?\s*)?[:\-]?\s*(\d{1,5})\s*[\/.\-]\s*(\d{4})\b/gi,
+    function(_,m,n,y){ return m.toUpperCase()+' nº '+n+'/'+y; });
+  t=t.replace(/\b(CONTRATO)\s*(?:n[ºo°.]?\s*)?[:\-]?\s*(\d{1,6})\s*[\/.\-]\s*(\d{4})\b/gi,
+    function(_,__,n,y){ return 'Contrato nº '+n+'/'+y; });
+  return t.replace(/\s{2,}/g,' ').trim();
+}
+
+/* Ordena: em execução → encerrando 60d → encerrando 30d/vencidos → aguardando → finalizados */
+function rpBucket(a){
+  if(rpEncerrado(a)) return 4;
+  if(rpAguard(a)) return 3;
+  var d=rpDias(a);
+  if(d!==null&&d<0) return 2;
+  if(d!==null&&d<=30) return 2;
+  if(d!==null&&d<=60) return 1;
+  return 0;
+}
+function rpOrdenar(lista){
+  return lista.slice().sort(function(x,y){
+    var ex=String(x.arr[2]||'').trim(), ey=String(y.arr[2]||'').trim();
+    if(ex!==ey) return ex.localeCompare(ey,'pt-BR');
+    var bx=rpBucket(x.arr), by=rpBucket(y.arr);
+    if(bx!==by) return bx-by;
+    var dx=rpDias(x.arr), dy=rpDias(y.arr);
+    if(dx===null&&dy===null) return 0;
+    if(dx===null) return 1;
+    if(dy===null) return -1;
+    return dx-dy;
+  });
+}
+
+function rpBRL(n){ if(!n||isNaN(n)) return 'R$ 0,00'; return 'R$ '+Number(n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function rpKpi(lb,vl,cor,sub){
+  return '<div class="rp-kpi"><div class="rp-kpi-lb">'+lb+'</div><div class="rp-kpi-vl" style="color:'+(cor||'#1f2937')+'">'+vl+'</div>'
+    + (sub?'<div class="rp-kpi-sub">'+sub+'</div>':'') + '</div>';
+}
+function rpRiscoBadge(a){
+  var k=rpRisco(a);
+  var c={0:['#dcfce7','#166534'],1:['#fef3c7','#92400e'],2:['#fee2e2','#991b1b']}[k.n];
+  return '<span class="rp-badge" style="background:'+c[0]+';color:'+c[1]+'">'+k.ic+' '+k.lb+'</span>';
+}
+
+/* ─── 1. CAPA ─── */
+function rpCapa(titulo, lista, valTot, dataEm){
+  return '<div class="rp-capa">'
+    + '<div class="rp-tag">Relatório Gerencial</div>'
+    + '<h1>RELATÓRIO GERENCIAL DE LICITAÇÕES E CONTRATOS</h1>'
+    + '<div class="rp-capa-sub">'+pEsc(titulo)+'</div>'
+    + '<div class="rp-kpi-row">'
+      + rpKpi('Data de emissão', dataEm)
+      + rpKpi('Quantidade de contratos', String(lista.length))
+      + rpKpi('Valor total da carteira', rpBRL(valTot), '#15803d')
+    + '</div>'
+    + '<div class="rp-capa-nota">Documento gerado automaticamente pelo Portal NH. Valores, datas, números de processo e de contrato reproduzem exatamente os dados cadastrados.</div>'
+    + '</div>';
+}
+
+/* ─── 2. DASHBOARD EXECUTIVO ─── */
+function rpDashboard(lista, valTot, corEmp){
+  var exec=0,fin=0,agu=0,d30=0,d60=0,venc=0,emer=0,vExec=0;
+  var naoProrr=0,prorrogado=0,aguardRec=0,recAnd=0;
+  lista.forEach(function(e){
+    var a=e.arr, s=rpSituacao(a);
+    if(s==='Não prorrogável') naoProrr++;
+    else if(s==='Prorrogado') prorrogado++;
+    else if(s==='Aguardando recomposição') aguardRec++;
+    else if(s==='Recomposição em andamento') recAnd++;
+    if(rpExec(a)){ exec++; vExec+=rpValor(a); }
+    if(rpEncerrado(a)) fin++;
+    if(rpAguard(a)) agu++;
+    if(rpEmerg(a)) emer++;
+    var d=rpDias(a);
+    if(!rpEncerrado(a)&&d!==null){
+      if(d<0) venc++; else if(d<=30) d30++; else if(d<=60) d60++;
+    }
+  });
+
+  var h='<div class="rp-sec"><div class="rp-sec-t">2. Dashboard Executivo</div>'
+    + '<div class="rp-kpi-row">'
+      + rpKpi('Total de contratos', String(lista.length))
+      + rpKpi('Valor total', rpBRL(valTot), '#15803d')
+      + rpKpi('Em execução', String(exec), '#166534')
+      + rpKpi('Finalizados / encerrados', String(fin), '#1e40af')
+      + rpKpi('Aguardando contrato', String(agu), '#6b21a8')
+    + '</div>'
+    + '<div class="rp-kpi-row">'
+      + rpKpi('Vencidos (ainda ativos)', String(venc), venc?'#991b1b':'#166534')
+      + rpKpi('Encerrando em até 30 dias', String(d30), d30?'#991b1b':'#166534')
+      + rpKpi('Encerrando em 31–60 dias', String(d60), d60?'#92400e':'#166534')
+      + rpKpi('Emergenciais', String(emer), emer?'#991b1b':'#166534','termo localizado no cadastro')
+      + rpKpi('Valor em execução', rpBRL(vExec), '#15803d','carteira ativa')
+    + '</div>'
+    + '<div class="rp-kpi-row">'
+      + rpKpi('Não prorrogáveis', String(naoProrr), naoProrr?'#991b1b':'#166534','campo Situação')
+      + rpKpi('Prorrogados', String(prorrogado), '#166534','campo Situação')
+      + rpKpi('Aguardando recomposição', String(aguardRec), aguardRec?'#92400e':'#166534')
+      + rpKpi('Recomposição em andamento', String(recAnd), recAnd?'#92400e':'#166534')
+    + '</div>';
+
+  /* Distribuição por empresa */
+  var qe={},ve={};
+  lista.forEach(function(e){
+    var n=String(e.arr[2]||'').trim()||'Outros';
+    qe[n]=(qe[n]||0)+1;
+    ve[n]=(ve[n]||0)+rpValor(e.arr);
+  });
+  var chaves=Object.keys(qe);
+  if(chaves.length>1){
+    var maxq=Math.max.apply(null,chaves.map(function(k){return qe[k];}));
+    h+='<div class="rp-sec-st">Distribuição por empresa</div><div class="rp-bars">';
+    chaves.sort(function(a,b){return qe[b]-qe[a];}).forEach(function(k){
+      var pc=Math.round(100*qe[k]/maxq);
+      h+='<div class="rp-bar-row"><div class="rp-bar-lb">'+pEsc(k)+'</div>'
+        +'<div class="rp-bar-tr"><div class="rp-bar-fl" style="width:'+pc+'%;background:'+corEmp(k)+'"></div></div>'
+        +'<div class="rp-bar-vl">'+qe[k]+' · '+rpBRL(ve[k])+'</div></div>';
+    });
+    h+='</div>';
+  }
+  return h+'</div>';
+}
+
+/* ─── 3. RESUMO POR EMPRESA ─── */
+function rpResumoEmpresa(lista, corEmp){
+  var mp={};
+  lista.forEach(function(e){
+    var a=e.arr, n=String(a[2]||'').trim()||'Outros';
+    if(!mp[n]) mp[n]={q:0,v:0,ex:0,fi:0,en:0,ag:0};
+    var o=mp[n]; o.q++; o.v+=rpValor(a);
+    if(rpExec(a)) o.ex++;
+    if(rpEncerrado(a)) o.fi++;
+    if(rpAguard(a)) o.ag++;
+    var d=rpDias(a);
+    if(!rpEncerrado(a)&&d!==null&&d<=60) o.en++;
+  });
+  var h='<div class="rp-sec"><div class="rp-sec-t">3. Resumo por Empresa</div>'
+    + '<table class="rp-mini"><thead><tr><th>Empresa</th><th>Contratos</th><th>Valor total</th><th>Em execução</th>'
+    + '<th>Finalizados</th><th>Encerrando (≤60d)</th><th>Aguardando</th><th>Valor médio</th></tr></thead><tbody>';
+  Object.keys(mp).sort().forEach(function(k){
+    var o=mp[k];
+    h+='<tr><td style="text-align:left;font-weight:700;color:'+corEmp(k)+'">'+pEsc(k)+'</td>'
+      +'<td>'+o.q+'</td><td>'+rpBRL(o.v)+'</td><td>'+o.ex+'</td><td>'+o.fi+'</td>'
+      +'<td>'+o.en+'</td><td>'+o.ag+'</td><td>'+rpBRL(o.q?o.v/o.q:0)+'</td></tr>';
+  });
+  return h+'</tbody></table></div>';
+}
+
+/* ─── 4. ALERTAS ─── */
+function rpAlertas(lista){
+  var g={venc:[],d30:[],d60:[],emer:[],agu:[],naoProrr:[],recomp:[],semVenc:[]};
+  lista.forEach(function(e){
+    var a=e.arr;
+    var lb=pEsc(String(a[2]||'')+' · '+(rpProc(a[3])||('#'+a[0])));
+    var d=rpDias(a);
+    if(!rpEncerrado(a)){
+      if(d!==null&&d<0) g.venc.push(lb+' — vencido há '+Math.abs(d)+'d');
+      else if(d!==null&&d<=30) g.d30.push(lb+' — '+d+'d');
+      else if(d!==null&&d<=60) g.d60.push(lb+' — '+d+'d');
+      if(!rpVenc(a)) g.semVenc.push(lb);
+      var s=rpSituacao(a);
+      if(s==='Não prorrogável') g.naoProrr.push(lb+(d!==null?' — vence em '+d+'d':''));
+      if(s==='Aguardando recomposição'||s==='Recomposição em andamento') g.recomp.push(lb+' — '+s.toLowerCase());
+    }
+    if(rpEmerg(a)) g.emer.push(lb);
+    if(rpAguard(a)) g.agu.push(lb);
+  });
+  function blk(t,arr,cor){
+    if(!arr.length) return '';
+    return '<div class="rp-alerta" style="border-left-color:'+cor+'"><div class="rp-alerta-t" style="color:'+cor+'">'+t+' ('+arr.length+')</div>'
+      + '<ul>'+arr.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul></div>';
+  }
+  var h = blk('🔴 Contratos vencidos e ainda ativos',g.venc,'#991b1b')
+    + blk('🔴 Vencendo em até 30 dias',g.d30,'#991b1b')
+    + blk('🟡 Vencendo em 31–60 dias',g.d60,'#92400e')
+    + blk('🔴 Contratos emergenciais',g.emer,'#991b1b')
+    + blk('🔴 Sem possibilidade de prorrogação',g.naoProrr,'#991b1b')
+    + blk('🟠 Exigem aditivo / recomposição',g.recomp,'#9a3412')
+    + blk('🟣 Aguardando contrato / assinatura',g.agu,'#6b21a8')
+    + blk('🟡 Sem data de vencimento informada',g.semVenc,'#92400e');
+  if(!h) h='<div class="rp-ok">Nenhum alerta identificado.</div>';
+  return '<div class="rp-sec rp-pb"><div class="rp-sec-t">4. Alertas</div>'+h
+    + '<div class="rp-nota">A situação de prorrogação vem do campo <strong>Situação</strong> do cadastro. Quando vazio, é derivada do status dos aditivos registrados — nunca do texto das observações.</div></div>';
+}
+
+/* ─── 6. RESUMO EXECUTIVO ─── */
+function rpResumoFinal(lista){
+  var sa=0,at=0,cr=0,prot=0,crit=[],opo=[];
+  lista.forEach(function(e){
+    var a=e.arr, k=rpRisco(a);
+    if(k.n===2){ cr++; crit.push({a:a,mot:k.mot}); }
+    else if(k.n===1) at++; else sa++;
+    if(rpExec(a)) prot+=rpValor(a);
+    var d=rpDias(a);
+    if(rpExec(a)&&d!==null&&d>60&&d<=120) opo.push(a);
+  });
+  var h='<div class="rp-sec rp-pb"><div class="rp-sec-t">6. Resumo Executivo</div>'
+    + '<div class="rp-kpi-row">'
+      + rpKpi('Contratos saudáveis','🟢 '+sa,'#166534')
+      + rpKpi('Contratos com atenção','🟡 '+at,'#92400e')
+      + rpKpi('Contratos críticos','🔴 '+cr,'#991b1b')
+      + rpKpi('Valor financeiro protegido', rpBRL(prot), '#15803d','soma dos contratos em execução')
+      + rpKpi('Providências imediatas', String(cr), cr?'#991b1b':'#166534','contratos classificados como Alto')
+    + '</div>';
+
+  h+='<div class="rp-sec-st">Principais riscos da carteira</div>';
+  if(!crit.length) h+='<div class="rp-ok">Nenhum contrato classificado como risco Alto.</div>';
+  else {
+    crit.sort(function(x,y){ var a=rpDias(x.a), b=rpDias(y.a); if(a===null)return 1; if(b===null)return -1; return a-b; });
+    h+='<table class="rp-mini"><thead><tr><th>#</th><th>Empresa</th><th>Processo</th><th>Valor</th><th>Motivo da classificação</th></tr></thead><tbody>';
+    crit.slice(0,30).forEach(function(x){
+      h+='<tr><td>'+pEsc(x.a[0])+'</td><td>'+pEsc(x.a[2])+'</td><td style="text-align:left">'+pEsc(rpProc(x.a[3]))+'</td>'
+        +'<td>'+rpBRL(rpValor(x.a))+'</td><td style="text-align:left">'+pEsc(x.mot)+'</td></tr>';
+    });
+    h+='</tbody></table>';
+  }
+
+  h+='<div class="rp-sec-st">Oportunidades de atuação</div>';
+  if(!opo.length) h+='<div class="rp-ok">Nenhum contrato na janela de 61 a 120 dias para vencimento.</div>';
+  else {
+    h+='<div class="rp-nota-ok">'+opo.length+' contrato(s) em execução vencem entre 61 e 120 dias — janela adequada para instrução tempestiva de aditivo, reajuste ou nova contratação, conforme a situação registrada em cada processo.</div>';
+    h+='<table class="rp-mini"><thead><tr><th>#</th><th>Empresa</th><th>Processo</th><th>Vencimento</th><th>Dias</th></tr></thead><tbody>';
+    opo.sort(function(a,b){return rpDias(a)-rpDias(b);}).slice(0,20).forEach(function(a){
+      h+='<tr><td>'+pEsc(a[0])+'</td><td>'+pEsc(a[2])+'</td><td style="text-align:left">'+pEsc(rpProc(a[3]))+'</td>'
+        +'<td>'+pEsc(rpVenc(a))+'</td><td>'+rpDias(a)+'</td></tr>';
+    });
+    h+='</tbody></table>';
+  }
+  return h+'</div>';
+}
+
+/* ─── CRITÉRIOS (rodapé auditável) ─── */
+function rpCriterios(){
+  return '<div class="rp-criterios"><strong>Critérios aplicados nesta emissão</strong><ul>'
+    + '<li><strong>Vencimento vigente:</strong> vencimento do último aditivo registrado; na ausência de aditivos, o vencimento original do contrato.</li>'
+    + '<li><strong>Valor atual:</strong> valor final do último aditivo registrado; na ausência de aditivos, o valor original do contrato.</li>'
+    + '<li><strong>🔴 Alto:</strong> contrato vencido e ainda marcado como Em Execução; ou emergencial; ou não prorrogável vencendo em até 90 dias; ou vencimento em até 30 dias.</li>'
+    + '<li><strong>🟡 Médio:</strong> vencimento entre 31 e 60 dias; ou não prorrogável; ou recomposição pendente/em andamento; ou Aguardando Contrato; ou vencimento não informado.</li>'
+    + '<li><strong>🟢 Baixo:</strong> contrato encerrado ou contrato regular sem as condições acima.</li>'
+    + '<li><strong>Emergencial:</strong> identificado pela presença do termo "emergenc…" na licitação, no objeto ou nas observações.</li>'
+    + '<li><strong>Situação:</strong> lida do campo Situação; se vazio, derivada do status dos aditivos. Nunca do texto das observações.</li>'
+    + '<li><strong>Observações e aditivos:</strong> reproduzidos integralmente conforme cadastrados, sem reescrita, resumo ou reinterpretação.</li>'
+    + '<li><strong>Padronização de nomes:</strong> altera apenas separadores e espaçamento (ex.: PE 24.2024 → PE nº 24/2024). Nenhum dígito é modificado.</li>'
+    + '</ul></div>';
+}
+
 function gerarHTMLImpressao(entries, opts){
   // Defaults: tudo ativo se opts não for passado
-  if(!opts) opts = {basico:true,objeto:true,obs:true,recomp:true,link:false,log:false};
+  if(!opts) opts = {basico:true,objeto:true,obs:true,recomp:true,link:false,log:false,executivo:true};
+  var _execOn = (opts.executivo !== false) && entries.length > 1;
   const titulo = isAdmin ? 'GROWTH — Todas as Empresas' : empAtual;
   const cor = isAdmin ? '#8b5cf6' : (CORES[empAtual] || '#f97316');
   const hoje = new Date().toLocaleDateString('pt-BR');
@@ -2181,6 +2603,43 @@ function gerarHTMLImpressao(entries, opts){
     .cab-sub{font-size:10px;color:rgba(255,255,255,.8);margin-top:2px}
     .cab-data{font-size:10px;color:rgba(255,255,255,.8);text-align:right}
     .corpo{padding:20px 28px}
+    .rp-capa{border:2px solid #1f2937;border-radius:8px;padding:18px 20px;margin-bottom:16px;background:#fafafa}
+    .rp-tag{display:inline-block;background:#f97316;color:#fff;font-size:8.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:3px 9px;border-radius:3px;margin-bottom:8px}
+    .rp-capa h1{font-size:17px;font-weight:900;color:#1f2937;line-height:1.25;margin-bottom:5px}
+    .rp-capa-sub{font-size:10.5px;color:#6b7280;font-weight:600;margin-bottom:12px}
+    .rp-capa-nota{font-size:8.5px;color:#6b7280;line-height:1.5;border-top:1px solid #e5e7eb;padding-top:7px;margin-top:4px}
+    .rp-kpi-row{display:flex;gap:8px;margin-bottom:8px}
+    .rp-kpi{border:1px solid #d1d5db;border-radius:6px;padding:7px 9px;background:#fff;flex:1;min-width:0}
+    .rp-kpi-lb{font-size:7.5px;color:#6b7280;font-weight:700;text-transform:uppercase;letter-spacing:.05em;line-height:1.3;margin-bottom:3px}
+    .rp-kpi-vl{font-size:14px;font-weight:800;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .rp-kpi-sub{font-size:7px;color:#9ca3af;margin-top:2px;line-height:1.3}
+    .rp-sec{margin-bottom:16px}
+    .rp-pb{page-break-before:always}
+    .rp-sec-t{font-size:12.5px;font-weight:800;color:#1f2937;border-bottom:2px solid #f97316;padding-bottom:4px;margin-bottom:9px}
+    .rp-sec-st{font-size:9.5px;font-weight:800;color:#374151;text-transform:uppercase;letter-spacing:.06em;margin:10px 0 6px}
+    .rp-bars{border:1px solid #e5e7eb;border-radius:6px;padding:8px 10px}
+    .rp-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+    .rp-bar-lb{width:90px;font-size:9px;font-weight:700;color:#374151;flex-shrink:0}
+    .rp-bar-tr{flex:1;height:9px;background:#f3f4f6;border-radius:5px;overflow:hidden}
+    .rp-bar-fl{height:100%;border-radius:5px}
+    .rp-bar-vl{width:160px;text-align:right;font-size:8.5px;font-weight:700;color:#6b7280;flex-shrink:0}
+    table.rp-mini{width:100%;border-collapse:collapse;margin-bottom:6px;font-size:9px}
+    table.rp-mini th{background:#1f2937;color:#fff;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:5px 6px;text-align:center}
+    table.rp-mini td{border:1px solid #d1d5db;padding:4px 6px;text-align:center;vertical-align:middle;line-height:1.4}
+    table.rp-mini tbody tr:nth-child(even){background:#f9fafb}
+    .rp-alerta{border:1px solid #e5e7eb;border-left:4px solid #6b7280;border-radius:5px;padding:7px 10px;margin-bottom:7px;page-break-inside:avoid}
+    .rp-alerta-t{font-size:9.5px;font-weight:800;margin-bottom:4px}
+    .rp-alerta ul{margin:0;padding-left:16px}
+    .rp-alerta li{font-size:8.8px;color:#374151;line-height:1.55}
+    .rp-ok{font-size:9.5px;color:#166534;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:5px;padding:7px 10px}
+    .rp-nota{font-size:8px;color:#6b7280;line-height:1.5;margin-top:5px;font-style:italic}
+    .rp-nota-ok{font-size:9px;color:#374151;background:#f9fafb;border:1px solid #e5e7eb;border-radius:5px;padding:6px 9px;margin-bottom:6px;line-height:1.55}
+    .rp-criterios{margin-top:14px;border:1px dashed #d1d5db;border-radius:6px;padding:9px 12px;background:#fafafa;page-break-inside:avoid}
+    .rp-criterios strong{font-size:9px;color:#1f2937;text-transform:uppercase;letter-spacing:.05em}
+    .rp-criterios ul{margin:5px 0 0;padding-left:16px}
+    .rp-criterios li{font-size:8.2px;color:#4b5563;line-height:1.55;margin-bottom:2px}
+    .rp-badge{display:inline-block;font-weight:700;border-radius:4px;padding:2px 6px;white-space:nowrap;font-size:9px}
+    .rp-det-t{font-size:12.5px;font-weight:800;color:#1f2937;border-bottom:2px solid #f97316;padding-bottom:4px;margin:0 0 12px}
     .contrato{border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-bottom:14px;page-break-inside:avoid}
     .c-titulo{font-size:13px;font-weight:700;color:#111;margin-bottom:8px}
     .c-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
@@ -2205,8 +2664,22 @@ function gerarHTMLImpressao(entries, opts){
   </div>
   <div class="corpo">`;
 
+  // ─── Seções do relatório executivo ───
+  const _lista   = rpOrdenar(entries);
+  const _valTot  = _lista.reduce((s,e)=>s+rpValor(e.arr),0);
+  const _corEmp  = (n)=> CORES[String(n||'').trim().toUpperCase()] || '#374151';
+  const _multi   = new Set(_lista.map(e=>String(e.arr[2]||'').trim())).size > 1;
+
+  if(_execOn){
+    html += rpCapa(titulo, _lista, _valTot, hoje);
+    html += rpDashboard(_lista, _valTot, _corEmp);
+    if(_multi) html += rpResumoEmpresa(_lista, _corEmp);
+    html += rpAlertas(_lista);
+    html += '<div class="rp-sec rp-pb"><div class="rp-det-t">5. Detalhamento dos Contratos</div>';
+  }
+
   const hoje2 = new Date(); hoje2.setHours(0,0,0,0);
-  entries.forEach(({arr, _portalUltimaEdicao})=>{
+  _lista.forEach(({arr, _portalUltimaEdicao})=>{
     const status = String(arr[9]||'').trim() || 'EM EXECUÇÃO';
     const statusUp = status.toUpperCase();
     const badgeCls = statusUp==='FINALIZADO'?'b-fin':statusUp==='RESCINDIDO'||statusUp==='SUSPENSO'?'b-sus':statusUp.includes('VENCID')?'b-venc':'b-exec';
@@ -2276,6 +2749,12 @@ function gerarHTMLImpressao(entries, opts){
       ${opts.log && _portalUltimaEdicao ? `<div class="log-edit">✎ Última edição: ${_portalUltimaEdicao}</div>` : ''}
     </div>`;
   });
+
+  if(_execOn){
+    html += '</div>';   // fecha "5. Detalhamento dos Contratos"
+    html += rpResumoFinal(_lista);
+    html += rpCriterios();
+  }
 
   // ── Bloco de totais por categoria (respeita os filtros ativos) ──
   const _hoje2 = new Date(); _hoje2.setHours(0,0,0,0);
@@ -2410,6 +2889,8 @@ function imprimirContrato(id){
 
 function abrirModalPrint(){
   var modal = document.getElementById('modal-print');
+  var _exec = document.getElementById('popt-exec');
+  if(_exec) _exec.checked = !(_printLista && _printLista.length === 1);
   modal.style.display = 'flex';
   modal.onclick = function(e){ if(e.target===modal) fecharModalPrint(); };
 }
@@ -2424,6 +2905,7 @@ function confirmarImpressao(){
   
   if(!lista.length){ alert('Nenhum contrato para imprimir.'); fecharModalPrint(); return; }
   var opts = {
+    executivo: document.getElementById('popt-exec') ? document.getElementById('popt-exec').checked : true,
     basico:  document.getElementById('popt-basico').checked,
     objeto:  document.getElementById('popt-objeto').checked,
     obs:     document.getElementById('popt-obs').checked,
