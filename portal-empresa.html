@@ -2048,7 +2048,24 @@ function renderContratos(){
       }
     }
 
-    const recomp = String(arr[13]||'').toUpperCase().trim()==='SIM'?'<span class="badge b-orange">Recomp.</span>':'';
+    // Situação — mesmo critério do sistema: campo [43]; se vazio, derivada dos aditivos
+    const situacao = rpSituacao(arr);
+    const _sitCls = {
+      'Não prorrogável':'b-red',
+      'Será encerrado':'b-red',
+      'Aguardando recomposição':'b-orange',
+      'Recomposição em andamento':'b-orange',
+      'Prorrogado':'b-green'
+    }[situacao] || 'b-gray';
+    const situacaoBadge = situacao
+      ? `<span class="badge ${_sitCls}" title="Situação do contrato">${pEsc(situacao)}</span>`
+      : '';
+
+    // O badge genérico "Recomp." vira redundante quando a Situação já fala de recomposição
+    const _sitCobreRecomp = situacao==='Aguardando recomposição' || situacao==='Recomposição em andamento' || situacao==='Prorrogado';
+    const recomp = (!_sitCobreRecomp && String(arr[13]||'').toUpperCase().trim()==='SIM')
+      ? '<span class="badge b-orange">Recomp.</span>' : '';
+
     const statusBadge = `<span class="badge ${cor==='verde'?'b-green':cor==='azul'?'b-blue':cor==='vermelho'?'b-red':'b-yellow'}">${status}</span>`;
 
     return `
@@ -2063,7 +2080,7 @@ function renderContratos(){
           ${isAdmin && arr[2] ? `<div style="font-size:11px;color:${CORES[arr[2].trim().toUpperCase()]||'#888'};font-weight:700;margin-top:3px">${arr[2].trim().toUpperCase()}</div>` : ''}
         </div>
         <div class="ccard-badges">
-          ${statusBadge}${vencBadge}${recomp}
+          ${statusBadge}${situacaoBadge}${vencBadge}${recomp}
           <button onclick="event.stopPropagation();imprimirContrato('${id}')" title="Imprimir PDF" style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2);color:var(--nh);width:30px;height:30px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;transition:all .15s" onmouseover="this.style.background='rgba(249,115,22,.25)'" onmouseout="this.style.background='rgba(249,115,22,.1)'">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></svg>
           </button>
