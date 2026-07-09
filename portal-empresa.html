@@ -1401,11 +1401,7 @@ function gerarDashboard(){
         '<text x="'+p.cx+'" y="'+(parseFloat(p.cy)-8)+'" text-anchor="middle" fill="'+cor+'" font-size="9.5" font-weight="800">'+p.v+'</text>';
     }).join('');
 
-    const alertaVenc = d.vencer30>0
-      ? '<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:7px;padding:7px 12px;margin-bottom:10px;font-size:11px;color:#f87171;display:flex;align-items:center;gap:6px"><span>⚠️</span> <strong>'+d.vencer30+'</strong> contrato'+(d.vencer30!==1?'s':'')+' vence'+(d.vencer30!==1?'m':'')+' em até 30 dias</div>'
-      : d.vencer90>0
-      ? '<div style="background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.2);border-radius:7px;padding:7px 12px;margin-bottom:10px;font-size:11px;color:#facc15;display:flex;align-items:center;gap:6px"><span>⏰</span> <strong>'+d.vencer90+'</strong> contrato'+(d.vencer90!==1?'s':'')+' vence'+(d.vencer90!==1?'m':'')+' em até 90 dias</div>'
-      : '';
+    // Aviso de vencimento removido: já consta no Quadro de Avisos, logo abaixo dos gráficos.
 
     return '<div style="background:#0a0a12;border:1px solid #1a1a28;border-left:3px solid '+cor+';border-radius:14px;padding:20px;min-width:0">' +
 
@@ -1418,7 +1414,6 @@ function gerarDashboard(){
         '</div>' +
       '</div>' +
 
-      alertaVenc +
 
       // KPIs portfólio / ativo
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">' +
