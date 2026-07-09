@@ -1510,6 +1510,13 @@ function gerarDashboard(){
    3. Contratos vencidos ainda marcados como Em Execução
    4. Contratos aguardando assinatura
    ════════════════════════════════════════════════════════════ */
+/* Escape de HTML — usado em tudo que vem do usuário ou do Firestore */
+function pEsc(s){
+  return String(s==null?'':s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 let dadosAndamento = [];
 
 async function carregarAndamento(){
@@ -1980,13 +1987,6 @@ function renderContratos(){
     else {
       var pgHtml = '';
       
-/* Escape de HTML — usado em tudo que vem do usuário ou do Firestore */
-function pEsc(s){
-  return String(s==null?'':s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
-
 function pbS(on){ return 'style="background:'+(on?'var(--nh)':'var(--s2)')+';border:1px solid '+(on?'var(--nh)':'var(--b1)')+';color:'+(on?'#000':'var(--t2)')+';padding:6px 12px;border-radius:7px;cursor:pointer;font-size:13px;font-weight:700;min-width:36px"'; }
       if(_pgAtual>1) pgHtml += '<button '+pbS(false)+' onclick="irPagina('+(_pgAtual-1)+')">&#8249;</button>';
       for(var pp=Math.max(1,_pgAtual-2);pp<=Math.min(totalPags,_pgAtual+2);pp++){
