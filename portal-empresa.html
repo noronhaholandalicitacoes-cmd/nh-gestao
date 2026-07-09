@@ -1293,6 +1293,195 @@ function fmtValPortal(s){
   return String(s||'').trim();
 }
 
+
+/* ════════════════════════════════════════════════════════════
+   CLASSIFICAÇÃO ÚNICA DE CONTRATO — fonte única da verdade.
+   As categorias são MUTUAMENTE EXCLUSIVAS: a soma das contagens
+   é sempre igual ao total, e a soma dos valores é o portfólio.
+   Toda contagem e todo gráfico do portal usam esta função.
+   ════════════════════════════════════════════════════════════ */
+const CAT_LABEL = {
+  exec:          'Em Execução',
+  vencido:       'Vencidos',
+  aguard:        'Aguardando Contrato',
+  seraEncerrado: 'Será Encerrado',
+  suspenso:      'Suspensos',
+  encerrado:     'Encerrados',
+  semStatus:     'Sem status'
+};
+const CAT_COR = {
+  exec:'#22c55e', vencido:'#ef4444', aguard:'#3b82f6', seraEncerrado:'#f97316',
+  suspenso:'#eab308', encerrado:'#6b7280', semStatus:'#8b5cf6'
+};
+const CAT_ORDEM = ['exec','vencido','aguard','seraEncerrado','suspenso','encerrado','semStatus'];
+
+function classificarContrato(arr){
+  const st    = String(arr[9]||'').trim().toUpperCase();
+  const valor = calcValorGanhas(arr);
+  const venc  = vencVigente(arr).valor;
+  const dias  = _pDias(venc);
+
+  let cat;
+  if(st==='FINALIZADO'||st==='RESCINDIDO'||st==='CANCELADO') cat='encerrado';
+  else if(st==='SUSPENSO')                                    cat='suspenso';
+  else if(st.indexOf('AGUARDANDO')===0)                       cat='aguard';
+  else if(st==='SERÁ ENCERRADO'||st==='SERA ENCERRADO')       cat='seraEncerrado';
+  else if(st==='EM EXECUÇÃO'||st==='EM EXECUCAO')             cat = (dias!==null && dias<0) ? 'vencido' : 'exec';
+  else                                                        cat='semStatus';
+
+  return {
+    st, valor, venc, dias, cat,
+    exec:          cat==='exec',
+    vencido:       cat==='vencido',
+    aguard:        cat==='aguard',
+    seraEncerrado: cat==='seraEncerrado',
+    suspenso:      cat==='suspenso',
+    encerrado:     cat==='encerrado',
+    semStatus:     cat==='semStatus',
+    /* "ativo" = em execução e dentro do prazo. Nada mais. */
+    ativo:  cat==='exec',
+    prox30: cat==='exec' && dias!==null && dias>=0 && dias<=30,
+    prox90: cat==='exec' && dias!==null && dias>30  && dias<=90,
+    recomp: String(arr[13]||'').toUpperCase().trim()==='SIM'
+  };
+}
+
+/* Agrega uma lista de arrays em contagens e valores por categoria. */
+function agregarContratos(arrs){
+  const ag = { total:0, portfolio:0, prox30:0, prox90:0, recomp:0, valProx30:0, valProx90:0 };
+  CAT_ORDEM.forEach(k => { ag[k]=0; ag['val_'+k]=0; });
+  arrs.forEach(arr => {
+    const c = classificarContrato(arr);
+    ag.total++; ag.portfolio += c.valor;
+    ag[c.cat]++; ag['val_'+c.cat] += c.valor;
+    if(c.prox30){ ag.prox30++; ag.valProx30 += c.valor; }
+    if(c.prox90){ ag.prox90++; ag.valProx90 += c.valor; }
+    if(c.recomp) ag.recomp++;
+  });
+  ag.ativo    = ag.exec;        // contagem de contratos vigentes
+  ag.valAtivo = ag.val_exec;    // valor vigente
+  return ag;
+}
+
+/* Verificação de integridade — roda no console ao carregar. */
+
+/* ════════════════════════════════════════════════════════════
+   AUDITORIA POR EMPRESA — somente leitura, nada é alterado.
+   Rode no console:  nhAuditarEmpresas()
+   ════════════════════════════════════════════════════════════ */
+function nhAuditarEmpresas(){
+  const arrs = dadosGanhas.map(e => e.arr);
+  if(!arrs.length){ console.warn('[NH] Nenhum contrato carregado.'); return; }
+
+  const fmt = v => 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  /* 1) Empresas presentes nos dados vs. lista do sistema */
+  const nomesNosDados = {};
+  arrs.forEach(a => {
+    const bruto = String(a[2]||'');
+    const norm  = bruto.trim().toUpperCase();
+    (nomesNosDados[norm] = nomesNosDados[norm] || {n:0, brutos:new Set()});
+    nomesNosDados[norm].n++;
+    nomesNosDados[norm].brutos.add(JSON.stringify(bruto));
+  });
+  const foraDaLista = Object.keys(nomesNosDados).filter(n => EMPRESAS_SISTEMA.indexOf(n) === -1);
+
+  console.log('%c═══ AUDITORIA POR EMPRESA ═══','font-weight:bold;font-size:14px');
+
+  if(foraDaLista.length){
+    console.log('%c\n⚠ Empresas fora de EMPRESAS_SISTEMA — estes contratos NÃO aparecem no dashboard:','color:#ef4444;font-weight:bold');
+    console.table(foraDaLista.map(n => ({
+      empresa: n || '(vazio)',
+      contratos: nomesNosDados[n].n,
+      'como está escrito': Array.from(nomesNosDados[n].brutos).join(' | ')
+    })));
+  } else {
+    console.log('%c\n✓ Todas as empresas dos dados estão na lista do sistema','color:#22c55e');
+  }
+
+  /* 2) Quadro por empresa */
+  const linhas = [];
+  const todas = Array.from(new Set(EMPRESAS_SISTEMA.concat(Object.keys(nomesNosDados))));
+  todas.forEach(emp => {
+    const meus = arrs.filter(a => String(a[2]||'').trim().toUpperCase() === emp);
+    if(!meus.length) return;
+    const ag = agregarContratos(meus);
+    const somaC = CAT_ORDEM.reduce((s,k)=>s+ag[k],0);
+    const somaV = CAT_ORDEM.reduce((s,k)=>s+ag['val_'+k],0);
+    linhas.push({
+      empresa: emp,
+      total: ag.total,
+      'em execução': ag.exec,
+      vencidos: ag.vencido,
+      aguardando: ag.aguard,
+      'será encerrado': ag.seraEncerrado,
+      suspensos: ag.suspenso,
+      encerrados: ag.encerrado,
+      'SEM STATUS': ag.semStatus,
+      'portfólio': fmt(ag.portfolio),
+      'valor em execução': fmt(ag.valAtivo),
+      'somas fecham': (somaC===ag.total && Math.abs(somaV-ag.portfolio)<0.01) ? '✓' : '✗ ERRO'
+    });
+  });
+  console.log('\n');
+  console.table(linhas);
+
+  /* 3) Divergência com o sistema (aba Resumo) */
+  console.log('%c\n── Divergência entre Portal e Sistema ──','font-weight:bold');
+  console.log('O sistema conta "Em Execução" pelo status apenas (contratos vencidos entram).');
+  console.log('O portal separa os vencidos numa categoria própria.');
+  const div = [];
+  todas.forEach(emp => {
+    const meus = arrs.filter(a => String(a[2]||'').trim().toUpperCase() === emp);
+    if(!meus.length) return;
+    const ag = agregarContratos(meus);
+    if(!ag.vencido) return;
+    div.push({
+      empresa: emp,
+      'contratos vencidos e ativos': ag.vencido,
+      'valor deles': fmt(ag.val_vencido),
+      'Em Execução — Sistema': ag.exec + ag.vencido,
+      'Em Execução — Portal': ag.exec,
+      'Valor exec. — Sistema': fmt(ag.valAtivo + ag.val_vencido),
+      'Valor exec. — Portal': fmt(ag.valAtivo)
+    });
+  });
+  if(div.length){ console.table(div); console.log('%c⚠ Estes números aparecem diferentes nos dois lugares.','color:#f97316;font-weight:bold'); }
+  else console.log('%c✓ Nenhum contrato vencido e ainda ativo — os dois números coincidem hoje.','color:#22c55e');
+
+  /* 4) Problemas de cadastro que afetam os gráficos */
+  const prob = [];
+  arrs.forEach(a => {
+    const c = classificarContrato(a);
+    const emp = String(a[2]||'').trim().toUpperCase() || '(vazio)';
+    if(c.semStatus)                    prob.push({'#':a[0], empresa:emp, problema:'Status não preenchido', detalhe:'entra em "Sem status"'});
+    if(!c.venc && !c.encerrado)        prob.push({'#':a[0], empresa:emp, problema:'Sem vencimento', detalhe:'não entra em nenhum alerta de prazo'});
+    if(!c.valor)                       prob.push({'#':a[0], empresa:emp, problema:'Valor zero ou vazio', detalhe:'reduz o portfólio'});
+    if(!String(a[2]||'').trim())       prob.push({'#':a[0], empresa:'(vazio)', problema:'Empresa não informada', detalhe:'sai do dashboard'});
+    if(c.vencido)                      prob.push({'#':a[0], empresa:emp, problema:'Vencido e marcado Em Execução', detalhe:'vencido há '+Math.abs(c.dias)+' dia(s)'});
+  });
+  console.log('%c\n── Contratos que distorcem os gráficos ──','font-weight:bold');
+  if(prob.length){ console.table(prob); }
+  else console.log('%c✓ Nenhum problema de cadastro encontrado.','color:#22c55e');
+
+  return {linhas, foraDaLista, divergencias:div, problemas:prob};
+}
+
+function nhVerificarTotais(){
+  const arrs = dadosGanhas.map(e=>e.arr);
+  const ag = agregarContratos(arrs);
+  const somaCont = CAT_ORDEM.reduce((s,k)=>s+ag[k],0);
+  const somaVal  = CAT_ORDEM.reduce((s,k)=>s+ag['val_'+k],0);
+  const okCont = somaCont===ag.total;
+  const okVal  = Math.abs(somaVal-ag.portfolio) < 0.01;
+  console.log('%c[NH] Verificação de totais','font-weight:bold');
+  console.log('  contratos: '+somaCont+' / '+ag.total+' '+(okCont?'✓':'✗'));
+  console.log('  valores:   '+somaVal.toFixed(2)+' / '+ag.portfolio.toFixed(2)+' '+(okVal?'✓':'✗'));
+  if(!okCont||!okVal) console.error('[NH] INCONSISTÊNCIA NAS SOMAS — não use os gráficos até corrigir.');
+  console.table(CAT_ORDEM.map(k=>({categoria:CAT_LABEL[k], contratos:ag[k], valor:ag['val_'+k]})));
+  return ag;
+}
+
 function gerarDashboard(){
   const dash = document.getElementById('dashboard-area');
   if(!dash) return;
@@ -1301,45 +1490,46 @@ function gerarDashboard(){
 
   const empresasParaMostrar = isAdmin ? EMPRESAS_SISTEMA : [empAtual];
 
-  const porEmp = {};
-  empresasParaMostrar.forEach(e => {
-    porEmp[e] = {contratos:[], portfolio:0, ativo:0, ganhou:0, recomp:0, vencer30:0, vencer90:0, finalizados:0, vencidos:0, aguard:0};
-  });
-
+  // Agrupa por empresa usando a classificação única
+  const _arrsPorEmp = {};
+  empresasParaMostrar.forEach(e => { _arrsPorEmp[e] = []; });
+  const _semEmpresa = [];
   dadosGanhas.forEach(({arr}) => {
     const emp = String(arr[2]||'').trim().toUpperCase();
-    if(!porEmp[emp]) return;
-    porEmp[emp].contratos.push(arr);
-    const val = calcValorGanhas(arr);
-    porEmp[emp].portfolio += val;
-    const status = String(arr[9]||'').toUpperCase().trim();
-    const finalizado = status==='FINALIZADO'||status==='RESCINDIDO';
-    const exec = status==='EM EXECUÇÃO'||status==='EM EXECUCAO';
-    if(finalizado) porEmp[emp].finalizados++;
-    else if(status==='AGUARDANDO CONTRATO') porEmp[emp].aguard++;
-    porEmp[emp].ganhou++;
-    if(String(arr[13]||'').toUpperCase().trim()==='SIM') porEmp[emp].recomp++;
+    if(_arrsPorEmp[emp]) _arrsPorEmp[emp].push(arr);
+    else _semEmpresa.push(arr);
+  });
+  if(_semEmpresa.length){
+    console.warn('[NH] '+_semEmpresa.length+' contrato(s) com empresa fora da lista do sistema ficam de fora do dashboard:',
+      _semEmpresa.map(a=>'#'+a[0]+' ('+(a[2]||'sem empresa')+')').join(', '));
+  }
 
-    // Vencimento efetivo (último aditivo ou original)
-    const vd = String(arr[39]||'').trim()||String(arr[32]||'').trim()||String(arr[25]||'').trim()||String(arr[18]||'').trim()||String(arr[12]||'').trim();
-    if(vd){
-      const p=vd.split('/');
-      if(p.length===3){
-        const dt=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
-        const dias=Math.round((dt-hoje)/86400000);
-        if(exec){
-          if(dias<0){ porEmp[emp].vencidos++; }
-          else { porEmp[emp].ativo += val; if(dias<=30) porEmp[emp].vencer30++; else if(dias<=90) porEmp[emp].vencer90++; }
-        }
-      }
-    } else if(exec){ porEmp[emp].ativo += val; }
+  const porEmp = {};
+  empresasParaMostrar.forEach(e => {
+    const ag = agregarContratos(_arrsPorEmp[e]);
+    porEmp[e] = {
+      contratos: _arrsPorEmp[e],
+      portfolio: ag.portfolio,
+      ativo:     ag.valAtivo,      // valor dos contratos em execução e no prazo
+      ganhou:    ag.total,
+      recomp:    ag.recomp,
+      vencer30:  ag.prox30,
+      vencer90:  ag.prox90,
+      finalizados: ag.encerrado,
+      vencidos:  ag.vencido,
+      aguard:    ag.aguard,
+      seraEncerrado: ag.seraEncerrado,
+      suspenso:  ag.suspenso,
+      semStatus: ag.semStatus,
+      _ag: ag
+    };
   });
 
   const cards = empresasParaMostrar.map(emp => {
-    const d = porEmp[emp] || {contratos:[],portfolio:0,ativo:0,ganhou:0,recomp:0,vencer30:0,vencer90:0,finalizados:0,vencidos:0,aguard:0};
+    const d = porEmp[emp] || Object.assign({contratos:[]}, {portfolio:0,ativo:0,ganhou:0,recomp:0,vencer30:0,vencer90:0,finalizados:0,vencidos:0,aguard:0,seraEncerrado:0,suspenso:0,semStatus:0,_ag:agregarContratos([])});
     const cor = CORES[emp] || '#6b7280';
     const initials = emp.split(' ').map(w=>w[0]).join('').slice(0,2);
-    const ativos = d.ganhou - d.finalizados - d.vencidos;
+    const ativos = d._ag ? d._ag.exec : 0;   // em execução E dentro do prazo
     const taxaAtivo = d.portfolio>0 ? Math.round(d.ativo/d.portfolio*100) : 0;
 
     // Gráfico 12 meses — maior e mais profissional
@@ -1494,14 +1684,12 @@ function gerarDashboard(){
 
       // GRÁFICO 2 — Barras: Status dos contratos
       (function(){
-        var statusData=[
-          {lbl:'Em Exec.', v:ativos,       cor:'#22c55e'},
-          {lbl:'A Vencer', v:d.vencer30+d.vencer90, cor:'#eab308'},
-          {lbl:'Vencidos', v:d.vencidos,   cor:'#ef4444'},
-          {lbl:'Aguard.',  v:d.aguard,     cor:'#3b82f6'},
-          {lbl:'Finalizados', v:d.finalizados, cor:'#6b7280'},
-          {lbl:'Recomp.',  v:d.recomp,     cor:'#f97316'},
-        ];
+        // Categorias exclusivas — a soma das barras é sempre o total de contratos.
+        var _abrev={exec:'Em Exec.',vencido:'Vencidos',aguard:'Aguard.',seraEncerrado:'A Encerrar',suspenso:'Suspensos',encerrado:'Encerrados',semStatus:'Sem status'};
+        var statusData = CAT_ORDEM
+          .filter(function(k){ return d._ag[k] > 0; })
+          .map(function(k){ return {lbl:_abrev[k], v:d._ag[k], cor:CAT_COR[k]}; });
+        if(!statusData.length) statusData=[{lbl:'—',v:0,cor:'#3a3a5a'}];
         var BW=268, BH=100, PAD=16, BPAD=26;
         var VBW=BW+PAD*2, VBH=160;
         var maxBar=Math.max.apply(null,statusData.map(function(s){return s.v;}));
@@ -1532,10 +1720,11 @@ function gerarDashboard(){
       (function(){
         var cx=74, cy=82, R=54, r=34;
         var total3=d.portfolio>0?d.portfolio:1;
-        var segs=[
-          {v:d.ativo,    cor:cor,       lbl:'Ativo'},
-          {v:d.portfolio-d.ativo, cor:cor+'55', lbl:'Inativo'},
-        ];
+        // Uma fatia por categoria — nada de "Inativo" agrupando coisas diferentes.
+        var segs = CAT_ORDEM
+          .filter(function(k){ return d._ag['val_'+k] > 0; })
+          .map(function(k){ return {v:d._ag['val_'+k], cor:CAT_COR[k], lbl:CAT_LABEL[k]}; });
+        if(!segs.length) segs=[{v:1,cor:'#3a3a5a',lbl:'—'}];
         // Calcular arcos
         function polar(ang,rad){
           return [(cx+rad*Math.cos(ang)).toFixed(2),(cy+rad*Math.sin(ang)).toFixed(2)];
@@ -1553,17 +1742,15 @@ function gerarDashboard(){
           startAng=endAng;
           return '<path d="'+d2+'" fill="'+s.cor+'" opacity="0.9"/>';
         }).join('');
-        var pct=d.portfolio>0?Math.round(d.ativo/d.portfolio*100):0;
+        var pct=d.portfolio>0?Math.round(d._ag.valAtivo/d.portfolio*100):0;
         var SVW=300, SVH=160;
-        var legendas=[
-          {cor:cor,         lbl:'Ativo',    val:fmtM(d.ativo)},
-          {cor:cor+'55',    lbl:'Inativo',  val:fmtM(d.portfolio-d.ativo)},
-          {cor:'#f97316',   lbl:'Recomp.',  val:d.recomp+' contrato'+(d.recomp!==1?'s':'')},
-        ];
+        var legendas = segs.slice(0,4).map(function(s){
+          return {cor:s.cor, lbl:s.lbl, val:fmtM(s.v)};
+        });
         var legHTML=legendas.map(function(l,i){
-          return '<rect x="152" y="'+(52+i*30)+'" width="9" height="9" rx="2" fill="'+l.cor+'"/>'+
-            '<text x="166" y="'+(60+i*30)+'" fill="#b0b0cc" font-size="10.5">'+l.lbl+'</text>'+
-            '<text x="292" y="'+(60+i*30)+'" text-anchor="end" fill="#e8e8f8" font-size="10.5" font-weight="700">'+l.val+'</text>';
+          return '<rect x="152" y="'+(38+i*28)+'" width="9" height="9" rx="2" fill="'+l.cor+'"/>'+
+            '<text x="166" y="'+(46+i*28)+'" fill="#b0b0cc" font-size="10.5">'+l.lbl+'</text>'+
+            '<text x="292" y="'+(46+i*28)+'" text-anchor="end" fill="#e8e8f8" font-size="10.5" font-weight="700">'+l.val+'</text>';
         }).join('');
         return '<div class="graf-panel">'+
           '<div class="graf-title">🍩 Portfólio — Composição</div>'+
@@ -1571,7 +1758,7 @@ function gerarDashboard(){
             '<circle cx="'+cx+'" cy="'+cy+'" r="'+R+'" fill="rgba(255,255,255,.03)" stroke="rgba(255,255,255,.06)" stroke-width="1"/>'+
             paths+
             '<text x="'+cx+'" y="'+(cy-2)+'" text-anchor="middle" fill="#f0f0f8" font-size="19" font-weight="800">'+pct+'%</text>'+
-            '<text x="'+cx+'" y="'+(cy+14)+'" text-anchor="middle" fill="#8f8fb8" font-size="10">ativo</text>'+
+            '<text x="'+cx+'" y="'+(cy+14)+'" text-anchor="middle" fill="#8f8fb8" font-size="10">em execução</text>'+
             legHTML+
           '</svg>'+
         '</div>';
@@ -1761,6 +1948,7 @@ async function carregarContratos(){
     renderStats();
     renderAvisos();
     gerarDashboard();
+    try{ nhVerificarTotais(); }catch(_e){}
     // Atualizar título da seção
     const st = document.getElementById('section-title-contratos');
     if(st) st.textContent = isAdmin ? 'Gerenciamento de Contratos — Visão Geral' : 'Gerenciamento de Contratos';
@@ -1824,26 +2012,18 @@ function renderStats(){
   const hoje = new Date(); hoje.setHours(0,0,0,0);
   const rows = dadosGanhas.map(e=>e.arr);
 
-  let total=0,emExec=0,valExec=0,aguard=0,valAguard=0,
-      vencidos=0,valVenc=0,finalizados=0,valFin=0,
-      proxVenc=0,valProx=0,recomp=0,valRecomp=0,suspenso=0,rescindido=0,valTotal=0;
+  const _ag = agregarContratos(rows);
+  let total=_ag.total, emExec=_ag.exec, valExec=_ag.val_exec,
+      aguard=_ag.aguard, valAguard=_ag.val_aguard,
+      vencidos=_ag.vencido, valVenc=_ag.val_vencido,
+      finalizados=_ag.encerrado, valFin=_ag.val_encerrado,
+      proxVenc=_ag.prox30+_ag.prox90, valProx=_ag.valProx30+_ag.valProx90,
+      recomp=_ag.recomp, valRecomp=0,
+      suspenso=_ag.suspenso, rescindido=0, valTotal=_ag.portfolio;
 
+  // recomp já vem contado do agregador; aqui só somamos o valor
   rows.forEach(arr=>{
-    const st=String(arr[9]||'').trim().toUpperCase();
-    const v=calcValorGanhas(arr);
-    total++; valTotal+=v;
-    // Vencimento efetivo (último aditivo ou original)
-    const vd=String(arr[39]||'').trim()||String(arr[32]||'').trim()||String(arr[25]||'').trim()||String(arr[18]||'').trim()||String(arr[12]||'').trim();
-    let dtVenc=null;
-    if(vd){const p=vd.split('/');if(p.length===3)dtVenc=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));}
-    if(st==='EM EXECUÇÃO'||st==='EM EXECUCAO'){
-      if(dtVenc&&dtVenc<hoje){vencidos++;valVenc+=v;}
-      else{emExec++;valExec+=v;if(dtVenc){const d=Math.round((dtVenc-hoje)/86400000);if(d>0&&d<=90){proxVenc++;valProx+=v;}}}
-    }else if(st==='FINALIZADO'){finalizados++;valFin+=v;}
-    else if(st==='AGUARDANDO CONTRATO'){aguard++;valAguard+=v;}
-    else if(st==='SUSPENSO') suspenso++;
-    else if(st==='RESCINDIDO') rescindido++;
-    if(String(arr[13]||'').toUpperCase().trim()==='SIM'){recomp++;valRecomp+=v;}
+    if(String(arr[13]||'').toUpperCase().trim()==='SIM') valRecomp += calcValorGanhas(arr);
   });
 
   const sc = function(lbl,n,cor,sub){
@@ -1877,32 +2057,32 @@ function renderStatusPills(){
   const hoje = new Date(); hoje.setHours(0,0,0,0);
   const rows = dadosGanhas.map(e=>e.arr);
 
-  const cnt = {exec:0,venc:0,prox:0,fin:0,recomp:0,susp:0,resc:0,aguard:0};
-  rows.forEach(arr=>{
-    const st=String(arr[9]||'').trim().toUpperCase();
-    const vd=String(arr[39]||'').trim()||String(arr[32]||'').trim()||String(arr[25]||'').trim()||String(arr[18]||'').trim()||String(arr[12]||'').trim();
-    let dtVenc=null;
-    if(vd){const p=vd.split('/');if(p.length===3)dtVenc=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));}
-    if(st==='EM EXECUÇÃO'||st==='EM EXECUCAO'){
-      if(dtVenc&&dtVenc<hoje) cnt.venc++;
-      else{ cnt.exec++; if(dtVenc){const d=Math.round((dtVenc-hoje)/86400000);if(d>0&&d<=90)cnt.prox++;} }
-    }else if(st==='FINALIZADO') cnt.fin++;
-    else if(st==='AGUARDANDO CONTRATO') cnt.aguard++;
-    else if(st==='SUSPENSO') cnt.susp++;
-    else if(st==='RESCINDIDO') cnt.resc++;
-    if(String(arr[13]||'').toUpperCase().trim()==='SIM') cnt.recomp++;
-  });
+  const _ag = agregarContratos(rows);
+  const cnt = {
+    exec:   _ag.exec,
+    venc:   _ag.vencido,
+    prox:   _ag.prox30 + _ag.prox90,
+    fin:    _ag.encerrado,
+    aguard: _ag.aguard,
+    susp:   _ag.suspenso,
+    encerrando: _ag.seraEncerrado,
+    semst:  _ag.semStatus,
+    resc:   0,
+    recomp: _ag.recomp
+  };
 
+  // Categorias exclusivas (somam o total) + dois recortes (Próx. Vencer, Recomp.)
   const defs=[
-    {k:null,  lbl:'Todos',              cor:'#f97316',n:rows.length},
-    {k:'exec', lbl:'Em Execução',       cor:'#22c55e',n:cnt.exec},
-    {k:'venc', lbl:'Vencidos',          cor:'#ef4444',n:cnt.venc},
-    {k:'prox', lbl:'Próx. Vencer 90d',  cor:'#eab308',n:cnt.prox},
-    {k:'aguard',lbl:'Aguardando',       cor:'#eab308',n:cnt.aguard},
-    {k:'fin',  lbl:'Finalizados',       cor:'#3b82f6',n:cnt.fin},
-    {k:'recomp',lbl:'Recomp. Contratual',cor:'#f97316',n:cnt.recomp},
-    {k:'susp', lbl:'Suspenso',          cor:'#eab308',n:cnt.susp},
-    {k:'resc', lbl:'Rescindido',        cor:'#ef4444',n:cnt.resc},
+    {k:null,     lbl:'Todos',             cor:'#f97316', n:rows.length},
+    {k:'exec',   lbl:'Em Execução',       cor:CAT_COR.exec,          n:cnt.exec},
+    {k:'venc',   lbl:'Vencidos',          cor:CAT_COR.vencido,       n:cnt.venc},
+    {k:'aguard', lbl:'Aguardando',        cor:CAT_COR.aguard,        n:cnt.aguard},
+    {k:'encerrando', lbl:'Será Encerrado',cor:CAT_COR.seraEncerrado, n:cnt.encerrando},
+    {k:'susp',   lbl:'Suspenso',          cor:CAT_COR.suspenso,      n:cnt.susp},
+    {k:'fin',    lbl:'Encerrados',        cor:CAT_COR.encerrado,     n:cnt.fin},
+    {k:'semst',  lbl:'Sem status',        cor:CAT_COR.semStatus,     n:cnt.semst},
+    {k:'prox',   lbl:'Próx. Vencer 90d',  cor:'#eab308', n:cnt.prox},
+    {k:'recomp', lbl:'Recomp. Contratual',cor:'#f97316', n:cnt.recomp},
   ];
 
   el.innerHTML = defs.filter(d=>d.n>0||d.k===null).map(d=>{
@@ -1938,26 +2118,18 @@ function renderContratos(){
 
   // Filtro por status (idêntico ao sistema NH)
   if(filtroStatus){
+    // Mesmo classificador das contagens: o filtro devolve exatamente o número da pill.
     lista = lista.filter(({arr})=>{
-      const st=String(arr[9]||'').trim().toUpperCase();
-      const vd=String(arr[39]||'').trim()||String(arr[32]||'').trim()||String(arr[25]||'').trim()||String(arr[18]||'').trim()||String(arr[12]||'').trim();
-      let dtVenc=null;
-      if(vd){const p=vd.split('/');if(p.length===3)dtVenc=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));}
-      const exec = st==='EM EXECUÇÃO'||st==='EM EXECUCAO';
-      const vencido = exec && dtVenc && dtVenc<hoje;
-      if(filtroStatus==='exec')   return exec && !vencido;
-      if(filtroStatus==='venc')   return vencido;
-      if(filtroStatus==='prox'){
-        if(!exec||vencido) return false;
-        if(!dtVenc) return false;
-        const d=Math.round((dtVenc-hoje)/86400000);
-        return d>0&&d<=90;
-      }
-      if(filtroStatus==='fin')    return st==='FINALIZADO';
-      if(filtroStatus==='aguard') return st==='AGUARDANDO CONTRATO';
-      if(filtroStatus==='recomp') return String(arr[13]||'').toUpperCase().trim()==='SIM';
-      if(filtroStatus==='susp')   return st==='SUSPENSO';
-      if(filtroStatus==='resc')   return st==='RESCINDIDO';
+      const c = classificarContrato(arr);
+      if(filtroStatus==='exec')       return c.exec;
+      if(filtroStatus==='venc')       return c.vencido;
+      if(filtroStatus==='aguard')     return c.aguard;
+      if(filtroStatus==='encerrando') return c.seraEncerrado;
+      if(filtroStatus==='susp')       return c.suspenso;
+      if(filtroStatus==='fin')        return c.encerrado;
+      if(filtroStatus==='semst')      return c.semStatus;
+      if(filtroStatus==='prox')       return c.prox30 || c.prox90;
+      if(filtroStatus==='recomp')     return c.recomp;
       return true;
     });
   }
@@ -2346,6 +2518,7 @@ function rpRisco(a){
   var s=rpSituacao(a);
   if(s==='Aguardando recomposição'||s==='Recomposição em andamento') return {n:1,ic:'🟡',lb:'Médio',mot:s};
   if(rpAguard(a)) return {n:1,ic:'🟡',lb:'Médio',mot:'Aguardando contrato'};
+  if(rpSt(a)==='SERÁ ENCERRADO'||rpSt(a)==='SERA ENCERRADO') return {n:1,ic:'🟡',lb:'Médio',mot:'Marcado como Será Encerrado'};
   if(!rpVenc(a)) return {n:1,ic:'🟡',lb:'Médio',mot:'Vencimento não informado'};
   return {n:0,ic:'🟢',lb:'Baixo',mot:'Contrato regular'};
 }
@@ -2788,20 +2961,16 @@ function gerarHTMLImpressao(entries, opts){
     recomp:     { lbl:'Recomposição Contratual', cor:'#f97316', n:0, val:0 },
   };
 
+  // Mesma classificação usada no dashboard, nas pills e no filtro.
   entries.forEach(function(e){
-    var arr=e.arr, st=_status(arr), v=calcValorGanhas(arr)||0;
-    var venc=_vencFinal(arr), dias=_dias(venc);
-    var isExec = st==='EM EXECUÇÃO'||st==='';
-    var vencido = isExec && dias!==null && dias<0;
-    var proxVencer = isExec && dias!==null && dias>=0 && dias<=90;
-
+    var arr=e.arr, c=classificarContrato(arr), v=c.valor;
     totCats.total.n++; totCats.total.val+=v;
-    if(st==='AGUARDANDO CONTRATO'){ totCats.aguard.n++; totCats.aguard.val+=v; }
-    else if(st==='FINALIZADO'||st==='RESCINDIDO'||st==='SUSPENSO'){ totCats.finalizado.n++; totCats.finalizado.val+=v; }
-    else if(vencido){ totCats.vencido.n++; totCats.vencido.val+=v; }
-    else if(proxVencer){ totCats.prox.n++; totCats.prox.val+=v; }
-    else if(isExec){ totCats.exec.n++; totCats.exec.val+=v; }
-    if(arr[13]==='SIM'){ totCats.recomp.n++; totCats.recomp.val+=v; }
+    if(c.aguard){ totCats.aguard.n++; totCats.aguard.val+=v; }
+    else if(c.encerrado||c.suspenso||c.seraEncerrado){ totCats.finalizado.n++; totCats.finalizado.val+=v; }
+    else if(c.vencido){ totCats.vencido.n++; totCats.vencido.val+=v; }
+    else if(c.prox30||c.prox90){ totCats.prox.n++; totCats.prox.val+=v; }
+    else if(c.exec){ totCats.exec.n++; totCats.exec.val+=v; }
+    if(c.recomp){ totCats.recomp.n++; totCats.recomp.val+=v; }
   });
 
   function _fmtR(n){ return 'R$ '+n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
