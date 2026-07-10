@@ -214,15 +214,15 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
 .contratos{display:flex;flex-direction:column;gap:14px}
 .ccard{
   background:var(--s1);border:1px solid var(--b1);
-  border-left:4px solid var(--b2);border-radius:14px;
+  border-left:4px solid var(--b2);border-right:4px solid var(--b2);border-radius:14px;
   overflow:hidden;transition:all .18s;
 }
 .ccard:hover{background:var(--s2)}
-.ccard.verde{border-left-color:var(--g1)}
-.ccard.vermelho{border-left-color:var(--r1)}
-.ccard.amarelo{border-left-color:var(--y1)}
-.ccard.azul{border-left-color:var(--b_)}
-.ccard.laranja{border-left-color:var(--nh)}
+.ccard.verde{border-left-color:var(--g1);border-right-color:var(--g1)}
+.ccard.vermelho{border-left-color:var(--r1);border-right-color:var(--r1)}
+.ccard.amarelo{border-left-color:var(--y1);border-right-color:var(--y1)}
+.ccard.azul{border-left-color:var(--b_);border-right-color:var(--b_)}
+.ccard.laranja{border-left-color:var(--nh);border-right-color:var(--nh)}
 
 .ccard-header{
   display:flex;align-items:flex-start;justify-content:space-between;
@@ -411,13 +411,32 @@ textarea.mc-input{resize:vertical;min-height:64px}
 .graf-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:start}
 .graf-panel{background:#060610;border:1px solid #12121e;border-radius:12px;padding:12px 14px 10px;box-sizing:border-box;display:flex;flex-direction:column;min-width:0}
 .graf-title{font-size:9.5px;color:#8f8fb8;text-transform:uppercase;letter-spacing:.09em;font-weight:800;margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.graf-svg{display:block;width:100%;height:auto;overflow:visible}
+.graf-svg{display:block;width:100%;height:auto;overflow:visible;max-width:100%}
 @media(max-width:1100px){.graf-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:700px){.graf-grid{grid-template-columns:1fr}}
 
 .mc-sec-title{font-size:11px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;padding-top:6px;border-top:1px solid var(--b1)}
 .mc-ata-calc{font-size:11.5px;color:#9fb0d8;line-height:1.5;padding-top:20px}
 .mc-ata-calc b{font-weight:800}
+
+/* ===== KPIs do topo (Resumo dos Contratos) ===== */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:18px}
+.kpi-card{background:linear-gradient(135deg,#12121c 0%,#0e0e16 100%);border:1px solid var(--b1);border-left:4px solid var(--kc);border-radius:14px;padding:18px 20px;min-width:0;transition:transform .15s,box-shadow .15s}
+.kpi-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.kpi-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi-num{font-size:34px;line-height:1;font-weight:800;font-family:'Syne',sans-serif;color:#f4f4fb;letter-spacing:-.5px}
+.kpi-sub{font-size:14px;color:#b8b8d4;margin-top:8px;font-weight:700}
+@media(max-width:720px){.kpi-grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}.kpi-num{font-size:26px}}
+
+/* ===== Rosca + legenda em HTML ===== */
+.donut-wrap{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.donut-svg{width:150px;height:150px;flex-shrink:0}
+.donut-leg{flex:1;min-width:130px;display:flex;flex-direction:column;gap:7px}
+.donut-leg-item{display:flex;align-items:center;gap:8px;font-size:12px;line-height:1.3}
+.donut-leg-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.donut-leg-lbl{color:#b0b0cc;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.donut-leg-val{color:#e8e8f8;font-weight:700;white-space:nowrap;flex-shrink:0}
+@media(max-width:1100px){.donut-wrap{flex-direction:column;align-items:flex-start}.donut-svg{width:130px;height:130px}}
 </style>
 </head>
 <body>
@@ -1718,7 +1737,7 @@ function gerarDashboard(){
 
       // GRÁFICO 3 — Rosca: Portfólio vs Ativo vs Finalizados
       (function(){
-        var cx=74, cy=82, R=54, r=34;
+        var cx=80, cy=80, R=62, r=40;
         var total3=d.portfolio>0?d.portfolio:1;
         // Uma fatia por categoria — nada de "Inativo" agrupando coisas diferentes.
         var segs = CAT_ORDEM
@@ -1744,23 +1763,24 @@ function gerarDashboard(){
         }).join('');
         var pct=d.portfolio>0?Math.round(d._ag.valAtivo/d.portfolio*100):0;
         var SVW=300, SVH=160;
-        var legendas = segs.slice(0,4).map(function(s){
-          return {cor:s.cor, lbl:s.lbl, val:fmtM(s.v)};
-        });
-        var legHTML=legendas.map(function(l,i){
-          return '<rect x="152" y="'+(38+i*28)+'" width="9" height="9" rx="2" fill="'+l.cor+'"/>'+
-            '<text x="166" y="'+(46+i*28)+'" fill="#b0b0cc" font-size="10.5">'+l.lbl+'</text>'+
-            '<text x="292" y="'+(46+i*28)+'" text-anchor="end" fill="#e8e8f8" font-size="10.5" font-weight="700">'+l.val+'</text>';
+        var legHTML = segs.map(function(s){
+          return '<div class="donut-leg-item">'+
+            '<span class="donut-leg-dot" style="background:'+s.cor+'"></span>'+
+            '<span class="donut-leg-lbl">'+s.lbl+'</span>'+
+            '<span class="donut-leg-val">'+fmtMoedaP(s.v)+'</span>'+
+          '</div>';
         }).join('');
         return '<div class="graf-panel">'+
           '<div class="graf-title">🍩 Portfólio — Composição</div>'+
-          '<svg viewBox="0 0 '+SVW+' '+SVH+'" class="graf-svg" preserveAspectRatio="xMidYMid meet">'+
-            '<circle cx="'+cx+'" cy="'+cy+'" r="'+R+'" fill="rgba(255,255,255,.03)" stroke="rgba(255,255,255,.06)" stroke-width="1"/>'+
-            paths+
-            '<text x="'+cx+'" y="'+(cy-2)+'" text-anchor="middle" fill="#f0f0f8" font-size="19" font-weight="800">'+pct+'%</text>'+
-            '<text x="'+cx+'" y="'+(cy+14)+'" text-anchor="middle" fill="#8f8fb8" font-size="10">em execução</text>'+
-            legHTML+
-          '</svg>'+
+          '<div class="donut-wrap">'+
+            '<svg viewBox="0 0 160 160" class="donut-svg" preserveAspectRatio="xMidYMid meet">'+
+              '<circle cx="80" cy="80" r="'+R+'" fill="rgba(255,255,255,.03)" stroke="rgba(255,255,255,.06)" stroke-width="1"/>'+
+              paths+
+              '<text x="80" y="74" text-anchor="middle" fill="#f0f0f8" font-size="30" font-weight="800">'+pct+'%</text>'+
+              '<text x="80" y="96" text-anchor="middle" fill="#8f8fb8" font-size="13">em execução</text>'+
+            '</svg>'+
+            '<div class="donut-leg">'+legHTML+'</div>'+
+          '</div>'+
         '</div>';
       })() +
 
@@ -2027,21 +2047,21 @@ function renderStats(){
   });
 
   const sc = function(lbl,n,cor,sub){
-    return '<div style="background:#111120;border:1px solid #1e1e30;border-left:3px solid '+cor+';border-radius:10px;padding:12px 14px;min-width:0">'+
-      '<div style="font-size:10px;color:'+cor+';text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:4px">'+lbl+'</div>'+
-      '<div style="font-size:22px;font-weight:800;font-family:\'Syne\',sans-serif;color:#f0f0f8">'+n+'</div>'+
-      (sub?'<div style="font-size:11px;color:#6868a0;margin-top:3px;font-weight:600">'+sub+'</div>':'')+
+    return '<div class="kpi-card" style="--kc:'+cor+'">'+
+      '<div class="kpi-lbl" style="color:'+cor+'">'+lbl+'</div>'+
+      '<div class="kpi-num">'+n+'</div>'+
+      (sub?'<div class="kpi-sub">'+sub+'</div>':'')+
     '</div>';
   };
 
-  let html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:14px">';
-  html += sc('Total',total,'#f97316',valTotal>0?fmtM(valTotal):'');
-  html += sc('Em Execu\u00e7\u00e3o',emExec,'#22c55e',valExec>0?fmtM(valExec):'');
-  if(aguard>0)    html += sc('Aguardando',aguard,'#eab308',valAguard>0?fmtM(valAguard):'');
-  if(vencidos>0)  html += sc('Vencidos',vencidos,'#ef4444',valVenc>0?fmtM(valVenc):'');
-  html += sc('Finalizados',finalizados,'#3b82f6',valFin>0?fmtM(valFin):'');
-  if(proxVenc>0)  html += sc('Pr\u00f3x. Vencer 90d',proxVenc,'#eab308',valProx>0?fmtM(valProx):'');
-  if(recomp>0)    html += sc('Recomp. Contratual',recomp,'#f97316',valRecomp>0?fmtM(valRecomp):'');
+  let html = '<div class="kpi-grid">';
+  html += sc('Total',total,'#f97316',valTotal>0?fmtMoedaP(valTotal):'');
+  html += sc('Em Execu\u00e7\u00e3o',emExec,'#22c55e',valExec>0?fmtMoedaP(valExec):'');
+  if(aguard>0)    html += sc('Aguardando',aguard,'#eab308',valAguard>0?fmtMoedaP(valAguard):'');
+  if(vencidos>0)  html += sc('Vencidos',vencidos,'#ef4444',valVenc>0?fmtMoedaP(valVenc):'');
+  html += sc('Finalizados',finalizados,'#3b82f6',valFin>0?fmtMoedaP(valFin):'');
+  if(proxVenc>0)  html += sc('Pr\u00f3x. Vencer 90d',proxVenc,'#eab308',valProx>0?fmtMoedaP(valProx):'');
+  if(recomp>0)    html += sc('Recomp. Contratual',recomp,'#f97316',valRecomp>0?fmtMoedaP(valRecomp):'');
   if(suspenso>0)  html += sc('Suspenso',suspenso,'#eab308','');
   if(rescindido>0)html += sc('Rescindido',rescindido,'#ef4444','');
   html += '</div>';
