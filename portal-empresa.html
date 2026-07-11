@@ -408,7 +408,7 @@ textarea.mc-input{resize:vertical;min-height:64px}
 @media(max-width:640px){.avisos-grid{grid-template-columns:1fr}}
 
 /* ===== Gráficos do dashboard ===== */
-.graf-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:start}
+.graf-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:stretch}
 .graf-panel{background:#060610;border:1px solid #12121e;border-radius:12px;padding:12px 14px 10px;box-sizing:border-box;display:flex;flex-direction:column;min-width:0}
 .graf-title{font-size:9.5px;color:#8f8fb8;text-transform:uppercase;letter-spacing:.09em;font-weight:800;margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .graf-svg{display:block;width:100%;height:auto;overflow:visible;max-width:100%}
@@ -429,14 +429,73 @@ textarea.mc-input{resize:vertical;min-height:64px}
 @media(max-width:720px){.kpi-grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}.kpi-num{font-size:26px}}
 
 /* ===== Rosca + legenda em HTML ===== */
-.donut-wrap{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;flex:1;min-height:150px}
-.donut-svg{width:170px;height:170px;flex-shrink:0}
+.donut-wrap{display:flex;align-items:center;justify-content:flex-start;gap:18px;flex-wrap:nowrap;flex:1}
+.donut-svg{width:160px;height:160px;flex-shrink:0}
 .donut-leg{flex:1;min-width:130px;display:flex;flex-direction:column;gap:7px}
 .donut-leg-item{display:flex;align-items:center;gap:8px;font-size:12px;line-height:1.3}
 .donut-leg-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
 .donut-leg-lbl{color:#b0b0cc;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .donut-leg-val{color:#e8e8f8;font-weight:700;white-space:nowrap;flex-shrink:0}
-@media(max-width:1100px){.donut-wrap{flex-direction:column;align-items:flex-start}.donut-svg{width:130px;height:130px}}
+@media(max-width:1100px){.donut-wrap{flex-direction:column;align-items:center}.donut-svg{width:150px;height:150px}}
+
+/* ===== Animações e interatividade dos gráficos ===== */
+@keyframes graf-line-draw{from{stroke-dasharray:1000;stroke-dashoffset:1000}to{stroke-dasharray:1000;stroke-dashoffset:0}}
+@keyframes graf-area-in{from{opacity:0}to{opacity:1}}
+@keyframes graf-bar-grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes graf-donut-in{from{opacity:0;transform:rotate(-90deg) scale(.85)}to{opacity:1;transform:rotate(0) scale(1)}}
+@keyframes graf-fade-up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+.graf-svg .area-line{animation:graf-line-draw 1.1s cubic-bezier(.4,0,.2,1) forwards}
+.graf-svg .area-fill{animation:graf-area-in .9s .3s both}
+.graf-svg .pt-hover{animation:graf-fade-up .4s both}
+.graf-svg .pt-hover:nth-child(2){animation-delay:.5s}.graf-svg .pt-hover:nth-child(3){animation-delay:.58s}
+.graf-svg .pt-hover:nth-child(4){animation-delay:.66s}.graf-svg .pt-hover:nth-child(5){animation-delay:.74s}
+.graf-svg .pt-hover:nth-child(n+6){animation-delay:.82s}
+.graf-svg .pt-dot{transition:r .15s ease}
+.graf-svg .pt-hover:hover .pt-dot{r:5.5}
+
+.graf-bars .bar-rect{animation:graf-bar-grow .7s cubic-bezier(.34,1.2,.64,1) both;transition:filter .15s ease,opacity .15s ease}
+.graf-bars .bar-g:nth-child(2) .bar-rect{animation-delay:.05s}
+.graf-bars .bar-g:nth-child(3) .bar-rect{animation-delay:.12s}
+.graf-bars .bar-g:nth-child(4) .bar-rect{animation-delay:.19s}
+.graf-bars .bar-g:nth-child(5) .bar-rect{animation-delay:.26s}
+.graf-bars .bar-g:nth-child(n+6) .bar-rect{animation-delay:.33s}
+.graf-bars .bar-rect:hover{filter:brightness(1.15) drop-shadow(0 2px 6px rgba(0,0,0,.4))}
+
+.donut-rot{transform-origin:80px 80px;animation:graf-donut-in .85s cubic-bezier(.34,1.1,.64,1) both}
+.donut-seg{transition:opacity .15s ease,filter .15s ease;cursor:default}
+.donut-svg:hover .donut-seg{opacity:.4}
+.donut-svg .donut-seg:hover{opacity:1;filter:drop-shadow(0 0 4px rgba(0,0,0,.5))}
+
+@media(prefers-reduced-motion:reduce){
+  .area-line,.area-fill,.pt-hover,.bar-rect,.donut-rot{animation:none!important}
+}
+
+/* ===== Expandir gráfico ===== */
+.graf-title{position:relative;display:flex;align-items:center}
+.graf-expand{margin-left:auto;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#8f8fb8;width:22px;height:22px;border-radius:6px;cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0;transition:all .15s ease;flex-shrink:0}
+.graf-expand:hover{background:var(--nh);border-color:var(--nh);color:#0a0a0a;transform:scale(1.08)}
+.graf-panel{position:relative}
+
+#graf-modal{position:fixed;inset:0;background:rgba(4,4,10,.82);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:9998;display:none;align-items:center;justify-content:center;padding:32px;animation:graf-modal-fade .2s ease}
+#graf-modal.open{display:flex}
+@keyframes graf-modal-fade{from{opacity:0}to{opacity:1}}
+.graf-modal-box{position:relative;background:#0b0b14;border:1px solid var(--b1);border-radius:18px;padding:28px 32px;width:min(920px,94vw);max-height:90vh;overflow:auto;box-shadow:0 24px 80px rgba(0,0,0,.6);animation:graf-modal-pop .25s cubic-bezier(.34,1.15,.64,1)}
+@keyframes graf-modal-pop{from{opacity:0;transform:scale(.94) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.graf-modal-close{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#b0b0cc;width:34px;height:34px;border-radius:9px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .15s ease;z-index:2}
+.graf-modal-close:hover{background:#ef4444;border-color:#ef4444;color:#fff}
+.graf-panel-big{background:transparent!important;border:none!important;padding:0!important}
+.graf-panel-big .graf-title{font-size:14px!important;margin-bottom:20px;letter-spacing:.05em}
+.graf-panel-big .graf-svg{max-width:100%;width:100%}
+/* no modal, o gráfico ganha altura real */
+.graf-panel-big .graf-svg{height:auto}
+.graf-panel-big svg.graf-svg{min-height:340px}
+.graf-panel-big .donut-wrap{gap:40px;justify-content:center}
+.graf-panel-big .donut-svg{width:300px;height:300px}
+.graf-panel-big .donut-leg{min-width:220px}
+.graf-panel-big .donut-leg-item{font-size:15px;padding:4px 0}
+.graf-panel-big .donut-leg-dot{width:13px;height:13px}
+@media(max-width:560px){.graf-panel-big .donut-wrap{flex-direction:column}.graf-panel-big .donut-svg{width:220px;height:220px}}
 </style>
 </head>
 <body>
@@ -1516,6 +1575,38 @@ function nhVerificarTotais(){
   return ag;
 }
 
+
+/* Expande o gráfico clicado em um modal de tela cheia. */
+function expandirGrafico(btn){
+  var painel = btn.closest('.graf-panel');
+  if(!painel) return;
+  var modal = document.getElementById('graf-modal');
+  if(!modal){
+    modal = document.createElement('div');
+    modal.id = 'graf-modal';
+    modal.innerHTML = '<div class="graf-modal-box">'
+      + '<button class="graf-modal-close" onclick="fecharGrafico()" title="Fechar">✕</button>'
+      + '<div class="graf-modal-body"></div>'
+      + '</div>';
+    modal.addEventListener('click', function(e){ if(e.target===modal) fecharGrafico(); });
+    document.body.appendChild(modal);
+    document.addEventListener('keydown', function(e){ if(e.key==='Escape') fecharGrafico(); });
+  }
+  var body = modal.querySelector('.graf-modal-body');
+  // clona o painel inteiro (título + svg + legenda), removendo o próprio botão
+  var clone = painel.cloneNode(true);
+  var b = clone.querySelector('.graf-expand'); if(b) b.remove();
+  clone.classList.add('graf-panel-big');
+  body.innerHTML = '';
+  body.appendChild(clone);
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function fecharGrafico(){
+  var modal = document.getElementById('graf-modal');
+  if(modal){ modal.classList.remove('open'); document.body.style.overflow=''; }
+}
+
 function gerarDashboard(){
   const dash = document.getElementById('dashboard-area');
   if(!dash) return;
@@ -1676,109 +1767,130 @@ function gerarDashboard(){
       // ── 3 GRÁFICOS LADO A LADO ─────────────────────────────────
       '<div class="graf-grid">' +
 
-      // GRÁFICO 1 — Linha: Contratos Ganhos 12 meses
+      // GRÁFICO 1 — Área/Linha: Contratos Ganhos 12 meses
       (function(){
-        var GW=276,GH=100,PL=12,PR=12,PT=26,PB=34;
+        var GW=276,GH=100,PL=14,PR=14,PT=26,PB=34;
         var VW2=GW+PL+PR, VH2=GH+PT+PB;
         var xS=GW/(vals.length-1);
         var pa=vals.map(function(v,i){
-          return {cx:(PL+i*xS).toFixed(1), cy:(PT+GH-(v/maxV)*(GH-6)).toFixed(1), v:v};
+          return {cx:(PL+i*xS), cy:(PT+GH-(v/maxV)*(GH-8)), v:v};
         });
-        var line=pa.map(function(p){return p.cx+','+p.cy;}).join(' ');
-        var fill=PL+','+(PT+GH)+' '+line+' '+(PL+GW)+','+(PT+GH);
-        var gls=[0.33,0.66,1].map(function(f){
-          var y=(PT+GH-f*(GH-6)).toFixed(1);
-          return '<line x1="'+PL+'" y1="'+y+'" x2="'+(PL+GW)+'" y2="'+y+'" stroke="rgba(255,255,255,.04)" stroke-width="1"/>';
+        // curva suave (Catmull-Rom -> Bézier) para aparência de produto
+        function suave(pts){
+          if(pts.length<2) return '';
+          var dpath='M '+pts[0].cx.toFixed(1)+' '+pts[0].cy.toFixed(1);
+          for(var i=0;i<pts.length-1;i++){
+            var p0=pts[i>0?i-1:0], p1=pts[i], p2=pts[i+1], p3=pts[i+2<pts.length?i+2:i+1];
+            var c1x=p1.cx+(p2.cx-p0.cx)/6, c1y=p1.cy+(p2.cy-p0.cy)/6;
+            var c2x=p2.cx-(p3.cx-p1.cx)/6, c2y=p2.cy-(p3.cy-p1.cy)/6;
+            dpath+=' C '+c1x.toFixed(1)+' '+c1y.toFixed(1)+' '+c2x.toFixed(1)+' '+c2y.toFixed(1)+' '+p2.cx.toFixed(1)+' '+p2.cy.toFixed(1);
+          }
+          return dpath;
+        }
+        var linePath=suave(pa);
+        var fillPath=linePath+' L '+(PL+GW).toFixed(1)+' '+(PT+GH)+' L '+PL+' '+(PT+GH)+' Z';
+        var gls=[0,0.5,1].map(function(f){
+          var y=(PT+GH-f*(GH-8)).toFixed(1);
+          return '<line x1="'+PL+'" y1="'+y+'" x2="'+(PL+GW)+'" y2="'+y+'" stroke="rgba(255,255,255,.05)" stroke-width="1"/>';
         }).join('');
-        var pts2=pa.map(function(p){
+        var pts2=pa.map(function(p,i){
           if(p.v===0)return '';
-          return '<circle cx="'+p.cx+'" cy="'+p.cy+'" r="4" fill="#08080f" stroke="'+cor+'" stroke-width="2.2"/>'+
-            '<text x="'+p.cx+'" y="'+(parseFloat(p.cy)-9)+'" text-anchor="middle" fill="'+cor+'" font-size="11" font-weight="800">'+p.v+'</text>';
+          return '<g class="pt-hover">'+
+            '<circle cx="'+p.cx.toFixed(1)+'" cy="'+p.cy.toFixed(1)+'" r="9" fill="transparent"><title>'+meses[i].label+': '+p.v+' contrato(s)</title></circle>'+
+            '<circle class="pt-dot" cx="'+p.cx.toFixed(1)+'" cy="'+p.cy.toFixed(1)+'" r="3.5" fill="#0a0a14" stroke="'+cor+'" stroke-width="2.2"/>'+
+            '<text x="'+p.cx.toFixed(1)+'" y="'+(p.cy-9).toFixed(1)+'" text-anchor="middle" fill="'+cor+'" font-size="11" font-weight="800" font-family="ui-monospace,Menlo,monospace">'+p.v+'</text>'+
+          '</g>';
         }).join('');
         var xlbls=[0,3,6,9,11].map(function(i){
           return '<text x="'+(PL+i*xS).toFixed(1)+'" y="'+(PT+GH+22)+'" text-anchor="middle" fill="#8f8fb8" font-size="10">'+meses[i].label+'</text>';
         }).join('');
         return '<div class="graf-panel">'+
-          '<div class="graf-title">📈 Contratos Ganhos / Mês</div>'+
+          '<div class="graf-title">📈 Contratos Ganhos / Mês<button class="graf-expand" onclick="expandirGrafico(this)" title="Expandir">⤢</button></div>'+
           '<svg viewBox="0 0 '+VW2+' '+VH2+'" class="graf-svg" preserveAspectRatio="xMidYMid meet">'+
             '<defs>'+
               '<linearGradient id="g1_'+safeEmp+'" x1="0" y1="0" x2="0" y2="1">'+
-                '<stop offset="0%" stop-color="'+cor+'" stop-opacity="0.3"/>'+
-                '<stop offset="100%" stop-color="'+cor+'" stop-opacity="0"/>'+
+                '<stop offset="0%" stop-color="'+cor+'" stop-opacity="0.34"/>'+
+                '<stop offset="100%" stop-color="'+cor+'" stop-opacity="0.02"/>'+
               '</linearGradient>'+
-              '<filter id="gw1_'+safeEmp+'"><feGaussianBlur stdDeviation="1.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'+
             '</defs>'+
             gls+
-            '<polygon points="'+fill+'" fill="url(#g1_'+safeEmp+')"/>'+
-            '<polyline points="'+line+'" fill="none" stroke="'+cor+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#gw1_'+safeEmp+')"/>'+
+            '<path class="area-fill" d="'+fillPath+'" fill="url(#g1_'+safeEmp+')"/>'+
+            '<path class="area-line" d="'+linePath+'" fill="none" stroke="'+cor+'" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>'+
             pts2+xlbls+
           '</svg>'+
         '</div>';
       })() +
 
-      // GRÁFICO 2 — Barras: Status dos contratos
+      // GRÁFICO 2 — Barras com gradiente + animação de subida
       (function(){
-        // Categorias exclusivas — a soma das barras é sempre o total de contratos.
         var _abrev={exec:'Em Exec.',vencido:'Vencidos',aguard:'Aguard.',seraEncerrado:'A Encerrar',suspenso:'Suspensos',encerrado:'Encerrados',semStatus:'Sem status'};
         var statusData = CAT_ORDEM
           .filter(function(k){ return d._ag[k] > 0; })
-          .map(function(k){ return {lbl:_abrev[k], v:d._ag[k], cor:CAT_COR[k]}; });
-        if(!statusData.length) statusData=[{lbl:'—',v:0,cor:'#3a3a5a'}];
+          .map(function(k){ return {lbl:_abrev[k], full:CAT_LABEL[k], v:d._ag[k], cor:CAT_COR[k]}; });
+        if(!statusData.length) statusData=[{lbl:'—',full:'—',v:0,cor:'#3a3a5a'}];
         var BW=268, BH=100, PAD=16, BPAD=26;
         var VBW=BW+PAD*2, VBH=160;
-        var maxBar=Math.max.apply(null,statusData.map(function(s){return s.v;}));
-        maxBar=Math.max(maxBar,1);
-        var barW=(BW/statusData.length)*0.62;
+        var maxBar=Math.max(Math.max.apply(null,statusData.map(function(s){return s.v;})),1);
+        var barW=Math.min((BW/statusData.length)*0.62, 46);
         var barGap=(BW/statusData.length);
+        var defs='';
         var bars=statusData.map(function(s,i){
           var bh=Math.max((s.v/maxBar)*(BH-10),s.v>0?5:0);
           var bx=PAD+i*barGap+(barGap-barW)/2;
           var by=BPAD+BH-bh;
-          return '<rect x="'+bx.toFixed(1)+'" y="'+by.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="3" fill="'+s.cor+'" opacity="0.85"/>'+
-            (s.v>0?'<text x="'+(bx+barW/2).toFixed(1)+'" y="'+(by-6).toFixed(1)+'" text-anchor="middle" fill="'+s.cor+'" font-size="11" font-weight="800">'+s.v+'</text>':'')+
-            '<text x="'+(bx+barW/2).toFixed(1)+'" y="'+(BPAD+BH+20)+'" text-anchor="middle" fill="#8f8fb8" font-size="9.5">'+s.lbl+'</text>';
+          var gid='bg_'+safeEmp+'_'+i;
+          defs+='<linearGradient id="'+gid+'" x1="0" y1="0" x2="0" y2="1">'+
+            '<stop offset="0%" stop-color="'+s.cor+'" stop-opacity="1"/>'+
+            '<stop offset="100%" stop-color="'+s.cor+'" stop-opacity="0.55"/>'+
+          '</linearGradient>';
+          return '<g class="bar-g">'+
+            '<rect class="bar-rect" x="'+bx.toFixed(1)+'" y="'+by.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="4" fill="url(#'+gid+')" style="transform-origin:'+(bx+barW/2).toFixed(1)+'px '+(BPAD+BH)+'px">'+
+              '<title>'+s.full+': '+s.v+'</title></rect>'+
+            (s.v>0?'<text x="'+(bx+barW/2).toFixed(1)+'" y="'+(by-6).toFixed(1)+'" text-anchor="middle" fill="'+s.cor+'" font-size="12" font-weight="800" font-family="ui-monospace,Menlo,monospace">'+s.v+'</text>':'')+
+            '<text x="'+(bx+barW/2).toFixed(1)+'" y="'+(BPAD+BH+20)+'" text-anchor="middle" fill="#8f8fb8" font-size="9.5">'+s.lbl+'</text>'+
+          '</g>';
         }).join('');
-        var bGls=[0.33,0.66,1].map(function(f){
+        var bGls=[0,0.5,1].map(function(f){
           var y=(BPAD+BH-f*(BH-10)).toFixed(1);
-          return '<line x1="'+PAD+'" y1="'+y+'" x2="'+(PAD+BW)+'" y2="'+y+'" stroke="rgba(255,255,255,.04)" stroke-width="1"/>';
+          return '<line x1="'+PAD+'" y1="'+y+'" x2="'+(PAD+BW)+'" y2="'+y+'" stroke="rgba(255,255,255,.05)" stroke-width="1"/>';
         }).join('');
         return '<div class="graf-panel">'+
-          '<div class="graf-title">📊 Status dos Contratos</div>'+
-          '<svg viewBox="0 0 '+VBW+' '+VBH+'" class="graf-svg" preserveAspectRatio="xMidYMid meet">'+
+          '<div class="graf-title">📊 Status dos Contratos<button class="graf-expand" onclick="expandirGrafico(this)" title="Expandir">⤢</button></div>'+
+          '<svg viewBox="0 0 '+VBW+' '+VBH+'" class="graf-svg graf-bars" preserveAspectRatio="xMidYMid meet">'+
+            '<defs>'+defs+'</defs>'+
             bGls+bars+
           '</svg>'+
         '</div>';
       })() +
 
-      // GRÁFICO 3 — Rosca: Portfólio vs Ativo vs Finalizados
+      // GRÁFICO 3 — Donut com gradiente cônico + animação + hover
       (function(){
         var cx=80, cy=80, R=62, r=40;
         var total3=d.portfolio>0?d.portfolio:1;
-        // Uma fatia por categoria — nada de "Inativo" agrupando coisas diferentes.
         var segs = CAT_ORDEM
           .filter(function(k){ return d._ag['val_'+k] > 0; })
           .map(function(k){ return {v:d._ag['val_'+k], cor:CAT_COR[k], lbl:CAT_LABEL[k]}; });
         if(!segs.length) segs=[{v:1,cor:'#3a3a5a',lbl:'—'}];
-        // Calcular arcos
         function polar(ang,rad){
-          return [(cx+rad*Math.cos(ang)).toFixed(2),(cy+rad*Math.sin(ang)).toFixed(2)];
+          return [(cx+rad*Math.cos(ang)),(cy+rad*Math.sin(ang))];
         }
         var startAng=-Math.PI/2;
         var paths=segs.map(function(s){
           var slice=(s.v/total3)*Math.PI*2;
-          if(slice<0.001)return '';
+          if(slice<0.0001)return '';
           var endAng=startAng+slice;
           var large=slice>Math.PI?1:0;
           var o1=polar(startAng,R), i1=polar(startAng,r);
           var o2=polar(endAng,R),   i2=polar(endAng,r);
-          var d2='M '+o1[0]+' '+o1[1]+' A '+R+' '+R+' 0 '+large+' 1 '+o2[0]+' '+o2[1]+
-            ' L '+i2[0]+' '+i2[1]+' A '+r+' '+r+' 0 '+large+' 0 '+i1[0]+' '+i1[1]+' Z';
+          var d2='M '+o1[0].toFixed(2)+' '+o1[1].toFixed(2)+' A '+R+' '+R+' 0 '+large+' 1 '+o2[0].toFixed(2)+' '+o2[1].toFixed(2)+
+            ' L '+i2[0].toFixed(2)+' '+i2[1].toFixed(2)+' A '+r+' '+r+' 0 '+large+' 0 '+i1[0].toFixed(2)+' '+i1[1].toFixed(2)+' Z';
           startAng=endAng;
-          return '<path d="'+d2+'" fill="'+s.cor+'" opacity="0.9"/>';
+          var pctSeg=Math.round(s.v/total3*100);
+          return '<path class="donut-seg" d="'+d2+'" fill="'+s.cor+'"><title>'+s.lbl+': '+fmtMoedaP(s.v)+' ('+pctSeg+'%)</title></path>';
         }).join('');
         var pct=d.portfolio>0?Math.round(d._ag.valAtivo/d.portfolio*100):0;
-        var SVW=300, SVH=160;
         var legHTML = segs.map(function(s){
+          var pctSeg=Math.round(s.v/total3*100);
           return '<div class="donut-leg-item">'+
             '<span class="donut-leg-dot" style="background:'+s.cor+'"></span>'+
             '<span class="donut-leg-lbl">'+s.lbl+'</span>'+
@@ -1786,13 +1898,13 @@ function gerarDashboard(){
           '</div>';
         }).join('');
         return '<div class="graf-panel">'+
-          '<div class="graf-title">🍩 Portfólio — Composição</div>'+
+          '<div class="graf-title">🍩 Portfólio — Composição<button class="graf-expand" onclick="expandirGrafico(this)" title="Expandir">⤢</button></div>'+
           '<div class="donut-wrap">'+
             '<svg viewBox="0 0 160 160" class="donut-svg" preserveAspectRatio="xMidYMid meet">'+
               '<circle cx="80" cy="80" r="'+R+'" fill="rgba(255,255,255,.03)" stroke="rgba(255,255,255,.06)" stroke-width="1"/>'+
-              paths+
-              '<text x="80" y="74" text-anchor="middle" fill="#f0f0f8" font-size="30" font-weight="800">'+pct+'%</text>'+
-              '<text x="80" y="96" text-anchor="middle" fill="#8f8fb8" font-size="13">em execução</text>'+
+              '<g class="donut-rot">'+paths+'</g>'+
+              '<text x="80" y="74" text-anchor="middle" fill="#f0f0f8" font-size="30" font-weight="800" font-family="ui-monospace,Menlo,monospace">'+pct+'%</text>'+
+              '<text x="80" y="96" text-anchor="middle" fill="#8f8fb8" font-size="12">em execução</text>'+
             '</svg>'+
             '<div class="donut-leg">'+legHTML+'</div>'+
           '</div>'+
@@ -1804,7 +1916,8 @@ function gerarDashboard(){
     '</div>';
   });
 
-  const cols = isAdmin ? 'repeat(auto-fill,minmax(340px,1fr))' : '1fr';
+  
+const cols = isAdmin ? 'repeat(auto-fill,minmax(340px,1fr))' : '1fr';
   const titulo = isAdmin ? 'Dashboard — Todas as Empresas' : ('Resumo dos Contratos — ' + empAtual);
   const barStyle = 'width:3px;height:16px;background:#f97316;border-radius:2px;display:inline-block';
   dash.style.display = 'block';
