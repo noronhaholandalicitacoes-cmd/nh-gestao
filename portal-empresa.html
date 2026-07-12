@@ -506,6 +506,27 @@ textarea.mc-input{resize:vertical;min-height:64px}
 /* Salvaguarda: gráficos nunca escapam do card da empresa */
 .graf-panel{overflow:hidden}
 .donut-wrap{max-width:100%;overflow:hidden}
+
+/* ===== Cards de empresa em grade (GROWTH) ===== */
+.emp-colapsavel{cursor:pointer;transition:border-color .2s ease,box-shadow .2s ease,transform .15s ease}
+.emp-colapsavel:not(.aberto):hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.emp-colapsavel .emp-graficos{
+  max-height:0;overflow:hidden;opacity:0;
+  transition:max-height .4s ease,opacity .3s ease,margin .3s ease;
+  margin-top:0;
+}
+/* Card aberto: ocupa a linha inteira da grade e revela os gráficos */
+.emp-colapsavel.aberto{
+  grid-column:1 / -1;
+  box-shadow:0 10px 30px rgba(0,0,0,.4);
+}
+.emp-colapsavel.aberto .emp-graficos{
+  max-height:1200px;opacity:1;margin-top:8px;
+}
+.emp-colapsavel .emp-header{padding:2px}
+.emp-colapsavel.aberto .emp-chevron{transform:rotate(180deg)}
+/* No quadrado recolhido, os 2 KPIs empilham para caber */
+.emp-colapsavel:not(.aberto) .emp-kpis{grid-template-columns:1fr!important}
 </style>
 </head>
 <body>
@@ -1587,6 +1608,14 @@ function nhVerificarTotais(){
 
 
 /* Expande o gráfico clicado em um modal de tela cheia. */
+
+/* Expande/recolhe o card de uma empresa no dashboard GROWTH. */
+function toggleEmpresa(header){
+  var card = header.closest('.emp-card');
+  if(!card) return;
+  card.classList.toggle('aberto');
+}
+
 function expandirGrafico(btn){
   var painel = btn.closest('.graf-panel');
   if(!painel) return;
@@ -1737,20 +1766,21 @@ function gerarDashboard(){
 
     // Aviso de vencimento removido: já consta no Quadro de Avisos, logo abaixo dos gráficos.
 
-    return '<div style="background:#0a0a12;border:1px solid #1a1a28;border-left:3px solid '+cor+';border-radius:14px;padding:20px;min-width:0">' +
+    return '<div class="emp-card'+(isAdmin?' emp-colapsavel':'')+'" data-emp="'+emp.replace(/ /g,'_')+'" style="background:#0a0a12;border:1px solid #1a1a28;border-left:3px solid '+cor+';border-radius:14px;padding:20px;min-width:0">' +
 
-      // Cabeçalho
-      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">' +
+      // Cabeçalho (clicável no modo admin)
+      '<div class="emp-header"'+(isAdmin?' onclick="toggleEmpresa(this)" style="cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:14px"':' style="display:flex;align-items:center;gap:10px;margin-bottom:14px"')+'>' +
         '<div style="width:38px;height:38px;border-radius:10px;background:'+cor+'22;border:1px solid '+cor+'44;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:'+cor+';flex-shrink:0">'+initials+'</div>' +
         '<div style="flex:1">' +
           '<div style="font-family:\'Syne\',sans-serif;font-size:15px;font-weight:800;color:#f0f0f8">'+emp+'</div>' +
           '<div style="font-size:12px;color:#7878a0;margin-top:2px">'+d.ganhou+' contrato'+(d.ganhou!==1?'s':'')+' · '+ativos+' em execução</div>' +
         '</div>' +
+        (isAdmin?'<div class="emp-chevron" style="color:'+cor+';font-size:20px;flex-shrink:0;transition:transform .25s ease">▾</div>':'') +
       '</div>' +
 
 
       // KPIs portfólio / ativo
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">' +
+      '<div class="emp-kpis" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">' +
         '<div style="background:#111120;border:1px solid #1e1e30;border-radius:9px;padding:12px">' +
           '<div style="font-size:9px;color:'+cor+';text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:4px">Portfólio Total</div>' +
           '<div style="font-size:16px;font-weight:800;font-family:\'Syne\',sans-serif;color:#f0f0f8">'+fmtM(d.portfolio)+'</div>' +
@@ -1783,7 +1813,8 @@ function gerarDashboard(){
         '</div>' +
       '</div>' +
 
-      // ── 3 GRÁFICOS LADO A LADO ─────────────────────────────────
+      // ── 3 GRÁFICOS (colapsável no admin) ──
+      '<div class="emp-graficos">' +
       '<div class="graf-grid">' +
 
       // GRÁFICO 1 — Área/Linha: Contratos Ganhos 12 meses
@@ -1931,20 +1962,27 @@ function gerarDashboard(){
       })() +
 
       '</div>' +
+      '</div>' +
 
     '</div>';
   });
 
   
-const cols = '1fr';  // uma empresa por linha: gráficos em largura total, legíveis
+const cols = isAdmin ? 'repeat(auto-fill,minmax(300px,1fr))' : '1fr';  // grade de quadrados no GROWTH
   const titulo = isAdmin ? 'Dashboard — Todas as Empresas' : ('Resumo dos Contratos — ' + empAtual);
   const barStyle = 'width:3px;height:16px;background:#f97316;border-radius:2px;display:inline-block';
   dash.style.display = 'block';
   dash.innerHTML =
     '<div style="font-family:\'Syne\',sans-serif;font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px">' +
     '<span style="'+barStyle+'"></span>'+titulo+'</div>' +
-    '<div style="display:grid;grid-template-columns:'+cols+';gap:16px">'+cards.join('')+'</div>' +
+    '<div class="emp-grid" style="display:grid;grid-template-columns:'+cols+';gap:16px;align-items:start">'+cards.join('')+'</div>' +
     '<div style="height:1px;background:rgba(255,255,255,.06);margin:22px 0"></div>';
+
+  // Abre a primeira empresa automaticamente no modo GROWTH
+  if(isAdmin){
+    var _primeiro = dash.querySelector('.emp-colapsavel');
+    if(_primeiro) _primeiro.classList.add('aberto');
+  }
 }
 
 
