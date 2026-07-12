@@ -496,6 +496,16 @@ textarea.mc-input{resize:vertical;min-height:64px}
 .graf-panel-big .donut-leg-item{font-size:15px;padding:4px 0}
 .graf-panel-big .donut-leg-dot{width:13px;height:13px}
 @media(max-width:560px){.graf-panel-big .donut-wrap{flex-direction:column}.graf-panel-big .donut-svg{width:220px;height:220px}}
+
+/* ===== Empresa sem contratos (GROWTH) ===== */
+.emp-vazia{display:flex;align-items:center;gap:12px;background:#0c0c14;border:1px solid var(--b1);border-radius:12px;padding:12px 16px;opacity:.72}
+.emp-vazia-ini{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0}
+.emp-vazia-nome{font-weight:700;font-size:14px;color:var(--t1)}
+.emp-vazia-tag{font-size:12px;color:var(--t3);margin-left:auto;font-style:italic}
+
+/* Salvaguarda: gráficos nunca escapam do card da empresa */
+.graf-panel{overflow:hidden}
+.donut-wrap{max-width:100%;overflow:hidden}
 </style>
 </head>
 <body>
@@ -1654,6 +1664,15 @@ function gerarDashboard(){
     const d = porEmp[emp] || Object.assign({contratos:[]}, {portfolio:0,ativo:0,ganhou:0,recomp:0,vencer30:0,vencer90:0,finalizados:0,vencidos:0,aguard:0,seraEncerrado:0,suspenso:0,semStatus:0,_ag:agregarContratos([])});
     const cor = CORES[emp] || '#6b7280';
     const initials = emp.split(' ').map(w=>w[0]).join('').slice(0,2);
+
+    // Empresa sem contratos: card recolhido, sem bloco vazio de gráficos
+    if(!d.contratos || d.contratos.length===0){
+      return '<div class="emp-vazia" style="border-left:3px solid '+cor+'">'
+        + '<div class="emp-vazia-ini" style="background:'+cor+'22;color:'+cor+'">'+initials+'</div>'
+        + '<div class="emp-vazia-nome">'+emp+'</div>'
+        + '<div class="emp-vazia-tag">sem contratos cadastrados</div>'
+        + '</div>';
+    }
     const ativos = d._ag ? d._ag.exec : 0;   // em execução E dentro do prazo
     const taxaAtivo = d.portfolio>0 ? Math.round(d.ativo/d.portfolio*100) : 0;
 
@@ -1917,7 +1936,7 @@ function gerarDashboard(){
   });
 
   
-const cols = isAdmin ? 'repeat(auto-fill,minmax(340px,1fr))' : '1fr';
+const cols = '1fr';  // uma empresa por linha: gráficos em largura total, legíveis
   const titulo = isAdmin ? 'Dashboard — Todas as Empresas' : ('Resumo dos Contratos — ' + empAtual);
   const barStyle = 'width:3px;height:16px;background:#f97316;border-radius:2px;display:inline-block';
   dash.style.display = 'block';
