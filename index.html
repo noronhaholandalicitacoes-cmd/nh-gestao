@@ -2244,7 +2244,14 @@ function _relValor(r){
 
 /* Vencimento efetivo: último aditivo preenchido, senão o original */
 function _relVencEf(r){
-  return String(r[39]||"").trim()||String(r[32]||"").trim()||String(r[25]||"").trim()||String(r[18]||"").trim()||String(r[12]||"").trim();
+  // Do último aditivo ao primeiro: usa Venc. Recomp. [base+5]; se vazio, Nova Data Venc. [base+3].
+  var blocos=[34,27,20,13];
+  for(var i=0;i<blocos.length;i++){
+    var b=blocos[i];
+    var vr=String(r[b+5]||"").trim(); if(vr) return vr;
+    var nd=String(r[b+3]||"").trim(); if(nd) return nd;
+  }
+  return String(r[12]||"").trim();
 }
 
 function _relDias(r){
