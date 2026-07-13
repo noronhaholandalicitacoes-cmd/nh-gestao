@@ -2021,9 +2021,12 @@ async function carregarAndamento(){
 }
 
 function _pDias(v){
-  const s=String(v||'').trim(); if(!s) return null;
+  // Corta qualquer hora após a data (ex.: "27/03/2026 as 23.59") antes de parsear.
+  const s=String(v||'').trim().split(' ')[0]; if(!s) return null;
   const p=s.split('/'); if(p.length!==3) return null;
-  const dt=new Date(+p[2],+p[1]-1,+p[0]); if(isNaN(dt.getTime())) return null;
+  const dia=parseInt(p[0],10), mes=parseInt(p[1],10), ano=parseInt(p[2],10);
+  if(isNaN(dia)||isNaN(mes)||isNaN(ano)) return null;
+  const dt=new Date(ano,mes-1,dia); if(isNaN(dt.getTime())) return null;
   const h=new Date(); h.setHours(0,0,0,0);
   return Math.round((dt-h)/86400000);
 }
@@ -2314,7 +2317,7 @@ function filtrarEmpresa(emp, btn){
   renderContratos();
 }
 
-function parseDateBR(s){if(!s)return null;const p=s.split('/');if(p.length!==3)return null;return new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));}
+function parseDateBR(s){if(!s)return null;const t=String(s).trim().split(' ')[0];const p=t.split('/');if(p.length!==3)return null;const dt=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));return isNaN(dt.getTime())?null:dt;}
 function parseMoedaPortal(s){return parseFloat(String(s||'').replace(/[^0-9,]/g,'').replace(',','.'))||0;}
 
 function renderContratos(){
@@ -2410,7 +2413,7 @@ function renderContratos(){
     const encerrado = statusUp==='FINALIZADO'||statusUp==='RESCINDIDO'||statusUp==='CANCELADO';
     let vencBadge = '';
     if(venc && !encerrado){
-      const p=venc.split('/');
+      const p=venc.split(' ')[0].split('/');
       if(p.length===3){
         const dt=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
         const dias=Math.round((dt-hoje)/86400000);
@@ -2541,7 +2544,7 @@ function renderBody(id, arr, entry){
   if(_encerrado){
     vencAlert = venc ? '<div class="venc-alert venc-fin">\u2713 Contrato '+(_stUp==='FINALIZADO'?'finalizado':_stUp.toLowerCase())+' \u2014 vig\u00eancia encerrada em '+venc+'</div>' : '';
   } else if(venc){
-    const p=venc.split('/');
+    const p=venc.split(' ')[0].split('/');
     if(p.length===3){
       const dt=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
       const dias=Math.round((dt-hoje)/86400000);
@@ -3079,7 +3082,7 @@ function gerarHTMLImpressao(entries, opts){
     const venc = arr[39]||arr[32]||arr[25]||arr[18]||arr[12]||'';
     let vencAlert = '';
     if(venc){
-      const p=venc.split('/');
+      const p=venc.split(' ')[0].split('/');
       if(p.length===3){
         const dt=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
         const dias=Math.round((dt-hoje2)/86400000);
@@ -3153,7 +3156,7 @@ function gerarHTMLImpressao(entries, opts){
   const _hoje2 = new Date(); _hoje2.setHours(0,0,0,0);
   function _dias(venc){
     if(!venc) return null;
-    var p=String(venc).split('/'); if(p.length!==3) return null;
+    var p=String(venc).split(' ')[0].split('/'); if(p.length!==3) return null;
     return Math.round((new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]))-_hoje2)/86400000);
   }
   function _vencFinal(arr){ return arr[39]||arr[32]||arr[25]||arr[18]||arr[12]||''; }
@@ -3325,7 +3328,7 @@ function getListaFiltrada(){
       const st=String(arr[9]||'').trim().toUpperCase();
       const vd=arr[39]||arr[32]||arr[25]||arr[18]||arr[12]||'';
       let dtVenc=null;
-      if(vd){const p=String(vd).split('/');if(p.length===3)dtVenc=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));}
+      if(vd){const p=String(vd).split(' ')[0].split('/');if(p.length===3)dtVenc=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));}
       const exec=st==='EM EXECUÇÃO'||st==='EM EXECUCAO';
       const vencido=exec&&dtVenc&&dtVenc<hoje;
       if(filtroStatus==='exec')   return exec&&!vencido;
@@ -3396,7 +3399,7 @@ async function salvarAlteracoes(id){
     return;
   }
   if(novoVenc){
-    const p=novoVenc.split('/'), dt=new Date(+p[2],+p[1]-1,+p[0]);
+    const p=novoVenc.split(' ')[0].split('/'), dt=new Date(+p[2],+p[1]-1,+p[0]);
     if(isNaN(dt.getTime()) || dt.getDate()!==+p[0] || dt.getMonth()!==+p[1]-1){
       portalToast('Data de vencimento inválida','err');
       return;
