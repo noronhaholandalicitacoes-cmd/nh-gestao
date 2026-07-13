@@ -1493,6 +1493,71 @@ function agregarContratos(arrs){
    AUDITORIA POR EMPRESA — somente leitura, nada é alterado.
    Rode no console:  nhAuditarEmpresas()
    ════════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════
+   AUDITORIA DE VENCIDOS × RECOMPOSIÇÃO — somente leitura.
+   Rode no console:  nhAuditarRecomposicoes()
+   Lista contratos marcados como vencidos que TÊM recomposição,
+   para você verificar se o vencimento do aditivo foi preenchido.
+   ════════════════════════════════════════════════════════════ */
+function nhAuditarRecomposicoes(){
+  const arrs = dadosGanhas.map(e=>e.arr);
+  if(!arrs.length){ console.warn('[NH] Nenhum contrato carregado.'); return; }
+
+  const fmt = v => 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2});
+  const blocos=[[13,1],[20,2],[27,3],[34,4]];
+
+  const suspeitos=[], vencidosLimpos=[], recompOk=[];
+  arrs.forEach(a=>{
+    const c = classificarContrato(a);
+    const temRecomp = String(a[13]||'').toUpperCase().trim()==='SIM';
+    // detalhar aditivos preenchidos
+    const aditivos=[];
+    blocos.forEach(([base,n])=>{
+      const sim=String(a[base]||'').trim();
+      const tipo=String(a[base+1]||'').trim();
+      const status=String(a[base+2]||'').trim();
+      const novaData=String(a[base+3]||'').trim();
+      const vencRecomp=String(a[base+5]||'').trim();
+      if(sim||tipo||status||novaData||vencRecomp)
+        aditivos.push({n, sim, tipo, status, novaData, vencRecomp});
+    });
+
+    if(c.cat==='vencido' && (temRecomp || aditivos.length)){
+      // vencido MAS tem recomposição — investigar
+      const semDataAditivo = aditivos.some(ad => !ad.vencRecomp && !ad.novaData);
+      suspeitos.push({
+        '#': a[0], empresa:(a[2]||'').toUpperCase(), venc_usado:c.venc,
+        dias:c.dias, valor:fmt(c.valor),
+        aditivos:aditivos.length,
+        problema: semDataAditivo ? '⚠️ aditivo SEM data de vencimento' : 'vencimento do aditivo já passou'
+      });
+    } else if(c.cat==='vencido'){
+      vencidosLimpos.push({'#':a[0], empresa:(a[2]||'').toUpperCase(), venc:c.venc, dias:c.dias});
+    } else if(temRecomp && c.cat==='exec'){
+      recompOk.push({'#':a[0], empresa:(a[2]||'').toUpperCase(), venc_vigente:c.venc});
+    }
+  });
+
+  console.log('%c═══ AUDITORIA: VENCIDOS × RECOMPOSIÇÃO ═══','font-weight:bold;font-size:14px');
+
+  if(suspeitos.length){
+    console.log('%c\n⚠️ '+suspeitos.length+' contrato(s) VENCIDOS mas COM recomposição — verifique o cadastro:','color:#f97316;font-weight:bold');
+    console.table(suspeitos);
+    console.log('Se a recomposição prorrogou o contrato, preencha o campo "Venc. Recomp." (ou "Nova Data Venc.") do aditivo. Ele voltará a contar como Em Execução.');
+  } else {
+    console.log('%c\n✓ Nenhum contrato vencido tem recomposição pendente de data.','color:#22c55e');
+  }
+
+  console.log('\n%c✓ '+recompOk.length+' contrato(s) com recomposição, vigentes (data do aditivo OK):','color:#22c55e');
+  if(recompOk.length) console.table(recompOk);
+
+  console.log('\n%c'+vencidosLimpos.length+' contrato(s) vencidos SEM recomposição (vencimento real):','color:#9898b0');
+  if(vencidosLimpos.length) console.table(vencidosLimpos);
+
+  return {suspeitos, recompOk, vencidosLimpos};
+}
+
 function nhAuditarEmpresas(){
   const arrs = dadosGanhas.map(e => e.arr);
   if(!arrs.length){ console.warn('[NH] Nenhum contrato carregado.'); return; }
@@ -2495,9 +2560,15 @@ const OPCOES_PROXACAO = ['Solicitar prorrogação','Solicitar reajuste','Solicit
 /* Índice do vencimento vigente: último aditivo preenchido, senão o original [12].
    Devolve {idx, valor, nAditivo} para que a edição grave no campo certo. */
 function vencVigente(arr){
-  const mapa=[[39,4],[32,3],[25,2],[18,1]];
-  for(const [ix,n] of mapa){
-    if(String(arr[ix]||'').trim()) return {idx:ix, valor:String(arr[ix]).trim(), nAditivo:n};
+  // Cada aditivo tem DUAS datas possíveis: Venc. Recomp. [base+5] e Nova Data Venc. [base+2].
+  // Do último aditivo para o primeiro, usa a primeira data preenchida entre as duas.
+  // Assim um aditivo preenchido só na "Nova Data" não é ignorado (não marca vencido à toa).
+  const blocos=[[34,4],[27,3],[20,2],[13,1]];
+  for(const [base,n] of blocos){
+    const vencRecomp = String(arr[base+5]||'').trim();  // [18],[25],[32],[39]
+    const novaData   = String(arr[base+3]||'').trim();  // [16],[23],[30],[37]
+    if(vencRecomp) return {idx:base+5, valor:vencRecomp, nAditivo:n};
+    if(novaData)   return {idx:base+3, valor:novaData,   nAditivo:n};
   }
   return {idx:12, valor:String(arr[12]||'').trim(), nAditivo:0};
 }
