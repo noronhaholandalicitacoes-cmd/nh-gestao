@@ -601,9 +601,25 @@ select{color-scheme:dark;}
 .r-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:13px;margin-bottom:20px}
 .r-kpi{
   background:var(--s2);border:1px solid var(--b1);
+  border-left:4px solid var(--b2);
   border-radius:12px;padding:20px 19px;
   position:relative;overflow:hidden;
+  transition:transform .15s ease,box-shadow .15s ease;
 }
+.r-kpi:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.35)}
+/* Barra de cor à esquerda por tipo */
+.r-kpi.kc-orange{border-left-color:var(--nh)}
+.r-kpi.kc-blue{border-left-color:var(--b_)}
+.r-kpi.kc-yellow{border-left-color:var(--y1)}
+.r-kpi.kc-green{border-left-color:var(--g1)}
+.r-kpi.kc-red{border-left-color:var(--r1)}
+.r-kpi.kc-purple{border-left-color:var(--p1)}
+/* Brilho sutil no topo, na cor do card */
+.r-kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;opacity:.5}
+.r-kpi.kc-orange::before{background:linear-gradient(90deg,var(--nh),transparent)}
+.r-kpi.kc-blue::before{background:linear-gradient(90deg,var(--b_),transparent)}
+.r-kpi.kc-yellow::before{background:linear-gradient(90deg,var(--y1),transparent)}
+.r-kpi.kc-green::before{background:linear-gradient(90deg,var(--g1),transparent)}
 .r-kpi.nh-accent{border-color:rgba(249,115,22,.3)}
 .r-kpi.nh-accent::after{
   content:'';position:absolute;inset:0;
@@ -2031,12 +2047,12 @@ var valPorEmp={};ga.forEach(function(e){var emp=String(e[2]||"").trim();if(emp)v
 var topVal=Object.entries(valPorEmp).filter(function(e){return e[1]>0}).sort(function(a,b){return b[1]-a[1]});
 e.innerHTML=buildPeriodoHTML()+(USER_SOS?'<div style="margin:10px 0 6px;display:flex;align-items:center;gap:10px;font-size:13px"><span style="color:var(--t2)">Externo nos totais</span><div style="display:inline-flex;background:rgba(255,255,255,.05);border:1px solid var(--b1,#2a2a3a);border-radius:8px;padding:2px;gap:2px"><button onclick="MOSTRAR_SOS=true;buildResumo()" style="background:'+(MOSTRAR_SOS?"#6b7fd7":"transparent")+';color:'+(MOSTRAR_SOS?"#fff":"var(--t2,#999)")+';border:none;border-radius:6px;padding:4px 13px;cursor:pointer;font-weight:600;font-size:12px">Incluído</button><button onclick="MOSTRAR_SOS=false;buildResumo()" style="background:'+(MOSTRAR_SOS?"transparent":"#6b7fd7")+';color:'+(MOSTRAR_SOS?"var(--t2,#999)":"#fff")+';border:none;border-radius:6px;padding:4px 13px;cursor:pointer;font-weight:600;font-size:12px">Oculto</button></div></div>':"")
 +'<div class="r-kpis">'
-+'<div class="r-kpi nh-accent"><div class="rkpi-lbl">Editais Capturados'+desc+'</div><div class="rkpi-val nh">'+ed.length+'</div><div class="rkpi-sub">'+edP+' para participar</div></div>'
-+'<div class="r-kpi"><div class="rkpi-lbl">Participações'+desc+'</div><div class="rkpi-val" style="color:#3b82f6">'+edP+'</div><div class="rkpi-sub">'+(ed.length>0?Math.round(edP/ed.length*100):0)+'% dos editais</div></div>'
-+'<div class="r-kpi"><div class="rkpi-lbl">Em Andamento'+desc+'</div><div class="rkpi-val" style="color:var(--y2)">'+an.length+'</div><div class="rkpi-sub">'+anAtivos+' ativos agora</div></div>'
-+'<div class="r-kpi"><div class="rkpi-lbl">Licitações Ganhas'+desc+'</div><div class="rkpi-val" style="color:var(--g2)">'+nGanhos+'</div><div class="rkpi-sub">'+taxa+'% conversão (ganhas/andamento)</div></div>'
-+'<div class="r-kpi"><div class="rkpi-lbl">Contratos Ativos'+desc+'</div><div class="rkpi-val g">'+contAtivos+'</div><div class="rkpi-sub">'+fmtVal(fatAtivo)+'</div></div>'
-+(portfolio>0?'<div class="r-kpi" style="border-color:rgba(34,197,94,.3)"><div class="rkpi-lbl">Portfolio'+desc+'</div><div class="rkpi-val" style="font-size:18px;color:#22c55e">'+fmtVal(portfolio)+'</div><div class="rkpi-sub">soma dos contratos</div></div>':"")
++'<div class="r-kpi kc-orange"><div class="rkpi-lbl">Editais Capturados'+desc+'</div><div class="rkpi-val nh">'+ed.length+'</div><div class="rkpi-sub">'+edP+' para participar</div></div>'
++'<div class="r-kpi kc-blue"><div class="rkpi-lbl">Participações'+desc+'</div><div class="rkpi-val" style="color:#3b82f6">'+edP+'</div><div class="rkpi-sub">'+(ed.length>0?Math.round(edP/ed.length*100):0)+'% dos editais</div></div>'
++'<div class="r-kpi kc-yellow"><div class="rkpi-lbl">Em Andamento'+desc+'</div><div class="rkpi-val" style="color:var(--y2)">'+an.length+'</div><div class="rkpi-sub">'+anAtivos+' ativos agora</div></div>'
++'<div class="r-kpi kc-green"><div class="rkpi-lbl">Licitações Ganhas'+desc+'</div><div class="rkpi-val" style="color:var(--g2)">'+nGanhos+'</div><div class="rkpi-sub">'+taxa+'% conversão (ganhas/andamento)</div></div>'
++'<div class="r-kpi kc-green"><div class="rkpi-lbl">Contratos Ativos'+desc+'</div><div class="rkpi-val g">'+contAtivos+'</div><div class="rkpi-sub">'+fmtVal(fatAtivo)+'</div></div>'
++(portfolio>0?'<div class="r-kpi kc-green"><div class="rkpi-lbl">Portfolio'+desc+'</div><div class="rkpi-val" style="font-size:18px;color:#22c55e">'+fmtVal(portfolio)+'</div><div class="rkpi-sub">soma dos contratos</div></div>':"")
 +'</div>'
 +buildHistoricoHTML()
 +'<div class="r-cards"><div class="rcard" style="grid-column:1/-1"><div class="rcard-title"><div class="rcard-title-dot" style="background:var(--g1)"></div>Taxa de Conversão por Empresa'+desc+'<span style="margin-left:auto;font-size:10px;font-weight:400;color:var(--t3)">Capturados → Participou → Ganhou</span></div><div>'+buildConversaoHTML(ed,an,ga)+'</div></div></div>'
