@@ -711,7 +711,7 @@ select{color-scheme:dark;}
 
 *{box-sizing:border-box;margin:0;padding:0}
 .doc-main{max-width:100%;margin:0;padding:20px 0 60px}
-.doc-card{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:14px;padding:22px;margin-bottom:18px}
+.doc-card{background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:22px;margin-bottom:18px}
 .doc-card-title{font-size:11px;font-weight:800;color:#f97316;text-transform:uppercase;letter-spacing:.1em;margin-bottom:16px;display:flex;align-items:center;gap:7px}
 .step-num{width:20px;height:20px;border-radius:50%;background:#f97316;color:#000;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 /* Empresa grid */
@@ -721,7 +721,7 @@ select{color-scheme:dark;}
 .emp-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 /* Doc types */
 .doc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.doc-btn{padding:14px 16px;border-radius:12px;border:2px solid #2a2a2a;background:#111;color:#777;font-size:13px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:all .2s;text-align:left;display:flex;flex-direction:column;gap:4px}
+.doc-btn{padding:14px 16px;border-radius:12px;border:2px solid var(--b1);background:var(--s2);color:var(--t3);font-size:13px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:all .2s;text-align:left;display:flex;flex-direction:column;gap:4px}
 .doc-btn.on{border-color:#f97316;background:rgba(249,115,22,.08);color:#f97316}
 .doc-btn .doc-sub{font-size:10px;font-weight:400;color:#555;margin-top:2px}
 .doc-btn.on .doc-sub{color:#f97316aa}
@@ -4538,11 +4538,17 @@ function renderEmpGrid(){
 function selecionarEmpresa(nome){
   empSelecionada = nome;
   renderEmpGrid();
-  // Preencher cidade de assinatura com a cidade da empresa (sempre sobrescreve)
-  var _empS = EMPRESAS.find(function(e){return e.nome===nome;}) || (DADOS_FIXOS&&DADOS_FIXOS[nome]?Object.assign({nome:nome},DADOS_FIXOS[nome]):null);
-  if(_empS&&_empS.cidade){
+  // Preencher "Cidade / UF da Assinatura" com a cidade da empresa (sempre sobrescreve).
+  // Mescla Firestore + DADOS_FIXOS: um cadastro do Firestore que exista mas esteja
+  // sem o campo "cidade" preenchido não deve bloquear o fallback conhecido
+  // (ex.: SAUTEC = Sousa/PB, já cadastrado em DADOS_FIXOS mesmo que falte no Firestore).
+  var _fromDb  = EMPRESAS.find(function(e){return e.nome===nome;}) || {};
+  var _fromFix = (DADOS_FIXOS&&DADOS_FIXOS[nome]) || {};
+  var _empS = Object.assign({nome:nome}, _fromFix, _fromDb);
+  if(!_empS.cidade && _fromFix.cidade) _empS.cidade = _fromFix.cidade;
+  if(_empS.cidade){
     var cidEl = document.getElementById('cidade_assina');
-    if(cidEl) cidEl.value = _empS.cidade.split('/')[0].trim();
+    if(cidEl) cidEl.value = _empS.cidade;
   }
 }
 
