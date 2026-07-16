@@ -1154,6 +1154,19 @@ body:not(.compact) .kcard-top{gap:16px!important;margin-bottom:8px!important;}
         <img id="emp-timbrado-preview" style="display:none;margin-top:8px;max-width:100%;max-height:110px;border:1px solid var(--b1);border-radius:6px">
         <div style="font-size:10px;color:var(--t3);margin-top:5px">Imagem pronta do cabeçalho (logo + dados da empresa). Substitui a barra colorida no topo de propostas e declarações. PNG ou JPG — a imagem é redimensionada automaticamente.</div>
       </div>
+      <div class="fg" style="grid-column:1/-1">
+        <label>Rodapé do Papel Timbrado (opcional)</label>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <label style="cursor:pointer;background:var(--s2);border:1px dashed var(--b1);color:var(--t2);padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px">
+            📎 Escolher imagem
+            <input type="file" id="emp-timbrado-rodape-file" accept="image/*" style="display:none" onchange="carregarTimbradoRodapeEmpresa(this)">
+          </label>
+          <span id="emp-timbrado-rodape-status" style="font-size:11px;color:var(--t3)">Nenhum rodapé carregado</span>
+          <button type="button" id="emp-timbrado-rodape-remover" onclick="removerTimbradoRodapeEmpresa()" style="display:none;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer">Remover</button>
+        </div>
+        <img id="emp-timbrado-rodape-preview" style="display:none;margin-top:8px;max-width:100%;max-height:80px;border:1px solid var(--b1);border-radius:6px">
+        <div style="font-size:10px;color:var(--t3);margin-top:5px">Faixa de rodapé, se a empresa tiver uma separada do cabeçalho (opcional — a maioria não precisa disso). Aparece fixa no rodapé de toda página impressa.</div>
+      </div>
     </div>
     <div style="grid-column:1/-1;border-top:1px solid #2a2a2a;margin:4px 0;padding-top:12px;font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.08em;font-weight:700">Dados do Sócio Signatário</div>
     </div>
@@ -3439,6 +3452,108 @@ async function _salvarTimbradosPendentes(){
   _timbradosPendentes = {};
 }
 
+
+/* ---- Rodapé do timbrado: mesmo padrão do cabeçalho, campos e cache separados ---- */
+var _TIMBRADOS_RODAPE_CACHE = {};
+var _timbradoRodapeAtual = undefined;
+var _timbradosRodapePendentes = {};
+
+function carregarTimbradoRodapeEmpresa(input){
+  var file = input.files && input.files[0];
+  if(!file) return;
+  if(!file.type || file.type.indexOf('image/')!==0){ toast('Escolha um arquivo de imagem (PNG ou JPG)','err'); return; }
+  if(file.size > 6*1024*1024){ toast('Imagem muito grande (max. 6MB antes de comprimir)','err'); return; }
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var img = new Image();
+    img.onload = function(){
+      var maxW = 1000;
+      var scale = Math.min(1, maxW/img.width);
+      var canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width*scale);
+      canvas.height = Math.round(img.height*scale);
+      var ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      var dataUrl = canvas.toDataURL('image/jpeg', 0.80);
+      var kb = Math.round(dataUrl.length*0.75/1024);
+      if(kb > 900){
+        dataUrl = canvas.toDataURL('image/jpeg', 0.55);
+        kb = Math.round(dataUrl.length*0.75/1024);
+      }
+      if(kb > 900){ toast('Imagem ainda grande apos compressao ('+kb+'KB). Tente uma imagem mais simples ou menor.','err'); return; }
+      _timbradoRodapeAtual = {dataUrl: dataUrl, width: canvas.width, height: canvas.height};
+      var prev = document.getElementById('emp-timbrado-rodape-preview');
+      if(prev){ prev.src = dataUrl; prev.style.display='block'; }
+      var st = document.getElementById('emp-timbrado-rodape-status');
+      if(st) st.textContent = 'Carregado (~'+kb+'KB) -- clique em Adicionar/Salvar Empresa para confirmar';
+      var rm = document.getElementById('emp-timbrado-rodape-remover');
+      if(rm) rm.style.display = 'inline-block';
+    };
+    img.onerror = function(){ toast('Nao consegui ler essa imagem. Tente outro arquivo.','err'); };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removerTimbradoRodapeEmpresa(){
+  _timbradoRodapeAtual = 'REMOVER';
+  var prev = document.getElementById('emp-timbrado-rodape-preview');
+  if(prev){ prev.style.display='none'; prev.src=''; }
+  var st = document.getElementById('emp-timbrado-rodape-status');
+  if(st) st.textContent = 'Rodapé será removido ao salvar';
+  var rm = document.getElementById('emp-timbrado-rodape-remover');
+  if(rm) rm.style.display = 'none';
+  var fEl = document.getElementById('emp-timbrado-rodape-file');
+  if(fEl) fEl.value = '';
+}
+
+function _resetFormTimbradoRodape(){
+  _timbradoRodapeAtual = undefined;
+  var prev = document.getElementById('emp-timbrado-rodape-preview');
+  if(prev){ prev.style.display='none'; prev.src=''; }
+  var st = document.getElementById('emp-timbrado-rodape-status');
+  if(st) st.textContent = 'Nenhum rodapé carregado';
+  var rm = document.getElementById('emp-timbrado-rodape-remover');
+  if(rm) rm.style.display='none';
+  var fEl = document.getElementById('emp-timbrado-rodape-file');
+  if(fEl) fEl.value = '';
+}
+
+async function carregarTimbradoRodapeDeEmpresa(nome){
+  if(!nome) return null;
+  if(_TIMBRADOS_RODAPE_CACHE.hasOwnProperty(nome)) return _TIMBRADOS_RODAPE_CACHE[nome];
+  try{
+    var doc = await db.collection('config').doc('timbrado_rodape_'+nome).get();
+    var val = (doc.exists && doc.data() && doc.data().dataUrl) ? doc.data() : null;
+    _TIMBRADOS_RODAPE_CACHE[nome] = val;
+    return val;
+  }catch(e){
+    console.warn('Erro ao carregar rodapé de '+nome, e);
+    return null;
+  }
+}
+
+async function _salvarTimbradosRodapePendentes(){
+  var nomes = Object.keys(_timbradosRodapePendentes);
+  for(var i=0;i<nomes.length;i++){
+    var nome = nomes[i];
+    var val = _timbradosRodapePendentes[nome];
+    try{
+      if(val==='REMOVER'){
+        await db.collection('config').doc('timbrado_rodape_'+nome).delete();
+        _TIMBRADOS_RODAPE_CACHE[nome] = null;
+      } else {
+        await db.collection('config').doc('timbrado_rodape_'+nome).set(val);
+        _TIMBRADOS_RODAPE_CACHE[nome] = val;
+      }
+    }catch(e){
+      toast('Erro ao salvar rodapé de '+nome+': '+e.message, 'err');
+    }
+  }
+  _timbradosRodapePendentes = {};
+}
+
 function abrirGerenciarEmpresas(){renderListaEmpresas();var e=document.getElementById("mo-empresas");e.style.display="flex",e.classList.add("open")}function renderListaEmpresas(){var e=document.getElementById("emp-lista");EMPRESAS.length?e.innerHTML=EMPRESAS.map(function(e,a){var t=e.cor||"#f97316",o=[e.cnpj,e.cidade,e.socio?"Sócio: "+e.socio:"",e.robo?"🤖 Robô":""].filter(Boolean).join(" · ");return'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--s2);border:1px solid var(--b1);border-radius:8px;border-left:3px solid '+t+';gap:8px"><div style="flex:1;min-width:0"><span style="font-weight:700;color:'+t+'">'+e.nome+"</span>"+(o?'<div style="font-size:11px;color:#666;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+o+"</div>":"")+'</div><div style="display:flex;gap:6px;flex-shrink:0"><button onclick="editarEmpresa('+a+')" style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);color:#60a5fa;padding:3px 10px;border-radius:5px;cursor:pointer;font-size:11px;font-family:Outfit,sans-serif">✏ Editar</button><button onclick="removerEmpresa('+a+')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#ef4444;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px">✕</button></div></div>'}).join(""):e.innerHTML='<div style="color:var(--t3);font-size:13px;padding:8px">Nenhuma empresa cadastrada</div>'}function gv(e){var a=document.getElementById(e);return a?a.value.trim():""}function adicionarEmpresa(){
   var e=gv("emp-fantasia").toUpperCase(),a=gv("emp-razao"),t=gv("emp-cnpj"),o=gv("emp-novo-cor")||_corSelecionada||"#f97316";
   if(!e){toast("Digite o nome fantasia","err");return;}
@@ -3456,6 +3571,11 @@ function abrirGerenciarEmpresas(){renderListaEmpresas();var e=document.getElemen
   } else if(_timbradoAtual){
     _timbradosPendentes[e] = _timbradoAtual;
   }
+  if(_timbradoRodapeAtual==="REMOVER"){
+    _timbradosRodapePendentes[e] = "REMOVER";
+  } else if(_timbradoRodapeAtual){
+    _timbradosRodapePendentes[e] = _timbradoRodapeAtual;
+  }
   if(_editEmpIdx >= 0){
     // Modo edição — substituir no índice original
     EMPRESAS[_editEmpIdx] = novaEmp;
@@ -3468,6 +3588,7 @@ function abrirGerenciarEmpresas(){renderListaEmpresas();var e=document.getElemen
     toast("Empresa adicionada! Clique em Salvar Alterações","ok");
   }
   _resetFormTimbrado();
+  _resetFormTimbradoRodape();
   ["emp-razao","emp-fantasia","emp-cnpj","emp-endereco","emp-cep","emp-socio","emp-cpf","emp-cargo","emp-cidade","emp-tel","emp-email","emp-banco","emp-agencia","emp-conta","emp-socio2","emp-cpf2","emp-cargo2","emp-cidade2","emp-tel2","emp-email2","emp-banco2","emp-agencia2","emp-conta2","emp-robo"].forEach(function(e){var a=document.getElementById(e);if(a)a.value="";});
   // Restaurar botão
   var btn=document.querySelector('[onclick="adicionarEmpresa()"]');
@@ -3501,6 +3622,17 @@ function abrirGerenciarEmpresas(){renderListaEmpresas();var e=document.getElemen
       if(rm) rm.style.display="inline-block";
     }
   });
+  _resetFormTimbradoRodape();
+  carregarTimbradoRodapeDeEmpresa(a.nome).then(function(tmb){
+    if(tmb && _editEmpIdx===e){
+      var prev=document.getElementById("emp-timbrado-rodape-preview");
+      if(prev){ prev.src=tmb.dataUrl; prev.style.display="block"; }
+      var st=document.getElementById("emp-timbrado-rodape-status");
+      if(st) st.textContent="Rodapé já cadastrado";
+      var rm=document.getElementById("emp-timbrado-rodape-remover");
+      if(rm) rm.style.display="inline-block";
+    }
+  });
   // Atualizar botão para mostrar "Salvar Edição"
   var btn=document.querySelector('[onclick="adicionarEmpresa()"]');
   if(btn){btn.textContent="💾 Salvar Edição";btn.style.background="#22c55e";}
@@ -3514,6 +3646,7 @@ var _editEmpIdx = -1;function removerEmpresa(e){confirm("Remover "+EMPRESAS[e].n
   try{
     await salvarEmpresas();
     await _salvarTimbradosPendentes();
+    await _salvarTimbradosRodapePendentes();
     atualizarSelectsEmpresas();
     _editEmpIdx=-1;
     // Restaurar botão de adicionar
@@ -4703,6 +4836,12 @@ function selecionarEmpresa(nome){
     if(_e) _e.timbrado = url;
     if(DADOS_FIXOS && DADOS_FIXOS[nome]) DADOS_FIXOS[nome].timbrado = url;
   });
+  carregarTimbradoRodapeDeEmpresa(nome).then(function(url){
+    if(!url) return;
+    var _e = EMPRESAS.find(function(e){return e.nome===nome;});
+    if(_e) _e.timbradoRodape = url;
+    if(DADOS_FIXOS && DADOS_FIXOS[nome]) DADOS_FIXOS[nome].timbradoRodape = url;
+  });
 }
 
 function _getEmpData(){
@@ -4743,9 +4882,13 @@ function cssBase(titulo, cor){
     +'.rodape{background:#f8fafc;border-top:2.5px solid '+cor+';padding:12px 40px;'
     +'display:flex;align-items:center;justify-content:space-between;font-size:9px;color:#6b7280}'
     +'.rodape-marca{font-weight:800;color:'+cor+'}'
+    +'.rodape-timbrado{width:100%;line-height:0}'
+    +'.rodape-timbrado img{width:100%;height:auto;display:block}'
     // Título: mais espaçado, com friso curto na cor da empresa embaixo — assinatura visual elegante
-    +'.titulo{font-size:15.5px;font-weight:800;text-align:center;text-transform:uppercase;margin:22px 0 4px;letter-spacing:.05em;color:#111827}'
-    +'.titulo-rule{width:52px;height:3px;background:'+cor+';margin:0 auto 22px;border-radius:2px}'
+    +'.titulo-wrap{text-align:center;margin:24px 0 26px}'
+    +'.titulo-badge{display:inline-block;background:linear-gradient(135deg,'+cor+'14,'+cor+'05);border:1.5px solid '+cor+'35;border-radius:12px;padding:12px 36px;box-shadow:0 2px 8px '+cor+'12}'
+    +'.titulo{font-size:16.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:'+cor+';margin:0}'
+    +'.titulo-rule{width:40px;height:3px;background:'+cor+';margin:9px auto 0;border-radius:2px;opacity:.55}'
     +'.intro{text-align:justify;text-justify:inter-word;line-height:1.9;margin-bottom:16px;color:#1f2937}'
     // Cards: fundo branco com borda de destaque à esquerda na cor da empresa (mesmo padrão dos relatórios)
     +'.orgao-box{background:#fff;border:1px solid #e5e7eb;border-left:3px solid '+cor+';border-radius:8px;padding:14px 18px;margin-bottom:18px;font-size:11px;box-shadow:0 1px 2px rgba(0,0,0,.04);page-break-inside:avoid;break-inside:avoid}'
@@ -4754,6 +4897,11 @@ function cssBase(titulo, cor){
     +'.orgao-lbl{font-weight:800;color:'+cor+';display:inline-block;min-width:64px}'
     +'.bloco{background:#fff;border:1px solid #e5e7eb;border-left:3px solid '+cor+';border-radius:8px;padding:16px 18px;margin:16px 0;font-size:11px;box-shadow:0 1px 2px rgba(0,0,0,.04);page-break-inside:avoid;break-inside:avoid}'
     +'.bloco-titulo{font-weight:800;color:'+cor+';text-transform:uppercase;letter-spacing:.06em;margin-bottom:11px;font-size:10px}'
+    +'.cond-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px}'
+    +'.cond-item{min-width:0}'
+    +'.cond-full{grid-column:1/-1}'
+    +'.cond-lbl{font-size:9px;font-weight:800;color:'+cor+';text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;opacity:.85}'
+    +'.cond-val{font-size:11px;color:#1f2937;line-height:1.5}'
     +'.assinatura{margin-top:44px;text-align:center;page-break-inside:avoid}'
     +'.assinatura-linha{border-top:1.4px solid #1f2937;width:290px;margin:0 auto 8px}'
     +'.assinatura-nota{font-size:9px;color:#9ca3af;margin-top:6px;font-style:italic}'
@@ -4771,6 +4919,7 @@ function cssBase(titulo, cor){
     +'.page-wrap{min-height:297mm}'
     +'.cabecalho{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}'
     +'.rodape{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;position:fixed;bottom:0;left:0;right:0}'
+    +'.rodape-timbrado{position:fixed;bottom:0;left:0;right:0}'
     +'th{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}'
     +'tr{page-break-inside:avoid}'
     +'}'
@@ -4844,6 +4993,13 @@ function assinaturaHTML(emp, cidade, data){
 
 function rodapeHTML(emp){
   var cor = (emp&&emp.cor)||'#f97316';
+  // Empresa com rodapé de papel timbrado próprio: usa a imagem no lugar do texto colorido.
+  if(emp && emp.timbradoRodape && emp.timbradoRodape.dataUrl){
+    var rodapeImg = '</div>'
+      +'<div class="rodape-timbrado"><img src="'+emp.timbradoRodape.dataUrl+'" alt="Rodapé timbrado"></div>'
+      +'</div></body></html>';
+    return rodapeImg;
+  }
   var rodape = '</div>'  // fecha .corpo
     +'<div class="rodape" style="border-top-color:'+cor+'">'
     +'<div class="rodape-marca" style="color:'+cor+'">'+(emp?emp.razao:'NH Licitações')+'</div>'
@@ -5078,7 +5234,7 @@ function _gerarHTMLProposta(d){
   var html = cssBase('Proposta Comercial', cor);
   html += timbradoHTML(emp, 'Proposta Comercial');
   html += orgaoHTML(d.orgao, d.setor, d.modalidade, d.processo);
-  html += '<h2 class="titulo">PROPOSTA COMERCIAL</h2><div class="titulo-rule"></div>';
+  html += '<div class="titulo-wrap"><div class="titulo-badge"><h2 class="titulo">PROPOSTA COMERCIAL</h2><div class="titulo-rule"></div></div></div>';
   if(d.objeto) html += '<p style="margin-bottom:12px;line-height:1.7"><strong>Objeto:</strong> '+d.objeto+'</p>';
   // Tabela de itens
   if(linhas && linhas.length){
@@ -5106,10 +5262,13 @@ function _gerarHTMLProposta(d){
     }
     html += '</tbody></table>';
   }
-  if(d.validade) html += '<p style="margin:10px 0;font-size:11px"><strong>Validade da Proposta:</strong> '+d.validade+' dias</p>';
-  if(d.prazoEntrega) html += '<p style="margin:4px 0;font-size:11px"><strong>Prazo de Entrega/Execução:</strong> '+d.prazoEntrega+'</p>';
-  if(d.prazoPag) html += '<p style="margin:4px 0;font-size:11px"><strong>Prazo de Pagamento:</strong> '+d.prazoPag+'</p>';
-  if(d.local) html += '<p style="margin:4px 0;font-size:11px"><strong>Local de Prestação:</strong> '+d.local+'</p>';
+  // Condições comerciais — mesmo card usado para os demais blocos (Dados Bancários, etc.)
+  var _condRows = '';
+  if(d.validade) _condRows += '<div class="cond-item"><div class="cond-lbl">Validade da Proposta</div><div class="cond-val">'+d.validade+' dias</div></div>';
+  if(d.prazoEntrega) _condRows += '<div class="cond-item"><div class="cond-lbl">Prazo de Entrega/Execução</div><div class="cond-val">'+d.prazoEntrega+'</div></div>';
+  if(d.prazoPag) _condRows += '<div class="cond-item"><div class="cond-lbl">Prazo de Pagamento</div><div class="cond-val">'+d.prazoPag+'</div></div>';
+  if(d.local) _condRows += '<div class="cond-item cond-full"><div class="cond-lbl">Local de Prestação</div><div class="cond-val">'+d.local+'</div></div>';
+  if(_condRows) html += '<div class="bloco"><div class="bloco-titulo">Condições Comerciais</div><div class="cond-grid">'+_condRows+'</div></div>';
   if(emp&&emp.banco){
     html += '<div class="bloco"><div class="bloco-titulo">Dados Bancários para Pagamento</div>'
       +'<p style="margin:3px 0"><strong>Banco:</strong> '+emp.banco+'</p>'
@@ -5144,7 +5303,7 @@ function _gerarHTMLDeclaracoes(d){
     var html = cssBase(sel.length>1?'Declarações':sel[0].titulo, cor);
     html += timbradoHTML(emp, sel.length>1?'Declarações':sel[0].titulo);
     html += orgaoHTML(d.orgao, d.setor, d.modalidade, d.processo);
-    html += '<h2 class="titulo">'+(sel.length>1?'DECLARAÇÕES':sel[0].titulo.toUpperCase())+'</h2><div class="titulo-rule"></div>';
+    html += '<div class="titulo-wrap"><div class="titulo-badge"><h2 class="titulo">'+(sel.length>1?'DECLARAÇÕES':sel[0].titulo.toUpperCase())+'</h2><div class="titulo-rule"></div></div></div>';
     html += introHTML(emp);
     html += '<p class="intro">para fins do disposto no Edital supramencionado, <strong>DECLARA</strong> que:</p>';
     sel.forEach(function(decl, idx){
@@ -5164,7 +5323,7 @@ function _gerarHTMLDeclaracoes(d){
     var html = cssBase(decl.titulo, cor);
     html += timbradoHTML(emp, decl.titulo);
     html += orgaoHTML(d.orgao, d.setor, d.modalidade, d.processo);
-    html += '<h2 class="titulo">'+decl.titulo.toUpperCase()+'</h2><div class="titulo-rule"></div>';
+    html += '<div class="titulo-wrap"><div class="titulo-badge"><h2 class="titulo">'+decl.titulo.toUpperCase()+'</h2><div class="titulo-rule"></div></div></div>';
     html += introHTML(emp);
     if(decl.tipo!=='lista') html += '<p class="intro">para fins do disposto no Edital supramencionado, <strong>DECLARA</strong> que:</p>';
     html += _declTextoCompletoHTML(decl, emp);
@@ -5246,6 +5405,10 @@ function _declParasDocxAssinatura(_docx, d, emp){
   if(emp.cnpj) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'CNPJ: '+emp.cnpj,size:18,color:'666666'})],alignment:_docx.AlignmentType.CENTER,spacing:{after:80}}));
   if(emp.socio) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:emp.socio,size:20})],alignment:_docx.AlignmentType.CENTER,spacing:{after:60}}));
   if(emp.cargo) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:emp.cargo,size:18,color:'666666'})],alignment:_docx.AlignmentType.CENTER}));
+  if(emp.timbradoRodape && emp.timbradoRodape.dataUrl){
+    paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'',size:18})],spacing:{before:400}}));
+    paras.push(_docxHeaderImage(_docx, emp.timbradoRodape));
+  }
   return paras;
 }
 function _declParasDocxCorpo(_docx, decl){
@@ -5430,6 +5593,10 @@ function gerarWord(){
     if(emp.cnpj) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'CNPJ: '+emp.cnpj,size:18,color:'666666'})],alignment:_docx.AlignmentType.CENTER,spacing:{after:80}}));
     if(emp.socio) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:emp.socio,size:20})],alignment:_docx.AlignmentType.CENTER,spacing:{after:60}}));
     if(emp.cargo) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:emp.cargo,size:18,color:'666666'})],alignment:_docx.AlignmentType.CENTER}));
+    if(emp.timbradoRodape && emp.timbradoRodape.dataUrl){
+      paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'',size:18})],spacing:{before:400}}));
+      paras.push(_docxHeaderImage(_docx, emp.timbradoRodape));
+    }
 
     var doc = new _docx.Document({sections:[{properties:{},children:paras}]});
     _docx.Packer.toBlob(doc).then(function(blob){
