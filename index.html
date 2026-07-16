@@ -4856,8 +4856,89 @@ function _getEmpData(){
 
 function _gv(id){ var el=document.getElementById(id); return el?el.value.trim():''; }
 
-function cssBase(titulo, cor){
+
+// Altura em mm que o rodapé-imagem vai ocupar quando impresso em largura total de página A4 (210mm).
+
+// Converte um valor numérico em texto por extenso (português, moeda em reais).
+// Ex.: 604629.38 -> "seiscentos e quatro mil, seiscentos e vinte e nove reais e trinta e oito centavos"
+function _extensoGrupo(n){
+  var un=['','um','dois','três','quatro','cinco','seis','sete','oito','nove'];
+  var dez=['dez','onze','doze','treze','quatorze','quinze','dezesseis','dezessete','dezoito','dezenove'];
+  var dez2=['','','vinte','trinta','quarenta','cinquenta','sessenta','setenta','oitenta','noventa'];
+  var cem=['','cento','duzentos','trezentos','quatrocentos','quinhentos','seiscentos','setecentos','oitocentos','novecentos'];
+  if(n===0) return '';
+  if(n===100) return 'cem';
+  var c=Math.floor(n/100), r=n%100, partes=[];
+  if(c>0) partes.push(cem[c]);
+  if(r>0){
+    if(r<10) partes.push(un[r]);
+    else if(r<20) partes.push(dez[r-10]);
+    else{
+      var d=Math.floor(r/10), u=r%10;
+      partes.push(dez2[d] + (u>0?' e '+un[u]:''));
+    }
+  }
+  return partes.join(' e ');
+}
+function numeroPorExtenso(valor){
+  valor = Math.round((valor||0) * 100) / 100;
+  var negativo = valor < 0; valor = Math.abs(valor);
+  var inteiro = Math.floor(valor);
+  var centavos = Math.round((valor - inteiro) * 100);
+  if(inteiro===0 && centavos===0) return 'zero reais';
+  var escalas = [
+    {valor:1000000000, singular:'bilhão',  plural:'bilhões'},
+    {valor:1000000,     singular:'milhão',  plural:'milhões'},
+    {valor:1000,        singular:'mil',     plural:'mil'}
+  ];
+  var partes = [];
+  var resto = inteiro;
+  var precisaDe = false; // "de" entre milhão/bilhão e "reais", quando nada de menor grandeza sobra
+  escalas.forEach(function(esc){
+    var qtd = Math.floor(resto / esc.valor);
+    if(qtd>0){
+      var texto;
+      if(esc.valor===1000 && qtd===1){ texto = 'mil'; }
+      else { texto = _extensoGrupo(qtd) + ' ' + (qtd===1?esc.singular:esc.plural); }
+      partes.push(texto);
+      resto = resto % esc.valor;
+      precisaDe = (esc.valor>=1000000);
+    }
+  });
+  if(resto>0){ partes.push(_extensoGrupo(resto)); precisaDe = false; }
+  if(partes.length===0) partes.push(_extensoGrupo(resto));
+  var textoInteiro;
+  if(partes.length>1){
+    var ultimoEhGrupoPequeno = resto>0 && resto<100;
+    textoInteiro = ultimoEhGrupoPequeno
+      ? partes.slice(0,-1).join(', ') + ' e ' + partes[partes.length-1]
+      : partes.join(', ');
+  } else {
+    textoInteiro = partes[0];
+  }
+  var reaisTxt = inteiro===1 ? 'real' : 'reais';
+  var conectorDe = precisaDe ? ' de' : '';
+  var resultado = '';
+  if(inteiro>0) resultado += textoInteiro + conectorDe + ' ' + reaisTxt;
+  if(centavos>0){
+    var centTxt = _extensoGrupo(centavos) + ' ' + (centavos===1?'centavo':'centavos');
+    resultado += (inteiro>0 ? ' e ' : '') + centTxt;
+  }
+  if(negativo) resultado = 'menos ' + resultado;
+  return resultado;
+}
+
+function _calcRodapeAlturaMM(emp){
+  if(!emp || !emp.timbradoRodape || !emp.timbradoRodape.width) return null;
+  var t = emp.timbradoRodape;
+  return (210 / t.width) * t.height;
+}
+
+function cssBase(titulo, cor, rodapeAlturaMM){
   cor = cor||'#f97316';
+  // Margem inferior da página: reserva espaço de verdade para o rodapé (texto ou imagem),
+  // senão o conteúdo flui por baixo dele e linhas da tabela somem atrás da faixa fixa.
+  var _margBottom = rodapeAlturaMM ? Math.ceil(rodapeAlturaMM + 6) : 16;
   return '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">'
     +'<title>'+titulo+'</title>'
     +'<style>'
@@ -4913,8 +4994,10 @@ function cssBase(titulo, cor){
     +'tr:nth-child(even) td{background:#fafbfc}'
     +'tr:last-child td{border-bottom:none}'
     +'.total-row td{font-weight:800;background:#f0fdf4!important;border-top:2px solid #16a34a;color:#14532d}'
+    +'.valor-extenso{font-size:10.5px;color:#374151;font-style:italic;background:#fafbfc;border:1px solid #eef0f3;border-radius:6px;padding:9px 13px;margin:0 0 16px;line-height:1.6}'
+    +'.valor-extenso strong{font-style:normal;color:#111827}'
     +'@media print{'
-    +'@page{margin:16mm 14mm;size:A4}'
+    +'@page{margin:16mm 14mm '+_margBottom+'mm 14mm;size:A4}'
     +'body{margin:0;padding:0}'
     +'.page-wrap{min-height:297mm}'
     +'.cabecalho{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}'
@@ -5231,7 +5314,7 @@ function _coletarDadosDoc(){
 function _gerarHTMLProposta(d){
   var emp = d.emp || (empSelecionada&&DADOS_FIXOS[empSelecionada]?Object.assign({nome:empSelecionada,cor:EMPCORES[empSelecionada]||'#f97316'},DADOS_FIXOS[empSelecionada]):null);
   var cor = (emp&&emp.cor)||EMPCORES[empSelecionada]||'#f97316';
-  var html = cssBase('Proposta Comercial', cor);
+  var html = cssBase('Proposta Comercial', cor, _calcRodapeAlturaMM(emp));
   html += timbradoHTML(emp, 'Proposta Comercial');
   html += orgaoHTML(d.orgao, d.setor, d.modalidade, d.processo);
   html += '<div class="titulo-wrap"><div class="titulo-badge"><h2 class="titulo">PROPOSTA COMERCIAL</h2><div class="titulo-rule"></div></div></div>';
@@ -5261,6 +5344,11 @@ function _gerarHTMLProposta(d){
         +'<td style="text-align:right;font-weight:700">'+fmtMoeda(total)+'</td></tr>';
     }
     html += '</tbody></table>';
+    // Valor total por extenso — convenção de documentos comerciais/jurídicos
+    if(total>0){
+      html += '<p class="valor-extenso">O valor total da presente proposta é de <strong>'+fmtMoeda(total)+'</strong> '
+        +'('+numeroPorExtenso(total)+').</p>';
+    }
   }
   // Condições comerciais — mesmo card usado para os demais blocos (Dados Bancários, etc.)
   var _condRows = '';
@@ -5300,7 +5388,7 @@ function _gerarHTMLDeclaracoes(d){
   if(!sel.length) return [];
 
   if(_declaracoesModo==='unico' || sel.length===1){
-    var html = cssBase(sel.length>1?'Declarações':sel[0].titulo, cor);
+    var html = cssBase(sel.length>1?'Declarações':sel[0].titulo, cor, _calcRodapeAlturaMM(emp));
     html += timbradoHTML(emp, sel.length>1?'Declarações':sel[0].titulo);
     html += orgaoHTML(d.orgao, d.setor, d.modalidade, d.processo);
     html += '<div class="titulo-wrap"><div class="titulo-badge"><h2 class="titulo">'+(sel.length>1?'DECLARAÇÕES':sel[0].titulo.toUpperCase())+'</h2><div class="titulo-rule"></div></div></div>';
@@ -5320,7 +5408,7 @@ function _gerarHTMLDeclaracoes(d){
 
   // Modo separado: um documento completo por declaração selecionada
   return sel.map(function(decl){
-    var html = cssBase(decl.titulo, cor);
+    var html = cssBase(decl.titulo, cor, _calcRodapeAlturaMM(emp));
     html += timbradoHTML(emp, decl.titulo);
     html += orgaoHTML(d.orgao, d.setor, d.modalidade, d.processo);
     html += '<div class="titulo-wrap"><div class="titulo-badge"><h2 class="titulo">'+decl.titulo.toUpperCase()+'</h2><div class="titulo-rule"></div></div></div>';
