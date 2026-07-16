@@ -1141,6 +1141,19 @@ body:not(.compact) .kcard-top{gap:16px!important;margin-bottom:8px!important;}
           <input type="color" id="emp-novo-cor" value="#f97316" style="width:24px;height:24px;border:none;background:none;cursor:pointer;border-radius:50%;padding:0" title="Cor personalizada">
         </div>
       </div>
+      <div class="fg" style="grid-column:1/-1">
+        <label>Papel Timbrado (opcional)</label>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <label style="cursor:pointer;background:var(--s2);border:1px dashed var(--b1);color:var(--t2);padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px">
+            📎 Escolher imagem
+            <input type="file" id="emp-timbrado-file" accept="image/*" style="display:none" onchange="carregarTimbradoEmpresa(this)">
+          </label>
+          <span id="emp-timbrado-status" style="font-size:11px;color:var(--t3)">Nenhum papel timbrado carregado</span>
+          <button type="button" id="emp-timbrado-remover" onclick="removerTimbradoEmpresa()" style="display:none;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer">Remover</button>
+        </div>
+        <img id="emp-timbrado-preview" style="display:none;margin-top:8px;max-width:100%;max-height:110px;border:1px solid var(--b1);border-radius:6px">
+        <div style="font-size:10px;color:var(--t3);margin-top:5px">Imagem pronta do cabeçalho (logo + dados da empresa). Substitui a barra colorida no topo de propostas e declarações. PNG ou JPG — a imagem é redimensionada automaticamente.</div>
+      </div>
     </div>
     <div style="grid-column:1/-1;border-top:1px solid #2a2a2a;margin:4px 0;padding-top:12px;font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.08em;font-weight:700">Dados do Sócio Signatário</div>
     </div>
@@ -3317,7 +3330,116 @@ function preencherPlanilhaBD(itens){
     if(munLabel)munLabel.textContent=primMun.mun.trim();
   }
 }
-function inlineCell(e,a,t,o){var i=String(o||"").trim(),n="ic-"+e+"-"+a+"-"+t;if("finalizados"===e)return'<span style="font-size:14px;color:var(--t2);line-height:1.6;word-break:break-word;white-space:pre-wrap">'+(i||"—")+"</span>";var r=[""];function s(e,a,t){var o=getOptsCustom(e,a),i=t.slice();return o.forEach(function(e){-1===i.indexOf(e)&&i.push(e)}),-1===i.indexOf("Outro")&&i.push("Outro"),i}EMPRESAS.forEach(function(e){r.push(e.nome)});var d={editais:{2:r,10:["","SIM","NÃO","EM ANÁLISE"],11:["","POSITIVO","NEGATIVO","PENDENTE"]},andamento:{2:r,9:s("andamento",9,["","Compras Gov","BLL","LICITANET","CONLICITACAO","BNC","Publinexo","Licitanet","PE-Integrado","Compras Públicas","Apoio Cotações","Licitar Digital","Licitações-e","Enviada por E-mail"]),11:s("andamento",11,["","1 posição","2 posição","3 posição","4 posição","5 posição","6 posição","7 posição","8 posição","9 posição","10 posição","11 posição","12 posição","13 posição","14 posição","15 posição","Proposta enviada","Desclassificado","Inabilitado","Cancelado","Não participou"]),12:s("andamento",12,["","Em andamento","Ganha","Finalizado","Suspenso","Desclassificado","Inabilitado","Cancelado","Recurso","Aguardando"]),14:["","sim","não"],16:["","sim","não"]},ganhas:{2:r,9:s("ganhas",9,["","AGUARDANDO CONTRATO","EM EXECUÇÃO","SERÁ ENCERRADO","FINALIZADO","SUSPENSO","RESCINDIDO"]),13:["","SIM","NÃO"],43:["","(automático)","Não prorrogável","Será encerrado","Aguardando recomposição","Recomposição em andamento","Prorrogado"],49:["","Solicitar prorrogação","Solicitar reajuste","Solicitar recomposição","Aguardar assinatura","Acompanhar execução","Acompanhar publicação","Arquivar","Sem providências"]},atestados:{2:r,10:["","SIM","NÃO"],11:["","SIM","NÃO"],15:s("atestados",15,["","ATIVO","PENDENTE","VENCIDO"]),17:s("atestados",17,["","ATIVO","PENDENTE","VENCIDO"]),18:s("atestados",18,["","COMPLETO","PENDENTE","EM ANDAMENTO"])},financeiro:{1:s("financeiro",1,["","IAs","Portais","Telefonia","Informatica"]),5:s("financeiro",5,["","Pago","Pendente","Atrasado"]),6:s("financeiro",6,["","Banco Inter","Banco do Brasil","Caixa"])}},l=d[e]&&d[e][t];if(l){var c=l.slice();i&&"Outro"!==i&&-1===c.indexOf(i)&&c.push(i);var A='<select id="'+n+'" onchange="onSelChange(this,\''+e+"',"+a+","+t+')">'+c.map(function(e){return'<option value="'+e+'"'+(e===i?" selected":"")+">"+(e||"—")+"</option>"}).join("")+"</select>";return 9===t&&i&&"Outro"!==i&&-1===l.slice(1).indexOf(i)&&(A+='<input type="text" id="'+n+'-custom" value="'+i.replace(/"/g,"&quot;")+'" placeholder="Nome do portal..." onblur="saveCell(\''+e+"',"+a+","+t+",this.value||document.getElementById('"+n+'\').value)" style="margin-top:4px;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.15);color:var(--t1);font-family:Outfit,sans-serif;font-size:13px;width:100%;outline:none;padding:3px 0">'),A}if(1===t)return'<input type="date" id="'+n+'" value="'+isoDate(i)+'" onchange="saveCell(\''+e+"',"+a+","+t+',formatDateBR(this.value))">';var p={editais:[4,12],andamento:[4,15],finalizados:[4,15],ganhas:[4,20,41],atestados:[4],financeiro:[7]};if(p[e]&&-1!==p[e].indexOf(t)){var u=12===t?"Justificativa...":15===t?"Resumo do andamento...":20===t||19===t||41===t?"Observações...":4===t?"Objeto...":"";return'<textarea id="'+("ta_"+e+"_"+a+"_"+t)+'" data-val="'+encodeURIComponent(i)+'" rows="3" placeholder="'+u+'" onblur="saveCell(\''+e+"',"+a+","+t+',this.value)" style="width:100%;min-height:80px;background:var(--s2);border:1px solid var(--b1);border-radius:8px;padding:8px 10px;font-size:13px;font-family:Outfit,sans-serif;color:var(--t1);line-height:1.5;resize:vertical;white-space:pre-wrap;word-break:break-word;box-sizing:border-box;255,255,255,.1);color:var(--t1);font-family:Outfit,sans-serif;font-size:14px;outline:none;padding:4px 0;resize:vertical;line-height:1.7;min-height:44px;white-space:pre-wrap;word-break:break-word;box-sizing:border-box;"></textarea>'}var _dtCols={andamento:[10,13]};if(_dtCols[e]&&_dtCols[e].indexOf(t)>=0){var _parts=i.split(/\s+/),_dv=_parts[0]||"",_tv=_parts[1]||"";return'<div style="display:flex;gap:6px;align-items:center"><input type="text" id="'+n+'" value="'+_dv+'" placeholder="DD/MM/AAAA" style="flex:1;min-width:0" onblur="saveDateTime(\''+e+"',"+a+","+t+',this)"><input type="text" id="'+n+'_h" value="'+_tv+'" placeholder="HH:MM" style="width:60px;text-align:center" onblur="saveDateTime(\''+e+"',"+a+","+t+',this)"></div>'}var _moedaCols={editais:[7],andamento:[7,8,18],ganhas:[7]},_isMoeda=_moedaCols[e]&&_moedaCols[e].indexOf(t)>=0;if(_isMoeda&&i){var _pv=parseMoeda(i);if(_pv>0)i=fmtMoeda(_pv)}return'<input type="text" id="'+n+'" value="'+i.replace(/"/g,"&quot;")+'" onblur="saveCell(\''+e+"',"+a+","+t+',this.value)">'}function isoDate(e){if(!e)return"";var a=e.split("/");return 3===a.length?a[2]+"-"+a[1]+"-"+a[0]:e}function formatDateBR(e){if(!e)return"";var a=e.split("-");return 3===a.length?a[2]+"/"+a[1]+"/"+a[0]:e}var _saveQueue=[],_saveRunning=!1,_saveTimer={};function saveCell(e,a,t,o){if(IS_READONLY)return;if("ganhas"===e&&(8===t||10===t||11===t)&&o&&String(o).trim()){var _row=FIL.ganhas?FIL.ganhas[a]:null;if(_row){var _ck="contrato_"+parseInt(_row[0]||0);localStorage.setItem(_ck,"1");if(typeof db!=="undefined"&&db){var _dd={};_dd[_ck]="1";db.collection("config").doc("toggles").set(_dd,{merge:true}).catch(function(){})}}}var i={andamento:[7,8,18],ganhas:[7,19,26,33,40],financeiro:[3]};if(i[e]&&-1!==i[e].indexOf(t)&&o){var n=parseMoeda(o);n>0&&(o=fmtMoeda(n))}var _orig=FIL[e][a];var r=_orig.slice();if(_orig._fbId!==undefined)r._fbId=_orig._fbId;if(_orig._idField!==undefined)r._idField=_orig._idField;if(_orig._docId!==undefined)r._docId=_orig._docId;if(_orig._createdAt!==undefined)r._createdAt=_orig._createdAt;if(_orig._updatedAt!==undefined)r._updatedAt=_orig._updatedAt;var _min=("ganhas"===e?50:25);for(;r.length<_min;)r.push("");r[t]=o;var s=parseInt(r[0]);if(s){for(;r.length<_min;)r.push("");for(var _z=0;_z<r.length;_z++)if(r[_z]===undefined||r[_z]===null)r[_z]="";FIL[e][a]=r,ALL[e]=ALL[e].map(function(e){return parseInt(e[0])===s?r:e}),updateCardColor(e,a),setSavingDot(!0);var d=e+"-"+a+"-"+t;_saveTimer[d]&&clearTimeout(_saveTimer[d]),_saveTimer[d]=setTimeout(function(){delete _saveTimer[d],_saveQueue.push({k:e,rowIdx:a,ci:t,rowId:s,fbId:FIL[e][a]._fbId,row:FIL[e][a].slice()}),_saveRunning||_processQueue()},600)}}async function syncEntreAbas(e,a,t){if("editais"===e||"andamento"===e||"finalizados"===e){var o=String(t[3]||"").trim(),i=String(t[10]||"").toUpperCase().trim();String(t[16]||"").toLowerCase().trim();if("editais"===e){var n=ALL.andamento.findIndex(function(e){return String(e[3]||"").trim().toLowerCase()===o.toLowerCase()}),vi=String(t[11]||"").toUpperCase().trim();var _partSIM="SIM"===i;var _partNAO="NÃO"===i||"NAO"===i;var _viabOK="POSITIVO"===vi||"SIM"===vi;var _viabNEG="NEGATIVO"===vi||"NÃO"===vi||"NAO"===vi;if((10===a&&_partNAO)||(11===a&&_viabNEG)){  if(-1!==n){    var _idRem=ALL.andamento[n]._fbId||parseInt(ALL.andamento[n][0]);    try{      await fbDelete("andamento",_idRem);      ALL.andamento.splice(n,1);      FIL.andamento=ALL.andamento.slice();      var _bAnd=document.getElementById("b-andamento");      if(_bAnd)_bAnd.textContent=FIL.andamento.filter(function(e){return"EM ANDAMENTO"===String(e[12]||"").toUpperCase().trim();}).length;      if("andamento"===CUR)renderTbl("andamento");      toast("Processo removido de Em Andamento (negativa)","info");    }catch(_er){toast("Erro ao remover de Andamento: "+_er.message,"err");}  }  return;}if((10===a&&_partSIM)||(11===a&&_viabOK&&_partSIM)){return void(-1===n&&await criarAndamentoDoEdital(t));}if(11===a&&_viabOK&&"SIM"===String(t[10]||"").toUpperCase().trim()){return void(-1===n&&await criarAndamentoDoEdital(t));}if(10===a&&"SIM"!==i){if(-1!==n){var r=ALL.andamento[n]._fbId||parseInt(ALL.andamento[n][0]);await fbDelete("andamento",r),ALL.andamento.splice(n,1),FIL.andamento=ALL.andamento.slice();var s=document.getElementById("b-andamento");s&&(s.textContent=FIL.andamento.filter(function(e){return"EM ANDAMENTO"===String(e[12]||"").toUpperCase().trim()}).length),toast("Removido de Em Andamento","info")}return}var d=ALL.andamento.findIndex(function(e){return String(e[3]||"").trim().toLowerCase()===o.toLowerCase()});if(-1!==d){for(var l=ALL.andamento[d].slice(),c=parseInt(l[0]),A=1;A<=7;A++)l[A]=void 0!==t[A]?t[A]:l[A];await fbSave("andamento",c,l),ALL.andamento[d]=l,FIL.andamento=ALL.andamento.slice(),"andamento"===CUR&&renderTbl("andamento"),toast("Empresa atualizada em Em Andamento!","ok")}}if("andamento"===e){var p=String(t[16]||"").toLowerCase().trim(),u=String(t[11]||"").trim(),m="sim"===p&&is1Posicao(u);if(16===a&&"sim"===p&&await copiarParaFinalizados(t),16===a&&"sim"===p){var v=ALL.finalizados.findIndex(function(e){return parseInt(e[0])===parseInt(t[0])});-1!==v&&(ALL.finalizados[v]=t.slice(),await fbSave("finalizados",parseInt(t[0]),t))}if(16===a||11===a)if(m)await criarLicitacaoGanha(t);else{var f=String(t[3]||"").trim().toLowerCase(),g=String(t[2]||"").trim(),b=ALL.ganhas.findIndex(function(e){return String(e[3]||"").trim().toLowerCase()===f&&String(e[2]||"").trim()===g});if(-1!==b){var h=ALL.ganhas[b]._fbId||parseInt(ALL.ganhas[b][0]);await fbDelete("ganhas",h),ALL.ganhas.splice(b,1),applyFilters("ganhas");var y=document.getElementById("b-ganhas");y&&(y.textContent=ALL.ganhas.length),toast("Removido de Licitações Ganhas","info")}}if(16===a&&"sim"!==p){var x=parseInt(t[0]),E=ALL.finalizados.findIndex(function(e){return parseInt(e[0])===x});if(-1!==E){await fbDelete("finalizados",ALL.finalizados[E]._fbId||x),ALL.finalizados.splice(E,1),FIL.finalizados=ALL.finalizados.slice();var S=document.getElementById("b-finalizados");S&&(S.textContent=FIL.finalizados.length)}}}}}async function reabrirFinalizados(e){var a=FIL.finalizados[e];if(a&&confirm('Reabrir este processo em Em Andamento? O ADJU será resetado para "não".')){var t=parseInt(a[0]),o=a.slice();o[16]="não",await fbSave("andamento",t,o);var i=ALL.andamento.findIndex(function(e){return parseInt(e[0])===t});-1!==i?ALL.andamento[i]=o:ALL.andamento.push(o);var _fx=ALL.finalizados.find(function(e){return parseInt(e[0])===t});await fbDelete("finalizados",(_fx&&_fx._fbId)||t),ALL.finalizados.splice(e,1),FIL.finalizados=ALL.finalizados.slice(),applyFilters("andamento"),"finalizados"===CUR&&renderTbl("finalizados");var n=document.getElementById("b-finalizados");n&&(n.textContent=ALL.finalizados.length),toast("✅ Processo reaberto em Em Andamento!","ok")}}async function criarLicitacaoGanha(e){try{parseInt(e[0]);if(ALL.ganhas.some(function(a){return String(a[3]||"").trim().toLowerCase()===String(e[3]||"").trim().toLowerCase()&&String(a[2]||"").trim()===String(e[2]||"").trim()}))return;for(var a=await fbGetNextId("ganhas"),t=[];t.length<50;)t.push("");t[0]=a,t[1]=e[1]||"",t[2]=e[2]||"",t[3]=e[3]||"",t[4]=e[4]||"",t[5]=e[5]||"",t[6]=e[6]||"",t[7]=e[8]||e[7]||"",t[9]="AGUARDANDO CONTRATO",t[42]=e[19]||"",await fbSave("ganhas",a,t),ALL.ganhas.push(t),applyFilters("ganhas");var o=document.getElementById("b-ganhas");o&&(o.textContent=ALL.ganhas.length),toast("✅ Processo adicionado em Licitações Ganhas!","ok")}catch(e){toast("Erro ao criar em Ganhas: "+e.message,"err")}}async function criarAndamentoDoEdital(e){try{var a=String(e[0]||"").trim();if(!(await db.collection("andamento").where("_id","==",parseInt(a)).get()).empty)return;var t=await fbGetNextId("andamento"),o=new Array(25).fill("");o[0]=t,o[1]=e[1]||"",o[2]=e[2]||"",o[3]=e[3]||"",o[4]=e[4]||"",o[5]=e[5]||"",o[6]=e[6]||"",o[7]=e[7]||"",await fbSave("andamento",t,o),ALL.andamento.unshift(o),FIL.andamento=ALL.andamento.slice();var i=document.getElementById("b-andamento");if(i){var n=FIL.andamento.filter(function(e){return"EM ANDAMENTO"===String(e[12]||"").toUpperCase().trim()}).length;i.textContent=n}toast("✅ Adicionado em Em Andamento (#"+t+")","ok")}catch(e){}}async function copiarParaFinalizados(e){try{var a=parseInt(e[0]);if((await db.collection("finalizados").doc(String(a)).get()).exists)return;await fbSave("finalizados",a,e),ALL.finalizados.unshift(e),FIL.finalizados=ALL.finalizados.slice();var t=document.getElementById("b-finalizados");t&&(t.textContent=FIL.finalizados.length),toast("✅ Copiado para Finalizados!","ok")}catch(e){}}var _corSelecionada="#f97316";function selecionarCor(e){document.querySelectorAll(".cor-opt").forEach(function(e){e.style.border="2px solid transparent"}),e.style.border="2px solid #fff",_corSelecionada=e.getAttribute("data-cor"),document.getElementById("emp-novo-cor").value=_corSelecionada}function mascaraCNPJ(e){var a=e.value.replace(/\D/g,"").substring(0,14);a=(a=(a=(a=a.replace(/(\d{2})(\d)/,"$1.$2")).replace(/(\d{3})(\d)/,"$1.$2")).replace(/(\d{3})(\d)/,"$1/$2")).replace(/(\d{4})(\d)/,"$1-$2"),e.value=a}function abrirGerenciarEmpresas(){renderListaEmpresas();var e=document.getElementById("mo-empresas");e.style.display="flex",e.classList.add("open")}function renderListaEmpresas(){var e=document.getElementById("emp-lista");EMPRESAS.length?e.innerHTML=EMPRESAS.map(function(e,a){var t=e.cor||"#f97316",o=[e.cnpj,e.cidade,e.socio?"Sócio: "+e.socio:"",e.robo?"🤖 Robô":""].filter(Boolean).join(" · ");return'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#111;border-radius:8px;border-left:3px solid '+t+';gap:8px"><div style="flex:1;min-width:0"><span style="font-weight:700;color:'+t+'">'+e.nome+"</span>"+(o?'<div style="font-size:11px;color:#666;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+o+"</div>":"")+'</div><div style="display:flex;gap:6px;flex-shrink:0"><button onclick="editarEmpresa('+a+')" style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);color:#60a5fa;padding:3px 10px;border-radius:5px;cursor:pointer;font-size:11px;font-family:Outfit,sans-serif">✏ Editar</button><button onclick="removerEmpresa('+a+')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#ef4444;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px">✕</button></div></div>'}).join(""):e.innerHTML='<div style="color:var(--t3);font-size:13px;padding:8px">Nenhuma empresa cadastrada</div>'}function gv(e){var a=document.getElementById(e);return a?a.value.trim():""}function adicionarEmpresa(){
+function inlineCell(e,a,t,o){var i=String(o||"").trim(),n="ic-"+e+"-"+a+"-"+t;if("finalizados"===e)return'<span style="font-size:14px;color:var(--t2);line-height:1.6;word-break:break-word;white-space:pre-wrap">'+(i||"—")+"</span>";var r=[""];function s(e,a,t){var o=getOptsCustom(e,a),i=t.slice();return o.forEach(function(e){-1===i.indexOf(e)&&i.push(e)}),-1===i.indexOf("Outro")&&i.push("Outro"),i}EMPRESAS.forEach(function(e){r.push(e.nome)});var d={editais:{2:r,10:["","SIM","NÃO","EM ANÁLISE"],11:["","POSITIVO","NEGATIVO","PENDENTE"]},andamento:{2:r,9:s("andamento",9,["","Compras Gov","BLL","LICITANET","CONLICITACAO","BNC","Publinexo","Licitanet","PE-Integrado","Compras Públicas","Apoio Cotações","Licitar Digital","Licitações-e","Enviada por E-mail"]),11:s("andamento",11,["","1 posição","2 posição","3 posição","4 posição","5 posição","6 posição","7 posição","8 posição","9 posição","10 posição","11 posição","12 posição","13 posição","14 posição","15 posição","Proposta enviada","Desclassificado","Inabilitado","Cancelado","Não participou"]),12:s("andamento",12,["","Em andamento","Ganha","Finalizado","Suspenso","Desclassificado","Inabilitado","Cancelado","Recurso","Aguardando"]),14:["","sim","não"],16:["","sim","não"]},ganhas:{2:r,9:s("ganhas",9,["","AGUARDANDO CONTRATO","EM EXECUÇÃO","SERÁ ENCERRADO","FINALIZADO","SUSPENSO","RESCINDIDO"]),13:["","SIM","NÃO"],43:["","(automático)","Não prorrogável","Será encerrado","Aguardando recomposição","Recomposição em andamento","Prorrogado"],49:["","Solicitar prorrogação","Solicitar reajuste","Solicitar recomposição","Aguardar assinatura","Acompanhar execução","Acompanhar publicação","Arquivar","Sem providências"]},atestados:{2:r,10:["","SIM","NÃO"],11:["","SIM","NÃO"],15:s("atestados",15,["","ATIVO","PENDENTE","VENCIDO"]),17:s("atestados",17,["","ATIVO","PENDENTE","VENCIDO"]),18:s("atestados",18,["","COMPLETO","PENDENTE","EM ANDAMENTO"])},financeiro:{1:s("financeiro",1,["","IAs","Portais","Telefonia","Informatica"]),5:s("financeiro",5,["","Pago","Pendente","Atrasado"]),6:s("financeiro",6,["","Banco Inter","Banco do Brasil","Caixa"])}},l=d[e]&&d[e][t];if(l){var c=l.slice();i&&"Outro"!==i&&-1===c.indexOf(i)&&c.push(i);var A='<select id="'+n+'" onchange="onSelChange(this,\''+e+"',"+a+","+t+')">'+c.map(function(e){return'<option value="'+e+'"'+(e===i?" selected":"")+">"+(e||"—")+"</option>"}).join("")+"</select>";return 9===t&&i&&"Outro"!==i&&-1===l.slice(1).indexOf(i)&&(A+='<input type="text" id="'+n+'-custom" value="'+i.replace(/"/g,"&quot;")+'" placeholder="Nome do portal..." onblur="saveCell(\''+e+"',"+a+","+t+",this.value||document.getElementById('"+n+'\').value)" style="margin-top:4px;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.15);color:var(--t1);font-family:Outfit,sans-serif;font-size:13px;width:100%;outline:none;padding:3px 0">'),A}if(1===t)return'<input type="date" id="'+n+'" value="'+isoDate(i)+'" onchange="saveCell(\''+e+"',"+a+","+t+',formatDateBR(this.value))">';var p={editais:[4,12],andamento:[4,15],finalizados:[4,15],ganhas:[4,20,41],atestados:[4],financeiro:[7]};if(p[e]&&-1!==p[e].indexOf(t)){var u=12===t?"Justificativa...":15===t?"Resumo do andamento...":20===t||19===t||41===t?"Observações...":4===t?"Objeto...":"";return'<textarea id="'+("ta_"+e+"_"+a+"_"+t)+'" data-val="'+encodeURIComponent(i)+'" rows="3" placeholder="'+u+'" onblur="saveCell(\''+e+"',"+a+","+t+',this.value)" style="width:100%;min-height:80px;background:var(--s2);border:1px solid var(--b1);border-radius:8px;padding:8px 10px;font-size:13px;font-family:Outfit,sans-serif;color:var(--t1);line-height:1.5;resize:vertical;white-space:pre-wrap;word-break:break-word;box-sizing:border-box;255,255,255,.1);color:var(--t1);font-family:Outfit,sans-serif;font-size:14px;outline:none;padding:4px 0;resize:vertical;line-height:1.7;min-height:44px;white-space:pre-wrap;word-break:break-word;box-sizing:border-box;"></textarea>'}var _dtCols={andamento:[10,13]};if(_dtCols[e]&&_dtCols[e].indexOf(t)>=0){var _parts=i.split(/\s+/),_dv=_parts[0]||"",_tv=_parts[1]||"";return'<div style="display:flex;gap:6px;align-items:center"><input type="text" id="'+n+'" value="'+_dv+'" placeholder="DD/MM/AAAA" style="flex:1;min-width:0" onblur="saveDateTime(\''+e+"',"+a+","+t+',this)"><input type="text" id="'+n+'_h" value="'+_tv+'" placeholder="HH:MM" style="width:60px;text-align:center" onblur="saveDateTime(\''+e+"',"+a+","+t+',this)"></div>'}var _moedaCols={editais:[7],andamento:[7,8,18],ganhas:[7]},_isMoeda=_moedaCols[e]&&_moedaCols[e].indexOf(t)>=0;if(_isMoeda&&i){var _pv=parseMoeda(i);if(_pv>0)i=fmtMoeda(_pv)}return'<input type="text" id="'+n+'" value="'+i.replace(/"/g,"&quot;")+'" onblur="saveCell(\''+e+"',"+a+","+t+',this.value)">'}function isoDate(e){if(!e)return"";var a=e.split("/");return 3===a.length?a[2]+"-"+a[1]+"-"+a[0]:e}function formatDateBR(e){if(!e)return"";var a=e.split("-");return 3===a.length?a[2]+"/"+a[1]+"/"+a[0]:e}var _saveQueue=[],_saveRunning=!1,_saveTimer={};function saveCell(e,a,t,o){if(IS_READONLY)return;if("ganhas"===e&&(8===t||10===t||11===t)&&o&&String(o).trim()){var _row=FIL.ganhas?FIL.ganhas[a]:null;if(_row){var _ck="contrato_"+parseInt(_row[0]||0);localStorage.setItem(_ck,"1");if(typeof db!=="undefined"&&db){var _dd={};_dd[_ck]="1";db.collection("config").doc("toggles").set(_dd,{merge:true}).catch(function(){})}}}var i={andamento:[7,8,18],ganhas:[7,19,26,33,40],financeiro:[3]};if(i[e]&&-1!==i[e].indexOf(t)&&o){var n=parseMoeda(o);n>0&&(o=fmtMoeda(n))}var _orig=FIL[e][a];var r=_orig.slice();if(_orig._fbId!==undefined)r._fbId=_orig._fbId;if(_orig._idField!==undefined)r._idField=_orig._idField;if(_orig._docId!==undefined)r._docId=_orig._docId;if(_orig._createdAt!==undefined)r._createdAt=_orig._createdAt;if(_orig._updatedAt!==undefined)r._updatedAt=_orig._updatedAt;var _min=("ganhas"===e?50:25);for(;r.length<_min;)r.push("");r[t]=o;var s=parseInt(r[0]);if(s){for(;r.length<_min;)r.push("");for(var _z=0;_z<r.length;_z++)if(r[_z]===undefined||r[_z]===null)r[_z]="";FIL[e][a]=r,ALL[e]=ALL[e].map(function(e){return parseInt(e[0])===s?r:e}),updateCardColor(e,a),setSavingDot(!0);var d=e+"-"+a+"-"+t;_saveTimer[d]&&clearTimeout(_saveTimer[d]),_saveTimer[d]=setTimeout(function(){delete _saveTimer[d],_saveQueue.push({k:e,rowIdx:a,ci:t,rowId:s,fbId:FIL[e][a]._fbId,row:FIL[e][a].slice()}),_saveRunning||_processQueue()},600)}}async function syncEntreAbas(e,a,t){if("editais"===e||"andamento"===e||"finalizados"===e){var o=String(t[3]||"").trim(),i=String(t[10]||"").toUpperCase().trim();String(t[16]||"").toLowerCase().trim();if("editais"===e){var n=ALL.andamento.findIndex(function(e){return String(e[3]||"").trim().toLowerCase()===o.toLowerCase()}),vi=String(t[11]||"").toUpperCase().trim();var _partSIM="SIM"===i;var _partNAO="NÃO"===i||"NAO"===i;var _viabOK="POSITIVO"===vi||"SIM"===vi;var _viabNEG="NEGATIVO"===vi||"NÃO"===vi||"NAO"===vi;if((10===a&&_partNAO)||(11===a&&_viabNEG)){  if(-1!==n){    var _idRem=ALL.andamento[n]._fbId||parseInt(ALL.andamento[n][0]);    try{      await fbDelete("andamento",_idRem);      ALL.andamento.splice(n,1);      FIL.andamento=ALL.andamento.slice();      var _bAnd=document.getElementById("b-andamento");      if(_bAnd)_bAnd.textContent=FIL.andamento.filter(function(e){return"EM ANDAMENTO"===String(e[12]||"").toUpperCase().trim();}).length;      if("andamento"===CUR)renderTbl("andamento");      toast("Processo removido de Em Andamento (negativa)","info");    }catch(_er){toast("Erro ao remover de Andamento: "+_er.message,"err");}  }  return;}if((10===a&&_partSIM)||(11===a&&_viabOK&&_partSIM)){return void(-1===n&&await criarAndamentoDoEdital(t));}if(11===a&&_viabOK&&"SIM"===String(t[10]||"").toUpperCase().trim()){return void(-1===n&&await criarAndamentoDoEdital(t));}if(10===a&&"SIM"!==i){if(-1!==n){var r=ALL.andamento[n]._fbId||parseInt(ALL.andamento[n][0]);await fbDelete("andamento",r),ALL.andamento.splice(n,1),FIL.andamento=ALL.andamento.slice();var s=document.getElementById("b-andamento");s&&(s.textContent=FIL.andamento.filter(function(e){return"EM ANDAMENTO"===String(e[12]||"").toUpperCase().trim()}).length),toast("Removido de Em Andamento","info")}return}var d=ALL.andamento.findIndex(function(e){return String(e[3]||"").trim().toLowerCase()===o.toLowerCase()});if(-1!==d){for(var l=ALL.andamento[d].slice(),c=parseInt(l[0]),A=1;A<=7;A++)l[A]=void 0!==t[A]?t[A]:l[A];await fbSave("andamento",c,l),ALL.andamento[d]=l,FIL.andamento=ALL.andamento.slice(),"andamento"===CUR&&renderTbl("andamento"),toast("Empresa atualizada em Em Andamento!","ok")}}if("andamento"===e){var p=String(t[16]||"").toLowerCase().trim(),u=String(t[11]||"").trim(),m="sim"===p&&is1Posicao(u);if(16===a&&"sim"===p&&await copiarParaFinalizados(t),16===a&&"sim"===p){var v=ALL.finalizados.findIndex(function(e){return parseInt(e[0])===parseInt(t[0])});-1!==v&&(ALL.finalizados[v]=t.slice(),await fbSave("finalizados",parseInt(t[0]),t))}if(16===a||11===a)if(m)await criarLicitacaoGanha(t);else{var f=String(t[3]||"").trim().toLowerCase(),g=String(t[2]||"").trim(),b=ALL.ganhas.findIndex(function(e){return String(e[3]||"").trim().toLowerCase()===f&&String(e[2]||"").trim()===g});if(-1!==b){var h=ALL.ganhas[b]._fbId||parseInt(ALL.ganhas[b][0]);await fbDelete("ganhas",h),ALL.ganhas.splice(b,1),applyFilters("ganhas");var y=document.getElementById("b-ganhas");y&&(y.textContent=ALL.ganhas.length),toast("Removido de Licitações Ganhas","info")}}if(16===a&&"sim"!==p){var x=parseInt(t[0]),E=ALL.finalizados.findIndex(function(e){return parseInt(e[0])===x});if(-1!==E){await fbDelete("finalizados",ALL.finalizados[E]._fbId||x),ALL.finalizados.splice(E,1),FIL.finalizados=ALL.finalizados.slice();var S=document.getElementById("b-finalizados");S&&(S.textContent=FIL.finalizados.length)}}}}}async function reabrirFinalizados(e){var a=FIL.finalizados[e];if(a&&confirm('Reabrir este processo em Em Andamento? O ADJU será resetado para "não".')){var t=parseInt(a[0]),o=a.slice();o[16]="não",await fbSave("andamento",t,o);var i=ALL.andamento.findIndex(function(e){return parseInt(e[0])===t});-1!==i?ALL.andamento[i]=o:ALL.andamento.push(o);var _fx=ALL.finalizados.find(function(e){return parseInt(e[0])===t});await fbDelete("finalizados",(_fx&&_fx._fbId)||t),ALL.finalizados.splice(e,1),FIL.finalizados=ALL.finalizados.slice(),applyFilters("andamento"),"finalizados"===CUR&&renderTbl("finalizados");var n=document.getElementById("b-finalizados");n&&(n.textContent=ALL.finalizados.length),toast("✅ Processo reaberto em Em Andamento!","ok")}}async function criarLicitacaoGanha(e){try{parseInt(e[0]);if(ALL.ganhas.some(function(a){return String(a[3]||"").trim().toLowerCase()===String(e[3]||"").trim().toLowerCase()&&String(a[2]||"").trim()===String(e[2]||"").trim()}))return;for(var a=await fbGetNextId("ganhas"),t=[];t.length<50;)t.push("");t[0]=a,t[1]=e[1]||"",t[2]=e[2]||"",t[3]=e[3]||"",t[4]=e[4]||"",t[5]=e[5]||"",t[6]=e[6]||"",t[7]=e[8]||e[7]||"",t[9]="AGUARDANDO CONTRATO",t[42]=e[19]||"",await fbSave("ganhas",a,t),ALL.ganhas.push(t),applyFilters("ganhas");var o=document.getElementById("b-ganhas");o&&(o.textContent=ALL.ganhas.length),toast("✅ Processo adicionado em Licitações Ganhas!","ok")}catch(e){toast("Erro ao criar em Ganhas: "+e.message,"err")}}async function criarAndamentoDoEdital(e){try{var a=String(e[0]||"").trim();if(!(await db.collection("andamento").where("_id","==",parseInt(a)).get()).empty)return;var t=await fbGetNextId("andamento"),o=new Array(25).fill("");o[0]=t,o[1]=e[1]||"",o[2]=e[2]||"",o[3]=e[3]||"",o[4]=e[4]||"",o[5]=e[5]||"",o[6]=e[6]||"",o[7]=e[7]||"",await fbSave("andamento",t,o),ALL.andamento.unshift(o),FIL.andamento=ALL.andamento.slice();var i=document.getElementById("b-andamento");if(i){var n=FIL.andamento.filter(function(e){return"EM ANDAMENTO"===String(e[12]||"").toUpperCase().trim()}).length;i.textContent=n}toast("✅ Adicionado em Em Andamento (#"+t+")","ok")}catch(e){}}async function copiarParaFinalizados(e){try{var a=parseInt(e[0]);if((await db.collection("finalizados").doc(String(a)).get()).exists)return;await fbSave("finalizados",a,e),ALL.finalizados.unshift(e),FIL.finalizados=ALL.finalizados.slice();var t=document.getElementById("b-finalizados");t&&(t.textContent=FIL.finalizados.length),toast("✅ Copiado para Finalizados!","ok")}catch(e){}}var _corSelecionada="#f97316";function selecionarCor(e){document.querySelectorAll(".cor-opt").forEach(function(e){e.style.border="2px solid transparent"}),e.style.border="2px solid #fff",_corSelecionada=e.getAttribute("data-cor"),document.getElementById("emp-novo-cor").value=_corSelecionada}function mascaraCNPJ(e){var a=e.value.replace(/\D/g,"").substring(0,14);a=(a=(a=(a=a.replace(/(\d{2})(\d)/,"$1.$2")).replace(/(\d{3})(\d)/,"$1.$2")).replace(/(\d{3})(\d)/,"$1/$2")).replace(/(\d{4})(\d)/,"$1-$2"),e.value=a}
+/* ════════════════════════════════════════════════════════════
+   PAPEL TIMBRADO DAS EMPRESAS
+   Guardado em documentos SEPARADOS do Firestore (config/timbrado_{empresa}),
+   nunca dentro do documento único "config/empresas" -- esse ja guarda a lista
+   de TODAS as empresas junto, e uma imagem ali estouraria o limite de 1MB
+   do Firestore para todo mundo de uma vez, nao so para quem tem timbrado.
+   ════════════════════════════════════════════════════════════ */
+var _TIMBRADOS_CACHE = {};      // nome da empresa -> data URL (ja carregado nesta sessao)
+var _timbradoAtual = undefined; // estado do upload em andamento: dataURL | 'REMOVER' | undefined
+var _timbradosPendentes = {};   // nome -> dataURL|'REMOVER', aguardando confirmarEmpresas()
+
+function carregarTimbradoEmpresa(input){
+  var file = input.files && input.files[0];
+  if(!file) return;
+  if(!file.type || file.type.indexOf('image/')!==0){ toast('Escolha um arquivo de imagem (PNG ou JPG)','err'); return; }
+  if(file.size > 6*1024*1024){ toast('Imagem muito grande (max. 6MB antes de comprimir)','err'); return; }
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var img = new Image();
+    img.onload = function(){
+      var maxW = 1000;
+      var scale = Math.min(1, maxW/img.width);
+      var canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width*scale);
+      canvas.height = Math.round(img.height*scale);
+      var ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      var dataUrl = canvas.toDataURL('image/jpeg', 0.80);
+      var kb = Math.round(dataUrl.length*0.75/1024);
+      if(kb > 900){
+        dataUrl = canvas.toDataURL('image/jpeg', 0.55);
+        kb = Math.round(dataUrl.length*0.75/1024);
+      }
+      if(kb > 900){ toast('Imagem ainda grande apos compressao ('+kb+'KB). Tente uma imagem mais simples ou menor.','err'); return; }
+      _timbradoAtual = {dataUrl: dataUrl, width: canvas.width, height: canvas.height};
+      var prev = document.getElementById('emp-timbrado-preview');
+      if(prev){ prev.src = dataUrl; prev.style.display='block'; }
+      var st = document.getElementById('emp-timbrado-status');
+      if(st) st.textContent = 'Carregado (~'+kb+'KB) -- clique em Adicionar/Salvar Empresa para confirmar';
+      var rm = document.getElementById('emp-timbrado-remover');
+      if(rm) rm.style.display = 'inline-block';
+    };
+    img.onerror = function(){ toast('Nao consegui ler essa imagem. Tente outro arquivo.','err'); };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removerTimbradoEmpresa(){
+  _timbradoAtual = 'REMOVER';
+  var prev = document.getElementById('emp-timbrado-preview');
+  if(prev){ prev.style.display='none'; prev.src=''; }
+  var st = document.getElementById('emp-timbrado-status');
+  if(st) st.textContent = 'Papel timbrado sera removido ao salvar';
+  var rm = document.getElementById('emp-timbrado-remover');
+  if(rm) rm.style.display = 'none';
+  var fEl = document.getElementById('emp-timbrado-file');
+  if(fEl) fEl.value = '';
+}
+
+function _resetFormTimbrado(){
+  _timbradoAtual = undefined;
+  var prev = document.getElementById('emp-timbrado-preview');
+  if(prev){ prev.style.display='none'; prev.src=''; }
+  var st = document.getElementById('emp-timbrado-status');
+  if(st) st.textContent = 'Nenhum papel timbrado carregado';
+  var rm = document.getElementById('emp-timbrado-remover');
+  if(rm) rm.style.display='none';
+  var fEl = document.getElementById('emp-timbrado-file');
+  if(fEl) fEl.value = '';
+}
+
+async function carregarTimbradoDeEmpresa(nome){
+  if(!nome) return null;
+  if(_TIMBRADOS_CACHE.hasOwnProperty(nome)) return _TIMBRADOS_CACHE[nome];
+  try{
+    var doc = await db.collection('config').doc('timbrado_'+nome).get();
+    var val = (doc.exists && doc.data() && doc.data().dataUrl) ? doc.data() : null; // {dataUrl,width,height}
+    _TIMBRADOS_CACHE[nome] = val;
+    return val;
+  }catch(e){
+    console.warn('Erro ao carregar timbrado de '+nome, e);
+    return null;
+  }
+}
+
+async function _salvarTimbradosPendentes(){
+  var nomes = Object.keys(_timbradosPendentes);
+  for(var i=0;i<nomes.length;i++){
+    var nome = nomes[i];
+    var val = _timbradosPendentes[nome];
+    try{
+      if(val==='REMOVER'){
+        await db.collection('config').doc('timbrado_'+nome).delete();
+        _TIMBRADOS_CACHE[nome] = null;
+      } else {
+        // val já é {dataUrl, width, height}
+        await db.collection('config').doc('timbrado_'+nome).set(val);
+        _TIMBRADOS_CACHE[nome] = val;
+      }
+    }catch(e){
+      toast('Erro ao salvar papel timbrado de '+nome+': '+e.message, 'err');
+    }
+  }
+  _timbradosPendentes = {};
+}
+
+function abrirGerenciarEmpresas(){renderListaEmpresas();var e=document.getElementById("mo-empresas");e.style.display="flex",e.classList.add("open")}function renderListaEmpresas(){var e=document.getElementById("emp-lista");EMPRESAS.length?e.innerHTML=EMPRESAS.map(function(e,a){var t=e.cor||"#f97316",o=[e.cnpj,e.cidade,e.socio?"Sócio: "+e.socio:"",e.robo?"🤖 Robô":""].filter(Boolean).join(" · ");return'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--s2);border:1px solid var(--b1);border-radius:8px;border-left:3px solid '+t+';gap:8px"><div style="flex:1;min-width:0"><span style="font-weight:700;color:'+t+'">'+e.nome+"</span>"+(o?'<div style="font-size:11px;color:#666;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+o+"</div>":"")+'</div><div style="display:flex;gap:6px;flex-shrink:0"><button onclick="editarEmpresa('+a+')" style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);color:#60a5fa;padding:3px 10px;border-radius:5px;cursor:pointer;font-size:11px;font-family:Outfit,sans-serif">✏ Editar</button><button onclick="removerEmpresa('+a+')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#ef4444;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px">✕</button></div></div>'}).join(""):e.innerHTML='<div style="color:var(--t3);font-size:13px;padding:8px">Nenhuma empresa cadastrada</div>'}function gv(e){var a=document.getElementById(e);return a?a.value.trim():""}function adicionarEmpresa(){
   var e=gv("emp-fantasia").toUpperCase(),a=gv("emp-razao"),t=gv("emp-cnpj"),o=gv("emp-novo-cor")||_corSelecionada||"#f97316";
   if(!e){toast("Digite o nome fantasia","err");return;}
   var novaEmp={nome:e,razao:a,cnpj:t,cor:o,
@@ -3328,6 +3450,12 @@ function inlineCell(e,a,t,o){var i=String(o||"").trim(),n="ic-"+e+"-"+a+"-"+t;if
     tel:gv("emp-tel")||gv("emp-tel2"),email:gv("emp-email")||gv("emp-email2"),
     banco:gv("emp-banco")||gv("emp-banco2"),agencia:gv("emp-agencia")||gv("emp-agencia2"),
     conta:gv("emp-conta")||gv("emp-conta2")};
+  // Papel timbrado: registrar a alteração pendente (salva de fato em confirmarEmpresas())
+  if(_timbradoAtual==="REMOVER"){
+    _timbradosPendentes[e] = "REMOVER";
+  } else if(_timbradoAtual){
+    _timbradosPendentes[e] = _timbradoAtual;
+  }
   if(_editEmpIdx >= 0){
     // Modo edição — substituir no índice original
     EMPRESAS[_editEmpIdx] = novaEmp;
@@ -3339,6 +3467,7 @@ function inlineCell(e,a,t,o){var i=String(o||"").trim(),n="ic-"+e+"-"+a+"-"+t;if
     EMPRESAS.push(novaEmp);
     toast("Empresa adicionada! Clique em Salvar Alterações","ok");
   }
+  _resetFormTimbrado();
   ["emp-razao","emp-fantasia","emp-cnpj","emp-endereco","emp-cep","emp-socio","emp-cpf","emp-cargo","emp-cidade","emp-tel","emp-email","emp-banco","emp-agencia","emp-conta","emp-socio2","emp-cpf2","emp-cargo2","emp-cidade2","emp-tel2","emp-email2","emp-banco2","emp-agencia2","emp-conta2","emp-robo"].forEach(function(e){var a=document.getElementById(e);if(a)a.value="";});
   // Restaurar botão
   var btn=document.querySelector('[onclick="adicionarEmpresa()"]');
@@ -3360,6 +3489,18 @@ function inlineCell(e,a,t,o){var i=String(o||"").trim(),n="ic-"+e+"-"+a+"-"+t;if
   Object.keys(t).forEach(function(k){var el=document.getElementById(k);if(el)el.value=t[k];});
   if(a.cor)document.getElementById("emp-novo-cor").value=a.cor;
   var roboEl=document.getElementById("emp-robo");if(roboEl)roboEl.checked=!!a.robo;
+  // Papel timbrado: buscar o já cadastrado (se houver) e mostrar no preview
+  _resetFormTimbrado();
+  carregarTimbradoDeEmpresa(a.nome).then(function(tmb){
+    if(tmb && _editEmpIdx===e){
+      var prev=document.getElementById("emp-timbrado-preview");
+      if(prev){ prev.src=tmb.dataUrl; prev.style.display="block"; }
+      var st=document.getElementById("emp-timbrado-status");
+      if(st) st.textContent="Papel timbrado já cadastrado";
+      var rm=document.getElementById("emp-timbrado-remover");
+      if(rm) rm.style.display="inline-block";
+    }
+  });
   // Atualizar botão para mostrar "Salvar Edição"
   var btn=document.querySelector('[onclick="adicionarEmpresa()"]');
   if(btn){btn.textContent="💾 Salvar Edição";btn.style.background="#22c55e";}
@@ -3372,6 +3513,7 @@ var _editEmpIdx = -1;function removerEmpresa(e){confirm("Remover "+EMPRESAS[e].n
   e&&(e.disabled=!0,e.textContent="Salvando...");
   try{
     await salvarEmpresas();
+    await _salvarTimbradosPendentes();
     atualizarSelectsEmpresas();
     _editEmpIdx=-1;
     // Restaurar botão de adicionar
@@ -4553,6 +4695,14 @@ function selecionarEmpresa(nome){
     var cidEl = document.getElementById('cidade_assina');
     if(cidEl) cidEl.value = _empS.cidade;
   }
+  // Papel timbrado: carrega em segundo plano e anexa ao registro da empresa,
+  // pra já estar pronto quando o usuário clicar em Gerar PDF/Word.
+  carregarTimbradoDeEmpresa(nome).then(function(url){
+    if(!url) return;
+    var _e = EMPRESAS.find(function(e){return e.nome===nome;});
+    if(_e) _e.timbrado = url;
+    if(DADOS_FIXOS && DADOS_FIXOS[nome]) DADOS_FIXOS[nome].timbrado = url;
+  });
 }
 
 function _getEmpData(){
@@ -4580,6 +4730,8 @@ function cssBase(titulo, cor){
     +'.page-wrap{min-height:100vh;display:flex;flex-direction:column}'
     // Cabeçalho: barra sólida + friso mais escuro no topo, para um acabamento "timbrado" de verdade
     +'.cabecalho{position:relative;background:'+cor+';padding:22px 40px;display:flex;align-items:center;justify-content:space-between}'
+    +'.cabecalho-timbrado{width:100%;line-height:0}'
+    +'.cabecalho-timbrado img{width:100%;height:auto;display:block}'
     +'.cabecalho::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:rgba(0,0,0,.14)}'
     +'.cab-razao{font-size:16.5px;font-weight:800;color:#fff;letter-spacing:.01em;line-height:1.25}'
     +'.cab-cnpj{font-size:10px;color:rgba(255,255,255,.86);margin-top:4px;letter-spacing:.01em}'
@@ -4628,6 +4780,12 @@ function timbradoHTML(emp, titulo){
   var _hoje = new Date().toLocaleDateString('pt-BR');
   var _faixa = '<div class="doc-faixa"><span class="doc-faixa-tag">'+(titulo||'Documento')+'</span><span>Emitido em '+_hoje+'</span></div>';
   if(!emp){return '<div class="cabecalho"><div><div class="cab-razao">NH Licitações</div></div></div>'+_faixa+'<div class="corpo">';}
+  // Empresa com papel timbrado próprio: usa a imagem no lugar da barra colorida.
+  if(emp.timbrado && emp.timbrado.dataUrl){
+    return '<div class="cabecalho-timbrado"><img src="'+emp.timbrado.dataUrl+'" alt="Papel timbrado"></div>'
+      +_faixa
+      +'<div class="corpo">';
+  }
   var cor = emp.cor||'#f97316';
   return '<div class="cabecalho" style="background:'+cor+'">'
     +'<div>'
@@ -5066,8 +5224,12 @@ function previsualizar(){
 
 function _declParasDocxCabecalho(_docx, d, emp, cor){
   var paras=[];
-  paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:(emp.razao||emp.nome||'').toUpperCase(),bold:true,size:28,color:cor})],spacing:{after:120}}));
-  paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'CNPJ: '+emp.cnpj+(emp.cidade?' | '+emp.cidade:''),size:18,color:'666666'})],spacing:{after:360},border:{bottom:{style:_docx.BorderStyle.SINGLE,size:6,color:cor}}}));
+  if(emp.timbrado && emp.timbrado.dataUrl){
+    paras.push(_docxHeaderImage(_docx, emp.timbrado));
+  } else {
+    paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:(emp.razao||emp.nome||'').toUpperCase(),bold:true,size:28,color:cor})],spacing:{after:120}}));
+    paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'CNPJ: '+emp.cnpj+(emp.cidade?' | '+emp.cidade:''),size:18,color:'666666'})],spacing:{after:360},border:{bottom:{style:_docx.BorderStyle.SINGLE,size:6,color:cor}}}));
+  }
   if(d.orgao) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Ao: '+d.orgao,size:20})],spacing:{after:80}}));
   if(d.setor) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Setor: '+d.setor,size:20})],spacing:{after:80}}));
   if(d.modalidade) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Ref.: '+d.modalidade,size:20})],spacing:{after:80}}));
@@ -5147,6 +5309,19 @@ function _gerarWordDeclaracoes(d, _docx){
   }
 }
 
+
+// Parágrafo com a imagem do papel timbrado, para o Word. Usa a largura/altura
+// guardadas no upload (carregarTimbradoEmpresa) para não distorcer a imagem.
+function _docxHeaderImage(_docx, timbrado){
+  var base64 = (timbrado.dataUrl||'').split(',')[1] || '';
+  var targetW = 600;
+  var targetH = timbrado.width ? Math.round((timbrado.height/timbrado.width) * targetW) : 150;
+  return new _docx.Paragraph({
+    children: [ new _docx.ImageRun({ data: base64, transformation: { width: targetW, height: targetH } }) ],
+    spacing: { after: 240 }
+  });
+}
+
 function gerarWord(){
   var _docx=null;
   if(typeof docx!=='undefined') _docx=docx;
@@ -5177,7 +5352,10 @@ function gerarWord(){
     var emp = d.emp;
     var cor = (emp.cor||'#f97316').replace('#','');
     var paras = [];
-    // Cabeçalho da empresa
+    // Cabeçalho da empresa — imagem do papel timbrado, se cadastrada; senão, texto colorido
+    if(emp.timbrado && emp.timbrado.dataUrl){
+      paras.push(_docxHeaderImage(_docx, emp.timbrado));
+    } else {
     paras.push(new _docx.Paragraph({
       children:[new _docx.TextRun({text:(emp.razao||emp.nome||'').toUpperCase(),bold:true,size:28,color:cor})],
       spacing:{after:120}
@@ -5186,6 +5364,7 @@ function gerarWord(){
       children:[new _docx.TextRun({text:'CNPJ: '+emp.cnpj+(emp.cidade?' | '+emp.cidade:''),size:18,color:'666666'})],
       spacing:{after:360},border:{bottom:{style:_docx.BorderStyle.SINGLE,size:6,color:cor}}
     }));
+    }
     // Dados do processo
     if(d.orgao) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Ao: '+d.orgao,size:20})],spacing:{after:80}}));
     if(d.setor) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Setor: '+d.setor,size:20})],spacing:{after:80}}));
