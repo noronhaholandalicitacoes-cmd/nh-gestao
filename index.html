@@ -725,10 +725,6 @@ select{color-scheme:dark;}
 .doc-btn.on{border-color:#f97316;background:rgba(249,115,22,.08);color:#f97316}
 .doc-btn .doc-sub{font-size:10px;font-weight:400;color:#555;margin-top:2px}
 .doc-btn.on .doc-sub{color:#f97316aa}
-/* Outras declarações submenu */
-.outras-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid #2a2a2a;display:none}
-.outras-btn{padding:7px 14px;border-radius:20px;border:1px solid var(--b1);background:var(--s2);color:var(--t3);font-size:12px;font-weight:600;cursor:pointer;font-family:Outfit,sans-serif;transition:all .2s}
-.outras-btn.on{border-color:#a78bfa;background:rgba(167,139,250,.1);color:#a78bfa}
 /* Form */
 .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
@@ -849,6 +845,20 @@ body:not(.compact) .kcard-top{gap:16px!important;margin-bottom:8px!important;}
 .badge-vence-hoje{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:800;padding:2px 9px;border-radius:5px;background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.5);text-transform:uppercase;letter-spacing:.04em;margin-left:6px;animation:blink 1.3s ease-in-out infinite}
 .badge-vence-dot{width:7px;height:7px;border-radius:50%;background:#ef4444;display:inline-block;animation:pulse 1s ease-in-out infinite}
 .kcard.vence-alerta{box-shadow:0 0 0 1.5px rgba(239,68,68,.5),0 4px 14px rgba(239,68,68,.18)}
+
+/* ===== Checklist de declarações ===== */
+.decl-row{display:flex;align-items:flex-start;gap:10px;background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:12px 14px;transition:border-color .15s}
+.decl-row.checked{border-color:var(--nh)}
+.decl-row input[type=checkbox]{margin-top:2px;width:16px;height:16px;accent-color:var(--nh);cursor:pointer;flex-shrink:0}
+.decl-row-body{flex:1;min-width:0}
+.decl-row-titulo{font-size:13px;font-weight:700;color:var(--t1);display:flex;align-items:center;gap:8px}
+.decl-badge{font-size:9px;font-weight:800;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.04em;flex-shrink:0}
+.decl-badge-ia{background:rgba(167,139,250,.15);color:#a78bfa}
+.decl-badge-manual{background:rgba(59,130,246,.15);color:#60a5fa}
+.decl-row-preview{font-size:11px;color:var(--t3);margin-top:4px;line-height:1.5}
+.decl-row-edit{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.decl-row-edit input,.decl-row-edit textarea{font-size:12px}
+.decl-row-remove{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;width:24px;height:24px;border-radius:6px;cursor:pointer;font-size:12px;flex-shrink:0}
 </style>
   <!-- Firebase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js"></script>
@@ -1393,26 +1403,32 @@ body:not(.compact) .kcard-top{gap:16px!important;margin-bottom:8px!important;}
   <!-- 2. TIPO DE DOCUMENTO -->
   <div class="doc-card">
     <div class="doc-card-title"><div class="step-num">2</div> Tipo de Documento</div>
-    <div class="doc-grid" style="grid-template-columns:1fr 1fr 1fr">
+    <div class="doc-grid" style="grid-template-columns:1fr 1fr">
       <button class="doc-btn on" onclick="setTipo('proposta',this)">
         📋 Proposta Comercial
         <span class="doc-sub">Tabela de itens com valores, condições e assinatura</span>
       </button>
-      <button class="doc-btn" onclick="setTipo('decl_unificada',this)">
-        📜 Declaração Unificada
-        <span class="doc-sub">10 declarações: habilitação, ME/EPP, menores, etc.</span>
-      </button>
-      <button class="doc-btn" onclick="setTipo('outras',this)">
-        📑 Outras Declarações
-        <span class="doc-sub">Não vistoria, tomada de conhecimento, personalizada...</span>
+      <button class="doc-btn" onclick="setTipo('declaracoes',this)">
+        📜 Declarações
+        <span class="doc-sub">Escolha quais declarações incluir — padrão ou detectadas no edital pela IA</span>
       </button>
     </div>
-    <!-- Outras declarações submenu -->
-    <div class="outras-grid" id="outras-grid" style="display:none">
-      <button class="outras-btn on" onclick="setOutra('vistoria',this)">📍 Não Vistoria</button>
-      <button class="outras-btn" onclick="setOutra('conhecimento',this)">📖 Tomada de Conhecimento</button>
-      <button class="outras-btn" onclick="setOutra('capacidade',this)">🏭 Capacidade Técnica</button>
-      <button class="outras-btn" onclick="setOutra('personalizada',this)">✏️ Personalizada</button>
+    <!-- Checklist único de declarações -->
+    <div id="decl-checklist-wrap" style="display:none">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <button type="button" class="btn btn-ghost btn-sm" onclick="detectarDeclaracoesEdital()" id="btn-detectar-decl">🤖 Detectar declarações do edital com IA</button>
+        <button type="button" class="btn btn-sm" style="background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);color:#a78bfa" onclick="adicionarDeclaracaoManual()">✏️ Adicionar declaração personalizada</button>
+      </div>
+      <div id="decl-lista" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
+      <div style="display:flex;align-items:center;gap:14px;padding-top:12px;border-top:1px solid var(--b1)">
+        <span style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;font-weight:700">Gerar como:</span>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12.5px;color:var(--t1)">
+          <input type="radio" name="decl-modo" value="unico" checked onchange="setDeclModo('unico')" style="accent-color:var(--nh)"> Documento único
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12.5px;color:var(--t1)">
+          <input type="radio" name="decl-modo" value="separado" onchange="setDeclModo('separado')" style="accent-color:var(--nh)"> Documentos separados
+        </label>
+      </div>
     </div>
   </div>
 
@@ -1502,19 +1518,6 @@ body:not(.compact) .kcard-top{gap:16px!important;margin-bottom:8px!important;}
         <label>Data da Assinatura</label>
         <input id="data_assina" type="date">
       </div>
-    </div>
-  </div>
-
-  <!-- DECLARAÇÃO PERSONALIZADA -->
-  <div class="doc-card" id="card-decl-custom" style="display:none">
-    <div class="doc-card-title"><div class="step-num">4</div> Texto da Declaração</div>
-    <div class="fg">
-      <label>Título da Declaração</label>
-      <input id="decl-titulo" placeholder="Ex: DECLARAÇÃO DE CAPACIDADE TÉCNICA">
-    </div>
-    <div class="fg" style="margin-top:12px">
-      <label>Texto da Declaração</label>
-      <textarea id="decl-texto" rows="8" placeholder="Digite o texto completo da declaração..."></textarea>
     </div>
   </div>
 
@@ -3433,7 +3436,9 @@ async function _processQueue(){if(!_saveRunning&&_saveQueue.length){_saveRunning
   }
 }
 function initApp(){setTheme(isDark),carregarEmpresas(),carregarOptsCustom(),setSt("load"),carregarIAKey(),document.querySelectorAll(".page").forEach(function(e){e.style.display="none"});var e=document.getElementById("page-resumo");e&&(e.classList.add("on"),e.style.display="block"),loadAll().then(function(){setTimeout(function(){migrarFinanceiro().then(function(){importarDadosMarco()})},2e3)}),setTimeout(verificarVencimentos,3e3),setTimeout(iniciarNotificacoesCalendario,5e3),carregarTarefas()}function parseBRDate(e){if(!e)return null;var a=String(e).trim().split(" ")[0].split("/");if(3!==a.length)return null;var t=new Date(parseInt(a[2]),parseInt(a[1])-1,parseInt(a[0]));return isNaN(t.getTime())?null:t}function verificarVencimentos(){var e=new Date;e.setHours(0,0,0,0);var a=[],t=JSON.parse(localStorage.getItem("nh_avisos_vistos")||"{}"),o=e.toISOString().split("T")[0];(ALL.ganhas||[]).forEach(function(i){var n=String(i[9]||"").toUpperCase().trim();if("EM EXECUÇÃO"===n||"EM EXECUCAO"===n){var r=parseBRDate(i[12]);if(r){var s=Math.round((r-e)/864e5);if(s>=0&&s<=30){var d="g_"+i[0]+"_"+o;t[d]||a.push({tipo:"ganhas",id:i[0],emp:i[2],licit:String(i[3]||"").substring(0,40),dias:s,chave:d})}}}}),(ALL.andamento||[]).forEach(function(i){var n=parseBRDate(i[10]);if(n){var r=Math.round((n-e)/864e5);if(r>=0&&r<=1){var s="a_"+i[0]+"_"+o;t[s]||a.push({tipo:"andamento",id:i[0],emp:i[2],licit:String(i[3]||"").substring(0,40),dias:r,disputa:!0,chave:s})}}}),a.length>0&&mostrarNotificacoes(a)}function marcarAvisoVisto(e){var a=JSON.parse(localStorage.getItem("nh_avisos_vistos")||"{}");a[e]=!0;var t=Date.now()-5184e6;Object.keys(a).forEach(function(e){var o=e.split("_"),i=o[o.length-1];i&&new Date(i).getTime()<t&&delete a[e]}),localStorage.setItem("nh_avisos_vistos",JSON.stringify(a))}function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
-function mostrarNotificacoes(e){var a=document.getElementById("notif-banner");a&&a.remove();var t=document.createElement("div");if(t.id="notif-banner",t.style.cssText="position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px;max-width:360px",e.slice(0,5).forEach(function(e){var a=0===e.dias?"#ef4444":e.dias<=3?"#f97316":e.dias<=7?"#eab308":"#60a5fa",o=e.disputa?0===e.dias?"DISPUTA HOJE":"DISPUTA AMANHÃ":0===e.dias?"VENCE HOJE":(e.dias<=3||e.dias,"VENCE EM "+e.dias+"d"),i=document.createElement("div");i.style.cssText="background:#1a1a1a;border-left:4px solid "+a+";border-radius:8px;padding:12px 14px;font-size:12px;color:#eee;box-shadow:0 4px 14px rgba(0,0,0,.5);display:flex;align-items:flex-start;gap:10px",i.innerHTML='<div style="flex:1"><div style="font-size:10px;font-weight:800;color:'+a+';letter-spacing:.06em;margin-bottom:3px">'+o+'</div><div style="font-weight:700;color:#f0f0f0;margin-bottom:2px">'+esc(e.emp)+'</div><div style="color:#aaa;font-size:11px;line-height:1.4">'+esc(e.licit)+'</div></div><button title="Dispensar" style="background:none;border:none;color:#555;cursor:pointer;font-size:18px;padding:0;line-height:1;flex-shrink:0">×</button>',i.querySelector("button").onclick=function(){e.chave&&marcarAvisoVisto(e.chave),i.remove(),t.querySelector('div[style*="border-left"]')||t.remove()},i.style.cursor="pointer",i.onclick=function(_ev){_ev.target.closest("button")||(t.remove(),irParaCard(e.tipo,e.id))},t.appendChild(i)}),e.length>5){var o=document.createElement("div");o.style.cssText="background:#1a1a1a;border-radius:8px;padding:10px 14px;font-size:12px;color:#888;text-align:center;cursor:pointer",o.textContent="+ "+(e.length-5)+" outros avisos",o.onclick=function(){t.remove()},t.appendChild(o)}document.body.appendChild(t),setTimeout(function(){t.parentNode&&t.remove()},15e3)}window.addEventListener("load",function(){});var DADOS_FIXOS={VISE:{razao:"VIA DE SERVIÇOS ESPECIALIZADOS LTDA",cnpj:"08.348.687/0001-62",endereco:"Av. Camilo de Holanda, Nº432, Centro",cidade:"João Pessoa/PB",cep:"58.013-360",tel:"(83) 9 8229-1361",email:"licitacoes@viseservicos.com",socio:"Caio Cesar Germano Rodrigues",cpf:"111.368.404-60",cargo:"Sócio-Administrador",banco:"Bradesco",agencia:"1061",conta:"0019654-1"},SAUTEC:{razao:"SAUTEC EQUIPAMENTOS MEDICO HOSPITALARES LTDA",cnpj:"31.586.684/0001-89",endereco:"Rua Gualberto Filho, 0020, Centro",cidade:"Sousa/PB",cep:"58.800-262",tel:"(83) 99909-1477",email:"sauteclicitacoes@gmail.com",socio:"Adson Danilo da Silva Feitosa",cpf:"071.012.224-12",cargo:"Sócio Administrador",banco:"",agencia:"",conta:""},ONLAV:{razao:"ONLAV COMÉRCIO E SERVIÇOS LTDA",cnpj:"13.141.717/0001-03",endereco:"Rua Manoel Veloso Borges, 57 – Sesi em Bayeux PB",cidade:"Bayeux/PB",cep:"58.111-335",tel:"(83) 2179-7006",email:"licitacoesonlav@gmail.com",socio:"Ivan Marques Lisboa Junior",cpf:"070.186.804-09",cargo:"Sócio Proprietário",banco:"",agencia:"",conta:""},SOS:{razao:"SOS SOLUÇÕES INTEGRADAS LTDA",cnpj:"38.714.702/0001-00",endereco:"R. João Pereira Santos Filho, 298 - Itapetinga",cidade:"Mossoró/RN",cep:"",tel:"(84) 2140-6187",email:"licitasossolucoesintegrada@gmail.com",socio:"",cpf:"",cargo:"Sócio Administrador",banco:"",agencia:"",conta:""}},LOGOS={},TIMBRADOS={};function gerarHTMLOutraDecl(e,a,t,o,i,n,r,s){var d,l;if("personalizada"===outraDecl)return d=document.getElementById("decl-titulo").value.trim().toUpperCase()||"DECLARAÇÃO",l=document.getElementById("decl-texto").value.trim(),cssBase(s,!(!TIMBRADOS[empSelecionada]||!TIMBRADOS[empSelecionada].header))+timbradoHTML(e,s)+orgaoHTML(a,t,o,i)+'<h2 class="titulo">'+d+"</h2>"+introHTML(e)+'<p style="text-align:justify;line-height:1.9;margin-bottom:16px">'+l.replace(/\n/g,"<br>")+'</p><p style="font-size:12px;margin-top:16px">Por ser expressão da verdade, firmo a presente declaração.</p>'+assinaturaHTML(e,n,r)+rodapeHTML(e)+"</body></html>";var c=OUTRAS_TEXTOS[outraDecl]||OUTRAS_TEXTOS.vistoria;return d=c.titulo,cssBase(s,!(!TIMBRADOS[empSelecionada]||!TIMBRADOS[empSelecionada].header))+timbradoHTML(e,s)+orgaoHTML(a,t,o,i)+'<h2 class="titulo">'+d+'</h2><p class="intro">A empresa <strong>'+e.razao.toUpperCase()+"</strong>, inscrita no CNPJ sob nº <strong>"+e.cnpj+"</strong>, com sede na "+e.endereco+", "+e.cidade+(e.cep?", CEP: "+e.cep:"")+", por intermédio de seu(a) "+e.cargo+", o(a) Sr.(a) "+e.socio+(e.cpf?", inscrito no CPF sob o Nº <strong>"+e.cpf+"</strong>":"")+", E-mail: "+e.email+", Telefone: "+e.tel+", "+c.texto(e)+'</p><p style="font-size:12px;margin-top:16px">Por ser expressão da verdade, firmo a presente declaração.</p>'+assinaturaHTML(e,n,r)+rodapeHTML(e)+"</body></html>"}var _calAno=(new Date).getFullYear(),_calMes=(new Date).getMonth(),_calSemanaInicio=function(){var e=new Date;return e.setHours(0,0,0,0),e.setDate(e.getDate()-e.getDay()),e}(),MESES=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"],EMPCORES={VISE:"#eab308",SAUTEC:"#3b82f6",SOS:"#22c55e","SOS FILIAL":"#ef4444",ONLAV:"#06b6d4",ENGEMED:"#ec4899",POTIGUAR:"#f97316"};function calMes(e){(_calMes+=e)>11&&(_calMes=0,_calAno++),_calMes<0&&(_calMes=11,_calAno--),renderCalendario()}function calHoje(){var e=new Date;_calAno=e.getFullYear(),_calMes=e.getMonth(),renderCalendario()}function calSemana(e){(_calSemanaInicio=new Date(_calSemanaInicio)).setDate(_calSemanaInicio.getDate()+7*e),renderListaSemanal()}function calSemanaHoje(){(_calSemanaInicio=new Date).setHours(0,0,0,0),_calSemanaInicio.setDate(_calSemanaInicio.getDate()-_calSemanaInicio.getDay()),renderListaSemanal()}function renderListaSemanal(){var e=new Date(_calSemanaInicio);e.setDate(e.getDate()+6),e.setHours(23,59,59,0);var a=new Date(_calSemanaInicio),t=document.getElementById("cal-semana-label");if(t){var o=a.getDate()+"/"+(a.getMonth()+1),i=e.getDate()+"/"+(e.getMonth()+1)+"/"+e.getFullYear();t.textContent=o+" — "+i}var n=ALL.andamento||[],r=[];n.forEach(function(t){var o=String(t[2]||"").trim(),i=String(t[3]||"").trim(),n=String(t[4]||"").trim(),s=String(t[5]||"").trim(),d=String(t[6]||"").trim(),l=String(t[15]||"").trim(),c=String(t[9]||"").trim(),A=String(t[7]||"").trim(),p=String(t[10]||"").trim(),u=String(t[13]||"").trim();function m(t,p){var u=parseDataCal(t);u&&(u.setHours(0,0,0,0),u>=a&&u<=e&&r.push({tipo:p,data:u,dia:u.getDate(),emp:o,licit:i,hora:t,obj:n,local:s,mun:d,resumo:l,portal:c,vest:A}))}m(p,"disputa"),m(u,"reabertura")}),r.sort(function(e,a){return e.data-a.data}),window._calEventos=r;var s=document.getElementById("cal-lista");if(s)if(r.length){var d=new Date;d.setHours(0,0,0,0),s.innerHTML=r.map(function(e,a){var t="disputa"===e.tipo?"#f97316":"#3b82f6",o=EMPCORES[e.emp]||"#888",i="disputa"===e.tipo?"⚡":"🔄",n=criarLinkGoogleCal(e),r=e.data.getTime()===d.getTime();return'<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--s2);'+(r?"border:2px solid "+t+";":"border:1px solid var(--b1);border-left:4px solid "+t+";")+'border-radius:8px;margin-bottom:8px"><div style="min-width:48px;text-align:center;cursor:pointer" onclick="mostrarPreviewEvento('+a+')"><div style="font-size:10px;color:'+t+';font-weight:700;text-transform:uppercase">'+["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"][e.data.getDay()]+'</div><div style="font-size:22px;font-weight:800;color:'+(r?t:"var(--t1)")+';line-height:1">'+e.dia+'</div></div><div style="flex:1;overflow:hidden;cursor:pointer" onclick="mostrarPreviewEvento('+a+')"><div style="font-size:11px;color:'+t+';font-weight:700;text-transform:uppercase">'+i+" "+e.tipo+(r?" · HOJE":"")+'</div><div style="font-size:13px;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.licit.substring(0,60)+'</div><div style="font-size:11px;margin-top:2px;display:flex;gap:8px"><span style="color:'+o+';font-weight:600">'+e.emp+"</span>"+(e.portal?'<span style="color:var(--t3)">· '+e.portal+"</span>":"")+"</div>"+(e.resumo?'<div style="font-size:11px;color:var(--t3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.resumo+"</div>":"")+'</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0"><div style="font-size:11px;color:var(--t3)">'+String(e.hora).substring(0,16)+"</div>"+(isEventoSalvo(e)?'<span style="background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">✅ Salvo</span>':'<a href="'+n+'" target="_blank" onclick="marcarSalvoEAtualizar('+a+')" style="background:#22c55e;color:#000;text-decoration:none;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;white-space:nowrap">📅 Salvar</a>')+'<button data-exc-emp="'+encodeURIComponent(e.emp)+'" data-exc-licit="'+encodeURIComponent(e.licit.substring(0,40))+'" data-exc-tipo="'+e.tipo+'" class="cal-excluir-btn" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#ef4444;font-size:10px;padding:3px 8px;border-radius:6px;cursor:pointer;font-family:Outfit,sans-serif">✕ Excluir</button></div></div>'}).join("")}else s.innerHTML='<div style="color:var(--t3);font-size:13px;padding:20px;text-align:center;background:var(--s2);border-radius:8px;border:1px solid var(--b1)">Nenhum evento nesta semana</div>'}function parseDataCal(e){if(!e)return null;var a=String(e).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);if(!a)return null;var t=new Date(parseInt(a[3]),parseInt(a[2])-1,parseInt(a[1]));return isNaN(t.getTime())?null:t}function getEventosDoMes(e,a){var t=[];return(ALL.andamento||[]).forEach(function(o){var i=String(o[2]||"").trim(),n=String(o[3]||"").trim(),r=String(o[4]||"").trim(),s=String(o[5]||"").trim(),d=String(o[6]||"").trim(),l=String(o[15]||"").trim(),c=String(o[10]||"").trim(),A=String(o[13]||"").trim(),p=String(o[9]||"").trim(),u=String(o[7]||"").trim();if(c){var m=parseDataCal(c);m&&m.getFullYear()===e&&m.getMonth()===a&&t.push({tipo:"disputa",data:m,dia:m.getDate(),emp:i,licit:n,hora:c,obj:r,local:s,mun:d,resumo:l,portal:p,vest:u})}if(A){var v=parseDataCal(A);v&&v.getFullYear()===e&&v.getMonth()===a&&t.push({tipo:"reabertura",data:v,dia:v.getDate(),emp:i,licit:n,hora:A,obj:r,local:s,mun:d,resumo:l,portal:p,vest:u})}}),t.sort(function(e,a){return e.data-a.data}),t}function renderCalendario(){document.getElementById("cal-titulo").textContent=MESES[_calMes]+" "+_calAno;var e=getEventosDoMes(_calAno,_calMes),a={};e.forEach(function(e){a[e.dia]||(a[e.dia]=[]),a[e.dia].push(e)});var t=new Date(_calAno,_calMes,1).getDay(),o=new Date(_calAno,_calMes+1,0).getDate(),i=new Date;i.setHours(0,0,0,0);for(var n=document.getElementById("cal-grid"),r="",s=0;s<t;s++)r+='<div style="min-height:80px;border-right:1px solid var(--b1);border-bottom:1px solid var(--b1);padding:6px;opacity:.3"></div>';for(var d=1;d<=o;d++){var l=new Date(_calAno,_calMes,d).getTime()===i.getTime(),c=a[d]||[];r+='<div style="min-height:80px;'+((t+d-1)%7<6?"border-right:1px solid var(--b1);":"")+"border-bottom:1px solid var(--b1);padding:6px;"+(l?"background:rgba(249,115,22,.1);":"")+'">',r+='<div style="font-size:13px;'+(l?"color:var(--nh);font-weight:800;":"color:var(--t2);")+'margin-bottom:4px">'+d+"</div>",c.slice(0,3).forEach(function(e){var a="disputa"===e.tipo?"#f97316":"#3b82f6",t=EMPCORES[e.emp]||"#888";r+='<div style="background:'+a+';border-radius:3px;padding:2px 5px;margin-bottom:2px;font-size:10px;color:#000;font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis" title="'+e.emp+" · "+e.licit+'">',r+='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:'+t+';margin-right:3px;vertical-align:middle"></span>',r+=e.emp.substring(0,6)+"</div>"}),c.length>3&&(r+='<div style="font-size:10px;color:var(--t3)">+'+(c.length-3)+" mais</div>"),r+="</div>"}var A=t+o,p=A%7==0?0:7-A%7;for(s=0;s<p;s++){r+='<div style="min-height:80px;'+((A+s)%7<6?"border-right:1px solid var(--b1);":"")+'border-bottom:1px solid var(--b1);padding:6px;opacity:.3"></div>'}n.innerHTML=r;var u=document.getElementById("cal-lista");if(e.length){window._calEventos=e,u.innerHTML=e.map(function(e,a){var t="disputa"===e.tipo?"#f97316":"#3b82f6",o=EMPCORES[e.emp]||"#888",i="disputa"===e.tipo?"⚡":"🔄",n=criarLinkGoogleCal(e),r=new Date;r.setHours(0,0,0,0);var s=e.data.getTime()===r.getTime();return'<div onclick="mostrarPreviewEvento('+a+')" style="cursor:pointer;display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--s2);'+(s?"border:2px solid "+t+";":"border:1px solid var(--b1);border-left:4px solid "+t+";")+'border-radius:8px;margin-bottom:8px;transition:all .15s" onmouseover="this.style.opacity=.85" onmouseout="this.style.opacity=1"><div style="min-width:44px;text-align:center"><div style="font-size:22px;font-weight:800;color:'+(s?t:"var(--t1)")+';line-height:1">'+e.dia+'</div><div style="font-size:10px;color:var(--t3)">'+MESES[_calMes].substring(0,3)+'</div></div><div style="flex:1;overflow:hidden"><div style="font-size:11px;color:'+t+';font-weight:700;text-transform:uppercase;letter-spacing:.05em">'+i+" "+e.tipo+(s?" · HOJE":"")+'</div><div style="font-size:13px;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+e.licit+'">'+e.licit.substring(0,60)+'</div><div style="font-size:11px;margin-top:2px;display:flex;gap:8px"><span style="color:'+o+';font-weight:600">'+e.emp+"</span>"+(e.portal?'<span style="color:var(--t3)">· '+e.portal+"</span>":"")+"</div>"+(e.resumo?'<div style="font-size:11px;color:var(--t3);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.resumo+"</div>":"")+'</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0"><div style="font-size:11px;color:var(--t3);white-space:nowrap">'+String(e.hora).substring(0,16)+"</div>"+(isEventoSalvo(e)?'<span style="background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3);font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;white-space:nowrap">✅ Salvo no Calendar</span>':'<a href="'+n+'" target="_blank" onclick="event.stopPropagation();marcarSalvoEAtualizar('+a+')" title="Salvar no Google Calendar" style="background:#22c55e;color:#000;text-decoration:none;font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;white-space:nowrap">📅 Salvar no Calendar</a>')+"</div></div>"}).join("");var m="https://calendar.google.com/calendar/r/month/"+_calAno+"/"+(_calMes+1);document.getElementById("btn-google-cal").href=m;var v=document.getElementById("b-calendario");v&&(v.textContent=e.length||"—"),renderListaSemanal()}else u.innerHTML='<div style="color:var(--t3);font-size:13px;padding:20px;text-align:center">Nenhuma disputa ou reabertura este mês</div>'}function eventoCalKey(e){return"gcal_"+e.tipo+"_"+e.emp+"_"+String(e.hora||"").replace(/\W/g,"")}function isEventoSalvo(e){return"1"===localStorage.getItem(eventoCalKey(e))}function marcarEventoSalvo(e){localStorage.setItem(eventoCalKey(e),"1")}function criarLinkGoogleCal(e){var a=e.data,t="090000",o=String(e.hora||"").match(/(\d{1,2})[h:](\d{2})/i);o&&(t=("0"+o[1]).slice(-2)+("0"+o[2]).slice(-2)+"00");var i=a.getFullYear(),n=("0"+(a.getMonth()+1)).slice(-2),r=("0"+a.getDate()).slice(-2),s=i+n+r+"T"+t,d=i+n+r+"T"+("0"+(parseInt(t.substring(0,2))+1)).slice(-2)+t.substring(2),l="disputa"===e.tipo?"⚡ DISPUTA: ":"🔄 REABERTURA: ",c=encodeURIComponent(l+e.emp+" - "+e.licit.substring(0,60)),A=e.licit;return e.obj&&(A+=" | Objeto: "+e.obj),e.local&&(A+=" | Local: "+e.local+(e.mun?" - "+e.mun:"")),e.portal&&(A+=" | Portal: "+e.portal),e.vest&&(A+=" | Valor Est.: R$ "+e.vest),e.resumo&&(A+=" | Resumo: "+e.resumo),"https://calendar.google.com/calendar/render?action=TEMPLATE&text="+c+"&dates="+s+"/"+d+"&details="+encodeURIComponent(A)+"&location="+encodeURIComponent(e.local||"")}var _tarefaEditId=null,_tarefaFiltro="todas";async function carregarTarefas(){try{
+function mostrarNotificacoes(e){var a=document.getElementById("notif-banner");a&&a.remove();var t=document.createElement("div");if(t.id="notif-banner",t.style.cssText="position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px;max-width:360px",e.slice(0,5).forEach(function(e){var a=0===e.dias?"#ef4444":e.dias<=3?"#f97316":e.dias<=7?"#eab308":"#60a5fa",o=e.disputa?0===e.dias?"DISPUTA HOJE":"DISPUTA AMANHÃ":0===e.dias?"VENCE HOJE":(e.dias<=3||e.dias,"VENCE EM "+e.dias+"d"),i=document.createElement("div");i.style.cssText="background:#1a1a1a;border-left:4px solid "+a+";border-radius:8px;padding:12px 14px;font-size:12px;color:#eee;box-shadow:0 4px 14px rgba(0,0,0,.5);display:flex;align-items:flex-start;gap:10px",i.innerHTML='<div style="flex:1"><div style="font-size:10px;font-weight:800;color:'+a+';letter-spacing:.06em;margin-bottom:3px">'+o+'</div><div style="font-weight:700;color:#f0f0f0;margin-bottom:2px">'+esc(e.emp)+'</div><div style="color:#aaa;font-size:11px;line-height:1.4">'+esc(e.licit)+'</div></div><button title="Dispensar" style="background:none;border:none;color:#555;cursor:pointer;font-size:18px;padding:0;line-height:1;flex-shrink:0">×</button>',i.querySelector("button").onclick=function(){e.chave&&marcarAvisoVisto(e.chave),i.remove(),t.querySelector('div[style*="border-left"]')||t.remove()},i.style.cursor="pointer",i.onclick=function(_ev){_ev.target.closest("button")||(t.remove(),irParaCard(e.tipo,e.id))},t.appendChild(i)}),e.length>5){var o=document.createElement("div");o.style.cssText="background:#1a1a1a;border-radius:8px;padding:10px 14px;font-size:12px;color:#888;text-align:center;cursor:pointer",o.textContent="+ "+(e.length-5)+" outros avisos",o.onclick=function(){t.remove()},t.appendChild(o)}document.body.appendChild(t),setTimeout(function(){t.parentNode&&t.remove()},15e3)}window.addEventListener("load",function(){});var DADOS_FIXOS={VISE:{razao:"VIA DE SERVIÇOS ESPECIALIZADOS LTDA",cnpj:"08.348.687/0001-62",endereco:"Av. Camilo de Holanda, Nº432, Centro",cidade:"João Pessoa/PB",cep:"58.013-360",tel:"(83) 9 8229-1361",email:"licitacoes@viseservicos.com",socio:"Caio Cesar Germano Rodrigues",cpf:"111.368.404-60",cargo:"Sócio-Administrador",banco:"Bradesco",agencia:"1061",conta:"0019654-1"},SAUTEC:{razao:"SAUTEC EQUIPAMENTOS MEDICO HOSPITALARES LTDA",cnpj:"31.586.684/0001-89",endereco:"Rua Gualberto Filho, 0020, Centro",cidade:"Sousa/PB",cep:"58.800-262",tel:"(83) 99909-1477",email:"sauteclicitacoes@gmail.com",socio:"Adson Danilo da Silva Feitosa",cpf:"071.012.224-12",cargo:"Sócio Administrador",banco:"",agencia:"",conta:""},ONLAV:{razao:"ONLAV COMÉRCIO E SERVIÇOS LTDA",cnpj:"13.141.717/0001-03",endereco:"Rua Manoel Veloso Borges, 57 – Sesi em Bayeux PB",cidade:"Bayeux/PB",cep:"58.111-335",tel:"(83) 2179-7006",email:"licitacoesonlav@gmail.com",socio:"Ivan Marques Lisboa Junior",cpf:"070.186.804-09",cargo:"Sócio Proprietário",banco:"",agencia:"",conta:""},SOS:{razao:"SOS SOLUÇÕES INTEGRADAS LTDA",cnpj:"38.714.702/0001-00",endereco:"R. João Pereira Santos Filho, 298 - Itapetinga",cidade:"Mossoró/RN",cep:"",tel:"(84) 2140-6187",email:"licitasossolucoesintegrada@gmail.com",socio:"",cpf:"",cargo:"Sócio Administrador",banco:"",agencia:"",conta:""}},LOGOS={},TIMBRADOS={};
+
+var _calAno=(new Date).getFullYear(),_calMes=(new Date).getMonth(),_calSemanaInicio=function(){var e=new Date;return e.setHours(0,0,0,0),e.setDate(e.getDate()-e.getDay()),e}(),MESES=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"],EMPCORES={VISE:"#eab308",SAUTEC:"#3b82f6",SOS:"#22c55e","SOS FILIAL":"#ef4444",ONLAV:"#06b6d4",ENGEMED:"#ec4899",POTIGUAR:"#f97316"};function calMes(e){(_calMes+=e)>11&&(_calMes=0,_calAno++),_calMes<0&&(_calMes=11,_calAno--),renderCalendario()}function calHoje(){var e=new Date;_calAno=e.getFullYear(),_calMes=e.getMonth(),renderCalendario()}function calSemana(e){(_calSemanaInicio=new Date(_calSemanaInicio)).setDate(_calSemanaInicio.getDate()+7*e),renderListaSemanal()}function calSemanaHoje(){(_calSemanaInicio=new Date).setHours(0,0,0,0),_calSemanaInicio.setDate(_calSemanaInicio.getDate()-_calSemanaInicio.getDay()),renderListaSemanal()}function renderListaSemanal(){var e=new Date(_calSemanaInicio);e.setDate(e.getDate()+6),e.setHours(23,59,59,0);var a=new Date(_calSemanaInicio),t=document.getElementById("cal-semana-label");if(t){var o=a.getDate()+"/"+(a.getMonth()+1),i=e.getDate()+"/"+(e.getMonth()+1)+"/"+e.getFullYear();t.textContent=o+" — "+i}var n=ALL.andamento||[],r=[];n.forEach(function(t){var o=String(t[2]||"").trim(),i=String(t[3]||"").trim(),n=String(t[4]||"").trim(),s=String(t[5]||"").trim(),d=String(t[6]||"").trim(),l=String(t[15]||"").trim(),c=String(t[9]||"").trim(),A=String(t[7]||"").trim(),p=String(t[10]||"").trim(),u=String(t[13]||"").trim();function m(t,p){var u=parseDataCal(t);u&&(u.setHours(0,0,0,0),u>=a&&u<=e&&r.push({tipo:p,data:u,dia:u.getDate(),emp:o,licit:i,hora:t,obj:n,local:s,mun:d,resumo:l,portal:c,vest:A}))}m(p,"disputa"),m(u,"reabertura")}),r.sort(function(e,a){return e.data-a.data}),window._calEventos=r;var s=document.getElementById("cal-lista");if(s)if(r.length){var d=new Date;d.setHours(0,0,0,0),s.innerHTML=r.map(function(e,a){var t="disputa"===e.tipo?"#f97316":"#3b82f6",o=EMPCORES[e.emp]||"#888",i="disputa"===e.tipo?"⚡":"🔄",n=criarLinkGoogleCal(e),r=e.data.getTime()===d.getTime();return'<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--s2);'+(r?"border:2px solid "+t+";":"border:1px solid var(--b1);border-left:4px solid "+t+";")+'border-radius:8px;margin-bottom:8px"><div style="min-width:48px;text-align:center;cursor:pointer" onclick="mostrarPreviewEvento('+a+')"><div style="font-size:10px;color:'+t+';font-weight:700;text-transform:uppercase">'+["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"][e.data.getDay()]+'</div><div style="font-size:22px;font-weight:800;color:'+(r?t:"var(--t1)")+';line-height:1">'+e.dia+'</div></div><div style="flex:1;overflow:hidden;cursor:pointer" onclick="mostrarPreviewEvento('+a+')"><div style="font-size:11px;color:'+t+';font-weight:700;text-transform:uppercase">'+i+" "+e.tipo+(r?" · HOJE":"")+'</div><div style="font-size:13px;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.licit.substring(0,60)+'</div><div style="font-size:11px;margin-top:2px;display:flex;gap:8px"><span style="color:'+o+';font-weight:600">'+e.emp+"</span>"+(e.portal?'<span style="color:var(--t3)">· '+e.portal+"</span>":"")+"</div>"+(e.resumo?'<div style="font-size:11px;color:var(--t3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.resumo+"</div>":"")+'</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0"><div style="font-size:11px;color:var(--t3)">'+String(e.hora).substring(0,16)+"</div>"+(isEventoSalvo(e)?'<span style="background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">✅ Salvo</span>':'<a href="'+n+'" target="_blank" onclick="marcarSalvoEAtualizar('+a+')" style="background:#22c55e;color:#000;text-decoration:none;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;white-space:nowrap">📅 Salvar</a>')+'<button data-exc-emp="'+encodeURIComponent(e.emp)+'" data-exc-licit="'+encodeURIComponent(e.licit.substring(0,40))+'" data-exc-tipo="'+e.tipo+'" class="cal-excluir-btn" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#ef4444;font-size:10px;padding:3px 8px;border-radius:6px;cursor:pointer;font-family:Outfit,sans-serif">✕ Excluir</button></div></div>'}).join("")}else s.innerHTML='<div style="color:var(--t3);font-size:13px;padding:20px;text-align:center;background:var(--s2);border-radius:8px;border:1px solid var(--b1)">Nenhum evento nesta semana</div>'}function parseDataCal(e){if(!e)return null;var a=String(e).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);if(!a)return null;var t=new Date(parseInt(a[3]),parseInt(a[2])-1,parseInt(a[1]));return isNaN(t.getTime())?null:t}function getEventosDoMes(e,a){var t=[];return(ALL.andamento||[]).forEach(function(o){var i=String(o[2]||"").trim(),n=String(o[3]||"").trim(),r=String(o[4]||"").trim(),s=String(o[5]||"").trim(),d=String(o[6]||"").trim(),l=String(o[15]||"").trim(),c=String(o[10]||"").trim(),A=String(o[13]||"").trim(),p=String(o[9]||"").trim(),u=String(o[7]||"").trim();if(c){var m=parseDataCal(c);m&&m.getFullYear()===e&&m.getMonth()===a&&t.push({tipo:"disputa",data:m,dia:m.getDate(),emp:i,licit:n,hora:c,obj:r,local:s,mun:d,resumo:l,portal:p,vest:u})}if(A){var v=parseDataCal(A);v&&v.getFullYear()===e&&v.getMonth()===a&&t.push({tipo:"reabertura",data:v,dia:v.getDate(),emp:i,licit:n,hora:A,obj:r,local:s,mun:d,resumo:l,portal:p,vest:u})}}),t.sort(function(e,a){return e.data-a.data}),t}function renderCalendario(){document.getElementById("cal-titulo").textContent=MESES[_calMes]+" "+_calAno;var e=getEventosDoMes(_calAno,_calMes),a={};e.forEach(function(e){a[e.dia]||(a[e.dia]=[]),a[e.dia].push(e)});var t=new Date(_calAno,_calMes,1).getDay(),o=new Date(_calAno,_calMes+1,0).getDate(),i=new Date;i.setHours(0,0,0,0);for(var n=document.getElementById("cal-grid"),r="",s=0;s<t;s++)r+='<div style="min-height:80px;border-right:1px solid var(--b1);border-bottom:1px solid var(--b1);padding:6px;opacity:.3"></div>';for(var d=1;d<=o;d++){var l=new Date(_calAno,_calMes,d).getTime()===i.getTime(),c=a[d]||[];r+='<div style="min-height:80px;'+((t+d-1)%7<6?"border-right:1px solid var(--b1);":"")+"border-bottom:1px solid var(--b1);padding:6px;"+(l?"background:rgba(249,115,22,.1);":"")+'">',r+='<div style="font-size:13px;'+(l?"color:var(--nh);font-weight:800;":"color:var(--t2);")+'margin-bottom:4px">'+d+"</div>",c.slice(0,3).forEach(function(e){var a="disputa"===e.tipo?"#f97316":"#3b82f6",t=EMPCORES[e.emp]||"#888";r+='<div style="background:'+a+';border-radius:3px;padding:2px 5px;margin-bottom:2px;font-size:10px;color:#000;font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis" title="'+e.emp+" · "+e.licit+'">',r+='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:'+t+';margin-right:3px;vertical-align:middle"></span>',r+=e.emp.substring(0,6)+"</div>"}),c.length>3&&(r+='<div style="font-size:10px;color:var(--t3)">+'+(c.length-3)+" mais</div>"),r+="</div>"}var A=t+o,p=A%7==0?0:7-A%7;for(s=0;s<p;s++){r+='<div style="min-height:80px;'+((A+s)%7<6?"border-right:1px solid var(--b1);":"")+'border-bottom:1px solid var(--b1);padding:6px;opacity:.3"></div>'}n.innerHTML=r;var u=document.getElementById("cal-lista");if(e.length){window._calEventos=e,u.innerHTML=e.map(function(e,a){var t="disputa"===e.tipo?"#f97316":"#3b82f6",o=EMPCORES[e.emp]||"#888",i="disputa"===e.tipo?"⚡":"🔄",n=criarLinkGoogleCal(e),r=new Date;r.setHours(0,0,0,0);var s=e.data.getTime()===r.getTime();return'<div onclick="mostrarPreviewEvento('+a+')" style="cursor:pointer;display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--s2);'+(s?"border:2px solid "+t+";":"border:1px solid var(--b1);border-left:4px solid "+t+";")+'border-radius:8px;margin-bottom:8px;transition:all .15s" onmouseover="this.style.opacity=.85" onmouseout="this.style.opacity=1"><div style="min-width:44px;text-align:center"><div style="font-size:22px;font-weight:800;color:'+(s?t:"var(--t1)")+';line-height:1">'+e.dia+'</div><div style="font-size:10px;color:var(--t3)">'+MESES[_calMes].substring(0,3)+'</div></div><div style="flex:1;overflow:hidden"><div style="font-size:11px;color:'+t+';font-weight:700;text-transform:uppercase;letter-spacing:.05em">'+i+" "+e.tipo+(s?" · HOJE":"")+'</div><div style="font-size:13px;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+e.licit+'">'+e.licit.substring(0,60)+'</div><div style="font-size:11px;margin-top:2px;display:flex;gap:8px"><span style="color:'+o+';font-weight:600">'+e.emp+"</span>"+(e.portal?'<span style="color:var(--t3)">· '+e.portal+"</span>":"")+"</div>"+(e.resumo?'<div style="font-size:11px;color:var(--t3);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.resumo+"</div>":"")+'</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0"><div style="font-size:11px;color:var(--t3);white-space:nowrap">'+String(e.hora).substring(0,16)+"</div>"+(isEventoSalvo(e)?'<span style="background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3);font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;white-space:nowrap">✅ Salvo no Calendar</span>':'<a href="'+n+'" target="_blank" onclick="event.stopPropagation();marcarSalvoEAtualizar('+a+')" title="Salvar no Google Calendar" style="background:#22c55e;color:#000;text-decoration:none;font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;white-space:nowrap">📅 Salvar no Calendar</a>')+"</div></div>"}).join("");var m="https://calendar.google.com/calendar/r/month/"+_calAno+"/"+(_calMes+1);document.getElementById("btn-google-cal").href=m;var v=document.getElementById("b-calendario");v&&(v.textContent=e.length||"—"),renderListaSemanal()}else u.innerHTML='<div style="color:var(--t3);font-size:13px;padding:20px;text-align:center">Nenhuma disputa ou reabertura este mês</div>'}function eventoCalKey(e){return"gcal_"+e.tipo+"_"+e.emp+"_"+String(e.hora||"").replace(/\W/g,"")}function isEventoSalvo(e){return"1"===localStorage.getItem(eventoCalKey(e))}function marcarEventoSalvo(e){localStorage.setItem(eventoCalKey(e),"1")}function criarLinkGoogleCal(e){var a=e.data,t="090000",o=String(e.hora||"").match(/(\d{1,2})[h:](\d{2})/i);o&&(t=("0"+o[1]).slice(-2)+("0"+o[2]).slice(-2)+"00");var i=a.getFullYear(),n=("0"+(a.getMonth()+1)).slice(-2),r=("0"+a.getDate()).slice(-2),s=i+n+r+"T"+t,d=i+n+r+"T"+("0"+(parseInt(t.substring(0,2))+1)).slice(-2)+t.substring(2),l="disputa"===e.tipo?"⚡ DISPUTA: ":"🔄 REABERTURA: ",c=encodeURIComponent(l+e.emp+" - "+e.licit.substring(0,60)),A=e.licit;return e.obj&&(A+=" | Objeto: "+e.obj),e.local&&(A+=" | Local: "+e.local+(e.mun?" - "+e.mun:"")),e.portal&&(A+=" | Portal: "+e.portal),e.vest&&(A+=" | Valor Est.: R$ "+e.vest),e.resumo&&(A+=" | Resumo: "+e.resumo),"https://calendar.google.com/calendar/render?action=TEMPLATE&text="+c+"&dates="+s+"/"+d+"&details="+encodeURIComponent(A)+"&location="+encodeURIComponent(e.local||"")}var _tarefaEditId=null,_tarefaFiltro="todas";async function carregarTarefas(){try{
   var snap=await db.collection("tarefas").orderBy("_criado","desc").get();
   var a=[];
   snap.forEach(function(doc){
@@ -4278,7 +4283,6 @@ var linhas=[];
 var _nextRowId=1;
 var _nextColId=100;
 var docTipo="proposta";
-var outraDecl="vistoria";
 
 function setTipo(tipo,btn){
   docTipo=tipo;
@@ -4286,21 +4290,13 @@ function setTipo(tipo,btn){
   if(btn)btn.classList.add("on");
   var cardItens=document.getElementById("card-itens");
   var cardCond=document.getElementById("card-condicoes");
-  var cardOtras=document.getElementById("outras-grid");
-  var cardDeclCustom=document.getElementById("card-decl-custom");
-  var cardDocTextos=document.getElementById("card-doc-textos-wrap");
+  var cardDecl=document.getElementById("decl-checklist-wrap");
   if(cardItens)cardItens.style.display=tipo==="proposta"?"":"none";
-  if(cardCond)cardCond.style.display=tipo==="proposta"||tipo==="outras"?"":"none";
-  if(cardOtras)cardOtras.style.display=tipo==="outras"?"":"none";
-  if(cardDeclCustom)cardDeclCustom.style.display=(tipo==="outras"&&outraDecl==="personalizada")?"":"none";
-}
-
-function setOutra(tipo,btn){
-  outraDecl=tipo;
-  document.querySelectorAll(".outras-btn").forEach(function(b){b.classList.remove("on")});
-  if(btn)btn.classList.add("on");
-  var cardDeclCustom=document.getElementById("card-decl-custom");
-  if(cardDeclCustom)cardDeclCustom.style.display=tipo==="personalizada"?"":"none";
+  if(cardCond)cardCond.style.display=tipo==="proposta"||tipo==="declaracoes"?"":"none";
+  if(cardDecl){
+    cardDecl.style.display=tipo==="declaracoes"?"":"none";
+    if(tipo==="declaracoes") renderDeclChecklist();
+  }
 }
 
 function addLinha(){
@@ -4488,24 +4484,29 @@ function preencherTabelaComIA(input){
     });
     linhasTexto.forEach(function(l){
       var p=l.split("|").map(function(x){return x.trim();});
-      if(p.length>=2) itensArr.push({item:p[0],desc:p[1]||"",unid:p[2]||"un",qtd:p[3]||"1"});
+      if(p.length>=2) itensArr.push({item:p[0],desc:p[1]||"",unid:p[2]||"un",qtd:p[3]||"1",valor_unit:p[4]||""});
     });
   }
   if(!itensArr.length)return;
   linhas=[];_nextRowId=1;
+  var _comValor=0;
   itensArr.forEach(function(it){
+    // Valor unitário: só preenche quando o edital já trazia uma referência.
+    // Serve de ponto de partida — o usuário ajusta depois para o valor que vai ofertar.
+    var _vu=it.valor_unit!=null&&it.valor_unit!==""?String(it.valor_unit).trim():"";
+    if(_vu && _vu.toLowerCase()!=="null"){ _comValor++; } else { _vu=""; }
     var cells={
       item:_nextRowId,
       desc:String(it.desc||it.descricao||it.description||it[1]||"").trim(),
       unid:String(it.unid||it.unidade||it.unit||it[2]||"un").trim(),
       qtd:String(it.qtd||it.quantidade||it.qty||it[3]||"1").trim(),
-      vunit:"",vtotal:""
+      vunit:_vu,vtotal:""
     };
     colunas.forEach(function(c){if(!(c.id in cells))cells[c.id]="";});
     linhas.push({id:_nextRowId++,cells:cells,formula:["qtd","vunit"]});
   });
   renderTabela();
-  toast("✅ "+linhas.length+" itens extraídos!","ok");
+  toast(_comValor>0?("✅ "+linhas.length+" itens extraídos — "+_comValor+" já com valor de referência do edital"):("✅ "+linhas.length+" itens extraídos!"),"ok");
 }
 
 // Interceptar resposta de "Extrair Itens" para preencher tabela automaticamente
@@ -4577,41 +4578,56 @@ function cssBase(titulo, cor){
     +'-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;'
     +'-webkit-print-color-adjust:exact;print-color-adjust:exact;margin:0;padding:0}'
     +'.page-wrap{min-height:100vh;display:flex;flex-direction:column}'
-    +'.cabecalho{background:'+cor+';padding:16px 36px;display:flex;align-items:center;justify-content:space-between}'
-    +'.cab-razao{font-size:15px;font-weight:900;color:#fff;letter-spacing:-.3px}'
-    +'.cab-cnpj{font-size:10px;color:rgba(255,255,255,.8);margin-top:2px}'
-    +'.cab-contato{text-align:right;color:rgba(255,255,255,.9);font-size:10px;line-height:1.6}'
-    +'.corpo{flex:1;padding:24px 36px}'
-    +'.rodape{background:#f3f4f6;border-top:3px solid '+cor+';padding:10px 36px;'
+    // Cabeçalho: barra sólida + friso mais escuro no topo, para um acabamento "timbrado" de verdade
+    +'.cabecalho{position:relative;background:'+cor+';padding:22px 40px;display:flex;align-items:center;justify-content:space-between}'
+    +'.cabecalho::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:rgba(0,0,0,.14)}'
+    +'.cab-razao{font-size:16.5px;font-weight:800;color:#fff;letter-spacing:.01em;line-height:1.25}'
+    +'.cab-cnpj{font-size:10px;color:rgba(255,255,255,.86);margin-top:4px;letter-spacing:.01em}'
+    +'.cab-contato{text-align:right;color:rgba(255,255,255,.92);font-size:10px;line-height:1.7;font-weight:600}'
+    // Faixa de identificação do documento (tipo + data), como um "protocolo"
+    +'.doc-faixa{background:#f8fafc;border-bottom:1px solid #e5e7eb;padding:9px 40px;display:flex;justify-content:space-between;align-items:center;font-size:9.5px;color:#6b7280}'
+    +'.doc-faixa-tag{display:inline-block;background:'+cor+';color:#fff;font-size:8.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;padding:3px 10px;border-radius:20px}'
+    +'.corpo{flex:1;padding:30px 40px}'
+    +'.rodape{background:#f8fafc;border-top:2.5px solid '+cor+';padding:12px 40px;'
     +'display:flex;align-items:center;justify-content:space-between;font-size:9px;color:#6b7280}'
-    +'.rodape-marca{font-weight:700;color:'+cor+'}'
-    +'.titulo{font-size:14px;font-weight:700;text-align:center;text-transform:uppercase;margin:18px 0 14px;letter-spacing:.04em}'
-    +'.intro{text-align:justify;text-justify:inter-word;line-height:1.9;margin-bottom:14px}'
-    +'.orgao-box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:12px 16px;margin-bottom:16px;font-size:11px}'
-    +'.orgao-row{margin-bottom:4px}'
-    +'.orgao-lbl{font-weight:700;color:#374151}'
-    +'.bloco{background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:14px 16px;margin:14px 0;font-size:11px}'
-    +'.bloco-titulo{font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;font-size:10px}'
-    +'.assinatura{margin-top:36px;text-align:center;page-break-inside:avoid}'
-    +'.assinatura-linha{border-top:1px solid #374151;width:280px;margin:0 auto 6px}'
-    +'table{width:100%;border-collapse:collapse;margin:12px 0;font-size:11px}'
-    +'th{background:'+cor+';color:#fff;padding:7px 8px;text-align:left;font-size:10px;text-transform:uppercase;font-weight:700}'
-    +'td{padding:6px 8px;border-bottom:1px solid #e5e7eb;vertical-align:top}'
-    +'tr:nth-child(even) td{background:#fafafa}'
-    +'.total-row td{font-weight:700;background:#f0fdf4!important;border-top:2px solid #16a34a}'
+    +'.rodape-marca{font-weight:800;color:'+cor+'}'
+    // Título: mais espaçado, com friso curto na cor da empresa embaixo — assinatura visual elegante
+    +'.titulo{font-size:15.5px;font-weight:800;text-align:center;text-transform:uppercase;margin:22px 0 4px;letter-spacing:.05em;color:#111827}'
+    +'.titulo-rule{width:52px;height:3px;background:'+cor+';margin:0 auto 22px;border-radius:2px}'
+    +'.intro{text-align:justify;text-justify:inter-word;line-height:1.9;margin-bottom:16px;color:#1f2937}'
+    // Cards: fundo branco com borda de destaque à esquerda na cor da empresa (mesmo padrão dos relatórios)
+    +'.orgao-box{background:#fff;border:1px solid #e5e7eb;border-left:3px solid '+cor+';border-radius:8px;padding:14px 18px;margin-bottom:18px;font-size:11px;box-shadow:0 1px 2px rgba(0,0,0,.04)}'
+    +'.orgao-row{margin-bottom:5px;line-height:1.5}'
+    +'.orgao-row:last-child{margin-bottom:0}'
+    +'.orgao-lbl{font-weight:800;color:'+cor+';display:inline-block;min-width:64px}'
+    +'.bloco{background:#fff;border:1px solid #e5e7eb;border-left:3px solid '+cor+';border-radius:8px;padding:16px 18px;margin:16px 0;font-size:11px;box-shadow:0 1px 2px rgba(0,0,0,.04)}'
+    +'.bloco-titulo{font-weight:800;color:'+cor+';text-transform:uppercase;letter-spacing:.06em;margin-bottom:11px;font-size:10px}'
+    +'.assinatura{margin-top:44px;text-align:center;page-break-inside:avoid}'
+    +'.assinatura-linha{border-top:1.4px solid #1f2937;width:290px;margin:0 auto 8px}'
+    +'.assinatura-nota{font-size:9px;color:#9ca3af;margin-top:6px;font-style:italic}'
+    // Tabela: cabeçalho com leve gradiente, hairlines mais claras, zebra sutil
+    +'table{width:100%;border-collapse:collapse;margin:14px 0;font-size:10.8px;border-radius:8px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.04)}'
+    +'th{background:'+cor+';background-image:linear-gradient(180deg,rgba(255,255,255,.14),rgba(0,0,0,.06));color:#fff;padding:9px 10px;text-align:left;font-size:9.5px;text-transform:uppercase;font-weight:800;letter-spacing:.04em}'
+    +'td{padding:7px 10px;border-bottom:1px solid #eef0f3;vertical-align:top;color:#1f2937}'
+    +'tr:nth-child(even) td{background:#fafbfc}'
+    +'tr:last-child td{border-bottom:none}'
+    +'.total-row td{font-weight:800;background:#f0fdf4!important;border-top:2px solid #16a34a;color:#14532d}'
     +'@media print{'
     +'@page{margin:0;size:A4}'
     +'body{margin:0;padding:0}'
     +'.page-wrap{min-height:297mm}'
     +'.cabecalho{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}'
     +'.rodape{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;position:fixed;bottom:0;left:0;right:0}'
+    +'th{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}'
     +'tr{page-break-inside:avoid}'
     +'}'
     +'</style></head><body><div class="page-wrap">';
 }
 
 function timbradoHTML(emp, titulo){
-  if(!emp){return '<div class="cabecalho"><div><div class="cab-razao">NH Licitações</div></div></div><div class="corpo">';}
+  var _hoje = new Date().toLocaleDateString('pt-BR');
+  var _faixa = '<div class="doc-faixa"><span class="doc-faixa-tag">'+(titulo||'Documento')+'</span><span>Emitido em '+_hoje+'</span></div>';
+  if(!emp){return '<div class="cabecalho"><div><div class="cab-razao">NH Licitações</div></div></div>'+_faixa+'<div class="corpo">';}
   var cor = emp.cor||'#f97316';
   return '<div class="cabecalho" style="background:'+cor+'">'
     +'<div>'
@@ -4623,6 +4639,7 @@ function timbradoHTML(emp, titulo){
     +(emp.email?'<div>'+emp.email+'</div>':'')
     +'</div>'
     +'</div>'
+    +_faixa
     +'<div class="corpo">';
 }
 
@@ -4662,6 +4679,7 @@ function assinaturaHTML(emp, cidade, data){
       +(emp.cpf?'<p style="font-size:10px;color:#6b7280">CPF: '+emp.cpf+'</p>':'')
       : '<p style="font-size:11px">Assinatura</p>')
     +'</div>'
+    +'<p class="assinatura-nota">Documento gerado eletronicamente pelo sistema NH Licitações</p>'
     +'</div>';
 }
 
@@ -4677,9 +4695,36 @@ function rodapeHTML(emp){
   return rodape;
 }
 
-var OUTRAS_TEXTOS = {
-  vistoria: {
-    titulo: 'DECLARAÇÃO DE VISTORIA / NÃO VISTORIA',
+/* ════════════════════════════════════════════════════════════
+   DECLARAÇÕES — catálogo único.
+   Antes existiam 3 mecanismos separados (Declaração Unificada fixa,
+   Outras Declarações em dropdown, e o texto livre "Personalizada").
+   Agora é um catálogo só: cada item é uma declaração nomeável,
+   marcável, e pode ser gerada junto com as outras num documento
+   único ou separada em arquivos individuais.
+   ════════════════════════════════════════════════════════════ */
+var DECLARACOES_PADRAO = [
+  {
+    id: 'unificada',
+    titulo: 'Declaração Unificada de Habilitação',
+    tipo: 'lista',
+    itens: [
+      'Não possui em seu quadro de pessoal empregados menores de 18 anos em trabalho noturno, perigoso ou insalubre e menores de 16 anos em qualquer trabalho, salvo na condição de aprendiz, a partir de 14 anos (CF/1988, art. 7°, XXXIII);',
+      'Não está impedida de contratar ou licitar com órgãos da Administração Pública Federal, Estadual, do Distrito Federal ou Municipal;',
+      'Não foi declarada inidônea por nenhum órgão ou entidade da Administração Pública Federal, Estadual, do Distrito Federal ou Municipal;',
+      'Não possui, em seu quadro societário, servidor público da ativa ou empregado de empresa pública ou de sociedade de economia mista;',
+      'Não há superveniência de fato impeditivo para habilitação neste certame;',
+      'Está ciente e concorda com as condições contidas no Edital e seus Anexos;',
+      'Cumpre os requisitos para a concessão do benefício de Microempresa ou Empresa de Pequeno Porte, nos termos da Lei Complementar nº 123/2006 e suas alterações, se aplicável;',
+      'Não possui relação de parentesco com agentes públicos que tenham participado dos procedimentos licitatórios;',
+      'As informações prestadas são verdadeiras e estão devidamente comprovadas, responsabilizando-se pela veracidade das declarações ora apresentadas;',
+      'Está regular perante o Ministério do Trabalho no que se refere ao cumprimento das normas de segurança e medicina do trabalho.'
+    ]
+  },
+  {
+    id: 'vistoria',
+    titulo: 'Declaração de Vistoria / Não Vistoria',
+    tipo: 'texto',
     texto: function(e){
       return 'DECLARA para os devidos fins que OPTOU POR NÃO REALIZAR VISTORIA nas instalações '
         +'e locais onde serão prestados os serviços/fornecidos os materiais objeto do presente certame, '
@@ -4687,27 +4732,164 @@ var OUTRAS_TEXTOS = {
         +'desconhecimento das condições do local para qualquer fim.';
     }
   },
-  conhecimento: {
-    titulo: 'DECLARAÇÃO DE TOMADA DE CONHECIMENTO',
+  {
+    id: 'conhecimento',
+    titulo: 'Declaração de Tomada de Conhecimento',
+    tipo: 'texto',
     texto: function(e){
       return 'DECLARA que tomou pleno conhecimento de todas as condições e exigências constantes '
         +'do Edital e seus Anexos, bem como de todas as informações relativas ao objeto desta '
         +'licitação, estando ciente e de acordo com todos os seus termos.';
     }
   },
-  capacidade: {
-    titulo: 'DECLARAÇÃO DE CAPACIDADE TÉCNICA E OPERACIONAL',
+  {
+    id: 'capacidade',
+    titulo: 'Declaração de Capacidade Técnica e Operacional',
+    tipo: 'texto',
     texto: function(e){
       return 'DECLARA que possui capacidade técnica e operacional para o fornecimento do objeto '
         +'desta licitação, contando com estrutura física, equipamentos e pessoal técnico '
         +'qualificado necessários para o perfeito cumprimento do contrato.';
     }
-  },
-  personalizada: {
-    titulo: 'DECLARAÇÃO',
-    texto: function(e){ return ''; }
   }
-};
+];
+var _declaracoesIA = [];       // detectadas no edital pela IA — {id,titulo,texto,tipo:'texto',origem:'ia'}
+var _declaracoesExtras = [];   // adicionadas manualmente — {id,titulo,texto,tipo:'texto',origem:'manual'}
+var _declaracoesSelecionadas = {unificada:true, vistoria:false, conhecimento:false, capacidade:false};
+var _declaracoesModo = 'unico'; // 'unico' | 'separado'
+
+function _declaracoesTodas(){
+  return DECLARACOES_PADRAO.concat(_declaracoesIA).concat(_declaracoesExtras);
+}
+function _declaracoesSelecionadasLista(){
+  return _declaracoesTodas().filter(function(d){ return !!_declaracoesSelecionadas[d.id]; });
+}
+function _declPreview(decl){
+  if(decl.tipo==='lista') return decl.itens.length+' cláusulas — habilitação geral, ME/EPP, menores, idoneidade, etc.';
+  var t = typeof decl.texto==='function' ? decl.texto(null) : (decl.texto||'');
+  return t.substring(0,150)+(t.length>150?'…':'');
+}
+function _declTextoCompletoHTML(decl, emp){
+  if(decl.tipo==='lista'){
+    var html = '<ol style="padding-left:18px;line-height:1.9">';
+    decl.itens.forEach(function(it){ html += '<li style="margin-bottom:8px;text-align:justify">'+it+'</li>'; });
+    html += '</ol>';
+    return html;
+  }
+  var t = typeof decl.texto==='function' ? decl.texto(emp) : (decl.texto||'');
+  return '<p class="intro">'+t+'</p>';
+}
+function _declTextoCompletoPlano(decl, emp){
+  if(decl.tipo==='lista') return decl.itens.map(function(it,i){ return (i+1)+'. '+it; }).join('\n');
+  return typeof decl.texto==='function' ? decl.texto(emp) : (decl.texto||'');
+}
+
+function setDeclModo(modo){ _declaracoesModo = modo; }
+
+function toggleDeclaracao(id, checked){
+  _declaracoesSelecionadas[id] = checked;
+  renderDeclChecklist();
+}
+
+function removerDeclaracaoExtra(id){
+  _declaracoesIA = _declaracoesIA.filter(function(d){ return d.id!==id; });
+  _declaracoesExtras = _declaracoesExtras.filter(function(d){ return d.id!==id; });
+  delete _declaracoesSelecionadas[id];
+  renderDeclChecklist();
+}
+
+function adicionarDeclaracaoManual(){
+  var id = 'manual_'+Date.now();
+  _declaracoesExtras.push({id:id, titulo:'Nova Declaração', texto:'', tipo:'texto', origem:'manual'});
+  _declaracoesSelecionadas[id] = true;
+  renderDeclChecklist();
+  // Foca no título recém-criado para edição imediata
+  setTimeout(function(){
+    var el = document.getElementById('decl-edit-titulo-'+id);
+    if(el){ el.focus(); el.select(); }
+  }, 50);
+}
+
+function _declAtualizarCampo(id, campo, valor){
+  var alvo = _declaracoesExtras.find(function(d){ return d.id===id; }) || _declaracoesIA.find(function(d){ return d.id===id; });
+  if(alvo) alvo[campo] = valor;
+}
+
+function renderDeclChecklist(){
+  var box = document.getElementById('decl-lista');
+  if(!box) return;
+  var todas = _declaracoesTodas();
+  box.innerHTML = todas.map(function(decl){
+    var checked = !!_declaracoesSelecionadas[decl.id];
+    var editavel = decl.origem==='manual';
+    var badge = decl.origem==='ia' ? '<span class="decl-badge decl-badge-ia">Detectada no edital</span>'
+              : decl.origem==='manual' ? '<span class="decl-badge decl-badge-manual">Personalizada</span>' : '';
+    var remover = (decl.origem==='ia'||decl.origem==='manual')
+      ? '<button type="button" class="decl-row-remove" onclick="removerDeclaracaoExtra(\''+decl.id+'\')" title="Remover">✕</button>' : '';
+    var corpo = editavel
+      ? '<div class="decl-row-edit" style="display:'+(checked?'flex':'none')+'">'
+        +'<input id="decl-edit-titulo-'+decl.id+'" value="'+(decl.titulo||'').replace(/"/g,'&quot;')+'" placeholder="Título da declaração" oninput="_declAtualizarCampo(\''+decl.id+'\',\'titulo\',this.value); document.getElementById(\'decl-lbl-'+decl.id+'\').textContent=this.value||\'Nova Declaração\';">'
+        +'<textarea rows="4" placeholder="Texto completo da declaração..." oninput="_declAtualizarCampo(\''+decl.id+'\',\'texto\',this.value)">'+(decl.texto||'')+'</textarea>'
+        +'</div>'
+      : '<div class="decl-row-preview">'+_declPreview(decl)+'</div>';
+    return '<label class="decl-row'+(checked?' checked':'')+'">'
+      +'<input type="checkbox" '+(checked?'checked':'')+' onchange="toggleDeclaracao(\''+decl.id+'\', this.checked)'+(editavel?'; this.closest(\'.decl-row\').querySelector(\'.decl-row-edit\').style.display=this.checked?\'flex\':\'none\'':'')+'">'
+      +'<div class="decl-row-body">'
+      +'<div class="decl-row-titulo"><span id="decl-lbl-'+decl.id+'">'+decl.titulo+'</span>'+badge+'</div>'
+      +corpo
+      +'</div>'
+      +remover
+      +'</label>';
+  }).join('');
+}
+
+async function detectarDeclaracoesEdital(){
+  var key = localStorage.getItem('nh_gemini_key');
+  if(!key){ toast('Configure a API Key do Gemini','err'); document.getElementById('ia-key-modal').style.display='flex'; return; }
+  var texto = document.getElementById('ia-texto') ? document.getElementById('ia-texto').value.trim() : '';
+  texto = texto || _iaTexto || '';
+  if(!_iaArquivos.length && (!texto || texto.length<10)){
+    toast('Anexe o edital ou cole o texto na seção 0 antes de detectar','err'); return;
+  }
+  var btn = document.getElementById('btn-detectar-decl');
+  var _txtOrig = btn ? btn.textContent : '';
+  if(btn){ btn.disabled=true; btn.textContent='🔎 Lendo o edital...'; }
+  try{
+    var prompt = 'Releia o edital/TR e liste TODAS as declarações exigidas do licitante — '
+      + 'inclusive as que não são as mais comuns (habilitação geral, ME/EPP, menor de idade). '
+      + 'IGNORE declarações sobre: vistoria, tomada de conhecimento, capacidade técnica e operacional — '
+      + 'essas já fazem parte do nosso catálogo padrão. Liste apenas as ADICIONAIS/DIFERENTES. '
+      + 'Para cada uma, devolva o título oficial e o TEXTO COMPLETO pronto para assinatura, '
+      + 'na primeira pessoa da empresa, exatamente como deve constar no documento final '
+      + '(sem instruções, sem comentários). '
+      + 'Responda APENAS com um array JSON válido, sem markdown: '
+      + '[{"titulo":"DECLARAÇÃO DE...","texto":"A empresa [nome] declara que..."}]';
+    var parts = _iaArquivos.length ? _iaPartsArquivos().concat([{text:prompt}]) : [{text:prompt+'\n\nEDITAL/TR:\n'+texto.substring(0,30000)}];
+    var json = await chamarGemini(key, parts, 0.15, 6000);
+    var resposta = json.candidates&&json.candidates[0]&&json.candidates[0].content&&json.candidates[0].content.parts&&json.candidates[0].content.parts[0]&&json.candidates[0].content.parts[0].text || '';
+    var clean = resposta.replace(/```json/g,'').replace(/```/g,'').trim();
+    var m = clean.match(/\[[\s\S]*\]/);
+    if(!m){ toast('A IA não encontrou declarações adicionais no edital','info'); return; }
+    var lista;
+    try{ lista = JSON.parse(m[0]); }catch(e){ toast('Não consegui interpretar a resposta da IA. Tente novamente.','err'); return; }
+    if(!Array.isArray(lista) || !lista.length){ toast('Nenhuma declaração adicional encontrada','info'); return; }
+    var novas = 0;
+    lista.forEach(function(d, idx){
+      if(!d || !d.titulo || !d.texto) return;
+      var id = 'ia_'+Date.now()+'_'+idx;
+      _declaracoesIA.push({id:id, titulo:d.titulo, texto:d.texto, tipo:'texto', origem:'ia'});
+      _declaracoesSelecionadas[id] = true;
+      novas++;
+    });
+    renderDeclChecklist();
+    toast(novas ? ('✅ '+novas+' declaração(ões) adicional(is) encontrada(s) no edital') : 'Nenhuma declaração nova encontrada', 'ok');
+  }catch(e){
+    console.error('Erro ao detectar declarações:', e);
+    toast('Erro ao consultar a IA: '+e.message, 'err');
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent=_txtOrig; }
+  }
+}
 
 function _coletarDadosDoc(){
   return {
@@ -4737,7 +4919,7 @@ function _gerarHTMLProposta(d){
   var html = cssBase('Proposta Comercial', cor);
   html += timbradoHTML(emp, 'Proposta Comercial');
   html += orgaoHTML(d.orgao, d.setor, d.modalidade, d.processo);
-  html += '<h2 class="titulo">PROPOSTA COMERCIAL</h2>';
+  html += '<h2 class="titulo">PROPOSTA COMERCIAL</h2><div class="titulo-rule"></div>';
   if(d.objeto) html += '<p style="margin-bottom:12px;line-height:1.7"><strong>Objeto:</strong> '+d.objeto+'</p>';
   // Tabela de itens
   if(linhas && linhas.length){
@@ -4769,64 +4951,89 @@ function _gerarHTMLProposta(d){
   if(d.prazoEntrega) html += '<p style="margin:4px 0;font-size:11px"><strong>Prazo de Entrega/Execução:</strong> '+d.prazoEntrega+'</p>';
   if(d.prazoPag) html += '<p style="margin:4px 0;font-size:11px"><strong>Prazo de Pagamento:</strong> '+d.prazoPag+'</p>';
   if(d.local) html += '<p style="margin:4px 0;font-size:11px"><strong>Local de Prestação:</strong> '+d.local+'</p>';
-  if(emp&&emp.banco){html+='<div style="margin:16px 0;padding:12px 16px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px">'+'<p style="font-size:11px;font-weight:700;text-transform:uppercase;margin-bottom:8px">DADOS BANCÁRIOS PARA PAGAMENTO</p>'+'<p style="font-size:11px;margin:3px 0"><strong>Banco:</strong> '+emp.banco+'</p>'+(emp.agencia?'<p style="font-size:11px;margin:3px 0"><strong>Agência:</strong> '+emp.agencia+'</p>':'')+  (emp.conta?'<p style="font-size:11px;margin:3px 0"><strong>Conta Corrente:</strong> '+emp.conta+'</p>':'')+'</div>';}
-  html+='<div style="margin:16px 0;padding:12px 16px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;font-size:11px">';html+='<p style="font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">RESPONSABILIDADES E CONDIÇÕES DA PROPOSTA</p>';html+='<p style="margin-bottom:8px"><strong>1. Autenticidade e Responsabilidade</strong><br>Assumimos integralmente todas as transações, propostas e lances efetuados em nosso nome, diretamente ou por representante legal, isentando a contratante de responsabilidades por uso indevido de credenciais de acesso.</p>';html+='<p><strong>2. Composição de Preços</strong><br>Os valores apresentados contemplam todos os custos diretos e indiretos, incluindo tributos (ICMS e demais), encargos trabalhistas e previdenciários, fretes, seguros, montagem e demais despesas relacionadas à execução do objeto contratual.</p>';html+='</div>';if(emp&&emp.socio){var _mun=emp.cidade?emp.cidade.split("/")[0].trim():"";var _txtContrato="Se vencedor, na qualidade de representante legal da empresa, assinará a Ata e Contrato: Sr.(a): "+emp.socio;if(emp.cpf)_txtContrato+=" | CPF: "+emp.cpf;if(_mun)_txtContrato+=", residente e domiciliado(a) em "+_mun+".";html+='<div style="margin:16px 0;padding:12px 16px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;font-size:11px">';html+='<p style="font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">DA ASSINATURA DO CONTRATO</p>';html+='<p>'+_txtContrato+'</p>';html+='</div>';}
-  var _cidadeAss = d.cidade || (emp&&emp.cidade?emp.cidade.split('/')[0].trim():'_____________');
-  var _dataAss   = d.data   || new Date().toLocaleDateString('pt-BR');
-  html += '<p style="margin-top:28px;font-size:11px;text-align:right">'+ _cidadeAss+', '+_dataAss+'</p>';
-  html += '<div style="margin-top:40px;text-align:center">';
-  html += '<div style="border-top:1px solid #374151;width:300px;margin:0 auto 6px"></div>';
-  if(emp){
-    html += '<p style="font-size:11px;font-weight:700;text-transform:uppercase">'+(emp.razao||emp.nome||'')+'</p>';
-    html += '<p style="font-size:10px;color:#6b7280">CNPJ: '+emp.cnpj+'</p>';
-    if(emp.socio) html += '<p style="font-size:11px;margin-top:6px;font-weight:600">'+emp.socio+'</p>';
-    if(emp.cargo) html += '<p style="font-size:10px;color:#6b7280">'+emp.cargo+'</p>';
-    if(emp.cpf)   html += '<p style="font-size:10px;color:#6b7280">CPF: '+emp.cpf+'</p>';
+  if(emp&&emp.banco){
+    html += '<div class="bloco"><div class="bloco-titulo">Dados Bancários para Pagamento</div>'
+      +'<p style="margin:3px 0"><strong>Banco:</strong> '+emp.banco+'</p>'
+      +(emp.agencia?'<p style="margin:3px 0"><strong>Agência:</strong> '+emp.agencia+'</p>':'')
+      +(emp.conta?'<p style="margin:3px 0"><strong>Conta Corrente:</strong> '+emp.conta+'</p>':'')
+      +'</div>';
   }
-  html += '</div>';
-  html += rodapeHTML(emp);
-  return html;
-}
-
-
-function _gerarHTMLDecl(d){
-  var emp = d.emp;
-  var temTimbrado = emp && TIMBRADOS[emp.nome||empSelecionada] && TIMBRADOS[emp.nome||empSelecionada].header;
-  var html = cssBase('Declaração Unificada', temTimbrado);
-  html += timbradoHTML(emp, 'Declaração Unificada');
-  html += orgaoHTML(d.orgao, d.setor, d.modalidade, d.processo);
-  html += '<h2 class="titulo">DECLARAÇÃO UNIFICADA</h2>';
-  html += introHTML(emp);
-  html += '<p class="intro">para fins do disposto no Edital supramencionado, <strong>DECLARA</strong> que:</p>';
-  var declaracoes = [
-    'Não possui em seu quadro de pessoal empregados menores de 18 anos em trabalho noturno, perigoso ou insalubre e menores de 16 anos em qualquer trabalho, salvo na condição de aprendiz, a partir de 14 anos (CF/1988, art. 7°, XXXIII);',
-    'Não está impedida de contratar ou licitar com órgãos da Administração Pública Federal, Estadual, do Distrito Federal ou Municipal;',
-    'Não foi declarada inidônea por nenhum órgão ou entidade da Administração Pública Federal, Estadual, do Distrito Federal ou Municipal;',
-    'Não possui, em seu quadro societário, servidor público da ativa ou empregado de empresa pública ou de sociedade de economia mista;',
-    'Não há superveniência de fato impeditivo para habilitação neste certame;',
-    'Está ciente e concorda com as condições contidas no Edital e seus Anexos;',
-    'Cumpre os requisitos para a concessão do benefício de Microempresa ou Empresa de Pequeno Porte, nos termos da Lei Complementar nº 123/2006 e suas alterações, se aplicável;',
-    'Não possui relação de parentesco com agentes públicos que tenham participado dos procedimentos licitatórios;',
-    'As informações prestadas são verdadeiras e estão devidamente comprovadas, responsabilizando-se pela veracidade das declarações ora apresentadas;',
-    'Está regular perante o Ministério do Trabalho no que se refere ao cumprimento das normas de segurança e medicina do trabalho.'
-  ];
-  html += '<ol style="padding-left:18px;line-height:1.9">';
-  declaracoes.forEach(function(dec){ html += '<li style="margin-bottom:8px;text-align:justify">'+dec+'</li>'; });
-  html += '</ol>';
-  html += '<p style="margin-top:14px;font-size:11px">Por ser expressão da verdade, firmamos a presente declaração.</p>';
+  html += '<div class="bloco"><div class="bloco-titulo">Responsabilidades e Condições da Proposta</div>'
+    +'<p style="margin-bottom:8px"><strong>1. Autenticidade e Responsabilidade</strong><br>Assumimos integralmente todas as transações, propostas e lances efetuados em nosso nome, diretamente ou por representante legal, isentando a contratante de responsabilidades por uso indevido de credenciais de acesso.</p>'
+    +'<p><strong>2. Composição de Preços</strong><br>Os valores apresentados contemplam todos os custos diretos e indiretos, incluindo tributos (ICMS e demais), encargos trabalhistas e previdenciários, fretes, seguros, montagem e demais despesas relacionadas à execução do objeto contratual.</p>'
+    +'</div>';
+  if(emp&&emp.socio){
+    var _mun=emp.cidade?emp.cidade.split('/')[0].trim():'';
+    var _txtContrato='Se vencedor, na qualidade de representante legal da empresa, assinará a Ata e Contrato: Sr.(a): '+emp.socio;
+    if(emp.cpf) _txtContrato+=' | CPF: '+emp.cpf;
+    if(_mun) _txtContrato+=', residente e domiciliado(a) em '+_mun+'.';
+    html += '<div class="bloco"><div class="bloco-titulo">Da Assinatura do Contrato</div><p>'+_txtContrato+'</p></div>';
+  }
+  // Assinatura — reaproveita a mesma função usada em declarações (evita duas versões divergentes)
   html += assinaturaHTML(emp, d.cidade, d.data);
   html += rodapeHTML(emp);
   return html;
 }
 
+function _gerarHTMLDeclaracoes(d){
+  var emp = d.emp;
+  var cor = (emp&&emp.cor)||EMPCORES[empSelecionada]||'#f97316';
+  var sel = _declaracoesSelecionadasLista();
+  if(!sel.length) return [];
+
+  if(_declaracoesModo==='unico' || sel.length===1){
+    var html = cssBase(sel.length>1?'Declarações':sel[0].titulo, cor);
+    html += timbradoHTML(emp, sel.length>1?'Declarações':sel[0].titulo);
+    html += orgaoHTML(d.orgao, d.setor, d.modalidade, d.processo);
+    html += '<h2 class="titulo">'+(sel.length>1?'DECLARAÇÕES':sel[0].titulo.toUpperCase())+'</h2><div class="titulo-rule"></div>';
+    html += introHTML(emp);
+    html += '<p class="intro">para fins do disposto no Edital supramencionado, <strong>DECLARA</strong> que:</p>';
+    sel.forEach(function(decl, idx){
+      if(sel.length>1){
+        html += '<h3 style="font-size:12px;font-weight:800;color:'+cor+';text-transform:uppercase;letter-spacing:.04em;margin:'+(idx===0?'6px':'22px')+' 0 8px">'+(idx+1)+'. '+decl.titulo+'</h3>';
+      }
+      html += _declTextoCompletoHTML(decl, emp);
+    });
+    html += '<p style="margin-top:14px;font-size:11px">Por ser'+(sel.length>1?'em':'') +' expressão da verdade, firma'+(sel.length>1?'mos':'mos')+' a'+(sel.length>1?'s':'a')+' presente'+(sel.length>1?'s':'')+' declaraç'+(sel.length>1?'ões':'ão')+'.</p>';
+    html += assinaturaHTML(emp, d.cidade, d.data);
+    html += rodapeHTML(emp);
+    return [html];
+  }
+
+  // Modo separado: um documento completo por declaração selecionada
+  return sel.map(function(decl){
+    var html = cssBase(decl.titulo, cor);
+    html += timbradoHTML(emp, decl.titulo);
+    html += orgaoHTML(d.orgao, d.setor, d.modalidade, d.processo);
+    html += '<h2 class="titulo">'+decl.titulo.toUpperCase()+'</h2><div class="titulo-rule"></div>';
+    html += introHTML(emp);
+    if(decl.tipo!=='lista') html += '<p class="intro">para fins do disposto no Edital supramencionado, <strong>DECLARA</strong> que:</p>';
+    html += _declTextoCompletoHTML(decl, emp);
+    html += '<p style="margin-top:14px;font-size:11px">Por ser expressão da verdade, firmo a presente declaração.</p>';
+    html += assinaturaHTML(emp, d.cidade, d.data);
+    html += rodapeHTML(emp);
+    return html;
+  });
+}
+
 function gerarDocumento(){
   var d = _coletarDadosDoc();
   if(!d.emp){ toast('Selecione uma empresa no passo 1','err'); return; }
-  var html = '';
-  if(docTipo==='proposta') html = _gerarHTMLProposta(d);
-  else if(docTipo==='decl_unificada') html = _gerarHTMLDecl(d);
-  else if(docTipo==='outras') html = gerarHTMLOutraDecl(d.emp,d.orgao,d.setor,d.modalidade,d.processo,d.cidade,d.data,false);
-  else html = _gerarHTMLProposta(d);
+  if(docTipo==='declaracoes'){
+    var htmls = _gerarHTMLDeclaracoes(d);
+    if(!htmls.length){ toast('Marque ao menos uma declaração para gerar','err'); return; }
+    htmls.forEach(function(html, i){
+      setTimeout(function(){
+        var w = window.open('','_blank');
+        if(!w){ toast('Popup bloqueado. Permita popups para este site.','err'); return; }
+        w.document.write(html);
+        w.document.close();
+        setTimeout(function(){ w.print(); }, 600);
+      }, i*700);
+    });
+    return;
+  }
+  var html = _gerarHTMLProposta(d);
   var w = window.open('','_blank');
   if(!w){ toast('Popup bloqueado. Permita popups para este site.','err'); return; }
   w.document.write(html);
@@ -4837,15 +5044,107 @@ function gerarDocumento(){
 function previsualizar(){
   var d = _coletarDadosDoc();
   if(!d.emp){ toast('Selecione uma empresa no passo 1','err'); return; }
-  var html = '';
-  if(docTipo==='proposta') html = _gerarHTMLProposta(d);
-  else if(docTipo==='decl_unificada') html = _gerarHTMLDecl(d);
-  else if(docTipo==='outras') html = gerarHTMLOutraDecl(d.emp,d.orgao,d.setor,d.modalidade,d.processo,d.cidade,d.data,false);
-  else html = _gerarHTMLProposta(d);
+  if(docTipo==='declaracoes'){
+    var htmls = _gerarHTMLDeclaracoes(d);
+    if(!htmls.length){ toast('Marque ao menos uma declaração para visualizar','err'); return; }
+    htmls.forEach(function(html, i){
+      setTimeout(function(){
+        var w = window.open('','_blank');
+        if(!w){ toast('Popup bloqueado.','err'); return; }
+        w.document.write(html);
+        w.document.close();
+      }, i*400);
+    });
+    return;
+  }
+  var html = _gerarHTMLProposta(d);
   var w = window.open('','_blank');
   if(!w){ toast('Popup bloqueado.','err'); return; }
   w.document.write(html);
   w.document.close();
+}
+
+function _declParasDocxCabecalho(_docx, d, emp, cor){
+  var paras=[];
+  paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:(emp.razao||emp.nome||'').toUpperCase(),bold:true,size:28,color:cor})],spacing:{after:120}}));
+  paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'CNPJ: '+emp.cnpj+(emp.cidade?' | '+emp.cidade:''),size:18,color:'666666'})],spacing:{after:360},border:{bottom:{style:_docx.BorderStyle.SINGLE,size:6,color:cor}}}));
+  if(d.orgao) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Ao: '+d.orgao,size:20})],spacing:{after:80}}));
+  if(d.setor) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Setor: '+d.setor,size:20})],spacing:{after:80}}));
+  if(d.modalidade) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Ref.: '+d.modalidade,size:20})],spacing:{after:80}}));
+  if(d.processo) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Processo: '+d.processo,size:20})],spacing:{after:240}}));
+  return paras;
+}
+function _declParasDocxAssinatura(_docx, d, emp){
+  var paras=[];
+  var cidadeData = (d.cidade||'____________')+', '+d.data;
+  paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:cidadeData,size:20})],alignment:_docx.AlignmentType.RIGHT,spacing:{before:600,after:600}}));
+  paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'_'.repeat(50),size:20})],alignment:_docx.AlignmentType.CENTER,spacing:{after:80}}));
+  paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:(emp.razao||emp.nome||'').toUpperCase(),bold:true,size:20})],alignment:_docx.AlignmentType.CENTER,spacing:{after:80}}));
+  if(emp.cnpj) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'CNPJ: '+emp.cnpj,size:18,color:'666666'})],alignment:_docx.AlignmentType.CENTER,spacing:{after:80}}));
+  if(emp.socio) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:emp.socio,size:20})],alignment:_docx.AlignmentType.CENTER,spacing:{after:60}}));
+  if(emp.cargo) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:emp.cargo,size:18,color:'666666'})],alignment:_docx.AlignmentType.CENTER}));
+  return paras;
+}
+function _declParasDocxCorpo(_docx, decl){
+  var paras=[];
+  if(decl.tipo==='lista'){
+    decl.itens.forEach(function(it,i){
+      paras.push(new _docx.Paragraph({
+        children:[new _docx.TextRun({text:(i+1)+'. ',bold:true,size:20}),new _docx.TextRun({text:it,size:20})],
+        spacing:{after:140},alignment:_docx.AlignmentType.JUSTIFIED
+      }));
+    });
+  } else {
+    var texto = typeof decl.texto==='function' ? decl.texto(null) : (decl.texto||'');
+    paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:texto,size:20})],spacing:{after:200},alignment:_docx.AlignmentType.JUSTIFIED}));
+  }
+  return paras;
+}
+
+// Gera o(s) Word de declarações — documento único (todas juntas) ou um arquivo por declaração marcada.
+// Corrige o problema de antes: o Word de declarações saía só com cabeçalho e título, sem o texto.
+function _gerarWordDeclaracoes(d, _docx){
+  var emp = d.emp;
+  var cor = (emp.cor||'#f97316').replace('#','');
+  var sel = _declaracoesSelecionadasLista();
+  if(!sel.length){ toast('Marque ao menos uma declaração para gerar','err'); return; }
+
+  function baixar(paras, nomeArquivo){
+    var doc = new _docx.Document({sections:[{properties:{},children:paras}]});
+    _docx.Packer.toBlob(doc).then(function(blob){
+      var url=URL.createObjectURL(blob);
+      var a=document.createElement('a'); a.href=url; a.download=nomeArquivo+'.docx'; a.click();
+      URL.revokeObjectURL(url);
+    });
+  }
+
+  if(_declaracoesModo==='unico' || sel.length===1){
+    var paras = _declParasDocxCabecalho(_docx, d, emp, cor);
+    var tituloDoc = sel.length>1?'DECLARAÇÕES':sel[0].titulo.toUpperCase();
+    paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:tituloDoc,bold:true,size:26})],alignment:_docx.AlignmentType.CENTER,spacing:{after:300}}));
+    paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Para fins do disposto no Edital supramencionado, DECLARA que:',size:20})],spacing:{after:200}}));
+    sel.forEach(function(decl, idx){
+      if(sel.length>1){
+        paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:(idx+1)+'. '+decl.titulo,bold:true,size:22,color:cor})],spacing:{before:idx===0?0:200,after:120}}));
+      }
+      paras = paras.concat(_declParasDocxCorpo(_docx, decl));
+    });
+    paras = paras.concat(_declParasDocxAssinatura(_docx, d, emp));
+    baixar(paras, 'Declaracoes_'+(emp.nome||'doc')+'_'+new Date().toLocaleDateString('pt-BR').replace(/\//g,'-'));
+    toast('✅ Word gerado!','ok');
+  } else {
+    sel.forEach(function(decl, i){
+      setTimeout(function(){
+        var paras = _declParasDocxCabecalho(_docx, d, emp, cor);
+        paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:decl.titulo.toUpperCase(),bold:true,size:26})],alignment:_docx.AlignmentType.CENTER,spacing:{after:300}}));
+        if(decl.tipo!=='lista') paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Para fins do disposto no Edital supramencionado, DECLARA que:',size:20})],spacing:{after:200}}));
+        paras = paras.concat(_declParasDocxCorpo(_docx, decl));
+        paras = paras.concat(_declParasDocxAssinatura(_docx, d, emp));
+        baixar(paras, decl.titulo.replace(/[^\w\u00c0-\u00fa ]/g,'').substring(0,40)+'_'+(emp.nome||'doc'));
+      }, i*500);
+    });
+    toast('✅ Gerando '+sel.length+' documento(s) Word...','ok');
+  }
 }
 
 function gerarWord(){
@@ -4870,6 +5169,10 @@ function gerarWord(){
   }
   var d = _coletarDadosDoc();
   if(!d.emp){ toast('Selecione uma empresa no passo 1','err'); return; }
+  if(docTipo==='declaracoes'){
+    _gerarWordDeclaracoes(d, _docx);
+    return;
+  }
   try{
     var emp = d.emp;
     var cor = (emp.cor||'#f97316').replace('#','');
@@ -4885,10 +5188,11 @@ function gerarWord(){
     }));
     // Dados do processo
     if(d.orgao) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Ao: '+d.orgao,size:20})],spacing:{after:80}}));
+    if(d.setor) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Setor: '+d.setor,size:20})],spacing:{after:80}}));
     if(d.modalidade) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Ref.: '+d.modalidade,size:20})],spacing:{after:80}}));
     if(d.processo) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Processo: '+d.processo,size:20})],spacing:{after:240}}));
     // Título
-    var titulo = docTipo==='proposta'?'PROPOSTA COMERCIAL':docTipo==='decl_unificada'?'DECLARAÇÃO UNIFICADA':'DECLARAÇÃO';
+    var titulo = 'PROPOSTA COMERCIAL'; // declarações saem antes por return; aqui só chega docTipo==='proposta'
     paras.push(new _docx.Paragraph({
       children:[new _docx.TextRun({text:titulo,bold:true,size:26})],
       alignment:_docx.AlignmentType.CENTER,spacing:{after:300}
@@ -4917,6 +5221,27 @@ function gerarWord(){
     if(d.validade) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Validade da Proposta: ',bold:true,size:20}),new _docx.TextRun({text:d.validade+' dias',size:20})],spacing:{after:100}}));
     if(d.prazoEntrega) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Prazo de Entrega/Execução: ',bold:true,size:20}),new _docx.TextRun({text:d.prazoEntrega,size:20})],spacing:{after:100}}));
     if(d.prazoPag) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Prazo de Pagamento: ',bold:true,size:20}),new _docx.TextRun({text:d.prazoPag,size:20})],spacing:{after:100}}));
+    if(d.local) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Local de Prestação: ',bold:true,size:20}),new _docx.TextRun({text:d.local,size:20})],spacing:{after:100}}));
+    // Dados bancários (mesmo bloco que já existe no PDF)
+    if(emp.banco){
+      paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'DADOS BANCÁRIOS PARA PAGAMENTO',bold:true,size:18,color:'374151'})],spacing:{before:280,after:80}}));
+      paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Banco: ',bold:true,size:18}),new _docx.TextRun({text:emp.banco,size:18})],spacing:{after:40}}));
+      if(emp.agencia) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Agência: ',bold:true,size:18}),new _docx.TextRun({text:emp.agencia,size:18})],spacing:{after:40}}));
+      if(emp.conta) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Conta Corrente: ',bold:true,size:18}),new _docx.TextRun({text:emp.conta,size:18})],spacing:{after:40}}));
+    }
+    // Responsabilidades e condições da proposta (mesmo texto do PDF)
+    paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'RESPONSABILIDADES E CONDIÇÕES DA PROPOSTA',bold:true,size:18,color:'374151'})],spacing:{before:280,after:80}}));
+    paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'1. Autenticidade e Responsabilidade: ',bold:true,size:18}),new _docx.TextRun({text:'Assumimos integralmente todas as transações, propostas e lances efetuados em nosso nome, diretamente ou por representante legal, isentando a contratante de responsabilidades por uso indevido de credenciais de acesso.',size:18})],spacing:{after:120}}));
+    paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'2. Composição de Preços: ',bold:true,size:18}),new _docx.TextRun({text:'Os valores apresentados contemplam todos os custos diretos e indiretos, incluindo tributos (ICMS e demais), encargos trabalhistas e previdenciários, fretes, seguros, montagem e demais despesas relacionadas à execução do objeto contratual.',size:18})],spacing:{after:120}}));
+    // Da assinatura do contrato (quem assina, mesmo texto do PDF)
+    if(emp.socio){
+      var _mun = emp.cidade ? emp.cidade.split('/')[0].trim() : '';
+      var _txtContrato = 'Se vencedor, na qualidade de representante legal da empresa, assinará a Ata e Contrato: Sr.(a): '+emp.socio;
+      if(emp.cpf) _txtContrato += ' | CPF: '+emp.cpf;
+      if(_mun) _txtContrato += ', residente e domiciliado(a) em '+_mun+'.';
+      paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'DA ASSINATURA DO CONTRATO',bold:true,size:18,color:'374151'})],spacing:{before:280,after:80}}));
+      paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:_txtContrato,size:18})],spacing:{after:120}}));
+    }
     // Assinatura
     var cidadeData = (d.cidade||'____________')+', '+d.data;
     paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:cidadeData,size:20})],alignment:_docx.AlignmentType.RIGHT,spacing:{before:600,after:600}}));
@@ -5239,62 +5564,7 @@ function formatarRespostaIA(txt){if(!txt)return"";return txt.replace(/^#### (.+)
    no modo "Outras Declarações → Personalizada", já com timbre e
    assinatura da empresa selecionada — sem digitar nada na mão.
    ════════════════════════════════════════════════════════════ */
-var _declaracoesDetectadas = [];
-
-async function extrairDeclaracoesEstruturadas(key, bodyEl){
-  var texto = document.getElementById('ia-texto').value.trim() || _iaTexto || '';
-  var prompt = 'Releia o edital/TR e liste TODAS as declarações exigidas do licitante — '
-    + 'inclusive as que não são as mais comuns (habilitação geral, ME/EPP, menor de idade). '
-    + 'Para CADA declaração, devolva o título oficial e o TEXTO COMPLETO pronto para assinatura, '
-    + 'na primeira pessoa da empresa, exatamente como deve constar no documento final '
-    + '(sem instruções, sem comentários, apenas o texto que a empresa vai assinar). '
-    + 'Responda APENAS com um array JSON válido, sem markdown, neste formato exato: '
-    + '[{"titulo":"DECLARAÇÃO DE...","texto":"A empresa [nome] declara que..."}]';
-  var parts = _iaArquivos.length ? _iaPartsArquivos().concat([{text:prompt}]) : [{text:prompt+'\n\nEDITAL/TR:\n'+texto.substring(0,30000)}];
-  var json = await chamarGemini(key, parts, 0.15, 6000);
-  var resposta = json.candidates&&json.candidates[0]&&json.candidates[0].content&&json.candidates[0].content.parts&&json.candidates[0].content.parts[0]&&json.candidates[0].content.parts[0].text || '';
-  var clean = resposta.replace(/```json/g,'').replace(/```/g,'').trim();
-  var m = clean.match(/\[[\s\S]*\]/);
-  if(!m) return;
-  var lista;
-  try{ lista = JSON.parse(m[0]); }catch(e){ console.warn('Parse declarações:', e); return; }
-  if(!Array.isArray(lista) || !lista.length) return;
-  _declaracoesDetectadas = lista.filter(function(d){ return d && d.titulo && d.texto; });
-  if(!_declaracoesDetectadas.length) return;
-
-  var cardsHTML = '<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--b1)">'
-    + '<div style="font-size:11px;font-weight:800;color:var(--nh);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">📋 Declarações identificadas no edital — gere qualquer uma com 1 clique</div>'
-    + _declaracoesDetectadas.map(function(d,idx){
-        return '<div style="background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:12px 14px;margin-bottom:8px">'
-          + '<div style="font-size:12.5px;font-weight:700;color:var(--t1);margin-bottom:6px">'+d.titulo+'</div>'
-          + '<div style="font-size:11.5px;color:var(--t3);line-height:1.5;max-height:54px;overflow:hidden;margin-bottom:8px">'+d.texto.substring(0,180)+(d.texto.length>180?'…':'')+'</div>'
-          + '<button type="button" onclick="usarDeclaracaoDetectada('+idx+')" style="background:var(--nh);color:#000;border:none;padding:7px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif">📄 Gerar esta declaração</button>'
-          + '</div>';
-      }).join('')
-    + '</div>';
-  bodyEl.innerHTML += cardsHTML;
-}
-
-function usarDeclaracaoDetectada(idx){
-  var d = _declaracoesDetectadas[idx];
-  if(!d) return;
-  // Muda para o fluxo "Outras Declarações → Personalizada"
-  var btnOutras = null;
-  document.querySelectorAll('.doc-btn').forEach(function(b){ if(b.getAttribute('onclick')&&b.getAttribute('onclick').indexOf("'outras'")>=0) btnOutras=b; });
-  setTipo('outras', btnOutras);
-  var btnPersonalizada = null;
-  document.querySelectorAll('.outras-btn').forEach(function(b){ if(b.getAttribute('onclick')&&b.getAttribute('onclick').indexOf("'personalizada'")>=0) btnPersonalizada=b; });
-  setOutra('personalizada', btnPersonalizada);
-  // Preenche título e texto já prontos
-  var tEl=document.getElementById('decl-titulo'); if(tEl) tEl.value=d.titulo;
-  var xEl=document.getElementById('decl-texto');  if(xEl) xEl.value=d.texto;
-  // Leva o usuário até o card, já pronto para conferir e gerar o PDF/Word
-  var card=document.getElementById('card-decl-custom');
-  if(card){ card.scrollIntoView({behavior:'smooth', block:'center'}); }
-  toast('Declaração pronta para gerar — confira o texto e clique em PDF ou Word','ok');
-}
-
-async function analisarIA(tipo){var key=localStorage.getItem('nh_gemini_key');if(!key){toast('Configure a API Key do Gemini','err');document.getElementById('ia-key-modal').style.display='flex';return}var texto=document.getElementById('ia-texto').value.trim()||_iaTexto||'';if(!_iaArquivos.length&&(!texto||texto.length<3)){toast('Selecione um processo, faça upload do PDF ou cole o texto do edital','err');return}var prompts={resumo:'Faça um resumo executivo deste edital: objeto, órgão, valor estimado, prazo, requisitos e prazos.',habilitacao:'Liste TODOS os documentos de habilitação exigidos, por categoria: jurídica, técnica, econômica, fiscal e declarações.',itens:'Extraia TODOS os itens/lotes. Formato: ITEM | DESCRIÇÃO | UNIDADE | QTD',declaracoes:'Liste todas as declarações exigidas e gere o texto completo de cada uma.',requisitos:'Liste todos os requisitos técnicos e de habilitação por categoria.',riscos:'Analise os riscos e pontos de atenção. Classifique como ALTO, MÉDIO ou BAIXO.',proposta:'Analise a viabilidade de participação. Note de 1 a 10 com justificativa.',perguntar:'Aguarde pergunta sobre este edital.'};var prompt=prompts[tipo]||prompts.resumo;if(tipo==='perguntar'){var pergunta=window.prompt('Faça sua pergunta sobre o edital:');if(!pergunta)return;prompt='Sobre este edital, responda: '+pergunta}var resEl=document.getElementById('ia-resultado');var bodyEl=document.getElementById('ia-resultado-body');if(!resEl||!bodyEl)return;resEl.style.display='block';bodyEl.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:20px;height:20px"></div> Analisando'+(_iaArquivos.length?(_iaArquivos.length>1?' '+_iaArquivos.length+' arquivos':' PDF'):' texto')+'...</div>';try{var _parts=_iaArquivos.length?_iaPartsArquivos().concat([{text:prompt}]):[{text:prompt+'\n\n'+(texto.length>500?'EDITAL/TR:\n':'OBJETO:\n')+texto.substring(0,30000)}];var json=await chamarGemini(key,_parts,0.3,4000);var resposta=json.candidates&&json.candidates[0]&&json.candidates[0].content&&json.candidates[0].content.parts&&json.candidates[0].content.parts[0]&&json.candidates[0].content.parts[0].text||'Sem resposta';bodyEl.innerHTML=formatarRespostaIA(resposta);if(tipo==='itens'){try{preencherTabelaComIA(resposta);}catch(e2){console.error('Erro tabela:',e2);}}if(tipo==='declaracoes'){try{await extrairDeclaracoesEstruturadas(key,bodyEl);}catch(e3){console.error('Erro declarações estruturadas:',e3);}}}catch(e){console.error('Erro Gemini:',e);bodyEl.innerHTML='<div style="color:#ef4444">\u274c Erro: '+e.message+'</div><div style="margin-top:8px;font-size:12px"><button onclick="document.getElementById(\'ia-key-modal\').style.display=\'flex\'" style="background:var(--nh);color:#000;border:none;padding:6px 12px;border-radius:6px;font-weight:700;cursor:pointer">\ud83d\udd11 Verificar API Key</button></div>';}}
+async function analisarIA(tipo){var key=localStorage.getItem('nh_gemini_key');if(!key){toast('Configure a API Key do Gemini','err');document.getElementById('ia-key-modal').style.display='flex';return}var texto=document.getElementById('ia-texto').value.trim()||_iaTexto||'';if(!_iaArquivos.length&&(!texto||texto.length<3)){toast('Selecione um processo, faça upload do PDF ou cole o texto do edital','err');return}var prompts={resumo:'Faça um resumo executivo deste edital: objeto, órgão, valor estimado, prazo, requisitos e prazos.',habilitacao:'Liste TODOS os documentos de habilitação exigidos, por categoria: jurídica, técnica, econômica, fiscal e declarações.',itens:'Extraia TODOS os itens/lotes com a descrição TÉCNICA COMPLETA de cada um (especificações, dimensões, normas, tudo — nunca resuma; descrição incompleta pode causar desclassificação). Formato: ITEM | DESCRIÇÃO COMPLETA | UNIDADE | QTD | VALOR UNIT. (se houver no edital)',declaracoes:'Liste todas as declarações exigidas e gere o texto completo de cada uma.',requisitos:'Liste todos os requisitos técnicos e de habilitação por categoria.',riscos:'Analise os riscos e pontos de atenção. Classifique como ALTO, MÉDIO ou BAIXO.',proposta:'Analise a viabilidade de participação. Note de 1 a 10 com justificativa.',perguntar:'Aguarde pergunta sobre este edital.'};var prompt=prompts[tipo]||prompts.resumo;if(tipo==='perguntar'){var pergunta=window.prompt('Faça sua pergunta sobre o edital:');if(!pergunta)return;prompt='Sobre este edital, responda: '+pergunta}var resEl=document.getElementById('ia-resultado');var bodyEl=document.getElementById('ia-resultado-body');if(!resEl||!bodyEl)return;resEl.style.display='block';bodyEl.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:20px;height:20px"></div> Analisando'+(_iaArquivos.length?(_iaArquivos.length>1?' '+_iaArquivos.length+' arquivos':' PDF'):' texto')+'...</div>';try{var _parts=_iaArquivos.length?_iaPartsArquivos().concat([{text:prompt}]):[{text:prompt+'\n\n'+(texto.length>500?'EDITAL/TR:\n':'OBJETO:\n')+texto.substring(0,30000)}];var json=await chamarGemini(key,_parts,0.3,4000);var resposta=json.candidates&&json.candidates[0]&&json.candidates[0].content&&json.candidates[0].content.parts&&json.candidates[0].content.parts[0]&&json.candidates[0].content.parts[0].text||'Sem resposta';bodyEl.innerHTML=formatarRespostaIA(resposta);if(tipo==='itens'){try{preencherTabelaComIA(resposta);}catch(e2){console.error('Erro tabela:',e2);}}}catch(e){console.error('Erro Gemini:',e);bodyEl.innerHTML='<div style="color:#ef4444">\u274c Erro: '+e.message+'</div><div style="margin-top:8px;font-size:12px"><button onclick="document.getElementById(\'ia-key-modal\').style.display=\'flex\'" style="background:var(--nh);color:#000;border:none;padding:6px 12px;border-radius:6px;font-weight:700;cursor:pointer">\ud83d\udd11 Verificar API Key</button></div>';}}
 function initDocumentos(){
   popularProcessosDoc();
   carregarIAKey();
@@ -5419,7 +5689,7 @@ async function preencherComIA(){var key=localStorage.getItem("nh_gemini_key");if
           sv("orgao",dados.orgao);sv("setor",dados.setor);sv("modalidade",dados.modalidade);sv("processo",dados.processo);sv("objeto",dados.objeto);if(dados.validade){  var _vNum=String(dados.validade).match(/\d+/);  var _vEl=document.getElementById("validade");  if(_vEl&&_vNum)_vEl.value=_vNum[0];}sv("prazo_entrega",dados.prazo_entrega);sv("prazo_pag",dados.prazo_pag);sv("local_prestacao",dados.local);var _hoje=new Date();var _dataHoje=_hoje.getFullYear()+"-"+("0"+(_hoje.getMonth()+1)).slice(-2)+"-"+("0"+_hoje.getDate()).slice(-2);var _dataEl=document.getElementById("data_assina");if(_dataEl&&!_dataEl.value)_dataEl.value=_dataHoje;
           // Cidade de assinatura = cidade da empresa selecionada
           var _empSel=document.getElementById("doc_empresa");var _empNome=_empSel?_empSel.value:"";var _empD=EMPRESAS.find(function(e){return e.nome===_empNome;});
-          var _cidEmp=_empD&&_empD.cidade?_empD.cidade.split("/")[0].trim():"";var _cidEl=document.getElementById("cidade_assina");if(_cidEl){if(_cidEmp)_cidEl.value=_cidEmp;else if(dados.cidade)_cidEl.value=dados.cidade;}var _nItens=0;await new Promise(function(res){setTimeout(res,3000);});try{var _promptItens='Leia este documento e extraia TODOS os itens listados no Termo de Referência, Anexo I ou tabela de itens. Para cada item retorne: numero do item, descricao resumida (nome do equipamento/servico), unidade de medida e quantidade. Formato de resposta - SOMENTE array JSON sem texto: [{"item":1,"desc":"Bipap com frequencia respiratoria","unid":"Servicos","qtd":60},{"item":2,"desc":"Concentrador de Oxigenio 5l/min","unid":"Servicos","qtd":180}]';var _partsItens=_iaArquivos.length?_iaPartsArquivos().concat([{text:_promptItens}]):[{text:_promptItens+"\n\nEDITAL:\n"+texto.substring(0,20000)}];bodyEl.innerHTML+='<div style="margin-top:6px;font-size:12px;color:var(--t3)">Extraindo itens da tabela...</div>';var _jItens=await chamarGemini(key,_partsItens,0.1,8000);{  var _respItens=_jItens.candidates&&_jItens.candidates[0]&&_jItens.candidates[0].content&&_jItens.candidates[0].content.parts&&_jItens.candidates[0].content.parts[0]&&_jItens.candidates[0].content.parts[0].text||"";  var _cleanItens=_respItens.replace(/```json/g,"").replace(/```/g,"").trim();  var _arrMatch=_cleanItens.match(/\[[\s\S]*\]/);  if(_arrMatch){    try{      var _itensArr=JSON.parse(_arrMatch[0]);      if(Array.isArray(_itensArr)&&_itensArr.length){preencherTabelaComIA(_itensArr);_nItens=_itensArr.length;}    }catch(pe){console.warn("Parse itens:",pe);}  }}}catch(e2){console.warn("Itens não extraídos:",e2);}
+          var _cidEmp=_empD&&_empD.cidade?_empD.cidade.split("/")[0].trim():"";var _cidEl=document.getElementById("cidade_assina");if(_cidEl){if(_cidEmp)_cidEl.value=_cidEmp;else if(dados.cidade)_cidEl.value=dados.cidade;}var _nItens=0;await new Promise(function(res){setTimeout(res,3000);});try{var _promptItens='Leia este documento e extraia TODOS os itens listados no Termo de Referência, Anexo I ou tabela de itens.\n\nREGRA CRÍTICA: a descrição de cada item deve ser COMPLETA — copie ou reproduza TODA a especificação técnica exatamente como está no documento (marca de referência se houver, dimensões, capacidade, voltagem, certificações, acessórios inclusos, normas técnicas exigidas, tudo). NÃO resuma, NÃO abrevie, NÃO reduza a um nome genérico. Uma descrição incompleta pode fazer a empresa ser DESCLASSIFICADA por não comprovar atendimento à especificação exigida — isso é mais grave que uma resposta longa.\n\nSe o edital indicar um valor unitário estimado/de referência para o item, inclua também em \"valor_unit\" (numero, sem \"R$\", use ponto decimal). Se não houver valor indicado, omita o campo ou deixe null.\n\nPara cada item retorne: numero do item, descrição TÉCNICA COMPLETA, unidade de medida, quantidade e valor unitário (se existir no edital).\n\nFormato de resposta — SOMENTE array JSON, sem markdown, sem comentários: [{"item":1,"desc":"Aparelho de Eletrocardiograma (ECG) digital, 12 derivações simultâneas, interpretação automática, tela colorida sensível ao toque de no mínimo 8 polegadas, memória para armazenamento de no mínimo 100 exames, bivolt automático, com carro de transporte, acompanhado de cabo paciente, cabos de derivação e eletrodos descartáveis, garantia mínima de 12 meses","unid":"Unidade","qtd":24,"valor_unit":8500.00},{"item":2,"desc":"Concentrador de Oxigênio portátil, fluxo contínuo de 0,5 a 5 L/min, concentração de O2 mínima de 90%, alarme sonoro de falta de energia e baixo fluxo, nível de ruído máximo de 45dB, bivolt automático, acompanhado de manual em português e umidificador","unid":"Unidade","qtd":180}]';var _partsItens=_iaArquivos.length?_iaPartsArquivos().concat([{text:_promptItens}]):[{text:_promptItens+"\n\nEDITAL:\n"+texto.substring(0,20000)}];bodyEl.innerHTML+='<div style="margin-top:6px;font-size:12px;color:var(--t3)">Extraindo itens da tabela...</div>';var _jItens=await chamarGemini(key,_partsItens,0.1,16000);{  var _respItens=_jItens.candidates&&_jItens.candidates[0]&&_jItens.candidates[0].content&&_jItens.candidates[0].content.parts&&_jItens.candidates[0].content.parts[0]&&_jItens.candidates[0].content.parts[0].text||"";  var _cleanItens=_respItens.replace(/```json/g,"").replace(/```/g,"").trim();  var _arrMatch=_cleanItens.match(/\[[\s\S]*\]/);  if(_arrMatch){    try{      var _itensArr=JSON.parse(_arrMatch[0]);      if(Array.isArray(_itensArr)&&_itensArr.length){preencherTabelaComIA(_itensArr);_nItens=_itensArr.length;}    }catch(pe){console.warn("Parse itens:",pe);}  }}}catch(e2){console.warn("Itens não extraídos:",e2);}
           // Preencher tabela de itens
           var _itensIA=dados.itens;if(Array.isArray(_itensIA)&&_itensIA.length>0){
             linhas=[];_nextRowId=1;
