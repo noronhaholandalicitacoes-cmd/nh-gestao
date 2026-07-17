@@ -47,12 +47,16 @@
    aqui do que no tema escuro, porque em fundo claro os tons claros
    perdem contraste e o texto some. */
 body.light-theme{
-  --bg:#f4f6fa;
+  /* Cinza-azulado no mesmo tom do tema escuro (--bg:#0a0e1a), só que bem claro —
+     os dois temas ficam da mesma "família" em vez de parecerem sistemas diferentes.
+     O fundo da página é mais presente que os cards brancos, para dar profundidade
+     (o mesmo truque que Stripe/Linear usam: nada de tudo branco achatado). */
+  --bg:#e6eaf3;
   --s1:#ffffff;
-  --s2:#f0f2f7;
-  --s3:#e7eaf2;
-  --b1:#dde1ea;
-  --b2:#c7cedd;
+  --s2:#eef1f8;
+  --s3:#e1e6f0;
+  --b1:#d3d9e6;
+  --b2:#b7c0d4;
   --nh:#ea580c;
   --nho:#f97316;
   --nhd:#c2410c;
@@ -922,6 +926,22 @@ body:not(.compact) .kcard-top{gap:16px!important;margin-bottom:8px!important;}
 .decl-modo-btn.active{background:linear-gradient(135deg,rgba(249,115,22,.14),rgba(249,115,22,.05));border-color:var(--nh);box-shadow:0 2px 8px rgba(249,115,22,.15)}
 .decl-modo-btn.active strong{color:var(--nh)}
 @media(max-width:640px){.decl-actions,.decl-modo-toggle{grid-template-columns:1fr}}
+/* Sombra suave nos cards no tema claro — sem ela, cards brancos sobre o
+   fundo cinza-azulado ficam "flutuando" sem peso visual (mesmo truque
+   usado no Stripe/Linear/Notion pra dar profundidade sem escurecer nada). */
+body.light-theme .doc-card,
+body.light-theme .r-kpi,
+body.light-theme .stat,
+body.light-theme .rcard,
+body.light-theme .kcard,
+body.light-theme .decl-row,
+body.light-theme .api-box{
+  box-shadow:0 1px 3px rgba(15,23,42,.07),0 1px 2px rgba(15,23,42,.04);
+}
+body.light-theme .decl-row:hover{
+  box-shadow:0 2px 6px rgba(15,23,42,.09),0 1px 3px rgba(15,23,42,.06);
+}
+
 /* Badges com cor fixa (não usam var()) — no tema claro precisam de mais contraste,
    senão o texto claro fica ilegível sobre o fundo agora branco. */
 body.light-theme .decl-badge-ia{background:#9333ea;color:#fff}
