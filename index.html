@@ -42,6 +42,37 @@
   --t3:#8b95a1;
   --t4:#404040;
 }
+/* ===== TEMA CLARO — paleta própria, não é o escuro invertido =====
+   Tons de status (verde/vermelho/azul/roxo/amarelo) ficam mais escuros
+   aqui do que no tema escuro, porque em fundo claro os tons claros
+   perdem contraste e o texto some. */
+body.light-theme{
+  --bg:#f4f6fa;
+  --s1:#ffffff;
+  --s2:#f0f2f7;
+  --s3:#e7eaf2;
+  --b1:#dde1ea;
+  --b2:#c7cedd;
+  --nh:#ea580c;
+  --nho:#f97316;
+  --nhd:#c2410c;
+  --nha:rgba(234,88,12,.10);
+  --nha2:rgba(234,88,12,.05);
+  --g1:#16a34a;
+  --g2:#15803d;
+  --y1:#ca8a04;
+  --y2:#a16207;
+  --r1:#dc2626;
+  --r2:#b91c1c;
+  --b_:#2563eb;
+  --b2_:#1d4ed8;
+  --p1:#9333ea;
+  --p2:#7e22ce;
+  --t1:#111827;
+  --t2:#4b5563;
+  --t3:#6b7280;
+  --t4:#d1d5db;
+}
 *{margin:0;padding:0;box-sizing:border-box}
 html{font-size:14px}
 body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;min-height:100vh;display:flex;overflow-x:hidden}
@@ -210,8 +241,9 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;min-he
 .stat-sub{font-size:11px;color:var(--t3);margin-top:5px}
 
 /* ─── SELECT INLINE ──────────────────────── */
-select option{background:#1c1c1c!important;color:#f5f5f5!important}
+select option{background:var(--s2)!important;color:var(--t1)!important}
 select{color-scheme:dark}
+body.light-theme select{color-scheme:light}
 /* ─── TABLE ──────────────────────────────── */
 .tbl-wrap{background:transparent;border:none;display:block;width:100%;}
 
@@ -427,8 +459,9 @@ textarea::placeholder{color:var(--t4);font-style:italic;}
   transition:border-color .15s;
 }
 .kfield select:focus{border-color:var(--nh);}
-select option{background:#161616;color:#f5f5f5;}
+select option{background:var(--s2);color:var(--t1);}
 select{color-scheme:dark;}
+body.light-theme select{color-scheme:light;}
 
 /* ══ CERTIDÃO CARDS ══════════════════════════════════════════ */
 .cert-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:24px;}
@@ -847,18 +880,57 @@ body:not(.compact) .kcard-top{gap:16px!important;margin-bottom:8px!important;}
 .kcard.vence-alerta{box-shadow:0 0 0 1.5px rgba(239,68,68,.5),0 4px 14px rgba(239,68,68,.18)}
 
 /* ===== Checklist de declarações ===== */
-.decl-row{display:flex;align-items:flex-start;gap:10px;background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:12px 14px;transition:border-color .15s}
-.decl-row.checked{border-color:var(--nh)}
-.decl-row input[type=checkbox]{margin-top:2px;width:16px;height:16px;accent-color:var(--nh);cursor:pointer;flex-shrink:0}
+.decl-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.decl-action-btn{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;cursor:pointer;font-family:'Outfit',sans-serif;text-align:left;transition:all .15s ease}
+.decl-action-btn:disabled{opacity:.6;cursor:wait}
+.decl-action-ico{font-size:19px;flex-shrink:0}
+.decl-action-txt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.decl-action-txt strong{font-size:12.5px;color:var(--t1);font-weight:700}
+.decl-action-txt small{font-size:10.5px;color:var(--t3)}
+.decl-action-ia{background:linear-gradient(135deg,rgba(249,115,22,.12),rgba(249,115,22,.04));border:1px solid rgba(249,115,22,.35)}
+.decl-action-ia:hover:not(:disabled){border-color:var(--nh);transform:translateY(-1px);box-shadow:0 4px 12px rgba(249,115,22,.15)}
+.decl-action-manual{background:linear-gradient(135deg,rgba(167,139,250,.12),rgba(167,139,250,.04));border:1px solid rgba(167,139,250,.35)}
+.decl-action-manual:hover{border-color:#a78bfa;transform:translateY(-1px);box-shadow:0 4px 12px rgba(167,139,250,.15)}
+
+.decl-lista{display:flex;flex-direction:column;gap:9px;margin-bottom:18px}
+.decl-row{display:flex;align-items:flex-start;gap:12px;background:var(--s2);border:1px solid var(--b1);border-radius:11px;padding:13px 15px;transition:all .15s ease;cursor:pointer}
+.decl-row:hover{border-color:var(--b2);background:var(--s3)}
+.decl-row.checked{border-color:var(--nh);background:linear-gradient(135deg,rgba(249,115,22,.06),transparent)}
+.decl-row.decl-row-dup{border-style:dashed}
+.decl-row input[type=checkbox]{margin-top:2px;width:17px;height:17px;accent-color:var(--nh);cursor:pointer;flex-shrink:0}
 .decl-row-body{flex:1;min-width:0}
-.decl-row-titulo{font-size:13px;font-weight:700;color:var(--t1);display:flex;align-items:center;gap:8px}
-.decl-badge{font-size:9px;font-weight:800;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.04em;flex-shrink:0}
+.decl-row-titulo{font-size:13px;font-weight:700;color:var(--t1);display:flex;align-items:center;gap:7px;flex-wrap:wrap;line-height:1.4}
+.decl-badge{font-size:9px;font-weight:800;padding:2.5px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.04em;flex-shrink:0;white-space:nowrap}
 .decl-badge-ia{background:rgba(167,139,250,.15);color:#a78bfa}
 .decl-badge-manual{background:rgba(59,130,246,.15);color:#60a5fa}
-.decl-row-preview{font-size:11px;color:var(--t3);margin-top:4px;line-height:1.5}
-.decl-row-edit{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.decl-badge-dup{background:rgba(234,179,8,.15);color:#eab308}
+.decl-row-preview{font-size:11.5px;color:var(--t3);margin-top:5px;line-height:1.55}
+.decl-row-edit{margin-top:9px;display:flex;flex-direction:column;gap:7px}
 .decl-row-edit input,.decl-row-edit textarea{font-size:12px}
-.decl-row-remove{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;width:24px;height:24px;border-radius:6px;cursor:pointer;font-size:12px;flex-shrink:0}
+.decl-row-remove{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;width:26px;height:26px;border-radius:7px;cursor:pointer;font-size:12px;flex-shrink:0;transition:all .15s ease}
+.decl-row-remove:hover{background:#ef4444;color:#fff}
+
+.decl-modo-wrap{padding-top:16px;border-top:1px solid var(--b1)}
+.decl-modo-label{font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;font-weight:800;margin-bottom:10px}
+.decl-modo-toggle{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.decl-modo-btn{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;background:var(--s2);border:1.5px solid var(--b1);cursor:pointer;text-align:left;font-family:'Outfit',sans-serif;transition:all .15s ease}
+.decl-modo-btn:hover{border-color:var(--b2)}
+.decl-modo-ico{font-size:18px;flex-shrink:0}
+.decl-modo-btn span:last-child{display:flex;flex-direction:column;gap:2px;min-width:0}
+.decl-modo-btn strong{font-size:12.5px;color:var(--t1);font-weight:700}
+.decl-modo-btn small{font-size:10px;color:var(--t3)}
+.decl-modo-btn.active{background:linear-gradient(135deg,rgba(249,115,22,.14),rgba(249,115,22,.05));border-color:var(--nh);box-shadow:0 2px 8px rgba(249,115,22,.15)}
+.decl-modo-btn.active strong{color:var(--nh)}
+@media(max-width:640px){.decl-actions,.decl-modo-toggle{grid-template-columns:1fr}}
+/* Badges com cor fixa (não usam var()) — no tema claro precisam de mais contraste,
+   senão o texto claro fica ilegível sobre o fundo agora branco. */
+body.light-theme .decl-badge-ia{background:#9333ea;color:#fff}
+body.light-theme .decl-badge-manual{background:#2563eb;color:#fff}
+body.light-theme .decl-badge-dup{background:#eab308;color:#422006}
+body.light-theme .badm{background:#4f5fd1;color:#fff}
+body.light-theme .ble{background:#64748b;color:#fff}
+body.light-theme .bext{background:#5b6a8f;color:#fff}
+
 </style>
   <!-- Firebase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js"></script>
@@ -866,6 +938,7 @@ body:not(.compact) .kcard-top{gap:16px!important;margin-bottom:8px!important;}
   <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-auth-compat.js"></script>
 </head>
 <body class="compact">
+<script>(function(){try{if(localStorage.getItem('nh_tema')==='claro')document.body.classList.add('light-theme');}catch(e){}})();</script>
 
 <!-- Tela de login -->
 <div id="login-screen" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:9999;align-items:center;justify-content:center">
@@ -1015,7 +1088,7 @@ body:not(.compact) .kcard-top{gap:16px!important;margin-bottom:8px!important;}
       </button>
       <div id="user-info" style="display:none;align-items:center;gap:6px">
         <span id="user-name" style="font-size:11px;color:var(--t2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
-        <button id="btn-usuarios" onclick="abrirUsuarios()" style="background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);color:#818cf8;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:Outfit,sans-serif;font-size:11px;font-weight:700;margin-right:8px">👥 Usuários</button><button onclick="exportarExcelCompleto()" style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);color:#22c55e;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:Outfit,sans-serif;font-size:11px;font-weight:700;margin-right:8px">📊 Exportar Tudo</button><button onclick="exportarBackupCompleto()" id="btn-backup" title="Baixa um arquivo com TODOS os dados do sistema (para guardar em local seguro)" style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);color:#3b82f6;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:Outfit,sans-serif;font-size:11px;font-weight:700;margin-right:8px">💾 Backup</button><button onclick="logoutGoogle()" style="background:none;border:none;color:var(--t3);font-size:11px;cursor:pointer;padding:2px 6px;border-radius:4px;border:1px solid var(--b1)">Sair</button>
+        <button id="btn-usuarios" onclick="abrirUsuarios()" style="background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);color:#818cf8;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:Outfit,sans-serif;font-size:11px;font-weight:700;margin-right:8px">👥 Usuários</button><button onclick="exportarExcelCompleto()" style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);color:#22c55e;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:Outfit,sans-serif;font-size:11px;font-weight:700;margin-right:8px">📊 Exportar Tudo</button><button onclick="exportarBackupCompleto()" id="btn-backup" title="Baixa um arquivo com TODOS os dados do sistema (para guardar em local seguro)" style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);color:#3b82f6;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:Outfit,sans-serif;font-size:11px;font-weight:700;margin-right:8px">💾 Backup</button><button onclick="alternarTema()" id="btn-tema" title="Alternar entre tema claro e escuro" style="background:var(--s2);border:1px solid var(--b1);color:var(--t2);padding:5px 10px;border-radius:6px;cursor:pointer;font-family:Outfit,sans-serif;font-size:13px;margin-right:8px;line-height:1">🌙</button><button onclick="logoutGoogle()" style="background:none;border:none;color:var(--t3);font-size:11px;cursor:pointer;padding:2px 6px;border-radius:4px;border:1px solid var(--b1)">Sair</button>
       </div>
     </div>
   </div>
@@ -1441,19 +1514,31 @@ body:not(.compact) .kcard-top{gap:16px!important;margin-bottom:8px!important;}
     </div>
     <!-- Checklist único de declarações -->
     <div id="decl-checklist-wrap" style="display:none">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-        <button type="button" class="btn btn-ghost btn-sm" onclick="detectarDeclaracoesEdital()" id="btn-detectar-decl">🤖 Detectar declarações do edital com IA</button>
-        <button type="button" class="btn btn-sm" style="background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);color:#a78bfa" onclick="adicionarDeclaracaoManual()">✏️ Adicionar declaração personalizada</button>
+      <div class="decl-actions">
+        <button type="button" class="decl-action-btn decl-action-ia" onclick="detectarDeclaracoesEdital()" id="btn-detectar-decl">
+          <span class="decl-action-ico">🤖</span>
+          <span class="decl-action-txt"><strong>Detectar no edital com IA</strong><small>Lê o documento anexado e sugere o que falta</small></span>
+        </button>
+        <button type="button" class="decl-action-btn decl-action-manual" onclick="adicionarDeclaracaoManual()">
+          <span class="decl-action-ico">✏️</span>
+          <span class="decl-action-txt"><strong>Adicionar personalizada</strong><small>Escreve o título e o texto na hora</small></span>
+        </button>
       </div>
-      <div id="decl-lista" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
-      <div style="display:flex;align-items:center;gap:14px;padding-top:12px;border-top:1px solid var(--b1)">
-        <span style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;font-weight:700">Gerar como:</span>
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12.5px;color:var(--t1)">
-          <input type="radio" name="decl-modo" value="unico" checked onchange="setDeclModo('unico')" style="accent-color:var(--nh)"> Documento único
-        </label>
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12.5px;color:var(--t1)">
-          <input type="radio" name="decl-modo" value="separado" onchange="setDeclModo('separado')" style="accent-color:var(--nh)"> Documentos separados
-        </label>
+
+      <div id="decl-lista" class="decl-lista"></div>
+
+      <div class="decl-modo-wrap">
+        <div class="decl-modo-label">Gerar como</div>
+        <div class="decl-modo-toggle">
+          <button type="button" class="decl-modo-btn active" data-modo="unico" onclick="setDeclModoUI('unico',this)">
+            <span class="decl-modo-ico">📄</span>
+            <span><strong>Documento único</strong><small>Todas as marcadas, num arquivo só</small></span>
+          </button>
+          <button type="button" class="decl-modo-btn" data-modo="separado" onclick="setDeclModoUI('separado',this)">
+            <span class="decl-modo-ico">📑</span>
+            <span><strong>Documentos separados</strong><small>Um arquivo para cada declaração</small></span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -1554,6 +1639,11 @@ body:not(.compact) .kcard-top{gap:16px!important;margin-bottom:8px!important;}
       <span style="font-size:11px;font-weight:400;color:var(--t3);margin-left:8px">Pré-preenchidos · clique para editar</span>
     </div>
     <div id="card-doc-textos"></div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:8px;padding:9px 14px;background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.25);border-radius:8px;margin-bottom:12px;font-size:11.5px;color:#eab308">
+    <span style="flex-shrink:0">⚠️</span>
+    <span style="color:var(--t2)">Na janela de impressão do navegador, em <strong style="color:var(--t1)">"Mais configurações"</strong>, desmarque <strong style="color:var(--t1)">"Cabeçalhos e rodapés"</strong> — senão o Chrome imprime data, hora e URL por cima do seu documento.</span>
   </div>
 
   <div class="footer-btns">
@@ -3554,6 +3644,25 @@ async function _salvarTimbradosRodapePendentes(){
   _timbradosRodapePendentes = {};
 }
 
+
+/* ════════════════════════════════════════════════════════════
+   TEMA CLARO / ESCURO — alterna a classe no <body> e lembra a
+   escolha entre sessões via localStorage.
+   ════════════════════════════════════════════════════════════ */
+function alternarTema(){
+  var claro = document.body.classList.toggle('light-theme');
+  localStorage.setItem('nh_tema', claro ? 'claro' : 'escuro');
+  _atualizarIconeTema();
+}
+function _atualizarIconeTema(){
+  var btn = document.getElementById('btn-tema');
+  if(!btn) return;
+  var claro = document.body.classList.contains('light-theme');
+  btn.textContent = claro ? '☀️' : '🌙';
+  btn.title = claro ? 'Mudar para tema escuro' : 'Mudar para tema claro';
+}
+document.addEventListener('DOMContentLoaded', _atualizarIconeTema);
+
 function abrirGerenciarEmpresas(){renderListaEmpresas();var e=document.getElementById("mo-empresas");e.style.display="flex",e.classList.add("open")}function renderListaEmpresas(){var e=document.getElementById("emp-lista");EMPRESAS.length?e.innerHTML=EMPRESAS.map(function(e,a){var t=e.cor||"#f97316",o=[e.cnpj,e.cidade,e.socio?"Sócio: "+e.socio:"",e.robo?"🤖 Robô":""].filter(Boolean).join(" · ");return'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--s2);border:1px solid var(--b1);border-radius:8px;border-left:3px solid '+t+';gap:8px"><div style="flex:1;min-width:0"><span style="font-weight:700;color:'+t+'">'+e.nome+"</span>"+(o?'<div style="font-size:11px;color:#666;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+o+"</div>":"")+'</div><div style="display:flex;gap:6px;flex-shrink:0"><button onclick="editarEmpresa('+a+')" style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);color:#60a5fa;padding:3px 10px;border-radius:5px;cursor:pointer;font-size:11px;font-family:Outfit,sans-serif">✏ Editar</button><button onclick="removerEmpresa('+a+')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#ef4444;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px">✕</button></div></div>'}).join(""):e.innerHTML='<div style="color:var(--t3);font-size:13px;padding:8px">Nenhuma empresa cadastrada</div>'}function gv(e){var a=document.getElementById(e);return a?a.value.trim():""}function adicionarEmpresa(){
   var e=gv("emp-fantasia").toUpperCase(),a=gv("emp-razao"),t=gv("emp-cnpj"),o=gv("emp-novo-cor")||_corSelecionada||"#f97316";
   if(!e){toast("Digite o nome fantasia","err");return;}
@@ -3711,7 +3820,7 @@ async function _processQueue(){if(!_saveRunning&&_saveQueue.length){_saveRunning
   }
 }
 function initApp(){setTheme(isDark),carregarEmpresas(),carregarOptsCustom(),setSt("load"),carregarIAKey(),document.querySelectorAll(".page").forEach(function(e){e.style.display="none"});var e=document.getElementById("page-resumo");e&&(e.classList.add("on"),e.style.display="block"),loadAll().then(function(){setTimeout(function(){migrarFinanceiro().then(function(){importarDadosMarco()})},2e3)}),setTimeout(verificarVencimentos,3e3),setTimeout(iniciarNotificacoesCalendario,5e3),carregarTarefas()}function parseBRDate(e){if(!e)return null;var a=String(e).trim().split(" ")[0].split("/");if(3!==a.length)return null;var t=new Date(parseInt(a[2]),parseInt(a[1])-1,parseInt(a[0]));return isNaN(t.getTime())?null:t}function verificarVencimentos(){var e=new Date;e.setHours(0,0,0,0);var a=[],t=JSON.parse(localStorage.getItem("nh_avisos_vistos")||"{}"),o=e.toISOString().split("T")[0];(ALL.ganhas||[]).forEach(function(i){var n=String(i[9]||"").toUpperCase().trim();if("EM EXECUÇÃO"===n||"EM EXECUCAO"===n){var r=parseBRDate(i[12]);if(r){var s=Math.round((r-e)/864e5);if(s>=0&&s<=30){var d="g_"+i[0]+"_"+o;t[d]||a.push({tipo:"ganhas",id:i[0],emp:i[2],licit:String(i[3]||"").substring(0,40),dias:s,chave:d})}}}}),(ALL.andamento||[]).forEach(function(i){var n=parseBRDate(i[10]);if(n){var r=Math.round((n-e)/864e5);if(r>=0&&r<=1){var s="a_"+i[0]+"_"+o;t[s]||a.push({tipo:"andamento",id:i[0],emp:i[2],licit:String(i[3]||"").substring(0,40),dias:r,disputa:!0,chave:s})}}}),a.length>0&&mostrarNotificacoes(a)}function marcarAvisoVisto(e){var a=JSON.parse(localStorage.getItem("nh_avisos_vistos")||"{}");a[e]=!0;var t=Date.now()-5184e6;Object.keys(a).forEach(function(e){var o=e.split("_"),i=o[o.length-1];i&&new Date(i).getTime()<t&&delete a[e]}),localStorage.setItem("nh_avisos_vistos",JSON.stringify(a))}function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
-function mostrarNotificacoes(e){var a=document.getElementById("notif-banner");a&&a.remove();var t=document.createElement("div");if(t.id="notif-banner",t.style.cssText="position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px;max-width:360px",e.slice(0,5).forEach(function(e){var a=0===e.dias?"#ef4444":e.dias<=3?"#f97316":e.dias<=7?"#eab308":"#60a5fa",o=e.disputa?0===e.dias?"DISPUTA HOJE":"DISPUTA AMANHÃ":0===e.dias?"VENCE HOJE":(e.dias<=3||e.dias,"VENCE EM "+e.dias+"d"),i=document.createElement("div");i.style.cssText="background:#1a1a1a;border-left:4px solid "+a+";border-radius:8px;padding:12px 14px;font-size:12px;color:#eee;box-shadow:0 4px 14px rgba(0,0,0,.5);display:flex;align-items:flex-start;gap:10px",i.innerHTML='<div style="flex:1"><div style="font-size:10px;font-weight:800;color:'+a+';letter-spacing:.06em;margin-bottom:3px">'+o+'</div><div style="font-weight:700;color:#f0f0f0;margin-bottom:2px">'+esc(e.emp)+'</div><div style="color:#aaa;font-size:11px;line-height:1.4">'+esc(e.licit)+'</div></div><button title="Dispensar" style="background:none;border:none;color:#555;cursor:pointer;font-size:18px;padding:0;line-height:1;flex-shrink:0">×</button>',i.querySelector("button").onclick=function(){e.chave&&marcarAvisoVisto(e.chave),i.remove(),t.querySelector('div[style*="border-left"]')||t.remove()},i.style.cursor="pointer",i.onclick=function(_ev){_ev.target.closest("button")||(t.remove(),irParaCard(e.tipo,e.id))},t.appendChild(i)}),e.length>5){var o=document.createElement("div");o.style.cssText="background:#1a1a1a;border-radius:8px;padding:10px 14px;font-size:12px;color:#888;text-align:center;cursor:pointer",o.textContent="+ "+(e.length-5)+" outros avisos",o.onclick=function(){t.remove()},t.appendChild(o)}document.body.appendChild(t),setTimeout(function(){t.parentNode&&t.remove()},15e3)}window.addEventListener("load",function(){});var DADOS_FIXOS={VISE:{razao:"VIA DE SERVIÇOS ESPECIALIZADOS LTDA",cnpj:"08.348.687/0001-62",endereco:"Av. Camilo de Holanda, Nº432, Centro",cidade:"João Pessoa/PB",cep:"58.013-360",tel:"(83) 9 8229-1361",email:"licitacoes@viseservicos.com",socio:"Caio Cesar Germano Rodrigues",cpf:"111.368.404-60",cargo:"Sócio-Administrador",banco:"Bradesco",agencia:"1061",conta:"0019654-1"},SAUTEC:{razao:"SAUTEC EQUIPAMENTOS MEDICO HOSPITALARES LTDA",cnpj:"31.586.684/0001-89",endereco:"Rua Gualberto Filho, 0020, Centro",cidade:"Sousa/PB",cep:"58.800-262",tel:"(83) 99909-1477",email:"sauteclicitacoes@gmail.com",socio:"Adson Danilo da Silva Feitosa",cpf:"071.012.224-12",cargo:"Sócio Administrador",banco:"",agencia:"",conta:""},ONLAV:{razao:"ONLAV COMÉRCIO E SERVIÇOS LTDA",cnpj:"13.141.717/0001-03",endereco:"Rua Manoel Veloso Borges, 57 – Sesi em Bayeux PB",cidade:"Bayeux/PB",cep:"58.111-335",tel:"(83) 2179-7006",email:"licitacoesonlav@gmail.com",socio:"Ivan Marques Lisboa Junior",cpf:"070.186.804-09",cargo:"Sócio Proprietário",banco:"",agencia:"",conta:""},SOS:{razao:"SOS SOLUÇÕES INTEGRADAS LTDA",cnpj:"38.714.702/0001-00",endereco:"R. João Pereira Santos Filho, 298 - Itapetinga",cidade:"Mossoró/RN",cep:"",tel:"(84) 2140-6187",email:"licitasossolucoesintegrada@gmail.com",socio:"",cpf:"",cargo:"Sócio Administrador",banco:"",agencia:"",conta:""}},LOGOS={},TIMBRADOS={};
+function mostrarNotificacoes(e){var a=document.getElementById("notif-banner");a&&a.remove();var t=document.createElement("div");if(t.id="notif-banner",t.style.cssText="position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px;max-width:360px",e.slice(0,5).forEach(function(e){var a=0===e.dias?"#ef4444":e.dias<=3?"#f97316":e.dias<=7?"#eab308":"#60a5fa",o=e.disputa?0===e.dias?"DISPUTA HOJE":"DISPUTA AMANHÃ":0===e.dias?"VENCE HOJE":(e.dias<=3||e.dias,"VENCE EM "+e.dias+"d"),i=document.createElement("div");i.style.cssText="background:var(--s1);border:1px solid var(--b1);border-left:4px solid "+a+";border-radius:8px;padding:12px 14px;font-size:12px;color:var(--t1);box-shadow:0 4px 14px rgba(0,0,0,.35);display:flex;align-items:flex-start;gap:10px",i.innerHTML='<div style="flex:1"><div style="font-size:10px;font-weight:800;color:'+a+';letter-spacing:.06em;margin-bottom:3px">'+o+'</div><div style="font-weight:700;color:#f0f0f0;margin-bottom:2px">'+esc(e.emp)+'</div><div style="color:#aaa;font-size:11px;line-height:1.4">'+esc(e.licit)+'</div></div><button title="Dispensar" style="background:none;border:none;color:#555;cursor:pointer;font-size:18px;padding:0;line-height:1;flex-shrink:0">×</button>',i.querySelector("button").onclick=function(){e.chave&&marcarAvisoVisto(e.chave),i.remove(),t.querySelector('div[style*="border-left"]')||t.remove()},i.style.cursor="pointer",i.onclick=function(_ev){_ev.target.closest("button")||(t.remove(),irParaCard(e.tipo,e.id))},t.appendChild(i)}),e.length>5){var o=document.createElement("div");o.style.cssText="background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--t3);text-align:center;cursor:pointer",o.textContent="+ "+(e.length-5)+" outros avisos",o.onclick=function(){t.remove()},t.appendChild(o)}document.body.appendChild(t),setTimeout(function(){t.parentNode&&t.remove()},15e3)}window.addEventListener("load",function(){});var DADOS_FIXOS={VISE:{razao:"VIA DE SERVIÇOS ESPECIALIZADOS LTDA",cnpj:"08.348.687/0001-62",endereco:"Av. Camilo de Holanda, Nº432, Centro",cidade:"João Pessoa/PB",cep:"58.013-360",tel:"(83) 9 8229-1361",email:"licitacoes@viseservicos.com",socio:"Caio Cesar Germano Rodrigues",cpf:"111.368.404-60",cargo:"Sócio-Administrador",banco:"Bradesco",agencia:"1061",conta:"0019654-1"},SAUTEC:{razao:"SAUTEC EQUIPAMENTOS MEDICO HOSPITALARES LTDA",cnpj:"31.586.684/0001-89",endereco:"Rua Gualberto Filho, 0020, Centro",cidade:"Sousa/PB",cep:"58.800-262",tel:"(83) 99909-1477",email:"sauteclicitacoes@gmail.com",socio:"Adson Danilo da Silva Feitosa",cpf:"071.012.224-12",cargo:"Sócio Administrador",banco:"",agencia:"",conta:""},ONLAV:{razao:"ONLAV COMÉRCIO E SERVIÇOS LTDA",cnpj:"13.141.717/0001-03",endereco:"Rua Manoel Veloso Borges, 57 – Sesi em Bayeux PB",cidade:"Bayeux/PB",cep:"58.111-335",tel:"(83) 2179-7006",email:"licitacoesonlav@gmail.com",socio:"Ivan Marques Lisboa Junior",cpf:"070.186.804-09",cargo:"Sócio Proprietário",banco:"",agencia:"",conta:""},SOS:{razao:"SOS SOLUÇÕES INTEGRADAS LTDA",cnpj:"38.714.702/0001-00",endereco:"R. João Pereira Santos Filho, 298 - Itapetinga",cidade:"Mossoró/RN",cep:"",tel:"(84) 2140-6187",email:"licitasossolucoesintegrada@gmail.com",socio:"",cpf:"",cargo:"Sócio Administrador",banco:"",agencia:"",conta:""}},LOGOS={},TIMBRADOS={};
 
 var _calAno=(new Date).getFullYear(),_calMes=(new Date).getMonth(),_calSemanaInicio=function(){var e=new Date;return e.setHours(0,0,0,0),e.setDate(e.getDate()-e.getDay()),e}(),MESES=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"],EMPCORES={VISE:"#eab308",SAUTEC:"#3b82f6",SOS:"#22c55e","SOS FILIAL":"#ef4444",ONLAV:"#06b6d4",ENGEMED:"#ec4899",POTIGUAR:"#f97316"};function calMes(e){(_calMes+=e)>11&&(_calMes=0,_calAno++),_calMes<0&&(_calMes=11,_calAno--),renderCalendario()}function calHoje(){var e=new Date;_calAno=e.getFullYear(),_calMes=e.getMonth(),renderCalendario()}function calSemana(e){(_calSemanaInicio=new Date(_calSemanaInicio)).setDate(_calSemanaInicio.getDate()+7*e),renderListaSemanal()}function calSemanaHoje(){(_calSemanaInicio=new Date).setHours(0,0,0,0),_calSemanaInicio.setDate(_calSemanaInicio.getDate()-_calSemanaInicio.getDay()),renderListaSemanal()}function renderListaSemanal(){var e=new Date(_calSemanaInicio);e.setDate(e.getDate()+6),e.setHours(23,59,59,0);var a=new Date(_calSemanaInicio),t=document.getElementById("cal-semana-label");if(t){var o=a.getDate()+"/"+(a.getMonth()+1),i=e.getDate()+"/"+(e.getMonth()+1)+"/"+e.getFullYear();t.textContent=o+" — "+i}var n=ALL.andamento||[],r=[];n.forEach(function(t){var o=String(t[2]||"").trim(),i=String(t[3]||"").trim(),n=String(t[4]||"").trim(),s=String(t[5]||"").trim(),d=String(t[6]||"").trim(),l=String(t[15]||"").trim(),c=String(t[9]||"").trim(),A=String(t[7]||"").trim(),p=String(t[10]||"").trim(),u=String(t[13]||"").trim();function m(t,p){var u=parseDataCal(t);u&&(u.setHours(0,0,0,0),u>=a&&u<=e&&r.push({tipo:p,data:u,dia:u.getDate(),emp:o,licit:i,hora:t,obj:n,local:s,mun:d,resumo:l,portal:c,vest:A}))}m(p,"disputa"),m(u,"reabertura")}),r.sort(function(e,a){return e.data-a.data}),window._calEventos=r;var s=document.getElementById("cal-lista");if(s)if(r.length){var d=new Date;d.setHours(0,0,0,0),s.innerHTML=r.map(function(e,a){var t="disputa"===e.tipo?"#f97316":"#3b82f6",o=EMPCORES[e.emp]||"#888",i="disputa"===e.tipo?"⚡":"🔄",n=criarLinkGoogleCal(e),r=e.data.getTime()===d.getTime();return'<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--s2);'+(r?"border:2px solid "+t+";":"border:1px solid var(--b1);border-left:4px solid "+t+";")+'border-radius:8px;margin-bottom:8px"><div style="min-width:48px;text-align:center;cursor:pointer" onclick="mostrarPreviewEvento('+a+')"><div style="font-size:10px;color:'+t+';font-weight:700;text-transform:uppercase">'+["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"][e.data.getDay()]+'</div><div style="font-size:22px;font-weight:800;color:'+(r?t:"var(--t1)")+';line-height:1">'+e.dia+'</div></div><div style="flex:1;overflow:hidden;cursor:pointer" onclick="mostrarPreviewEvento('+a+')"><div style="font-size:11px;color:'+t+';font-weight:700;text-transform:uppercase">'+i+" "+e.tipo+(r?" · HOJE":"")+'</div><div style="font-size:13px;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.licit.substring(0,60)+'</div><div style="font-size:11px;margin-top:2px;display:flex;gap:8px"><span style="color:'+o+';font-weight:600">'+e.emp+"</span>"+(e.portal?'<span style="color:var(--t3)">· '+e.portal+"</span>":"")+"</div>"+(e.resumo?'<div style="font-size:11px;color:var(--t3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.resumo+"</div>":"")+'</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0"><div style="font-size:11px;color:var(--t3)">'+String(e.hora).substring(0,16)+"</div>"+(isEventoSalvo(e)?'<span style="background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">✅ Salvo</span>':'<a href="'+n+'" target="_blank" onclick="marcarSalvoEAtualizar('+a+')" style="background:#22c55e;color:#000;text-decoration:none;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;white-space:nowrap">📅 Salvar</a>')+'<button data-exc-emp="'+encodeURIComponent(e.emp)+'" data-exc-licit="'+encodeURIComponent(e.licit.substring(0,40))+'" data-exc-tipo="'+e.tipo+'" class="cal-excluir-btn" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#ef4444;font-size:10px;padding:3px 8px;border-radius:6px;cursor:pointer;font-family:Outfit,sans-serif">✕ Excluir</button></div></div>'}).join("")}else s.innerHTML='<div style="color:var(--t3);font-size:13px;padding:20px;text-align:center;background:var(--s2);border-radius:8px;border:1px solid var(--b1)">Nenhum evento nesta semana</div>'}function parseDataCal(e){if(!e)return null;var a=String(e).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);if(!a)return null;var t=new Date(parseInt(a[3]),parseInt(a[2])-1,parseInt(a[1]));return isNaN(t.getTime())?null:t}function getEventosDoMes(e,a){var t=[];return(ALL.andamento||[]).forEach(function(o){var i=String(o[2]||"").trim(),n=String(o[3]||"").trim(),r=String(o[4]||"").trim(),s=String(o[5]||"").trim(),d=String(o[6]||"").trim(),l=String(o[15]||"").trim(),c=String(o[10]||"").trim(),A=String(o[13]||"").trim(),p=String(o[9]||"").trim(),u=String(o[7]||"").trim();if(c){var m=parseDataCal(c);m&&m.getFullYear()===e&&m.getMonth()===a&&t.push({tipo:"disputa",data:m,dia:m.getDate(),emp:i,licit:n,hora:c,obj:r,local:s,mun:d,resumo:l,portal:p,vest:u})}if(A){var v=parseDataCal(A);v&&v.getFullYear()===e&&v.getMonth()===a&&t.push({tipo:"reabertura",data:v,dia:v.getDate(),emp:i,licit:n,hora:A,obj:r,local:s,mun:d,resumo:l,portal:p,vest:u})}}),t.sort(function(e,a){return e.data-a.data}),t}function renderCalendario(){document.getElementById("cal-titulo").textContent=MESES[_calMes]+" "+_calAno;var e=getEventosDoMes(_calAno,_calMes),a={};e.forEach(function(e){a[e.dia]||(a[e.dia]=[]),a[e.dia].push(e)});var t=new Date(_calAno,_calMes,1).getDay(),o=new Date(_calAno,_calMes+1,0).getDate(),i=new Date;i.setHours(0,0,0,0);for(var n=document.getElementById("cal-grid"),r="",s=0;s<t;s++)r+='<div style="min-height:80px;border-right:1px solid var(--b1);border-bottom:1px solid var(--b1);padding:6px;opacity:.3"></div>';for(var d=1;d<=o;d++){var l=new Date(_calAno,_calMes,d).getTime()===i.getTime(),c=a[d]||[];r+='<div style="min-height:80px;'+((t+d-1)%7<6?"border-right:1px solid var(--b1);":"")+"border-bottom:1px solid var(--b1);padding:6px;"+(l?"background:rgba(249,115,22,.1);":"")+'">',r+='<div style="font-size:13px;'+(l?"color:var(--nh);font-weight:800;":"color:var(--t2);")+'margin-bottom:4px">'+d+"</div>",c.slice(0,3).forEach(function(e){var a="disputa"===e.tipo?"#f97316":"#3b82f6",t=EMPCORES[e.emp]||"#888";r+='<div style="background:'+a+';border-radius:3px;padding:2px 5px;margin-bottom:2px;font-size:10px;color:#000;font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis" title="'+e.emp+" · "+e.licit+'">',r+='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:'+t+';margin-right:3px;vertical-align:middle"></span>',r+=e.emp.substring(0,6)+"</div>"}),c.length>3&&(r+='<div style="font-size:10px;color:var(--t3)">+'+(c.length-3)+" mais</div>"),r+="</div>"}var A=t+o,p=A%7==0?0:7-A%7;for(s=0;s<p;s++){r+='<div style="min-height:80px;'+((A+s)%7<6?"border-right:1px solid var(--b1);":"")+'border-bottom:1px solid var(--b1);padding:6px;opacity:.3"></div>'}n.innerHTML=r;var u=document.getElementById("cal-lista");if(e.length){window._calEventos=e,u.innerHTML=e.map(function(e,a){var t="disputa"===e.tipo?"#f97316":"#3b82f6",o=EMPCORES[e.emp]||"#888",i="disputa"===e.tipo?"⚡":"🔄",n=criarLinkGoogleCal(e),r=new Date;r.setHours(0,0,0,0);var s=e.data.getTime()===r.getTime();return'<div onclick="mostrarPreviewEvento('+a+')" style="cursor:pointer;display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--s2);'+(s?"border:2px solid "+t+";":"border:1px solid var(--b1);border-left:4px solid "+t+";")+'border-radius:8px;margin-bottom:8px;transition:all .15s" onmouseover="this.style.opacity=.85" onmouseout="this.style.opacity=1"><div style="min-width:44px;text-align:center"><div style="font-size:22px;font-weight:800;color:'+(s?t:"var(--t1)")+';line-height:1">'+e.dia+'</div><div style="font-size:10px;color:var(--t3)">'+MESES[_calMes].substring(0,3)+'</div></div><div style="flex:1;overflow:hidden"><div style="font-size:11px;color:'+t+';font-weight:700;text-transform:uppercase;letter-spacing:.05em">'+i+" "+e.tipo+(s?" · HOJE":"")+'</div><div style="font-size:13px;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+e.licit+'">'+e.licit.substring(0,60)+'</div><div style="font-size:11px;margin-top:2px;display:flex;gap:8px"><span style="color:'+o+';font-weight:600">'+e.emp+"</span>"+(e.portal?'<span style="color:var(--t3)">· '+e.portal+"</span>":"")+"</div>"+(e.resumo?'<div style="font-size:11px;color:var(--t3);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.resumo+"</div>":"")+'</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0"><div style="font-size:11px;color:var(--t3);white-space:nowrap">'+String(e.hora).substring(0,16)+"</div>"+(isEventoSalvo(e)?'<span style="background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3);font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;white-space:nowrap">✅ Salvo no Calendar</span>':'<a href="'+n+'" target="_blank" onclick="event.stopPropagation();marcarSalvoEAtualizar('+a+')" title="Salvar no Google Calendar" style="background:#22c55e;color:#000;text-decoration:none;font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;white-space:nowrap">📅 Salvar no Calendar</a>')+"</div></div>"}).join("");var m="https://calendar.google.com/calendar/r/month/"+_calAno+"/"+(_calMes+1);document.getElementById("btn-google-cal").href=m;var v=document.getElementById("b-calendario");v&&(v.textContent=e.length||"—"),renderListaSemanal()}else u.innerHTML='<div style="color:var(--t3);font-size:13px;padding:20px;text-align:center">Nenhuma disputa ou reabertura este mês</div>'}function eventoCalKey(e){return"gcal_"+e.tipo+"_"+e.emp+"_"+String(e.hora||"").replace(/\W/g,"")}function isEventoSalvo(e){return"1"===localStorage.getItem(eventoCalKey(e))}function marcarEventoSalvo(e){localStorage.setItem(eventoCalKey(e),"1")}function criarLinkGoogleCal(e){var a=e.data,t="090000",o=String(e.hora||"").match(/(\d{1,2})[h:](\d{2})/i);o&&(t=("0"+o[1]).slice(-2)+("0"+o[2]).slice(-2)+"00");var i=a.getFullYear(),n=("0"+(a.getMonth()+1)).slice(-2),r=("0"+a.getDate()).slice(-2),s=i+n+r+"T"+t,d=i+n+r+"T"+("0"+(parseInt(t.substring(0,2))+1)).slice(-2)+t.substring(2),l="disputa"===e.tipo?"⚡ DISPUTA: ":"🔄 REABERTURA: ",c=encodeURIComponent(l+e.emp+" - "+e.licit.substring(0,60)),A=e.licit;return e.obj&&(A+=" | Objeto: "+e.obj),e.local&&(A+=" | Local: "+e.local+(e.mun?" - "+e.mun:"")),e.portal&&(A+=" | Portal: "+e.portal),e.vest&&(A+=" | Valor Est.: R$ "+e.vest),e.resumo&&(A+=" | Resumo: "+e.resumo),"https://calendar.google.com/calendar/render?action=TEMPLATE&text="+c+"&dates="+s+"/"+d+"&details="+encodeURIComponent(A)+"&location="+encodeURIComponent(e.local||"")}var _tarefaEditId=null,_tarefaFiltro="todas";async function carregarTarefas(){try{
   var snap=await db.collection("tarefas").orderBy("_criado","desc").get();
@@ -4380,28 +4489,28 @@ go = function(e,a){
   <!-- Modal WhatsApp -->
   <div id="mo-whatsapp" style="display:none;position:fixed;inset:0;z-index:9000;align-items:center;justify-content:center">
     <div onclick="closeWpp()" style="position:absolute;inset:0;background:rgba(0,0,0,.7)"></div>
-    <div style="position:relative;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:16px;padding:28px;width:360px;max-width:95vw;display:flex;flex-direction:column;gap:16px">
+    <div style="position:relative;background:var(--s1);border:1px solid var(--b1);border-radius:16px;padding:28px;width:360px;max-width:95vw;display:flex;flex-direction:column;gap:16px">
       <div style="font-size:16px;font-weight:800;color:#25d366">📲 Enviar via WhatsApp</div>
-      <div id="wpp-processo" style="font-size:13px;color:#aaa;background:#111;border-radius:8px;padding:10px 12px;line-height:1.6"></div>
+      <div id="wpp-processo" style="font-size:13px;color:var(--t2);background:var(--s2);border-radius:8px;padding:10px 12px;line-height:1.6"></div>
       <div>
         <div style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Responsável</div>
         <div style="display:flex;gap:8px">
           <button id="wpp-btn-ant" onclick="selecionarWpp('ANTUNES')"
-            style="flex:1;padding:12px;border-radius:10px;border:2px solid #2a2a2a;background:#111;color:#777;font-size:14px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:all .2s">
+            style="flex:1;padding:12px;border-radius:10px;border:2px solid var(--b1);background:var(--s2);color:var(--t2);font-size:14px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:all .2s">
             ⭐ ANTUNES
           </button>
           <button id="wpp-btn-nor" onclick="selecionarWpp('NORONHA')"
-            style="flex:1;padding:12px;border-radius:10px;border:2px solid #2a2a2a;background:#111;color:#777;font-size:14px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:all .2s">
+            style="flex:1;padding:12px;border-radius:10px;border:2px solid var(--b1);background:var(--s2);color:var(--t2);font-size:14px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:all .2s">
             🔵 NORONHA
           </button>
         </div>
       </div>
       <div>
         <div style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Prévia da mensagem</div>
-        <textarea id="wpp-preview" style="width:100%;background:#111;border:1px solid #2a2a2a;border-radius:8px;color:#e5e5e5;font-family:Outfit,sans-serif;font-size:12px;padding:10px;resize:vertical;min-height:110px;outline:none;line-height:1.6"></textarea>
+        <textarea id="wpp-preview" style="width:100%;background:var(--s2);border:1px solid var(--b1);border-radius:8px;color:#e5e5e5;font-family:Outfit,sans-serif;font-size:12px;padding:10px;resize:vertical;min-height:110px;outline:none;line-height:1.6"></textarea>
       </div>
       <button id="wpp-enviar" onclick="enviarWhatsapp()" disabled
-        style="width:100%;padding:14px;border-radius:10px;border:none;background:#2a2a2a;color:#555;font-size:15px;font-weight:800;cursor:not-allowed;font-family:Outfit,sans-serif;transition:all .2s">
+        style="width:100%;padding:14px;border-radius:10px;border:none;background:var(--s3);color:var(--t3);font-size:15px;font-weight:800;cursor:not-allowed;font-family:Outfit,sans-serif;transition:all .2s">
         Selecione um responsável
       </button>
       <button onclick="closeWpp()" style="background:none;border:none;color:#555;font-size:13px;cursor:pointer;font-family:Outfit,sans-serif">Cancelar</button>
@@ -4966,11 +5075,17 @@ function cssBase(titulo, cor, rodapeAlturaMM){
     +'.rodape-timbrado{width:100%;line-height:0}'
     +'.rodape-timbrado img{width:100%;height:auto;display:block}'
     // Título: mais espaçado, com friso curto na cor da empresa embaixo — assinatura visual elegante
-    +'.titulo-wrap{text-align:center;margin:24px 0 26px}'
-    +'.titulo-badge{display:inline-block;background:linear-gradient(135deg,'+cor+'14,'+cor+'05);border:1.5px solid '+cor+'35;border-radius:12px;padding:12px 36px;box-shadow:0 2px 8px '+cor+'12}'
-    +'.titulo{font-size:16.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:'+cor+';margin:0}'
-    +'.titulo-rule{width:40px;height:3px;background:'+cor+';margin:9px auto 0;border-radius:2px;opacity:.55}'
+    +'.titulo-wrap{text-align:center;margin:26px 0 24px}'
+    +'.titulo-badge{position:relative;display:inline-block;background:linear-gradient(135deg,'+cor+'16,'+cor+'04);border:1.5px solid '+cor+'40;border-radius:14px;padding:14px 46px;box-shadow:0 4px 14px '+cor+'16,inset 0 1px 0 rgba(255,255,255,.5)}'
+    +'.titulo-badge::before,.titulo-badge::after{content:"";position:absolute;top:10px;bottom:10px;width:3px;background:'+cor+';border-radius:2px;opacity:.55}'
+    +'.titulo-badge::before{left:14px}'
+    +'.titulo-badge::after{right:14px}'
+    +'.titulo{font-size:17.5px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:'+cor+';margin:0}'
+    +'.titulo-rule{width:46px;height:3px;background:linear-gradient(90deg,transparent,'+cor+',transparent);margin:10px auto 0;border-radius:2px}'
     +'.intro{text-align:justify;text-justify:inter-word;line-height:1.9;margin-bottom:16px;color:#1f2937}'
+    +'.objeto-box{background:#fdfdfe;border:1px solid #e5e7eb;border-radius:10px;padding:16px 20px;margin-bottom:18px;box-shadow:0 1px 2px rgba(0,0,0,.03)}'
+    +'.objeto-lbl{font-size:9px;font-weight:800;color:'+cor+';text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;text-align:center}'
+    +'.objeto-box p{text-align:justify;text-justify:inter-word;line-height:1.8;color:#1f2937;font-size:11.5px}'
     // Cards: fundo branco com borda de destaque à esquerda na cor da empresa (mesmo padrão dos relatórios)
     +'.orgao-box{background:#fff;border:1px solid #e5e7eb;border-left:3px solid '+cor+';border-radius:8px;padding:14px 18px;margin-bottom:18px;font-size:11px;box-shadow:0 1px 2px rgba(0,0,0,.04);page-break-inside:avoid;break-inside:avoid}'
     +'.orgao-row{margin-bottom:5px;line-height:1.5}'
@@ -5183,6 +5298,11 @@ function _declTextoCompletoPlano(decl, emp){
 }
 
 function setDeclModo(modo){ _declaracoesModo = modo; }
+function setDeclModoUI(modo, btn){
+  _declaracoesModo = modo;
+  document.querySelectorAll('.decl-modo-btn').forEach(function(b){ b.classList.remove('active'); });
+  if(btn) btn.classList.add('active');
+}
 
 function toggleDeclaracao(id, checked){
   _declaracoesSelecionadas[id] = checked;
@@ -5220,8 +5340,10 @@ function renderDeclChecklist(){
   box.innerHTML = todas.map(function(decl){
     var checked = !!_declaracoesSelecionadas[decl.id];
     var editavel = decl.origem==='manual';
-    var badge = decl.origem==='ia' ? '<span class="decl-badge decl-badge-ia">Detectada no edital</span>'
-              : decl.origem==='manual' ? '<span class="decl-badge decl-badge-manual">Personalizada</span>' : '';
+    var badges = '';
+    if(decl.origem==='ia') badges += '<span class="decl-badge decl-badge-ia">🤖 Detectada no edital</span>';
+    if(decl.origem==='manual') badges += '<span class="decl-badge decl-badge-manual">✏️ Personalizada</span>';
+    if(decl.possivelDuplicata) badges += '<span class="decl-badge decl-badge-dup" title="O assunto parece já estar coberto pelo catálogo padrão">⚠️ Pode repetir outra declaração</span>';
     var remover = (decl.origem==='ia'||decl.origem==='manual')
       ? '<button type="button" class="decl-row-remove" onclick="removerDeclaracaoExtra(\''+decl.id+'\')" title="Remover">✕</button>' : '';
     var corpo = editavel
@@ -5230,15 +5352,37 @@ function renderDeclChecklist(){
         +'<textarea rows="4" placeholder="Texto completo da declaração..." oninput="_declAtualizarCampo(\''+decl.id+'\',\'texto\',this.value)">'+(decl.texto||'')+'</textarea>'
         +'</div>'
       : '<div class="decl-row-preview">'+_declPreview(decl)+'</div>';
-    return '<label class="decl-row'+(checked?' checked':'')+'">'
+    return '<label class="decl-row'+(checked?' checked':'')+(decl.possivelDuplicata?' decl-row-dup':'')+'">'
       +'<input type="checkbox" '+(checked?'checked':'')+' onchange="toggleDeclaracao(\''+decl.id+'\', this.checked)'+(editavel?'; this.closest(\'.decl-row\').querySelector(\'.decl-row-edit\').style.display=this.checked?\'flex\':\'none\'':'')+'">'
       +'<div class="decl-row-body">'
-      +'<div class="decl-row-titulo"><span id="decl-lbl-'+decl.id+'">'+decl.titulo+'</span>'+badge+'</div>'
+      +'<div class="decl-row-titulo"><span id="decl-lbl-'+decl.id+'">'+decl.titulo+'</span>'+badges+'</div>'
       +corpo
       +'</div>'
       +remover
       +'</label>';
   }).join('');
+}
+
+
+// Palavras-chave que indicam que uma declaração "nova" já está coberta pelo catálogo padrão
+// (as 3 declarações avulsas + as 10 cláusulas da Unificada). Segunda camada de proteção,
+// caso a IA não siga a instrução do prompt.
+var _DECL_PALAVRAS_COBERTAS = [
+  'menor de 18','menor de dezoito','trabalho noturno','menor aprendiz',
+  'impedid','licitar ou contratar','inidone',
+  'servidor público','sociedade de economia mista','quadro societário',
+  'fato superveniente','fato impeditivo',
+  'ciência do edital','tomou conhecimento','tomada de conhecimento',
+  'microempresa','empresa de pequeno porte','me/epp','lei complementar 123',
+  'parentesco',
+  'veracidade das informações',
+  'ministério do trabalho','segurança e medicina do trabalho',
+  'vistoria',
+  'capacidade técnica e operacional'
+];
+function _declPossivelDuplicata(titulo, texto){
+  var alvo = (String(titulo||'')+' '+String(texto||'')).toLowerCase();
+  return _DECL_PALAVRAS_COBERTAS.some(function(p){ return alvo.indexOf(p)>=0; });
 }
 
 async function detectarDeclaracoesEdital(){
@@ -5250,18 +5394,34 @@ async function detectarDeclaracoesEdital(){
     toast('Anexe o edital ou cole o texto na seção 0 antes de detectar','err'); return;
   }
   var btn = document.getElementById('btn-detectar-decl');
-  var _txtOrig = btn ? btn.textContent : '';
-  if(btn){ btn.disabled=true; btn.textContent='🔎 Lendo o edital...'; }
+  var _htmlOrig = btn ? btn.innerHTML : '';
+  if(btn){ btn.disabled=true; btn.innerHTML='<span class="decl-action-ico">🔎</span><span class="decl-action-txt"><strong>Lendo o edital...</strong><small>Isso pode levar alguns segundos</small></span>'; }
   try{
-    var prompt = 'Releia o edital/TR e liste TODAS as declarações exigidas do licitante — '
-      + 'inclusive as que não são as mais comuns (habilitação geral, ME/EPP, menor de idade). '
-      + 'IGNORE declarações sobre: vistoria, tomada de conhecimento, capacidade técnica e operacional — '
-      + 'essas já fazem parte do nosso catálogo padrão. Liste apenas as ADICIONAIS/DIFERENTES. '
-      + 'Para cada uma, devolva o título oficial e o TEXTO COMPLETO pronto para assinatura, '
-      + 'na primeira pessoa da empresa, exatamente como deve constar no documento final '
-      + '(sem instruções, sem comentários). '
+    var prompt = 'Releia o edital/TR e liste as declarações exigidas do licitante que NÃO estão '
+      + 'no catálogo padrão abaixo — meu sistema já gera automaticamente estas, então NÃO as repita '
+      + 'mesmo com título ou redação um pouco diferente do edital:\n'
+      + '1) Declaração de Vistoria/Não Vistoria.\n'
+      + '2) Declaração de Tomada de Conhecimento do edital.\n'
+      + '3) Declaração de Capacidade Técnica e Operacional.\n'
+      + '4) Declaração Unificada de Habilitação, que já cobre estas 10 cláusulas: '
+      + 'menor de idade/trabalho noturno-perigoso-insalubre; impedimento de contratar/licitar com a Administração; '
+      + 'inidoneidade declarada por órgão público; servidor público ou empregado de estatal no quadro societário; '
+      + 'inexistência de fato superveniente impeditivo da habilitação; ciência e concordância com o edital e anexos; '
+      + 'enquadramento em ME/EPP (Lei Complementar 123/2006); ausência de parentesco com agentes públicos do certame; '
+      + 'veracidade das informações prestadas; regularidade perante o Ministério do Trabalho.\n\n'
+      + 'Só liste uma declaração se o assunto dela for GENUINAMENTE diferente de tudo isso acima '
+      + '(ex.: declaração de elaboração independente de proposta, declaração de acessibilidade, '
+      + 'declaração de sustentabilidade/responsabilidade ambiental, declaração de origem dos produtos, etc — '
+      + 'depende do que o edital específico exigir).\n\n'
+      + 'FORMATO DO TEXTO — importante: NÃO inclua nome, CNPJ ou qualquer identificação da empresa no texto. '
+      + 'O documento final já identifica a empresa antes de cada declaração, então comece o texto direto pelo '
+      + 'conteúdo da declaração (ex.: "DECLARA, para os fins do Edital nº..., que..."). '
+      + 'NUNCA use colchetes, sublinhados ou marcações como "[nome]", "________", "(razão social)" — '
+      + 'se algo específico da empresa for necessário e você não souber, simplesmente omita, não deixe placeholder.\n\n'
+      + 'Para cada declaração adicional encontrada, devolva o título oficial e o texto completo, pronto para '
+      + 'assinatura, na primeira pessoa da empresa (sem instruções, sem comentários). '
       + 'Responda APENAS com um array JSON válido, sem markdown: '
-      + '[{"titulo":"DECLARAÇÃO DE...","texto":"A empresa [nome] declara que..."}]';
+      + '[{"titulo":"DECLARAÇÃO DE...","texto":"DECLARA, para os fins do Edital nº..., que..."}]';
     var parts = _iaArquivos.length ? _iaPartsArquivos().concat([{text:prompt}]) : [{text:prompt+'\n\nEDITAL/TR:\n'+texto.substring(0,30000)}];
     var json = await chamarGemini(key, parts, 0.15, 6000);
     var resposta = json.candidates&&json.candidates[0]&&json.candidates[0].content&&json.candidates[0].content.parts&&json.candidates[0].content.parts[0]&&json.candidates[0].content.parts[0].text || '';
@@ -5271,21 +5431,27 @@ async function detectarDeclaracoesEdital(){
     var lista;
     try{ lista = JSON.parse(m[0]); }catch(e){ toast('Não consegui interpretar a resposta da IA. Tente novamente.','err'); return; }
     if(!Array.isArray(lista) || !lista.length){ toast('Nenhuma declaração adicional encontrada','info'); return; }
-    var novas = 0;
+    var novas = 0, possiveisDuplicatas = 0;
     lista.forEach(function(d, idx){
       if(!d || !d.titulo || !d.texto) return;
       var id = 'ia_'+Date.now()+'_'+idx;
-      _declaracoesIA.push({id:id, titulo:d.titulo, texto:d.texto, tipo:'texto', origem:'ia'});
-      _declaracoesSelecionadas[id] = true;
+      var duplicata = _declPossivelDuplicata(d.titulo, d.texto);
+      _declaracoesIA.push({id:id, titulo:d.titulo, texto:d.texto, tipo:'texto', origem:'ia', possivelDuplicata:duplicata});
+      // Se parece cobrir algo que o catálogo padrão já cobre, não marca automaticamente —
+      // fica visível com aviso, e quem decide se usa ou não é você.
+      _declaracoesSelecionadas[id] = !duplicata;
       novas++;
+      if(duplicata) possiveisDuplicatas++;
     });
     renderDeclChecklist();
-    toast(novas ? ('✅ '+novas+' declaração(ões) adicional(is) encontrada(s) no edital') : 'Nenhuma declaração nova encontrada', 'ok');
+    var msg = novas ? ('✅ '+novas+' declaração(ões) adicional(is) encontrada(s) no edital') : 'Nenhuma declaração nova encontrada';
+    if(possiveisDuplicatas) msg += ' — '+possiveisDuplicatas+' parecem repetir o catálogo padrão e vieram desmarcadas';
+    toast(msg, 'ok');
   }catch(e){
     console.error('Erro ao detectar declarações:', e);
     toast('Erro ao consultar a IA: '+e.message, 'err');
   }finally{
-    if(btn){ btn.disabled=false; btn.textContent=_txtOrig; }
+    if(btn){ btn.disabled=false; btn.innerHTML=_htmlOrig; }
   }
 }
 
@@ -5318,7 +5484,7 @@ function _gerarHTMLProposta(d){
   html += timbradoHTML(emp, 'Proposta Comercial');
   html += orgaoHTML(d.orgao, d.setor, d.modalidade, d.processo);
   html += '<div class="titulo-wrap"><div class="titulo-badge"><h2 class="titulo">PROPOSTA COMERCIAL</h2><div class="titulo-rule"></div></div></div>';
-  if(d.objeto) html += '<p style="margin-bottom:12px;line-height:1.7"><strong>Objeto:</strong> '+d.objeto+'</p>';
+  if(d.objeto) html += '<div class="objeto-box"><div class="objeto-lbl">Objeto</div><p>'+d.objeto+'</p></div>';
   // Tabela de itens
   if(linhas && linhas.length){
     html += '<table><thead><tr>';
