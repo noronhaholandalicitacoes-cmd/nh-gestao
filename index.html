@@ -1308,17 +1308,20 @@ body.light-theme .load .spin{border-right-color:#ff2d78;border-top-color:#f4560a
 
 /* ── Sidebar: preto-profundo com energia ciano/laranja ── */
 body:not(.light-theme) #sb{
-  background:linear-gradient(180deg,#070a12 0%,#05070d 55%,#060812 100%);
-  border-right:1px solid rgba(0,207,255,.10);
-  box-shadow:3px 0 34px -12px rgba(0,207,255,.14);
+  background:
+    radial-gradient(150% 70% at 50% -6%, rgba(0,207,255,.16), transparent 55%),
+    radial-gradient(130% 60% at 50% 104%, rgba(255,45,150,.14), transparent 55%),
+    linear-gradient(180deg,#1c1250 0%,#150e3e 50%,#20104f 100%);
+  border-right:1px solid rgba(139,92,246,.38);
+  box-shadow:3px 0 38px -10px rgba(139,92,246,.35), 1px 0 0 rgba(0,207,255,.15);
 }
 body:not(.light-theme) .sb-top{
-  border-bottom:1px solid rgba(0,207,255,.08);
-  background:radial-gradient(150% 100% at 0% 0%,rgba(249,115,22,.10),transparent 62%);
+  border-bottom:1px solid rgba(0,207,255,.14);
+  background:radial-gradient(150% 100% at 0% 0%,rgba(249,115,22,.14),transparent 62%);
 }
-body:not(.light-theme) .sb-section{color:#5b6c8f}
-body:not(.light-theme) .sb-item{color:#96a3bd}
-body:not(.light-theme) .sb-item:hover{background:rgba(0,207,255,.07);color:#eaf6ff}
+body:not(.light-theme) .sb-section{color:#8a92e0}
+body:not(.light-theme) .sb-item{color:#aeb4ea}
+body:not(.light-theme) .sb-item:hover{background:rgba(0,207,255,.10);color:#f0faff}
 body:not(.light-theme) .sb-item.on{
   background:linear-gradient(90deg,rgba(249,115,22,.20),rgba(255,45,120,.10));
   color:#ffb27d;
@@ -1327,9 +1330,9 @@ body:not(.light-theme) .sb-item.on::before{
   background:linear-gradient(180deg,#f97316,#ff2d78);
   box-shadow:0 0 14px rgba(249,115,22,.85);
 }
-body:not(.light-theme) .sb-item.on .sb-badge{background:rgba(249,115,22,.18);color:#ffb27d}
-body:not(.light-theme) .sb-badge{background:rgba(255,255,255,.05);color:#7d8db0}
-body:not(.light-theme) .sb-divider{background:linear-gradient(90deg,transparent,rgba(0,207,255,.20),transparent)}
+body:not(.light-theme) .sb-item.on .sb-badge{background:rgba(249,115,22,.22);color:#ffc296}
+body:not(.light-theme) .sb-badge{background:rgba(255,255,255,.09);color:#9aa2e2}
+body:not(.light-theme) .sb-divider{background:linear-gradient(90deg,transparent,rgba(0,207,255,.35),rgba(255,45,150,.25),transparent)}
 body:not(.light-theme) #sb::-webkit-scrollbar{width:8px}
 body:not(.light-theme) #sb::-webkit-scrollbar-track{background:transparent}
 body:not(.light-theme) #sb::-webkit-scrollbar-thumb{
@@ -1431,25 +1434,28 @@ body:not(.light-theme) .rcard:hover{border-color:rgba(0,207,255,.22)}
    de #sb para que TODO o conteúdo da lateral se adapte sozinho.
    ═══════════════════════════════════════════════════════════════════ */
 body.light-theme #sb{
-  /* variáveis locais: dentro da sidebar, o mundo é escuro */
-  --s1:#0d1322; --s2:#141b2e; --s3:#1b2338;
-  --b1:#232c44; --b2:#313c5c;
-  --t1:#f2f5fa; --t2:#9aa7c2; --t3:#7484a6; --t4:#3a4560;
-  --nha:rgba(249,115,22,.14); --nha2:rgba(249,115,22,.07);
-  background:linear-gradient(180deg,#070a12 0%,#05070d 55%,#060812 100%);
-  border-right:1px solid rgba(0,207,255,.12);
-  box-shadow:3px 0 34px -10px rgba(0,207,255,.18);
+  /* variáveis locais: dentro da sidebar, o mundo é índigo neon */
+  --s1:#1e1656; --s2:#251c66; --s3:#2d2278;
+  --b1:#372c86; --b2:#4a3ca8;
+  --t1:#f1f0ff; --t2:#b4b8f0; --t3:#8a92e0; --t4:#453a90;
+  --nha:rgba(249,115,22,.16); --nha2:rgba(249,115,22,.08);
+  background:
+    radial-gradient(150% 70% at 50% -6%, rgba(0,207,255,.16), transparent 55%),
+    radial-gradient(130% 60% at 50% 104%, rgba(255,45,150,.14), transparent 55%),
+    linear-gradient(180deg,#1c1250 0%,#150e3e 50%,#20104f 100%);
+  border-right:1px solid rgba(139,92,246,.42);
+  box-shadow:3px 0 38px -10px rgba(139,92,246,.4), 1px 0 0 rgba(0,207,255,.18);
   -webkit-backdrop-filter:none;backdrop-filter:none;
 }
 body.light-theme .sb-top{
-  border-bottom:1px solid rgba(0,207,255,.09);
-  background:radial-gradient(150% 100% at 0% 0%,rgba(249,115,22,.12),transparent 62%);
+  border-bottom:1px solid rgba(0,207,255,.14);
+  background:radial-gradient(150% 100% at 0% 0%,rgba(249,115,22,.14),transparent 62%);
 }
-body.light-theme .sb-brand-name{color:#f2f5fa}
-body.light-theme .sb-brand-sub{color:#7484a6}
-body.light-theme .sb-section{color:#5b6c8f}
-body.light-theme #sb .sb-item{color:#96a3bd}
-body.light-theme #sb .sb-item:hover{background:rgba(0,207,255,.08);color:#eaf6ff}
+body.light-theme .sb-brand-name{color:#f1f0ff}
+body.light-theme .sb-brand-sub{color:#8a92e0}
+body.light-theme .sb-section{color:#8a92e0}
+body.light-theme #sb .sb-item{color:#aeb4ea}
+body.light-theme #sb .sb-item:hover{background:rgba(0,207,255,.10);color:#f0faff}
 body.light-theme #sb .sb-item.on{
   background:linear-gradient(90deg,rgba(249,115,22,.22),rgba(255,45,120,.12));
   color:#ffb27d;
@@ -1458,9 +1464,9 @@ body.light-theme #sb .sb-item.on::before{
   background:linear-gradient(180deg,#f97316,#ff2d78);
   box-shadow:0 0 14px rgba(249,115,22,.9);
 }
-body.light-theme #sb .sb-badge{background:rgba(255,255,255,.06);color:#7d8db0}
-body.light-theme #sb .sb-item.on .sb-badge{background:rgba(249,115,22,.2);color:#ffb27d}
-body.light-theme .sb-divider{background:linear-gradient(90deg,transparent,rgba(0,207,255,.22),transparent)}
+body.light-theme #sb .sb-badge{background:rgba(255,255,255,.09);color:#9aa2e2}
+body.light-theme #sb .sb-item.on .sb-badge{background:rgba(249,115,22,.22);color:#ffc296}
+body.light-theme .sb-divider{background:linear-gradient(90deg,transparent,rgba(0,207,255,.38),rgba(255,45,150,.28),transparent)}
 body.light-theme #sb::-webkit-scrollbar{width:8px}
 body.light-theme #sb::-webkit-scrollbar-track{background:transparent}
 body.light-theme #sb::-webkit-scrollbar-thumb{
