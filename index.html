@@ -1423,6 +1423,56 @@ body:not(.light-theme) .rcard:hover{border-color:rgba(0,207,255,.22)}
 }
 .r-kpi.nh-clickable:hover::after{opacity:1;transform:translate(0,0);color:var(--nh)}
 
+
+/* ═══════════════════════════════════════════════════════════════════
+   ✦ SIDEBAR DARK NEON EM AMBOS OS TEMAS ✦
+   No tema claro, a lateral vira preto-profundo com neon (visual pro:
+   sidebar escura + conteúdo claro). Redefinimos as variáveis dentro
+   de #sb para que TODO o conteúdo da lateral se adapte sozinho.
+   ═══════════════════════════════════════════════════════════════════ */
+body.light-theme #sb{
+  /* variáveis locais: dentro da sidebar, o mundo é escuro */
+  --s1:#0d1322; --s2:#141b2e; --s3:#1b2338;
+  --b1:#232c44; --b2:#313c5c;
+  --t1:#f2f5fa; --t2:#9aa7c2; --t3:#7484a6; --t4:#3a4560;
+  --nha:rgba(249,115,22,.14); --nha2:rgba(249,115,22,.07);
+  background:linear-gradient(180deg,#070a12 0%,#05070d 55%,#060812 100%);
+  border-right:1px solid rgba(0,207,255,.12);
+  box-shadow:3px 0 34px -10px rgba(0,207,255,.18);
+  -webkit-backdrop-filter:none;backdrop-filter:none;
+}
+body.light-theme .sb-top{
+  border-bottom:1px solid rgba(0,207,255,.09);
+  background:radial-gradient(150% 100% at 0% 0%,rgba(249,115,22,.12),transparent 62%);
+}
+body.light-theme .sb-brand-name{color:#f2f5fa}
+body.light-theme .sb-brand-sub{color:#7484a6}
+body.light-theme .sb-section{color:#5b6c8f}
+body.light-theme #sb .sb-item{color:#96a3bd}
+body.light-theme #sb .sb-item:hover{background:rgba(0,207,255,.08);color:#eaf6ff}
+body.light-theme #sb .sb-item.on{
+  background:linear-gradient(90deg,rgba(249,115,22,.22),rgba(255,45,120,.12));
+  color:#ffb27d;
+}
+body.light-theme #sb .sb-item.on::before{
+  background:linear-gradient(180deg,#f97316,#ff2d78);
+  box-shadow:0 0 14px rgba(249,115,22,.9);
+}
+body.light-theme #sb .sb-badge{background:rgba(255,255,255,.06);color:#7d8db0}
+body.light-theme #sb .sb-item.on .sb-badge{background:rgba(249,115,22,.2);color:#ffb27d}
+body.light-theme .sb-divider{background:linear-gradient(90deg,transparent,rgba(0,207,255,.22),transparent)}
+body.light-theme #sb::-webkit-scrollbar{width:8px}
+body.light-theme #sb::-webkit-scrollbar-track{background:transparent}
+body.light-theme #sb::-webkit-scrollbar-thumb{
+  background:linear-gradient(180deg,rgba(249,115,22,.5),rgba(255,45,120,.5));
+  border-radius:6px;border:none;
+}
+/* caixa do Firebase no rodapé da lateral: verde neon sobre o escuro */
+body.light-theme #sb .api-box{
+  background:rgba(34,197,94,.09)!important;
+  border-color:rgba(34,197,94,.35)!important;
+}
+
 </style>
   <!-- Firebase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js"></script>
