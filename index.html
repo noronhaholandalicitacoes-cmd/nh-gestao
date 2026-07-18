@@ -42,40 +42,37 @@
   --t3:#8b95a1;
   --t4:#404040;
 }
-/* ===== TEMA CLARO — paleta própria, não é o escuro invertido =====
-   Tons de status (verde/vermelho/azul/roxo/amarelo) ficam mais escuros
-   aqui do que no tema escuro, porque em fundo claro os tons claros
-   perdem contraste e o texto some. */
+/* ═══════════════════════════════════════════════════════════════
+   TEMA CLARO "AURORA" — não é branco chapado: base marfim luminosa
+   com véus de cor (pêssego NH, céu, menta, lilás) atrás dos cards.
+   Cores de status escurecidas p/ manter contraste sobre fundo claro.
+   ═══════════════════════════════════════════════════════════════ */
 body.light-theme{
-  /* Cinza-azulado no mesmo tom do tema escuro (--bg:#0a0e1a), só que bem claro —
-     os dois temas ficam da mesma "família" em vez de parecerem sistemas diferentes.
-     O fundo da página é mais presente que os cards brancos, para dar profundidade
-     (o mesmo truque que Stripe/Linear usam: nada de tudo branco achatado). */
-  --bg:#e6eaf3;
+  --bg:#faf7f1;
   --s1:#ffffff;
-  --s2:#eef1f8;
-  --s3:#e1e6f0;
-  --b1:#d3d9e6;
-  --b2:#b7c0d4;
+  --s2:#f6f2e9;
+  --s3:#eee8da;
+  --b1:#e6dfd0;
+  --b2:#d0c5ae;
   --nh:#ea580c;
   --nho:#f97316;
   --nhd:#c2410c;
-  --nha:rgba(234,88,12,.10);
-  --nha2:rgba(234,88,12,.05);
-  --g1:#16a34a;
-  --g2:#15803d;
-  --y1:#ca8a04;
-  --y2:#a16207;
+  --nha:rgba(234,88,12,.12);
+  --nha2:rgba(234,88,12,.06);
+  --g1:#059669;
+  --g2:#047857;
+  --y1:#d97706;
+  --y2:#b45309;
   --r1:#dc2626;
   --r2:#b91c1c;
   --b_:#2563eb;
   --b2_:#1d4ed8;
-  --p1:#9333ea;
-  --p2:#7e22ce;
-  --t1:#111827;
-  --t2:#4b5563;
-  --t3:#6b7280;
-  --t4:#d1d5db;
+  --p1:#7c3aed;
+  --p2:#6d28d9;
+  --t1:#1c1917;
+  --t2:#57534e;
+  --t3:#7d766c;
+  --t4:#d8d1c3;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html{font-size:14px}
@@ -926,30 +923,244 @@ body:not(.compact) .kcard-top{gap:16px!important;margin-bottom:8px!important;}
 .decl-modo-btn.active{background:linear-gradient(135deg,rgba(249,115,22,.14),rgba(249,115,22,.05));border-color:var(--nh);box-shadow:0 2px 8px rgba(249,115,22,.15)}
 .decl-modo-btn.active strong{color:var(--nh)}
 @media(max-width:640px){.decl-actions,.decl-modo-toggle{grid-template-columns:1fr}}
-/* Sombra suave nos cards no tema claro — sem ela, cards brancos sobre o
-   fundo cinza-azulado ficam "flutuando" sem peso visual (mesmo truque
-   usado no Stripe/Linear/Notion pra dar profundidade sem escurecer nada). */
-body.light-theme .doc-card,
-body.light-theme .r-kpi,
-body.light-theme .stat,
-body.light-theme .rcard,
-body.light-theme .kcard,
-body.light-theme .decl-row,
-body.light-theme .api-box{
-  box-shadow:0 1px 3px rgba(15,23,42,.07),0 1px 2px rgba(15,23,42,.04);
+/* ═══════════════════════════════════════════════════════════════════
+   ✦ TEMA CLARO "AURORA" — camada visual completa ✦
+   Fundo vivo com véus de cor, vidro fosco na sidebar/topbar, cards
+   brancos com lavagens coloridas por categoria, gradientes na marca.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Fundo aurora: marfim luminoso + véus pêssego/céu/menta/lilás ── */
+body.light-theme{
+  background:
+    radial-gradient(1100px 700px at 88% -12%, rgba(56,189,248,.20), transparent 60%),
+    radial-gradient(950px 640px at -12% 6%, rgba(251,146,60,.24), transparent 58%),
+    radial-gradient(880px 620px at 82% 108%, rgba(167,139,250,.17), transparent 60%),
+    radial-gradient(720px 540px at 6% 98%, rgba(52,211,153,.16), transparent 55%),
+    linear-gradient(160deg,#fdfcf9 0%,#faf6ee 45%,#f6f1e7 100%);
+  background-attachment:fixed;
 }
-body.light-theme .decl-row:hover{
-  box-shadow:0 2px 6px rgba(15,23,42,.09),0 1px 3px rgba(15,23,42,.06);
+/* camada extra que "respira" bem devagar — vida sem distração */
+body.light-theme::before{
+  content:'';position:fixed;inset:-22%;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(640px 440px at 28% 32%, rgba(251,113,133,.10), transparent 62%),
+    radial-gradient(720px 520px at 72% 62%, rgba(56,189,248,.10), transparent 62%),
+    radial-gradient(560px 420px at 55% 15%, rgba(251,191,36,.10), transparent 60%);
+  animation:nhAurora 28s ease-in-out infinite alternate;
+}
+@keyframes nhAurora{
+  from{transform:translate3d(-2%,-1%,0) rotate(0deg) scale(1)}
+  to{transform:translate3d(2%,2.5%,0) rotate(4deg) scale(1.06)}
+}
+@media (prefers-reduced-motion:reduce){body.light-theme::before{animation:none}}
+
+/* ── Sidebar e topbar em vidro fosco: a aurora atravessa ── */
+body.light-theme #sb{
+  background:rgba(255,255,255,.68);
+  -webkit-backdrop-filter:blur(22px) saturate(1.55);
+  backdrop-filter:blur(22px) saturate(1.55);
+  border-right:1px solid rgba(255,255,255,.85);
+  box-shadow:1px 0 0 rgba(28,25,23,.06), 10px 0 34px -16px rgba(180,83,9,.12);
+}
+body.light-theme .topbar{
+  background:rgba(255,255,255,.62);
+  -webkit-backdrop-filter:blur(22px) saturate(1.55);
+  backdrop-filter:blur(22px) saturate(1.55);
+  border-bottom-color:rgba(28,25,23,.07);
+}
+/* assinatura da marca: fita de pôr-do-sol sob a topbar */
+body.light-theme .topbar::after{
+  content:'';position:absolute;left:0;right:0;bottom:-1px;height:2.5px;
+  background:linear-gradient(90deg,#ea580c 0%,#f59e0b 32%,#fb7185 66%,#a78bfa 100%);
+  opacity:.9;
+}
+body.light-theme .topbar-sub{color:#6f675b}
+body.light-theme .api-box{
+  background:rgba(255,255,255,.7);
+  border-color:rgba(28,25,23,.08);
 }
 
-/* Badges com cor fixa (não usam var()) — no tema claro precisam de mais contraste,
-   senão o texto claro fica ilegível sobre o fundo agora branco. */
-body.light-theme .decl-badge-ia{background:#9333ea;color:#fff}
+/* ── Cards: branco puro flutuando sobre a aurora, sombra quente ── */
+body.light-theme .stat,
+body.light-theme .r-kpi,
+body.light-theme .rcard,
+body.light-theme .r-chart-wrap,
+body.light-theme .kcard,
+body.light-theme .doc-card,
+body.light-theme .decl-row,
+body.light-theme .cert-card,
+body.light-theme .valores-emp-card{
+  background:#fff;
+  border-color:rgba(28,25,23,.09);
+  box-shadow:0 1px 2px rgba(28,25,23,.05), 0 10px 28px -14px rgba(120,80,20,.16);
+}
+body.light-theme .stat:hover,
+body.light-theme .r-kpi:hover{
+  box-shadow:0 14px 32px -12px rgba(28,25,23,.20), 0 2px 6px rgba(28,25,23,.06);
+}
+body.light-theme .kcard:hover{
+  filter:none;
+  box-shadow:0 14px 34px -12px rgba(120,80,20,.24), 0 2px 6px rgba(28,25,23,.06);
+}
+body.light-theme .valores-emp-card:hover{
+  box-shadow:0 16px 34px -12px rgba(28,25,23,.22);
+}
+
+/* KPIs ganham lavagem de cor viva por categoria */
+body.light-theme .stat.kc-orange, body.light-theme .r-kpi.kc-orange{background:linear-gradient(135deg,#fff 42%,#ffedde)}
+body.light-theme .stat.kc-blue,   body.light-theme .r-kpi.kc-blue{background:linear-gradient(135deg,#fff 42%,#e4f1ff)}
+body.light-theme .stat.kc-green,  body.light-theme .r-kpi.kc-green{background:linear-gradient(135deg,#fff 42%,#def8ea)}
+body.light-theme .stat.kc-yellow, body.light-theme .r-kpi.kc-yellow{background:linear-gradient(135deg,#fff 42%,#fdf3d3)}
+body.light-theme .stat.kc-red,    body.light-theme .r-kpi.kc-red{background:linear-gradient(135deg,#fff 42%,#ffe4e2)}
+body.light-theme .stat.kc-purple, body.light-theme .r-kpi.kc-purple{background:linear-gradient(135deg,#fff 42%,#f0e6ff)}
+body.light-theme .stat-glow{opacity:.14}
+body.light-theme .stat::after, body.light-theme .r-kpi::before{opacity:.9}
+
+/* Kanban colorido: lavagem no canto na cor do status */
+body.light-theme .kcard.green{background:linear-gradient(115deg,#fff 68%,#e6faee)}
+body.light-theme .kcard.red{background:linear-gradient(115deg,#fff 68%,#ffe9e7)}
+body.light-theme .kcard.yellow{background:linear-gradient(115deg,#fff 68%,#fdf4d8)}
+body.light-theme .kcard.orange{background:linear-gradient(115deg,#fff 68%,#ffeadb)}
+body.light-theme .kcard.blue{background:linear-gradient(115deg,#fff 68%,#e7f1ff)}
+
+/* Certidões com estado colorido bem visível */
+body.light-theme .cert-card:hover{background:#fffdf9}
+body.light-theme .cert-card.vencida{background:linear-gradient(135deg,#fff 40%,#ffe6e4)}
+body.light-theme .cert-card.prox{background:linear-gradient(135deg,#fff 40%,#fdf2cf)}
+body.light-theme .cert-card.ok{background:linear-gradient(135deg,#fff 40%,#e2f8ec)}
+
+/* ── Botões da marca: gradiente pôr-do-sol com brilho ── */
+body.light-theme .btn-nh,
+body.light-theme .btn-cert-add,
+body.light-theme .pb.on,
+body.light-theme .r-periodo-btn.on{
+  background:linear-gradient(135deg,#f97316 0%,#fb923c 55%,#f59e0b 100%);
+  color:#fff;
+  text-shadow:0 1px 2px rgba(120,45,0,.25);
+  box-shadow:0 3px 12px -2px rgba(234,88,12,.5), inset 0 1px 0 rgba(255,255,255,.35);
+  border-color:transparent;
+}
+body.light-theme .btn-nh:hover,
+body.light-theme .btn-cert-add:hover{
+  background:linear-gradient(135deg,#f97316,#fb923c 55%,#fbbf24);
+  box-shadow:0 8px 22px -4px rgba(234,88,12,.55), inset 0 1px 0 rgba(255,255,255,.4);
+}
+body.light-theme .btn-ghost{background:rgba(255,255,255,.65);border-color:rgba(28,25,23,.14)}
+body.light-theme .btn-ghost:hover{background:#fff;border-color:rgba(234,88,12,.4);color:#c2410c}
+
+/* ── Sidebar: item ativo com pílula em gradiente quente ── */
+body.light-theme .sb-item:hover{background:rgba(234,88,12,.07);color:#1c1917}
+body.light-theme .sb-item.on{
+  background:linear-gradient(90deg,rgba(249,115,22,.18),rgba(251,191,36,.10));
+  color:#c2410c;
+}
+body.light-theme .sb-item.on .sb-badge{background:rgba(234,88,12,.14);color:#c2410c}
+body.light-theme .sb-badge{background:rgba(28,25,23,.06);color:#7d766c}
+body.light-theme .sb-section{color:#a39b8d}
+
+/* ── Modais e overlays: névoa quente no lugar do breu ── */
+body.light-theme .overlay,
+body.light-theme .modal-overlay{background:rgba(46,38,28,.38);backdrop-filter:blur(10px)}
+body.light-theme .modal{
+  border-color:rgba(28,25,23,.1);
+  box-shadow:0 28px 90px -18px rgba(60,40,10,.4);
+}
+body.light-theme .mft{background:#f8f5ee}
+
+/* ── Toasts claros com borda colorida e sombra da própria cor ── */
+body.light-theme .tok{background:#fff;border-color:#10b981;color:#047857;box-shadow:0 12px 32px -8px rgba(16,185,129,.4)}
+body.light-theme .terr{background:#fff;border-color:#ef4444;color:#b91c1c;box-shadow:0 12px 32px -8px rgba(239,68,68,.4)}
+body.light-theme .tinfo{background:#fff;border-color:#f97316;color:#c2410c;box-shadow:0 12px 32px -8px rgba(249,115,22,.4)}
+
+/* ── Correções de contraste (elementos desenhados p/ fundo escuro) ── */
+body.light-theme .btn-toggle-card{background:rgba(28,25,23,.05);border-color:rgba(28,25,23,.12);color:#57534e}
+body.light-theme .btn-toggle-card:hover{background:rgba(28,25,23,.12);color:#1c1917}
+body.light-theme .kcard-obj{background:rgba(234,88,12,.05)}
+body.light-theme .kcard-obj textarea::placeholder{color:rgba(120,113,108,.55)}
+body.light-theme .kcard-meta{border-bottom-color:rgba(28,25,23,.08)}
+body.light-theme .kcard-licit input[type=text]{border-bottom-color:rgba(28,25,23,.18)!important}
+body.light-theme .kfield input[type=text],
+body.light-theme .kfield input[type=date],
+body.light-theme .kfield textarea{border-bottom-color:rgba(28,25,23,.16)}
+body.light-theme .cert-field input[type=text],
+body.light-theme .cert-field input[type=date]{border-bottom-color:rgba(28,25,23,.16)}
+body.light-theme .cert-card-actions{border-top-color:rgba(28,25,23,.08)}
+body.light-theme input[style*="255,255,255"]{border-bottom-color:rgba(28,25,23,.24)!important}
+body.light-theme tr[style*="255,255,255"]{border-bottom-color:rgba(28,25,23,.07)!important}
+body.light-theme .r-conv-row,
+body.light-theme .rcard-row{border-bottom-color:rgba(28,25,23,.08)}
+body.light-theme thead tr{background:linear-gradient(90deg,#fff3e7,#eef4ff)!important}
+body.light-theme .tbl-wrap{border-color:rgba(28,25,23,.1)}
+body.light-theme #tabela-proposta td{border-color:rgba(28,25,23,.12)}
+body.light-theme #tabela-proposta td input,
+body.light-theme #tabela-proposta td textarea{color:#1c1917}
+body.light-theme #tabela-proposta th .th-name{color:#7d766c}
+body.light-theme #tabela-proposta th .th-name:focus{color:#1c1917}
+body.light-theme #tabela-proposta td.col-num input{color:#a39b8d}
+body.light-theme #tabela-proposta tr:hover td{background:rgba(234,88,12,.04)}
+body.light-theme #tabela-proposta tr:hover td.col-num{background:#f6f2e9}
+
+/* Painel de usuários (era todo escuro fixo) vira claro coeso */
+body.light-theme .uov{background:rgba(46,38,28,.38)}
+body.light-theme .upanel{background:#fff;border-color:rgba(28,25,23,.1);color:#1c1917;box-shadow:0 28px 80px -16px rgba(60,40,10,.4)}
+body.light-theme .uhint{background:rgba(37,99,235,.06);border-color:rgba(37,99,235,.2);color:#44403c}
+body.light-theme .uinput{background:#f6f2e9;border-color:rgba(28,25,23,.14);color:#1c1917}
+body.light-theme .uinput:focus{border-color:#ea580c}
+body.light-theme .urow{border-color:rgba(28,25,23,.1)}
+body.light-theme .urow:hover{border-color:rgba(234,88,12,.4);background:rgba(234,88,12,.04)}
+body.light-theme .uadmin{background:rgba(37,99,235,.05)}
+body.light-theme .uclose{color:#7d766c}
+body.light-theme .uclose:hover{color:#1c1917}
+body.light-theme .uswlbl{color:#57534e}
+body.light-theme .usw>span{background:#d8d1c3}
+body.light-theme .upill{border-color:rgba(28,25,23,.18);color:#57534e}
+body.light-theme .uempty,body.light-theme .ufix{color:#a39b8d}
+
+/* Badges de cor fixa precisam de mais contraste no claro */
+body.light-theme .decl-badge-ia{background:#7c3aed;color:#fff}
 body.light-theme .decl-badge-manual{background:#2563eb;color:#fff}
-body.light-theme .decl-badge-dup{background:#eab308;color:#422006}
+body.light-theme .decl-badge-dup{background:#d97706;color:#fff}
 body.light-theme .badm{background:#4f5fd1;color:#fff}
 body.light-theme .ble{background:#64748b;color:#fff}
 body.light-theme .bext{background:#5b6a8f;color:#fff}
+body.light-theme .btn-edit-card{background:rgba(37,99,235,.08);color:#1d4ed8;border-color:rgba(37,99,235,.25)}
+body.light-theme .decl-badge, body.light-theme .badge{letter-spacing:.02em}
+
+/* Tela de login também mergulha na aurora */
+body.light-theme #login-screen{
+  background:
+    radial-gradient(950px 620px at 86% -6%, rgba(56,189,248,.24), transparent 60%),
+    radial-gradient(860px 580px at -8% 102%, rgba(251,146,60,.28), transparent 60%),
+    radial-gradient(700px 520px at 50% 115%, rgba(167,139,250,.18), transparent 60%),
+    linear-gradient(160deg,#fdfcf9,#f6f1e7)!important;
+}
+
+/* Barra de rolagem com o DNA da marca */
+body.light-theme ::-webkit-scrollbar{width:11px;height:11px}
+body.light-theme ::-webkit-scrollbar-track{background:transparent}
+body.light-theme ::-webkit-scrollbar-thumb{
+  background:linear-gradient(180deg,#fdba74,#f97316);
+  border-radius:8px;border:3px solid #f8f4ec;
+}
+body.light-theme ::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#fb923c,#ea580c)}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ✦ TEMA ESCURO — profundidade extra (sutil, sem mudar a identidade) ✦
+   ═══════════════════════════════════════════════════════════════════ */
+body:not(.light-theme){
+  background:
+    radial-gradient(1050px 660px at 86% -14%, rgba(249,115,22,.075), transparent 60%),
+    radial-gradient(860px 580px at -10% 110%, rgba(59,130,246,.06), transparent 60%),
+    var(--bg);
+  background-attachment:fixed;
+}
+body:not(.light-theme) .stat:hover,
+body:not(.light-theme) .r-kpi:hover{
+  box-shadow:0 10px 28px rgba(0,0,0,.45), 0 0 0 1px rgba(249,115,22,.14);
+}
+body:not(.light-theme) .btn-nh:hover{
+  box-shadow:0 6px 18px rgba(249,115,22,.4);
+}
 
 </style>
   <!-- Firebase SDK -->
