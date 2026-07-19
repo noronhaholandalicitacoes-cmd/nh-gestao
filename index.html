@@ -7437,21 +7437,12 @@ async function analisarAderencia(){
   bodyEl.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:20px;height:20px"></div> Cruzando edital com o dossiê de '+emp+'...</div>';
   var dh=new Date();
   var hoje=('0'+dh.getDate()).slice(-2)+'/'+('0'+(dh.getMonth()+1)).slice(-2)+'/'+dh.getFullYear();
-  var prompt='HOJE É '+hoje+'. Você é um consultor sênior de licitações públicas. Compare os REQUISITOS DE HABILITAÇÃO exigidos no edital/TR fornecido com o DOSSIÊ DE DOCUMENTAÇÃO da empresa "'+emp+'" (JSON ao final). Estruture assim:\n\n'+
-  'REGRA DE FORMATO: NUNCA use tabelas markdown (nada de linhas com |). Use apenas títulos #### e linhas de lista simples.\n\n'+
-  '#### 1. Quadro de Aderência\nPara CADA exigência de habilitação do edital, organizada por categoria (Jurídica, Fiscal, Trabalhista, Econômico-financeira, Técnica, Declarações), escreva UMA linha no formato:\n✅ **Nome do documento exigido** — o que consta no dossiê (curto)\n❌ **Nome do documento exigido** — por que não atende\n⚠️ **Nome do documento exigido** — o que precisa verificar\nDocumento com validade vencida = ❌ (compare com a data de hoje).\n\n'+
-  '#### 2. Documentos Faltantes\nLista objetiva do que a empresa precisa providenciar.\n\n'+
-  '#### 3. Alertas de Validade\nDocumentos vencidos ou que vencem em até 30 dias (cite as datas).\n\n'+
-  '#### 4. Capacidade Técnica\nOs atestados do dossiê cobrem o objeto e os quantitativos mínimos exigidos? Justifique.\n\n'+
-  '#### 5. Veredito\nHABILITADA ✅ / HABILITADA COM PENDÊNCIAS ⚠️ / NÃO HABILITADA ❌ — justificativa curta e providências prioritárias.\n\n'+
-  'AO FINAL DE TUDO, acrescente EXATAMENTE este bloco (JSON válido, sem markdown dentro):\n<PENDENCIAS>{"status":"APTA|PENDENCIAS|NAO_APTA","faltantes":[{"doc":"nome do documento","acao":"como providenciar"}],"vencidos":[{"doc":"nome","validade":"YYYY-MM-DD"}]}</PENDENCIAS>\n\n'+
-  'DOSSIÊ DA EMPRESA '+emp+':\n'+JSON.stringify(dossie);
+  var prompt=_nhPromptAderencia(emp,dossie,hoje);
   try{
     var parts=_iaArquivos.length
       ?_iaArquivos.map(function(f){return {inline_data:{mime_type:f.mime,data:f.base64}}}).concat([{text:prompt}])
       :[{text:prompt+'\n\nEDITAL/TR:\n'+texto.substring(0,30000)}];
-    var j=await chamarGemini(key,parts,0.2,16000);
-    var resp=j.candidates&&j.candidates[0]&&j.candidates[0].content.parts[0].text||'Sem resposta';
+    var resp=await _nhGeminiLongo(key,parts,function(m){bodyEl.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:20px;height:20px"></div> '+m+'</div>';});
     var pend=null;
     var pm=resp.match(/<PENDENCIAS>([\s\S]*?)<\/PENDENCIAS>/i);
     if(pm){
@@ -7469,13 +7460,18 @@ async function analisarAderencia(){
       if(falt.length)head+='<span style="font-size:12px;color:var(--t2)">Faltam <b>'+falt.length+'</b>: '+falt.map(function(f){return '<span style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);color:#ef4444;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:600">'+f.doc+'</span>'}).join(' ')+'</span>';
       var vc=(pend.vencidos||[]);
       if(vc.length)head+='<span style="font-size:12px;color:var(--t2)">Vencidos <b>'+vc.length+'</b>: '+vc.map(function(f){return '<span style="background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.35);color:#eab308;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:600">'+f.doc+'</span>'}).join(' ')+'</span>';
+      /* Seletor de processo direto aqui + botão fixar (sempre visíveis) */
       var selP=document.getElementById('doc-processo-sel');
-      var pk=selP&&selP.value?selP.value:'';
-      if(pk){
-        head+='<button onclick="nhSalvarPendencias(\''+pk+'\')" style="margin-left:auto;background:linear-gradient(135deg,#f97316,#fb923c);color:#fff;border:none;padding:6px 12px;border-radius:7px;font-weight:700;font-size:11px;cursor:pointer;font-family:Outfit,sans-serif">📌 Fixar pendências no processo #'+pk.replace(/^a-/,'')+'</button>';
-      } else {
-        head+='<span style="margin-left:auto;font-size:11px;color:var(--t3)">Selecione um processo em "puxar dados de um processo" acima para fixar as pendências no card</span>';
-      }
+      var pre=selP&&selP.value?selP.value:'';
+      var ands=(ALL.andamento||[]).filter(function(r){return 'sim'!==String(r[16]||'').toLowerCase().trim()})
+        .sort(function(a,b){return parseInt(b[0]||0)-parseInt(a[0]||0)});
+      var opts='<option value="">Fixar no processo...</option>'+ands.map(function(p){
+        var pid='a-'+p[0];
+        return '<option value="'+pid+'"'+(pid===pre?' selected':'')+'>#'+p[0]+' — '+String(p[2]||'').trim()+' — '+String(p[3]||'').trim().substring(0,45)+'</option>';
+      }).join('');
+      head+='<span style="margin-left:auto;display:inline-flex;gap:6px;align-items:center">'+
+        '<select id="nh-fix-proc" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:5px 8px;border-radius:6px;font-size:11px;font-family:Outfit,sans-serif;max-width:280px">'+opts+'</select>'+
+        '<button onclick="var s=document.getElementById(\'nh-fix-proc\');if(!s.value){toast(\'Escolha o processo\',\'err\');return}nhSalvarPendencias(s.value)" style="background:linear-gradient(135deg,#f97316,#fb923c);color:#fff;border:none;padding:6px 12px;border-radius:7px;font-weight:700;font-size:11px;cursor:pointer;font-family:Outfit,sans-serif;white-space:nowrap">📌 Fixar no card</button></span>';
       head+='</div>';
     }
     bodyEl.innerHTML=head+formatarRespostaIA(resp);
@@ -7560,24 +7556,32 @@ async function nhResolverPend(chave){
   }catch(e){toast('Erro: '+e.message,'err');}
 }
 
-/* Injeta o aviso de pendências nos cards do kanban (Andamento/Finalizados) */
+/* Injeta nos cards do kanban: aviso de pendências + botão Analisar Habilitação */
 if(typeof renderCard==='function'){
   var _nhRenderCard=renderCard;
   renderCard=function(e,a,t){
     var html=_nhRenderCard(e,a,t);
     try{
-      if(typeof html==='string'&&(e==='andamento'||e==='finalizados')){
-        var chave='a-'+String(a[0]||'').trim();
+      if(typeof html==='string'&&(e==='andamento'||e==='editais'||e==='finalizados')){
+        var pref=e==='editais'?'e-':'a-';
+        var chave=pref+String(a[0]||'').trim();
+        var empCard=String(a[2]||'').trim();
+        var titCard=String(a[3]||'').trim().replace(/'/g,'').replace(/"/g,'');
         var p=PENDENCIAS[chave];
+        var bloco='';
         if(p&&((p.faltantes||[]).length||(p.vencidos||[]).length)){
           var cor=p.status==='NAO_APTA'?'#ef4444':'#eab308';
           var itens=(p.faltantes||[]).map(function(f){return f.doc}).concat((p.vencidos||[]).map(function(v){return v.doc+' (vencido)'}));
-          var bloco='<div class="nh-pend" onclick="event.stopPropagation()" style="margin-top:8px;background:'+(p.status==='NAO_APTA'?'rgba(239,68,68,.08)':'rgba(234,179,8,.08)')+';border:1px solid '+cor+'55;border-left:3px solid '+cor+';border-radius:7px;padding:6px 9px;font-size:11px;line-height:1.5">'+
+          bloco+='<div class="nh-pend" onclick="event.stopPropagation()" style="margin-top:8px;background:'+(p.status==='NAO_APTA'?'rgba(239,68,68,.08)':'rgba(234,179,8,.08)')+';border:1px solid '+cor+'55;border-left:3px solid '+cor+';border-radius:7px;padding:6px 9px;font-size:11px;line-height:1.5">'+
             '<b style="color:'+cor+'">📋 Docs pendentes — '+(p.empresa||'')+' ('+itens.length+')</b> '+
             '<span onclick="nhResolverPend(\''+chave+'\')" title="Marcar como resolvido" style="float:right;cursor:pointer;color:#22c55e;font-weight:800">✓ resolvido</span>'+
             '<div style="color:var(--t2);margin-top:2px">'+itens.map(function(x){return '<span style="display:inline-block;background:var(--s2);border:1px solid var(--b1);border-radius:5px;padding:0 6px;margin:1px 2px 1px 0">'+x+'</span>'}).join('')+'</div>'+
-            '<div style="color:var(--t3);font-size:10px;margin-top:2px">análise IA em '+(p.data||'')+'</div>'+
+            '<div style="color:var(--t3);font-size:10px;margin-top:2px">análise IA em '+(p.data||'')+' · <span onclick="nhAbrirAnaliseCard(\''+chave+'\',\''+empCard+'\',\''+titCard.substring(0,60)+'\')" style="cursor:pointer;color:var(--nh);font-weight:700">🤖 reanalisar</span></div>'+
           '</div>';
+        } else if(e!=='finalizados' && empCard){
+          bloco+='<div onclick="event.stopPropagation();nhAbrirAnaliseCard(\''+chave+'\',\''+empCard+'\',\''+titCard.substring(0,60)+'\')" title="Analisar com IA se a documentação da empresa atende ao edital" style="margin-top:8px;display:inline-flex;align-items:center;gap:5px;background:var(--nha2);border:1px dashed var(--nh);color:var(--nh);border-radius:7px;padding:3px 9px;font-size:10.5px;font-weight:700;cursor:pointer">🤖 Analisar habilitação</div>';
+        }
+        if(bloco){
           var pos=html.lastIndexOf('</div>');
           if(pos>0)html=html.substring(0,pos)+bloco+html.substring(pos);
         }
@@ -7604,6 +7608,8 @@ function _nhJanelaImpressao(titulo, subtitulo, corpoHTML){
     'table{width:100%;border-collapse:collapse;margin:8px 0;font-size:12px}'+
     'th,td{border:1px solid #ccc;padding:5px 8px;text-align:left;vertical-align:top}'+
     'th{background:#f4f4f5}'+
+    'svg{width:12px!important;height:12px!important;max-width:12px!important;max-height:12px!important;vertical-align:-1px}'+
+    '.nh-ico{width:12px!important;height:12px!important;display:inline-block}'+
     'button{display:none!important}'+
     '.rodape{margin-top:26px;border-top:1px solid #ddd;padding-top:8px;font-size:10px;color:#71717a}'+
     '@media print{body{margin:12mm}}'+
@@ -7642,6 +7648,165 @@ async function nhImprimirDossie(){
   if(!d){toast('Nenhum dossiê salvo para '+emp,'err');return;}
   var sub='Empresa: <b>'+emp+'</b>'+(d._lidoEm?' · Última leitura: '+d._lidoEm:'');
   _nhJanelaImpressao('Dossiê de Habilitação', sub, _dsRender(d));
+}
+</script>
+
+<script>
+/* ════════════════════════════════════════════════════════════════
+   ANÁLISE DE HABILITAÇÃO DIRETO NO CARD DO PROCESSO
+   ════════════════════════════════════════════════════════════════ */
+function _nhPromptAderencia(emp,dossie,hoje){
+  return 'HOJE É '+hoje+'. Você é um consultor sênior de licitações públicas. Compare os REQUISITOS DE HABILITAÇÃO exigidos no edital/TR fornecido com o DOSSIÊ DE DOCUMENTAÇÃO da empresa "'+emp+'" (JSON ao final). Estruture assim:\n\n'+
+  'COMECE SUA RESPOSTA obrigatoriamente com este bloco (JSON válido em uma linha, sem markdown dentro), e só depois escreva a análise:\n<PENDENCIAS>{"status":"APTA|PENDENCIAS|NAO_APTA","faltantes":[{"doc":"nome do documento","acao":"como providenciar"}],"vencidos":[{"doc":"nome","validade":"YYYY-MM-DD"}]}</PENDENCIAS>\n\n'+
+  'REGRA DE FORMATO: NUNCA use tabelas markdown (nada de linhas com |). Use apenas títulos #### e linhas de lista simples.\n\n'+
+  '#### 1. Quadro de Aderência\nPara CADA exigência de habilitação do edital, organizada por categoria (Jurídica, Fiscal, Trabalhista, Econômico-financeira, Técnica, Declarações), escreva UMA linha no formato:\n✅ **Nome do documento exigido** — o que consta no dossiê (curto)\n❌ **Nome do documento exigido** — por que não atende\n⚠️ **Nome do documento exigido** — o que precisa verificar\nDocumento com validade vencida = ❌ (compare com a data de hoje).\n\n'+
+  '#### 2. Documentos Faltantes\nLista objetiva do que a empresa precisa providenciar.\n\n'+
+  '#### 3. Alertas de Validade\nDocumentos vencidos ou que vencem em até 30 dias (cite as datas).\n\n'+
+  '#### 4. Capacidade Técnica\nOs atestados do dossiê cobrem o objeto e os quantitativos mínimos exigidos? Justifique.\n\n'+
+  '#### 5. Veredito\nHABILITADA ✅ / HABILITADA COM PENDÊNCIAS ⚠️ / NÃO HABILITADA ❌ — justificativa curta e providências prioritárias.\n\n'+
+
+  'DOSSIÊ DA EMPRESA '+emp+':\n'+JSON.stringify(dossie);
+}
+
+/* Chamada com continuação automática quando a resposta trunca */
+async function _nhGeminiLongo(key,parts,onMsg){
+  var j=await chamarGemini(key,parts,0.2,30000);
+  var cand=j.candidates&&j.candidates[0];
+  var resp=cand&&cand.content&&cand.content.parts&&cand.content.parts[0].text||'';
+  if(!resp)throw new Error('Resposta vazia da IA'+(cand&&cand.finishReason?' ('+cand.finishReason+')':''));
+  var tent=0;
+  while(cand&&cand.finishReason==='MAX_TOKENS'&&tent<2){
+    tent++;
+    if(onMsg)onMsg('Análise longa — continuando (parte '+(tent+1)+')...');
+    try{
+      var jc=await chamarGemini(key,[{text:'Você estava fazendo uma análise de aderência de habilitação e parou no meio. CONTINUE EXATAMENTE de onde parou, sem repetir nada, mantendo o mesmo formato. Últimos 1500 caracteres do que você já escreveu:\n'+resp.slice(-1500)}],0.2,30000);
+      var cc=jc.candidates&&jc.candidates[0];
+      var mais=cc&&cc.content&&cc.content.parts&&cc.content.parts[0].text||'';
+      if(!mais)break;
+      resp+='\n'+mais;cand=cc;
+    }catch(_e){break;}
+  }
+  return resp;
+}
+
+var _anaFiles=[];var _anaCtx=null;
+
+function nhAbrirAnaliseCard(chave,emp,titulo){
+  _anaFiles=[];_anaCtx={chave:chave,emp:emp,titulo:titulo};
+  var m=document.getElementById('nh-ana-modal');
+  if(!m){
+    m=document.createElement('div');
+    m.id='nh-ana-modal';
+    m.style.cssText='display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;align-items:center;justify-content:center;padding:16px';
+    m.innerHTML='<div style="background:var(--s1);border:1px solid var(--b1);border-radius:14px;max-width:900px;width:100%;max-height:92vh;display:flex;flex-direction:column;overflow:hidden">'+
+      '<div style="padding:14px 18px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:10px">'+
+        '<b style="color:var(--nh)">🤖 Análise de Habilitação</b>'+
+        '<span id="nh-ana-sub" style="font-size:12px;color:var(--t3)"></span>'+
+        '<button onclick="nhImprimirAnaliseCard()" style="margin-left:auto;background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif">🖨 Imprimir</button>'+
+        '<button onclick="document.getElementById(\'nh-ana-modal\').style.display=\'none\'" style="background:none;border:none;color:var(--t3);font-size:18px;cursor:pointer">✕</button>'+
+      '</div>'+
+      '<div style="padding:14px 18px;overflow-y:auto;flex:1">'+
+        '<div id="nh-ana-setup">'+
+          '<div id="nh-ana-dossie" style="font-size:12px;margin-bottom:10px;color:var(--t2)"></div>'+
+          '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">'+
+            '<label style="background:var(--nha);border:1px solid var(--nh);color:var(--nh);padding:7px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;font-family:Outfit,sans-serif">📄 Anexar edital / TR'+
+              '<input type="file" accept=".pdf,image/*" multiple style="display:none" onchange="nhAnaAddFiles(this)"></label>'+
+            '<span id="nh-ana-files" style="font-size:11px;color:var(--t3)"></span>'+
+            '<button onclick="nhRodarAnaliseCard()" style="background:linear-gradient(135deg,#059669,#22c55e);color:#fff;border:none;padding:8px 18px;border-radius:8px;font-weight:800;font-size:12px;cursor:pointer;font-family:Outfit,sans-serif">✓ Analisar agora</button>'+
+          '</div>'+
+          '<div style="font-size:11px;color:var(--t3);margin-top:8px">Ao concluir, o resultado é salvo automaticamente neste card do processo.</div>'+
+        '</div>'+
+        '<div id="nh-ana-result" style="font-size:13px;line-height:1.7;margin-top:12px"></div>'+
+      '</div>'+
+    '</div>';
+    document.body.appendChild(m);
+    m.addEventListener('click',function(ev){if(ev.target===m)m.style.display='none';});
+  }
+  document.getElementById('nh-ana-sub').textContent=emp+' · processo #'+chave.replace(/^[ae]-/,'')+(titulo?' · '+titulo:'');
+  document.getElementById('nh-ana-files').innerHTML='';
+  document.getElementById('nh-ana-result').innerHTML='';
+  m.style.display='flex';
+  /* status do dossiê da empresa */
+  var dEl=document.getElementById('nh-ana-dossie');
+  dEl.innerHTML='Verificando dossiê de '+emp+'...';
+  carregarDossie(emp).then(function(d){
+    if(d){
+      dEl.innerHTML='📁 Dossiê de <b>'+emp+'</b>: <span style="color:#22c55e">'+(d.documentos||[]).length+' documentos'+(d._lidoEm?' · lido '+d._lidoEm:'')+'</span>';
+    }else{
+      dEl.innerHTML='<span style="color:#eab308">⚠ <b>'+emp+'</b> ainda não tem dossiê. Abra a página da empresa na lateral e cadastre no card "Dossiê de Habilitação (IA)".</span>';
+    }
+  });
+}
+
+function nhAnaAddFiles(input){
+  var files=Array.prototype.slice.call(input.files||[]);var pend=files.length;
+  files.forEach(function(f){
+    var r=new FileReader();
+    r.onload=function(e){
+      _anaFiles.push({base64:e.target.result.split(',')[1],mime:f.type||'application/pdf',name:f.name});
+      if(--pend===0){
+        document.getElementById('nh-ana-files').innerHTML=_anaFiles.map(function(x){return '<span style="background:var(--s2);border:1px solid var(--b1);border-radius:6px;padding:2px 8px;margin:2px">'+x.name+'</span>'}).join('');
+      }
+    };
+    r.readAsDataURL(f);
+  });
+  input.value='';
+}
+
+async function nhRodarAnaliseCard(){
+  var ctx=_anaCtx;if(!ctx)return;
+  var key=localStorage.getItem('nh_gemini_key');
+  if(!key){toast('Configure a API Key do Gemini na aba Documentos','err');return;}
+  if(!_anaFiles.length){toast('Anexe o edital/TR do processo','err');return;}
+  var out=document.getElementById('nh-ana-result');
+  out.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:20px;height:20px"></div> Carregando dossiê de '+ctx.emp+'...</div>';
+  var dossie=await carregarDossie(ctx.emp);
+  if(!dossie){out.innerHTML='<div style="color:#eab308;font-weight:600">⚠ '+ctx.emp+' não tem dossiê cadastrado. Cadastre primeiro na página da empresa.</div>';return;}
+  out.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:20px;height:20px"></div> Cruzando edital com o dossiê de '+ctx.emp+'...</div>';
+  var dh=new Date();
+  var hoje=('0'+dh.getDate()).slice(-2)+'/'+('0'+(dh.getMonth()+1)).slice(-2)+'/'+dh.getFullYear();
+  try{
+    var prompt=_nhPromptAderencia(ctx.emp,dossie,hoje);
+    var parts=_anaFiles.map(function(f){return {inline_data:{mime_type:f.mime,data:f.base64}}}).concat([{text:prompt}]);
+    var resp=await _nhGeminiLongo(key,parts,function(m){out.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:20px;height:20px"></div> '+m+'</div>';});
+    var pend=null;
+    var pm=resp.match(/<PENDENCIAS>([\s\S]*?)<\/PENDENCIAS>/i);
+    if(pm){try{pend=JSON.parse(pm[1].replace(/```json/gi,'').replace(/```/g,'').trim());}catch(_e){}resp=resp.replace(pm[0],'').trim();}
+    window._nhUltimaAder={empresa:ctx.emp,data:hoje,pend:pend};
+    var head='';
+    if(pend){
+      var stMap={APTA:['#22c55e','✅ HABILITADA'],PENDENCIAS:['#eab308','⚠️ HABILITADA COM PENDÊNCIAS'],NAO_APTA:['#ef4444','❌ NÃO HABILITADA']};
+      var sm=stMap[pend.status]||stMap.PENDENCIAS;
+      head='<div style="background:var(--s2);border:1px solid '+sm[0]+'55;border-left:4px solid '+sm[0]+';border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px">'+
+        '<b style="color:'+sm[0]+'">'+sm[1]+'</b>';
+      var falt=pend.faltantes||[];
+      if(falt.length)head+=' · Faltam <b>'+falt.length+'</b>: '+falt.map(function(f){return '<span style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);color:#ef4444;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:600">'+f.doc+'</span>'}).join(' ');
+      var vc=pend.vencidos||[];
+      if(vc.length)head+=' · Vencidos: '+vc.map(function(f){return '<span style="background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.35);color:#eab308;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:600">'+f.doc+'</span>'}).join(' ');
+      head+='</div>';
+      /* salva automaticamente no processo */
+      var reg={empresa:ctx.emp,data:hoje,status:pend.status||'PENDENCIAS',faltantes:falt,vencidos:vc};
+      try{
+        await fbSave('pendencias',ctx.chave,reg);
+        PENDENCIAS[ctx.chave]=reg;
+        head+='<div style="font-size:11px;color:#22c55e;margin-bottom:10px">💾 Resultado fixado automaticamente no card deste processo.</div>';
+        try{renderTbl(CUR);}catch(_e){}
+      }catch(es){head+='<div style="font-size:11px;color:#ef4444;margin-bottom:10px">Erro ao fixar no card: '+es.message+'</div>';}
+    }
+    out.innerHTML=head+formatarRespostaIA(resp);
+  }catch(e){
+    console.error('analise card',e);
+    out.innerHTML='<div style="color:#ef4444">❌ Erro: '+(e.message||e)+'</div>';
+  }
+}
+
+function nhImprimirAnaliseCard(){
+  var out=document.getElementById('nh-ana-result');
+  if(!out||!out.innerText.trim()){toast('Rode a análise primeiro','err');return;}
+  var ctx=_anaCtx||{};
+  _nhJanelaImpressao('Análise de Aderência de Habilitação',
+    'Empresa: <b>'+(ctx.emp||'')+'</b> · Processo #'+String(ctx.chave||'').replace(/^[ae]-/,'')+(ctx.titulo?' · '+ctx.titulo:''),
+    out.innerHTML);
 }
 </script>
 </body>
