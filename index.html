@@ -2021,7 +2021,7 @@ body.light-theme #sb .api-box{
       <button onclick="preencherComIA()" style="background:var(--nh);color:#000;border:none;padding:6px 14px;border-radius:6px;font-weight:700;font-size:11px;cursor:pointer;font-family:Outfit,sans-serif">Preencher com IA</button>
       <button onclick="analisarIA('resumo')" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:6px 12px;border-radius:6px;font-weight:600;font-size:11px;cursor:pointer;font-family:Outfit,sans-serif">Resumo</button>
       <button onclick="analisarIA('requisitos')" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:6px 12px;border-radius:6px;font-weight:600;font-size:11px;cursor:pointer;font-family:Outfit,sans-serif">Requisitos</button>
-      <button onclick="analisarIA('habilitacao')" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:6px 12px;border-radius:6px;font-weight:600;font-size:11px;cursor:pointer;font-family:Outfit,sans-serif">Habilitação</button>
+      <button onclick="analisarIA('habilitacao')" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:6px 12px;border-radius:6px;font-weight:600;font-size:11px;cursor:pointer;font-family:Outfit,sans-serif">Habilitação</button><select id="ia-emp-aderencia" onfocus="popularEmpAderencia()" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:6px 10px;border-radius:6px;font-size:11px;font-family:Outfit,sans-serif;cursor:pointer"><option value="">Empresa...</option></select><button onclick="analisarAderencia()" title="Cruza os requisitos do edital com o dossiê de documentação da empresa" style="background:linear-gradient(135deg,#059669,#22c55e);color:#fff;border:none;padding:6px 14px;border-radius:6px;font-weight:700;font-size:11px;cursor:pointer;font-family:Outfit,sans-serif">✓ Aderência da Empresa</button>
       <button onclick="analisarIA('declaracoes')" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:6px 12px;border-radius:6px;font-weight:600;font-size:11px;cursor:pointer;font-family:Outfit,sans-serif">Declarações</button>
       <button onclick="analisarIA('riscos')" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:6px 12px;border-radius:6px;font-weight:600;font-size:11px;cursor:pointer;font-family:Outfit,sans-serif">Riscos</button>
       <button onclick="analisarIA('proposta')" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:6px 12px;border-radius:6px;font-weight:600;font-size:11px;cursor:pointer;font-family:Outfit,sans-serif">Viabilidade</button>
@@ -7144,5 +7144,247 @@ if(typeof buildResumo==='function'){
 }
 </script>
 <script>console.log("%cNH Licitações — UI v7 (arquivo íntegro)","background:#2433c8;color:#fff;padding:4px 10px;border-radius:6px;font-weight:bold");</script>
+
+<script>
+/* ════════════════════════════════════════════════════════════════
+   DOSSIÊ DE HABILITAÇÃO (IA) + ANÁLISE DE ADERÊNCIA EDITAL×EMPRESA
+   - Lê documentos da empresa com Gemini e salva SÓ as informações
+     (JSON estruturado) no Firestore, coleção "dossies". PDFs não
+     ficam armazenados.
+   - Cruza edital/TR anexado com o dossiê e emite parecer de
+     habilitação: atende / não atende / verificar.
+   Reusa: chamarGemini, fbSave, db, toast, calcDias, formatarRespostaIA
+   ════════════════════════════════════════════════════════════════ */
+var _dsFiles=[]; var _dsEmpAtual=null;
+
+function popularEmpAderencia(){
+  var s=document.getElementById('ia-emp-aderencia');if(!s)return;
+  var cur=s.value;
+  s.innerHTML='<option value="">Empresa...</option>'+EMPRESAS.map(function(e){
+    return '<option value="'+e.nome+'"'+(e.nome===cur?' selected':'')+'>'+e.nome+'</option>';
+  }).join('');
+}
+
+async function carregarDossie(emp){
+  try{
+    var d=await db.collection('dossies').doc(String(emp)).get();
+    if(d.exists&&d.data()._arr)return d.data()._arr;
+  }catch(e){console.error('dossie load',e);}
+  return null;
+}
+
+/* ── Card do Dossiê injetado na página de cada empresa ── */
+async function nhInjectDossieCard(emp){
+  var body=document.getElementById('emp-body');
+  if(!body||document.getElementById('nh-dossie-card'))return;
+  _dsFiles=[];_dsEmpAtual=emp;
+  var card=document.createElement('div');
+  card.className='doc-card';card.id='nh-dossie-card';card.style.marginTop='16px';
+  card.innerHTML=
+    '<div class="doc-card-title" style="display:flex;align-items:center;gap:8px">'+
+      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--nh)"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M15 2v5h5"/><path d="m9 15 2 2 4-4"/></svg>'+
+      'Dossiê de Habilitação (IA)'+
+      '<span id="nh-ds-status" style="font-size:11px;font-weight:600;color:var(--t3);margin-left:auto">carregando...</span>'+
+    '</div>'+
+    '<div style="font-size:12px;color:var(--t3);margin:6px 0 12px;line-height:1.6">Anexe a documentação da empresa (contrato social, certidões, balanço, atestados...). A IA lê tudo e salva <b>apenas as informações</b> — os PDFs não ficam armazenados. Depois, na aba <b>Documentos</b>, use "✓ Aderência da Empresa" para cruzar com qualquer edital.</div>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">'+
+      '<label style="background:var(--nha);border:1px solid var(--nh);color:var(--nh);padding:7px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;font-family:Outfit,sans-serif">📄 Anexar documentos'+
+        '<input type="file" accept=".pdf,image/*" multiple style="display:none" onchange="dsAddFiles(this)"></label>'+
+      '<button onclick="lerDossieIA()" style="background:linear-gradient(135deg,#059669,#22c55e);color:#fff;border:none;padding:7px 16px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;font-family:Outfit,sans-serif">🤖 Ler e salvar dossiê (IA)</button>'+
+      '<label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--t2);cursor:pointer"><input type="checkbox" id="nh-ds-merge" checked style="accent-color:var(--nh)"> mesclar com dossiê existente</label>'+
+      '<button onclick="verDossie()" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:7px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:Outfit,sans-serif">👁 Ver dossiê</button>'+
+      '<button onclick="excluirDossie()" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:7px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:Outfit,sans-serif">🗑 Excluir</button>'+
+    '</div>'+
+    '<div id="nh-ds-files" style="margin-top:8px;font-size:11px;color:var(--t3)"></div>'+
+    '<div id="nh-ds-view" style="display:none;margin-top:12px;background:var(--s2);border:1px solid var(--b1);border-radius:8px;padding:14px;font-size:12.5px;line-height:1.7;max-height:420px;overflow-y:auto"></div>';
+  body.appendChild(card);
+  atualizarStatusDossie(emp);
+}
+
+async function atualizarStatusDossie(emp){
+  var el=document.getElementById('nh-ds-status');if(!el)return;
+  var d=await carregarDossie(emp);
+  if(!d){el.innerHTML='<span style="color:#eab308">● sem dossiê cadastrado</span>';return;}
+  var docs=(d.documentos||[]).length, at=(d.atestados||[]).length;
+  var venc=(d.documentos||[]).filter(function(x){var di=calcDias(x.validade);return di!==null&&di<0}).length;
+  el.innerHTML='<span style="color:#22c55e">● '+docs+' docs · '+at+' atestados'+
+    (venc?' · <span style="color:#ef4444">'+venc+' vencido(s)</span>':'')+
+    (d._lidoEm?' · lido '+d._lidoEm:'')+'</span>';
+}
+
+function dsAddFiles(input){
+  var files=Array.prototype.slice.call(input.files||[]);
+  var pend=files.length;if(!pend)return;
+  files.forEach(function(f){
+    var r=new FileReader();
+    r.onload=function(e){
+      _dsFiles.push({base64:e.target.result.split(',')[1],mime:f.type||'application/pdf',name:f.name,kb:Math.round(f.size/1024)});
+      if(--pend===0)dsRenderFiles();
+    };
+    r.readAsDataURL(f);
+  });
+  input.value='';
+}
+function dsRenderFiles(){
+  var el=document.getElementById('nh-ds-files');if(!el)return;
+  el.innerHTML=_dsFiles.length?_dsFiles.map(function(f,i){
+    return '<span style="display:inline-flex;align-items:center;gap:5px;background:var(--s2);border:1px solid var(--b1);border-radius:6px;padding:3px 8px;margin:2px">'+f.name+' <i style="font-style:normal;opacity:.6">'+f.kb+'KB</i> <b style="cursor:pointer;color:#ef4444" onclick="_dsFiles.splice('+i+',1);dsRenderFiles()">✕</b></span>';
+  }).join(''):'';
+}
+
+async function lerDossieIA(){
+  var emp=_dsEmpAtual;if(!emp)return;
+  var key=localStorage.getItem('nh_gemini_key');
+  if(!key){toast('Configure a API Key do Gemini na aba Documentos','err');return;}
+  if(!_dsFiles.length){toast('Anexe os documentos da empresa primeiro','err');return;}
+  var st=document.getElementById('nh-ds-status');
+  if(st)st.innerHTML='<span style="color:var(--nh)">🤖 lendo '+_dsFiles.length+' documento(s)...</span>';
+  var prompt='Você é um especialista em documentação de licitações públicas brasileiras. Analise TODOS os documentos anexados da empresa "'+emp+'" e extraia as informações de habilitação. Responda SOMENTE com JSON válido, sem markdown, sem explicações:\n'+
+  '{"empresa":{"razao_social":"","cnpj":"","endereco":"","capital_social":""},'+
+  '"documentos":[{"tipo":"","categoria":"juridica|fiscal|trabalhista|economica|tecnica|declaracao|outros","numero":"","orgao_emissor":"","validade":"YYYY-MM-DD ou null","resumo":""}],'+
+  '"atestados":[{"objeto":"","contratante":"","valores":"","quantidades":""}],'+
+  '"cnaes":["codigo - descricao"],'+
+  '"indices_contabeis":{"liquidez_geral":"","liquidez_corrente":"","solvencia_geral":"","patrimonio_liquido":""},'+
+  '"observacoes":""}\n'+
+  'Inclua TODOS os documentos identificados (contrato social/estatuto, CNPJ, CNDs federal/estadual/municipal, FGTS/CRF, CNDT trabalhista, balanço patrimonial, certidão de falência, atestados de capacidade técnica, alvará, registros em conselhos etc). Capture as VALIDADES com atenção. Se um dado não aparecer, use "" ou null.';
+  try{
+    var parts=_dsFiles.map(function(f){return {inline_data:{mime_type:f.mime,data:f.base64}}});
+    parts.push({text:prompt});
+    var j=await chamarGemini(key,parts,0.1,8000);
+    var raw=j.candidates[0].content.parts[0].text;
+    var clean=raw.replace(/```json/g,'').replace(/```/g,'').trim();
+    var i1=clean.indexOf('{'),i2=clean.lastIndexOf('}');
+    if(i1>=0&&i2>i1)clean=clean.substring(i1,i2+1);
+    var novo=JSON.parse(clean);
+    var merge=document.getElementById('nh-ds-merge');
+    var atual=(merge&&merge.checked)?await carregarDossie(emp):null;
+    var fin=atual?_dsMesclar(atual,novo):novo;
+    var dh=new Date();
+    fin._lidoEm=('0'+dh.getDate()).slice(-2)+'/'+('0'+(dh.getMonth()+1)).slice(-2)+'/'+dh.getFullYear();
+    await fbSave('dossies',emp,fin);
+    _dsFiles=[];dsRenderFiles();
+    toast('Dossiê de '+emp+' salvo! '+(fin.documentos||[]).length+' documento(s) registrados.','ok');
+    atualizarStatusDossie(emp);
+    var v=document.getElementById('nh-ds-view');
+    if(v){v.style.display='block';v.innerHTML=_dsRender(fin);}
+  }catch(e){
+    console.error('dossie IA',e);
+    toast('Erro ao ler documentos: '+e.message,'err');
+    atualizarStatusDossie(emp);
+  }
+}
+
+function _dsMesclar(a,n){
+  var out=JSON.parse(JSON.stringify(a));
+  out.empresa=out.empresa||{};
+  Object.keys(n.empresa||{}).forEach(function(k){if(n.empresa[k]&&!out.empresa[k])out.empresa[k]=n.empresa[k];});
+  var chave=function(d){return (d.tipo||'')+'|'+(d.numero||'')};
+  var have={};(out.documentos=out.documentos||[]).forEach(function(d){have[chave(d)]=1});
+  (n.documentos||[]).forEach(function(d){
+    var k=chave(d);
+    if(have[k]){ /* atualiza validade mais recente */
+      out.documentos.forEach(function(x){if(chave(x)===k&&d.validade)x.validade=d.validade;});
+    } else {out.documentos.push(d);have[k]=1;}
+  });
+  var ha={};(out.atestados=out.atestados||[]).forEach(function(x){ha[(x.objeto||'').substring(0,60)]=1});
+  (n.atestados||[]).forEach(function(x){if(!ha[(x.objeto||'').substring(0,60)])out.atestados.push(x);});
+  out.cnaes=Array.from(new Set((out.cnaes||[]).concat(n.cnaes||[])));
+  out.indices_contabeis=Object.assign({},out.indices_contabeis||{},n.indices_contabeis||{});
+  if(n.observacoes)out.observacoes=((out.observacoes||'')+' '+n.observacoes).trim();
+  return out;
+}
+
+function _dsRender(d){
+  var h='';
+  var e=d.empresa||{};
+  h+='<div style="font-weight:800;margin-bottom:6px">'+(e.razao_social||_dsEmpAtual)+(e.cnpj?' · CNPJ '+e.cnpj:'')+'</div>';
+  var cats={juridica:'Jurídica',fiscal:'Fiscal',trabalhista:'Trabalhista',economica:'Econômico-financeira',tecnica:'Técnica',declaracao:'Declarações',outros:'Outros'};
+  Object.keys(cats).forEach(function(c){
+    var docs=(d.documentos||[]).filter(function(x){return x.categoria===c});
+    if(!docs.length)return;
+    h+='<div style="font-weight:700;color:var(--nh);margin-top:10px;font-size:11px;text-transform:uppercase;letter-spacing:.05em">'+cats[c]+'</div>';
+    docs.forEach(function(x){
+      var di=calcDias(x.validade);
+      var vb=x.validade?(di===null?'':di<0?' <b style="color:#ef4444">VENCIDA ('+x.validade+')</b>':di<=30?' <b style="color:#eab308">vence em '+di+'d</b>':' <span style="color:#22c55e">válida até '+x.validade+'</span>'):'';
+      h+='<div style="padding:3px 0;border-bottom:1px dotted var(--b1)">• <b>'+(x.tipo||'?')+'</b>'+(x.numero?' nº '+x.numero:'')+(x.orgao_emissor?' — '+x.orgao_emissor:'')+vb+(x.resumo?'<div style="color:var(--t3);font-size:11px;margin-left:12px">'+x.resumo+'</div>':'')+'</div>';
+    });
+  });
+  if((d.atestados||[]).length){
+    h+='<div style="font-weight:700;color:var(--nh);margin-top:10px;font-size:11px;text-transform:uppercase">Atestados de Capacidade Técnica</div>';
+    d.atestados.forEach(function(a){h+='<div style="padding:3px 0;border-bottom:1px dotted var(--b1)">• '+(a.objeto||'')+(a.contratante?' — <i>'+a.contratante+'</i>':'')+(a.valores?' ('+a.valores+')':'')+'</div>';});
+  }
+  if((d.cnaes||[]).length)h+='<div style="margin-top:8px;font-size:11px;color:var(--t3)"><b>CNAEs:</b> '+d.cnaes.join(' · ')+'</div>';
+  var ic=d.indices_contabeis||{};
+  var icTxt=Object.keys(ic).filter(function(k){return ic[k]}).map(function(k){return k.replace(/_/g,' ')+': '+ic[k]}).join(' · ');
+  if(icTxt)h+='<div style="margin-top:4px;font-size:11px;color:var(--t3)"><b>Índices:</b> '+icTxt+'</div>';
+  return h;
+}
+
+async function verDossie(){
+  var v=document.getElementById('nh-ds-view');if(!v)return;
+  if(v.style.display==='block'){v.style.display='none';return;}
+  var d=await carregarDossie(_dsEmpAtual);
+  v.style.display='block';
+  v.innerHTML=d?_dsRender(d):'<i style="color:var(--t3)">Nenhum dossiê salvo ainda. Anexe os documentos e clique em "Ler e salvar dossiê (IA)".</i>';
+}
+
+async function excluirDossie(){
+  if(!confirm('Excluir o dossiê de '+_dsEmpAtual+'? As informações extraídas serão apagadas.'))return;
+  try{await db.collection('dossies').doc(String(_dsEmpAtual)).delete();
+    toast('Dossiê excluído','ok');atualizarStatusDossie(_dsEmpAtual);
+    var v=document.getElementById('nh-ds-view');if(v)v.style.display='none';
+  }catch(e){toast('Erro: '+e.message,'err');}
+}
+
+/* ── Injeta o card ao abrir a página de qualquer empresa ── */
+if(typeof buildEmpresa==='function'){
+  var _nhBuildEmpresa=buildEmpresa;
+  buildEmpresa=async function(e){
+    await _nhBuildEmpresa(e);
+    try{nhInjectDossieCard(e);}catch(_e){console.error(_e);}
+  };
+}
+
+/* ════════ ANÁLISE DE ADERÊNCIA: edital anexado × dossiê ════════ */
+async function analisarAderencia(){
+  var key=localStorage.getItem('nh_gemini_key');
+  if(!key){toast('Configure a API Key do Gemini','err');document.getElementById('ia-key-modal').style.display='flex';return;}
+  var sel=document.getElementById('ia-emp-aderencia');
+  var emp=sel?sel.value:'';
+  if(!emp){popularEmpAderencia();toast('Selecione a empresa ao lado do botão','err');if(sel)sel.focus();return;}
+  var texto=(document.getElementById('ia-texto').value||'').trim()||_iaTexto||'';
+  if(!_iaArquivos.length&&texto.length<3){toast('Anexe o edital/TR ou cole o texto primeiro','err');return;}
+  var resEl=document.getElementById('ia-resultado'),bodyEl=document.getElementById('ia-resultado-body');
+  if(!resEl||!bodyEl)return;
+  resEl.style.display='block';
+  bodyEl.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:20px;height:20px"></div> Carregando dossiê de '+emp+'...</div>';
+  var dossie=await carregarDossie(emp);
+  if(!dossie){
+    bodyEl.innerHTML='<div style="color:#eab308;font-weight:600">⚠ A empresa <b>'+emp+'</b> ainda não tem dossiê cadastrado.</div><div style="margin-top:6px;font-size:12px;color:var(--t2)">Abra a página da empresa na barra lateral, anexe a documentação no card <b>"Dossiê de Habilitação (IA)"</b> e clique em "Ler e salvar dossiê". Depois volte aqui.</div>';
+    return;
+  }
+  bodyEl.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:20px;height:20px"></div> Cruzando edital com o dossiê de '+emp+'...</div>';
+  var dh=new Date();
+  var hoje=('0'+dh.getDate()).slice(-2)+'/'+('0'+(dh.getMonth()+1)).slice(-2)+'/'+dh.getFullYear();
+  var prompt='HOJE É '+hoje+'. Você é um consultor sênior de licitações públicas. Compare os REQUISITOS DE HABILITAÇÃO exigidos no edital/TR fornecido com o DOSSIÊ DE DOCUMENTAÇÃO da empresa "'+emp+'" (JSON ao final). Estruture assim:\n\n'+
+  '#### 1. Quadro de Aderência\nPara CADA exigência de habilitação do edital (jurídica, fiscal, trabalhista, econômico-financeira, técnica e declarações): **Exigência** — o que consta no dossiê — STATUS: ✅ ATENDE, ❌ NÃO ATENDE ou ⚠️ VERIFICAR. Use ⚠️ quando o dossiê não tiver informação suficiente. Considere as VALIDADES comparando com a data de hoje: documento vencido = ❌.\n\n'+
+  '#### 2. Documentos Faltantes\nLista objetiva do que a empresa precisa providenciar.\n\n'+
+  '#### 3. Alertas de Validade\nDocumentos vencidos ou que vencem em até 30 dias (cite as datas).\n\n'+
+  '#### 4. Capacidade Técnica\nOs atestados do dossiê cobrem o objeto e os quantitativos mínimos exigidos? Justifique.\n\n'+
+  '#### 5. Veredito\nHABILITADA ✅ / HABILITADA COM PENDÊNCIAS ⚠️ / NÃO HABILITADA ❌ — justificativa curta e providências prioritárias.\n\n'+
+  'DOSSIÊ DA EMPRESA '+emp+':\n'+JSON.stringify(dossie);
+  try{
+    var parts=_iaArquivos.length
+      ?_iaArquivos.map(function(f){return {inline_data:{mime_type:f.mime,data:f.base64}}}).concat([{text:prompt}])
+      :[{text:prompt+'\n\nEDITAL/TR:\n'+texto.substring(0,30000)}];
+    var j=await chamarGemini(key,parts,0.2,8000);
+    var resp=j.candidates&&j.candidates[0]&&j.candidates[0].content.parts[0].text||'Sem resposta';
+    bodyEl.innerHTML='<div style="font-weight:800;color:var(--nh);margin-bottom:8px">✓ Aderência — '+emp+' <span style="font-weight:600;color:var(--t3);font-size:11px">('+hoje+')</span></div>'+formatarRespostaIA(resp);
+  }catch(e){
+    console.error('aderencia',e);
+    bodyEl.innerHTML='<div style="color:#ef4444">❌ Erro: '+e.message+'</div>';
+  }
+}
+</script>
 </body>
 </html>
