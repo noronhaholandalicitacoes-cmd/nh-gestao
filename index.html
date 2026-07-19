@@ -7196,6 +7196,7 @@ async function nhInjectDossieCard(emp){
       '<button onclick="excluirDossie()" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:7px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:Outfit,sans-serif">🗑 Excluir</button>'+
     '</div>'+
     '<div id="nh-ds-files" style="margin-top:8px;font-size:11px;color:var(--t3)"></div>'+
+    '<div id="nh-ds-erro" style="display:none;margin-top:10px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.35);border-radius:8px;padding:10px 12px;font-size:12px;color:#ef4444;line-height:1.6"></div>'+
     '<div id="nh-ds-view" style="display:none;margin-top:12px;background:var(--s2);border:1px solid var(--b1);border-radius:8px;padding:14px;font-size:12.5px;line-height:1.7;max-height:420px;overflow-y:auto"></div>';
   body.appendChild(card);
   atualizarStatusDossie(emp);
@@ -7232,46 +7233,112 @@ function dsRenderFiles(){
   }).join(''):'';
 }
 
+function _dsErro(msg,det){
+  var el=document.getElementById('nh-ds-erro');
+  if(!el){toast(msg,'err');return;}
+  el.style.display='block';
+  el.innerHTML='<b>❌ '+msg+'</b>'+(det?'<div style="margin-top:6px;color:var(--t2);font-size:11px;word-break:break-word;max-height:140px;overflow-y:auto">'+String(det).replace(/</g,'&lt;')+'</div>':'')+
+    '<div style="margin-top:8px"><button onclick="navigator.clipboard.writeText(this.parentNode.parentNode.innerText).then(function(){toast(\'Erro copiado!\',\'ok\')})" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);color:#ef4444;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">📋 Copiar erro</button> '+
+    '<button onclick="document.getElementById(\'nh-ds-erro\').style.display=\'none\'" style="background:transparent;border:1px solid var(--b1);color:var(--t3);padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer">Fechar</button></div>';
+}
+function _dsLimparErro(){var el=document.getElementById('nh-ds-erro');if(el)el.style.display='none';}
+
+/* Parser robusto: conserta JSON truncado pela IA */
+function _dsParseJSON(raw){
+  var clean=String(raw||'').replace(/```json/gi,'').replace(/```/g,'').trim();
+  var i1=clean.indexOf('{');
+  if(i1<0)throw new Error('A IA não retornou JSON. Início da resposta: "'+clean.substring(0,200)+'"');
+  clean=clean.substring(i1);
+  var i2=clean.lastIndexOf('}');
+  if(i2>0){try{return JSON.parse(clean.substring(0,i2+1));}catch(e){}}
+  /* truncado: corta no último objeto completo e fecha estruturas abertas */
+  var cut=clean.lastIndexOf('},');
+  if(cut<0)cut=clean.lastIndexOf('}');
+  if(cut>0){
+    var frag=clean.substring(0,cut+1);
+    var opens='',fechado;
+    var stack=[];
+    for(var i=0;i<frag.length;i++){
+      var c=frag[i];
+      if(c==='"'){ i++; while(i<frag.length&&!(frag[i]==='"'&&frag[i-1]!=='\\'))i++; continue; }
+      if(c==='{'||c==='[')stack.push(c);
+      else if(c==='}'||c===']')stack.pop();
+    }
+    fechado=frag;
+    while(stack.length){var o=stack.pop();fechado+=(o==='{'?'}':']');}
+    try{return JSON.parse(fechado);}catch(e){}
+  }
+  throw new Error('JSON truncado/inválido retornado pela IA ('+clean.length+' caracteres). Tente com menos arquivos por vez.');
+}
+
 async function lerDossieIA(){
   var emp=_dsEmpAtual;if(!emp)return;
   var key=localStorage.getItem('nh_gemini_key');
   if(!key){toast('Configure a API Key do Gemini na aba Documentos','err');return;}
   if(!_dsFiles.length){toast('Anexe os documentos da empresa primeiro','err');return;}
+  _dsLimparErro();
   var st=document.getElementById('nh-ds-status');
-  if(st)st.innerHTML='<span style="color:var(--nh)">🤖 lendo '+_dsFiles.length+' documento(s)...</span>';
-  var prompt='Você é um especialista em documentação de licitações públicas brasileiras. Analise TODOS os documentos anexados da empresa "'+emp+'" e extraia as informações de habilitação. Responda SOMENTE com JSON válido, sem markdown, sem explicações:\n'+
+
+  /* Divide em lotes: máx 3 arquivos OU ~12MB de base64 por chamada */
+  var lotes=[],atual=[],tam=0;
+  _dsFiles.forEach(function(f){
+    var kb=f.kb||Math.round((f.base64||'').length*0.75/1024);
+    if(atual.length&&(atual.length>=3||tam+kb>12000)){lotes.push(atual);atual=[];tam=0;}
+    atual.push(f);tam+=kb;
+  });
+  if(atual.length)lotes.push(atual);
+
+  var basePrompt='Você é um especialista em documentação de licitações públicas brasileiras. Analise TODOS os documentos anexados da empresa "'+emp+'" e extraia as informações de habilitação. Responda SOMENTE com JSON válido, sem markdown, sem explicações. Seja CONCISO nos campos "resumo" (máx 15 palavras cada):\n'+
   '{"empresa":{"razao_social":"","cnpj":"","endereco":"","capital_social":""},'+
   '"documentos":[{"tipo":"","categoria":"juridica|fiscal|trabalhista|economica|tecnica|declaracao|outros","numero":"","orgao_emissor":"","validade":"YYYY-MM-DD ou null","resumo":""}],'+
   '"atestados":[{"objeto":"","contratante":"","valores":"","quantidades":""}],'+
   '"cnaes":["codigo - descricao"],'+
   '"indices_contabeis":{"liquidez_geral":"","liquidez_corrente":"","solvencia_geral":"","patrimonio_liquido":""},'+
   '"observacoes":""}\n'+
-  'Inclua TODOS os documentos identificados (contrato social/estatuto, CNPJ, CNDs federal/estadual/municipal, FGTS/CRF, CNDT trabalhista, balanço patrimonial, certidão de falência, atestados de capacidade técnica, alvará, registros em conselhos etc). Capture as VALIDADES com atenção. Se um dado não aparecer, use "" ou null.';
-  try{
-    var parts=_dsFiles.map(function(f){return {inline_data:{mime_type:f.mime,data:f.base64}}});
-    parts.push({text:prompt});
-    var j=await chamarGemini(key,parts,0.1,8000);
-    var raw=j.candidates[0].content.parts[0].text;
-    var clean=raw.replace(/```json/g,'').replace(/```/g,'').trim();
-    var i1=clean.indexOf('{'),i2=clean.lastIndexOf('}');
-    if(i1>=0&&i2>i1)clean=clean.substring(i1,i2+1);
-    var novo=JSON.parse(clean);
-    var merge=document.getElementById('nh-ds-merge');
-    var atual=(merge&&merge.checked)?await carregarDossie(emp):null;
-    var fin=atual?_dsMesclar(atual,novo):novo;
-    var dh=new Date();
-    fin._lidoEm=('0'+dh.getDate()).slice(-2)+'/'+('0'+(dh.getMonth()+1)).slice(-2)+'/'+dh.getFullYear();
-    await fbSave('dossies',emp,fin);
-    _dsFiles=[];dsRenderFiles();
-    toast('Dossiê de '+emp+' salvo! '+(fin.documentos||[]).length+' documento(s) registrados.','ok');
-    atualizarStatusDossie(emp);
-    var v=document.getElementById('nh-ds-view');
-    if(v){v.style.display='block';v.innerHTML=_dsRender(fin);}
-  }catch(e){
-    console.error('dossie IA',e);
-    toast('Erro ao ler documentos: '+e.message,'err');
-    atualizarStatusDossie(emp);
+  'Inclua TODOS os documentos identificados (contrato social/estatuto, CNPJ, CNDs, FGTS/CRF, CNDT, balanço, certidão de falência, atestados técnicos, alvará, registros em conselhos etc). Capture as VALIDADES com atenção. Se um dado não aparecer, use "" ou null.';
+
+  var merge=document.getElementById('nh-ds-merge');
+  var resultado=(merge&&merge.checked)?await carregarDossie(emp):null;
+  var okLotes=0;
+
+  for(var L=0;L<lotes.length;L++){
+    if(st)st.innerHTML='<span style="color:var(--nh)">🤖 lendo lote '+(L+1)+'/'+lotes.length+' ('+lotes[L].map(function(f){return f.name}).join(', ').substring(0,60)+'...)</span>';
+    try{
+      var parts=lotes[L].map(function(f){return {inline_data:{mime_type:f.mime,data:f.base64}}});
+      parts.push({text:basePrompt});
+      var j=await chamarGemini(key,parts,0.1,30000);
+      var cand=j.candidates&&j.candidates[0];
+      var raw=cand&&cand.content&&cand.content.parts&&cand.content.parts[0]&&cand.content.parts[0].text||'';
+      if(!raw)throw new Error('Resposta vazia da IA'+(cand&&cand.finishReason?' (motivo: '+cand.finishReason+')':''));
+      var novo=_dsParseJSON(raw);
+      resultado=resultado?_dsMesclar(resultado,novo):novo;
+      okLotes++;
+    }catch(e){
+      console.error('dossie lote '+(L+1),e);
+      _dsErro('Falha no lote '+(L+1)+'/'+lotes.length+' ('+lotes[L].map(function(f){return f.name}).join(', ')+')',e.message||e);
+      /* continua os próximos lotes mesmo assim */
+    }
   }
+
+  if(!resultado||!okLotes){
+    if(st)atualizarStatusDossie(emp);
+    if(okLotes===0)_dsErro('Nenhum lote foi lido com sucesso. Nada foi salvo.','Dicas: reduza a quantidade/tamanho dos PDFs, confira a API Key e a cota do Gemini. O detalhe de cada falha está acima.');
+    return;
+  }
+  var dh=new Date();
+  resultado._lidoEm=('0'+dh.getDate()).slice(-2)+'/'+('0'+(dh.getMonth()+1)).slice(-2)+'/'+dh.getFullYear();
+  try{
+    await fbSave('dossies',emp,resultado);
+  }catch(e){
+    _dsErro('Li os documentos, mas falhou ao SALVAR no Firebase',e.message||e);
+    if(st)atualizarStatusDossie(emp);
+    return;
+  }
+  _dsFiles=[];dsRenderFiles();
+  toast('Dossiê de '+emp+' salvo! '+(resultado.documentos||[]).length+' documento(s). '+(okLotes<lotes.length?(lotes.length-okLotes)+' lote(s) falharam — veja o aviso no card.':''),'ok');
+  atualizarStatusDossie(emp);
+  var v=document.getElementById('nh-ds-view');
+  if(v){v.style.display='block';v.innerHTML=_dsRender(resultado);}
 }
 
 function _dsMesclar(a,n){
