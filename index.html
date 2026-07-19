@@ -1479,6 +1479,9 @@ body.light-theme #sb .api-box{
   border-color:rgba(34,197,94,.4)!important;
 }
 
+
+/* chip "analisar habilitação" só visível com o card expandido */
+.kcard.collapsed .nh-ana-chip{display:none!important}
 </style>
   <!-- Firebase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js"></script>
@@ -7547,16 +7550,28 @@ async function nhSalvarPendencias(chave){
 }
 
 async function nhResolverPend(chave){
-  if(!confirm('Marcar as pendências deste processo como resolvidas? O aviso sai do card.'))return;
+  if(!confirm('Marcar a documentação como regularizada? O card passará a mostrar "✅ Habilitação OK".'))return;
+  try{
+    var p=PENDENCIAS[chave]||{};
+    var dh=new Date();
+    var reg={empresa:p.empresa||'',data:p.data||'',status:'APTA',faltantes:[],vencidos:[],
+      resolvidoEm:('0'+dh.getDate()).slice(-2)+'/'+('0'+(dh.getMonth()+1)).slice(-2)+'/'+dh.getFullYear()};
+    await fbSave('pendencias',chave,reg);
+    PENDENCIAS[chave]=reg;
+    toast('✅ Habilitação marcada como OK!','ok');
+    try{renderTbl(CUR);}catch(_e){}
+  }catch(e){toast('Erro: '+e.message,'err');}
+}
+async function nhLimparPend(chave){
+  if(!confirm('Remover o status de habilitação deste card?'))return;
   try{
     await db.collection('pendencias').doc(chave).delete();
     delete PENDENCIAS[chave];
-    toast('Pendências resolvidas!','ok');
     try{renderTbl(CUR);}catch(_e){}
   }catch(e){toast('Erro: '+e.message,'err');}
 }
 
-/* Injeta nos cards do kanban: aviso de pendências + botão Analisar Habilitação */
+/* Cards do kanban: Editais = analisar; Andamento = só o status final */
 if(typeof renderCard==='function'){
   var _nhRenderCard=renderCard;
   renderCard=function(e,a,t){
@@ -7568,18 +7583,29 @@ if(typeof renderCard==='function'){
         var empCard=String(a[2]||'').trim();
         var titCard=String(a[3]||'').trim().replace(/'/g,'').replace(/"/g,'');
         var p=PENDENCIAS[chave];
+        var temPend=p&&((p.faltantes||[]).length||(p.vencidos||[]).length);
         var bloco='';
-        if(p&&((p.faltantes||[]).length||(p.vencidos||[]).length)){
+        if(temPend){
+          /* STATUS: PENDENTE — visível sempre (é a informação final) */
           var cor=p.status==='NAO_APTA'?'#ef4444':'#eab308';
           var itens=(p.faltantes||[]).map(function(f){return f.doc}).concat((p.vencidos||[]).map(function(v){return v.doc+' (vencido)'}));
-          bloco+='<div class="nh-pend" onclick="event.stopPropagation()" style="margin-top:8px;background:'+(p.status==='NAO_APTA'?'rgba(239,68,68,.08)':'rgba(234,179,8,.08)')+';border:1px solid '+cor+'55;border-left:3px solid '+cor+';border-radius:7px;padding:6px 9px;font-size:11px;line-height:1.5">'+
-            '<b style="color:'+cor+'">📋 Docs pendentes — '+(p.empresa||'')+' ('+itens.length+')</b> '+
-            '<span onclick="nhResolverPend(\''+chave+'\')" title="Marcar como resolvido" style="float:right;cursor:pointer;color:#22c55e;font-weight:800">✓ resolvido</span>'+
+          bloco='<div class="nh-pend" onclick="event.stopPropagation()" style="margin-top:8px;background:'+(p.status==='NAO_APTA'?'rgba(239,68,68,.08)':'rgba(234,179,8,.08)')+';border:1px solid '+cor+'55;border-left:3px solid '+cor+';border-radius:7px;padding:6px 9px;font-size:11px;line-height:1.5">'+
+            '<b style="color:'+cor+'">📋 Habilitação PENDENTE — '+(p.empresa||'')+' ('+itens.length+')</b> '+
+            '<span onclick="nhResolverPend(\''+chave+'\')" title="Documentação regularizada — marcar Habilitação OK" style="float:right;cursor:pointer;color:#22c55e;font-weight:800">✓ resolvido</span>'+
             '<div style="color:var(--t2);margin-top:2px">'+itens.map(function(x){return '<span style="display:inline-block;background:var(--s2);border:1px solid var(--b1);border-radius:5px;padding:0 6px;margin:1px 2px 1px 0">'+x+'</span>'}).join('')+'</div>'+
-            '<div style="color:var(--t3);font-size:10px;margin-top:2px">análise IA em '+(p.data||'')+' · <span onclick="nhAbrirAnaliseCard(\''+chave+'\',\''+empCard+'\',\''+titCard.substring(0,60)+'\')" style="cursor:pointer;color:var(--nh);font-weight:700">🤖 reanalisar</span></div>'+
+            '<div style="color:var(--t3);font-size:10px;margin-top:2px">análise IA em '+(p.data||'')+
+              (e==='editais'?' · <span class="nh-ana-chip" onclick="nhAbrirAnaliseCard(\''+chave+'\',\''+empCard+'\',\''+titCard.substring(0,60)+'\')" style="cursor:pointer;color:var(--nh);font-weight:700">🤖 reanalisar</span>':'')+
+            '</div>'+
           '</div>';
-        } else if(e!=='finalizados' && empCard){
-          bloco+='<div onclick="event.stopPropagation();nhAbrirAnaliseCard(\''+chave+'\',\''+empCard+'\',\''+titCard.substring(0,60)+'\')" title="Analisar com IA se a documentação da empresa atende ao edital" style="margin-top:8px;display:inline-flex;align-items:center;gap:5px;background:var(--nha2);border:1px dashed var(--nh);color:var(--nh);border-radius:7px;padding:3px 9px;font-size:10.5px;font-weight:700;cursor:pointer">🤖 Analisar habilitação</div>';
+        } else if(p){
+          /* STATUS: HABILITAÇÃO OK — visível sempre */
+          bloco='<div onclick="event.stopPropagation()" style="margin-top:8px;display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.4);border-radius:7px;padding:3px 9px;font-size:11px;font-weight:700;color:#22c55e">✅ Habilitação OK — '+(p.empresa||'')+
+            '<span style="font-weight:500;color:var(--t3);font-size:10px">'+(p.resolvidoEm?'resolvido '+p.resolvidoEm:(p.data||''))+'</span>'+
+            '<span onclick="nhLimparPend(\''+chave+'\')" title="Remover este status do card" style="cursor:pointer;color:var(--t3);font-weight:800">✕</span>'+
+          '</div>';
+        } else if(e==='editais' && empCard){
+          /* Sem análise ainda: chip só nos EDITAIS e só com card aberto */
+          bloco='<div class="nh-ana-chip" onclick="event.stopPropagation();nhAbrirAnaliseCard(\''+chave+'\',\''+empCard+'\',\''+titCard.substring(0,60)+'\')" title="Analisar com IA se a documentação da empresa atende ao edital" style="margin-top:8px;display:inline-flex;align-items:center;gap:5px;background:var(--nha2);border:1px dashed var(--nh);color:var(--nh);border-radius:7px;padding:3px 9px;font-size:10.5px;font-weight:700;cursor:pointer">🤖 Analisar habilitação</div>';
         }
         if(bloco){
           var pos=html.lastIndexOf('</div>');
@@ -7588,6 +7614,27 @@ if(typeof renderCard==='function'){
       }
     }catch(_e){console.error('pend card',_e);}
     return html;
+  };
+}
+
+/* Quando um edital vira "Em Andamento", o status de habilitação migra junto */
+if(typeof criarAndamentoDoEdital==='function'){
+  var _nhCriarAnd=criarAndamentoDoEdital;
+  criarAndamentoDoEdital=async function(e){
+    var edId=String(e[0]||'').trim();
+    var tit=String(e[3]||'').trim().toLowerCase();
+    await _nhCriarAnd(e);
+    try{
+      var reg=PENDENCIAS['e-'+edId];
+      if(!reg)return;
+      var novo=(ALL.andamento||[]).find(function(r){return String(r[3]||'').trim().toLowerCase()===tit});
+      if(!novo)return;
+      var nk='a-'+String(novo[0]||'').trim();
+      await fbSave('pendencias',nk,reg);
+      PENDENCIAS[nk]=reg;
+      try{await db.collection('pendencias').doc('e-'+edId).delete();delete PENDENCIAS['e-'+edId];}catch(_x){}
+      try{renderTbl(CUR);}catch(_x){}
+    }catch(_e){console.error('migrar pend',_e);}
   };
 }
 </script>
