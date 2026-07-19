@@ -1482,6 +1482,41 @@ body.light-theme #sb .api-box{
 
 /* chip "analisar habilitação" só visível com o card expandido */
 .kcard.collapsed .nh-ana-chip{display:none!important}
+
+/* ── Quadros analíticos do Resumo ── */
+.nhq-row{display:flex;flex-direction:column;gap:3px;padding:7px 0;border-bottom:1px solid var(--b1)}
+.nhq-row:last-child{border-bottom:none}
+.nhq-top{display:flex;align-items:center;gap:8px}
+.nhq-rank{font-size:9.5px;font-weight:800;color:var(--t3);min-width:16px;font-variant-numeric:tabular-nums}
+.nhq-dot{width:8px;height:8px;border-radius:50%;flex:none;box-shadow:0 0 6px currentColor}
+.nhq-k{font-size:12.5px;font-weight:600;color:var(--t1);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nhq-share{font-size:9.5px;font-weight:700;color:var(--t3);background:var(--s2);border:1px solid var(--b1);border-radius:5px;padding:0 5px;font-variant-numeric:tabular-nums}
+.nhq-extra{font-size:9.5px;font-weight:700;border-radius:5px;padding:0 5px;font-variant-numeric:tabular-nums}
+.nhq-bar-wrap{height:4px;background:var(--s2);border-radius:3px;overflow:hidden;margin-left:24px}
+.nhq-bar{height:100%;border-radius:3px;width:0;transition:width .9s cubic-bezier(.22,1,.36,1)}
+.nhq-total{margin-left:auto;font-size:10px;font-weight:700;color:var(--t2);background:var(--s2);border:1px solid var(--b1);border-radius:6px;padding:2px 8px;font-variant-numeric:tabular-nums}
+.nhq-donut-wrap{display:flex;align-items:center;gap:14px}
+.nhq-donut-wrap svg{flex:none}
+.nhq-donut-center{font-size:16px;font-weight:800;fill:var(--t1)}
+.nhq-donut-sub{font-size:7.5px;font-weight:600;fill:var(--t3);letter-spacing:.06em}
+@media (max-width:640px){.nhq-donut-wrap{flex-direction:column}}
+
+/* ── Diário de anotações com data ── */
+.nhj{background:var(--s2);border:1px solid var(--b1);border-radius:8px;padding:8px;font-family:Outfit,sans-serif}
+.nhj-head{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.nhj-count{font-size:9.5px;font-weight:800;color:var(--nh);background:var(--nha2);border:1px solid var(--nh);border-radius:5px;padding:0 6px}
+.nhj-list{max-height:190px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding-right:2px}
+.nhj-item{background:var(--s1);border:1px solid var(--b1);border-left:3px solid var(--nh);border-radius:6px;padding:5px 8px}
+.nhj-date{font-size:9px;font-weight:800;color:var(--nh);letter-spacing:.04em;font-variant-numeric:tabular-nums;display:block;margin-bottom:2px}
+.nhj-item.nhj-old{border-left-color:var(--t3)}
+.nhj-item.nhj-old .nhj-date{color:var(--t3)}
+.nhj-txt{font-size:12px;color:var(--t1);line-height:1.55;white-space:pre-wrap;word-break:break-word}
+.nhj-new{display:flex;gap:6px;margin-top:7px;align-items:flex-end}
+.nhj-new textarea{flex:1;min-height:38px;max-height:110px;background:var(--s1);border:1px solid var(--b1);border-radius:6px;color:var(--t1);font-family:Outfit,sans-serif;font-size:12px;padding:6px 8px;resize:vertical;line-height:1.5;box-sizing:border-box}
+.nhj-new textarea:focus{outline:none;border-color:var(--nh)}
+.nhj-add{background:linear-gradient(135deg,var(--nh),#fb923c);color:#fff;border:none;border-radius:6px;padding:7px 12px;font-size:11px;font-weight:800;cursor:pointer;font-family:Outfit,sans-serif;white-space:nowrap}
+.nhj-add:hover{filter:brightness(1.1)}
+.nhj-empty{font-size:11px;color:var(--t3);font-style:italic;padding:2px 0}
 </style>
   <!-- Firebase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js"></script>
@@ -7854,6 +7889,224 @@ function nhImprimirAnaliseCard(){
   _nhJanelaImpressao('Análise de Aderência de Habilitação',
     'Empresa: <b>'+(ctx.emp||'')+'</b> · Processo #'+String(ctx.chave||'').replace(/^[ae]-/,'')+(ctx.titulo?' · '+ctx.titulo:''),
     out.innerHTML);
+}
+</script>
+
+<script>
+/* ════════════════════════════════════════════════════════════════
+   QUADROS ANALÍTICOS DO RESUMO — barras, %, ranking, conversão,
+   ticket médio e donut de contratos (pós-processamento runtime)
+   ════════════════════════════════════════════════════════════════ */
+function _nhqNum(txt){
+  txt=String(txt||'').trim();
+  if(txt.indexOf('R$')>-1)return {v:parseMoeda(txt),moeda:true};
+  var n=parseInt(txt.replace(/\./g,''),10);
+  return isNaN(n)?null:{v:n,moeda:false};
+}
+function _nhqCompact(v,moeda){
+  if(!moeda)return String(v);
+  if(v>=1e6)return 'R$ '+(v/1e6).toLocaleString('pt-BR',{maximumFractionDigits:1})+' mi';
+  if(v>=1e3)return 'R$ '+(v/1e3).toLocaleString('pt-BR',{maximumFractionDigits:0})+' mil';
+  return 'R$ '+v.toLocaleString('pt-BR',{maximumFractionDigits:0});
+}
+function _nhqCorEmpresa(nome){
+  nome=String(nome||'').trim().toUpperCase();
+  var e=(EMPRESAS||[]).find(function(x){return String(x.nome||'').trim().toUpperCase()===nome});
+  return e&&e.cor?e.cor:null;
+}
+var _NHQ_STATUS_COR={'EM EXECUÇÃO':'#22c55e','EM EXECUCAO':'#22c55e','FINALIZADO':'#64748b','AGUARDANDO CONTRATO':'#eab308','SERÁ ENCERRADO':'#f97316','SERA ENCERRADO':'#f97316','SUSPENSO':'#ef4444','RESCINDIDO':'#ef4444'};
+
+function nhUpgradeQuadros(){
+  var page=document.getElementById('page-resumo')||document;
+  var mapas={};  /* título → {label→valor} para métricas cruzadas */
+  var cards=Array.prototype.slice.call(page.querySelectorAll('.rcard'));
+
+  /* 1ª passada: coletar dados de todos os painéis */
+  var dados=[];
+  cards.forEach(function(card){
+    if(card.getAttribute('data-nhq'))return;
+    var rowsEl=card.querySelector('.rcard-rows');if(!rowsEl)return;
+    var titleEl=card.querySelector('.rcard-title');
+    var titulo=titleEl?titleEl.textContent.trim():'';
+    var linhas=[];
+    Array.prototype.slice.call(rowsEl.querySelectorAll('.rcard-row')).forEach(function(r){
+      var k=r.querySelector('.rcard-row-k'),v=r.querySelector('.rcard-row-v');
+      if(!k||!v)return;
+      var num=_nhqNum(v.textContent);
+      if(!num)return;
+      linhas.push({label:k.textContent.trim(),valTxt:v.textContent.trim(),valCls:v.className,v:num.v,moeda:num.moeda});
+    });
+    if(!linhas.length)return;
+    var m={};linhas.forEach(function(l){m[l.label.toUpperCase()]=l.v});
+    mapas[titulo.toUpperCase().substring(0,20)]=m;
+    dados.push({card:card,rowsEl:rowsEl,titleEl:titleEl,titulo:titulo,linhas:linhas});
+  });
+
+  var capMap=null,ganMap=null;
+  Object.keys(mapas).forEach(function(t){
+    if(t.indexOf('CAPTURADOS POR EMPRES')===0)capMap=mapas[t];
+    if(t.indexOf('GANHOS POR EMPRESA')===0)ganMap=mapas[t];
+  });
+
+  /* 2ª passada: reconstruir cada painel */
+  dados.forEach(function(d){
+    var card=d.card,linhas=d.linhas,titulo=d.titulo.toUpperCase();
+    card.setAttribute('data-nhq','1');
+    var dot=card.querySelector('.rcard-title-dot');
+    var accent=dot?getComputedStyle(dot).backgroundColor:'#f97316';
+    var total=linhas.reduce(function(s,l){return s+l.v},0);
+    var max=Math.max.apply(null,linhas.map(function(l){return l.v}));
+    var moeda=linhas[0].moeda;
+
+    /* total no cabeçalho */
+    if(d.titleEl&&!d.titleEl.querySelector('.nhq-total')){
+      var tt=document.createElement('span');
+      tt.className='nhq-total';
+      tt.textContent='Σ '+_nhqCompact(total,moeda);
+      d.titleEl.appendChild(tt);
+    }
+
+    var ehContratos=titulo.indexOf('CONTRATOS')===0;
+    var ehGanhos=titulo.indexOf('GANHOS POR EMPRESA')===0;
+    var ehValorConq=titulo.indexOf('VALOR CONQUISTADO')===0;
+
+    var h='';
+    linhas.forEach(function(l,idx){
+      var pct=total>0?Math.round(l.v/total*100):0;
+      var wid=max>0?Math.max(2,l.v/max*100):0;
+      var cor=_nhqCorEmpresa(l.label)||(ehContratos?(_NHQ_STATUS_COR[l.label.toUpperCase()]||accent):accent);
+      var extra='';
+      if(ehGanhos&&capMap){
+        var cap=capMap[l.label.toUpperCase()];
+        if(cap>0){var conv=(l.v/cap*100);extra='<span class="nhq-extra" title="Conversão: ganhos ÷ capturados" style="color:#22c55e;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3)">'+conv.toLocaleString('pt-BR',{maximumFractionDigits:1})+'% conv</span>';}
+      }
+      if(ehValorConq&&ganMap){
+        var g=ganMap[l.label.toUpperCase()];
+        if(g>0)extra='<span class="nhq-extra" title="Ticket médio por processo ganho" style="color:var(--t2);background:var(--s2);border:1px solid var(--b1)">'+_nhqCompact(l.v/g,true)+'/proc</span>';
+      }
+      h+='<div class="nhq-row">'+
+        '<div class="nhq-top">'+
+          '<span class="nhq-rank">'+(idx+1)+'º</span>'+
+          '<span class="nhq-dot" style="background:'+cor+';color:'+cor+'"></span>'+
+          '<span class="nhq-k">'+l.label+'</span>'+
+          extra+
+          '<span class="nhq-share">'+pct+'%</span>'+
+          '<span class="'+l.valCls+'" style="font-variant-numeric:tabular-nums'+(moeda?';font-size:12px':'')+'">'+l.valTxt+'</span>'+
+        '</div>'+
+        '<div class="nhq-bar-wrap"><div class="nhq-bar" data-w="'+wid+'" style="background:linear-gradient(90deg,'+cor+','+cor+'88)"></div></div>'+
+      '</div>';
+    });
+
+    /* Contratos — donut à esquerda */
+    if(ehContratos&&total>0){
+      var R=34,C=2*Math.PI*R,off=0;
+      var segs='';
+      linhas.forEach(function(l){
+        var cor=_NHQ_STATUS_COR[l.label.toUpperCase()]||accent;
+        var frac=l.v/total;
+        segs+='<circle r="'+R+'" cx="46" cy="46" fill="none" stroke="'+cor+'" stroke-width="11" stroke-dasharray="'+(frac*C)+' '+C+'" stroke-dashoffset="'+(-off*C)+'" transform="rotate(-90 46 46)" stroke-linecap="butt"/>';
+        off+=frac;
+      });
+      var donut='<svg width="92" height="92" viewBox="0 0 92 92">'+segs+
+        '<text x="46" y="45" text-anchor="middle" class="nhq-donut-center">'+total+'</text>'+
+        '<text x="46" y="57" text-anchor="middle" class="nhq-donut-sub">CONTRATOS</text></svg>';
+      h='<div class="nhq-donut-wrap">'+donut+'<div style="flex:1;min-width:0">'+h+'</div></div>';
+    }
+
+    d.rowsEl.innerHTML=h;
+  });
+
+  /* animar as barras */
+  requestAnimationFrame(function(){requestAnimationFrame(function(){
+    Array.prototype.slice.call(page.querySelectorAll('.nhq-bar')).forEach(function(b){
+      b.style.width=b.getAttribute('data-w')+'%';
+    });
+  });});
+}
+
+if(typeof buildResumo==='function'){
+  var _nhqBuild=buildResumo;
+  buildResumo=function(){
+    var r=_nhqBuild.apply(this,arguments);
+    try{nhUpgradeQuadros();}catch(e){console.error('quadros',e);}
+    return r;
+  };
+  /* se o resumo já está na tela, aplica agora */
+  try{if(typeof CUR!=='undefined'&&CUR==='resumo')nhUpgradeQuadros();}catch(_e){}
+}
+</script>
+
+<script>
+/* ════════════════════════════════════════════════════════════════
+   DIÁRIO DE ANOTAÇÕES COM DATA
+   Justificativa (Editais), Resumo do andamento (Andamento/
+   Finalizados) e Observações (Ganhas) viram um histórico: cada
+   anotação entra carimbada com data/hora, nada é sobrescrito.
+   Armazenamento: mesma célula da planilha, entradas separadas por
+   marcador "— DD/MM/AAAA HH:MM —" (compatível com dados antigos).
+   ════════════════════════════════════════════════════════════════ */
+var _NHJ_COLS={editais:{12:'Justificativa'},andamento:{15:'Resumo do andamento'},finalizados:{15:'Resumo do andamento'},ganhas:{41:'Observações'}};
+
+function _nhjEsc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function _nhjParse(raw){
+  raw=String(raw||'');
+  if(!raw.trim())return [];
+  var re=/—\s*(\d{2}\/\d{2}\/\d{4}(?:\s+\d{2}:\d{2})?)\s*—\s*\n?/g;
+  var out=[],m,last=0,lastDate=null;
+  while((m=re.exec(raw))!==null){
+    var antes=raw.substring(last,m.index).trim();
+    if(antes)out.push({data:lastDate,txt:antes});
+    lastDate=m[1];last=re.lastIndex;
+  }
+  var resto=raw.substring(last).trim();
+  if(resto)out.push({data:lastDate,txt:resto});
+  return out;
+}
+
+function _nhjInner(sheet,row,col){
+  var val=(FIL[sheet]&&FIL[sheet][row])?String(FIL[sheet][row][col]||''):'';
+  var ent=_nhjParse(val);
+  var ro=('finalizados'===sheet)||(typeof IS_READONLY!=='undefined'&&IS_READONLY);
+  var lista=ent.length?ent.map(function(x){
+    return '<div class="nhj-item'+(x.data?'':' nhj-old')+'">'+
+      '<span class="nhj-date">'+(x.data?'🕐 '+x.data:'registro anterior (sem data)')+'</span>'+
+      '<span class="nhj-txt">'+_nhjEsc(x.txt)+'</span></div>';
+  }).join(''):'<div class="nhj-empty">Nenhuma anotação ainda.</div>';
+  var head='<div class="nhj-head"><span class="nhj-count">'+ent.length+' registro'+(ent.length===1?'':'s')+'</span></div>';
+  var novo=ro?'':'<div class="nhj-new">'+
+    '<textarea id="nhj-in-'+sheet+'-'+row+'-'+col+'" placeholder="Nova anotação... (entra com a data de hoje)" onkeydown="if(event.key===\'Enter\'&&(event.ctrlKey||event.metaKey)){nhJournalAdd(\''+sheet+'\','+row+','+col+');event.preventDefault()}"></textarea>'+
+    '<button class="nhj-add" onclick="nhJournalAdd(\''+sheet+'\','+row+','+col+')">+ Adicionar</button></div>';
+  return head+'<div class="nhj-list" id="nhj-ls-'+sheet+'-'+row+'-'+col+'">'+lista+'</div>'+novo;
+}
+
+function nhJournalAdd(sheet,row,col){
+  var ta=document.getElementById('nhj-in-'+sheet+'-'+row+'-'+col);
+  if(!ta)return;
+  var txt=(ta.value||'').trim();
+  if(!txt){toast('Escreva a anotação primeiro','err');return;}
+  var d=new Date();
+  var stamp=('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear()+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
+  var atual=(FIL[sheet]&&FIL[sheet][row])?String(FIL[sheet][row][col]||'').trim():'';
+  var novoVal='— '+stamp+' —\n'+txt+(atual?'\n'+atual:'');
+  saveCell(sheet,row,col,novoVal);
+  ta.value='';
+  var box=document.getElementById('nhj-jr-'+sheet+'-'+row+'-'+col);
+  if(box)box.innerHTML=_nhjInner(sheet,row,col);
+  toast('Anotação registrada em '+stamp,'ok');
+}
+
+/* Intercepta a renderização dos campos de anotação nos cards */
+if(typeof inlineCell==='function'){
+  var _nhjInline=inlineCell;
+  inlineCell=function(e,a,t,o){
+    try{
+      if(_NHJ_COLS[e]&&_NHJ_COLS[e][t]!==undefined){
+        return '<div class="nhj" id="nhj-jr-'+e+'-'+a+'-'+t+'" onclick="event.stopPropagation()">'+_nhjInner(e,a,t)+'</div>';
+      }
+    }catch(_err){console.error('journal',_err);}
+    return _nhjInline(e,a,t,o);
+  };
 }
 </script>
 </body>
