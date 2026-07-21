@@ -213,31 +213,49 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
 /* Cards de contrato */
 .contratos{display:flex;flex-direction:column;gap:14px}
 .ccard{
-  background:var(--s1);border:1px solid var(--b1);
-  border-left:4px solid var(--b2);border-right:4px solid var(--b2);border-radius:14px;
-  overflow:hidden;transition:all .18s;
+  --stc: var(--b2);
+  position:relative;
+  background:linear-gradient(135deg, color-mix(in srgb, var(--stc) 7%, var(--s1)) 0%, var(--s1) 40%);
+  border:1px solid var(--b1);border-left:3px solid var(--stc);
+  border-radius:4px 16px 16px 4px;
+  overflow:hidden;transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
 }
-.ccard:hover{background:var(--s2)}
-.ccard.verde{border-left-color:var(--g1);border-right-color:var(--g1)}
-.ccard.vermelho{border-left-color:var(--r1);border-right-color:var(--r1)}
-.ccard.amarelo{border-left-color:var(--y1);border-right-color:var(--y1)}
-.ccard.azul{border-left-color:var(--b_);border-right-color:var(--b_)}
-.ccard.laranja{border-left-color:var(--nh);border-right-color:var(--nh)}
+.ccard::before{
+  content:'';position:absolute;top:-40%;left:-10%;width:55%;height:110%;
+  background:radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--stc) 20%, transparent), transparent 68%);
+  pointer-events:none;opacity:.8;
+}
+.ccard:hover{
+  transform:translateY(-2px);
+  border-color:color-mix(in srgb, var(--stc) 45%, var(--b1));
+  box-shadow:0 10px 28px -14px color-mix(in srgb, var(--stc) 55%, transparent);
+}
+.ccard.verde{--stc:var(--g1)}
+.ccard.vermelho{--stc:var(--r1)}
+.ccard.amarelo{--stc:var(--y1)}
+.ccard.azul{--stc:var(--b_)}
+.ccard.laranja{--stc:var(--nh)}
 
 .ccard-header{
-  display:flex;align-items:flex-start;justify-content:space-between;
-  padding:18px 22px 14px;cursor:pointer;gap:16px;
+  position:relative;display:flex;align-items:flex-start;justify-content:space-between;
+  padding:18px 20px 14px 22px;cursor:pointer;gap:16px;
 }
 .ccard-id{
-  font-size:11px;font-weight:700;color:var(--t3);
-  background:var(--s3);padding:3px 9px;border-radius:5px;
-  font-family:'DM Sans',monospace;flex-shrink:0;
+  font-size:10.5px;font-weight:800;color:var(--stc);
+  background:color-mix(in srgb, var(--stc) 13%, transparent);
+  border:1px solid color-mix(in srgb, var(--stc) 30%, transparent);
+  padding:3px 8px;border-radius:5px;
+  font-family:'DM Sans',monospace;letter-spacing:.02em;flex-shrink:0;
+  font-variant-numeric:tabular-nums;
 }
-.ccard-titulo{font-size:15px;font-weight:600;color:var(--t1);line-height:1.4;flex:1}
+.ccard-titulo{
+  font-family:'Syne',sans-serif;font-size:16px;font-weight:700;
+  color:var(--t1);line-height:1.35;flex:1;letter-spacing:-.01em;
+}
 .ccard-badges{display:flex;gap:6px;align-items:center;flex-shrink:0;flex-wrap:wrap}
 .badge{
   display:inline-flex;align-items:center;padding:3px 10px;
-  border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;
+  border-radius:6px;font-size:11px;font-weight:700;white-space:nowrap;letter-spacing:.01em;
 }
 .b-green{background:rgba(34,197,94,.12);color:#4ade80}
 .b-red{background:rgba(239,68,68,.12);color:#f87171}
@@ -245,19 +263,25 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
 .b-blue{background:rgba(59,130,246,.12);color:#60a5fa}
 .b-gray{background:rgba(82,82,82,.15);color:var(--t2)}
 .b-orange{background:rgba(249,115,22,.12);color:#fb923c}
+.badge.urgente{position:relative;animation:pulseUrg 1.8s ease-in-out infinite}
+@keyframes pulseUrg{
+  0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.45)}
+  50%{box-shadow:0 0 0 5px rgba(239,68,68,0)}
+}
 
 .ccard-body{display:none;padding:0 22px 20px}
-.ccard-body.open{display:block}
+.ccard-body.open{display:block;animation:ccardOpen .22s ease}
+@keyframes ccardOpen{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 
 .ccard-meta{
-  display:flex;flex-wrap:wrap;gap:12px 28px;
-  padding:12px 0;border-top:1px solid rgba(255,255,255,.05);
-  border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:16px;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;
+  padding:14px;margin-bottom:16px;
+  background:var(--s2);border:1px solid var(--b1);border-radius:10px;
 }
-.cmeta{display:flex;align-items:center;gap:6px}
-.cmeta-lbl{font-size:11px;font-weight:700;color:var(--nh);text-transform:uppercase;letter-spacing:.06em}
-.cmeta-val{font-size:13px;color:var(--t1);font-weight:500}
-.cmeta-val.hl{color:var(--nh);font-weight:700;font-size:15px}
+.cmeta{display:flex;flex-direction:column;gap:3px}
+.cmeta-lbl{font-size:9.5px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.07em}
+.cmeta-val{font-size:13.5px;color:var(--t1);font-weight:600}
+.cmeta-val.hl{color:var(--nh);font-weight:800;font-size:16px;font-family:'DM Sans',sans-serif}
 
 /* Aditivos */
 .aditivos-wrap{margin-bottom:16px}
@@ -2506,7 +2530,8 @@ function renderContratos(){
       if(p.length===3){
         const dt=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
         const dias=Math.round((dt-hoje)/86400000);
-        if(dias<0) vencBadge='<span class="badge b-red">Vencido</span>';
+        if(dias<0) vencBadge='<span class="badge b-red urgente">Vencido</span>';
+        else if(dias<=7) vencBadge='<span class="badge b-red urgente">Vence em '+dias+'d</span>';
         else if(dias<=30) vencBadge='<span class="badge b-red">Vence em '+dias+'d</span>';
         else if(dias<=90) vencBadge='<span class="badge b-yellow">Vence em '+dias+'d</span>';
       }
@@ -2551,7 +2576,7 @@ function renderContratos(){
           </button>
           <button onclick="event.stopPropagation();abrirModalContratoById('${id}')" title="Editar contrato completo" style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);color:#60a5fa;width:30px;height:30px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px" onmouseover="this.style.background='rgba(59,130,246,.2)'" onmouseout="this.style.background='rgba(59,130,246,.1)'">✏</button>
           ${isAdmin ? `<button onclick="event.stopPropagation();abrirModalExcluir('${id}','${String(arr[3]||'').replace(/'/g,'').replace(/"/g,'').substring(0,40)}')" title="Excluir contrato (apenas GROWTH)" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#f87171;width:30px;height:30px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px" onmouseover="this.style.background='rgba(239,68,68,.18)'" onmouseout="this.style.background='rgba(239,68,68,.08)'">🗑</button>` : ''}
-          <span style="color:var(--t3);font-size:18px;transition:transform .2s" id="arrow-${id}">›</span>
+          <span class="ccard-arrow" id="arrow-${id}">›</span>
         </div>
       </div>
       <div class="ccard-body" id="body-${id}">
@@ -2579,8 +2604,8 @@ function pbS(on){ return 'style="background:'+(on?'var(--nh)':'var(--s2)')+';bor
 }
 
 const OPCOES_STATUS   = ['EM EXECUÇÃO','AGUARDANDO CONTRATO','SERÁ ENCERRADO','SUSPENSO','RESCINDIDO','FINALIZADO'];
-const OPCOES_SITUACAO = ['Não prorrogável','Será encerrado','Aguardando recomposição','Recomposição em andamento','Prorrogado'];
-const OPCOES_PROXACAO = ['Solicitar prorrogação','Solicitar reajuste','Solicitar recomposição','Aguardar assinatura','Acompanhar execução','Acompanhar publicação','Arquivar','Sem providências'];
+const OPCOES_SITUACAO = ['Não prorrogável','Será encerrado','Aguardando recomposição','Recomposição em andamento','Prorrogado','Prestação continuada via TAC'];
+const OPCOES_PROXACAO = ['Solicitar prorrogação','Solicitar reajuste','Solicitar recomposição','Recomposição solicitada','Aguardar assinatura','Acompanhar execução','Acompanhar publicação','Arquivar','Sem providências'];
 
 /* Índice do vencimento vigente: último aditivo preenchido, senão o original [12].
    Devolve {idx, valor, nAditivo} para que a edição grave no campo certo. */
@@ -2730,7 +2755,7 @@ function renderBody(id, arr, entry){
     OPCOES_STATUS.map(function(o){return '<option value="'+o+'"'+(String(arr[9]||'').toUpperCase()===o?' selected':'')+'>'+o.charAt(0)+o.slice(1).toLowerCase()+'</option>';}).join('')+
     '</select></div>' +
     '<div class="edit-field"><label>Situa\xe7\xe3o</label>' +
-    '<select id="edit-sit-'+id+'" onchange="marcarAlterado(\''+id+'\')">'+
+    '<select id="edit-sit-'+id+'" onchange="marcarAlterado(\''+id+'\');edSituacaoLink(\''+id+'\',this.value)">'+
     '<option value="">\u2014 autom\xe1tico \u2014</option>'+
     OPCOES_SITUACAO.map(function(o){return '<option value="'+o+'"'+(String(arr[43]||'')===o?' selected':'')+'>'+o+'</option>';}).join('')+
     '</select></div>' +
@@ -3465,6 +3490,21 @@ function toggleCard(id){
 function marcarAlterado(id){
   const btn = document.getElementById('save-btn-'+id);
   if(btn) btn.style.background = '#22c55e';
+}
+
+/* Mesma sugestão Situação -> Próxima Ação, agora também no campo
+   inline dos cards (não só no modal de edição). */
+function edSituacaoLink(id, v){
+  var alvo = document.getElementById('edit-pa-'+id);
+  if(!alvo) return;
+  var sug = NH_SIT_SUGESTAO[v];
+  if(sug && !alvo.value){
+    alvo.value = sug;
+    alvo.style.outline = '2px solid var(--nh)';
+    setTimeout(function(){ alvo.style.outline=''; }, 1400);
+    marcarAlterado(id);
+    portalToast('Próxima ação sugerida: "'+sug+'" (pode alterar)', 'ok');
+  }
 }
 
 async function salvarAlteracoes(id){
