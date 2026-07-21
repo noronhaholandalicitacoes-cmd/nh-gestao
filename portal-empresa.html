@@ -760,17 +760,17 @@ textarea.mc-input{resize:vertical;min-height:64px}
       <div class="mc-field"><label class="mc-label">Vencimento</label><input type="date" id="mc-venc" class="mc-input"></div>
       <!-- Situação / Próxima Ação -->
       <div class="mc-field"><label class="mc-label">Situação</label>
-        <select id="mc-situacao" class="mc-input">
+        <select id="mc-situacao" class="mc-input" onchange="mcSituacaoLink(this.value)">
           <option value="">— automático —</option>
           <option>Não prorrogável</option><option>Será encerrado</option>
           <option>Aguardando recomposição</option><option>Recomposição em andamento</option>
-          <option>Prorrogado</option>
+          <option>Prorrogado</option><option>Prestação continuada via TAC</option>
         </select></div>
       <div class="mc-field"><label class="mc-label">Próxima Ação</label>
         <select id="mc-proxacao" class="mc-input">
           <option value="">— não definida —</option>
           <option>Solicitar prorrogação</option><option>Solicitar reajuste</option>
-          <option>Solicitar recomposição</option><option>Aguardar assinatura</option>
+          <option>Solicitar recomposição</option><option>Recomposição solicitada</option><option>Aguardar assinatura</option>
           <option>Acompanhar execução</option><option>Acompanhar publicação</option>
           <option>Arquivar</option><option>Sem providências</option>
         </select></div>
@@ -1203,6 +1203,29 @@ function mcCalcAta(){
     +'Carona dispon\u00edvel: <b style="color:#fb923c">'+_brlKp(disp)+'</b> <span style="color:#6b6b6b">(teto 2\u00d7 = '+_brlKp(limite)+')</span>';
 }
 
+/* Situação -> Próxima Ação: ao escolher uma Situação, sugere a
+   Próxima Ação coerente (só preenche se estiver vazia). Mesma lógica
+   usada no sistema interno, para os dois lados falarem a mesma língua. */
+var NH_SIT_SUGESTAO = {
+  'Não prorrogável':'Acompanhar publicação',
+  'Será encerrado':'Acompanhar publicação',
+  'Aguardando recomposição':'Solicitar recomposição',
+  'Recomposição em andamento':'Acompanhar execução',
+  'Prorrogado':'Acompanhar execução',
+  'Prestação continuada via TAC':'Acompanhar execução'
+};
+function mcSituacaoLink(v){
+  var alvo=document.getElementById('mc-proxacao');
+  if(!alvo) return;
+  var sug=NH_SIT_SUGESTAO[v];
+  if(sug && !alvo.value){
+    alvo.value=sug;
+    alvo.style.outline='2px solid var(--nh)';
+    setTimeout(function(){ alvo.style.outline=''; }, 1400);
+    portalToast('Próxima ação sugerida: "'+sug+'" (pode alterar)','ok');
+  }
+}
+
 async function mcSalvar(){
   var btn=document.getElementById('mc-salvar-btn');
   var erroEl=document.getElementById('mc-erro');
@@ -1468,7 +1491,7 @@ function classificarContrato(arr){
     ativo:  cat==='exec',
     prox30: cat==='exec' && dias!==null && dias>=0 && dias<=30,
     prox90: cat==='exec' && dias!==null && dias>30  && dias<=90,
-    recomp: String(arr[13]||'').toUpperCase().trim()==='SIM'
+    recomp: [13,20,27,34].some(function(ix){return String(arr[ix]||'').toUpperCase().trim()==='SIM'})
   };
 }
 
@@ -2496,7 +2519,8 @@ function renderContratos(){
       'Será encerrado':'b-red',
       'Aguardando recomposição':'b-orange',
       'Recomposição em andamento':'b-orange',
-      'Prorrogado':'b-green'
+      'Prorrogado':'b-green',
+      'Prestação continuada via TAC':'b-blue'
     }[situacao] || 'b-gray';
     const situacaoBadge = situacao
       ? `<span class="badge ${_sitCls}" title="Situação do contrato">${pEsc(situacao)}</span>`
