@@ -120,6 +120,70 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
 .toast{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:var(--surf2);border:1px solid var(--line2);border-radius:12px;padding:12px 22px;font-size:14px;font-weight:700;z-index:999;display:none;white-space:nowrap;box-shadow:0 10px 30px rgba(0,0,0,.7);max-width:90vw;text-align:center}
 .toast.ok{border-color:rgba(34,197,94,.5);color:var(--sim)}
 .toast.err{border-color:rgba(239,68,68,.5);color:var(--nao)}
+
+/* ══════════════════════════════════════════════════════════════════
+   NH DEPTH — camada de profundidade compartilhada entre o Sistema, o
+   Portal de Contratos e o Viabilidade. A luz vem sempre do canto
+   superior esquerdo. A ousadia mora nos cartões de indicador; os
+   painéis de comparação seguem planos, para não distorcer dados.
+   ══════════════════════════════════════════════════════════════════ */
+:root{
+  --nhd-e1:0 1px 2px rgba(0,0,0,.4), 0 2px 8px -2px rgba(0,0,0,.35);
+  --nhd-e2:0 2px 4px rgba(0,0,0,.45), 0 12px 28px -8px rgba(0,0,0,.55);
+  --nhd-e3:0 4px 8px rgba(0,0,0,.5), 0 28px 56px -16px rgba(0,0,0,.7);
+  --nhd-bevel:rgba(255,255,255,.16);
+  --nhd-spec:rgba(255,255,255,.09);
+}
+
+/* Atmosfera: esferas de luz em deriva lenta sobre uma malha discreta.
+   z-index negativo — pinta acima do fundo do body e abaixo de todo o
+   conteúdo, sem depender do empilhamento de cada tela. */
+#nhd-atmosfera{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+#nhd-atmosfera .nhd-orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:.45}
+#nhd-atmosfera .nhd-o1{width:620px;height:620px;background:radial-gradient(circle,rgba(249,115,22,.25),transparent 68%);top:-16%;left:-8%;animation:nhdDeriva1 26s ease-in-out infinite}
+#nhd-atmosfera .nhd-o2{width:540px;height:540px;background:radial-gradient(circle,rgba(59,130,246,.21),transparent 68%);top:24%;right:-10%;animation:nhdDeriva2 32s ease-in-out infinite}
+#nhd-atmosfera .nhd-o3{width:460px;height:460px;background:radial-gradient(circle,rgba(168,85,247,.18),transparent 68%);bottom:-12%;left:32%;animation:nhdDeriva3 29s ease-in-out infinite}
+#nhd-atmosfera .nhd-grade{position:absolute;inset:0;opacity:.32;
+  background-image:linear-gradient(rgba(255,255,255,.028) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.028) 1px,transparent 1px);
+  background-size:56px 56px;
+  -webkit-mask-image:radial-gradient(ellipse 78% 62% at 50% 42%,#000 35%,transparent 100%);
+  mask-image:radial-gradient(ellipse 78% 62% at 50% 42%,#000 35%,transparent 100%);}
+@keyframes nhdDeriva1{0%,100%{transform:translate(0,0)}50%{transform:translate(70px,50px)}}
+@keyframes nhdDeriva2{0%,100%{transform:translate(0,0)}50%{transform:translate(-60px,60px)}}
+@keyframes nhdDeriva3{0%,100%{transform:translate(0,0)}50%{transform:translate(50px,-45px)}}
+
+/* Cartões de indicador: elevação + inclinação seguindo o cursor */
+.stat{
+  box-shadow:var(--nhd-e2);
+  transform-style:preserve-3d;
+  will-change:transform;
+  transition:box-shadow .3s cubic-bezier(.22,1,.36,1);
+}
+/* Bisel: fio de luz na borda superior, como uma quina captando luz */
+.stat::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;z-index:3;
+  background:linear-gradient(90deg,transparent,var(--nhd-bevel) 22%,rgba(255,255,255,.05) 70%,transparent);
+}
+/* Reflexo especular: acompanha o ponteiro, como vidro sob uma lâmpada */
+.stat::after{
+  content:'';position:absolute;inset:0;pointer-events:none;opacity:0;z-index:2;
+  background:radial-gradient(340px circle at var(--nhd-mx,50%) var(--nhd-my,50%),var(--nhd-spec),transparent 62%);
+  transition:opacity .3s;
+}
+.stat:hover::after{opacity:1}
+.stat:hover{box-shadow:var(--nhd-e3)}
+
+/* Cartões de lista: mesma lógica de luz, em intensidade menor */
+.card{
+  box-shadow:var(--nhd-e1);
+  transition:transform .2s cubic-bezier(.22,1,.36,1),box-shadow .25s,border-color .2s;
+}
+.card:hover{transform:translateY(-2px);box-shadow:var(--nhd-e2)}
+
+@media (prefers-reduced-motion:reduce){
+  #nhd-atmosfera .nhd-orb{animation:none}
+  .stat,.card{transition:none}
+}
 </style>
 </head>
 <body>
@@ -465,6 +529,70 @@ carregar();
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw-viabilidade.js').catch(function(){});
 }
+</script>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   NH DEPTH — comportamento: monta a atmosfera de fundo e liga a
+   inclinação/reflexo dos cartões de indicador. Igual nos três
+   sistemas. Respeita a preferência de "reduzir movimento".
+   ══════════════════════════════════════════════════════════════════ */
+(function(){
+  var SEL='.stat';
+  var podeAnimar=!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+  function montarAtmosfera(){
+    if(document.getElementById('nhd-atmosfera'))return;
+    var a=document.createElement('div');
+    a.id='nhd-atmosfera';
+    a.innerHTML='<div class="nhd-orb nhd-o1"></div><div class="nhd-orb nhd-o2"></div>'
+               +'<div class="nhd-orb nhd-o3"></div><div class="nhd-grade"></div>';
+    document.body.insertBefore(a,document.body.firstChild);
+  }
+
+  function ligar(card){
+    if(card._nhdOn)return; card._nhdOn=1;
+    if(!podeAnimar)return;
+    card.addEventListener('mousemove',function(e){
+      var r=card.getBoundingClientRect();
+      var px=(e.clientX-r.left)/r.width, py=(e.clientY-r.top)/r.height;
+      card.style.setProperty('--nhd-mx',(px*100)+'%');
+      card.style.setProperty('--nhd-my',(py*100)+'%');
+      card.style.transform='perspective(1000px) rotateX('+((0.5-py)*7).toFixed(2)+'deg) rotateY('+((px-0.5)*9).toFixed(2)+'deg) translateZ(10px)';
+    });
+    card.addEventListener('mouseleave',function(){
+      card.style.transition='transform .5s cubic-bezier(.22,1,.36,1),box-shadow .3s';
+      card.style.transform='perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0)';
+      setTimeout(function(){card.style.transition='box-shadow .3s cubic-bezier(.22,1,.36,1)';},520);
+    });
+  }
+
+  function varrer(){
+    try{
+      var els=document.querySelectorAll(SEL);
+      for(var i=0;i<els.length;i++)ligar(els[i]);
+    }catch(e){}
+  }
+
+  function iniciar(){
+    montarAtmosfera();
+    varrer();
+    /* Os painéis são redesenhados o tempo todo (troca de aba, filtro,
+       período). O observador liga os cartões novos assim que surgem,
+       com freio de um quadro para não pesar em telas movimentadas. */
+    try{
+      var agendado=false;
+      var mo=new MutationObserver(function(){
+        if(agendado)return; agendado=true;
+        requestAnimationFrame(function(){agendado=false;varrer();});
+      });
+      mo.observe(document.body,{childList:true,subtree:true});
+    }catch(e){}
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',iniciar);
+  else iniciar();
+})();
 </script>
 </body>
 </html>
