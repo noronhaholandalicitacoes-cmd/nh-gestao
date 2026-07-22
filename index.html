@@ -2043,6 +2043,10 @@ body.light-theme #sb .api-box{
     </div>
     <div id="doc-processo-info" style="display:none;margin-bottom:12px;padding:10px 14px;background:var(--s2);border-radius:8px;font-size:12px;color:var(--t2);line-height:1.5"></div>
     <div id="doc-pasta-status" style="display:none;margin-bottom:12px;padding:10px 14px;border-radius:8px;font-size:12px;line-height:1.5"></div>
+    <div id="doc-rascunho-bar" style="display:none;align-items:center;gap:10px;flex-wrap:wrap">
+      <button onclick="salvarRascunhoDoc()" style="background:linear-gradient(135deg,#059669,#22c55e);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;font-family:Outfit,sans-serif">💾 Salvar Rascunho</button>
+      <span id="doc-rascunho-status" style="font-size:11px;color:var(--t3)"></span>
+    </div>
   </div>
 
   <div class="doc-card">
@@ -5339,7 +5343,7 @@ function calcRowTotal(row){
 
 function calcGlobalTotal(){
   return linhas.reduce(function(acc,row){
-    return acc+(row.cells.vtotal!==undefined?parseMoeda(row.cells.vtotal):calcRowTotal(row));
+    return acc+calcRowTotal(row); // sempre recalcula — nunca confia em valor guardado antigo
   },0);
 }
 
@@ -5363,9 +5367,8 @@ function renderTabela(){
   // Linhas
   var tbHtml="";
   linhas.forEach(function(row,ri){
-    // Recalcular vtotal
+    // Total da linha (sempre recalculado — nunca fica "preso" a um valor antigo)
     var total=calcRowTotal(row);
-    if(row.cells.vtotal===undefined||row.cells.vtotal==="")row.cells.vtotal=total;
 
     tbHtml+='<tr>';
     tbHtml+='<td class="col-num"><button onclick="removerLinha('+row.id+')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:11px;padding:2px 4px;width:100%">✕</button></td>';
@@ -5380,12 +5383,14 @@ function renderTabela(){
         tbHtml+='<td style="text-align:right;font-weight:700;color:var(--nh);padding:7px 9px;font-size:12px">'+fmt+'</td>';
       } else if(c.tipo==="moeda"){
         tbHtml+='<td><input type="text" value="'+String(val).replace(/"/g,"&quot;")+'" '+
+          'oninput="atualizarCelulaAoVivo(this,'+row.id+',\''+c.id+'\')" '+
           'onblur="salvarCelula('+row.id+',\''+c.id+'\',this.value)" '+
           'onfocus="this.select()" '+
           'onkeydown="navTabela(event,'+ri+','+colunas.indexOf(c)+')" '+
           'style="text-align:right" placeholder="0,00"></td>';
       } else if(c.tipo==="num"){
         tbHtml+='<td><input type="text" value="'+String(val).replace(/"/g,"&quot;")+'" '+
+          'oninput="atualizarCelulaAoVivo(this,'+row.id+',\''+c.id+'\')" '+
           'onblur="salvarCelula('+row.id+',\''+c.id+'\',this.value)" '+
           'onfocus="this.select()" '+
           'onkeydown="navTabela(event,'+ri+','+colunas.indexOf(c)+')" '+
@@ -5417,6 +5422,20 @@ function renderTabela(){
   body.querySelectorAll("textarea").forEach(function(ta){
     ta.style.height="auto";ta.style.height=ta.scrollHeight+"px";
   });
+}
+
+// Atualização AO VIVO (a cada tecla) do total da linha e do total geral —
+// sem refazer a tabela inteira, para não tirar o foco do campo sendo digitado.
+function atualizarCelulaAoVivo(el,rowId,colId){
+  var row=linhas.find(function(r){return r.id===rowId;});
+  if(!row)return;
+  row.cells[colId]=el.value; // valor "cru" (sem formatar ainda); onblur formata ao sair do campo
+  var t=calcRowTotal(row);
+  var fmt=t>0?fmtMoeda(t):"—";
+  var tdTotal=document.getElementById("vtotal-"+rowId);
+  if(tdTotal)tdTotal.textContent=fmt;
+  var tg=document.getElementById("total-global");
+  if(tg)tg.textContent=fmtMoeda(calcGlobalTotal());
 }
 
 function salvarCelula(rowId,colId,val){
@@ -5653,69 +5672,66 @@ function cssBase(titulo, cor, rodapeAlturaMM){
   cor = cor||'#f97316';
   // Margem inferior da página: reserva espaço de verdade para o rodapé (texto ou imagem),
   // senão o conteúdo flui por baixo dele e linhas da tabela somem atrás da faixa fixa.
-  var _margBottom = rodapeAlturaMM ? Math.ceil(rodapeAlturaMM + 6) : 16;
+  var _margBottom = rodapeAlturaMM ? Math.ceil(rodapeAlturaMM + 6) : 18;
   return '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">'
     +'<title>'+titulo+'</title>'
     +'<style>'
     +'*{box-sizing:border-box;margin:0;padding:0}'
     +'*{text-justify:inter-word;hyphens:none;-webkit-hyphens:none}'
-    +'body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#1f2937;background:#fff;'
+    // Tipografia de documento formal (serifada) em vez de fonte de sistema/app —
+    // é o maior sinal visual de "documento impresso" vs. "tela de software".
+    +'body{font-family:Georgia,\'Times New Roman\',Times,serif;font-size:11.5px;color:#1a1a1a;background:#fff;'
     +'-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;'
     +'-webkit-print-color-adjust:exact;print-color-adjust:exact;margin:0;padding:0}'
     +'.page-wrap{min-height:100vh;display:flex;flex-direction:column}'
-    // Cabeçalho: barra sólida + friso mais escuro no topo, para um acabamento "timbrado" de verdade
-    +'.cabecalho{position:relative;background:'+cor+';padding:22px 40px;display:flex;align-items:center;justify-content:space-between}'
+    // Cabeçalho: bloco sólido e plano — sem friso/gradiente decorativo, acabamento de papel timbrado
+    +'.cabecalho{background:'+cor+';padding:20px 42px;display:flex;align-items:center;justify-content:space-between}'
     +'.cabecalho-timbrado{width:100%;line-height:0}'
     +'.cabecalho-timbrado img{width:100%;height:auto;display:block}'
-    +'.cabecalho::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:rgba(0,0,0,.14)}'
-    +'.cab-razao{font-size:16.5px;font-weight:800;color:#fff;letter-spacing:.01em;line-height:1.25}'
-    +'.cab-cnpj{font-size:10px;color:rgba(255,255,255,.86);margin-top:4px;letter-spacing:.01em}'
-    +'.cab-contato{text-align:right;color:rgba(255,255,255,.92);font-size:10px;line-height:1.7;font-weight:600}'
-    // Faixa de identificação do documento (tipo + data), como um "protocolo"
-    +'.doc-faixa{background:#f8fafc;border-bottom:1px solid #e5e7eb;padding:9px 40px;display:flex;justify-content:space-between;align-items:center;font-size:9.5px;color:#6b7280}'
-    +'.doc-faixa-tag{display:inline-block;background:'+cor+';color:#fff;font-size:8.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;padding:3px 10px;border-radius:20px}'
-    +'.corpo{flex:1;padding:20px 0 40px}'
-    +'.rodape{background:#f8fafc;border-top:2.5px solid '+cor+';padding:12px 40px;'
-    +'display:flex;align-items:center;justify-content:space-between;font-size:9px;color:#6b7280}'
-    +'.rodape-marca{font-weight:800;color:'+cor+'}'
+    +'.cab-razao{font-size:15.5px;font-weight:700;color:#fff;letter-spacing:.01em;line-height:1.3;font-family:Georgia,serif}'
+    +'.cab-cnpj{font-size:9.5px;color:rgba(255,255,255,.88);margin-top:4px;letter-spacing:.01em;font-family:Arial,sans-serif}'
+    +'.cab-contato{text-align:right;color:rgba(255,255,255,.92);font-size:9.5px;line-height:1.7;font-family:Arial,sans-serif}'
+    // Faixa de identificação do documento — discreta, sem pílula colorida
+    +'.doc-faixa{background:#fff;border-bottom:1px solid #1a1a1a;padding:7px 42px;display:flex;justify-content:space-between;align-items:center;font-size:9px;color:#4b5563;font-family:Arial,sans-serif;letter-spacing:.02em}'
+    +'.doc-faixa-tag{font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:'+cor+'}'
+    +'.corpo{flex:1;padding:26px 0 40px}'
+    +'.rodape{background:#fff;border-top:1px solid #1a1a1a;padding:10px 42px;'
+    +'display:flex;align-items:center;justify-content:space-between;font-size:8.5px;color:#6b7280;font-family:Arial,sans-serif}'
+    +'.rodape-marca{font-weight:700;color:'+cor+'}'
     +'.rodape-timbrado{width:100%;line-height:0}'
     +'.rodape-timbrado img{width:100%;height:auto;display:block}'
-    // Título: mais espaçado, com friso curto na cor da empresa embaixo — assinatura visual elegante
-    +'.titulo-wrap{text-align:center;margin:26px 0 24px}'
-    +'.titulo-badge{position:relative;display:inline-block;background:linear-gradient(135deg,'+cor+'16,'+cor+'04);border:1.5px solid '+cor+'40;border-radius:14px;padding:14px 46px;box-shadow:0 4px 14px '+cor+'16,inset 0 1px 0 rgba(255,255,255,.5)}'
-    +'.titulo-badge::before,.titulo-badge::after{content:"";position:absolute;top:10px;bottom:10px;width:3px;background:'+cor+';border-radius:2px;opacity:.55}'
-    +'.titulo-badge::before{left:14px}'
-    +'.titulo-badge::after{right:14px}'
-    +'.titulo{font-size:17.5px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:'+cor+';margin:0}'
-    +'.titulo-rule{width:46px;height:3px;background:linear-gradient(90deg,transparent,'+cor+',transparent);margin:10px auto 0;border-radius:2px}'
-    +'.intro{text-align:justify;text-justify:inter-word;line-height:1.9;margin-bottom:16px;color:#1f2937}'
-    +'.objeto-box{background:#fdfdfe;border:1px solid #e5e7eb;border-radius:10px;padding:16px 20px;margin-bottom:18px;box-shadow:0 1px 2px rgba(0,0,0,.03)}'
-    +'.objeto-lbl{font-size:9px;font-weight:800;color:'+cor+';text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;text-align:center}'
-    +'.objeto-box p{text-align:justify;text-justify:inter-word;line-height:1.8;color:#1f2937;font-size:11.5px}'
-    // Cards: fundo branco com borda de destaque à esquerda na cor da empresa (mesmo padrão dos relatórios)
-    +'.orgao-box{background:#fff;border:1px solid #e5e7eb;border-left:3px solid '+cor+';border-radius:8px;padding:14px 18px;margin-bottom:18px;font-size:11px;box-shadow:0 1px 2px rgba(0,0,0,.04);page-break-inside:avoid;break-inside:avoid}'
-    +'.orgao-row{margin-bottom:5px;line-height:1.5}'
+    // Título: tratamento clássico de documento — maiúsculo, centralizado, filete fino, sem "badge"
+    +'.titulo-wrap{text-align:center;margin:8px 0 26px}'
+    +'.titulo-badge{display:inline-block;padding:0 4px}'
+    +'.titulo{font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:#1a1a1a;margin:0;font-family:Georgia,serif}'
+    +'.titulo-rule{width:64px;height:2px;background:'+cor+';margin:11px auto 0}'
+    +'.intro{text-align:justify;text-justify:inter-word;line-height:1.85;margin-bottom:16px;color:#1a1a1a}'
+    +'.objeto-box{background:#fff;border:1px solid #1a1a1a;border-radius:0;padding:14px 20px;margin-bottom:20px}'
+    +'.objeto-lbl{font-size:8.5px;font-weight:700;color:'+cor+';text-transform:uppercase;letter-spacing:.12em;margin-bottom:7px;font-family:Arial,sans-serif}'
+    +'.objeto-box p{text-align:justify;text-justify:inter-word;line-height:1.8;color:#1a1a1a;font-size:11.5px}'
+    // Cards: sem sombra, cantos retos, apenas um filete à esquerda na cor da empresa
+    +'.orgao-box{background:#fff;border:1px solid #d1d5db;border-left:3px solid '+cor+';border-radius:0;padding:13px 18px;margin-bottom:20px;font-size:11px;page-break-inside:avoid;break-inside:avoid}'
+    +'.orgao-row{margin-bottom:5px;line-height:1.55}'
     +'.orgao-row:last-child{margin-bottom:0}'
-    +'.orgao-lbl{font-weight:800;color:'+cor+';display:inline-block;min-width:64px}'
-    +'.bloco{background:#fff;border:1px solid #e5e7eb;border-left:3px solid '+cor+';border-radius:8px;padding:16px 18px;margin:16px 0;font-size:11px;box-shadow:0 1px 2px rgba(0,0,0,.04);page-break-inside:avoid;break-inside:avoid}'
-    +'.bloco-titulo{font-weight:800;color:'+cor+';text-transform:uppercase;letter-spacing:.06em;margin-bottom:11px;font-size:10px}'
+    +'.orgao-lbl{font-weight:700;color:'+cor+';display:inline-block;min-width:64px;font-family:Arial,sans-serif;font-size:9.5px;text-transform:uppercase;letter-spacing:.04em;vertical-align:top}'
+    +'.bloco{background:#fff;border:1px solid #d1d5db;border-left:3px solid '+cor+';border-radius:0;padding:15px 18px;margin:18px 0;font-size:11px;page-break-inside:avoid;break-inside:avoid}'
+    +'.bloco-titulo{font-weight:700;color:#1a1a1a;text-transform:uppercase;letter-spacing:.08em;margin-bottom:11px;font-size:9.5px;font-family:Arial,sans-serif;border-bottom:1px solid #e5e7eb;padding-bottom:7px}'
     +'.cond-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px}'
     +'.cond-item{min-width:0}'
     +'.cond-full{grid-column:1/-1}'
-    +'.cond-lbl{font-size:9px;font-weight:800;color:'+cor+';text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;opacity:.85}'
-    +'.cond-val{font-size:11px;color:#1f2937;line-height:1.5}'
-    +'.assinatura{margin-top:44px;text-align:center;page-break-inside:avoid}'
-    +'.assinatura-linha{border-top:1.4px solid #1f2937;width:290px;margin:0 auto 8px}'
-    +'.assinatura-nota{font-size:9px;color:#9ca3af;margin-top:6px;font-style:italic}'
-    // Tabela: cabeçalho com leve gradiente, hairlines mais claras, zebra sutil
-    +'table{width:100%;border-collapse:collapse;margin:14px 0;font-size:10.8px;border-radius:8px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.04)}'
+    +'.cond-lbl{font-size:8.5px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;font-family:Arial,sans-serif}'
+    +'.cond-val{font-size:11px;color:#1a1a1a;line-height:1.5}'
+    +'.assinatura{margin-top:48px;text-align:center;page-break-inside:avoid}'
+    +'.assinatura-linha{border-top:1px solid #1a1a1a;width:290px;margin:0 auto 8px}'
+    +'.assinatura-nota{font-size:8.5px;color:#9ca3af;margin-top:6px;font-style:italic;font-family:Arial,sans-serif}'
+    // Tabela: linhas retas, cabeçalho sólido sem gradiente, hairlines discretas
+    +'table{width:100%;border-collapse:collapse;margin:16px 0;font-size:10.5px}'
     +'thead{display:table-header-group}'
-    +'th{background:'+cor+';background-image:linear-gradient(180deg,rgba(255,255,255,.14),rgba(0,0,0,.06));color:#fff;padding:9px 10px;text-align:left;font-size:9.5px;text-transform:uppercase;font-weight:800;letter-spacing:.04em}'
-    +'td{padding:7px 10px;border-bottom:1px solid #eef0f3;vertical-align:top;color:#1f2937}'
-    +'tr:nth-child(even) td{background:#fafbfc}'
-    +'tr:last-child td{border-bottom:none}'
-    +'.total-row td{font-weight:800;background:#f0fdf4!important;border-top:2px solid #16a34a;color:#14532d}'
-    +'.valor-extenso{font-size:10.5px;color:#374151;font-style:italic;background:#fafbfc;border:1px solid #eef0f3;border-radius:6px;padding:9px 13px;margin:0 0 16px;line-height:1.6}'
+    +'th{background:'+cor+';color:#fff;padding:8px 10px;text-align:left;font-size:9px;text-transform:uppercase;font-weight:700;letter-spacing:.05em;font-family:Arial,sans-serif;border:1px solid '+cor+'}'
+    +'td{padding:7px 10px;border:1px solid #d1d5db;vertical-align:top;color:#1a1a1a}'
+    +'tr:last-child td{border-bottom:1px solid #d1d5db}'
+    +'.total-row td{font-weight:700;background:#f3f4f6!important;border-top:2px solid #1a1a1a;color:#1a1a1a}'
+    +'.valor-extenso{font-size:10px;color:#374151;font-style:italic;margin:0 0 18px;line-height:1.7;padding-left:2px;font-family:Georgia,serif}'
     +'.valor-extenso strong{font-style:normal;color:#111827}'
     +'@media print{'
     +'@page{margin:16mm 14mm '+_margBottom+'mm 14mm;size:A4}'
@@ -6244,12 +6260,7 @@ function previsualizar(){
 
 function _declParasDocxCabecalho(_docx, d, emp, cor){
   var paras=[];
-  if(emp.timbrado && emp.timbrado.dataUrl){
-    paras.push(_docxHeaderImage(_docx, emp.timbrado));
-  } else {
-    paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:(emp.razao||emp.nome||'').toUpperCase(),bold:true,size:28,color:cor})],spacing:{after:120}}));
-    paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'CNPJ: '+emp.cnpj+(emp.cidade?' | '+emp.cidade:''),size:18,color:'666666'})],spacing:{after:360},border:{bottom:{style:_docx.BorderStyle.SINGLE,size:6,color:cor}}}));
-  }
+  // Sem cabeçalho (nome/CNPJ/timbrado): o texto é colado no papel timbrado da empresa depois.
   if(d.orgao) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Ao: '+d.orgao,size:20})],spacing:{after:80}}));
   if(d.setor) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Setor: '+d.setor,size:20})],spacing:{after:80}}));
   if(d.modalidade) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Ref.: '+d.modalidade,size:20})],spacing:{after:80}}));
@@ -6265,10 +6276,7 @@ function _declParasDocxAssinatura(_docx, d, emp){
   if(emp.cnpj) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'CNPJ: '+emp.cnpj,size:18,color:'666666'})],alignment:_docx.AlignmentType.CENTER,spacing:{after:80}}));
   if(emp.socio) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:emp.socio,size:20})],alignment:_docx.AlignmentType.CENTER,spacing:{after:60}}));
   if(emp.cargo) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:emp.cargo,size:18,color:'666666'})],alignment:_docx.AlignmentType.CENTER}));
-  if(emp.timbradoRodape && emp.timbradoRodape.dataUrl){
-    paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'',size:18})],spacing:{before:400}}));
-    paras.push(_docxHeaderImage(_docx, emp.timbradoRodape));
-  }
+  // Sem rodapé/timbrado no final — mesma lógica do cabeçalho.
   return paras;
 }
 function _declParasDocxCorpo(_docx, decl){
@@ -6376,19 +6384,7 @@ function gerarWord(){
     var emp = d.emp;
     var cor = (emp.cor||'#f97316').replace('#','');
     var paras = [];
-    // Cabeçalho da empresa — imagem do papel timbrado, se cadastrada; senão, texto colorido
-    if(emp.timbrado && emp.timbrado.dataUrl){
-      paras.push(_docxHeaderImage(_docx, emp.timbrado));
-    } else {
-    paras.push(new _docx.Paragraph({
-      children:[new _docx.TextRun({text:(emp.razao||emp.nome||'').toUpperCase(),bold:true,size:28,color:cor})],
-      spacing:{after:120}
-    }));
-    paras.push(new _docx.Paragraph({
-      children:[new _docx.TextRun({text:'CNPJ: '+emp.cnpj+(emp.cidade?' | '+emp.cidade:''),size:18,color:'666666'})],
-      spacing:{after:360},border:{bottom:{style:_docx.BorderStyle.SINGLE,size:6,color:cor}}
-    }));
-    }
+    // Sem cabeçalho (nome/CNPJ/timbrado): o texto é colado no papel timbrado da empresa depois.
     // Dados do processo
     if(d.orgao) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Ao: '+d.orgao,size:20})],spacing:{after:80}}));
     if(d.setor) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Setor: '+d.setor,size:20})],spacing:{after:80}}));
@@ -6410,15 +6406,40 @@ function gerarWord(){
       var headerRow = new _docx.TableRow({children:colunas.map(function(c){
         return new _docx.TableCell({children:[new _docx.Paragraph({children:[new _docx.TextRun({text:c.nome,bold:true,size:18,color:'FFFFFF'})],alignment:_docx.AlignmentType.CENTER})],shading:{fill:cor,type:_docx.ShadingType.CLEAR,color:'auto'}});
       })});
+      var _totalGeralWord = 0;
       var dataRows = linhas.map(function(r){
         return new _docx.TableRow({children:colunas.map(function(c){
           var v = r.cells[c.id]||'';
-          if(c.tipo==='formula'||c.id==='vtotal'){ var t=calcRowTotal(r); v=t>0?fmtMoeda(t):'—'; }
+          if(c.tipo==='formula'||c.id==='vtotal'){ var t=calcRowTotal(r); _totalGeralWord+=t; v=t>0?fmtMoeda(t):'—'; }
           return new _docx.TableCell({children:[new _docx.Paragraph({children:[new _docx.TextRun({text:String(v),size:18})],alignment:(c.tipo==='num'||c.tipo==='moeda'||c.id==='vtotal')?_docx.AlignmentType.RIGHT:_docx.AlignmentType.LEFT})]});
         })});
       });
-      paras.push(new _docx.Table({rows:[headerRow].concat(dataRows),width:{size:100,type:_docx.WidthType.PERCENTAGE}}));
-      paras.push(new _docx.Paragraph({spacing:{after:200}}));
+      // Linha de TOTAL GERAL — mesclando todas as colunas exceto a última (valor), igual ao PDF
+      var _nCols = colunas.length;
+      var _totalRow = new _docx.TableRow({children:[
+        new _docx.TableCell({
+          columnSpan:Math.max(1,_nCols-1),
+          shading:{fill:'F0FDF4',type:_docx.ShadingType.CLEAR,color:'auto'},
+          children:[new _docx.Paragraph({children:[new _docx.TextRun({text:'TOTAL GERAL',bold:true,size:18,color:'14532D'})],alignment:_docx.AlignmentType.RIGHT})]
+        }),
+        new _docx.TableCell({
+          shading:{fill:'F0FDF4',type:_docx.ShadingType.CLEAR,color:'auto'},
+          children:[new _docx.Paragraph({children:[new _docx.TextRun({text:fmtMoeda(_totalGeralWord),bold:true,size:18,color:'14532D'})],alignment:_docx.AlignmentType.RIGHT})]
+        })
+      ]});
+      paras.push(new _docx.Table({rows:[headerRow].concat(dataRows).concat([_totalRow]),width:{size:100,type:_docx.WidthType.PERCENTAGE}}));
+      paras.push(new _docx.Paragraph({spacing:{after:120}}));
+      // Valor total por extenso — mesma convenção do PDF, faltava só aqui no Word
+      if(_totalGeralWord>0){
+        paras.push(new _docx.Paragraph({
+          children:[
+            new _docx.TextRun({text:'O valor total da presente proposta é de ',italics:true,size:18,color:'374151'}),
+            new _docx.TextRun({text:fmtMoeda(_totalGeralWord),bold:true,italics:true,size:18,color:'111827'}),
+            new _docx.TextRun({text:' ('+numeroPorExtenso(_totalGeralWord)+').',italics:true,size:18,color:'374151'})
+          ],
+          spacing:{after:200}
+        }));
+      }
     }
     // Condições
     if(d.validade) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Validade da Proposta: ',bold:true,size:20}),new _docx.TextRun({text:d.validade+' dias',size:20})],spacing:{after:100}}));
@@ -6453,10 +6474,7 @@ function gerarWord(){
     if(emp.cnpj) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'CNPJ: '+emp.cnpj,size:18,color:'666666'})],alignment:_docx.AlignmentType.CENTER,spacing:{after:80}}));
     if(emp.socio) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:emp.socio,size:20})],alignment:_docx.AlignmentType.CENTER,spacing:{after:60}}));
     if(emp.cargo) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:emp.cargo,size:18,color:'666666'})],alignment:_docx.AlignmentType.CENTER}));
-    if(emp.timbradoRodape && emp.timbradoRodape.dataUrl){
-      paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'',size:18})],spacing:{before:400}}));
-      paras.push(_docxHeaderImage(_docx, emp.timbradoRodape));
-    }
+    // Sem rodapé/timbrado no final — mesma lógica do cabeçalho.
 
     var doc = new _docx.Document({sections:[{properties:{},children:paras}]});
     _docx.Packer.toBlob(doc).then(function(blob){
@@ -6807,18 +6825,41 @@ function initDocumentos(){
 function popularProcessosDoc(){
   var sel=document.getElementById("doc-processo-sel");
   if(!sel)return;
+
+  var editais=(ALL.editais||[]).filter(function(r){
+    return"sim"===String(r[10]||"").toLowerCase().trim();
+  }).sort(function(a,b){return parseInt(b[0]||0)-parseInt(a[0]||0)});
+
   var andamentos=(ALL.andamento||[]).filter(function(r){
     return"sim"!==String(r[16]||"").toLowerCase().trim();
   }).sort(function(a,b){return parseInt(b[0]||0)-parseInt(a[0]||0)});
-  sel.innerHTML='<option value="">Selecione um processo em andamento...</option>';
-  andamentos.forEach(function(p){
-    var id=p[0];
-    var titulo=String(p[3]||"").trim();
-    var emp=String(p[2]||"").trim();
-    var status=String(p[12]||"").trim();
-    var badge=status?"["+status+"] ":"";
-    sel.innerHTML+='<option value="a-'+id+'">'+badge+("#"+id+" — "+emp+" — "+titulo).substring(0,100)+"</option>";
-  });
+
+  sel.innerHTML='<option value="">Selecione um processo...</option>';
+
+  if(editais.length){
+    var g1=document.createElement("optgroup");g1.label="📋 Editais Capturados (Participar: SIM)";
+    editais.forEach(function(p){
+      var id=p[0],titulo=String(p[3]||"").trim(),emp=String(p[2]||"").trim();
+      var opt=document.createElement("option");
+      opt.value="e-"+id;
+      opt.textContent=("#"+id+" — "+emp+" — "+titulo).substring(0,100);
+      g1.appendChild(opt);
+    });
+    sel.appendChild(g1);
+  }
+
+  if(andamentos.length){
+    var g2=document.createElement("optgroup");g2.label="🚧 Em Andamento";
+    andamentos.forEach(function(p){
+      var id=p[0],titulo=String(p[3]||"").trim(),emp=String(p[2]||"").trim(),status=String(p[12]||"").trim();
+      var badge=status?"["+status+"] ":"";
+      var opt=document.createElement("option");
+      opt.value="a-"+id;
+      opt.textContent=badge+("#"+id+" — "+emp+" — "+titulo).substring(0,100);
+      g2.appendChild(opt);
+    });
+    sel.appendChild(g2);
+  }
 }
 function selecionarProcessoDoc(id){
   if(!id){
@@ -6826,8 +6867,11 @@ function selecionarProcessoDoc(id){
     var lt=document.getElementById("doc-link-tr");if(lt)lt.style.display="none";
     var lp=document.getElementById("doc-link-pasta");if(lp)lp.style.display="none";
     var st=document.getElementById("doc-pasta-status");if(st)st.style.display="none";
+    var rb=document.getElementById("doc-rascunho-bar");if(rb)rb.style.display="none";
+    _docProcessoAtual=null;
     return;
   }
+  _docProcessoAtual=id;
   var row=null,fonte="editais";
   if(id.startsWith("a-")){
     fonte="andamento";
@@ -6901,9 +6945,13 @@ function selecionarProcessoDoc(id){
   var iaEl=document.getElementById("ia-texto");
   if(iaEl)iaEl.value="";
 
+  var rb=document.getElementById("doc-rascunho-bar");if(rb)rb.style.display="flex";
+  var rs=document.getElementById("doc-rascunho-status");if(rs)rs.textContent="";
+
   // Feedback + tenta ler a pasta automaticamente (com fallback manual)
   toast("Processo carregado: #"+row[0]+" — "+emp,"ok");
   nhTentarLerPasta(linkPasta);
+  nhCarregarRascunhoDoc(id);
 }
 
 async function preencherComIA(){var key=localStorage.getItem("nh_gemini_key");if(!key){toast("Configure a API Key do Gemini","err");document.getElementById("ia-key-modal").style.display="flex";return}var texto=document.getElementById("ia-texto")?document.getElementById("ia-texto").value.trim():"";texto=texto||_iaTexto||"";if(!_iaArquivos.length&&(!texto||texto.length<10)){toast("Faça upload do PDF ou cole o texto do edital","err");return}var resEl=document.getElementById("ia-resultado");var bodyEl=document.getElementById("ia-resultado-body");resEl.style.display="block";bodyEl.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:20px;height:20px"></div> Extraindo dados do edital para preencher formulário...</div>';var prompts={preencher:"Extraia do edital/TR os dados abaixo e retorne APENAS JSON válido sem markdown.\n\nFORMATAÇÃO — documento oficial, sem abreviações:\n- \"orgao\", \"setor\", \"modalidade\", \"processo\": por extenso e completos, nunca abreviados (ex.: \"PREGÃO ELETRÔNICO Nº 021/2026\", não \"PE 021/2026\"; \"SECRETARIA MUNICIPAL DE SAÚDE\", não \"SEC. MUN. SAÚDE\"). Serão exibidos em maiúsculas automaticamente, então não precisa se preocupar com caixa.\n- \"objeto\": texto corrido normal (frase comum, não maiúsculo), completo e fiel ao edital, sem resumir.\n\nEstrutura exata:\n{\"orgao\":\"nome completo do órgão/entidade\",\"setor\":\"setor ou comissão por extenso\",\"modalidade\":\"modalidade por extenso e número\",\"processo\":\"tipo e número completo do processo\",\"objeto\":\"texto completo do objeto\",\"validade\":\"dias de validade da proposta\",\"prazo_entrega\":\"prazo de entrega ou execução\",\"prazo_pag\":\"prazo de pagamento\",\"local\":\"local de prestação ou entrega\",\"cidade\":\"cidade e UF do órgão\",\"tipo_doc\":\"proposta ou declaracao ou ambos\"}\nRetorne SOMENTE o JSON sem texto adicional."};try{var _parts2=_iaArquivos.length?_iaPartsArquivos().concat([{text:prompts.preencher}]):[{text:prompts.preencher+"\n\nEDITAL/TR:\n"+texto.substring(0,30000)}];var json=await chamarGemini(key,_parts2,0.1,4000);var resposta=json.candidates&&json.candidates[0]&&json.candidates[0].content&&json.candidates[0].content.parts&&json.candidates[0].content.parts[0]&&json.candidates[0].content.parts[0].text||"";var clean=resposta.replace(/```json/g,"").replace(/```/g,"").trim();var dados=null;function _repairJSON(s){  var i1=s.indexOf("{");if(i1<0)return s;  s=s.slice(i1);  s=s.replace(/,\s*([}\]])/g,"$1");  var opens=0,inStr=false,esc2=false;  for(var ci=0;ci<s.length;ci++){    var ch=s[ci];    if(esc2){esc2=false;continue;}    if(ch==="\\" && inStr){esc2=true;continue;}    if(ch==='"'){inStr=!inStr;continue;}    if(!inStr){if(ch==="{")opens++;else if(ch==="}")opens--;}  }  while(opens>0){s+="}";opens--;}  return s;}var jsonTries=[clean,_repairJSON(clean)];var i1=clean.indexOf("{"),i2=clean.lastIndexOf("}");if(i1>=0&&i2>i1)jsonTries.unshift(clean.slice(i1,i2+1));jsonTries.push(_repairJSON(i1>=0?clean.slice(i1):clean));for(var _ji=0;_ji<jsonTries.length;_ji++){  try{dados=JSON.parse(jsonTries[_ji]);break;}catch(e){}}if(!dados){toast("IA retornou formato inesperado. Tente novamente.","err");bodyEl.innerHTML='<div style="color:#ef4444">Resposta da IA não pôde ser interpretada.<br><small style="color:var(--t3)">Tente clicar em Preencher com IA novamente.</small></div>';return;}var sv=function(id,v){var el=document.getElementById(id);if(el&&v)el.value=v};
@@ -8344,6 +8392,105 @@ async function nhTentarLerPasta(link){
   }catch(e){
     console.error('leitura automatica da pasta',e);
     _nhPastaStatus('⚠️ Não consegui ler a pasta automaticamente ('+(e.message||'erro desconhecido')+'). Anexe os documentos manualmente abaixo — use o botão "📁 Abrir Pasta de Documentos" para localizá-los.','warn');
+  }
+}
+</script>
+
+<script>
+/* ════════════════════════════════════════════════════════════════
+   RASCUNHO DO DOCUMENTO (aba Documentos) — salva/restaura tudo que
+   foi preenchido para um processo específico: formulário, tabela de
+   itens, empresa, tipo de documento e declarações marcadas. Assim,
+   ao voltar num processo depois, o trabalho não se perde.
+   Guardado no Firebase, coleção "rascunhos_doc", chave = id do
+   processo (o mesmo valor do seletor: "e-123" ou "a-456").
+   ════════════════════════════════════════════════════════════════ */
+var _docProcessoAtual=null;
+var _DOC_RASCUNHO_CAMPOS=["orgao","setor","modalidade","processo","objeto","validade","prazo_entrega","prazo_pag","local_prestacao","cidade_assina","data_assina"];
+
+function _docRascunhoColeta(){
+  var campos={};
+  _DOC_RASCUNHO_CAMPOS.forEach(function(id){
+    var el=document.getElementById(id);
+    if(el)campos[id]=el.value;
+  });
+  return {
+    docTipo:docTipo,
+    campos:campos,
+    empresa:(typeof empSelecionada!=="undefined"?empSelecionada:""),
+    linhas:JSON.parse(JSON.stringify(linhas||[])),
+    colunas:JSON.parse(JSON.stringify(colunas||[])),
+    declSelecionadas:JSON.parse(JSON.stringify(_declaracoesSelecionadas||{})),
+    declModo:_declaracoesModo
+  };
+}
+
+function _docRascunhoRestaurar(d){
+  if(!d)return;
+  // Campos de texto do formulário
+  (d.campos?Object.keys(d.campos):[]).forEach(function(id){
+    var el=document.getElementById(id);
+    if(el)el.value=d.campos[id];
+  });
+  // Empresa
+  if(d.empresa){
+    var empSel=document.getElementById("doc_empresa");
+    if(empSel){
+      for(var i=0;i<empSel.options.length;i++){
+        if(empSel.options[i].text===d.empresa||empSel.options[i].value===d.empresa){
+          empSel.selectedIndex=i;
+          empSel.dispatchEvent(new Event("change"));
+          break;
+        }
+      }
+    }
+  }
+  // Tabela de itens
+  if(d.linhas&&d.linhas.length){linhas=d.linhas;}
+  if(d.colunas&&d.colunas.length){colunas=d.colunas;}
+  if(typeof renderTabela==="function")renderTabela();
+  // Declarações
+  if(d.declSelecionadas)_declaracoesSelecionadas=d.declSelecionadas;
+  if(d.declModo)_declaracoesModo=d.declModo;
+  if(typeof renderDeclChecklist==="function")renderDeclChecklist();
+  // Tipo de documento (proposta/declaracoes/etc.)
+  if(d.docTipo){
+    var btnAlvo=null;
+    document.querySelectorAll(".doc-btn").forEach(function(b){
+      if(b.getAttribute("onclick")&&b.getAttribute("onclick").indexOf("'"+d.docTipo+"'")>-1)btnAlvo=b;
+    });
+    setTipo(d.docTipo,btnAlvo);
+  }
+}
+
+async function salvarRascunhoDoc(){
+  if(!_docProcessoAtual){toast("Selecione um processo primeiro","err");return;}
+  try{
+    var dados=_docRascunhoColeta();
+    await fbSave("rascunhos_doc",_docProcessoAtual,dados);
+    var dh=new Date();
+    var hora=("0"+dh.getHours()).slice(-2)+":"+("0"+dh.getMinutes()).slice(-2);
+    var rs=document.getElementById("doc-rascunho-status");
+    if(rs)rs.textContent="✅ Rascunho salvo às "+hora;
+    toast("💾 Rascunho salvo! Pode voltar a este processo depois.","ok");
+  }catch(e){
+    console.error("salvar rascunho",e);
+    toast("Erro ao salvar rascunho: "+e.message,"err");
+  }
+}
+
+async function nhCarregarRascunhoDoc(id){
+  try{
+    var doc=await db.collection("rascunhos_doc").doc(id).get();
+    if(!doc.exists){return;}
+    var dados=doc.data()._arr;
+    if(!dados)return;
+    _docRascunhoRestaurar(dados);
+    var rs=document.getElementById("doc-rascunho-status");
+    if(rs)rs.textContent="📂 Rascunho anterior restaurado";
+    toast("📂 Rascunho anterior deste processo foi restaurado","ok");
+  }catch(e){
+    console.error("carregar rascunho",e);
   }
 }
 </script>
