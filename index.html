@@ -5558,6 +5558,35 @@ function navTabela(e,ri,ci){
 
 function adicionarLinhaTabela(){addLinha();}
 
+/* Lê o array de itens vindo da IA, mesmo que a resposta tenha sido
+   cortada no meio (descrições técnicas completas são longas). Em vez
+   de perder a lista inteira, aproveita todos os itens completos e
+   fecha o array no último que estiver íntegro. */
+function _nhParseArrayItens(bruto){
+  var s=String(bruto||'').replace(/```json/gi,'').replace(/```/g,'').trim();
+  var ini=s.indexOf('[');
+  if(ini<0)return null;
+  s=s.slice(ini);
+  // 1) tentativa direta (resposta completa)
+  var fim=s.lastIndexOf(']');
+  if(fim>0){
+    try{var a=JSON.parse(s.slice(0,fim+1));if(Array.isArray(a)&&a.length)return a;}catch(e){}
+  }
+  // 2) resposta truncada: corta no último objeto completo e fecha o array
+  var corte=s.lastIndexOf('},');
+  if(corte<0)corte=s.lastIndexOf('}');
+  while(corte>0){
+    var frag=s.slice(0,corte+1);
+    if(frag.charAt(frag.length-1)!=='}')frag=frag.slice(0,frag.lastIndexOf('}')+1);
+    try{
+      var arr=JSON.parse(frag+']');
+      if(Array.isArray(arr)&&arr.length)return arr;
+    }catch(e){}
+    corte=s.lastIndexOf('}',corte-1);
+  }
+  return null;
+}
+
 function preencherTabelaComIA(input){
   var itensArr=[];
   // Aceitar array de objetos diretamente
@@ -7035,7 +7064,32 @@ async function preencherComIA(){var key=localStorage.getItem("nh_gemini_key");if
           var _up=function(s){return s?String(s).toUpperCase():s;};sv("orgao",_up(dados.orgao));sv("setor",_up(dados.setor));sv("modalidade",_up(dados.modalidade));sv("processo",_up(dados.processo));sv("objeto",dados.objeto);if(dados.validade){  var _vNum=String(dados.validade).match(/\d+/);  var _vEl=document.getElementById("validade");  if(_vEl&&_vNum)_vEl.value=_vNum[0];}sv("prazo_entrega",dados.prazo_entrega);sv("prazo_pag",dados.prazo_pag);sv("local_prestacao",dados.local);var _hoje=new Date();var _dataHoje=_hoje.getFullYear()+"-"+("0"+(_hoje.getMonth()+1)).slice(-2)+"-"+("0"+_hoje.getDate()).slice(-2);var _dataEl=document.getElementById("data_assina");if(_dataEl&&!_dataEl.value)_dataEl.value=_dataHoje;
           // Cidade de assinatura = cidade da empresa selecionada
           var _empSel=document.getElementById("doc_empresa");var _empNome=_empSel?_empSel.value:"";var _empD=EMPRESAS.find(function(e){return e.nome===_empNome;});
-          var _cidEmp=_empD&&_empD.cidade?_empD.cidade.split("/")[0].trim():"";var _cidEl=document.getElementById("cidade_assina");if(_cidEl){if(_cidEmp)_cidEl.value=_cidEmp;else if(dados.cidade)_cidEl.value=dados.cidade;}var _nItens=0;await new Promise(function(res){setTimeout(res,3000);});try{var _promptItens='Leia este documento e extraia TODOS os itens listados no Termo de Referência, Anexo I ou tabela de itens.\n\nREGRA CRÍTICA: a descrição de cada item deve ser COMPLETA — copie ou reproduza TODA a especificação técnica exatamente como está no documento (marca de referência se houver, dimensões, capacidade, voltagem, certificações, acessórios inclusos, normas técnicas exigidas, tudo). NÃO resuma, NÃO abrevie, NÃO reduza a um nome genérico. Uma descrição incompleta pode fazer a empresa ser DESCLASSIFICADA por não comprovar atendimento à especificação exigida — isso é mais grave que uma resposta longa.\n\nSe o edital indicar um valor unitário estimado/de referência para o item, inclua também em \"valor_unit\" (numero, sem \"R$\", use ponto decimal). Se não houver valor indicado, omita o campo ou deixe null.\n\nPara cada item retorne: numero do item, descrição TÉCNICA COMPLETA, unidade de medida, quantidade e valor unitário (se existir no edital).\n\nFormato de resposta — SOMENTE array JSON, sem markdown, sem comentários: [{"item":1,"desc":"Aparelho de Eletrocardiograma (ECG) digital, 12 derivações simultâneas, interpretação automática, tela colorida sensível ao toque de no mínimo 8 polegadas, memória para armazenamento de no mínimo 100 exames, bivolt automático, com carro de transporte, acompanhado de cabo paciente, cabos de derivação e eletrodos descartáveis, garantia mínima de 12 meses","unid":"Unidade","qtd":24,"valor_unit":8500.00},{"item":2,"desc":"Concentrador de Oxigênio portátil, fluxo contínuo de 0,5 a 5 L/min, concentração de O2 mínima de 90%, alarme sonoro de falta de energia e baixo fluxo, nível de ruído máximo de 45dB, bivolt automático, acompanhado de manual em português e umidificador","unid":"Unidade","qtd":180}]';var _partsItens=_iaArquivos.length?_iaPartsArquivos().concat([{text:_promptItens}]):[{text:_promptItens+"\n\nEDITAL:\n"+texto.substring(0,20000)}];bodyEl.innerHTML+='<div style="margin-top:6px;font-size:12px;color:var(--t3)">Extraindo itens da tabela...</div>';var _jItens=await chamarGemini(key,_partsItens,0.1,16000);{  var _respItens=_jItens.candidates&&_jItens.candidates[0]&&_jItens.candidates[0].content&&_jItens.candidates[0].content.parts&&_jItens.candidates[0].content.parts[0]&&_jItens.candidates[0].content.parts[0].text||"";  var _cleanItens=_respItens.replace(/```json/g,"").replace(/```/g,"").trim();  var _arrMatch=_cleanItens.match(/\[[\s\S]*\]/);  if(_arrMatch){    try{      var _itensArr=JSON.parse(_arrMatch[0]);      if(Array.isArray(_itensArr)&&_itensArr.length){preencherTabelaComIA(_itensArr);_nItens=_itensArr.length;}    }catch(pe){console.warn("Parse itens:",pe);}  }}}catch(e2){console.warn("Itens não extraídos:",e2);}
+          var _cidEmp=_empD&&_empD.cidade?_empD.cidade.split("/")[0].trim():"";var _cidEl=document.getElementById("cidade_assina");if(_cidEl){if(_cidEmp)_cidEl.value=_cidEmp;else if(dados.cidade)_cidEl.value=dados.cidade;}var _nItens=0;var _nhAvisoItens="";await new Promise(function(res){setTimeout(res,3000);});try{var _promptItens='Leia este documento e extraia TODOS os itens listados no Termo de Referência, Anexo I ou tabela de itens.\n\nREGRA CRÍTICA: a descrição de cada item deve ser COMPLETA — copie ou reproduza TODA a especificação técnica exatamente como está no documento (marca de referência se houver, dimensões, capacidade, voltagem, certificações, acessórios inclusos, normas técnicas exigidas, tudo). NÃO resuma, NÃO abrevie, NÃO reduza a um nome genérico. Uma descrição incompleta pode fazer a empresa ser DESCLASSIFICADA por não comprovar atendimento à especificação exigida — isso é mais grave que uma resposta longa.\n\nSe o edital indicar um valor unitário estimado/de referência para o item, inclua também em \"valor_unit\" (numero, sem \"R$\", use ponto decimal). Se não houver valor indicado, omita o campo ou deixe null.\n\nPara cada item retorne: numero do item, descrição TÉCNICA COMPLETA, unidade de medida, quantidade e valor unitário (se existir no edital).\n\nFormato de resposta — SOMENTE array JSON, sem markdown, sem comentários: [{"item":1,"desc":"Aparelho de Eletrocardiograma (ECG) digital, 12 derivações simultâneas, interpretação automática, tela colorida sensível ao toque de no mínimo 8 polegadas, memória para armazenamento de no mínimo 100 exames, bivolt automático, com carro de transporte, acompanhado de cabo paciente, cabos de derivação e eletrodos descartáveis, garantia mínima de 12 meses","unid":"Unidade","qtd":24,"valor_unit":8500.00},{"item":2,"desc":"Concentrador de Oxigênio portátil, fluxo contínuo de 0,5 a 5 L/min, concentração de O2 mínima de 90%, alarme sonoro de falta de energia e baixo fluxo, nível de ruído máximo de 45dB, bivolt automático, acompanhado de manual em português e umidificador","unid":"Unidade","qtd":180}]';var _partsItens=_iaArquivos.length?_iaPartsArquivos().concat([{text:_promptItens}]):[{text:_promptItens+"\n\nEDITAL:\n"+texto.substring(0,20000)}];bodyEl.innerHTML+='<div style="margin-top:6px;font-size:12px;color:var(--t3)">Extraindo itens da tabela...</div>';var _jItens=await chamarGemini(key,_partsItens,0.1,30000);
+          var _candI=_jItens.candidates&&_jItens.candidates[0];
+          var _respItens=_candI&&_candI.content&&_candI.content.parts&&_candI.content.parts[0]&&_candI.content.parts[0].text||"";
+          // Resposta longa cortada pelo limite? Pede a continuação e emenda.
+          var _tentI=0;
+          while(_candI&&_candI.finishReason==="MAX_TOKENS"&&_tentI<2){
+            _tentI++;
+            bodyEl.innerHTML+='<div style="margin-top:4px;font-size:11px;color:var(--t3)">Lista longa — buscando continuação ('+(_tentI+1)+')...</div>';
+            try{
+              var _jc=await chamarGemini(key,[{text:"Você estava extraindo a lista de itens de um edital em JSON e a resposta foi cortada. CONTINUE EXATAMENTE de onde parou, sem repetir itens anteriores e sem reabrir o array. Últimos 1200 caracteres do que você já escreveu:\n"+_respItens.slice(-1200)}],0.1,30000);
+              var _cc=_jc.candidates&&_jc.candidates[0];
+              var _mais=_cc&&_cc.content&&_cc.content.parts&&_cc.content.parts[0]&&_cc.content.parts[0].text||"";
+              if(!_mais)break;
+              _respItens+=_mais; _candI=_cc;
+            }catch(_ec){break;}
+          }
+          var _itensArr=_nhParseArrayItens(_respItens);
+          if(_itensArr&&_itensArr.length){
+            preencherTabelaComIA(_itensArr);_nItens=_itensArr.length;
+          } else if(_respItens){
+            _nhAvisoItens='A IA respondeu, mas a lista de itens não pôde ser lida (formato inesperado ou resposta muito longa). Tente novamente ou preencha a tabela manualmente.';
+          }
+        }catch(e2){
+          console.warn("Itens não extraídos:",e2);
+          _nhAvisoItens='Não foi possível extrair os itens: '+((e2&&e2.message)||e2)+'. Os demais campos foram preenchidos normalmente.';
+        }
           // Preencher tabela de itens
           var _itensIA=dados.itens;if(Array.isArray(_itensIA)&&_itensIA.length>0){
             linhas=[];_nextRowId=1;
@@ -7047,7 +7101,7 @@ async function preencherComIA(){var key=localStorage.getItem("nh_gemini_key");if
             renderTabela();
           }
           if(Array.isArray(_itensIA)&&_itensIA.length)_nItens=_itensIA.length;var preenchidos=Object.values(dados).filter(function(v){return v&&(typeof v==="string"?v.length>0:Array.isArray(v)?v.length>0:false)}).length;
-          bodyEl.innerHTML='<div style="color:#22c55e;font-weight:600">✅ '+preenchidos+" campos preenchidos"+(_nItens>0?" · "+_nItens+" itens na tabela":"")+'!</div><div style="margin-top:8px;font-size:12px;color:var(--t3)">Verifique os dados e ajuste se necessário.</div><div style="margin-top:8px;font-size:11px;color:var(--t3);line-height:1.6">'+Object.entries(dados).filter(function(e){return e[0]!=="itens"&&e[1]}).map(function(e){return'<span style="color:var(--nh)">'+e[0]+":</span> "+String(e[1]||"—").substring(0,80)}).join("<br>")+(_nItens>0?'<br><span style="color:var(--nh)">itens:</span> '+_nItens+" item(s) extraído(s) na tabela":"")+"</div>";
+          bodyEl.innerHTML='<div style="color:#22c55e;font-weight:600">✅ '+preenchidos+" campos preenchidos"+(_nItens>0?" · "+_nItens+" itens na tabela":"")+'!</div>'+(_nhAvisoItens?'<div style="margin-top:8px;background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.35);color:#eab308;border-radius:8px;padding:8px 11px;font-size:11.5px;line-height:1.55">⚠️ '+_nhAvisoItens+'</div>':(_nItens===0?'<div style="margin-top:8px;background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.35);color:#eab308;border-radius:8px;padding:8px 11px;font-size:11.5px;line-height:1.55">⚠️ Nenhum item encontrado no documento. Se o edital tem tabela de itens, confira se o arquivo anexado é o Termo de Referência / Anexo I.</div>':''))+'<div style="margin-top:8px;font-size:12px;color:var(--t3)">Verifique os dados e ajuste se necessário.</div><div style="margin-top:8px;font-size:11px;color:var(--t3);line-height:1.6">'+Object.entries(dados).filter(function(e){return e[0]!=="itens"&&e[1]}).map(function(e){return'<span style="color:var(--nh)">'+e[0]+":</span> "+String(e[1]||"—").substring(0,80)}).join("<br>")+(_nItens>0?'<br><span style="color:var(--nh)">itens:</span> '+_nItens+" item(s) extraído(s) na tabela":"")+"</div>";
         }catch(e){bodyEl.innerHTML='<div style="color:#ef4444">Erro: '+e.message+"</div>"}}
 
 async function chamarGemini(key,parts,temp,maxTok){
@@ -7499,7 +7553,9 @@ async function lerDossieIA(){
   '"cnaes":["codigo - descricao"],'+
   '"indices_contabeis":{"liquidez_geral":"","liquidez_corrente":"","solvencia_geral":"","patrimonio_liquido":""},'+
   '"observacoes":""}\n'+
-  'Inclua TODOS os documentos identificados (contrato social/estatuto, CNPJ, CNDs, FGTS/CRF, CNDT, balanço, certidão de falência, atestados técnicos, alvará, registros em conselhos etc). Capture as VALIDADES com atenção. Se um dado não aparecer, use "" ou null.';
+  'Inclua TODOS os documentos identificados (contrato social/estatuto, CNPJ, CNDs, FGTS/CRF, CNDT, balanço, certidão de falência, atestados técnicos, alvará, registros em conselhos etc).\n\n'+
+  'REGRA CRÍTICA — VALIDADE: o campo "validade" é a data em que o documento DEIXA de valer (vencimento/validade), NUNCA a data de emissão. Muitas certidões trazem as duas datas próximas; se houver dúvida sobre qual é qual, a validade é sempre a MAIS DISTANTE no futuro. Procure termos como "válida até", "vencimento", "validade", "eficácia até". Se o documento não tiver prazo de validade (ex.: contrato social, CNPJ), use null — não invente nem repita a data de emissão. Datas sempre no formato AAAA-MM-DD; atenção ao padrão brasileiro DD/MM/AAAA na conversão (05/03/2026 é 2026-03-05, não 2026-05-03).\n\n'+
+  'Se um dado não aparecer, use "" ou null.';
 
   var merge=document.getElementById('nh-ds-merge');
   var resultado=(merge&&merge.checked)?await carregarDossie(emp):null;
@@ -7565,10 +7621,15 @@ function _dsMesclar(a,n){
   return out;
 }
 
-function _dsRender(d){
+function _dsRender(d,editavel){
   var h='';
   var e=d.empresa||{};
-  h+='<div style="font-weight:800;margin-bottom:6px">'+(e.razao_social||_dsEmpAtual)+(e.cnpj?' · CNPJ '+e.cnpj:'')+'</div>';
+  h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">'+
+     '<span style="font-weight:800">'+(e.razao_social||_dsEmpAtual)+(e.cnpj?' · CNPJ '+e.cnpj:'')+'</span>';
+  if(editavel){
+    h+='<button onclick="nhDossieToggleEdicao()" id="nh-ds-btn-edit" style="margin-left:auto;background:var(--s1);border:1px solid var(--b1);color:var(--t1);padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif">✏️ Corrigir dados</button>';
+  }
+  h+='</div>';
   var cats={juridica:'Jurídica',fiscal:'Fiscal',trabalhista:'Trabalhista',economica:'Econômico-financeira',tecnica:'Técnica',declaracao:'Declarações',outros:'Outros'};
   Object.keys(cats).forEach(function(c){
     var docs=(d.documentos||[]).filter(function(x){return x.categoria===c});
@@ -7577,7 +7638,17 @@ function _dsRender(d){
     docs.forEach(function(x){
       var di=calcDias(x.validade);
       var vb=x.validade?(di===null?'':di<0?' <b style="color:#ef4444">VENCIDA ('+x.validade+')</b>':di<=30?' <b style="color:#eab308">vence em '+di+'d</b>':' <span style="color:#22c55e">válida até '+x.validade+'</span>'):'';
-      h+='<div style="padding:3px 0;border-bottom:1px dotted var(--b1)">• <b>'+(x.tipo||'?')+'</b>'+(x.numero?' nº '+x.numero:'')+(x.orgao_emissor?' — '+x.orgao_emissor:'')+vb+(x.resumo?'<div style="color:var(--t3);font-size:11px;margin-left:12px">'+x.resumo+'</div>':'')+'</div>';
+      var _ix=(d.documentos||[]).indexOf(x);
+      if(_nhDossieEditando){
+        h+='<div style="padding:6px 0;border-bottom:1px dotted var(--b1);display:flex;gap:6px;align-items:center;flex-wrap:wrap">'+
+          '<input value="'+String(x.tipo||'').replace(/"/g,'&quot;')+'" onchange="nhDossieCampo('+_ix+',\'tipo\',this.value)" placeholder="Tipo do documento" style="flex:1;min-width:150px;background:var(--s1);border:1px solid var(--b1);color:var(--t1);border-radius:6px;padding:4px 8px;font-size:12px;font-family:Outfit,sans-serif">'+
+          '<input value="'+String(x.numero||'').replace(/"/g,'&quot;')+'" onchange="nhDossieCampo('+_ix+',\'numero\',this.value)" placeholder="Nº" style="width:110px;background:var(--s1);border:1px solid var(--b1);color:var(--t1);border-radius:6px;padding:4px 8px;font-size:12px;font-family:Outfit,sans-serif">'+
+          '<input type="date" value="'+(x.validade||'')+'" onchange="nhDossieCampo('+_ix+',\'validade\',this.value)" title="Validade" style="background:var(--s1);border:1px solid var(--nh);color:var(--t1);border-radius:6px;padding:4px 8px;font-size:12px;font-family:Outfit,sans-serif">'+
+          '<button onclick="nhDossieRemoverDoc('+_ix+')" title="Remover este documento" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.35);color:#ef4444;border-radius:6px;padding:4px 8px;font-size:11px;font-weight:800;cursor:pointer">✕</button>'+
+        '</div>';
+      } else {
+        h+='<div style="padding:3px 0;border-bottom:1px dotted var(--b1)">• <b>'+(x.tipo||'?')+'</b>'+(x.numero?' nº '+x.numero:'')+(x.orgao_emissor?' — '+x.orgao_emissor:'')+vb+(x.resumo?'<div style="color:var(--t3);font-size:11px;margin-left:12px">'+x.resumo+'</div>':'')+'</div>';
+      }
     });
   });
   if((d.atestados||[]).length){
@@ -7588,15 +7659,84 @@ function _dsRender(d){
   var ic=d.indices_contabeis||{};
   var icTxt=Object.keys(ic).filter(function(k){return ic[k]}).map(function(k){return k.replace(/_/g,' ')+': '+ic[k]}).join(' · ');
   if(icTxt)h+='<div style="margin-top:4px;font-size:11px;color:var(--t3)"><b>Índices:</b> '+icTxt+'</div>';
+  if(_nhDossieEditando){
+    h+='<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--b1);padding-top:10px">'+
+      '<button onclick="nhDossieAddDoc()" style="background:var(--s1);border:1px dashed var(--nh);color:var(--nh);padding:6px 12px;border-radius:7px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif">+ Adicionar documento</button>'+
+      '<button onclick="nhDossieSalvar()" style="margin-left:auto;background:linear-gradient(135deg,#059669,#22c55e);color:#fff;border:none;padding:7px 16px;border-radius:7px;font-weight:800;font-size:12px;cursor:pointer;font-family:Outfit,sans-serif">💾 Salvar correções</button>'+
+      '<button onclick="nhDossieCancelar()" style="background:transparent;border:1px solid var(--b1);color:var(--t3);padding:7px 12px;border-radius:7px;font-size:11.5px;cursor:pointer;font-family:Outfit,sans-serif">Cancelar</button>'+
+    '</div>';
+  }
   return h;
 }
 
 async function verDossie(){
   var v=document.getElementById('nh-ds-view');if(!v)return;
-  if(v.style.display==='block'){v.style.display='none';return;}
+  if(v.style.display==='block'){v.style.display='none';_nhDossieEditando=false;return;}
   var d=await carregarDossie(_dsEmpAtual);
+  _nhDossieAtual=d?JSON.parse(JSON.stringify(d)):null;
+  _nhDossieEditando=false;
   v.style.display='block';
-  v.innerHTML=d?_dsRender(d):'<i style="color:var(--t3)">Nenhum dossiê salvo ainda. Anexe os documentos e clique em "Ler e salvar dossiê (IA)".</i>';
+  v.innerHTML=d?_dsRender(d,true):'<i style="color:var(--t3)">Nenhum dossiê salvo ainda. Anexe os documentos e clique em "Ler e salvar dossiê (IA)".</i>';
+}
+
+/* ── Correção manual do dossiê ──────────────────────────────────
+   A IA às vezes lê uma validade errada (data de emissão no lugar da
+   de vencimento, formato ambíguo, carimbo ilegível). Sem poder
+   corrigir, a análise de habilitação apontava documento vencido que
+   na verdade está válido. Aqui o dado pode ser ajustado à mão. */
+var _nhDossieEditando=false;
+var _nhDossieAtual=null;
+
+function nhDossieToggleEdicao(){
+  if(!_nhDossieAtual)return;
+  _nhDossieEditando=!_nhDossieEditando;
+  var v=document.getElementById('nh-ds-view');
+  if(v)v.innerHTML=_dsRender(_nhDossieAtual,true);
+}
+
+function nhDossieCampo(idx,campo,valor){
+  if(!_nhDossieAtual||!_nhDossieAtual.documentos||!_nhDossieAtual.documentos[idx])return;
+  _nhDossieAtual.documentos[idx][campo]=valor;
+}
+
+function nhDossieRemoverDoc(idx){
+  if(!_nhDossieAtual||!_nhDossieAtual.documentos)return;
+  if(!confirm('Remover "'+(_nhDossieAtual.documentos[idx].tipo||'documento')+'" do dossiê?'))return;
+  _nhDossieAtual.documentos.splice(idx,1);
+  var v=document.getElementById('nh-ds-view');
+  if(v)v.innerHTML=_dsRender(_nhDossieAtual,true);
+}
+
+function nhDossieAddDoc(){
+  if(!_nhDossieAtual)return;
+  _nhDossieAtual.documentos=_nhDossieAtual.documentos||[];
+  _nhDossieAtual.documentos.push({tipo:'',categoria:'outros',numero:'',orgao_emissor:'',validade:null,resumo:''});
+  var v=document.getElementById('nh-ds-view');
+  if(v)v.innerHTML=_dsRender(_nhDossieAtual,true);
+}
+
+async function nhDossieSalvar(){
+  if(!_nhDossieAtual||!_dsEmpAtual)return;
+  try{
+    var dh=new Date();
+    _nhDossieAtual._corrigidoEm=('0'+dh.getDate()).slice(-2)+'/'+('0'+(dh.getMonth()+1)).slice(-2)+'/'+dh.getFullYear();
+    await fbSave('dossies',_dsEmpAtual,_nhDossieAtual);
+    _nhDossieEditando=false;
+    var v=document.getElementById('nh-ds-view');
+    if(v)v.innerHTML=_dsRender(_nhDossieAtual,true);
+    atualizarStatusDossie(_dsEmpAtual);
+    toast('✅ Correções salvas! A análise de habilitação já usa os dados corrigidos.','ok');
+  }catch(e){
+    toast('Erro ao salvar: '+e.message,'err');
+  }
+}
+
+async function nhDossieCancelar(){
+  var d=await carregarDossie(_dsEmpAtual);
+  _nhDossieAtual=d?JSON.parse(JSON.stringify(d)):null;
+  _nhDossieEditando=false;
+  var v=document.getElementById('nh-ds-view');
+  if(v)v.innerHTML=_nhDossieAtual?_dsRender(_nhDossieAtual,true):'';
 }
 
 async function excluirDossie(){
@@ -7987,7 +8127,10 @@ function nhAbrirAnaliseCard(chave,emp,titulo){
   dEl.innerHTML='Verificando dossiê de '+emp+'...';
   carregarDossie(emp).then(function(d){
     if(d){
-      dEl.innerHTML='📁 Dossiê de <b>'+emp+'</b>: <span style="color:#22c55e">'+(d.documentos||[]).length+' documentos'+(d._lidoEm?' · lido '+d._lidoEm:'')+'</span>';
+      var _venc=(d.documentos||[]).filter(function(x){var di=calcDias(x.validade);return di!==null&&di<0;}).length;
+      dEl.innerHTML='📁 Dossiê de <b>'+emp+'</b>: <span style="color:#22c55e">'+(d.documentos||[]).length+' documentos'+(d._lidoEm?' · lido '+d._lidoEm:'')+'</span>'+
+        (_venc?' <span style="color:#eab308">· '+_venc+' com validade vencida</span>':'')+
+        '<div style="font-size:11px;color:var(--t3);margin-top:3px">Alguma data está errada? Abra a página da empresa na barra lateral → card <b>Dossiê de Habilitação</b> → <b>👁 Ver dossiê</b> → <b>✏️ Corrigir dados</b>. A análise passa a usar o valor corrigido.</div>';
     }else{
       dEl.innerHTML='<span style="color:#eab308">⚠ <b>'+emp+'</b> ainda não tem dossiê. Abra a página da empresa na lateral e cadastre no card "Dossiê de Habilitação (IA)".</span>';
     }
