@@ -8987,7 +8987,63 @@ function _pecFmtData(s){
   return m?_nhDataExtenso(m[1]+'/'+m[2]+'/'+m[3]):t;
 }
 
+/* Abre um modal para revisar os dados e escrever um texto próprio
+   antes de gerar o parecer. Só depois o PDF é montado. */
+var _pecIdx=null;
 function gerarParecerEncerramento(idx){
+  var g=(FIL.ganhas||[])[idx];
+  if(!g){toast('Contrato não encontrado','err');return;}
+  _pecIdx=idx;
+
+  var m=document.getElementById('pec-modal');
+  if(!m){
+    m=document.createElement('div');
+    m.id='pec-modal';
+    m.style.cssText='display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9200;align-items:center;justify-content:center;padding:16px';
+    m.innerHTML='<div style="background:var(--s1);border:1px solid var(--b1);border-radius:14px;max-width:700px;width:100%;max-height:92vh;display:flex;flex-direction:column;overflow:hidden">'
+      +'<div style="padding:14px 18px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:10px">'
+        +'<b style="color:var(--nh)">📄 Parecer de Encerramento</b>'
+        +'<span id="pec-sub" style="font-size:12px;color:var(--t3)"></span>'
+        +'<button onclick="document.getElementById(\'pec-modal\').style.display=\'none\'" style="margin-left:auto;background:none;border:none;color:var(--t3);font-size:18px;cursor:pointer">✕</button>'
+      +'</div>'
+      +'<div style="padding:16px 18px;overflow-y:auto;flex:1">'
+        +'<div id="pec-info" style="font-size:12px;color:var(--t2);line-height:1.6;background:var(--s2);border:1px solid var(--b1);border-radius:8px;padding:10px 13px;margin-bottom:14px"></div>'
+        +'<label style="display:block;font-size:11px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Considerações adicionais <span style="font-weight:500;text-transform:none;letter-spacing:0">(opcional — entra no parecer como um bloco próprio)</span></label>'
+        +'<textarea id="pec-texto" placeholder="Ex.: informações sobre a transição, pendências a regularizar, orientações específicas para esta empresa..." style="width:100%;min-height:150px;background:var(--s2);border:1px solid var(--b1);border-radius:8px;color:var(--t1);font-family:Outfit,sans-serif;font-size:13px;padding:11px 13px;line-height:1.65;resize:vertical;box-sizing:border-box"></textarea>'
+        +'<div style="font-size:11px;color:var(--t3);margin-top:6px">Deixe em branco para gerar o parecer sem esse bloco. Pule linha para separar parágrafos.</div>'
+      +'</div>'
+      +'<div style="padding:13px 18px;border-top:1px solid var(--b1);display:flex;gap:8px;justify-content:flex-end">'
+        +'<button onclick="document.getElementById(\'pec-modal\').style.display=\'none\'" style="background:transparent;border:1px solid var(--b1);color:var(--t3);padding:8px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:Outfit,sans-serif">Cancelar</button>'
+        +'<button onclick="_pecGerar()" style="background:linear-gradient(135deg,var(--nh),#fb923c);color:#fff;border:none;padding:9px 18px;border-radius:8px;font-weight:800;font-size:12.5px;cursor:pointer;font-family:Outfit,sans-serif">📄 Gerar parecer</button>'
+      +'</div></div>';
+    document.body.appendChild(m);
+    m.addEventListener('click',function(ev){if(ev.target===m)m.style.display='none';});
+  }
+
+  var _emp=String(g[2]||'').trim(), _ctr=String(g[8]||'').trim(), _lic=String(g[3]||'').trim();
+  document.getElementById('pec-sub').textContent=_emp+(_ctr?' · Contrato '+_ctr:'');
+  var _dEf=(typeof _nhVencimentoEfetivo==='function')?_nhVencimentoEfetivo(g):null;
+  document.getElementById('pec-info').innerHTML=
+    '<b style="color:var(--t1)">'+(_lic||'—')+'</b>'
+    +(_ctr?'<br>Contrato nº '+_ctr:'')
+    +(_dEf?'<br>Encerramento da vigência: <b style="color:var(--nh)">'+('0'+_dEf.getDate()).slice(-2)+'/'+('0'+(_dEf.getMonth()+1)).slice(-2)+'/'+_dEf.getFullYear()+'</b>':'')
+    +'<br><span style="color:var(--t3)">Emitido por Setor de Licitações · Responsável: Thiago Soares</span>';
+  document.getElementById('pec-texto').value='';
+  m.style.display='flex';
+  setTimeout(function(){var t=document.getElementById('pec-texto');if(t)t.focus();},120);
+}
+
+function _pecGerar(){
+  var idx=_pecIdx;
+  if(idx===null||idx===undefined)return;
+  var ta=document.getElementById('pec-texto');
+  var extra=ta?String(ta.value||'').trim():'';
+  var m=document.getElementById('pec-modal');
+  if(m)m.style.display='none';
+  _pecMontarPDF(idx, extra);
+}
+
+function _pecMontarPDF(idx, textoExtra){
   var g=(FIL.ganhas||[])[idx];
   if(!g){toast('Contrato não encontrado','err');return;}
 
@@ -9068,11 +9124,12 @@ function gerarParecerEncerramento(idx){
   idRows+=lin('Vigência Contratada',vigencia?vigencia+' meses':'');
   idRows+=lin('Encerramento da Vigência',vencEf);
   idRows+=lin('Situação Registrada',situacao||status);
-  if(idRows)html+='<div class="bloco"><div class="bloco-titulo">1. Identificação do Contrato</div><div class="cond-grid">'+idRows+'</div></div>';
+  var _sec=1;
+  if(idRows)html+='<div class="bloco"><div class="bloco-titulo">'+(_sec++)+'. Identificação do Contrato</div><div class="cond-grid">'+idRows+'</div></div>';
 
   // 2. Histórico de aditivos
   if(aditivos.length){
-    html+='<div class="bloco"><div class="bloco-titulo">2. Histórico de Aditivos e Prorrogações</div>'
+    html+='<div class="bloco"><div class="bloco-titulo">'+(_sec++)+'. Histórico de Aditivos e Prorrogações</div>'
       +'<table style="margin:4px 0 0"><thead><tr>'
       +'<th style="width:8%">Nº</th><th>Instrumento</th><th style="width:20%">Situação</th><th style="width:20%">Nova Vigência</th>'
       +'</tr></thead><tbody>';
@@ -9085,7 +9142,7 @@ function gerarParecerEncerramento(idx){
   }
 
   // 3. Fundamentação — usa o histórico de anotações do contrato
-  html+='<div class="bloco"><div class="bloco-titulo">3. Fundamentação</div>';
+  html+='<div class="bloco"><div class="bloco-titulo">'+(_sec++)+'. Fundamentação</div>';
   html+='<p style="text-align:justify;line-height:1.8;margin-bottom:10px">Considerando o encerramento da vigência contratual'
     +(vencEf?' em <strong>'+_pecFmtData(vencEf)+'</strong>':'')
     +', bem como o esgotamento das possibilidades de prorrogação previstas no instrumento convocatório e na legislação aplicável, '
@@ -9101,7 +9158,16 @@ function gerarParecerEncerramento(idx){
   html+='</div>';
 
   // 4. Conclusão
-  html+='<div class="bloco"><div class="bloco-titulo">4. Conclusão e Providências Recomendadas</div>'
+  // Texto escrito pelo usuário antes de gerar (opcional)
+  var _sec=4;
+  if(textoExtra){
+    html+='<div class="bloco"><div class="bloco-titulo">'+(_sec++)+'. Considerações</div>'
+      +textoExtra.split(/\n\s*\n/).map(function(par){
+        return '<p style="text-align:justify;line-height:1.8;margin-bottom:8px">'+esc(par).replace(/\n/g,'<br>')+'</p>';
+      }).join('')
+      +'</div>';
+  }
+  html+='<div class="bloco"><div class="bloco-titulo">'+(_sec++)+'. Conclusão e Providências Recomendadas</div>'
     +'<p style="text-align:justify;line-height:1.8;margin-bottom:8px">Diante do exposto, comunica-se o <strong>encerramento definitivo</strong> do contrato em referência'
     +(vencEf?', com termo final em <strong>'+_pecFmtData(vencEf)+'</strong>':'')+', recomendando-se as seguintes providências:</p>'
     +'<p style="margin:0 0 5px;padding-left:14px">a) manter a integral prestação dos serviços até a data final da vigência, nas mesmas condições contratadas;</p>'
