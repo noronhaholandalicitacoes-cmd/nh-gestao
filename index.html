@@ -5347,8 +5347,8 @@ var colunas=[
   {id:"desc",   nome:"Descrição / Especificação", tipo:"texto", width:300},
   {id:"unid",   nome:"Unid.",  tipo:"texto", width:60},
   {id:"qtd",    nome:"Qtd",    tipo:"num",   width:70},
-  {id:"vunit",  nome:"Vl. Unit. (R$)", tipo:"moeda", width:110},
-  {id:"vtotal", nome:"Vl. Total (R$)", tipo:"formula",width:120}
+  {id:"vunit",  nome:"Valor Unitário", tipo:"moeda", width:110},
+  {id:"vtotal", nome:"Valor Total", tipo:"formula",width:120}
 ];
 var linhas=[];
 var _nextRowId=1;
@@ -5401,8 +5401,8 @@ function resetColunas(){
     {id:"desc",   nome:"Descrição / Especificação", tipo:"texto", width:300},
     {id:"unid",   nome:"Unid.",  tipo:"texto", width:60},
     {id:"qtd",    nome:"Qtd",    tipo:"num",   width:70},
-    {id:"vunit",  nome:"Vl. Unit. (R$)", tipo:"moeda", width:110},
-    {id:"vtotal", nome:"Vl. Total (R$)", tipo:"formula",width:120}
+    {id:"vunit",  nome:"Valor Unitário", tipo:"moeda", width:110},
+    {id:"vtotal", nome:"Valor Total", tipo:"formula",width:120}
   ];
   linhas.forEach(function(r){r.formula=["qtd","vunit"];});
   renderTabela();
@@ -5609,7 +5609,13 @@ function preencherTabelaComIA(input){
     // Valor unitário: só preenche quando o edital já trazia uma referência.
     // Serve de ponto de partida — o usuário ajusta depois para o valor que vai ofertar.
     var _vu=it.valor_unit!=null&&it.valor_unit!==""?String(it.valor_unit).trim():"";
-    if(_vu && _vu.toLowerCase()!=="null"){ _comValor++; } else { _vu=""; }
+    if(_vu && _vu.toLowerCase()!=="null"){
+      // A IA devolve número puro (ex.: 312921.68). Sem normalizar, o valor
+      // ia cru para o documento — formatamos já na entrada.
+      var _vuNum=parseFloat(String(_vu).replace(/[^\d.,-]/g,'').replace(/\.(?=\d{3}\b)/g,'').replace(',','.'));
+      _vu=(!isNaN(_vuNum)&&_vuNum>0)?fmtMoeda(_vuNum):"";
+      if(_vu)_comValor++;
+    } else { _vu=""; }
     var cells={
       item:_nextRowId,
       desc:String(it.desc||it.descricao||it.description||it[1]||"").trim(),
@@ -5819,7 +5825,7 @@ function cssBase(titulo, cor, rodapeAlturaMM){
     +'.orgao-box{background:#fff;border:1px solid #d1d5db;border-left:3px solid '+cor+';border-radius:0;padding:13px 18px;margin-bottom:20px;font-size:11px;page-break-inside:avoid;break-inside:avoid}'
     +'.orgao-row{margin-bottom:5px;line-height:1.55}'
     +'.orgao-row:last-child{margin-bottom:0}'
-    +'.orgao-lbl{font-weight:700;color:'+cor+';display:inline-block;min-width:64px;font-family:Arial,sans-serif;font-size:9.5px;text-transform:uppercase;letter-spacing:.04em;vertical-align:top}'
+    +'.orgao-lbl{font-weight:700;color:'+cor+';display:inline-block;min-width:64px;font-family:Arial,sans-serif;font-size:9.5px;text-transform:uppercase;letter-spacing:.04em;vertical-align:top}'+'.orgao-destino{font-weight:700;font-size:12px;color:#111827;margin-bottom:2px}'
     +'.bloco{background:#fff;border:1px solid #d1d5db;border-left:3px solid '+cor+';border-radius:0;padding:15px 18px;margin:18px 0;font-size:11px;page-break-inside:avoid;break-inside:avoid}'
     +'.bloco-titulo{font-weight:700;color:#1a1a1a;text-transform:uppercase;letter-spacing:.08em;margin-bottom:11px;font-size:9.5px;font-family:Arial,sans-serif;border-bottom:1px solid #e5e7eb;padding-bottom:7px}'
     +'.cond-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px}'
@@ -5833,7 +5839,7 @@ function cssBase(titulo, cor, rodapeAlturaMM){
     // Tabela: linhas retas, cabeçalho sólido sem gradiente, hairlines discretas
     +'table{width:100%;border-collapse:collapse;margin:16px 0;font-size:10.5px}'
     +'thead{display:table-header-group}'
-    +'th{background:'+cor+';color:#fff;padding:8px 10px;text-align:left;font-size:9px;text-transform:uppercase;font-weight:700;letter-spacing:.05em;font-family:Arial,sans-serif;border:1px solid '+cor+'}'
+    +'th{background:'+cor+';color:#fff;padding:8px 10px;text-align:left;font-size:9px;text-transform:uppercase;font-weight:700;letter-spacing:.05em;font-family:Arial,sans-serif;border:1px solid '+cor+';white-space:nowrap}'+'th:not(:nth-child(2)){text-align:center}'
     +'td{padding:7px 10px;border:1px solid #d1d5db;vertical-align:top;color:#1a1a1a}'
     +'tr:last-child td{border-bottom:1px solid #d1d5db}'
     +'.total-row td{font-weight:700;background:#f3f4f6!important;border-top:2px solid #1a1a1a;color:#1a1a1a}'
@@ -5878,11 +5884,13 @@ function timbradoHTML(emp, titulo){
 }
 
 function orgaoHTML(orgao, setor, modalidade, processo){
+  // Sem rótulos (Ao:/Setor:/Ref.:/Processo:) — só o conteúdo, como num
+  // ofício tradicional. O destinatário vem primeiro e em destaque.
   var rows = '';
-  if(orgao) rows += '<div class="orgao-row"><span class="orgao-lbl">Ao: </span>'+orgao+'</div>';
-  if(setor) rows += '<div class="orgao-row"><span class="orgao-lbl">Setor: </span>'+setor+'</div>';
-  if(modalidade) rows += '<div class="orgao-row"><span class="orgao-lbl">Ref.: </span>'+modalidade+'</div>';
-  if(processo) rows += '<div class="orgao-row"><span class="orgao-lbl">Processo: </span>'+processo+'</div>';
+  if(orgao) rows += '<div class="orgao-row orgao-destino">'+orgao+'</div>';
+  if(setor) rows += '<div class="orgao-row">'+setor+'</div>';
+  if(modalidade) rows += '<div class="orgao-row">'+modalidade+'</div>';
+  if(processo) rows += '<div class="orgao-row">'+processo+'</div>';
   return rows ? '<div class="orgao-box">'+rows+'</div>' : '';
 }
 
@@ -5896,10 +5904,25 @@ function introHTML(emp){
     +(emp.cpf?', portador do CPF nº <strong>'+emp.cpf+'</strong>':'')+', </p>';
 }
 
+/* Data por extenso — convenção de documento oficial:
+   "23 de julho de 2026" em vez de "23/07/2026". Aceita DD/MM/AAAA ou
+   AAAA-MM-DD e devolve o texto pronto; se não reconhecer, devolve
+   o valor original sem quebrar o documento. */
+var _NH_MESES=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+function _nhDataExtenso(v){
+  if(!v)return '';
+  var s=String(v).trim();
+  var m=s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if(m)return parseInt(m[1],10)+' de '+_NH_MESES[parseInt(m[2],10)-1]+' de '+m[3];
+  m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(m)return parseInt(m[3],10)+' de '+_NH_MESES[parseInt(m[2],10)-1]+' de '+m[1];
+  return s;
+}
+
 function assinaturaHTML(emp, cidade, data){
   // cidade de assinatura: usar cidade da empresa se disponível
   var cidadeUso = cidade||( emp&&emp.cidade ? emp.cidade.split('/')[0].trim() : '' )||'_____________';
-  var dataUso   = data||new Date().toLocaleDateString('pt-BR');
+  var dataUso   = _nhDataExtenso(data)||_nhDataExtenso(new Date().toLocaleDateString('pt-BR'));
   var cidadeData = cidadeUso+', '+dataUso;
   return '<div class="assinatura">'
     +'<p style="margin-bottom:48px;font-size:11px;text-align:right">'+cidadeData+'</p>'
@@ -6228,14 +6251,15 @@ function _gerarHTMLProposta(d){
           total += t;
           v = t>0 ? fmtMoeda(t) : '—';
         }
-        html += '<td'+(c.id==='vtotal'?' style="text-align:right;font-weight:700"':'')
-          +(c.tipo==='num'||c.tipo==='moeda'?' style="text-align:right"':'')+'>'+v+'</td>';
+        var _ehNum=(c.tipo==='formula'||c.id==='vtotal'||c.tipo==='num'||c.tipo==='moeda');
+        var _est=_ehNum?'text-align:center;white-space:nowrap;'+((c.tipo==='formula'||c.id==='vtotal')?'font-weight:700;':''):'';
+        html += '<td'+(_est?' style="'+_est+'"':'')+'>'+v+'</td>';
       });
       html += '</tr>';
     });
     if(total>0){
-      html += '<tr class="total-row"><td colspan="'+(colunas.length-1)+'"><strong>TOTAL GERAL</strong></td>'
-        +'<td style="text-align:right;font-weight:700">'+fmtMoeda(total)+'</td></tr>';
+      html += '<tr class="total-row"><td colspan="'+(colunas.length-1)+'" style="text-align:right"><strong>TOTAL GERAL</strong></td>'
+        +'<td style="text-align:center;white-space:nowrap;font-weight:700">'+fmtMoeda(total)+'</td></tr>';
     }
     html += '</tbody></table>';
     // Valor total por extenso — convenção de documentos comerciais/jurídicos
@@ -6367,15 +6391,15 @@ function previsualizar(){
 function _declParasDocxCabecalho(_docx, d, emp, cor){
   var paras=[];
   // Sem cabeçalho (nome/CNPJ/timbrado): o texto é colado no papel timbrado da empresa depois.
-  if(d.orgao) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Ao: '+d.orgao,size:20})],spacing:{after:80}}));
-  if(d.setor) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Setor: '+d.setor,size:20})],spacing:{after:80}}));
-  if(d.modalidade) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Ref.: '+d.modalidade,size:20})],spacing:{after:80}}));
-  if(d.processo) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Processo: '+d.processo,size:20})],spacing:{after:240}}));
+  if(d.orgao) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:d.orgao,bold:true,size:20})],spacing:{after:80}}));
+  if(d.setor) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:d.setor,size:20})],spacing:{after:80}}));
+  if(d.modalidade) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:d.modalidade,size:20})],spacing:{after:80}}));
+  if(d.processo) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:d.processo,size:20})],spacing:{after:240}}));
   return paras;
 }
 function _declParasDocxAssinatura(_docx, d, emp){
   var paras=[];
-  var cidadeData = (d.cidade||'____________')+', '+d.data;
+  var cidadeData = (d.cidade||'____________')+', '+_nhDataExtenso(d.data);
   paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:cidadeData,size:20})],alignment:_docx.AlignmentType.RIGHT,spacing:{before:600,after:600}}));
   paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'_'.repeat(50),size:20})],alignment:_docx.AlignmentType.CENTER,spacing:{after:80}}));
   paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:(emp.razao||emp.nome||'').toUpperCase(),bold:true,size:20})],alignment:_docx.AlignmentType.CENTER,spacing:{after:80}}));
@@ -6492,10 +6516,10 @@ function gerarWord(){
     var paras = [];
     // Sem cabeçalho (nome/CNPJ/timbrado): o texto é colado no papel timbrado da empresa depois.
     // Dados do processo
-    if(d.orgao) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Ao: '+d.orgao,size:20})],spacing:{after:80}}));
-    if(d.setor) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Setor: '+d.setor,size:20})],spacing:{after:80}}));
-    if(d.modalidade) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Ref.: '+d.modalidade,size:20})],spacing:{after:80}}));
-    if(d.processo) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'Processo: '+d.processo,size:20})],spacing:{after:240}}));
+    if(d.orgao) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:d.orgao,bold:true,size:20})],spacing:{after:80}}));
+    if(d.setor) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:d.setor,size:20})],spacing:{after:80}}));
+    if(d.modalidade) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:d.modalidade,size:20})],spacing:{after:80}}));
+    if(d.processo) paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:d.processo,size:20})],spacing:{after:240}}));
     // Título
     var titulo = 'PROPOSTA COMERCIAL'; // declarações saem antes por return; aqui só chega docTipo==='proposta'
     paras.push(new _docx.Paragraph({
@@ -6517,7 +6541,8 @@ function gerarWord(){
         return new _docx.TableRow({children:colunas.map(function(c){
           var v = r.cells[c.id]||'';
           if(c.tipo==='formula'||c.id==='vtotal'){ var t=calcRowTotal(r); _totalGeralWord+=t; v=t>0?fmtMoeda(t):'—'; }
-          return new _docx.TableCell({children:[new _docx.Paragraph({children:[new _docx.TextRun({text:String(v),size:18})],alignment:(c.tipo==='num'||c.tipo==='moeda'||c.id==='vtotal')?_docx.AlignmentType.RIGHT:_docx.AlignmentType.LEFT})]});
+          var _ehNum=(c.tipo==='num'||c.tipo==='moeda'||c.tipo==='formula'||c.id==='vtotal');
+          return new _docx.TableCell({children:[new _docx.Paragraph({children:[new _docx.TextRun({text:String(v),size:18,bold:(c.tipo==='formula'||c.id==='vtotal')})],alignment:_ehNum?_docx.AlignmentType.CENTER:_docx.AlignmentType.LEFT})]});
         })});
       });
       // Linha de TOTAL GERAL — mesclando todas as colunas exceto a última (valor), igual ao PDF
@@ -6530,7 +6555,7 @@ function gerarWord(){
         }),
         new _docx.TableCell({
           shading:{fill:'F0FDF4',type:_docx.ShadingType.CLEAR,color:'auto'},
-          children:[new _docx.Paragraph({children:[new _docx.TextRun({text:fmtMoeda(_totalGeralWord),bold:true,size:18,color:'14532D'})],alignment:_docx.AlignmentType.RIGHT})]
+          children:[new _docx.Paragraph({children:[new _docx.TextRun({text:fmtMoeda(_totalGeralWord),bold:true,size:18,color:'14532D'})],alignment:_docx.AlignmentType.CENTER})]
         })
       ]});
       paras.push(new _docx.Table({rows:[headerRow].concat(dataRows).concat([_totalRow]),width:{size:100,type:_docx.WidthType.PERCENTAGE}}));
@@ -6573,7 +6598,7 @@ function gerarWord(){
       paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:_txtContrato,size:18})],spacing:{after:120}}));
     }
     // Assinatura
-    var cidadeData = (d.cidade||'____________')+', '+d.data;
+    var cidadeData = (d.cidade||'____________')+', '+_nhDataExtenso(d.data);
     paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:cidadeData,size:20})],alignment:_docx.AlignmentType.RIGHT,spacing:{before:600,after:600}}));
     paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:'_'.repeat(50),size:20})],alignment:_docx.AlignmentType.CENTER,spacing:{after:80}}));
     paras.push(new _docx.Paragraph({children:[new _docx.TextRun({text:(emp.razao||emp.nome||'').toUpperCase(),bold:true,size:20})],alignment:_docx.AlignmentType.CENTER,spacing:{after:80}}));
