@@ -1656,6 +1656,37 @@ body.light-theme .kcard.vence-alerta:hover{
 body.light-theme .badge-vence-hoje{
   background:rgba(220,38,38,.1);color:#b91c1c;border-color:rgba(220,38,38,.45);
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   DIÁRIO DE ANOTAÇÕES (Observações / Justificativa / Resumo do
+   Andamento) — o campo caía numa coluna de 240px do grid do card e
+   virava uma torre estreita, com o texto quebrando a cada 3 palavras.
+   Agora ocupa a linha inteira e os registros se distribuem lado a
+   lado, na horizontal, como os demais campos.
+   ══════════════════════════════════════════════════════════════════ */
+.kfield-diario,
+.kfield:has(.nhj){grid-column:1/-1}
+.nhj{padding:10px 12px}
+.nhj-head{margin-bottom:8px}
+/* Registros na horizontal: quantos couberem por linha */
+.nhj-list{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+  gap:8px;
+  max-height:230px;
+  align-content:start;
+}
+.nhj-item{margin:0}
+.nhj-txt{font-size:12.5px}
+/* Campo de nova anotação ocupa a largura toda, com o botão ao lado */
+.nhj-new{margin-top:10px;align-items:stretch}
+.nhj-new textarea{min-height:44px;max-height:130px}
+.nhj-add{padding:0 18px;white-space:nowrap}
+@media (max-width:760px){
+  .nhj-list{grid-template-columns:1fr;max-height:200px}
+  .nhj-new{flex-direction:column}
+  .nhj-add{padding:9px 14px}
+}
 </style>
   <!-- Firebase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js"></script>
@@ -8662,6 +8693,22 @@ function nhJournalAdd(sheet,row,col){
   var box=document.getElementById('nhj-jr-'+sheet+'-'+row+'-'+col);
   if(box)box.innerHTML=_nhjInner(sheet,row,col);
   toast('Anotação registrada em '+stamp,'ok');
+}
+
+/* Marca o .kfield que contém um diário, para o CSS poder dar a ele a
+   linha inteira do card sem depender do seletor :has() (que exige
+   navegador recente). */
+if(typeof kfieldEdit==='function'){
+  var _nhjKfield=kfieldEdit;
+  kfieldEdit=function(lbl,val,col,sheet,row){
+    var html=_nhjKfield(lbl,val,col,sheet,row);
+    try{
+      if(_NHJ_COLS[sheet]&&_NHJ_COLS[sheet][col]!==undefined&&typeof html==='string'){
+        html=html.replace('<div class="kfield">','<div class="kfield kfield-diario">');
+      }
+    }catch(_e){}
+    return html;
+  };
 }
 
 /* Intercepta a renderização dos campos de anotação nos cards */
