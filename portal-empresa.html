@@ -2967,6 +2967,11 @@ function rpRiscoBadge(a){
 }
 
 /* ─── 1. CAPA ─── */
+/* Numeração dinâmica das seções — mesma lógica do sistema, para os
+   dois relatórios ficarem idênticos e nunca pularem número. */
+var _RPSEC=0;
+function rpN(){return ++_RPSEC;}
+
 function rpCapa(titulo, lista, valTot, dataEm){
   return '<div class="rp-capa">'
     + '<div class="rp-tag">Relatório Gerencial</div>'
@@ -3001,7 +3006,7 @@ function rpDashboard(lista, valTot, corEmp){
     }
   });
 
-  var h='<div class="rp-sec"><div class="rp-sec-t">2. Dashboard Executivo</div>'
+  var h='<div class="rp-sec"><div class="rp-sec-t">'+rpN()+'. Dashboard Executivo</div>'
     + '<div class="rp-kpi-row">'
       + rpKpi('Total de contratos', String(lista.length))
       + rpKpi('Valor total', rpBRL(valTot), '#15803d')
@@ -3058,7 +3063,7 @@ function rpResumoEmpresa(lista, corEmp){
     var d=rpDias(a);
     if(!rpEncerrado(a)&&d!==null&&d<=60) o.en++;
   });
-  var h='<div class="rp-sec"><div class="rp-sec-t">3. Resumo por Empresa</div>'
+  var h='<div class="rp-sec"><div class="rp-sec-t">'+rpN()+'. Resumo por Empresa</div>'
     + '<table class="rp-mini"><thead><tr><th>Empresa</th><th>Contratos</th><th>Valor total</th><th>Em execução</th>'
     + '<th>Finalizados</th><th>Encerrando (≤60d)</th><th>Aguardando</th><th>Valor médio</th></tr></thead><tbody>';
   Object.keys(mp).sort().forEach(function(k){
@@ -3103,7 +3108,7 @@ function rpAlertas(lista){
     + blk('🟣 Aguardando contrato / assinatura',g.agu,'#6b21a8')
     + blk('🟡 Sem data de vencimento informada',g.semVenc,'#92400e');
   if(!h) h='<div class="rp-ok">Nenhum alerta identificado.</div>';
-  return '<div class="rp-sec rp-pb"><div class="rp-sec-t">4. Alertas</div>'+h
+  return '<div class="rp-sec rp-pb"><div class="rp-sec-t">'+rpN()+'. Alertas</div>'+h
     + '<div class="rp-nota">A situação de prorrogação vem do campo <strong>Situação</strong> do cadastro. Quando vazio, é derivada do status dos aditivos registrados — nunca do texto das observações.</div></div>';
 }
 
@@ -3118,7 +3123,7 @@ function rpResumoFinal(lista){
     var d=rpDias(a);
     if(rpExec(a)&&d!==null&&d>60&&d<=120) opo.push(a);
   });
-  var h='<div class="rp-sec rp-pb"><div class="rp-sec-t">6. Resumo Executivo</div>'
+  var h='<div class="rp-sec rp-pb"><div class="rp-sec-t">'+rpN()+'. Resumo Executivo</div>'
     + '<div class="rp-kpi-row">'
       + rpKpi('Contratos saudáveis','🟢 '+sa,'#166534')
       + rpKpi('Contratos com atenção','🟡 '+at,'#92400e')
@@ -3180,43 +3185,43 @@ function gerarHTMLImpressao(entries, opts){
   <title>Contratos ${titulo} - NH Licitações</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:Arial,sans-serif;font-size:11px;color:#1f2937;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    body{font-family:Arial,Helvetica,sans-serif;font-size:8.5pt;color:#1f2937;background:#fff;text-rendering:geometricPrecision;font-synthesis:none;font-variant-ligatures:none;font-variant-numeric:tabular-nums;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     .cabecalho{background:${cor};padding:16px 28px;display:flex;justify-content:space-between;align-items:center}
-    .cab-nome{font-size:16px;font-weight:900;color:#fff}
+    .cab-nome{font-size:16px;font-weight:700;color:#fff}
     .cab-sub{font-size:10px;color:rgba(255,255,255,.8);margin-top:2px}
     .cab-data{font-size:10px;color:rgba(255,255,255,.8);text-align:right}
     .corpo{padding:20px 28px}
     body.orient-paisagem .corpo{padding:16px 34px}
     body.orient-paisagem .rp-kpi-row{flex-wrap:nowrap}
     .rp-capa{border:2px solid #1f2937;border-radius:8px;padding:18px 20px;margin-bottom:16px;background:#fafafa}
-    .rp-tag{display:inline-block;background:#f97316;color:#fff;font-size:8.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:3px 9px;border-radius:3px;margin-bottom:8px}
-    .rp-capa h1{font-size:17px;font-weight:900;color:#1f2937;line-height:1.25;margin-bottom:5px}
-    .rp-capa-sub{font-size:10.5px;color:#6b7280;font-weight:600;margin-bottom:12px}
-    .rp-capa-nota{font-size:8.5px;color:#6b7280;line-height:1.5;border-top:1px solid #e5e7eb;padding-top:7px;margin-top:4px}
+    .rp-tag{display:inline-block;background:#f97316;color:#fff;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:3px 9px;border-radius:3px;margin-bottom:8px}
+    .rp-capa h1{font-size:17px;font-weight:700;color:#1f2937;line-height:1.25;margin-bottom:5px}
+    .rp-capa-sub{font-size:11px;color:#6b7280;font-weight:600;margin-bottom:12px}
+    .rp-capa-nota{font-size:9px;color:#6b7280;line-height:1.5;border-top:1px solid #e5e7eb;padding-top:7px;margin-top:4px}
     .rp-kpi-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
-    .rp-kpi{border:1px solid #d1d5db;border-radius:6px;padding:8px 10px;background:#fff;flex:1;min-width:120px}
-    .rp-kpi-lb{font-size:7.5px;color:#6b7280;font-weight:700;text-transform:uppercase;letter-spacing:.05em;line-height:1.3;margin-bottom:3px}
-    .rp-kpi-vl{font-size:13px;font-weight:800;line-height:1.15;word-break:break-word;overflow-wrap:anywhere}
+    .rp-kpi{border:1px solid #d1d5db;border-radius:6px;padding:8px 10px;background:#fff;flex:1 1 auto;min-width:142px}
+    .rp-kpi-lb{font-size:8px;color:#6b7280;font-weight:700;text-transform:uppercase;letter-spacing:.05em;line-height:1.3;margin-bottom:3px}
+    .rp-kpi-vl{font-size:13px;font-weight:700;line-height:1.15;white-space:nowrap;font-variant-numeric:tabular-nums}
     .rp-kpi-sub{font-size:7px;color:#9ca3af;margin-top:2px;line-height:1.3}
     .rp-sec{margin-bottom:16px}
     .rp-pb{page-break-before:always}
-    .rp-sec-t{font-size:12.5px;font-weight:800;color:#1f2937;border-bottom:2px solid #f97316;padding-bottom:4px;margin-bottom:9px}
-    .rp-sec-st{font-size:9.5px;font-weight:800;color:#374151;text-transform:uppercase;letter-spacing:.06em;margin:10px 0 6px}
+    .rp-sec-t{font-size:13px;font-weight:700;color:#1f2937;border-bottom:2px solid #f97316;padding-bottom:4px;margin-bottom:9px}
+    .rp-sec-st{font-size:10px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.06em;margin:10px 0 6px}
     .rp-bars{border:1px solid #e5e7eb;border-radius:6px;padding:8px 10px}
     .rp-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:4px}
     .rp-bar-lb{width:90px;font-size:9px;font-weight:700;color:#374151;flex-shrink:0}
     .rp-bar-tr{flex:1;height:9px;background:#f3f4f6;border-radius:5px;overflow:hidden}
     .rp-bar-fl{height:100%;border-radius:5px}
-    .rp-bar-vl{width:160px;text-align:right;font-size:8.5px;font-weight:700;color:#6b7280;flex-shrink:0}
+    .rp-bar-vl{width:160px;text-align:right;font-size:9px;font-weight:700;color:#6b7280;flex-shrink:0}
     table.rp-mini{width:100%;border-collapse:collapse;margin-bottom:6px;font-size:9px}
     table.rp-mini th{background:#1f2937;color:#fff;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:5px 6px;text-align:center}
     table.rp-mini td{border:1px solid #d1d5db;padding:4px 6px;text-align:center;vertical-align:middle;line-height:1.4}
     table.rp-mini tbody tr:nth-child(even){background:#f9fafb}
     .rp-alerta{border:1px solid #e5e7eb;border-left:4px solid #6b7280;border-radius:5px;padding:7px 10px;margin-bottom:7px;page-break-inside:avoid}
-    .rp-alerta-t{font-size:9.5px;font-weight:800;margin-bottom:4px}
+    .rp-alerta-t{font-size:10px;font-weight:700;margin-bottom:4px}
     .rp-alerta ul{margin:0;padding-left:16px}
     .rp-alerta li{font-size:8.8px;color:#374151;line-height:1.55}
-    .rp-ok{font-size:9.5px;color:#166534;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:5px;padding:7px 10px}
+    .rp-ok{font-size:10px;color:#166534;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:5px;padding:7px 10px}
     .rp-nota{font-size:8px;color:#6b7280;line-height:1.5;margin-top:5px;font-style:italic}
     .rp-nota-ok{font-size:9px;color:#374151;background:#f9fafb;border:1px solid #e5e7eb;border-radius:5px;padding:6px 9px;margin-bottom:6px;line-height:1.55}
     .rp-criterios{margin-top:14px;border:1px dashed #d1d5db;border-radius:6px;padding:9px 12px;background:#fafafa;page-break-inside:avoid}
@@ -3224,7 +3229,7 @@ function gerarHTMLImpressao(entries, opts){
     .rp-criterios ul{margin:5px 0 0;padding-left:16px}
     .rp-criterios li{font-size:8.2px;color:#4b5563;line-height:1.55;margin-bottom:2px}
     .rp-badge{display:inline-block;font-weight:700;border-radius:4px;padding:2px 6px;white-space:nowrap;font-size:9px}
-    .rp-det-t{font-size:12.5px;font-weight:800;color:#1f2937;border-bottom:2px solid #f97316;padding-bottom:4px;margin:0 0 12px}
+    .rp-det-t{font-size:13px;font-weight:700;color:#1f2937;border-bottom:2px solid #f97316;padding-bottom:4px;margin:0 0 12px}
     .contrato{border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-bottom:14px;page-break-inside:avoid}
     .c-titulo{font-size:13px;font-weight:700;color:#111;margin-bottom:8px}
     .c-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
@@ -3236,7 +3241,7 @@ function gerarHTMLImpressao(entries, opts){
     .badge-status{display:inline-block;padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700}
     .b-exec{background:#dcfce7;color:#166534}.b-fin{background:#dbeafe;color:#1e40af}
     .b-venc{background:#fee2e2;color:#991b1b}.b-sus{background:#fef9c3;color:#854d0e}
-    .emp-tag{display:inline-block;padding:2px 10px;border-radius:10px;font-size:9px;font-weight:800;margin-right:6px}
+    .emp-tag{display:inline-block;padding:2px 10px;border-radius:10px;font-size:9px;font-weight:700;margin-right:6px}
     .rodape{background:#f3f4f6;border-top:3px solid ${cor};padding:10px 28px;display:flex;justify-content:space-between;font-size:9px;color:#6b7280;position:fixed;bottom:0;left:0;right:0}
     .log-edit{font-size:9px;color:#9ca3af;margin-top:6px;font-style:italic}
     @media print{@page{margin:0;size:A4 '+(opts&&opts.orientacao==='paisagem'?'landscape':'portrait')+'}.rodape{position:fixed;bottom:0}}
@@ -3255,12 +3260,13 @@ function gerarHTMLImpressao(entries, opts){
   const _corEmp  = (n)=> CORES[String(n||'').trim().toUpperCase()] || '#374151';
   const _multi   = new Set(_lista.map(e=>String(e.arr[2]||'').trim())).size > 1;
 
+  _RPSEC=0;
   if(_execOn){
     html += rpCapa(titulo, _lista, _valTot, hoje);
     html += rpDashboard(_lista, _valTot, _corEmp);
     if(_multi) html += rpResumoEmpresa(_lista, _corEmp);
     html += rpAlertas(_lista);
-    html += '<div class="rp-sec rp-pb"><div class="rp-det-t">5. Detalhamento dos Contratos</div>';
+    html += '<div class="rp-sec rp-pb"><div class="rp-det-t">'+rpN()+'. Detalhamento dos Contratos</div>';
   }
 
   const hoje2 = new Date(); hoje2.setHours(0,0,0,0);
@@ -3353,12 +3359,12 @@ function gerarHTMLImpressao(entries, opts){
 
   var totCats = {
     total:      { lbl:'Total Geral',         cor:'#8b5cf6', n:0, val:0 },
-    exec:       { lbl:'Em Execução',         cor:'#22c55e', n:0, val:0 },
-    aguard:     { lbl:'Aguardando',          cor:'#3b82f6', n:0, val:0 },
-    vencido:    { lbl:'Vencidos',            cor:'#ef4444', n:0, val:0 },
-    prox:       { lbl:'Próximos a Vencer',   cor:'#f59e0b', n:0, val:0 },
-    finalizado: { lbl:'Realizados',          cor:'#6b7280', n:0, val:0 },
-    recomp:     { lbl:'Recomposição Contratual', cor:'#f97316', n:0, val:0 },
+    exec:       { lbl:'Em execução · prazo normal',      cor:'#22c55e', n:0, val:0 },
+    aguard:     { lbl:'Aguardando contrato',             cor:'#3b82f6', n:0, val:0 },
+    vencido:    { lbl:'Vencidos e ainda ativos',         cor:'#ef4444', n:0, val:0 },
+    prox:       { lbl:'Em execução · vencendo em ≤90 dias', cor:'#f59e0b', n:0, val:0 },
+    finalizado: { lbl:'Encerrados / a encerrar',         cor:'#6b7280', n:0, val:0 },
+    recomp:     { lbl:'Com recomposição (já contados acima)', cor:'#f97316', n:0, val:0 },
   };
 
   // Mesma classificação usada no dashboard, nas pills e no filtro.
@@ -3398,6 +3404,12 @@ function gerarHTMLImpressao(entries, opts){
     +'</tr></thead>'
     +'<tbody style="border-top:1px solid #e5e7eb">'+linhasTot+'</tbody>'
     +'</table>'
+    +'<div style="font-size:9px;color:#6b7280;line-height:1.6;padding:9px 12px;border-top:1px solid #e5e7eb;font-style:italic">'
+      +'As categorias acima são <strong>mutuamente exclusivas</strong> e somam exatamente o Total Geral: cada contrato entra em uma única linha. '
+      +'Um contrato em execução que vence em até 90 dias é contado em <em>&ldquo;Em execução · vencendo em ≤90 dias&rdquo;</em>, e não em <em>&ldquo;prazo normal&rdquo;</em> — '
+      +'a soma das duas corresponde ao total em execução informado no Dashboard. '
+      +'A linha <em>&ldquo;Com recomposição&rdquo;</em> é uma marcação que atravessa as demais e por isso <strong>não é somada</strong> ao Total Geral.'
+    +'</div>'
     +'</div>';
 
   html += `<div class="rodape">
