@@ -1711,6 +1711,99 @@ body.light-theme .badge-vence-hoje{
   padding:5px 12px;font-size:10.5px;font-weight:600;cursor:pointer;font-family:Outfit,sans-serif}
 /* Em telas de toque não há hover: ações sempre visíveis */
 @media (hover:none){.nhj-acoes{opacity:1}}
+
+/* ══════════════════════════════════════════════════════════════════
+   ANÁLISE DO CONTRATO no card — botão discreto na barra de ações e
+   veredito compacto no corpo. Os selos têm largura limitada: o índice
+   de reajuste às vezes vem como uma frase inteira do contrato e
+   esticava a linha até estourar o card.
+   ══════════════════════════════════════════════════════════════════ */
+.kbtn-ac{
+  background:var(--s3);border:1px solid var(--b1);color:var(--t2);
+  padding:4px 9px;border-radius:6px;cursor:pointer;
+  font-size:10.5px;font-weight:700;font-family:Outfit,sans-serif;
+  white-space:nowrap;transition:all .15s;
+}
+.kbtn-ac:hover{border-color:var(--nh);color:var(--nh);background:var(--nha2)}
+.kbtn-ac.on{border-color:rgba(34,197,94,.45);color:#22c55e;background:rgba(34,197,94,.09)}
+.kbtn-ac.on:hover{border-color:#22c55e;background:rgba(34,197,94,.15)}
+
+.ac-box{gap:6px!important}
+.ac-chips{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.ac-chip{
+  display:inline-flex;align-items:baseline;gap:4px;
+  border:1px solid;border-radius:6px;padding:3px 8px;
+  font-size:10.5px;font-weight:700;line-height:1.35;
+  max-width:280px;overflow:hidden;
+}
+.ac-chip i{font-style:normal;font-weight:500;opacity:.8;font-size:10px}
+.ac-resumo{
+  font-size:11.5px;color:var(--t2);line-height:1.6;
+  border-left:2px solid var(--b1);padding-left:9px;margin-top:2px;
+}
+.ac-meta{font-size:9.5px;color:var(--t3);letter-spacing:.02em}
+.ac-lnk{
+  cursor:pointer;color:var(--nh);font-size:9.5px;font-weight:800;
+  margin-left:8px;text-transform:none;letter-spacing:0;
+}
+.ac-lnk:hover{text-decoration:underline}
+.ac-lnk-sec{color:var(--t3);margin-left:6px}
+.ac-cta{
+  display:inline-flex;align-items:baseline;gap:6px;
+  background:var(--nha2);border:1px dashed var(--nh);color:var(--nh);
+  border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;
+  transition:background .15s;
+}
+.ac-cta:hover{background:var(--nha)}
+.ac-cta i{font-style:normal;font-weight:500;font-size:10px;opacity:.75}
+
+/* Barra de ações do card: alinhamento e respiro consistentes entre
+   os botões (editar, localização, proposta, parecer, contrato, excluir) */
+.kcard-top .kbtn-ac{align-self:center}
+@media (max-width:640px){
+  .ac-chip{max-width:100%}
+  .kbtn-ac{font-size:10px;padding:4px 7px}
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   REFINAMENTO DO CARD — hierarquia tipográfica.
+   Todos os rótulos eram laranja, o que criava uma parede de cor
+   competindo com os dados: o olho não sabia onde pousar. Num painel
+   profissional o rótulo é discreto e o VALOR é o protagonista; a cor
+   de marca fica reservada para o que realmente exige atenção.
+   ══════════════════════════════════════════════════════════════════ */
+.kcard .kfield-lbl{
+  color:var(--t3);
+  font-size:9.5px;
+  font-weight:800;
+  letter-spacing:.09em;
+}
+/* Laranja só onde há ação ou alerta */
+.kcard .kfield-lbl .ac-lnk{color:var(--nh)}
+.kcard .nhj-count{color:var(--nh)}
+
+/* Valores com mais presença que os rótulos */
+.kcard .kfield-val,
+.kcard .kfield input,
+.kcard .kfield select,
+.kcard .kfield textarea{font-size:13px;color:var(--t1)}
+
+/* Lombada mais fina e sóbria; a profundidade já vem da sombra */
+.kcard{border-left-width:3px}
+
+/* O bloco do objeto não precisa de filete próprio competindo com a
+   lombada do card — fica só o fundo sutil */
+.kcard-obj{border-left:none;padding-left:12px}
+
+/* Divisor da faixa de metadados mais discreto */
+.kcard-meta{border-bottom-color:rgba(255,255,255,.045)}
+body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
+
+/* Espaçamento uniforme entre os campos */
+.kcard-body{gap:16px 26px}
+
+/* Barra de ações: itens do mesmo tamanho visual */
+.kcard-top button{line-height:1.2}
 </style>
   <!-- Firebase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js"></script>
@@ -3428,7 +3521,10 @@ function _relKpi(lb,vl,cor,sub){
 function _relValores(lista){
   var v={total:0,exec:0,encerrado:0,vencido:0,aguard:0,seraEnc:0,suspenso:0,
           emerg:0,naoProrr:0,prorrogado:0,recomp:0,tac:0,d30:0,d60:0,
-          qExec:0,qEncerrado:0,qEmerg:0,qNaoProrr:0,qSeraEnc:0,qVencido:0,qTac:0};
+          qExec:0,qEncerrado:0,qEmerg:0,qNaoProrr:0,qSeraEnc:0,qVencido:0,qTac:0,
+          /* Leitura do contrato pela IA: o que o instrumento admite */
+          acPermiteRec:0,acVedaRec:0,acPermiteProrr:0,acVedaProrr:0,acSemAnalise:0,
+          qAcPermiteRec:0,qAcVedaRec:0,qAcPermiteProrr:0,qAcVedaProrr:0,qAcSemAnalise:0};
   (lista||[]).forEach(function(r){
     var val=_relValor(r);
     if(!val||isNaN(val))val=0;
@@ -3451,6 +3547,20 @@ function _relValores(lista){
     else if("Será encerrado"===s){/* já somado como categoria */}
     else if("Prestação continuada via TAC"===s){v.tac+=val;v.qTac++;}
     if("Aguardando recomposição"===s||"Recomposição em andamento"===s)v.recomp+=val;
+
+    /* Cruzamento com a análise do contrato feita pela IA — só faz
+       sentido para contratos ainda vigentes (o encerrado já saiu). */
+    if(!_relEncerrado(r)){
+      var ac=(typeof ANALISES_CONTRATO!=="undefined")?ANALISES_CONTRATO[String(r[0]||"").trim()]:null;
+      var ver=ac&&ac.veredito;
+      if(!ver){v.acSemAnalise+=val;v.qAcSemAnalise++;}
+      else{
+        if(ver.permite_recomposicao){v.acPermiteRec+=val;v.qAcPermiteRec++;}
+        else{v.acVedaRec+=val;v.qAcVedaRec++;}
+        if(ver.permite_prorrogacao){v.acPermiteProrr+=val;v.qAcPermiteProrr++;}
+        else{v.acVedaProrr+=val;v.qAcVedaProrr++;}
+      }
+    }
   });
   return v;
 }
@@ -3524,6 +3634,16 @@ function _relDashboard(aba,lista,valTot,corEmp){
       +_relKpi("Valor encerrando 31–60 dias",_relBRL(_v.d60),_v.d60?"#92400e":"#166534","planejamento de reposição")
       +_relKpi("Valor em recomposição",_relBRL(_v.recomp),_v.recomp?"#92400e":"#166534","aguardando ou em tramitação")
       +(_v.tac?_relKpi("Valor em TAC",_relBRL(_v.tac),"#1e40af",String(_v.qTac)+" prestação continuada"):"")
+      +"</div>"
+      /* O que os contratos vigentes ADMITEM, conforme leitura do
+         instrumento pela IA — base para decidir onde há margem. */
+      +'<div class="sec-st">Margem contratual (leitura do contrato pela IA)</div>'
+      +'<div class="kpi-row">'
+      +_relKpi("Admite recomposição",_relBRL(_v.acPermiteRec),"#166534",String(_v.qAcPermiteRec)+" contrato(s) · há margem de reequilíbrio")
+      +_relKpi("Não admite recomposição",_relBRL(_v.acVedaRec),_v.acVedaRec?"#991b1b":"#166534",String(_v.qAcVedaRec)+" contrato(s) · sem reequilíbrio previsto")
+      +_relKpi("Admite prorrogação",_relBRL(_v.acPermiteProrr),"#166534",String(_v.qAcPermiteProrr)+" contrato(s)")
+      +_relKpi("Não admite prorrogação",_relBRL(_v.acVedaProrr),_v.acVedaProrr?"#991b1b":"#166534",String(_v.qAcVedaProrr)+" contrato(s) · encerramento definitivo")
+      +_relKpi("Sem análise do contrato",_relBRL(_v.acSemAnalise),_v.acSemAnalise?"#92400e":"#166534",String(_v.qAcSemAnalise)+" contrato(s) · margem desconhecida")
       +"</div>"
       /* Depois as contagens, para conferência */
       +'<div class="sec-st">Quantidades por situação</div>'
@@ -3620,7 +3740,7 @@ function _relResumoEmpresa(aba,lista,corEmp){
 /* ---------- 9. ALERTAS ---------- */
 function _relAlertas(aba,lista){
   if("ganhas"!==aba)return "";
-  var g={venc:[],d30:[],d60:[],emer:[],agu:[],semVenc:[],semContrato:[],naoProrr:[],recomp:[],serEnc:[],tac:[],ata:[]};
+  var g={venc:[],d30:[],d60:[],emer:[],agu:[],semVenc:[],semContrato:[],naoProrr:[],recomp:[],serEnc:[],tac:[],ata:[],acVedaRec:[],acVedaProrr:[],acSem:[]};
   lista.forEach(function(r){
     var ref=_relPadronizaProc(r[3])||("#"+r[0]);
     var lb=_relEsc(String(r[2]||"")+" · "+ref);
@@ -3646,6 +3766,15 @@ function _relAlertas(aba,lista){
       if("Será encerrado"===_s)g.serEnc.push(lb+(d!==null?" — vence em "+d+"d":""));
       if("Prestação continuada via TAC"===_s)g.tac.push(lb+(d!==null?" — vigência vencida há "+Math.abs(d)+"d":""));
       if("Aguardando recomposição"===_s||"Recomposição em andamento"===_s)g.recomp.push(lb+" — "+_s.toLowerCase());
+
+      /* Leitura do contrato pela IA */
+      var _ac=(typeof ANALISES_CONTRATO!=="undefined")?ANALISES_CONTRATO[String(r[0]||"").trim()]:null;
+      var _ver=_ac&&_ac.veredito;
+      if(!_ver)g.acSem.push(lb);
+      else{
+        if(!_ver.permite_recomposicao)g.acVedaRec.push(lb);
+        if(!_ver.permite_prorrogacao)g.acVedaProrr.push(lb+(d!==null?" — vence em "+d+"d":""));
+      }
     }
   });
   function blk(t,arr,cor){
@@ -3661,12 +3790,15 @@ function _relAlertas(aba,lista){
     +blk("🔵 Prestação continuada via TAC",g.tac,"#1e40af")
     +blk("🟠 Exigem aditivo / recomposição",g.recomp,"#9a3412")
     +blk("🟣 Aguardando contrato / assinatura",g.agu,"#6b21a8")
+    +blk("🔴 Contrato não admite prorrogação (leitura da IA)",g.acVedaProrr,"#991b1b")
+    +blk("🟠 Contrato não admite recomposição (leitura da IA)",g.acVedaRec,"#9a3412")
+    +blk("🟡 Contrato ainda não analisado pela IA",g.acSem,"#92400e")
     +blk("🟢 Atas de Registro de Preços",g.ata,"#166534")
     +blk("🟡 Sem data de vencimento informada",g.semVenc,"#92400e")
     +blk("🟡 Sem número de contrato informado",g.semContrato,"#92400e");
   if(!h)h='<div class="ok">Nenhum alerta identificado no conjunto filtrado.</div>';
   return '<div class="sec pb"><div class="sec-t">'+_relN()+'. Alertas</div>'+h
-    +'<div class="nota">A situação de prorrogação vem do campo <strong>Situação</strong> do cadastro. Quando esse campo está vazio, é derivada do status dos aditivos registrados — nunca do texto das observações.<br><strong>Contratos emergenciais</strong> são identificados pela presença do termo &ldquo;emergenc&hellip;&rdquo; no nome da licitação, no objeto ou nas observações — é uma leitura textual do cadastro, não uma classificação jurídica.<br><strong>Atas de Registro de Preços</strong> são listadas em bloco próprio: não possuem número de contrato nem vencimento de contrato, e sua vigência é lida do campo <em>Ata · Vigência até</em>.</div></div>';
+    +'<div class="nota">A situação de prorrogação vem do campo <strong>Situação</strong> do cadastro. Quando esse campo está vazio, é derivada do status dos aditivos registrados — nunca do texto das observações.<br><strong>Contratos emergenciais</strong> são identificados pela presença do termo &ldquo;emergenc&hellip;&rdquo; no nome da licitação, no objeto ou nas observações — é uma leitura textual do cadastro, não uma classificação jurídica.<br><strong>Atas de Registro de Preços</strong> são listadas em bloco próprio: não possuem número de contrato nem vencimento de contrato, e sua vigência é lida do campo <em>Ata · Vigência até</em>.<br><strong>A margem contratual</strong> (admite ou não recomposição, reajuste, prorrogação e acréscimo) vem da leitura do instrumento contratual por inteligência artificial, feita no card do contrato. É uma leitura das cláusulas do documento anexado — confira o contrato original antes de fundamentar pleito ou decisão. Contratos sem análise aparecem como margem desconhecida.</div></div>';
 }
 
 /* ---------- 11. INCONSISTÊNCIAS ---------- */
@@ -3858,6 +3990,31 @@ function _relDetalheCards(lista,opt){
     // observações (literal) — parte de "Observações e Aditivos"
     if(opt.obsadit!==false && obs) h+='<div class="c-obs"><div class="c-obs-lbl">Observa\u00e7\u00f5es</div>'+_relEsc(obs)+'</div>';
 
+    // Análise do contrato pela IA — o que o instrumento permite.
+    // Cores escuras porque o relatório vai para papel branco.
+    if(opt.analise){
+      var _ac=(typeof ANALISES_CONTRATO!=='undefined')?ANALISES_CONTRATO[String(arr[0]||'').trim()]:null;
+      var _v=_ac&&_ac.veredito;
+      if(_v){
+        var _sel=function(ok,lb,det){
+          var cor=ok?'#166534':'#991b1b', bg=ok?'#dcfce7':'#fee2e2';
+          return '<span style="display:inline-block;background:'+bg+';color:'+cor+';border:1px solid '+cor+'33;border-radius:3px;padding:2px 7px;font-size:8.5px;font-weight:700;margin:0 4px 3px 0;white-space:nowrap">'
+            +(ok?'SIM':'NÃO')+' · '+lb+(det?' ('+_relEsc(String(det).substring(0,24))+')':'')+'</span>';
+        };
+        h+='<div class="c-analise">'
+          +'<div class="c-analise-t">O que o contrato permite</div>'
+          +_sel(_v.permite_recomposicao,'Recomposição','')
+          +_sel(_v.permite_reajuste,'Reajuste',_v.indice_reajuste||'')
+          +_sel(_v.permite_prorrogacao,'Prorrogação',_v.limite_prorrogacao||'')
+          +_sel(_v.permite_acrescimo,'Acréscimo',_v.limite_acrescimo||'')
+          +(_v.resumo?'<div class="c-analise-r">'+_relEsc(_v.resumo)+'</div>':'')
+          +'<div class="c-analise-m">Leitura por IA em '+_relEsc(_ac.analisadoEm||'')+(_ac.arquivo?' · documento: '+_relEsc(_ac.arquivo):'')+'</div>'
+        +'</div>';
+      } else {
+        h+='<div class="c-analise c-analise-vazia">Contrato ainda não analisado pela IA — não há leitura das cláusulas de recomposição, reajuste ou prorrogação.</div>';
+      }
+    }
+
     // link (opcional)
     if(opt.link && link) h+='<div class="c-link"><strong>Pasta: </strong>'+_relEsc(link)+'</div>';
 
@@ -3906,7 +4063,7 @@ var PRINT_FIELD_DEFS={
     extras:[{key:"local",label:"Local Exec.",w:"7%",idx:5,fmt:"d",def:true},{key:"mun",label:"Município",w:"7%",idx:6,fmt:"s",def:true},{key:"status",label:"Status",w:"9%",idx:12,fmt:"s",def:true,st:true},{key:"adju",label:"ADJU",w:"7%",idx:16,fmt:"s",def:true},{key:"class",label:"Classificação",w:"10%",idx:11,fmt:"s",def:true},{key:"valorf",label:"Valor Final",w:"9%",idx:8,fmt:"r",def:true,tot:true}],
     dateIdx:1,vencIdx:-1},
   ganhas:{base:[[0,"#","4%","s"],[1,"Data","7%","s"],[2,"Empresa","8%","emp"],[3,"Licitação","16%","proc"],[4,"Objeto","18%","d"]],
-    extras:[{key:"local",label:"Local Exec.",w:"7%",idx:5,fmt:"d",def:true},{key:"mun",label:"Município",w:"7%",idx:6,fmt:"s",def:true},{key:"contrato",label:"Contrato",w:"9%",idx:8,fmt:"s",def:true},{key:"status",label:"Status",w:"8%",idx:9,fmt:"s",def:true,st:true},{key:"risco",label:"Risco",w:"7%",idx:-1,fmt:"risco",def:false},{key:"situacao",label:"Situação",w:"9%",idx:-1,fmt:"situacao",def:true},{key:"proxacao",label:"Próxima Ação",w:"9%",idx:49,fmt:"s",def:true},{key:"assin",label:"Assinatura",w:"8%",idx:11,fmt:"s",def:true},{key:"venc",label:"Vencimento",w:"8%",idx:12,fmt:"s",def:true},{key:"valor",label:"Valor Atual",w:"9%",idx:7,fmt:"valorg",def:true,tot:true},{key:"valorori",label:"Valor Original",w:"9%",idx:7,fmt:"r",def:false},{key:"link",label:"Link Pasta",w:"9%",idx:42,fmt:"s",def:false},{key:"obsadit",label:"Observações e Aditivos",w:"0%",idx:-1,fmt:"obsadit",def:true},{key:"incons",label:"Conferência de preenchimento (uso interno)",w:"0%",idx:-1,fmt:"incons",def:false}],
+    extras:[{key:"local",label:"Local Exec.",w:"7%",idx:5,fmt:"d",def:true},{key:"mun",label:"Município",w:"7%",idx:6,fmt:"s",def:true},{key:"contrato",label:"Contrato",w:"9%",idx:8,fmt:"s",def:true},{key:"status",label:"Status",w:"8%",idx:9,fmt:"s",def:true,st:true},{key:"risco",label:"Risco",w:"7%",idx:-1,fmt:"risco",def:false},{key:"situacao",label:"Situação",w:"9%",idx:-1,fmt:"situacao",def:true},{key:"proxacao",label:"Próxima Ação",w:"9%",idx:49,fmt:"s",def:true},{key:"assin",label:"Assinatura",w:"8%",idx:11,fmt:"s",def:true},{key:"venc",label:"Vencimento",w:"8%",idx:12,fmt:"s",def:true},{key:"valor",label:"Valor Atual",w:"9%",idx:7,fmt:"valorg",def:true,tot:true},{key:"valorori",label:"Valor Original",w:"9%",idx:7,fmt:"r",def:false},{key:"link",label:"Link Pasta",w:"9%",idx:42,fmt:"s",def:false},{key:"obsadit",label:"Observações e Aditivos",w:"0%",idx:-1,fmt:"obsadit",def:true},{key:"analise",label:"Análise do contrato pela IA (recomposição / prorrogação)",w:"0%",idx:-1,fmt:"analise",def:true},{key:"incons",label:"Conferência de preenchimento (uso interno)",w:"0%",idx:-1,fmt:"incons",def:false}],
     dateIdx:1,vencIdx:12},
   atestados:{base:[[0,"#","4%","s"],[1,"Data","7%","s"],[2,"Empresa","8%","emp"],[3,"Licitação","16%","s"],[4,"Objeto","18%","d"]],
     extras:[{key:"local",label:"Local Exec.",w:"7%",idx:5,fmt:"d",def:true},{key:"mun",label:"Município",w:"7%",idx:6,fmt:"s",def:true},{key:"contrato",label:"Contrato",w:"9%",idx:7,fmt:"s",def:true},{key:"req",label:"Req.",w:"7%",idx:10,fmt:"s",def:true},{key:"receb",label:"Recebido",w:"8%",idx:11,fmt:"s",def:true},{key:"vig",label:"Vigência",w:"8%",idx:9,fmt:"s",def:true},{key:"docs",label:"Documentos",w:"9%",idx:-1,fmt:"docs",def:true},{key:"emit",label:"Emitente",w:"8%",idx:13,fmt:"s",def:false},{key:"link",label:"Link Doc.",w:"8%",idx:20,fmt:"s",def:false}],
@@ -3937,7 +4094,7 @@ if(PRINT_FIELD_DEFS[e]){
   f=4;
 }
 t=_relOrdenar(e,t);var g=0,_prevEmpGrp=null;var b=t.map(function(a,t){var o=c(String(a[2]||"").trim()),i=p.build(a);if(f>=0){var n=("ganhas"===e?_relValor(a):parseMoeda(a[f]));n&&!isNaN(n)&&(g+=n)}var _grpHtml="";if(_agrupado){var _empAt=String(a[2]||"").trim()||"—";if(_empAt!==_prevEmpGrp){_prevEmpGrp=_empAt;_grpHtml='<tr class="grp-header"><td colspan="'+u+'" style="background:'+o+';color:#fff;font-weight:800;font-size:11px;padding:7px 10px;letter-spacing:.04em;text-transform:uppercase">'+_empAt+"</td></tr>"}}var _detHtml=("ganhas"===e&&_obsAditOn?_detGanhasLinha(a,fmtMoeda,u):"");var _isLastRowOfProc=!_detHtml;return _grpHtml+"<tr"+(t%2==1?' class="par'+(_isLastRowOfProc?" proc-end":"")+'"':(_isLastRowOfProc?' class="proc-end"':""))+(_detHtml?' style="page-break-after:avoid"':"")+">"+i.map(function(a,t){var _sc=t===_statusColIdx?_corStatus(a):null;var _cellVal=_sc?'<span style="display:inline-block;background:'+_sc.bg+";color:"+_sc.fg+';font-weight:700;border-radius:4px;padding:2px 7px">'+a+"</span>":a;var _fmt=_campos&&_campos[t]?_campos[t].fmt:null;var _isDesc="d"===_fmt;return'<td'+(_isDesc?' class="dcell"':"")+' style="'+(2===t?"color:"+o+";font-weight:700;":"")+(t===u-1&&""!==a&&!_isDesc?"font-weight:700;":"")+(_isDesc?"":"text-align:"+(t>=u-2&&"financeiro"!==e&&"atestados"!==e&&"valores"!==e?"right":"center"))+'">'+_cellVal+"</td>"}).join("")+"</tr>"+(_detHtml?_detHtml.replace('class="det-inline-row"','class="det-inline-row proc-end"'):"")}).join(""),h="";if(g>0){var y=g.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});h='<tr class="total-row">'+p.cols.slice(0,-1).map(function(e,a){return 0===a?'<td style="font-weight:700">TOTAL</td>':"<td></td>"}).join("")+'<td style="font-weight:700"><span style="display:table;width:100%"><span style="display:table-cell;text-align:left;opacity:.7;white-space:nowrap">R$</span><span style="display:table-cell;text-align:right">'+y+"</span></span></td></tr>"}var x={},xVal={},_abaAtual=e;t.forEach(function(e){var a=String(e[2]||"").trim()||"Outros";x[a]=(x[a]||0)+1;if(f>=0){var vv=("ganhas"===_abaAtual?_relValor(e):parseMoeda(e[f]));vv&&!isNaN(vv)&&(xVal[a]=(xVal[a]||0)+vv);}});_RELSEC=0;var _relCap=_relCapa(a,t,g,o,(EMP_FILTER[e]||""),("ganhas"===e?_relValores(t):null)),_relDash=_relDashboard(e,t,g,c),_relEmp=_relResumoEmpresa(e,t,c),_relAlt=_relAlertas(e,t),_relInc=(_inconsOn?_relInconsistencias(e,t):""),_relFim=_relResumoFinal(e,t),_relCri=_relCriterios(e);
-var E='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>NH Licitações — '+a+'</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,Helvetica,sans-serif;font-size:8.5pt;color:#1f2937;background:#fff;padding:20px 24px;text-rendering:geometricPrecision;font-synthesis:none;font-variant-ligatures:none;-webkit-print-color-adjust:exact;print-color-adjust:exact}body.print-retrato table{font-size:8px}body.print-retrato th{font-size:7.5px;padding:6px 3px}body.print-retrato td{padding:4px 4px;line-height:1.3}.hd{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #f97316;padding-bottom:10px;margin-bottom:12px}.hd-left h1{font-size:22px;color:#f97316;font-weight:900;letter-spacing:-0.5px}.hd-left .sub{font-size:10px;color:#6b7280;margin-top:3px}table{width:100%;border-collapse:collapse;font-size:10px}thead tr{background:#1f2937 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}th{color:#ffffff !important;padding:8px 6px;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:.07em;font-weight:700;border-right:2px solid #374151;background:#1f2937 !important}th:first-child{border-left:1px solid #1f2937}th:last-child{border-right:1px solid #1f2937}td{padding:8px 8px;border-bottom:1px solid #e2e5e9;vertical-align:middle;text-align:center;line-height:1.5;overflow-wrap:break-word;word-break:normal;border-right:1px solid #e2e5e9}td.dcell{text-align:left}td:first-child{border-left:1px solid #1f2937}td:last-child{border-right:1px solid #1f2937}tr.par{background:#f3f4f6 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.proc-end td{border-bottom:2.5px solid #6b7280 !important}.summary{margin-bottom:10px;padding:8px 10px;background:#f9fafb;border:1px solid #d1d5db;border-radius:6px}.det-inline-row{page-break-inside:avoid}.det-obs{font-size:11px;color:#1f2937;line-height:1.65;margin:2px 0 3px;text-align:left}.det-adit{font-size:10.5px;color:#4b5563;line-height:1.55;margin:3px 0;padding-left:0;text-align:left}.summary-title{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:5px;font-weight:700}.footer{margin-top:14px;font-size:9px;color:#6b7280;border-top:2px solid #e5e7eb;padding-top:8px;display:flex;justify-content:space-between}.total-row td{font-weight:700;background:#f0fdf4 !important;border-top:2px solid #16a34a;-webkit-print-color-adjust:exact;print-color-adjust:exact}@media print{body{padding:10px 14px;-webkit-print-color-adjust:exact;print-color-adjust:exact}@page{margin:1cm;size:A4 '+("portrait"===_orientacao?"portrait":"landscape")+'}thead{display:table-header-group}tr{page-break-inside:avoid}}.capa{border:2px solid #1f2937;border-radius:8px;padding:18px 20px;margin-bottom:16px;background:#fafafa}.capa-tag{display:inline-block;background:#f97316;color:#fff;font-size:8.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:3px 9px;border-radius:3px;margin-bottom:8px}.capa h1{font-size:17px;font-weight:900;color:#1f2937;line-height:1.25;margin-bottom:5px}.capa-sub{font-size:10.5px;color:#6b7280;font-weight:600;margin-bottom:12px}.capa-nota{font-size:8.5px;color:#6b7280;line-height:1.5;border-top:1px solid #e5e7eb;padding-top:7px;margin-top:4px}.kpi-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}.kpi{border:1px solid #d1d5db;border-radius:6px;padding:8px 10px;background:#fff;flex:1;min-width:120px}.kpi-lb{font-size:7.5px;color:#6b7280;font-weight:700;text-transform:uppercase;letter-spacing:.05em;line-height:1.3;margin-bottom:3px}.kpi-vl{font-size:13px;font-weight:800;line-height:1.15;word-break:break-word;overflow-wrap:anywhere}.kpi-sub{font-size:7px;color:#9ca3af;margin-top:2px;line-height:1.3}.sec{margin-bottom:16px}.pb{page-break-before:always}.sec-t{font-size:12.5px;font-weight:800;color:#1f2937;border-bottom:2px solid #f97316;padding-bottom:4px;margin-bottom:9px}.sec-st{font-size:9.5px;font-weight:800;color:#374151;text-transform:uppercase;letter-spacing:.06em;margin:10px 0 6px}.bars{border:1px solid #e5e7eb;border-radius:6px;padding:8px 10px}.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:4px}.bar-lb{width:90px;font-size:9px;font-weight:700;color:#374151;flex-shrink:0}.bar-tr{flex:1;height:9px;background:#f3f4f6;border-radius:5px;overflow:hidden}.bar-fl{height:100%;border-radius:5px}.bar-vl{width:160px;text-align:right;font-size:8.5px;font-weight:700;color:#6b7280;flex-shrink:0} table.mini{width:100%;border-collapse:collapse;margin-bottom:6px;font-size:9px} table.mini th{background:#1f2937;color:#fff;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:5px 6px;text-align:center} table.mini td{border:1px solid #d1d5db;padding:4px 6px;text-align:center;vertical-align:middle;line-height:1.4} table.mini tbody tr:nth-child(even){background:#f9fafb}.alerta{border:1px solid #e5e7eb;border-left:4px solid #6b7280;border-radius:5px;padding:7px 10px;margin-bottom:7px;page-break-inside:avoid}.alerta-t{font-size:9.5px;font-weight:800;margin-bottom:4px}.alerta ul{margin:0;padding-left:16px}.alerta li{font-size:8.8px;color:#374151;line-height:1.55}.ok{font-size:9.5px;color:#166534;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:5px;padding:7px 10px}.nota{font-size:8px;color:#6b7280;line-height:1.5;margin-top:5px;font-style:italic}.nota-ok{font-size:9px;color:#374151;background:#f9fafb;border:1px solid #e5e7eb;border-radius:5px;padding:6px 9px;margin-bottom:6px;line-height:1.55}.criterios{margin-top:14px;border:1px dashed #d1d5db;border-radius:6px;padding:9px 12px;background:#fafafa;page-break-inside:avoid}.criterios strong{font-size:9px;color:#1f2937;text-transform:uppercase;letter-spacing:.05em}.criterios ul{margin:5px 0 0;padding-left:16px}.criterios li{font-size:8.2px;color:#4b5563;line-height:1.55;margin-bottom:2px}.contrato{border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-bottom:12px;page-break-inside:avoid;background:#fff}.c-titulo{font-size:12.5px;font-weight:800;color:#1f2937}.emp-tag{display:inline-block;font-size:8.5px;font-weight:800;padding:2px 7px;border-radius:4px;margin-right:8px;text-transform:uppercase;letter-spacing:.04em;vertical-align:middle}.badge-status{font-size:9px;font-weight:800;padding:3px 10px;border-radius:20px;white-space:nowrap;text-transform:uppercase;letter-spacing:.03em}.badge-status.b-exec{background:#dcfce7;color:#166534}.badge-status.b-fin{background:#dbeafe;color:#1e40af}.badge-status.b-sus{background:#fef3c7;color:#92400e}.badge-status.b-venc{background:#fee2e2;color:#991b1b}.venc-alert{display:inline-block;background:#fef9c3;color:#854d0e;font-size:10px;font-weight:700;padding:3px 9px;border-radius:5px;margin-bottom:8px}.venc-alert.venc-prox{background:#fef9c3;color:#854d0e}.c-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 14px;margin-bottom:10px}.c-field{display:flex;flex-direction:column;gap:2px}.c-lbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}.c-val{font-size:11px;color:#374151;line-height:1.4}.c-objeto{font-size:10px;color:#6b7280;margin-bottom:8px;line-height:1.55;padding:7px 9px;background:#f9fafb;border-radius:5px}.c-objeto strong{color:#374151}.c-obs{margin-top:8px;padding:8px 10px;background:#f9fafb;border-radius:5px}.c-obs-lbl{font-size:9px;font-weight:800;color:#374151;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}.c-link{margin-top:6px;font-size:9px;color:#374151;word-break:break-all}.recomp-wrap{margin-top:8px}.recomp-wrap-t{font-size:9px;font-weight:800;color:#f97316;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}.recomp-item{border:1px solid #e5e7eb;border-left:3px solid #f97316;border-radius:6px;padding:8px 10px;margin-bottom:6px;background:#fffbf5}.recomp-item-t{font-size:9px;font-weight:800;color:#f97316;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}.rc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.rc-lbl{font-size:8px;color:#9ca3af;font-weight:700;text-transform:uppercase}.rc-val{font-size:10px;color:#374151}.badge-risco{font-size:9px;font-weight:800;padding:3px 8px;border-radius:20px;white-space:nowrap}.c-conf{margin-top:8px;padding:8px 10px;background:#fff7ed;border:1px solid #fed7aa;border-radius:5px}.c-conf-t{font-size:9px;font-weight:800;color:#9a3412;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}.c-conf div{font-size:10px;color:#7c2d12;line-height:1.5}.badge{display:inline-block;font-weight:700;border-radius:4px;padding:2px 6px;white-space:nowrap;font-size:9px}.det-t{font-size:12.5px;font-weight:800;color:#1f2937;border-bottom:2px solid #f97316;padding-bottom:4px;margin:0 0 12px}.capa-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.kpi .na{font-size:9.5px;font-weight:600;font-style:italic;color:#9ca3af}.criterios em{font-family:monospace;font-style:normal}</style></head><body class="'+("portrait"===_orientacao?"print-retrato":"")+'"><div class="hd"><div class="hd-left"><h1>NH Licitações</h1><div class="sub">'+a+i+" &nbsp;·&nbsp; "+n+" registro(s) &nbsp;·&nbsp; Gerado em: "+o+'</div></div><div style="text-align:right;font-size:12px;font-weight:700;color:#374151">'+o+'</div></div>'+_relCap+_relDash+_relEmp+'<div class="sec"><div class="sec-t">'+_relN()+'. Detalhamento dos Registros</div>'+("ganhas"===e?_relDetalheCards(t,(function(){var _o={},_on=function(k){return _extrasAtivos.some(function(x){return k===x.key;});};["local","mun","contrato","status","risco","situacao","proxacao","assin","venc","valor","valorori","link"].forEach(function(k){_o[k]=_on(k);});_o.obsadit=_obsAditOn;_o.incons=_inconsOn;return _o;})()):("<table><thead><tr>"+v+"</tr></thead><tbody>"+b+h+"</tbody></table>"))+'</div>'+_relAlt+_relInc+_relFim+_relCri+'<div class="footer"><span>NH Gestão · Relatório gerado automaticamente</span><span>Total: '+n+" registro(s)"+(g>0?" · Valor total: R$ "+g.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2}):"")+"</span></div></body></html>",S=window.open("","_blank");S.document.write(E),S.document.close(),setTimeout(function(){S.print()},600)}function toggleRecomp(e){var a=document.getElementById(e),t=document.getElementById("rc-icon-"+e);if(a){var o="none"===a.style.display||""===a.style.display;a.style.display=o?"grid":"none",t&&(t.style.transform=o?"rotate(180deg)":"rotate(0deg)")}}function calcVencRecomp(e){var a=document.getElementById("g-novadata"+e),t=document.getElementById("g-vigrecomp"+e),o=document.getElementById("g-vencrecomp"+e);if(a&&t&&o){var i=a.value,n=parseInt(t.value)||0;if(i&&n){var r=new Date(i);r.setMonth(r.getMonth()+n);var s=r.getFullYear(),d=String(r.getMonth()+1).padStart(2,"0"),l=String(r.getDate()).padStart(2,"0");o.value=s+"-"+d+"-"+l}else o.value=""}}function showRecomp(e){for(var a=1;a<=4;a++){var t=document.getElementById("rpanel-"+a),o=document.getElementById("rtab-"+a);t&&(t.style.display=a===e?"":"none"),o&&(a===e?(o.style.background="rgba(249,115,22,.15)",o.style.color="var(--nh)",o.style.borderColor="rgba(249,115,22,.3)"):(o.style.background="var(--s2)",o.style.color="var(--t2)",o.style.borderColor="var(--b1)"))}}function kfieldLink(e,a,t,o,i){var n=String(a||"").trim(),r="lnk-icon-"+o+"-"+i+"-"+t,iid="lnk-"+o+"-"+i+"-"+t,wid="lnkwrap-"+o+"-"+i+"-"+t;return'<div class="kfield"><div class="kfield-lbl" style="display:flex;align-items:center;gap:4px">'+e+(n?'<a id="'+r+'" href="'+n+'" target="_blank" class="klink" title="Abrir pasta" style="width:24px;height:24px;font-size:12px;margin-left:6px;flex-shrink:0">&#8599;</a><span onclick="toggleLinkEdit(\''+wid+'\')" title="Editar link" style="color:var(--t3);font-size:10px;cursor:pointer;margin-left:6px;text-decoration:underline;flex-shrink:0">editar</span>':'<span id="'+r+'"></span>')+'</div><div id="'+wid+'" style="'+(n?"display:none":"")+'"><input type="text" id="'+iid+'" data-val="'+encodeURIComponent(n)+'" placeholder="Cole o link aqui..." onblur="saveCell(\''+o+"',"+i+","+t+",this.value);updateLinkIcon('"+r+'\',this.value)" style="background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.1);color:var(--t3);font-family:Outfit,sans-serif;font-size:11px;width:100%;outline:none;padding:3px 0"></div></div>'}function updateLinkIcon(e,a){var t=document.getElementById(e);if(t){var o=String(a||"").trim();t.outerHTML=o?'<a id="'+e+'" href="'+o+'" target="_blank" class="klink" title="Abrir pasta" style="width:24px;height:24px;font-size:12px;margin-left:6px;flex-shrink:0">&#8599;</a>':'<span id="'+e+'"></span>'}}function toggleLinkEdit(id){var w=document.getElementById(id);if(w){var hidden="none"===w.style.display;w.style.display=hidden?"":"none";if(hidden){var inp=w.querySelector("input");inp&&inp.focus()}}}
+var E='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>NH Licitações — '+a+'</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,Helvetica,sans-serif;font-size:8.5pt;color:#1f2937;background:#fff;padding:20px 24px;text-rendering:geometricPrecision;font-synthesis:none;font-variant-ligatures:none;-webkit-print-color-adjust:exact;print-color-adjust:exact}body.print-retrato table{font-size:8px}body.print-retrato th{font-size:7.5px;padding:6px 3px}body.print-retrato td{padding:4px 4px;line-height:1.3}.hd{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #f97316;padding-bottom:10px;margin-bottom:12px}.hd-left h1{font-size:22px;color:#f97316;font-weight:900;letter-spacing:-0.5px}.hd-left .sub{font-size:10px;color:#6b7280;margin-top:3px}table{width:100%;border-collapse:collapse;font-size:10px}thead tr{background:#1f2937 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}th{color:#ffffff !important;padding:8px 6px;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:.07em;font-weight:700;border-right:2px solid #374151;background:#1f2937 !important}th:first-child{border-left:1px solid #1f2937}th:last-child{border-right:1px solid #1f2937}td{padding:8px 8px;border-bottom:1px solid #e2e5e9;vertical-align:middle;text-align:center;line-height:1.5;overflow-wrap:break-word;word-break:normal;border-right:1px solid #e2e5e9}td.dcell{text-align:left}td:first-child{border-left:1px solid #1f2937}td:last-child{border-right:1px solid #1f2937}tr.par{background:#f3f4f6 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.proc-end td{border-bottom:2.5px solid #6b7280 !important}.summary{margin-bottom:10px;padding:8px 10px;background:#f9fafb;border:1px solid #d1d5db;border-radius:6px}.det-inline-row{page-break-inside:avoid}.det-obs{font-size:11px;color:#1f2937;line-height:1.65;margin:2px 0 3px;text-align:left}.det-adit{font-size:10.5px;color:#4b5563;line-height:1.55;margin:3px 0;padding-left:0;text-align:left}.summary-title{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:5px;font-weight:700}.footer{margin-top:14px;font-size:9px;color:#6b7280;border-top:2px solid #e5e7eb;padding-top:8px;display:flex;justify-content:space-between}.total-row td{font-weight:700;background:#f0fdf4 !important;border-top:2px solid #16a34a;-webkit-print-color-adjust:exact;print-color-adjust:exact}@media print{body{padding:10px 14px;-webkit-print-color-adjust:exact;print-color-adjust:exact}@page{margin:1cm;size:A4 '+("portrait"===_orientacao?"portrait":"landscape")+'}thead{display:table-header-group}tr{page-break-inside:avoid}}.capa{border:2px solid #1f2937;border-radius:8px;padding:18px 20px;margin-bottom:16px;background:#fafafa}.capa-tag{display:inline-block;background:#f97316;color:#fff;font-size:8.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:3px 9px;border-radius:3px;margin-bottom:8px}.capa h1{font-size:17px;font-weight:900;color:#1f2937;line-height:1.25;margin-bottom:5px}.capa-sub{font-size:10.5px;color:#6b7280;font-weight:600;margin-bottom:12px}.capa-nota{font-size:8.5px;color:#6b7280;line-height:1.5;border-top:1px solid #e5e7eb;padding-top:7px;margin-top:4px}.kpi-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}.kpi{border:1px solid #d1d5db;border-radius:6px;padding:8px 10px;background:#fff;flex:1;min-width:120px}.kpi-lb{font-size:7.5px;color:#6b7280;font-weight:700;text-transform:uppercase;letter-spacing:.05em;line-height:1.3;margin-bottom:3px}.kpi-vl{font-size:13px;font-weight:800;line-height:1.15;word-break:break-word;overflow-wrap:anywhere}.kpi-sub{font-size:7px;color:#9ca3af;margin-top:2px;line-height:1.3}.sec{margin-bottom:16px}.pb{page-break-before:always}.sec-t{font-size:12.5px;font-weight:800;color:#1f2937;border-bottom:2px solid #f97316;padding-bottom:4px;margin-bottom:9px}.sec-st{font-size:9.5px;font-weight:800;color:#374151;text-transform:uppercase;letter-spacing:.06em;margin:10px 0 6px}.bars{border:1px solid #e5e7eb;border-radius:6px;padding:8px 10px}.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:4px}.bar-lb{width:90px;font-size:9px;font-weight:700;color:#374151;flex-shrink:0}.bar-tr{flex:1;height:9px;background:#f3f4f6;border-radius:5px;overflow:hidden}.bar-fl{height:100%;border-radius:5px}.bar-vl{width:160px;text-align:right;font-size:8.5px;font-weight:700;color:#6b7280;flex-shrink:0} table.mini{width:100%;border-collapse:collapse;margin-bottom:6px;font-size:9px} table.mini th{background:#1f2937;color:#fff;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:5px 6px;text-align:center} table.mini td{border:1px solid #d1d5db;padding:4px 6px;text-align:center;vertical-align:middle;line-height:1.4} table.mini tbody tr:nth-child(even){background:#f9fafb}.alerta{border:1px solid #e5e7eb;border-left:4px solid #6b7280;border-radius:5px;padding:7px 10px;margin-bottom:7px;page-break-inside:avoid}.alerta-t{font-size:9.5px;font-weight:800;margin-bottom:4px}.alerta ul{margin:0;padding-left:16px}.alerta li{font-size:8.8px;color:#374151;line-height:1.55}.ok{font-size:9.5px;color:#166534;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:5px;padding:7px 10px}.nota{font-size:8px;color:#6b7280;line-height:1.5;margin-top:5px;font-style:italic}.nota-ok{font-size:9px;color:#374151;background:#f9fafb;border:1px solid #e5e7eb;border-radius:5px;padding:6px 9px;margin-bottom:6px;line-height:1.55}.criterios{margin-top:14px;border:1px dashed #d1d5db;border-radius:6px;padding:9px 12px;background:#fafafa;page-break-inside:avoid}.criterios strong{font-size:9px;color:#1f2937;text-transform:uppercase;letter-spacing:.05em}.criterios ul{margin:5px 0 0;padding-left:16px}.criterios li{font-size:8.2px;color:#4b5563;line-height:1.55;margin-bottom:2px}.contrato{border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-bottom:12px;page-break-inside:avoid;background:#fff}.c-titulo{font-size:12.5px;font-weight:800;color:#1f2937}.emp-tag{display:inline-block;font-size:8.5px;font-weight:800;padding:2px 7px;border-radius:4px;margin-right:8px;text-transform:uppercase;letter-spacing:.04em;vertical-align:middle}.badge-status{font-size:9px;font-weight:800;padding:3px 10px;border-radius:20px;white-space:nowrap;text-transform:uppercase;letter-spacing:.03em}.badge-status.b-exec{background:#dcfce7;color:#166534}.badge-status.b-fin{background:#dbeafe;color:#1e40af}.badge-status.b-sus{background:#fef3c7;color:#92400e}.badge-status.b-venc{background:#fee2e2;color:#991b1b}.venc-alert{display:inline-block;background:#fef9c3;color:#854d0e;font-size:10px;font-weight:700;padding:3px 9px;border-radius:5px;margin-bottom:8px}.venc-alert.venc-prox{background:#fef9c3;color:#854d0e}.c-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 14px;margin-bottom:10px}.c-field{display:flex;flex-direction:column;gap:2px}.c-lbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}.c-val{font-size:11px;color:#374151;line-height:1.4}.c-objeto{font-size:10px;color:#6b7280;margin-bottom:8px;line-height:1.55;padding:7px 9px;background:#f9fafb;border-radius:5px}.c-objeto strong{color:#374151}.c-obs{margin-top:8px;padding:8px 10px;background:#f9fafb;border-radius:5px}.c-obs-lbl{font-size:9px;font-weight:800;color:#374151;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}.c-link{margin-top:6px;font-size:9px;color:#374151;word-break:break-all}.c-analise{margin-top:8px;padding:8px 10px;background:#fff;border:1px solid #d1d5db;border-left:3px solid #1f2937;border-radius:4px;page-break-inside:avoid}.c-analise-t{font-size:9px;font-weight:800;color:#1f2937;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}.c-analise-r{font-size:9.5px;color:#374151;line-height:1.55;margin-top:5px}.c-analise-m{font-size:8px;color:#6b7280;margin-top:4px;font-style:italic}.c-analise-vazia{font-size:9px;color:#6b7280;font-style:italic;border-left-color:#d1d5db}.recomp-wrap{margin-top:8px}.recomp-wrap-t{font-size:9px;font-weight:800;color:#f97316;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}.recomp-item{border:1px solid #e5e7eb;border-left:3px solid #f97316;border-radius:6px;padding:8px 10px;margin-bottom:6px;background:#fffbf5}.recomp-item-t{font-size:9px;font-weight:800;color:#f97316;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}.rc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.rc-lbl{font-size:8px;color:#9ca3af;font-weight:700;text-transform:uppercase}.rc-val{font-size:10px;color:#374151}.badge-risco{font-size:9px;font-weight:800;padding:3px 8px;border-radius:20px;white-space:nowrap}.c-conf{margin-top:8px;padding:8px 10px;background:#fff7ed;border:1px solid #fed7aa;border-radius:5px}.c-conf-t{font-size:9px;font-weight:800;color:#9a3412;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}.c-conf div{font-size:10px;color:#7c2d12;line-height:1.5}.badge{display:inline-block;font-weight:700;border-radius:4px;padding:2px 6px;white-space:nowrap;font-size:9px}.det-t{font-size:12.5px;font-weight:800;color:#1f2937;border-bottom:2px solid #f97316;padding-bottom:4px;margin:0 0 12px}.capa-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.kpi .na{font-size:9.5px;font-weight:600;font-style:italic;color:#9ca3af}.criterios em{font-family:monospace;font-style:normal}</style></head><body class="'+("portrait"===_orientacao?"print-retrato":"")+'"><div class="hd"><div class="hd-left"><h1>NH Licitações</h1><div class="sub">'+a+i+" &nbsp;·&nbsp; "+n+" registro(s) &nbsp;·&nbsp; Gerado em: "+o+'</div></div><div style="text-align:right;font-size:12px;font-weight:700;color:#374151">'+o+'</div></div>'+_relCap+_relDash+_relEmp+'<div class="sec"><div class="sec-t">'+_relN()+'. Detalhamento dos Registros</div>'+("ganhas"===e?_relDetalheCards(t,(function(){var _o={},_on=function(k){return _extrasAtivos.some(function(x){return k===x.key;});};["local","mun","contrato","status","risco","situacao","proxacao","assin","venc","valor","valorori","link","analise"].forEach(function(k){_o[k]=_on(k);});_o.obsadit=_obsAditOn;_o.incons=_inconsOn;return _o;})()):("<table><thead><tr>"+v+"</tr></thead><tbody>"+b+h+"</tbody></table>"))+'</div>'+_relAlt+_relInc+_relFim+_relCri+'<div class="footer"><span>NH Gestão · Relatório gerado automaticamente</span><span>Total: '+n+" registro(s)"+(g>0?" · Valor total: R$ "+g.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2}):"")+"</span></div></body></html>",S=window.open("","_blank");S.document.write(E),S.document.close(),setTimeout(function(){S.print()},600)}function toggleRecomp(e){var a=document.getElementById(e),t=document.getElementById("rc-icon-"+e);if(a){var o="none"===a.style.display||""===a.style.display;a.style.display=o?"grid":"none",t&&(t.style.transform=o?"rotate(180deg)":"rotate(0deg)")}}function calcVencRecomp(e){var a=document.getElementById("g-novadata"+e),t=document.getElementById("g-vigrecomp"+e),o=document.getElementById("g-vencrecomp"+e);if(a&&t&&o){var i=a.value,n=parseInt(t.value)||0;if(i&&n){var r=new Date(i);r.setMonth(r.getMonth()+n);var s=r.getFullYear(),d=String(r.getMonth()+1).padStart(2,"0"),l=String(r.getDate()).padStart(2,"0");o.value=s+"-"+d+"-"+l}else o.value=""}}function showRecomp(e){for(var a=1;a<=4;a++){var t=document.getElementById("rpanel-"+a),o=document.getElementById("rtab-"+a);t&&(t.style.display=a===e?"":"none"),o&&(a===e?(o.style.background="rgba(249,115,22,.15)",o.style.color="var(--nh)",o.style.borderColor="rgba(249,115,22,.3)"):(o.style.background="var(--s2)",o.style.color="var(--t2)",o.style.borderColor="var(--b1)"))}}function kfieldLink(e,a,t,o,i){var n=String(a||"").trim(),r="lnk-icon-"+o+"-"+i+"-"+t,iid="lnk-"+o+"-"+i+"-"+t,wid="lnkwrap-"+o+"-"+i+"-"+t;return'<div class="kfield"><div class="kfield-lbl" style="display:flex;align-items:center;gap:4px">'+e+(n?'<a id="'+r+'" href="'+n+'" target="_blank" class="klink" title="Abrir pasta" style="width:24px;height:24px;font-size:12px;margin-left:6px;flex-shrink:0">&#8599;</a><span onclick="toggleLinkEdit(\''+wid+'\')" title="Editar link" style="color:var(--t3);font-size:10px;cursor:pointer;margin-left:6px;text-decoration:underline;flex-shrink:0">editar</span>':'<span id="'+r+'"></span>')+'</div><div id="'+wid+'" style="'+(n?"display:none":"")+'"><input type="text" id="'+iid+'" data-val="'+encodeURIComponent(n)+'" placeholder="Cole o link aqui..." onblur="saveCell(\''+o+"',"+i+","+t+",this.value);updateLinkIcon('"+r+'\',this.value)" style="background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.1);color:var(--t3);font-family:Outfit,sans-serif;font-size:11px;width:100%;outline:none;padding:3px 0"></div></div>'}function updateLinkIcon(e,a){var t=document.getElementById(e);if(t){var o=String(a||"").trim();t.outerHTML=o?'<a id="'+e+'" href="'+o+'" target="_blank" class="klink" title="Abrir pasta" style="width:24px;height:24px;font-size:12px;margin-left:6px;flex-shrink:0">&#8599;</a>':'<span id="'+e+'"></span>'}}function toggleLinkEdit(id){var w=document.getElementById(id);if(w){var hidden="none"===w.style.display;w.style.display=hidden?"":"none";if(hidden){var inp=w.querySelector("input");inp&&inp.focus()}}}
 function renderValoresGrid(){var g=document.getElementById("valores-grid");if(!g)return;var html=EMPRESAS.map(function(emp){var nome=emp.nome,cor=emp.cor||"#94a3b8",qtd=(ALL.valores||[]).filter(function(r){return String(r[2]||"").trim()===nome}).length;return '<div class="valores-emp-card" onclick="abrirEmpresaValores(\''+nome.replace(/'/g,"\\'")+'\')" style="border-color:'+cor+'45;background:linear-gradient(135deg,'+cor+'18,transparent)"><div style="font-size:26px;font-weight:800;color:'+cor+'">'+nome+'</div><div style="font-size:14px;color:var(--t3);margin-top:10px">'+qtd+' item'+(1===qtd?'':'s')+' registrado'+(1===qtd?'':'s')+'</div></div>'}).join("");g.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px">'+html+"</div>"}
 function abrirEmpresaValores(nome){VALORES_EMP_ATUAL=nome;var g=document.getElementById("valores-grid"),d=document.getElementById("valores-detail");g&&(g.style.display="none"),d&&(d.style.display="block");var t=document.getElementById("valores-detail-titulo");t&&(t.textContent=nome);FIL.valores=(ALL.valores||[]).filter(function(r){return String(r[2]||"").trim()===nome});renderStats("valores",FIL.valores);renderTbl("valores")}
 function voltarValoresGrid(){VALORES_EMP_ATUAL=null;var g=document.getElementById("valores-grid"),d=document.getElementById("valores-detail");d&&(d.style.display="none"),g&&(g.style.display="block");renderValoresGrid()}
@@ -9577,7 +9734,8 @@ async function nhAcAnalisar(){
 
     var prompt='Você é advogado especialista em contratos administrativos brasileiros (Lei 14.133/2021 e Lei 8.666/93). '
       +'Analise o CONTRATO anexado e identifique EXCLUSIVAMENTE o que o próprio instrumento prevê. '
-      +'Não invente cláusulas: se algo não constar, marque como não previsto.\n\n'
+      +'Não invente cláusulas: se algo não constar, marque como não previsto.\n'
+      +'REGRA DE FORMATO: os campos "indice_reajuste", "periodicidade_reajuste", "limite_prorrogacao" e "limite_acrescimo" são ETIQUETAS CURTAS de no máximo 4 palavras (ex.: "IPCA", "anual", "até 60 meses", "25%"). Se o contrato não definir, deixe "". A explicação completa vai no texto da análise, nunca nesses campos. O campo "resumo" tem no máximo 30 palavras.\n\n'
       +'COMECE a resposta com este bloco (JSON válido em uma linha):\n'
       +'<VEREDITO>{"permite_recomposicao":true|false,"permite_reajuste":true|false,"permite_prorrogacao":true|false,"permite_acrescimo":true|false,'
       +'"indice_reajuste":"","periodicidade_reajuste":"","limite_prorrogacao":"","limite_acrescimo":"",'
@@ -9656,7 +9814,25 @@ function nhVerAnaliseContrato(idx){
 </script>
 
 <script>
-/* Campo do veredito no card de contrato + botão de análise */
+/* Botão da análise na barra de ações (ao lado de "Parecer") e o
+   veredito COMPACTO dentro do corpo do card — só aparece quando o
+   card está aberto, para não poluir a lista recolhida. */
+function _acTrunc(s,n){
+  s=String(s||'').trim();
+  if(!s)return '';
+  return s.length>n?s.substring(0,n-1).replace(/[\s,;.]+$/,'')+'…':s;
+}
+
+/* Insere um trecho DENTRO do .kcard-body (o card fecha com dois
+   </div>: o do corpo e o do card; precisamos do penúltimo). */
+function _acInserirNoCorpo(html,trecho){
+  var ultimo=html.lastIndexOf('</div>');
+  if(ultimo<0)return html+trecho;
+  var penultimo=html.lastIndexOf('</div>',ultimo-1);
+  if(penultimo<0)return html.substring(0,ultimo)+trecho+html.substring(ultimo);
+  return html.substring(0,penultimo)+trecho+html.substring(penultimo);
+}
+
 if(typeof renderCard==='function'){
   var _acRenderCard=renderCard;
   renderCard=function(e,a,t){
@@ -9666,36 +9842,49 @@ if(typeof renderCard==='function'){
         var id=String(a[0]||'').trim();
         var reg=ANALISES_CONTRATO[id];
         var v=reg&&reg.veredito;
+
+        /* 1) Botão na barra de ações, antes do "Parecer" (ou antes do excluir) */
+        var temAnalise=!!v;
+        var btn='<button title="'+(temAnalise?'Ver análise do contrato (IA)':'Analisar o contrato com IA — recomposição, reajuste, prorrogação')+'" '
+          +'onclick="event.stopPropagation();'+(temAnalise?'nhVerAnaliseContrato('+t+')':'nhAbrirAnaliseContrato('+t+')')+'" '
+          +'class="kbtn-ac'+(temAnalise?' on':'')+'">🤖 Contrato</button> ';
+        var marcaParecer='<button data-idx="'+t+'" title="Gerar parecer de encerramento (PDF)"';
+        if(html.indexOf(marcaParecer)>=0){
+          html=html.replace(marcaParecer, btn+marcaParecer);
+        } else {
+          var marcaDel='<button class="btn-del" onclick="event.stopPropagation();doDel(\'ganhas\','+t+')"';
+          if(html.indexOf(marcaDel)>=0)html=html.replace(marcaDel, btn+marcaDel);
+        }
+
+        /* 2) Veredito compacto dentro do corpo (oculto com o card recolhido) */
         var bloco='';
         if(v){
           var chip=function(ok,lb,extra){
             var c=ok?'#22c55e':'#ef4444';
-            return '<span style="display:inline-flex;align-items:center;gap:3px;background:'+(ok?'rgba(34,197,94,.1)':'rgba(239,68,68,.1)')
-              +';border:1px solid '+c+'55;color:'+c+';border-radius:5px;padding:2px 7px;font-size:10px;font-weight:700">'
-              +(ok?'✅':'❌')+' '+lb+(extra?' '+extra:'')+'</span>';
+            return '<span class="ac-chip" style="background:'+(ok?'rgba(34,197,94,.1)':'rgba(239,68,68,.09)')
+              +';border-color:'+c+'55;color:'+c+'">'+(ok?'✓':'✕')+' '+lb
+              +(extra?'<i>'+_acTrunc(extra,26)+'</i>':'')+'</span>';
           };
-          bloco='<div class="kfield kfield-diario" onclick="event.stopPropagation()">'
+          bloco='<div class="kfield kfield-diario ac-box" onclick="event.stopPropagation()">'
             +'<div class="kfield-lbl">O que o contrato permite'
-              +' <span onclick="nhVerAnaliseContrato('+t+')" style="cursor:pointer;color:var(--nh);font-size:10px;font-weight:700;margin-left:6px">ver análise</span>'
-              +' <span onclick="nhAbrirAnaliseContrato('+t+')" style="cursor:pointer;color:var(--t3);font-size:10px;font-weight:700;margin-left:4px">reanalisar</span>'
+              +'<span class="ac-lnk" onclick="nhVerAnaliseContrato('+t+')">ver análise</span>'
+              +'<span class="ac-lnk ac-lnk-sec" onclick="nhAbrirAnaliseContrato('+t+')">reanalisar</span>'
             +'</div>'
-            +'<div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center">'
-              +chip(v.permite_recomposicao,'Recomposição')
+            +'<div class="ac-chips">'
+              +chip(v.permite_recomposicao,'Recomposição','')
               +chip(v.permite_reajuste,'Reajuste',v.indice_reajuste||'')
               +chip(v.permite_prorrogacao,'Prorrogação',v.limite_prorrogacao||'')
               +chip(v.permite_acrescimo,'Acréscimo',v.limite_acrescimo||'')
             +'</div>'
-            +(v.resumo?'<div style="font-size:11.5px;color:var(--t2);line-height:1.55;margin-top:4px">'+v.resumo+'</div>':'')
-            +'<div style="font-size:9.5px;color:var(--t3);margin-top:2px">Análise IA em '+(reg.analisadoEm||'')+'</div>'
+            +(v.resumo?'<div class="ac-resumo">'+_acTrunc(v.resumo,240)+'</div>':'')
+            +'<div class="ac-meta">Análise IA em '+(reg.analisadoEm||'')+(reg.arquivo?' · '+_acTrunc(reg.arquivo,34):'')+'</div>'
           +'</div>';
         } else {
           bloco='<div class="kfield kfield-diario" onclick="event.stopPropagation()">'
-            +'<div class="nh-ana-chip" onclick="nhAbrirAnaliseContrato('+t+')" title="A IA lê o contrato da pasta e identifica o que ele permite" '
-            +'style="display:inline-flex;align-items:center;gap:5px;background:var(--nha2);border:1px dashed var(--nh);color:var(--nh);border-radius:7px;padding:4px 10px;font-size:10.5px;font-weight:700;cursor:pointer">'
-            +'🤖 Analisar contrato (recomposição / prorrogação)</div></div>';
+            +'<div class="ac-cta" onclick="nhAbrirAnaliseContrato('+t+')" title="A IA lê o contrato da pasta e identifica o que ele permite">'
+            +'🤖 Analisar contrato <i>recomposição · reajuste · prorrogação</i></div></div>';
         }
-        var pos=html.lastIndexOf('</div>');
-        if(pos>0)html=html.substring(0,pos)+bloco+html.substring(pos);
+        html=_acInserirNoCorpo(html,bloco);
       }
     }catch(_e){console.error('ac card',_e);}
     return html;
