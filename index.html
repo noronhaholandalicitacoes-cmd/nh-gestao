@@ -2725,7 +2725,7 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
     <div class="fg"><label>Responsável</label><select id="e-resp"><option value="">-</option><option>ANTUNES</option><option>NORONHA</option></select></div>
     <div class="fg"><label>Participar?</label><select id="e-part"><option value="">-</option><option>SIM</option><option>NÃO</option><option>EM ANÁLISE</option></select></div>
     <div class="fg"><label>Viabilidade</label><select id="e-viab"><option value="">-</option><option>POSITIVO</option><option>NEGATIVO</option><option>PENDENTE</option></select></div>
-    <div class="fg fc"><label>Justificativa</label><textarea id="e-just" placeholder="Motivo da decisão..."></textarea></div>
+    <div class="fg fc"><label>Justificativa <span style="font-weight:400;color:var(--t3);font-size:10px">— para registrar com data, use o campo no card</span></label><textarea id="e-just" placeholder="Motivo da decisão..."></textarea></div>
     <div class="fg fc"><label>Link do Edital</label><div class="linkfield"><div class="lf-display"></div><input type="url" id="e-link" placeholder="https://..." onblur="lfBlur('e-link')"></div></div><div class="fg fc"><label>Link da Pasta (documentação completa do processo)</label><div class="linkfield"><div class="lf-display"></div><input type="url" id="e-pasta" placeholder="https://drive.google.com/drive/folders/..." onblur="lfBlur('e-pasta')"></div></div>
   </div></div>
   <div class="mft"><button class="btn btn-ghost" onclick="closeM('editais')">Cancelar</button><button class="btn btn-nh" onclick="doSave('editais')" id="sb-editais"> Salvar</button></div>
@@ -2752,7 +2752,7 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
     <div class="fg"><label>Status</label><select id="a-status"><option value="">-</option><option>EM DISPUTA</option><option>AGUARDANDO</option><option>RECURSO</option><option>ADJUDICADO</option><option>CANCELADO</option></select></div>
     <div class="fg"><label>Reabertura</label><input type="date" id="a-reab"></div>
     <div class="fg"><label>Recurso</label><select id="a-rec"><option value="">-</option><option>sim</option><option>não</option></select></div>
-    <div class="fg fc"><label>Resumo do Andamento</label><textarea id="a-resumo"></textarea></div>
+    <div class="fg fc"><label>Resumo do Andamento <span style="font-weight:400;color:var(--t3);font-size:10px">— para registrar com data, use o campo no card</span></label><textarea id="a-resumo"></textarea></div>
     <div class="fsec">Resultado ⚡</div>
     <div class="fg" style="border:1px solid rgba(249,115,22,.2);border-radius:8px;padding:10px;background:var(--nha2)">
       <label style="color:var(--nh)">ADJU — sim copia para Finalizados automaticamente</label>
@@ -2839,7 +2839,7 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
       <div class="fg"><label>Valor Final</label><input type="text" id="g-vfin4" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
     </div>
     <div class="fg fc" style="margin-top:12px"><label>Próxima Ação</label><select id="g-proxacao"><option value=""></option><option>Solicitar prorrogação</option><option>Solicitar reajuste</option><option>Solicitar recomposição</option><option>Recomposição solicitada</option><option>Aguardar assinatura</option><option>Acompanhar execução</option><option>Acompanhar publicação</option><option>Arquivar</option><option>Sem providências</option></select></div>
-    <div class="fg fc" style="margin-top:12px"><label>Observações</label><textarea id="g-obs"></textarea></div>
+    <div class="fg fc" style="margin-top:12px"><label>Observações <span style="font-weight:400;color:var(--t3);font-size:10px">— para registrar com data, use o campo no card</span></label><textarea id="g-obs"></textarea></div>
     <div class="fg fc"><label>Link da Pasta</label><div class="linkfield"><div class="lf-display"></div><input type="url" id="g-link" onblur="lfBlur('g-link')"></div></div>
   </div></div>
   <div class="mft"><button class="btn btn-ghost" onclick="closeM('ganhas')">Cancelar</button><button class="btn btn-nh" onclick="doSave('ganhas')" id="sb-ganhas"> Salvar</button></div>
@@ -3637,13 +3637,13 @@ function _relDashboard(aba,lista,valTot,corEmp){
       +"</div>"
       /* O que os contratos vigentes ADMITEM, conforme leitura do
          instrumento pela IA — base para decidir onde há margem. */
-      +'<div class="sec-st">Margem contratual (leitura do contrato pela IA)</div>'
+      +'<div class="sec-st">Margem contratual</div>'
       +'<div class="kpi-row">'
       +_relKpi("Admite recomposição",_relBRL(_v.acPermiteRec),"#166534",String(_v.qAcPermiteRec)+" contrato(s) · há margem de reequilíbrio")
       +_relKpi("Não admite recomposição",_relBRL(_v.acVedaRec),_v.acVedaRec?"#991b1b":"#166534",String(_v.qAcVedaRec)+" contrato(s) · sem reequilíbrio previsto")
       +_relKpi("Admite prorrogação",_relBRL(_v.acPermiteProrr),"#166534",String(_v.qAcPermiteProrr)+" contrato(s)")
       +_relKpi("Não admite prorrogação",_relBRL(_v.acVedaProrr),_v.acVedaProrr?"#991b1b":"#166534",String(_v.qAcVedaProrr)+" contrato(s) · encerramento definitivo")
-      +_relKpi("Sem análise do contrato",_relBRL(_v.acSemAnalise),_v.acSemAnalise?"#92400e":"#166534",String(_v.qAcSemAnalise)+" contrato(s) · margem desconhecida")
+      +_relKpi("Contrato não analisado",_relBRL(_v.acSemAnalise),_v.acSemAnalise?"#92400e":"#166534",String(_v.qAcSemAnalise)+" contrato(s) · margem desconhecida")
       +"</div>"
       /* Depois as contagens, para conferência */
       +'<div class="sec-st">Quantidades por situação</div>'
@@ -3790,15 +3790,15 @@ function _relAlertas(aba,lista){
     +blk("🔵 Prestação continuada via TAC",g.tac,"#1e40af")
     +blk("🟠 Exigem aditivo / recomposição",g.recomp,"#9a3412")
     +blk("🟣 Aguardando contrato / assinatura",g.agu,"#6b21a8")
-    +blk("🔴 Contrato não admite prorrogação (leitura da IA)",g.acVedaProrr,"#991b1b")
-    +blk("🟠 Contrato não admite recomposição (leitura da IA)",g.acVedaRec,"#9a3412")
-    +blk("🟡 Contrato ainda não analisado pela IA",g.acSem,"#92400e")
+    +blk("🔴 Contrato não admite prorrogação",g.acVedaProrr,"#991b1b")
+    +blk("🟠 Contrato não admite recomposição",g.acVedaRec,"#9a3412")
+    +blk("🟡 Contrato ainda não analisado",g.acSem,"#92400e")
     +blk("🟢 Atas de Registro de Preços",g.ata,"#166534")
     +blk("🟡 Sem data de vencimento informada",g.semVenc,"#92400e")
     +blk("🟡 Sem número de contrato informado",g.semContrato,"#92400e");
   if(!h)h='<div class="ok">Nenhum alerta identificado no conjunto filtrado.</div>';
   return '<div class="sec pb"><div class="sec-t">'+_relN()+'. Alertas</div>'+h
-    +'<div class="nota">A situação de prorrogação vem do campo <strong>Situação</strong> do cadastro. Quando esse campo está vazio, é derivada do status dos aditivos registrados — nunca do texto das observações.<br><strong>Contratos emergenciais</strong> são identificados pela presença do termo &ldquo;emergenc&hellip;&rdquo; no nome da licitação, no objeto ou nas observações — é uma leitura textual do cadastro, não uma classificação jurídica.<br><strong>Atas de Registro de Preços</strong> são listadas em bloco próprio: não possuem número de contrato nem vencimento de contrato, e sua vigência é lida do campo <em>Ata · Vigência até</em>.<br><strong>A margem contratual</strong> (admite ou não recomposição, reajuste, prorrogação e acréscimo) vem da leitura do instrumento contratual por inteligência artificial, feita no card do contrato. É uma leitura das cláusulas do documento anexado — confira o contrato original antes de fundamentar pleito ou decisão. Contratos sem análise aparecem como margem desconhecida.</div></div>';
+    +'<div class="nota">A situação de prorrogação vem do campo <strong>Situação</strong> do cadastro. Quando esse campo está vazio, é derivada do status dos aditivos registrados — nunca do texto das observações.<br><strong>Contratos emergenciais</strong> são identificados pela presença do termo &ldquo;emergenc&hellip;&rdquo; no nome da licitação, no objeto ou nas observações — é uma leitura textual do cadastro, não uma classificação jurídica.<br><strong>Atas de Registro de Preços</strong> são listadas em bloco próprio: não possuem número de contrato nem vencimento de contrato, e sua vigência é lida do campo <em>Ata · Vigência até</em>.<br><strong>A margem contratual</strong> (admite ou não recomposição, reajuste, prorrogação e acréscimo) resulta da leitura automatizada dos instrumentos anexados ao processo — contrato e termos aditivos. Não substitui parecer jurídico: confira os documentos originais antes de fundamentar pleito ou decisão. Contratos ainda não analisados aparecem como margem desconhecida.</div></div>';
 }
 
 /* ---------- 11. INCONSISTÊNCIAS ---------- */
@@ -4002,16 +4002,16 @@ function _relDetalheCards(lista,opt){
             +(ok?'SIM':'NÃO')+' · '+lb+(det?' ('+_relEsc(String(det).substring(0,24))+')':'')+'</span>';
         };
         h+='<div class="c-analise">'
-          +'<div class="c-analise-t">O que o contrato permite</div>'
+          +'<div class="c-analise-t">Margem contratual — o que o contrato permite</div>'
           +_sel(_v.permite_recomposicao,'Recomposição','')
           +_sel(_v.permite_reajuste,'Reajuste',_v.indice_reajuste||'')
           +_sel(_v.permite_prorrogacao,'Prorrogação',_v.limite_prorrogacao||'')
           +_sel(_v.permite_acrescimo,'Acréscimo',_v.limite_acrescimo||'')
           +(_v.resumo?'<div class="c-analise-r">'+_relEsc(_v.resumo)+'</div>':'')
-          +'<div class="c-analise-m">Leitura por IA em '+_relEsc(_ac.analisadoEm||'')+(_ac.arquivo?' · documento: '+_relEsc(_ac.arquivo):'')+'</div>'
+          +'<div class="c-analise-m">Analisado em '+_relEsc(_ac.analisadoEm||'')+(_ac.arquivo?' · documento: '+_relEsc(_ac.arquivo):'')+'</div>'
         +'</div>';
       } else {
-        h+='<div class="c-analise c-analise-vazia">Contrato ainda não analisado pela IA — não há leitura das cláusulas de recomposição, reajuste ou prorrogação.</div>';
+        h+='<div class="c-analise c-analise-vazia">Contrato ainda não analisado — não há leitura das cláusulas de recomposição, reajuste ou prorrogação.</div>';
       }
     }
 
@@ -4063,7 +4063,7 @@ var PRINT_FIELD_DEFS={
     extras:[{key:"local",label:"Local Exec.",w:"7%",idx:5,fmt:"d",def:true},{key:"mun",label:"Município",w:"7%",idx:6,fmt:"s",def:true},{key:"status",label:"Status",w:"9%",idx:12,fmt:"s",def:true,st:true},{key:"adju",label:"ADJU",w:"7%",idx:16,fmt:"s",def:true},{key:"class",label:"Classificação",w:"10%",idx:11,fmt:"s",def:true},{key:"valorf",label:"Valor Final",w:"9%",idx:8,fmt:"r",def:true,tot:true}],
     dateIdx:1,vencIdx:-1},
   ganhas:{base:[[0,"#","4%","s"],[1,"Data","7%","s"],[2,"Empresa","8%","emp"],[3,"Licitação","16%","proc"],[4,"Objeto","18%","d"]],
-    extras:[{key:"local",label:"Local Exec.",w:"7%",idx:5,fmt:"d",def:true},{key:"mun",label:"Município",w:"7%",idx:6,fmt:"s",def:true},{key:"contrato",label:"Contrato",w:"9%",idx:8,fmt:"s",def:true},{key:"status",label:"Status",w:"8%",idx:9,fmt:"s",def:true,st:true},{key:"risco",label:"Risco",w:"7%",idx:-1,fmt:"risco",def:false},{key:"situacao",label:"Situação",w:"9%",idx:-1,fmt:"situacao",def:true},{key:"proxacao",label:"Próxima Ação",w:"9%",idx:49,fmt:"s",def:true},{key:"assin",label:"Assinatura",w:"8%",idx:11,fmt:"s",def:true},{key:"venc",label:"Vencimento",w:"8%",idx:12,fmt:"s",def:true},{key:"valor",label:"Valor Atual",w:"9%",idx:7,fmt:"valorg",def:true,tot:true},{key:"valorori",label:"Valor Original",w:"9%",idx:7,fmt:"r",def:false},{key:"link",label:"Link Pasta",w:"9%",idx:42,fmt:"s",def:false},{key:"obsadit",label:"Observações e Aditivos",w:"0%",idx:-1,fmt:"obsadit",def:true},{key:"analise",label:"Análise do contrato pela IA (recomposição / prorrogação)",w:"0%",idx:-1,fmt:"analise",def:true},{key:"incons",label:"Conferência de preenchimento (uso interno)",w:"0%",idx:-1,fmt:"incons",def:false}],
+    extras:[{key:"local",label:"Local Exec.",w:"7%",idx:5,fmt:"d",def:true},{key:"mun",label:"Município",w:"7%",idx:6,fmt:"s",def:true},{key:"contrato",label:"Contrato",w:"9%",idx:8,fmt:"s",def:true},{key:"status",label:"Status",w:"8%",idx:9,fmt:"s",def:true,st:true},{key:"risco",label:"Risco",w:"7%",idx:-1,fmt:"risco",def:false},{key:"situacao",label:"Situação",w:"9%",idx:-1,fmt:"situacao",def:true},{key:"proxacao",label:"Próxima Ação",w:"9%",idx:49,fmt:"s",def:true},{key:"assin",label:"Assinatura",w:"8%",idx:11,fmt:"s",def:true},{key:"venc",label:"Vencimento",w:"8%",idx:12,fmt:"s",def:true},{key:"valor",label:"Valor Atual",w:"9%",idx:7,fmt:"valorg",def:true,tot:true},{key:"valorori",label:"Valor Original",w:"9%",idx:7,fmt:"r",def:false},{key:"link",label:"Link Pasta",w:"9%",idx:42,fmt:"s",def:false},{key:"obsadit",label:"Observações e Aditivos",w:"0%",idx:-1,fmt:"obsadit",def:true},{key:"analise",label:"Análise do contrato (recomposição / prorrogação)",w:"0%",idx:-1,fmt:"analise",def:true},{key:"incons",label:"Conferência de preenchimento (uso interno)",w:"0%",idx:-1,fmt:"incons",def:false}],
     dateIdx:1,vencIdx:12},
   atestados:{base:[[0,"#","4%","s"],[1,"Data","7%","s"],[2,"Empresa","8%","emp"],[3,"Licitação","16%","s"],[4,"Objeto","18%","d"]],
     extras:[{key:"local",label:"Local Exec.",w:"7%",idx:5,fmt:"d",def:true},{key:"mun",label:"Município",w:"7%",idx:6,fmt:"s",def:true},{key:"contrato",label:"Contrato",w:"9%",idx:7,fmt:"s",def:true},{key:"req",label:"Req.",w:"7%",idx:10,fmt:"s",def:true},{key:"receb",label:"Recebido",w:"8%",idx:11,fmt:"s",def:true},{key:"vig",label:"Vigência",w:"8%",idx:9,fmt:"s",def:true},{key:"docs",label:"Documentos",w:"9%",idx:-1,fmt:"docs",def:true},{key:"emit",label:"Emitente",w:"8%",idx:13,fmt:"s",def:false},{key:"link",label:"Link Doc.",w:"8%",idx:20,fmt:"s",def:false}],
@@ -8832,12 +8832,12 @@ function _nhjEsc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt
 function _nhjParse(raw){
   raw=String(raw||'');
   if(!raw.trim())return [];
-  var re=/—\s*(\d{2}\/\d{2}\/\d{4}(?:\s+\d{2}:\d{2})?)\s*—\s*\n?/g;
+  var re=/—\s*(\d{2}\/\d{2}\/\d{4}(?:\s+\d{2}:\d{2})?|registro anterior)\s*—\s*\n?/g;
   var out=[],m,last=0,lastDate=null;
   while((m=re.exec(raw))!==null){
     var antes=raw.substring(last,m.index).trim();
     if(antes)out.push({data:lastDate,txt:antes});
-    lastDate=m[1];last=re.lastIndex;
+    lastDate=('registro anterior'===m[1]?null:m[1]);last=re.lastIndex;
   }
   var resto=raw.substring(last).trim();
   if(resto)out.push({data:lastDate,txt:resto});
@@ -8890,7 +8890,9 @@ function nhJournalToggle(sheet,row,col){
    é o inverso do _nhjParse, mantendo o mesmo formato de marcador. */
 function _nhjSerializar(entradas){
   return entradas.map(function(x){
-    return (x.data?'— '+x.data+' —\n':'')+x.txt;
+    // Todo registro leva marcador — inclusive o conteúdo antigo, que
+    // sem isso se fundiria com a anotação seguinte.
+    return '— '+(x.data||'registro anterior')+' —\n'+x.txt;
   }).join('\n');
 }
 
@@ -8948,9 +8950,12 @@ function nhJournalAdd(sheet,row,col){
   if(!txt){toast('Escreva a anotação primeiro','err');return;}
   var d=new Date();
   var stamp=('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear()+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
-  var atual=(FIL[sheet]&&FIL[sheet][row])?String(FIL[sheet][row][col]||'').trim():'';
-  var novoVal='— '+stamp+' —\n'+txt+(atual?'\n'+atual:'');
-  saveCell(sheet,row,col,novoVal);
+  // Lê os registros existentes, insere o novo no topo e regrava tudo.
+  // Assim o conteúdo antigo (sem data) ganha marcador próprio e não
+  // é absorvido pela anotação nova.
+  var ent=_nhjParse((FIL[sheet]&&FIL[sheet][row])?String(FIL[sheet][row][col]||''):'');
+  ent.unshift({data:stamp,txt:txt});
+  saveCell(sheet,row,col,_nhjSerializar(ent));
   ta.value='';
   var box=document.getElementById('nhj-jr-'+sheet+'-'+row+'-'+col);
   if(box)box.innerHTML=_nhjInner(sheet,row,col);
@@ -9487,6 +9492,13 @@ function _pecMontarPDF(idx, textoExtra){
   idRows+=lin('Contratada',emp.razao||emp.nome);
   idRows+=lin('CNPJ',emp.cnpj);
   idRows+=lin('Contrato nº',contrato);
+  /* Valor: o parecer precisa dizer quanto vale o contrato que está
+     sendo encerrado. Usa o valor vigente (já com aditivos) e mostra
+     o original em separado quando houver diferença. */
+  var _vAtual=(typeof _relValor==='function')?_relValor(g):parseMoeda(g[7]);
+  var _vOrig=parseMoeda(g[7]);
+  if(_vAtual>0)idRows+=lin('Valor do Contrato',fmtMoeda(_vAtual));
+  if(_vOrig>0&&_vAtual>0&&Math.abs(_vAtual-_vOrig)>0.01)idRows+=lin('Valor Original',fmtMoeda(_vOrig));
   idRows+=lin('Data de Assinatura',assin);
   idRows+=lin('Vigência Contratada',vigencia?vigencia+' meses':'');
   idRows+=lin('Encerramento da Vigência',vencEf);
@@ -9571,7 +9583,7 @@ function _pecMontarPDF(idx, textoExtra){
    Guardado em Firestore: coleção "analises_contrato", id = id da linha.
    ════════════════════════════════════════════════════════════════ */
 var ANALISES_CONTRATO={};
-var _acCtx=null, _acArquivos=[], _acSelecionado=null;
+var _acCtx=null, _acArquivos=[], _acSelecionados=[];
 
 async function nhLoadAnalisesContrato(){
   try{
@@ -9594,7 +9606,7 @@ function nhAbrirAnaliseContrato(idx){
   if(!g){toast('Contrato não encontrado','err');return;}
   _acCtx={idx:idx, id:String(g[0]||'').trim(), emp:String(g[2]||'').trim(),
           titulo:String(g[3]||'').trim(), pasta:String(g[42]||'').trim()};
-  _acArquivos=[]; _acSelecionado=null;
+  _acArquivos=[]; _acSelecionados=[];
 
   var m=document.getElementById('ac-modal');
   if(!m){
@@ -9611,11 +9623,14 @@ function nhAbrirAnaliseContrato(idx){
         +'<div style="font-size:12px;color:var(--t3);line-height:1.6;margin-bottom:12px">A IA vai ler o contrato e identificar o que o instrumento <b>permite</b>: recomposição/reequilíbrio, reajuste por índice, prorrogação de prazo e acréscimo de valor — com as cláusulas correspondentes. O resultado fica salvo no card e alimenta o parecer de encerramento.</div>'
         +'<div id="ac-passo1"></div>'
         +'<div id="ac-lista" style="margin-top:10px"></div>'
+        +'<div id="ac-manuais" style="margin-top:6px"></div>'
+        +'<div id="ac-sel-info" style="margin-top:8px;font-size:11.5px;color:var(--t2)"></div>'
+        +'<div id="ac-hist" style="margin-top:10px"></div>'
         +'<div id="ac-result" style="margin-top:14px;font-size:13px;line-height:1.7"></div>'
       +'</div>'
       +'<div style="padding:13px 18px;border-top:1px solid var(--b1);display:flex;gap:8px;justify-content:flex-end">'
         +'<label style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;font-family:Outfit,sans-serif">📎 Anexar do computador'
-          +'<input type="file" accept=".pdf,image/*" style="display:none" onchange="nhAcAnexarManual(this)"></label>'
+          +'<input type="file" accept=".pdf,image/*" multiple style="display:none" onchange="nhAcAnexarManual(this)"></label>'
         +'<button id="ac-btn-analisar" onclick="nhAcAnalisar()" disabled style="background:var(--s3);color:var(--t3);border:none;padding:9px 18px;border-radius:8px;font-weight:800;font-size:12.5px;cursor:not-allowed;font-family:Outfit,sans-serif">✓ Analisar contrato</button>'
       +'</div></div>';
     document.body.appendChild(m);
@@ -9625,6 +9640,19 @@ function nhAbrirAnaliseContrato(idx){
   document.getElementById('ac-sub').textContent=_acCtx.emp+' · #'+_acCtx.id+(_acCtx.titulo?' · '+_acCtx.titulo.substring(0,50):'');
   document.getElementById('ac-result').innerHTML='';
   document.getElementById('ac-lista').innerHTML='';
+  document.getElementById('ac-manuais').innerHTML='';
+  document.getElementById('ac-sel-info').innerHTML='';
+  /* Histórico: análises anteriores deste contrato — a nova SOMA a elas */
+  var regAnt=ANALISES_CONTRATO[_acCtx.id];
+  var hist=document.getElementById('ac-hist');
+  if(hist){
+    if(regAnt&&(regAnt.analises||[]).length){
+      hist.innerHTML='<div style="background:var(--s2);border:1px solid var(--b1);border-left:3px solid #22c55e;border-radius:8px;padding:9px 12px;font-size:11.5px;line-height:1.6">'
+        +'<b style="color:#22c55e">Já analisado '+regAnt.analises.length+'x</b> · documentos lidos: '
+        +regAnt.analises.map(function(a){return (a.arquivos||[]).join(', ');}).filter(Boolean).join(' · ')
+        +'<div style="color:var(--t3);margin-top:3px">A nova análise <b>não apaga</b> a anterior: a IA recebe o resultado já registrado e devolve um parecer consolidado.</div></div>';
+    } else { hist.innerHTML=''; }
+  }
   m.style.display='flex';
   nhAcCarregarPasta();
 }
@@ -9668,90 +9696,145 @@ async function nhAcCarregarPasta(){
     files.forEach(function(f,i){
       if(sugerido<0&&/contrato|termo.?de.?contrato|instrumento/i.test(f.name))sugerido=i;
     });
-    p1.innerHTML='<div style="font-size:11.5px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px">Selecione o arquivo do contrato</div>'
-      +'<div style="font-size:11px;color:var(--t3)">'+files.length+' arquivo(s) na pasta'+(sugerido>=0?' · sugerimos o destacado':'')+'</div>';
+    p1.innerHTML='<div style="font-size:11.5px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px">Selecione o contrato e seus aditivos</div>'
+      +'<div style="font-size:11px;color:var(--t3);line-height:1.55">'+files.length+' arquivo(s) na pasta'+(sugerido>=0?' · sugerimos o destacado':'')
+      +'<br>Marque <b>todos</b> os documentos que compõem o contrato — o instrumento original e cada termo aditivo. A IA lê em conjunto e avalia, por exemplo, se ainda resta prazo de prorrogação depois dos aditivos já firmados.</div>';
     document.getElementById('ac-lista').innerHTML=files.map(function(f,i){
       var kb=f.size?Math.round(f.size/1024):0;
       var sug=(i===sugerido);
       return '<label style="display:flex;align-items:center;gap:9px;cursor:pointer;padding:8px 12px;margin-bottom:5px;background:'+(sug?'var(--nha2)':'var(--s2)')+';border:1px solid '+(sug?'var(--nh)':'var(--b1)')+';border-radius:8px">'
-        +'<input type="radio" name="ac-file" value="'+i+'"'+(sug?' checked':'')+' onchange="nhAcSelecionar('+i+')" style="width:15px;height:15px;accent-color:var(--nh)">'
+        +'<input type="checkbox" value="'+i+'"'+(sug?' checked':'')+' onchange="nhAcToggle('+i+',this.checked)" style="width:15px;height:15px;accent-color:var(--nh)">'
         +'<span style="font-size:12.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+f.name+'</span>'
         +'<span style="font-size:10.5px;color:var(--t3)">'+(kb?kb+' KB':'')+'</span></label>';
     }).join('');
-    if(sugerido>=0){nhAcSelecionar(sugerido);}else{_acBtnEstado(false);}
+    if(sugerido>=0){nhAcToggle(sugerido,true);}else{_acAtualizarSel();}
   }catch(e){
     console.error('ac pasta',e);
     p1.innerHTML='<div style="background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.3);color:#eab308;border-radius:8px;padding:10px 13px;font-size:12px;line-height:1.55">⚠️ Não consegui listar a pasta ('+(e.message||'erro')+'). <a href="'+link+'" target="_blank" style="color:#eab308;font-weight:700">Abrir a pasta</a> e anexar o contrato manualmente pelo botão abaixo.</div>';
   }
 }
 
-function nhAcSelecionar(i){
-  _acSelecionado={tipo:'drive', file:_acArquivos[i]};
-  _acBtnEstado(true);
+function nhAcToggle(i,marcado){
+  if(marcado){
+    if(!_acSelecionados.some(function(x){return x.tipo==='drive'&&x.file&&x.file.id===_acArquivos[i].id;})){
+      _acSelecionados.push({tipo:'drive', file:_acArquivos[i]});
+    }
+  } else {
+    _acSelecionados=_acSelecionados.filter(function(x){
+      return !(x.tipo==='drive'&&x.file&&x.file.id===_acArquivos[i].id);
+    });
+  }
+  _acAtualizarSel();
+}
+
+/* Mostra quantos documentos entram na análise e libera o botão */
+function _acAtualizarSel(){
+  var n=_acSelecionados.length;
+  var el=document.getElementById('ac-sel-info');
+  if(el){
+    el.innerHTML=n?('<b style="color:var(--nh)">'+n+' documento(s)</b> selecionado(s) para análise conjunta'
+      +(n===1?' <span style="color:var(--t3)">— se houver aditivos, marque-os também</span>':'')):'';
+  }
+  var b=document.getElementById('ac-btn-analisar');
+  if(b)b.textContent=n>1?('✓ Analisar '+n+' documentos'):'✓ Analisar contrato';
+  _acBtnEstado(n>0);
 }
 
 function nhAcAnexarManual(input){
-  var f=(input.files||[])[0];
-  if(!f)return;
-  var r=new FileReader();
-  r.onload=function(e){
-    _acSelecionado={tipo:'local', base64:e.target.result.split(',')[1], mime:f.type||'application/pdf', name:f.name};
-    document.getElementById('ac-lista').innerHTML='<div style="padding:9px 12px;background:var(--nha2);border:1px solid var(--nh);border-radius:8px;font-size:12.5px">📎 '+f.name+' <span style="color:var(--t3);font-size:11px">(anexado do computador)</span></div>';
-    _acBtnEstado(true);
-  };
-  r.readAsDataURL(f);
+  var files=Array.prototype.slice.call(input.files||[]);
+  if(!files.length)return;
+  var pend=files.length;
+  files.forEach(function(f){
+    var r=new FileReader();
+    r.onload=function(e){
+      _acSelecionados.push({tipo:'local', base64:e.target.result.split(',')[1], mime:f.type||'application/pdf', name:f.name});
+      if(--pend===0){
+        var manuais=_acSelecionados.filter(function(x){return x.tipo==='local';});
+        var box=document.getElementById('ac-manuais');
+        if(box)box.innerHTML=manuais.map(function(x){
+          return '<div style="padding:7px 11px;margin-bottom:4px;background:var(--nha2);border:1px solid var(--nh);border-radius:7px;font-size:12px">📎 '+x.name+' <span style="color:var(--t3);font-size:10.5px">(do computador)</span></div>';
+        }).join('');
+        _acAtualizarSel();
+      }
+    };
+    r.readAsDataURL(f);
+  });
   input.value='';
 }
 
 async function nhAcAnalisar(){
   var key=localStorage.getItem('nh_gemini_key');
   if(!key){toast('Configure a API Key do Gemini','err');return;}
-  if(!_acSelecionado){toast('Selecione o arquivo do contrato','err');return;}
+  if(!_acSelecionados.length){toast('Selecione ao menos um documento','err');return;}
   var out=document.getElementById('ac-result');
-  out.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:18px;height:18px"></div> Preparando o contrato...</div>';
+  var passo=function(msg){
+    out.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:18px;height:18px"></div> '+msg+'</div>';
+  };
+  passo('Preparando os documentos...');
 
   try{
-    var parte=null, nomeArq='';
-    if(_acSelecionado.tipo==='local'){
-      parte={inline_data:{mime_type:_acSelecionado.mime,data:_acSelecionado.base64}};
-      nomeArq=_acSelecionado.name;
-    } else {
-      var f=_acSelecionado.file;
-      nomeArq=f.name;
-      var dk=localStorage.getItem('nh_drive_key');
-      var fr=await fetch('https://www.googleapis.com/drive/v3/files/'+f.id+'?alt=media&key='+dk);
-      if(!fr.ok)throw new Error('não consegui baixar "'+f.name+'" da pasta');
-      var blob=await fr.blob();
-      var b64=await new Promise(function(res,rej){
-        var rd=new FileReader();
-        rd.onload=function(){res(rd.result.split(',')[1]);};
-        rd.onerror=rej; rd.readAsDataURL(blob);
-      });
-      parte={inline_data:{mime_type:f.mimeType,data:b64}};
+    /* ── Reúne TODOS os documentos marcados ── */
+    var partes=[], nomes=[], dk=localStorage.getItem('nh_drive_key');
+    for(var n=0;n<_acSelecionados.length;n++){
+      var sel=_acSelecionados[n];
+      passo('Preparando documento '+(n+1)+' de '+_acSelecionados.length+'...');
+      if(sel.tipo==='local'){
+        partes.push({inline_data:{mime_type:sel.mime,data:sel.base64}});
+        nomes.push(sel.name);
+      } else {
+        var f=sel.file;
+        var fr=await fetch('https://www.googleapis.com/drive/v3/files/'+f.id+'?alt=media&key='+dk);
+        if(!fr.ok)throw new Error('não consegui baixar "'+f.name+'" da pasta');
+        var blob=await fr.blob();
+        var b64=await new Promise(function(res,rej){
+          var rd=new FileReader();
+          rd.onload=function(){res(rd.result.split(',')[1]);};
+          rd.onerror=rej; rd.readAsDataURL(blob);
+        });
+        partes.push({inline_data:{mime_type:f.mimeType,data:b64}});
+        nomes.push(f.name);
+      }
     }
 
-    out.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:18px;height:18px"></div> A IA está lendo o contrato...</div>';
+    /* ── Análise anterior entra como contexto: a nova SOMA, não substitui ── */
+    var regAnt=ANALISES_CONTRATO[_acCtx.id]||null;
+    var contexto='';
+    if(regAnt&&regAnt.veredito){
+      var jaLidos=(regAnt.analises||[]).map(function(a){return (a.arquivos||[]).join(', ');}).filter(Boolean).join(' · ');
+      contexto='ANÁLISE JÁ REGISTRADA PARA ESTE CONTRATO (feita em '+(regAnt.analisadoEm||'data não registrada')+')\n'
+        +(jaLidos?'Documentos já lidos: '+jaLidos+'\n':'')
+        +'Veredito anterior: '+JSON.stringify(regAnt.veredito)+'\n'
+        +(regAnt.analiseTexto?'Resumo da análise anterior (trecho): '+String(regAnt.analiseTexto).substring(0,1500)+'\n':'')
+        +'\nIMPORTANTE: sua tarefa é CONSOLIDAR. Não descarte o que já foi apurado — some as informações. '
+        +'Se os documentos novos alterarem a conclusão anterior (por exemplo, um termo aditivo que já consumiu parte do prazo de prorrogação, ou que alterou o índice de reajuste), o veredito consolidado deve refletir a situação ATUAL e você deve dizer explicitamente o que mudou em relação à leitura anterior.\n\n';
+    }
 
-    var prompt='Você é advogado especialista em contratos administrativos brasileiros (Lei 14.133/2021 e Lei 8.666/93). '
-      +'Analise o CONTRATO anexado e identifique EXCLUSIVAMENTE o que o próprio instrumento prevê. '
+    passo('A IA está lendo '+partes.length+' documento(s) em conjunto...');
+
+    var prompt=contexto
+      +'Você é advogado especialista em contratos administrativos brasileiros (Lei 14.133/2021 e Lei 8.666/93). '
+      +'Foram anexados '+partes.length+' documento(s) referentes ao MESMO contrato ('+nomes.join(', ')+') — pode haver o instrumento original e termos aditivos. '
+      +'Leia TODOS em conjunto e identifique EXCLUSIVAMENTE o que os instrumentos preveem, considerando as alterações que os aditivos fizeram no contrato original. '
       +'Não invente cláusulas: se algo não constar, marque como não previsto.\n'
-      +'REGRA DE FORMATO: os campos "indice_reajuste", "periodicidade_reajuste", "limite_prorrogacao" e "limite_acrescimo" são ETIQUETAS CURTAS de no máximo 4 palavras (ex.: "IPCA", "anual", "até 60 meses", "25%"). Se o contrato não definir, deixe "". A explicação completa vai no texto da análise, nunca nesses campos. O campo "resumo" tem no máximo 30 palavras.\n\n'
+      +'ATENÇÃO ESPECIAL: se houver termos aditivos de prorrogação, calcule quanto do prazo máximo já foi utilizado e quanto AINDA RESTA. '
+      +'Um contrato pode ser prorrogável em tese, mas já ter esgotado o limite legal — nesse caso "permite_prorrogacao" deve ser false, e o motivo explicado.\n'
+      +'REGRA DE FORMATO: os campos "indice_reajuste", "periodicidade_reajuste", "limite_prorrogacao", "limite_acrescimo", "prazo_utilizado" e "prazo_restante" são ETIQUETAS CURTAS de no máximo 4 palavras (ex.: "IPCA", "anual", "até 60 meses", "25%", "24 meses", "36 meses"). Se não houver definição, deixe "". A explicação completa vai no texto da análise, nunca nesses campos. O campo "resumo" tem no máximo 35 palavras.\n\n'
       +'COMECE a resposta com este bloco (JSON válido em uma linha):\n'
       +'<VEREDITO>{"permite_recomposicao":true|false,"permite_reajuste":true|false,"permite_prorrogacao":true|false,"permite_acrescimo":true|false,'
       +'"indice_reajuste":"","periodicidade_reajuste":"","limite_prorrogacao":"","limite_acrescimo":"",'
-      +'"tipos_permitidos":["recomposição/reequilíbrio","reajuste","prorrogação","acréscimo"],'
+      +'"aditivos_identificados":0,"prazo_utilizado":"","prazo_restante":"",'
       +'"clausulas":{"recomposicao":"","reajuste":"","prorrogacao":"","acrescimo":""},'
-      +'"resumo":"uma frase objetiva sobre o que o contrato admite","alerta":""}</VEREDITO>\n\n'
+      +'"resumo":"frase objetiva sobre o que o contrato admite HOJE","alerta":"","mudou_em_relacao_anterior":""}</VEREDITO>\n\n'
       +'Depois do bloco, escreva a análise em texto, sem tabelas markdown, nesta ordem:\n'
-      +'#### 1. Reequilíbrio econômico-financeiro / Recomposição\nO contrato prevê? Em que hipóteses? Cite o número da cláusula.\n\n'
-      +'#### 2. Reajuste de preços\nHá índice definido (IPCA, INPC, IGP-M)? Qual a periodicidade mínima? Cláusula.\n\n'
-      +'#### 3. Prorrogação de prazo\nÉ prorrogável? Qual o limite total admitido? Cláusula e fundamento legal.\n\n'
-      +'#### 4. Acréscimos e supressões\nQual o percentual admitido? Cláusula.\n\n'
-      +'#### 5. Conclusão\nO que esta empresa pode pleitear neste contrato, e o que está vedado.';
+      +'#### 1. Documentos analisados\nLista do que foi lido e o que cada um alterou (contrato original, 1º aditivo, etc.).\n\n'
+      +'#### 2. Reequilíbrio econômico-financeiro / Recomposição\nO contrato prevê? Em que hipóteses? Cite a cláusula.\n\n'
+      +'#### 3. Reajuste de preços\nHá índice definido? Qual a periodicidade mínima? Algum aditivo alterou isso? Cláusula.\n\n'
+      +'#### 4. Prorrogação de prazo\nÉ prorrogável? Quanto do limite já foi usado pelos aditivos e quanto resta? Cláusula e fundamento legal.\n\n'
+      +'#### 5. Acréscimos e supressões\nQual o percentual admitido? Já houve acréscimo? Quanto resta de margem?\n\n'
+      +'#### 6. Conclusão\nO que esta empresa pode pleitear neste contrato HOJE, e o que está vedado.'
+      +(regAnt&&regAnt.veredito?'\n\n#### 7. O que mudou em relação à análise anterior\nSe nada mudou, diga que a leitura anterior foi confirmada.':'');
 
-    var resp=await _nhGeminiLongo(key,[parte,{text:prompt}],function(m){
-      out.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:18px;height:18px"></div> '+m+'</div>';
-    });
+    var resp=await _nhGeminiLongo(key,partes.concat([{text:prompt}]),passo);
 
     var ver=null;
     var vm=resp.match(/<VEREDITO>([\s\S]*?)<\/VEREDITO>/i);
@@ -9761,17 +9844,28 @@ async function nhAcAnalisar(){
     }
 
     var dh=new Date();
+    var quando=('0'+dh.getDate()).slice(-2)+'/'+('0'+(dh.getMonth()+1)).slice(-2)+'/'+dh.getFullYear();
+
+    /* Guarda o histórico: cada rodada fica registrada, o veredito é o consolidado */
+    var historico=(regAnt&&regAnt.analises)?regAnt.analises.slice():[];
+    historico.push({arquivos:nomes, em:quando, veredito:ver||null, texto:resp});
+    var todosArquivos=[];
+    historico.forEach(function(a){(a.arquivos||[]).forEach(function(x){if(todosArquivos.indexOf(x)<0)todosArquivos.push(x);});});
+
     var reg={
-      veredito:ver||null,
+      veredito:ver||(regAnt?regAnt.veredito:null),
       analiseTexto:resp,
-      arquivo:nomeArq,
-      analisadoEm:('0'+dh.getDate()).slice(-2)+'/'+('0'+(dh.getMonth()+1)).slice(-2)+'/'+dh.getFullYear()
+      arquivo:todosArquivos.join(', '),
+      arquivos:todosArquivos,
+      analisadoEm:quando,
+      analises:historico
     };
     await fbSave('analises_contrato', _acCtx.id, reg);
     ANALISES_CONTRATO[_acCtx.id]=reg;
 
     out.innerHTML=_acRenderVeredito(reg)+formatarRespostaIA(resp)
-      +'<div style="margin-top:10px;font-size:11px;color:#22c55e">💾 Resultado salvo no card do contrato.</div>';
+      +'<div style="margin-top:10px;font-size:11px;color:#22c55e">💾 Resultado salvo no contrato'
+      +(historico.length>1?' — consolidado com as '+(historico.length-1)+' análise(s) anterior(es).':'.')+'</div>';
     try{renderTbl('ganhas');}catch(_e){}
   }catch(e){
     console.error('analise contrato',e);
@@ -9823,15 +9917,6 @@ function _acTrunc(s,n){
   return s.length>n?s.substring(0,n-1).replace(/[\s,;.]+$/,'')+'…':s;
 }
 
-/* Insere um trecho DENTRO do .kcard-body (o card fecha com dois
-   </div>: o do corpo e o do card; precisamos do penúltimo). */
-function _acInserirNoCorpo(html,trecho){
-  var ultimo=html.lastIndexOf('</div>');
-  if(ultimo<0)return html+trecho;
-  var penultimo=html.lastIndexOf('</div>',ultimo-1);
-  if(penultimo<0)return html.substring(0,ultimo)+trecho+html.substring(ultimo);
-  return html.substring(0,penultimo)+trecho+html.substring(penultimo);
-}
 
 if(typeof renderCard==='function'){
   var _acRenderCard=renderCard;
@@ -9856,35 +9941,6 @@ if(typeof renderCard==='function'){
           if(html.indexOf(marcaDel)>=0)html=html.replace(marcaDel, btn+marcaDel);
         }
 
-        /* 2) Veredito compacto dentro do corpo (oculto com o card recolhido) */
-        var bloco='';
-        if(v){
-          var chip=function(ok,lb,extra){
-            var c=ok?'#22c55e':'#ef4444';
-            return '<span class="ac-chip" style="background:'+(ok?'rgba(34,197,94,.1)':'rgba(239,68,68,.09)')
-              +';border-color:'+c+'55;color:'+c+'">'+(ok?'✓':'✕')+' '+lb
-              +(extra?'<i>'+_acTrunc(extra,26)+'</i>':'')+'</span>';
-          };
-          bloco='<div class="kfield kfield-diario ac-box" onclick="event.stopPropagation()">'
-            +'<div class="kfield-lbl">O que o contrato permite'
-              +'<span class="ac-lnk" onclick="nhVerAnaliseContrato('+t+')">ver análise</span>'
-              +'<span class="ac-lnk ac-lnk-sec" onclick="nhAbrirAnaliseContrato('+t+')">reanalisar</span>'
-            +'</div>'
-            +'<div class="ac-chips">'
-              +chip(v.permite_recomposicao,'Recomposição','')
-              +chip(v.permite_reajuste,'Reajuste',v.indice_reajuste||'')
-              +chip(v.permite_prorrogacao,'Prorrogação',v.limite_prorrogacao||'')
-              +chip(v.permite_acrescimo,'Acréscimo',v.limite_acrescimo||'')
-            +'</div>'
-            +(v.resumo?'<div class="ac-resumo">'+_acTrunc(v.resumo,240)+'</div>':'')
-            +'<div class="ac-meta">Análise IA em '+(reg.analisadoEm||'')+(reg.arquivo?' · '+_acTrunc(reg.arquivo,34):'')+'</div>'
-          +'</div>';
-        } else {
-          bloco='<div class="kfield kfield-diario" onclick="event.stopPropagation()">'
-            +'<div class="ac-cta" onclick="nhAbrirAnaliseContrato('+t+')" title="A IA lê o contrato da pasta e identifica o que ele permite">'
-            +'🤖 Analisar contrato <i>recomposição · reajuste · prorrogação</i></div></div>';
-        }
-        html=_acInserirNoCorpo(html,bloco);
       }
     }catch(_e){console.error('ac card',_e);}
     return html;
