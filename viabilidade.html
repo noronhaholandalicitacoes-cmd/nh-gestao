@@ -68,13 +68,18 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
 .card-head{padding:18px 18px 12px 22px}
 .card-top-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 .card-emp{font-size:12px;font-weight:800;padding:5px 13px;border-radius:20px;flex-shrink:0;letter-spacing:.02em}
-.tag-resp{display:inline-flex;align-items:center;gap:7px;background:var(--surf2);border:1px solid var(--line2);
-  border-radius:20px;padding:3px 12px 3px 3px;flex-shrink:0;max-width:100%}
-.tag-resp .ini{width:21px;height:21px;border-radius:50%;background:var(--line2);color:var(--txt2);
-  font-size:9px;font-weight:800;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.tag-resp .nm{font-size:11.5px;font-weight:700;color:var(--txt2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tag-resp.sem-cad{border-style:dashed}
-.tag-resp.sem-cad .ini{background:transparent;border:1px dashed var(--line2);color:var(--txt3)}
+.tag-resp{display:inline-flex;align-items:center;gap:7px;border-radius:20px;
+  padding:3px 12px 3px 3px;flex-shrink:0;max-width:100%;
+  background:var(--rcb);border:1px solid var(--rcl)}
+.tag-resp .ini{width:21px;height:21px;border-radius:50%;flex-shrink:0;
+  background:var(--rcl);color:var(--rc);
+  font-size:9px;font-weight:800;letter-spacing:.02em;
+  display:flex;align-items:center;justify-content:center}
+.tag-resp .nm{font-size:11.5px;font-weight:700;color:var(--rc);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Ponto de cor nos botões de filtro, para amarrar filtro e cartão. */
+.f-btn .pt{display:inline-block;width:7px;height:7px;border-radius:50%;
+  background:var(--rc);margin-right:7px;vertical-align:middle}
 
 .status-pill{display:inline-flex;align-items:center;gap:5px;padding:5px 13px;border-radius:20px;font-size:12.5px;font-weight:700;flex-shrink:0;margin-left:auto}
 .s-sim{background:rgba(34,197,94,.15);color:var(--sim)}
@@ -358,15 +363,23 @@ function isNao(p){var s=String(p||'').toUpperCase().trim();return s==='NÃO'||s=
    pode vir pronto no link (?r=55...), então a pessoa só digita a senha.
    ══════════════════════════════════════════════════════════════════ */
 /* ── Responsáveis ──────────────────────────────────────────────────
-   Os editais foram preenchidos ao longo do tempo com grafias diferentes
-   do mesmo nome ("ANTUNES", "Antunes", "Arthur Noronha"). Em vez de
-   tratar cada grafia como uma pessoa, o nome digitado é comparado com
-   o cadastro sem acento e sem caixa: quem estiver contido bate.
-   Na tela aparece o nome como está cadastrado, não como foi digitado. */
-var RESPS_CAD={};
+   O mesmo nome foi digitado de várias formas ao longo do tempo:
+   "ANTUNES", "Antunes", "NORONHA", "Arthur Noronha". Aqui essas grafias
+   são reunidas numa pessoa só.
+
+   O cadastro (config/responsaveis) manda quando existe. Quando não
+   existe — ou ainda não foi preenchido — as grafias são agrupadas pelos
+   próprios dados: sem acento, sem caixa, e quando uma contém a outra,
+   as duas são a mesma pessoa. Assim a tela fica certa antes mesmo de
+   alguém cadastrar qualquer coisa. */
+var RESPS_CAD={},_canon=null;
 
 function normTxt(s){
   return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();}
+
+function tituloCaso(s){
+  return String(s||'').toLowerCase().split(/\s+/).map(function(p){
+    return p?p.charAt(0).toUpperCase()+p.slice(1):p;}).join(' ');}
 
 function iniciais(nome){
   var p=String(nome||'').trim().split(/\s+/).filter(Boolean);
@@ -374,37 +387,85 @@ function iniciais(nome){
   if(1===p.length)return p[0].substring(0,2).toUpperCase();
   return (p[0].charAt(0)+p[p.length-1].charAt(0)).toUpperCase();}
 
+/* Um campo pode trazer duas pessoas: "ANTUNES & NORONHA". */
+function partesResp(valor){
+  return String(valor||'').split(/\s*[&\/;+]\s*/).map(function(s){return s.trim();}).filter(Boolean);}
+
+/* Tons escolhidos para não brigar com os status do cartão: nada de
+   vermelho (recusado), verde-bandeira (participar), amarelo (análise)
+   nem laranja (a cor da casa). */
+var TONS_RESP=[205,230,255,280,305,330,175,155,265,195,290,140];
+function corResp(nome){
+  var s=normTxt(nome),h=0;
+  for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;
+  var t=TONS_RESP[h%TONS_RESP.length];
+  /* hsla em vez de color-mix: funciona em qualquer celular. */
+  return {cor:'hsl('+t+',62%,64%)',
+          bg:'hsla('+t+',62%,64%,.12)',
+          leve:'hsla('+t+',62%,64%,.24)'};}
+
 async function carregarRespsCad(){
   try{
     var s=await db.collection('config').doc('responsaveis').get();
     RESPS_CAD=(s.exists&&s.data()&&s.data().lista)||{};
-  }catch(e){RESPS_CAD={};}}
+  }catch(e){RESPS_CAD={};}
+  _canon=null;}
 
-/* Nomes cadastrados, do mais longo para o mais curto: assim "Arthur
-   Noronha" ganha de "Noronha" quando os dois estiverem cadastrados. */
+/* Do mais longo para o mais curto, para "Arthur Noronha" ganhar de
+   "Noronha" caso os dois estejam cadastrados. */
 function nomesCadastrados(){
   var n=[];
   Object.keys(RESPS_CAD).forEach(function(k){
     var nm=(RESPS_CAD[k]||{}).nome;if(nm)n.push(String(nm).trim());});
   return n.sort(function(a,b){return b.length-a.length;});}
 
+function construirCanonicos(){
+  var brutos={};
+  TODOS.forEach(function(d){
+    partesResp(d.arr[9]).forEach(function(p){brutos[p]=true;});});
+  var cad=nomesCadastrados(),mapa={},grupos=[];
+  Object.keys(brutos).forEach(function(b){
+    var nb=normTxt(b),i;
+    for(i=0;i<cad.length;i++){
+      var nc=normTxt(cad[i]);
+      /* Vale nos dois sentidos: o edital pode trazer o nome mais curto
+         que o cadastrado ("NORONHA" para "Arthur Noronha") ou o mais
+         longo. Mínimo de 3 letras para não casar por acaso. */
+      if(nc.length<3||nb.length<3)continue;
+      if(-1!==nb.indexOf(nc)||-1!==nc.indexOf(nb)){mapa[b]=cad[i];return;}}
+    for(i=0;i<grupos.length;i++){
+      var g=grupos[i];
+      if(-1!==nb.indexOf(g.norm)||-1!==g.norm.indexOf(nb)){
+        /* A grafia mais curta vira o nome da pessoa: entre "Arthur
+           Noronha" e "Noronha", fica "Noronha". */
+        if(nb.length<g.norm.length){g.norm=nb;g.canon=tituloCaso(b);}
+        g.membros.push(b);return;}}
+    grupos.push({norm:nb,canon:tituloCaso(b),membros:[b]});});
+  grupos.forEach(function(g){
+    g.membros.forEach(function(m){if(!mapa[m])mapa[m]=g.canon;});});
+  return mapa;}
+
 function respsDoEdital(valor){
-  var bruto=String(valor||'').trim();
-  if(!bruto)return [];
-  var alvo=normTxt(bruto),achados=[];
-  nomesCadastrados().forEach(function(nm){
-    if(-1!==alvo.indexOf(normTxt(nm))&&-1===achados.indexOf(nm))achados.push(nm);});
-  if(achados.length)return achados.map(function(nm){return{nome:nm,cadastrado:true};});
-  return [{nome:bruto,cadastrado:false}];}
+  var partes=partesResp(valor);
+  if(!partes.length)return [];
+  if(!_canon)_canon=construirCanonicos();
+  var saida=[],ja={};
+  partes.forEach(function(p){
+    var nome=_canon[p]||tituloCaso(p);
+    if(ja[nome])return;
+    ja[nome]=true;saida.push({nome:nome,c:corResp(nome)});});
+  return saida;}
 
 function tagResponsavel(valor){
   var lista=respsDoEdital(valor);
   if(!lista.length)return '';
   return lista.slice(0,2).map(function(r){
-    return '<span class="tag-resp'+(r.cadastrado?'':' sem-cad')+'">'
+    return '<span class="tag-resp" style="--rc:'+r.c.cor+';--rcb:'+r.c.bg+';--rcl:'+r.c.leve+'">'
       +'<span class="ini">'+esc(iniciais(r.nome))+'</span>'
       +'<span class="nm">'+esc(r.nome)+'</span></span>';})
-    .join('')+(lista.length>2?'<span class="tag-resp"><span class="nm">+'+(lista.length-2)+'</span></span>':'');}
+    .join('')+(lista.length>2
+      ?'<span class="tag-resp" style="--rc:var(--txt3);--rcb:transparent;--rcl:var(--line2)"><span class="nm">+'+(lista.length-2)+'</span></span>'
+      :'');}
 
 var SESSAO=null;
 
@@ -497,6 +558,7 @@ async function carregar(){
       TODOS.push({id:doc.id,_id:d._id,arr:d._arr});
     });
     TODOS.sort(function(a,b){return b._id-a._id;});
+    _canon=null;
     buildFiltrosEmpresas();
     buildFiltrosResp();
     document.getElementById('fb-pend').classList.add('on');
@@ -519,7 +581,7 @@ function buildFiltrosResp(){
   lista.forEach(function(nome){
     var btn=document.createElement('button');
     btn.className='f-btn';
-    btn.textContent=nome;
+    btn.innerHTML='<span class="pt" style="--rc:'+corResp(nome).cor+'"></span>'+esc(nome);
     btn.onclick=function(){setFiltroResp(nome,btn);};
     wrap.appendChild(btn);
   });
