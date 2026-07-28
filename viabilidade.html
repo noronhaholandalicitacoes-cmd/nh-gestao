@@ -180,6 +180,37 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
 }
 .card:hover{transform:translateY(-2px);box-shadow:var(--nhd-e2)}
 
+
+/* Tela de acesso */
+#login-ov{position:fixed;inset:0;z-index:900;background:var(--bg);display:none;
+  align-items:center;justify-content:center;padding:24px}
+#login-ov::before{content:"";position:absolute;inset:0;
+  background:radial-gradient(900px 420px at 50% 0%,rgba(249,115,22,.10),transparent 70%)}
+.lg-box{position:relative;width:100%;max-width:380px;display:flex;flex-direction:column;gap:16px}
+.lg-top{display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:4px}
+.lg-mark{width:58px;height:58px;border-radius:17px;background:linear-gradient(135deg,var(--nh2),#ea580c);
+  display:flex;align-items:center;justify-content:center;font-weight:900;font-size:19px;color:#000;
+  box-shadow:0 8px 26px rgba(249,115,22,.4)}
+.lg-tit{font-size:19px;font-weight:800;letter-spacing:-.02em}
+.lg-sub{font-size:12.5px;color:var(--txt3);font-weight:600;text-align:center;line-height:1.5}
+.lg-campo{display:flex;flex-direction:column;gap:6px}
+.lg-campo label{font-size:10.5px;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+.lg-campo input{background:var(--surf);border:1px solid var(--line);border-radius:12px;
+  padding:14px 15px;color:var(--txt);font-size:16px;font-family:Outfit,sans-serif;font-weight:600;
+  width:100%;transition:border .2s}
+.lg-campo input:focus{outline:none;border-color:rgba(249,115,22,.5)}
+.lg-btn{background:linear-gradient(135deg,var(--nh2),#ea580c);border:none;border-radius:12px;
+  padding:15px;color:#000;font-size:15px;font-weight:800;font-family:Outfit,sans-serif;
+  cursor:pointer;transition:transform .15s,opacity .2s;margin-top:4px}
+.lg-btn:active{transform:scale(.98)}
+.lg-btn:disabled{opacity:.55;cursor:default}
+.lg-erro{display:none;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);
+  color:#fca5a5;border-radius:10px;padding:11px 13px;font-size:12.5px;font-weight:600;line-height:1.5}
+.lg-rodape{font-size:11px;color:var(--txt3);text-align:center;line-height:1.6;margin-top:2px}
+#btn-sair{background:var(--surf);border:1px solid var(--line);color:var(--txt3);width:36px;height:36px;
+  border-radius:11px;cursor:pointer;font-size:15px;flex-shrink:0;font-family:Outfit,sans-serif;display:none}
+#btn-sair:active{transform:scale(.94)}
+
 @media (prefers-reduced-motion:reduce){
   #nhd-atmosfera .nhd-orb{animation:none}
   .stat,.card{transition:none}
@@ -188,15 +219,41 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
 </head>
 <body>
 
+<div id="login-ov">
+  <div class="lg-box">
+    <div class="lg-top">
+      <div class="lg-mark">NH</div>
+      <div class="lg-tit">Análise de Viabilidade</div>
+      <div class="lg-sub">Entre com o WhatsApp cadastrado<br>para ver os processos das suas empresas</div>
+    </div>
+    <div class="lg-erro" id="lg-erro"></div>
+    <div class="lg-campo">
+      <label>WhatsApp</label>
+      <input type="tel" id="lg-wpp" inputmode="numeric" placeholder="(83) 99999-9999"
+        autocomplete="off" oninput="vMascara(this)" onkeydown="if(event.key==='Enter')document.getElementById('lg-senha').focus()">
+    </div>
+    <div class="lg-campo">
+      <label>Senha</label>
+      <input type="password" id="lg-senha" placeholder="••••••••"
+        autocomplete="off" onkeydown="if(event.key==='Enter')entrar()">
+    </div>
+    <button class="lg-btn" id="lg-btn" onclick="entrar()">Entrar</button>
+    <div class="lg-rodape">Não tem acesso? Fale com a NH Licitações.</div>
+  </div>
+</div>
+
 <div class="header">
   <div class="logo">
     <div class="logo-mark">NH</div>
     <div class="logo-info">
       <div class="title">NH Licitações</div>
-      <div class="sub">Análise de Viabilidade</div>
+      <div class="sub" id="hd-sub">Análise de Viabilidade</div>
     </div>
   </div>
-  <div class="badge-pend" id="badge-pend">...</div>
+  <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+    <div class="badge-pend" id="badge-pend">...</div>
+    <button id="btn-sair" onclick="sair()" title="Sair">⎋</button>
+  </div>
 </div>
 
 <div class="stats">
@@ -218,15 +275,13 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
       <button class="f-btn" id="fb-nao" onclick="setFiltroStatus('nao',this)">❌ NÃO</button>
     </div>
   </div>
-  <div>
+  <div id="linha-resp" style="display:none">
     <div class="filtro-label">Responsável</div>
     <div class="filtros-row" id="filtros-resp">
       <button class="f-btn on" id="fr-todos" onclick="setFiltroResp('todos',this)">Todos</button>
-      <button class="f-btn" id="fr-antunes" onclick="setFiltroResp('ANTUNES',this)">⭐ ANTUNES</button>
-      <button class="f-btn" id="fr-noronha" onclick="setFiltroResp('NORONHA',this)">🔵 NORONHA</button>
     </div>
   </div>
-  <div>
+  <div id="linha-emp" style="display:none">
     <div class="filtro-label">Empresa</div>
     <div class="filtros-row" id="filtros-emp">
       <button class="f-btn on" id="fe-todos" onclick="setFiltroEmp('todos',this)">Todas</button>
@@ -253,7 +308,7 @@ var FILTRO_STATUS='pendente';
 var FILTRO_RESP='todos';
 var FILTRO_EMP='todos';
 
-var EMP_CORES={'VISE':'#eab308','SAUTEC':'#3b82f6','SOS':'#22c55e','SOS FILIAL':'#ef4444','ONLAV':'#06b6d4','ENGEMED':'#ec4899','POTIGUAR':'#f97316'};
+var EMP_CORES={'VISE':'#eab308','SAUTEC':'#3b82f6','SOS':'#22c55e','SOS FILIAL':'#ef4444','ONLAV':'#06b6d4','ENGEMED':'#ec4899'};
 // Cores reais vêm do Firebase (config/empresas) — o objeto acima é só fallback
 // de segurança para o caso de falha de conexão antes do fetch completar.
 async function carregarCoresEmpresas(){
@@ -291,6 +346,91 @@ function isAnalise(p){var s=String(p||'').toUpperCase().trim();return s==='EM AN
 function isSim(p){return String(p||'').toUpperCase().trim()==='SIM';}
 function isNao(p){var s=String(p||'').toUpperCase().trim();return s==='NÃO'||s==='NAO';}
 
+
+/* ══════════════════════════════════════════════════════════════════
+   ACESSO
+   Entra pelo WhatsApp cadastrado no sistema principal. A conferência é
+   por hash: o Firestore guarda salt + hash, nunca a senha. O número
+   pode vir pronto no link (?r=55...), então a pessoa só digita a senha.
+   ══════════════════════════════════════════════════════════════════ */
+var SESSAO=null;
+
+function vSoDigitos(v){return String(v||'').replace(/\D/g,'');}
+function vNumero(v){var d=vSoDigitos(v);if(!d)return'';if(d.length<=11)d='55'+d;return d;}
+function vFormata(d){d=vSoDigitos(d);if(0===d.indexOf('55')&&d.length>11)d=d.substring(2);
+  if(11===d.length)return'('+d.substring(0,2)+') '+d.substring(2,7)+'-'+d.substring(7);
+  if(10===d.length)return'('+d.substring(0,2)+') '+d.substring(2,6)+'-'+d.substring(6);
+  return d;}
+function vMascara(el){var d=vSoDigitos(el.value);if(d.length>11)d=d.substring(0,11);
+  el.value=d.length>6?'('+d.substring(0,2)+') '+d.substring(2,7)+(d.length>7?'-'+d.substring(7):'')
+          :d.length>2?'('+d.substring(0,2)+') '+d.substring(2):d;}
+async function vHash(senha,salt){
+  var b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(salt+'::'+senha));
+  return Array.prototype.map.call(new Uint8Array(b),function(x){return('0'+x.toString(16)).slice(-2);}).join('');}
+
+function lgErro(msg){
+  var e=document.getElementById('lg-erro');
+  e.textContent=msg;e.style.display='block';
+  var b=document.getElementById('lg-btn');
+  if(b){b.disabled=false;b.textContent='Entrar';}}
+
+async function entrar(){
+  var num=vNumero(document.getElementById('lg-wpp').value),
+      senha=document.getElementById('lg-senha').value;
+  document.getElementById('lg-erro').style.display='none';
+  if(!num||!senha){lgErro('Preencha o WhatsApp e a senha.');return;}
+  var b=document.getElementById('lg-btn');b.disabled=true;b.textContent='Verificando...';
+  var lista={};
+  try{
+    var snap=await db.collection('config').doc('responsaveis').get();
+    lista=(snap.exists&&snap.data()&&snap.data().lista)||{};
+  }catch(e){lgErro('Não consegui conectar. Verifique a internet e tente de novo.');return;}
+  var r=lista[num];
+  /* Mesmo aviso para número desconhecido e senha errada — assim a tela
+     não serve para descobrir quais números estão cadastrados. */
+  if(!r||!r.hash||!r.salt){lgErro('WhatsApp ou senha incorretos.');return;}
+  var h;
+  try{h=await vHash(senha,r.salt);}catch(e){lgErro('Este navegador não conseguiu validar a senha. Tente pelo Chrome.');return;}
+  if(h!==r.hash){lgErro('WhatsApp ou senha incorretos.');return;}
+  if(!r.todas&&!(r.empresas||[]).length){
+    lgErro('Seu acesso ainda não tem empresa vinculada. Fale com a NH.');return;}
+  SESSAO={num:num,nome:r.nome||'',empresas:r.empresas||[],todas:!!r.todas};
+  try{sessionStorage.setItem('nh_viab_sessao',JSON.stringify(SESSAO));}catch(e){}
+  try{localStorage.setItem('nh_viab_num',num);}catch(e){}
+  abrirApp();}
+
+function abrirApp(){
+  document.getElementById('login-ov').style.display='none';
+  var s=document.getElementById('hd-sub');
+  if(s)s.textContent=SESSAO.nome||'Análise de Viabilidade';
+  var b=document.getElementById('btn-sair');if(b)b.style.display='block';
+  carregar();}
+
+function sair(){
+  if(!confirm('Sair do acesso?'))return;
+  try{sessionStorage.removeItem('nh_viab_sessao');}catch(e){}
+  location.reload();}
+
+/* Só enxerga as empresas que o responsável representa. Quem tem "vê
+   todas" marcado no cadastro (a assessoria) enxerga tudo. */
+function podeVer(emp){
+  if(!SESSAO)return false;
+  if(SESSAO.todas)return true;
+  var e=String(emp||'').trim().toUpperCase();
+  return (SESSAO.empresas||[]).some(function(x){return String(x).trim().toUpperCase()===e;});}
+
+function iniciarAcesso(){
+  var num='';
+  try{num=new URLSearchParams(location.search).get('r')||'';}catch(e){}
+  if(!num){try{num=localStorage.getItem('nh_viab_num')||'';}catch(e){}}
+  if(num)document.getElementById('lg-wpp').value=vFormata(vNumero(num));
+  var s=null;try{s=JSON.parse(sessionStorage.getItem('nh_viab_sessao')||'null');}catch(e){}
+  if(s&&s.num){SESSAO=s;abrirApp();return;}
+  document.getElementById('login-ov').style.display='flex';
+  setTimeout(function(){
+    var alvo=document.getElementById(num?'lg-senha':'lg-wpp');
+    if(alvo)alvo.focus();},250);}
+
 async function carregar(){
   try{
     await carregarCoresEmpresas();
@@ -298,10 +438,13 @@ async function carregar(){
     TODOS=[];
     snap.forEach(function(doc){
       var d=doc.data();
-      if(d._arr) TODOS.push({id:doc.id,_id:d._id,arr:d._arr});
+      if(!d._arr) return;
+      if(!podeVer(d._arr[2])) return;
+      TODOS.push({id:doc.id,_id:d._id,arr:d._arr});
     });
     TODOS.sort(function(a,b){return b._id-a._id;});
     buildFiltrosEmpresas();
+    buildFiltrosResp();
     document.getElementById('fb-pend').classList.add('on');
     renderizar();
   }catch(e){
@@ -309,11 +452,31 @@ async function carregar(){
   }
 }
 
+function buildFiltrosResp(){
+  var nomes={};
+  TODOS.forEach(function(d){var r=String(d.arr[9]||'').trim();if(r)nomes[r]=true;});
+  var lista=Object.keys(nomes).sort();
+  /* Com um responsável só, o filtro não separa nada — fica escondido. */
+  if(lista.length<2){FILTRO_RESP='todos';return;}
+  document.getElementById('linha-resp').style.display='';
+  var wrap=document.getElementById('filtros-resp');
+  lista.forEach(function(nome){
+    var btn=document.createElement('button');
+    btn.className='f-btn';
+    btn.textContent=nome;
+    btn.onclick=function(){setFiltroResp(nome,btn);};
+    wrap.appendChild(btn);
+  });
+}
+
 function buildFiltrosEmpresas(){
   var emps={};
   TODOS.forEach(function(d){var e=String(d.arr[2]||'').trim();if(e)emps[e]=true;});
+  var chaves=Object.keys(emps).sort();
+  if(chaves.length<2){FILTRO_EMP='todos';return;}
+  document.getElementById('linha-emp').style.display='';
   var wrap=document.getElementById('filtros-emp');
-  Object.keys(emps).sort().forEach(function(emp){
+  chaves.forEach(function(emp){
     var btn=document.createElement('button');
     btn.className='f-btn';
     btn.textContent=emp;
@@ -334,10 +497,8 @@ function setFiltroStatus(f,btn){
 }
 function setFiltroResp(f,btn){
   FILTRO_RESP=f;
-  document.querySelectorAll('#filtros-resp .f-btn').forEach(function(b){b.classList.remove('on','on-antunes','on-noronha');});
-  if(f==='ANTUNES') btn.classList.add('on-antunes');
-  else if(f==='NORONHA') btn.classList.add('on-noronha');
-  else btn.classList.add('on');
+  document.querySelectorAll('#filtros-resp .f-btn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
   renderizar();
 }
 function setFiltroEmp(f,btn){
@@ -357,8 +518,7 @@ function getFiltrados(){
     if(FILTRO_STATUS==='analise' && !isAnalise(part)) return false;
     if(FILTRO_STATUS==='sim' && !isSim(part)) return false;
     if(FILTRO_STATUS==='nao' && !isNao(part)) return false;
-    if(FILTRO_RESP==='ANTUNES' && resp.indexOf('ANTUNES')===-1) return false;
-    if(FILTRO_RESP==='NORONHA' && resp.indexOf('NORONHA')===-1) return false;
+    if(FILTRO_RESP!=='todos' && resp.indexOf(String(FILTRO_RESP).toUpperCase())===-1) return false;
     if(FILTRO_EMP!=='todos' && emp!==FILTRO_EMP) return false;
     return true;
   });
@@ -500,7 +660,9 @@ async function salvar(id){
   if(just) arr[12]=just.value.trim();
 
   try{
-    await db.collection('editais').doc(id).set({_id:d._id,_arr:arr});
+    /* merge para não apagar _createdAt, que o sistema principal grava. */
+    await db.collection('editais').doc(id).set(
+      {_id:d._id,_arr:arr,_updatedAt:Date.now()},{merge:true});
     d.arr=arr;
     delete _pendentes[id];
 
@@ -524,7 +686,7 @@ async function salvar(id){
   if(btn){btn.disabled=false;btn.textContent='💾 Salvar';}
 }
 
-carregar();
+iniciarAcesso();
 
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw-viabilidade.js').catch(function(){});
