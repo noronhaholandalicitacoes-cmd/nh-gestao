@@ -562,6 +562,152 @@ body.light-theme select{color-scheme:light;}
   pointer-events:none;z-index:20;
 }
 @keyframes mIn{from{opacity:0;transform:scale(.95) translateY(14px)}to{opacity:1;transform:scale(1)}}
+
+/* Padrão visual da Configuração do Portal, reaproveitado nas janelas
+   de cadastro: coluna única, cartões empilhados, título com barrinha. */
+.pc-card{background:var(--s2);border:1px solid var(--b1);border-radius:14px;padding:22px;margin-bottom:18px}
+.pc-card:last-child{margin-bottom:0}
+.pc-tit{font-size:13px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;
+  margin-bottom:16px;display:flex;align-items:center;gap:9px}
+.pc-tit::before{content:"";width:3px;height:14px;background:var(--nh);border-radius:2px;flex-shrink:0}
+.pc-tit .cnt{margin-left:auto;font-size:11px;font-weight:700;color:var(--t3);letter-spacing:0;text-transform:none}
+.pc-desc{font-size:12px;color:var(--t3);margin:-8px 0 16px;line-height:1.6}
+.pc-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.pc-full{grid-column:1/-1}
+.pc-f label{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;
+  display:block;margin-bottom:5px}
+.pc-f input,.pc-f select{width:100%;background:var(--s1);border:1px solid var(--b1);color:var(--t1);
+  padding:9px 11px;border-radius:8px;font-family:'Outfit',sans-serif;font-size:13px;outline:none;
+  transition:border-color .18s}
+.pc-f input:focus,.pc-f select:focus{border-color:rgba(249,115,22,.55)}
+.pc-anexo{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  background:var(--s1);border:1px dashed var(--b1);border-radius:10px;padding:13px}
+.pc-anexo .esc{cursor:pointer;background:var(--s2);border:1px solid var(--b1);color:var(--t2);
+  padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px;
+  transition:border-color .18s}
+.pc-anexo .esc:hover{border-color:rgba(249,115,22,.5)}
+.pc-ajuda{font-size:10.5px;color:var(--t3);margin-top:6px;line-height:1.55}
+@media(max-width:640px){.pc-grid{grid-template-columns:1fr}.pc-card{padding:16px}}
+
+
+/* ══════════════════════════════════════════════════════════════════
+   NH ACESSO — tela de entrada, igual nos três aplicativos.
+   As cores saem das variáveis do sistema, então o tema claro vem de
+   graça: basta a classe light-theme no body.
+   ══════════════════════════════════════════════════════════════════ */
+:root{
+  --ac-orb:.34;
+  --ac-vidro:rgba(255,255,255,.05); --ac-vidro-b:rgba(255,255,255,.10);
+  --ac-inp:rgba(255,255,255,.07);   --ac-inp-b:rgba(255,255,255,.13);
+  --ac-pl:rgba(255,255,255,.25);    --ac-som:0 24px 70px -20px rgba(0,0,0,.7);
+}
+body.light-theme{
+  --ac-orb:.15;
+  --ac-vidro:rgba(255,255,255,.74); --ac-vidro-b:rgba(11,18,32,.09);
+  --ac-inp:rgba(255,255,255,.92);   --ac-inp-b:rgba(11,18,32,.13);
+  --ac-pl:rgba(11,18,32,.32);       --ac-som:0 24px 60px -22px rgba(20,30,90,.35);
+}
+
+.nh-acesso{
+  position:fixed;inset:0;z-index:9990;display:none;
+  align-items:center;justify-content:center;padding:24px;
+  background:var(--bg);overflow:hidden;
+  font-family:'Outfit',system-ui,sans-serif;
+}
+/* Bate as regras antigas de #login-screen, que tinham fundo próprio. */
+#login-screen.nh-acesso{background:var(--bg)!important}
+body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
+
+/* Esferas de luz à deriva — a assinatura da tela */
+.ac-bg{position:absolute;inset:0;pointer-events:none}
+.ac-orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:var(--ac-orb)}
+.ac-o1{width:500px;height:500px;background:radial-gradient(circle,#7c3aed,transparent);
+  top:-150px;left:-150px;animation:acF1 10s ease-in-out infinite}
+.ac-o2{width:400px;height:400px;background:radial-gradient(circle,var(--nh),transparent);
+  bottom:-100px;right:-100px;animation:acF2 12s ease-in-out infinite}
+.ac-o3{width:300px;height:300px;background:radial-gradient(circle,#3b82f6,transparent);
+  top:50%;left:50%;animation:acF3 8s ease-in-out infinite}
+@keyframes acF1{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,30px)}}
+@keyframes acF2{0%,100%{transform:translate(0,0)}50%{transform:translate(-30px,-40px)}}
+@keyframes acF3{0%,100%{transform:translate(-50%,-50%)}50%{transform:translate(-45%,-55%)}}
+
+.ac-hero{position:relative;z-index:1;width:100%;max-width:430px;
+  display:flex;flex-direction:column;align-items:center;animation:acSobe .5s ease}
+@keyframes acSobe{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+
+.ac-badge{display:inline-flex;align-items:center;gap:7px;
+  background:var(--ac-vidro);border:1px solid var(--ac-vidro-b);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  padding:6px 14px;border-radius:20px;font-size:11px;font-weight:600;
+  color:var(--t3);letter-spacing:.08em;margin-bottom:28px}
+.ac-dot{width:7px;height:7px;border-radius:50%;background:var(--g1);
+  box-shadow:0 0 8px var(--g1);animation:acPulso 2s infinite}
+@keyframes acPulso{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.7;transform:scale(1.3)}}
+
+/* Anéis girando em torno da marca */
+.ac-logo{position:relative;width:100px;height:100px;display:flex;
+  align-items:center;justify-content:center;margin-bottom:24px}
+.ac-anel{position:absolute;border-radius:50%;border:2px solid transparent;animation:acGira 6s linear infinite}
+.ac-a1{width:100%;height:100%;border-top-color:rgba(249,115,22,.6);border-right-color:rgba(249,115,22,.2);animation-duration:4s}
+.ac-a2{width:80%;height:80%;border-top-color:rgba(124,58,237,.6);border-left-color:rgba(124,58,237,.2);animation-direction:reverse;animation-duration:6s}
+.ac-a3{width:60%;height:60%;border-bottom-color:rgba(59,130,246,.6);border-right-color:rgba(59,130,246,.2);animation-duration:8s}
+@keyframes acGira{to{transform:rotate(360deg)}}
+.ac-marca{position:relative;z-index:2;width:52px;height:52px;border-radius:16px;
+  background:linear-gradient(135deg,#f97316,#dc2626);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;font-weight:800;letter-spacing:-.02em;
+  animation:acBrilho 3s ease-in-out infinite}
+@keyframes acBrilho{0%,100%{box-shadow:0 0 20px rgba(249,115,22,.4)}50%{box-shadow:0 0 40px rgba(249,115,22,.7)}}
+
+.ac-tit{font-size:40px;font-weight:800;text-align:center;line-height:1.1;
+  margin-bottom:9px;letter-spacing:-.03em;color:var(--t1)}
+.ac-tit .grad{background:linear-gradient(90deg,#f97316,#a855f7);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.ac-sub{font-size:13.5px;color:var(--t3);margin-bottom:30px;text-align:center;line-height:1.6}
+
+.ac-form{width:100%;background:var(--ac-vidro);border:1px solid var(--ac-vidro-b);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-radius:20px;padding:30px;box-shadow:var(--ac-som)}
+.ac-campo{margin-bottom:15px}
+.ac-campo label{display:block;font-size:11px;font-weight:700;color:var(--t3);
+  text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px}
+.ac-campo input{width:100%;background:var(--ac-inp);border:1px solid var(--ac-inp-b);
+  color:var(--t1);padding:13px 15px;border-radius:10px;
+  font-family:inherit;font-size:15px;font-weight:500;outline:none;transition:all .15s}
+.ac-campo input:focus{border-color:rgba(249,115,22,.6);box-shadow:0 0 0 3px rgba(249,115,22,.12)}
+.ac-campo input::placeholder{color:var(--ac-pl)}
+
+.ac-btn{width:100%;background:linear-gradient(90deg,#f97316,#dc2626);color:#fff;border:none;
+  padding:14px;border-radius:10px;font-family:inherit;font-size:14.5px;font-weight:700;
+  cursor:pointer;margin-top:6px;letter-spacing:.02em;transition:all .2s;
+  box-shadow:0 4px 20px rgba(249,115,22,.3)}
+.ac-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(249,115,22,.5)}
+.ac-btn:active{transform:translateY(0)}
+.ac-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+
+.ac-err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);
+  color:var(--r1);padding:11px 14px;border-radius:9px;font-size:12.5px;font-weight:600;
+  margin-bottom:14px;display:none;text-align:center;line-height:1.5}
+.ac-rodape{font-size:11.5px;color:var(--t3);text-align:center;margin-top:16px;line-height:1.6}
+
+/* Alternador de tema, no canto */
+.ac-tema{position:absolute;top:18px;right:18px;z-index:3;
+  width:38px;height:38px;border-radius:12px;cursor:pointer;
+  background:var(--ac-vidro);border:1px solid var(--ac-vidro-b);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  color:var(--t2);font-size:16px;line-height:1;
+  display:flex;align-items:center;justify-content:center;transition:all .18s}
+.ac-tema:hover{border-color:rgba(249,115,22,.45);color:var(--nh)}
+
+@media(max-width:480px){
+  .ac-tit{font-size:32px}
+  .ac-form{padding:22px}
+  .ac-logo{width:84px;height:84px;margin-bottom:18px}
+}
+@media (prefers-reduced-motion:reduce){
+  .ac-orb,.ac-anel,.ac-marca,.ac-dot,.ac-hero{animation:none}
+}
+
 .mhd{
   padding:22px 26px 18px;border-bottom:1px solid var(--b1);
   display:flex;align-items:flex-start;justify-content:space-between;
@@ -1826,21 +1972,25 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
 <body class="compact">
 <script>(function(){try{if(localStorage.getItem('nh_tema')==='claro')document.body.classList.add('light-theme');}catch(e){}})();</script>
 
-<!-- Tela de login -->
-<div id="login-screen" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:9999;align-items:center;justify-content:center">
-  <div style="background:var(--s1);border:1px solid var(--b1);border-radius:16px;padding:40px 36px;width:320px;display:flex;flex-direction:column;gap:14px;align-items:center">
-    <div style="font-size:26px;font-weight:800;color:#f97316;letter-spacing:-.5px">NH Licitações</div>
-    <div style="color:var(--t3);font-size:12px;margin-bottom:6px">Sistema de Gestão</div>
-    <input id="login-email" type="email" placeholder="Email" autocomplete="email"
-      style="width:100%;background:var(--s2);border:1px solid var(--b2);color:var(--t1);padding:10px 14px;border-radius:8px;font-size:14px;outline:none;font-family:inherit">
-    <input id="login-senha" type="password" placeholder="Senha" autocomplete="current-password"
-      onkeydown="if(event.key==='Enter')loginEmailSenha()"
-      style="width:100%;background:var(--s2);border:1px solid var(--b2);color:var(--t1);padding:10px 14px;border-radius:8px;font-size:14px;outline:none;font-family:inherit">
-    <button onclick="loginEmailSenha()" id="btn-login"
-      style="width:100%;background:#f97316;color:#000;border:none;padding:12px;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px">
-      Entrar
-    </button>
-    <div id="login-err" style="color:#ef4444;font-size:12px;display:none;text-align:center"></div>
+<!-- Tela de acesso -->
+<div class="nh-acesso" id="login-screen">
+  <div class="ac-bg"><div class="ac-orb ac-o1"></div><div class="ac-orb ac-o2"></div><div class="ac-orb ac-o3"></div></div>
+  <button class="ac-tema" onclick="acTrocarTema()" id="ac-tema-btn" title="Alternar tema claro/escuro">◐</button>
+  <div class="ac-hero">
+    <div class="ac-badge"><span class="ac-dot"></span>SISTEMA ONLINE</div>
+    <div class="ac-logo">
+      <div class="ac-anel ac-a1"></div><div class="ac-anel ac-a2"></div><div class="ac-anel ac-a3"></div>
+      <div class="ac-marca">NH</div>
+    </div>
+    <div class="ac-tit">NH <span class="grad">Licitações</span></div>
+    <div class="ac-sub">Sistema de gestão de licitações</div>
+    <div class="ac-form">
+      <div class="ac-err" id="ac-err"></div>
+      <div class="ac-campo"><label>E-mail</label><input type="email" id="login-email" placeholder="seu@email.com" autocomplete="off" autocomplete="email"></div>
+      <div class="ac-campo"><label>Senha</label><input type="password" id="login-senha" placeholder="••••••••" autocomplete="off" autocomplete="current-password" onkeydown="if(event.key==='Enter')loginEmailSenha()"></div>
+      <button class="ac-btn" id="btn-login" onclick="loginEmailSenha()">Entrar</button>
+      <div class="ac-rodape">Acesso restrito à equipe NH.</div>
+    </div>
   </div>
 </div>
 
@@ -1935,7 +2085,9 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
     </div>
 
     <div class="sb-divider"></div>
-      Empresas
+
+    <div class="sb-section" style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+      <span>Empresas</span>
       <button onclick="abrirGerenciarEmpresas()" style="background:none;border:1px solid var(--b1);color:var(--t3);font-size:10px;padding:2px 8px;border-radius:4px;cursor:pointer;font-family:Outfit,sans-serif">⚙ Gerenciar</button>
     </div>
 
@@ -2053,134 +2205,128 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
 
     <!-- EMPRESAS CONFIG -->
 <div class="modal-overlay" id="mo-empresas" style="display:none">
-<div class="modal" style="width:95vw;max-width:1200px;max-height:92vh">
+<div class="modal" style="width:95vw;max-width:700px;max-height:92vh">
   <div class="mhd"><div class="mhd-nh"></div><div class="mhd-info"><h2>Gerenciar Empresas</h2><p>Cadastro completo das empresas do grupo NH</p></div><button class="mx" onclick="closeM('empresas')">×</button></div>
-  <div class="mbd" style="padding:20px 24px">
-  <div style="display:grid;grid-template-columns:1fr 1.6fr;gap:24px;align-items:start">
-  <!-- COLUNA ESQUERDA: lista -->
-  <div>
-    <div class="fsec" style="margin-bottom:10px">Empresas Cadastradas</div>
-    <div id="emp-lista" style="display:flex;flex-direction:column;gap:6px;max-height:65vh;overflow-y:auto;padding-right:4px"></div>
+  <div class="mbd" style="padding:22px 24px">
+  <div style="max-width:620px;margin:0 auto">
+
+  <!-- Empresas cadastradas -->
+  <div class="pc-card">
+    <div class="pc-tit">Empresas cadastradas<span class="cnt" id="emp-cnt"></span></div>
+    <div id="emp-lista" style="display:flex;flex-direction:column;gap:7px"></div>
+    <button class="btn btn-ghost" onclick="novaEmpresaForm()" style="margin-top:14px;width:100%">+ Nova empresa</button>
   </div>
-  <!-- COLUNA DIREITA: formulário -->
-  <div>
-    <div class="fsec" style="margin-bottom:10px">Nova Empresa / Editar</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-      <div class="fg" style="grid-column:1/-1"><label>Razão Social *</label><input type="text" id="emp-razao" placeholder="Razão Social LTDA"></div>
-      <div class="fg"><label>Nome Fantasia *</label><input type="text" id="emp-fantasia" placeholder="NOME"></div>
-      <div class="fg"><label>CNPJ</label><input type="text" id="emp-cnpj" placeholder="00.000.000/0001-00" oninput="mascaraCNPJ(this)"></div>
-      <div class="fg"><label>Endereço</label><input type="text" id="emp-endereco" placeholder="Rua, Nº, Bairro"></div>
-      <div class="fg"><label>Cidade/UF</label><input type="text" id="emp-cidade" placeholder="João Pessoa/PB"></div>
-      <div class="fg"><label>CEP</label><input type="text" id="emp-cep" placeholder="00.000-000"></div>
-      <div class="fg"><label>Telefone</label><input type="text" id="emp-tel" placeholder="(83) 99999-9999"></div>
-      <div class="fg"><label>E-mail Licitações</label><input type="text" id="emp-email" placeholder="licitacoes@empresa.com"></div>
-      <div class="fg"><label>Nome do Sócio</label><input type="text" id="emp-socio" placeholder="Nome completo do sócio"></div>
-      <div class="fg" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--s2);border:1px solid var(--b1);border-radius:8px">
-        <input type="checkbox" id="emp-robo" style="width:16px;height:16px;accent-color:#a78bfa;cursor:pointer">
-        <label for="emp-robo" style="cursor:pointer;font-size:13px;font-weight:600;color:var(--t1);display:flex;align-items:center;gap:6px">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4M8 15h2M14 15h2" stroke-linecap="round"/></svg>
-          Empresa possui Robô de Lances
+
+  <!-- Dados da empresa -->
+  <div class="pc-card">
+    <div class="pc-tit">Dados da empresa</div>
+    <div class="pc-desc" id="emp-modo">Preencha abaixo e clique em Adicionar. Para alterar uma existente, use o ✏ na lista acima.</div>
+    <div class="pc-grid">
+      <div class="pc-f pc-full"><label>Razão social *</label><input type="text" id="emp-razao" placeholder="EMPRESA LTDA"></div>
+      <div class="pc-f"><label>Nome fantasia *</label><input type="text" id="emp-fantasia" placeholder="VISE"></div>
+      <div class="pc-f"><label>CNPJ</label><input type="text" id="emp-cnpj" placeholder="00.000.000/0001-00" oninput="mascaraCNPJ(this)"></div>
+      <div class="pc-f pc-full"><label>Endereço</label><input type="text" id="emp-endereco" placeholder="Rua, número, bairro"></div>
+      <div class="pc-f"><label>Cidade / UF</label><input type="text" id="emp-cidade" placeholder="João Pessoa/PB"></div>
+      <div class="pc-f"><label>CEP</label><input type="text" id="emp-cep" placeholder="58000-000"></div>
+      <div class="pc-f"><label>Telefone</label><input type="text" id="emp-tel" placeholder="(83) 99999-9999"></div>
+      <div class="pc-f"><label>E-mail de licitações</label><input type="text" id="emp-email" placeholder="licitacoes@empresa.com"></div>
+    </div>
+  </div>
+
+  <!-- Sócio e banco -->
+  <div class="pc-card">
+    <div class="pc-tit">Sócio e dados bancários</div>
+    <div class="pc-desc">Usados nas propostas, declarações e no bloco de assinatura dos documentos.</div>
+    <div class="pc-grid">
+      <div class="pc-f pc-full"><label>Nome do sócio</label><input type="text" id="emp-socio" placeholder="Nome completo"></div>
+      <div class="pc-f"><label>CPF</label><input type="text" id="emp-cpf" placeholder="000.000.000-00"></div>
+      <div class="pc-f"><label>Cargo</label><input type="text" id="emp-cargo" placeholder="Sócio Administrador"></div>
+      <div class="pc-f"><label>Banco</label><input type="text" id="emp-banco" placeholder="Banco do Brasil"></div>
+      <div class="pc-f"><label>Agência</label><input type="text" id="emp-agencia" placeholder="0000-0"></div>
+      <div class="pc-f"><label>Conta corrente</label><input type="text" id="emp-conta" placeholder="00000-0"></div>
+      <div class="pc-f"><label>Robô de lances</label>
+        <label style="display:flex;align-items:center;gap:8px;background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:9px 11px;cursor:pointer">
+          <input type="checkbox" id="emp-robo" style="width:15px;height:15px;accent-color:var(--nh);cursor:pointer">
+          <span style="font-size:12.5px;color:var(--t2);font-weight:600">Empresa usa robô</span>
         </label>
       </div>
-      <div class="fg"><label>CPF do Sócio</label><input type="text" id="emp-cpf" placeholder="000.000.000-00"></div>
-      <div class="fg"><label>Cargo do Sócio</label><input type="text" id="emp-cargo" placeholder="Sócio Administrador"></div>
-      <div class="fg"><label>Banco</label><input type="text" id="emp-banco" placeholder="Ex: Bradesco"></div>
-      <div class="fg"><label>Agência</label><input type="text" id="emp-agencia" placeholder="0000"></div>
-      <div class="fg"><label>Conta Corrente</label><input type="text" id="emp-conta" placeholder="00000-0"></div>
-      <div class="fg"><label>Cor no sistema</label>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px">
+    </div>
+  </div>
+
+  <!-- Identidade e documentos -->
+  <div class="pc-card">
+    <div class="pc-tit">Identidade e documentos</div>
+    <div class="pc-grid">
+      <div class="pc-f pc-full"><label>Cor no sistema</label>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:10px 12px">
           <span class="cor-opt" data-cor="#eab308" style="width:24px;height:24px;border-radius:50%;background:#eab308;cursor:pointer;border:2px solid transparent" onclick="selecionarCor(this)"></span>
           <span class="cor-opt" data-cor="#3b82f6" style="width:24px;height:24px;border-radius:50%;background:#3b82f6;cursor:pointer;border:2px solid transparent" onclick="selecionarCor(this)"></span>
           <span class="cor-opt" data-cor="#22c55e" style="width:24px;height:24px;border-radius:50%;background:#22c55e;cursor:pointer;border:2px solid transparent" onclick="selecionarCor(this)"></span>
           <span class="cor-opt" data-cor="#ef4444" style="width:24px;height:24px;border-radius:50%;background:#ef4444;cursor:pointer;border:2px solid transparent" onclick="selecionarCor(this)"></span>
+          <span class="cor-opt" data-cor="#06b6d4" style="width:24px;height:24px;border-radius:50%;background:#06b6d4;cursor:pointer;border:2px solid transparent" onclick="selecionarCor(this)"></span>
           <span class="cor-opt" data-cor="#10b981" style="width:24px;height:24px;border-radius:50%;background:#10b981;cursor:pointer;border:2px solid transparent" onclick="selecionarCor(this)"></span>
           <span class="cor-opt" data-cor="#ec4899" style="width:24px;height:24px;border-radius:50%;background:#ec4899;cursor:pointer;border:2px solid transparent" onclick="selecionarCor(this)"></span>
           <span class="cor-opt" data-cor="#f97316" style="width:24px;height:24px;border-radius:50%;background:#f97316;cursor:pointer;border:2px solid transparent" onclick="selecionarCor(this)"></span>
           <span class="cor-opt" data-cor="#8b5cf6" style="width:24px;height:24px;border-radius:50%;background:#8b5cf6;cursor:pointer;border:2px solid transparent" onclick="selecionarCor(this)"></span>
           <input type="color" id="emp-novo-cor" value="#f97316" style="width:24px;height:24px;border:none;background:none;cursor:pointer;border-radius:50%;padding:0" title="Cor personalizada">
         </div>
+        <div class="pc-ajuda">É a cor da empresa nas etiquetas, nos gráficos e no calendário.</div>
       </div>
-      <div class="fg" style="grid-column:1/-1">
-        <label>Papel Timbrado (opcional)</label>
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <label style="cursor:pointer;background:var(--s2);border:1px dashed var(--b1);color:var(--t2);padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px">
-            📎 Escolher imagem
+      <div class="pc-f pc-full"><label>Papel timbrado — cabeçalho</label>
+        <div class="pc-anexo">
+          <label class="esc">📎 Escolher imagem
             <input type="file" id="emp-timbrado-file" accept="image/*" style="display:none" onchange="carregarTimbradoEmpresa(this)">
           </label>
-          <span id="emp-timbrado-status" style="font-size:11px;color:var(--t3)">Nenhum papel timbrado carregado</span>
-          <button type="button" id="emp-timbrado-remover" onclick="removerTimbradoEmpresa()" style="display:none;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer">Remover</button>
+          <span id="emp-timbrado-status" style="font-size:11.5px;color:var(--t3);flex:1">Nenhum arquivo</span>
+          <button type="button" id="emp-timbrado-remover" onclick="removerTimbradoEmpresa()" style="display:none;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:5px 11px;border-radius:6px;font-size:11px;cursor:pointer;font-family:Outfit,sans-serif">Remover</button>
         </div>
-        <img id="emp-timbrado-preview" style="display:none;margin-top:8px;max-width:100%;max-height:110px;border:1px solid var(--b1);border-radius:6px">
-        <div style="font-size:10px;color:var(--t3);margin-top:5px">Imagem pronta do cabeçalho (logo + dados da empresa). Substitui a barra colorida no topo de propostas e declarações. PNG ou JPG — a imagem é redimensionada automaticamente.</div>
+        <img id="emp-timbrado-preview" style="display:none;margin-top:9px;max-width:100%;max-height:110px;border:1px solid var(--b1);border-radius:8px">
+        <div class="pc-ajuda">Imagem pronta do cabeçalho, com logo e dados. Substitui a barra colorida no topo de propostas e declarações. PNG ou JPG — redimensionada sozinha.</div>
       </div>
-      <div class="fg" style="grid-column:1/-1">
-        <label>Rodapé do Papel Timbrado (opcional)</label>
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <label style="cursor:pointer;background:var(--s2);border:1px dashed var(--b1);color:var(--t2);padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px">
-            📎 Escolher imagem
+      <div class="pc-f pc-full"><label>Papel timbrado — rodapé</label>
+        <div class="pc-anexo">
+          <label class="esc">📎 Escolher imagem
             <input type="file" id="emp-timbrado-rodape-file" accept="image/*" style="display:none" onchange="carregarTimbradoRodapeEmpresa(this)">
           </label>
-          <span id="emp-timbrado-rodape-status" style="font-size:11px;color:var(--t3)">Nenhum rodapé carregado</span>
-          <button type="button" id="emp-timbrado-rodape-remover" onclick="removerTimbradoRodapeEmpresa()" style="display:none;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer">Remover</button>
+          <span id="emp-timbrado-rodape-status" style="font-size:11.5px;color:var(--t3);flex:1">Nenhum arquivo</span>
+          <button type="button" id="emp-timbrado-rodape-remover" onclick="removerTimbradoRodapeEmpresa()" style="display:none;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:5px 11px;border-radius:6px;font-size:11px;cursor:pointer;font-family:Outfit,sans-serif">Remover</button>
         </div>
-        <img id="emp-timbrado-rodape-preview" style="display:none;margin-top:8px;max-width:100%;max-height:80px;border:1px solid var(--b1);border-radius:6px">
-        <div style="font-size:10px;color:var(--t3);margin-top:5px">Faixa de rodapé, se a empresa tiver uma separada do cabeçalho (opcional — a maioria não precisa disso). Aparece fixa no rodapé de toda página impressa.</div>
+        <img id="emp-timbrado-rodape-preview" style="display:none;margin-top:9px;max-width:100%;max-height:110px;border:1px solid var(--b1);border-radius:8px">
+        <div class="pc-ajuda">Aparece no pé da página, com endereço e contato.</div>
       </div>
     </div>
-    <div style="grid-column:1/-1;border-top:1px solid #2a2a2a;margin:4px 0;padding-top:12px;font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.08em;font-weight:700">Dados do Sócio Signatário</div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:0">
-      <div class="fg" style="grid-column:1/3"><label>Nome do Sócio *</label><input type="text" id="emp-socio2" placeholder="Nome completo"></div>
-      <div class="fg"><label>Cargo</label><input type="text" id="emp-cargo2" placeholder="Sócio Administrador"></div>
-      <div class="fg"><label>CPF</label><input type="text" id="emp-cpf2" placeholder="000.000.000-00"></div>
-      <div class="fg"><label>Cidade/UF Assinatura</label><input type="text" id="emp-cidade2" placeholder="João Pessoa/PB"></div>
-      <div class="fg"><label>Banco</label><input type="text" id="emp-banco2" placeholder="Ex: Bradesco"></div>
-      <div class="fg"><label>Agência</label><input type="text" id="emp-agencia2" placeholder="0000"></div>
-      <div class="fg"><label>Conta Corrente</label><input type="text" id="emp-conta2" placeholder="00000-0"></div>
-      <div class="fg"><label>Telefone</label><input type="text" id="emp-tel2" placeholder="(83) 99999-9999"></div>
-      <div class="fg"><label>E-mail Licitações</label><input type="text" id="emp-email2" placeholder="licitacoes@empresa.com"></div>
-    </div>
-    <button class="btn btn-nh" onclick="adicionarEmpresa()" style="margin-top:12px;width:100%">+ Adicionar / Salvar Empresa</button>
-  </div><!-- /col direita -->
-  </div><!-- /grid -->
+    <button class="btn btn-nh" onclick="adicionarEmpresa()" id="emp-btn-add" style="margin-top:18px;width:100%">+ Adicionar empresa</button>
+  </div>
 
-  <!-- RESPONSÁVEIS -->
-  <div style="margin-top:26px;border-top:1px solid var(--b1);padding-top:20px">
-    <div class="fsec" style="margin-bottom:4px">Responsáveis</div>
-    <div style="font-size:12px;color:var(--t3);margin-bottom:14px;line-height:1.5">
-      Quem responde pelas empresas na análise de viabilidade e recebe as mensagens de WhatsApp.
-      Um responsável pode atender várias empresas — marque todas e ele verá tudo junto, com um acesso só.
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1.1fr;gap:22px;align-items:start">
-      <div>
-        <div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Cadastrados</div>
-        <div id="resp-lista" style="display:flex;flex-direction:column;gap:6px;max-height:42vh;overflow-y:auto;padding-right:4px"></div>
+  <!-- Responsáveis -->
+  <div class="pc-card">
+    <div class="pc-tit">Responsáveis</div>
+    <div class="pc-desc">Quem responde pelas empresas na análise de viabilidade e recebe as mensagens de WhatsApp. Um responsável pode atender várias empresas — marque todas e ele verá tudo junto, com um acesso só.</div>
+    <div id="resp-lista" style="display:flex;flex-direction:column;gap:7px"></div>
+    <div id="resp-form" style="margin-top:18px;border-top:1px solid var(--b1);padding-top:18px">
+      <div id="resp-aviso" style="display:none;font-size:12px;color:#60a5fa;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:8px;padding:9px 11px;margin-bottom:13px"></div>
+      <div class="pc-grid">
+        <div class="pc-f"><label>Nome *</label><input type="text" id="resp-nome" placeholder="Antunes"></div>
+        <div class="pc-f"><label>WhatsApp *</label><input type="text" id="resp-wpp" placeholder="(83) 99999-9999" oninput="nhMascaraWpp(this)"></div>
+        <div class="pc-f"><label>Despedida da mensagem</label><input type="text" id="resp-desp" placeholder="Arrocha!"></div>
+        <div class="pc-f"><label>Senha de acesso</label><input type="text" id="resp-senha" placeholder="vazio = gerar uma"></div>
+        <div class="pc-f pc-full"><label>Empresas que ele representa</label>
+          <div id="resp-empresas" style="display:flex;gap:6px;flex-wrap:wrap;background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:10px 12px"></div>
+        </div>
       </div>
-      <div id="resp-form">
-        <div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Novo / Editar</div>
-        <div id="resp-aviso" style="display:none;font-size:12px;color:#60a5fa;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:8px;padding:8px 10px;margin-bottom:10px"></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <div class="fg"><label>Nome *</label><input type="text" id="resp-nome" placeholder="Ex: Antunes"></div>
-          <div class="fg"><label>WhatsApp *</label><input type="text" id="resp-wpp" placeholder="(83) 99999-9999" oninput="nhMascaraWpp(this)"></div>
-          <div class="fg"><label>Despedida da mensagem</label><input type="text" id="resp-desp" placeholder="Ex: Arrocha!"></div>
-          <div class="fg"><label>Senha de acesso</label><input type="text" id="resp-senha" placeholder="deixe vazio = gerar"></div>
-        </div>
-        <div style="margin-top:10px">
-          <label style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em">Empresas que ele representa</label>
-          <div id="resp-empresas" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:7px"></div>
-        </div>
-        <label style="display:flex;align-items:center;gap:9px;margin-top:12px;padding:9px 12px;background:var(--s2);border:1px solid var(--b1);border-radius:8px;cursor:pointer">
-          <input type="checkbox" id="resp-todas" style="width:16px;height:16px;accent-color:#a78bfa;cursor:pointer">
-          <span style="font-size:13px;font-weight:600;color:var(--t1)">Vê todas as empresas <span style="color:var(--t3);font-weight:400">— acesso da assessoria</span></span>
-        </label>
-        <div style="display:flex;gap:8px;margin-top:12px">
-          <button class="btn btn-ghost" onclick="limparFormResp()">Limpar</button>
-          <button class="btn btn-nh" id="resp-btn-salvar" style="flex:1" onclick="salvarResponsavel()">+ Adicionar Responsável</button>
-        </div>
+      <label style="display:flex;align-items:center;gap:9px;margin-top:13px;background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:10px 12px;cursor:pointer">
+        <input type="checkbox" id="resp-todas" style="width:15px;height:15px;accent-color:#a78bfa;cursor:pointer">
+        <span style="font-size:12.5px;font-weight:600;color:var(--t1)">Vê todas as empresas <span style="color:var(--t3);font-weight:400">— acesso da assessoria</span></span>
+      </label>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="btn btn-ghost" onclick="limparFormResp()">Limpar</button>
+        <button class="btn btn-nh" id="resp-btn-salvar" style="flex:1" onclick="salvarResponsavel()">+ Adicionar responsável</button>
       </div>
     </div>
   </div>
-  </div><!-- /mbd -->
+
+  </div>
+</div><!-- /mbd -->
   <div class="mft"><button class="btn btn-ghost" onclick="closeM('empresas')">Fechar</button><button class="btn btn-nh" onclick="confirmarEmpresas()" id="btn-salvar-emp">Salvar Alterações</button></div>
 </div></div>
 
@@ -2987,7 +3133,20 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
 <div id="toasts"></div>
 
 <!-- ══════ JS ════════════════════════════════ -->
-<script>const SHEETS={editais:"EDITAIS CAPTURADOS",andamento:"EM ANDAMENTO",finalizados:"FINALIZADOS",ganhas:"LICITAÇÕES GANHAS",atestados:"ATESTADOS",financeiro:"FINANCEIRO",valores:"BANCO DE DADOS"},PS=20;var CUSTOM_OPTS={};async function carregarOptsCustom(){try{var e=await db.collection("config").doc("custom_opts").get();e.exists&&e.data()&&(CUSTOM_OPTS=e.data())}catch(e){}}async function salvarOptsCustom(){await db.collection("config").doc("custom_opts").set(CUSTOM_OPTS)}function getOptsCustom(e,a){return CUSTOM_OPTS[e+"_"+a]||[]}async function adicionarOpcaoCustom(e,a,t){var o=e+"_"+a;CUSTOM_OPTS[o]||(CUSTOM_OPTS[o]=[]),-1===CUSTOM_OPTS[o].indexOf(t)&&(CUSTOM_OPTS[o].push(t),await salvarOptsCustom())}const EMAILS_AUTORIZADOS=["noronhaholandalicitacoes@gmail.com","noronhaholanda@gmail.com"],firebaseConfig={apiKey:"AIzaSyBhcpJP9dRM0SEJsGfcNUXYb1rTMdEDw6M",authDomain:"nh-licitacoes.firebaseapp.com",projectId:"nh-licitacoes",storageBucket:"nh-licitacoes.firebasestorage.app",messagingSenderId:"1081646053691",appId:"1:1081646053691:web:a8abcb5792d026ade71f1e"};(function(){try{if(!localStorage.getItem("nh_idb_limpo_v1")){var _dbs=["firestore/[DEFAULT]/nh-licitacoes/main","firebaseLocalStorageDb"];if(window.indexedDB&&indexedDB.databases){indexedDB.databases().then(function(list){(list||[]).forEach(function(d){if(d&&d.name&&d.name.indexOf("firestore")!==-1){try{indexedDB.deleteDatabase(d.name);}catch(e){}}});});}else{_dbs.forEach(function(n){try{indexedDB.deleteDatabase(n);}catch(e){}});}localStorage.setItem("nh_idb_limpo_v1","1");}}catch(e){}})();firebase.initializeApp(firebaseConfig);const db=firebase.firestore();db.settings({experimentalAutoDetectLongPolling:!0,merge:!0});const auth=firebase.auth();function loginEmailSenha(){var e=document.getElementById("login-email").value.trim(),a=document.getElementById("login-senha").value,t=document.getElementById("btn-login"),o=document.getElementById("login-err");if(!e||!a)return o.style.display="block",void(o.textContent="Preencha email e senha");t&&(t.textContent="Entrando..."),o.style.display="none",auth.signInWithEmailAndPassword(e,a).catch(function(e){t&&(t.textContent="Entrar"),o.style.display="block","auth/wrong-password"===e.code||"auth/user-not-found"===e.code||"auth/invalid-credential"===e.code?o.textContent="Email ou senha incorretos":o.textContent="Erro: "+e.message})}function logoutGoogle(){auth.signOut()}var ADMIN_EMAIL="noronhaholandalicitacoes@gmail.com",USUARIOS=null,USER_EMAIL="",IS_ADMIN=false,USER_SOS=true,IS_READONLY=false;async function carregarUsuarios(){if(USUARIOS!==null)return USUARIOS;USUARIOS={};try{if(db){var d=await db.collection("config").doc("usuarios").get();if(d.exists){var x=d.data();if(x&&x.lista)USUARIOS=x.lista;}}}catch(e){}return USUARIOS;}async function resolveAcesso(em){if(em===ADMIN_EMAIL)return{ok:true,admin:true,sos:true,readonly:false};var U=await carregarUsuarios();var u=U[em];if(u)return{ok:true,admin:"admin"===u.role,sos:"admin"===u.role||!!u.sos,readonly:"admin"!==u.role};if(EMAILS_AUTORIZADOS.indexOf(em)>-1)return{ok:true,admin:true,sos:true,readonly:false};return{ok:false};}function aplicarPermissoes(){try{document.body.classList.toggle("ro-mode",!!IS_READONLY);document.body.classList.toggle("no-sos",!USER_SOS);if(!USER_SOS)MOSTRAR_SOS=false;var bu=document.getElementById("btn-usuarios");bu&&(bu.style.display=IS_ADMIN?"inline-block":"none");}catch(e){}}function abrirUsuarios(){if(!IS_ADMIN)return;carregarUsuarios().then(function(){var w=document.getElementById("usuarios-ovwrap");if(!w){w=document.createElement("div");w.id="usuarios-ovwrap";document.body.appendChild(w);}w.innerHTML='<div class="uov" onclick="if(event.target===this)fecharUsuarios()"><div class="upanel"><div class="uhead"><div class="uhc"><div class="uicon">👥</div><h3>Usuários do sistema</h3></div><button class="uclose" onclick="fecharUsuarios()">&times;</button></div><div class="uhint">O admin vê e edita tudo. Os demais entram em <b>somente leitura</b>. Ative <b>vê Externo</b> só para quem pode ver os processos externos.</div><div class="uform"><input id="nu-email" type="email" placeholder="email@exemplo.com" class="uinput"><select id="nu-role" class="uinput usel"><option value="leitura">Somente leitura</option><option value="admin">Admin</option></select><label class="uswlbl"><span>vê Externo</span><span class="usw"><input id="nu-sos" type="checkbox"><span></span></span></label><button class="ubtn-add" onclick="addUsuario()">Adicionar</button></div><div id="usuarios-lista"></div></div></div>';renderListaUsuarios();});}function fecharUsuarios(){var w=document.getElementById("usuarios-ovwrap");if(w)w.innerHTML="";}function renderListaUsuarios(){var box=document.getElementById("usuarios-lista");if(!box)return;var html='<div class="urow uadmin"><div class="uinfo"><b>'+ADMIN_EMAIL+'</b><div class="umeta"><span class="ubadge badm">Admin</span><span class="ubadge bext">vê Externo</span></div></div><span class="ufix">fixo</span></div>';var ks=Object.keys(USUARIOS||{});if(!ks.length)html+='<div class="uempty">Nenhum usuário adicional cadastrado.</div>';ks.forEach(function(em,n){var u=USUARIOS[em]||{};var adm="admin"===u.role;var vs=adm||u.sos;html+='<div class="urow"><div class="uinfo"><b>'+em+'</b><div class="umeta"><span class="ubadge '+(adm?"badm":"ble")+'">'+(adm?"Admin":"Leitura")+'</span>'+(vs?'<span class="ubadge bext">vê Externo</span>':'')+'</div></div><div class="uacts">'+(adm?"":'<button class="upill '+(u.sos?"on":"")+'" onclick="toggleSosIdx('+n+')">'+(u.sos?"vê Externo":"sem Externo")+'</button>')+'<button class="utrash" onclick="removerIdx('+n+')" title="Remover">🗑</button></div></div>';});box.innerHTML=html;}function salvarUsuarios(){if(typeof db!=="undefined"&&db){db.collection("config").doc("usuarios").set({lista:USUARIOS||{}},{merge:true}).catch(function(){toast&&toast("Erro ao salvar usuários","err");});}}function addUsuario(){var em=(document.getElementById("nu-email").value||"").trim().toLowerCase();if(!em||em.indexOf("@")<1){toast&&toast("E-mail inválido","err");return;}if(em===ADMIN_EMAIL){toast&&toast("Esse já é o admin","err");return;}var role=document.getElementById("nu-role").value;var sos=document.getElementById("nu-sos").checked;USUARIOS=USUARIOS||{};USUARIOS[em]={role:role,sos:!!sos};salvarUsuarios();document.getElementById("nu-email").value="";document.getElementById("nu-sos").checked=false;renderListaUsuarios();toast&&toast("Usuário adicionado","ok");}function removerIdx(n){var em=Object.keys(USUARIOS||{})[n];if(em){delete USUARIOS[em];salvarUsuarios();renderListaUsuarios();toast&&toast("Usuário removido","ok");}}function toggleSosIdx(n){var em=Object.keys(USUARIOS||{})[n];if(em){USUARIOS[em].sos=!USUARIOS[em].sos;salvarUsuarios();renderListaUsuarios();}}auth.onAuthStateChanged(function(e){var a=document.getElementById("login-screen"),t=document.getElementById("sb"),o=document.querySelector(".topbar"),i=document.querySelector(".main");if(e){resolveAcesso(e.email).then(function(acc){if(!acc.ok){auth.signOut();var n=document.getElementById("login-err");return void(n&&(n.style.display="block",n.textContent="Email não autorizado: "+e.email))}IS_ADMIN=acc.admin,USER_SOS=acc.sos,IS_READONLY=acc.readonly,USER_EMAIL=e.email;a&&(a.style.display="none"),t&&(t.style.display=""),o&&(o.style.display=""),i&&(i.style.display="");var r=document.getElementById("user-info"),s=document.getElementById("user-name");r&&(r.style.display="flex"),s&&(s.textContent=e.email),aplicarPermissoes(),window._appInited||(window._appInited=!0,initApp())})}else{a&&(a.style.display="flex"),t&&(t.style.display="none"),o&&(o.style.display="none"),i&&(i.style.display="none"),(r=document.getElementById("user-info"))&&(r.style.display="none")}});const FB_COLS={editais:"editais",andamento:"andamento",finalizados:"finalizados",ganhas:"ganhas",atestados:"atestados",financeiro:"financeiro",valores:"valores",config:"config"};var EMPRESAS=[{nome:"VISE",cor:"#eab308"},{nome:"SAUTEC",cor:"#3b82f6"},{nome:"SOS",cor:"#22c55e"},{nome:"SOS FILIAL",cor:"#ef4444"},{nome:"ONLAV",cor:"#06b6d4"},{nome:"ENGEMED",cor:"#ec4899"}];async function carregarEmpresas(){try{var e=await db.collection("config").doc("empresas").get();e.exists&&e.data().lista&&(EMPRESAS=e.data().lista)}catch(e){}EMPRESAS.forEach(function(e){EMP_DATA[e.nome]||(EMP_DATA[e.nome]={cnpj:e.cnpj||"",portais:[],docs:[]}),TOPS["emp-"+e.nome]||(TOPS["emp-"+e.nome]=["Empresa — "+e.nome,"Portais, certidões e documentação"+(e.cnpj?" · CNPJ "+e.cnpj:"")])}),atualizarSelectsEmpresas(),Promise.all(EMPRESAS.map(function(e){return loadEmpData(e.nome)})).then(function(){atualizarSelectsEmpresas()}).catch(function(e){})}async function salvarEmpresas(){await db.collection("config").doc("empresas").set({lista:EMPRESAS})}
+<script>const SHEETS={editais:"EDITAIS CAPTURADOS",andamento:"EM ANDAMENTO",finalizados:"FINALIZADOS",ganhas:"LICITAÇÕES GANHAS",atestados:"ATESTADOS",financeiro:"FINANCEIRO",valores:"BANCO DE DADOS"},PS=20;var CUSTOM_OPTS={};async function carregarOptsCustom(){try{var e=await db.collection("config").doc("custom_opts").get();e.exists&&e.data()&&(CUSTOM_OPTS=e.data())}catch(e){}}async function salvarOptsCustom(){await db.collection("config").doc("custom_opts").set(CUSTOM_OPTS)}function getOptsCustom(e,a){return CUSTOM_OPTS[e+"_"+a]||[]}async function adicionarOpcaoCustom(e,a,t){var o=e+"_"+a;CUSTOM_OPTS[o]||(CUSTOM_OPTS[o]=[]),-1===CUSTOM_OPTS[o].indexOf(t)&&(CUSTOM_OPTS[o].push(t),await salvarOptsCustom())}const EMAILS_AUTORIZADOS=["noronhaholandalicitacoes@gmail.com","noronhaholanda@gmail.com"],firebaseConfig={apiKey:"AIzaSyBhcpJP9dRM0SEJsGfcNUXYb1rTMdEDw6M",authDomain:"nh-licitacoes.firebaseapp.com",projectId:"nh-licitacoes",storageBucket:"nh-licitacoes.firebasestorage.app",messagingSenderId:"1081646053691",appId:"1:1081646053691:web:a8abcb5792d026ade71f1e"};(function(){try{if(!localStorage.getItem("nh_idb_limpo_v1")){var _dbs=["firestore/[DEFAULT]/nh-licitacoes/main","firebaseLocalStorageDb"];if(window.indexedDB&&indexedDB.databases){indexedDB.databases().then(function(list){(list||[]).forEach(function(d){if(d&&d.name&&d.name.indexOf("firestore")!==-1){try{indexedDB.deleteDatabase(d.name);}catch(e){}}});});}else{_dbs.forEach(function(n){try{indexedDB.deleteDatabase(n);}catch(e){}});}localStorage.setItem("nh_idb_limpo_v1","1");}}catch(e){}})();firebase.initializeApp(firebaseConfig);const db=firebase.firestore();db.settings({experimentalAutoDetectLongPolling:!0,merge:!0});const auth=firebase.auth();
+/* Tema claro/escuro. A chave é a mesma usada pelo sistema principal,
+   então escolher aqui vale nos três aplicativos. */
+function acAplicarTema(claro){
+  document.body.classList.toggle('light-theme',!!claro);
+  var b=document.getElementById('ac-tema-btn');
+  if(b){b.textContent=claro?'☾':'☀';b.title=claro?'Mudar para escuro':'Mudar para claro';}
+  try{localStorage.setItem('nh_tema',claro?'claro':'escuro');}catch(e){}
+  /* Mantém em dia o botão de tema da barra lateral, onde ele existe. */
+  if('function'==typeof _atualizarIconeTema)_atualizarIconeTema();}
+function acTrocarTema(){acAplicarTema(!document.body.classList.contains('light-theme'));}
+(function(){try{acAplicarTema('claro'===localStorage.getItem('nh_tema'));}catch(e){}})();
+
+function loginEmailSenha(){var e=document.getElementById("login-email").value.trim(),a=document.getElementById("login-senha").value,t=document.getElementById("btn-login"),o=document.getElementById("login-err");if(!e||!a)return o.style.display="block",void(o.textContent="Preencha email e senha");t&&(t.textContent="Entrando..."),o.style.display="none",auth.signInWithEmailAndPassword(e,a).catch(function(e){t&&(t.textContent="Entrar"),o.style.display="block","auth/wrong-password"===e.code||"auth/user-not-found"===e.code||"auth/invalid-credential"===e.code?o.textContent="Email ou senha incorretos":o.textContent="Erro: "+e.message})}function logoutGoogle(){auth.signOut()}var ADMIN_EMAIL="noronhaholandalicitacoes@gmail.com",USUARIOS=null,USER_EMAIL="",IS_ADMIN=false,USER_SOS=true,IS_READONLY=false;async function carregarUsuarios(){if(USUARIOS!==null)return USUARIOS;USUARIOS={};try{if(db){var d=await db.collection("config").doc("usuarios").get();if(d.exists){var x=d.data();if(x&&x.lista)USUARIOS=x.lista;}}}catch(e){}return USUARIOS;}async function resolveAcesso(em){if(em===ADMIN_EMAIL)return{ok:true,admin:true,sos:true,readonly:false};var U=await carregarUsuarios();var u=U[em];if(u)return{ok:true,admin:"admin"===u.role,sos:"admin"===u.role||!!u.sos,readonly:"admin"!==u.role};if(EMAILS_AUTORIZADOS.indexOf(em)>-1)return{ok:true,admin:true,sos:true,readonly:false};return{ok:false};}function aplicarPermissoes(){try{document.body.classList.toggle("ro-mode",!!IS_READONLY);document.body.classList.toggle("no-sos",!USER_SOS);if(!USER_SOS)MOSTRAR_SOS=false;var bu=document.getElementById("btn-usuarios");bu&&(bu.style.display=IS_ADMIN?"inline-block":"none");}catch(e){}}function abrirUsuarios(){if(!IS_ADMIN)return;carregarUsuarios().then(function(){var w=document.getElementById("usuarios-ovwrap");if(!w){w=document.createElement("div");w.id="usuarios-ovwrap";document.body.appendChild(w);}w.innerHTML='<div class="uov" onclick="if(event.target===this)fecharUsuarios()"><div class="upanel"><div class="uhead"><div class="uhc"><div class="uicon">👥</div><h3>Usuários do sistema</h3></div><button class="uclose" onclick="fecharUsuarios()">&times;</button></div><div class="uhint">O admin vê e edita tudo. Os demais entram em <b>somente leitura</b>. Ative <b>vê Externo</b> só para quem pode ver os processos externos.</div><div class="uform"><input id="nu-email" type="email" placeholder="email@exemplo.com" class="uinput"><select id="nu-role" class="uinput usel"><option value="leitura">Somente leitura</option><option value="admin">Admin</option></select><label class="uswlbl"><span>vê Externo</span><span class="usw"><input id="nu-sos" type="checkbox"><span></span></span></label><button class="ubtn-add" onclick="addUsuario()">Adicionar</button></div><div id="usuarios-lista"></div></div></div>';renderListaUsuarios();});}function fecharUsuarios(){var w=document.getElementById("usuarios-ovwrap");if(w)w.innerHTML="";}function renderListaUsuarios(){var box=document.getElementById("usuarios-lista");if(!box)return;var html='<div class="urow uadmin"><div class="uinfo"><b>'+ADMIN_EMAIL+'</b><div class="umeta"><span class="ubadge badm">Admin</span><span class="ubadge bext">vê Externo</span></div></div><span class="ufix">fixo</span></div>';var ks=Object.keys(USUARIOS||{});if(!ks.length)html+='<div class="uempty">Nenhum usuário adicional cadastrado.</div>';ks.forEach(function(em,n){var u=USUARIOS[em]||{};var adm="admin"===u.role;var vs=adm||u.sos;html+='<div class="urow"><div class="uinfo"><b>'+em+'</b><div class="umeta"><span class="ubadge '+(adm?"badm":"ble")+'">'+(adm?"Admin":"Leitura")+'</span>'+(vs?'<span class="ubadge bext">vê Externo</span>':'')+'</div></div><div class="uacts">'+(adm?"":'<button class="upill '+(u.sos?"on":"")+'" onclick="toggleSosIdx('+n+')">'+(u.sos?"vê Externo":"sem Externo")+'</button>')+'<button class="utrash" onclick="removerIdx('+n+')" title="Remover">🗑</button></div></div>';});box.innerHTML=html;}function salvarUsuarios(){if(typeof db!=="undefined"&&db){db.collection("config").doc("usuarios").set({lista:USUARIOS||{}},{merge:true}).catch(function(){toast&&toast("Erro ao salvar usuários","err");});}}function addUsuario(){var em=(document.getElementById("nu-email").value||"").trim().toLowerCase();if(!em||em.indexOf("@")<1){toast&&toast("E-mail inválido","err");return;}if(em===ADMIN_EMAIL){toast&&toast("Esse já é o admin","err");return;}var role=document.getElementById("nu-role").value;var sos=document.getElementById("nu-sos").checked;USUARIOS=USUARIOS||{};USUARIOS[em]={role:role,sos:!!sos};salvarUsuarios();document.getElementById("nu-email").value="";document.getElementById("nu-sos").checked=false;renderListaUsuarios();toast&&toast("Usuário adicionado","ok");}function removerIdx(n){var em=Object.keys(USUARIOS||{})[n];if(em){delete USUARIOS[em];salvarUsuarios();renderListaUsuarios();toast&&toast("Usuário removido","ok");}}function toggleSosIdx(n){var em=Object.keys(USUARIOS||{})[n];if(em){USUARIOS[em].sos=!USUARIOS[em].sos;salvarUsuarios();renderListaUsuarios();}}auth.onAuthStateChanged(function(e){var a=document.getElementById("login-screen"),t=document.getElementById("sb"),o=document.querySelector(".topbar"),i=document.querySelector(".main");if(e){resolveAcesso(e.email).then(function(acc){if(!acc.ok){auth.signOut();var n=document.getElementById("login-err");return void(n&&(n.style.display="block",n.textContent="Email não autorizado: "+e.email))}IS_ADMIN=acc.admin,USER_SOS=acc.sos,IS_READONLY=acc.readonly,USER_EMAIL=e.email;a&&(a.style.display="none"),t&&(t.style.display=""),o&&(o.style.display=""),i&&(i.style.display="");var r=document.getElementById("user-info"),s=document.getElementById("user-name");r&&(r.style.display="flex"),s&&(s.textContent=e.email),aplicarPermissoes(),window._appInited||(window._appInited=!0,initApp())})}else{a&&(a.style.display="flex"),t&&(t.style.display="none"),o&&(o.style.display="none"),i&&(i.style.display="none"),(r=document.getElementById("user-info"))&&(r.style.display="none")}});const FB_COLS={editais:"editais",andamento:"andamento",finalizados:"finalizados",ganhas:"ganhas",atestados:"atestados",financeiro:"financeiro",valores:"valores",config:"config"};var EMPRESAS=[{nome:"VISE",cor:"#eab308"},{nome:"SAUTEC",cor:"#3b82f6"},{nome:"SOS",cor:"#22c55e"},{nome:"SOS FILIAL",cor:"#ef4444"},{nome:"ONLAV",cor:"#06b6d4"},{nome:"ENGEMED",cor:"#ec4899"}];async function carregarEmpresas(){try{var e=await db.collection("config").doc("empresas").get();e.exists&&e.data().lista&&(EMPRESAS=e.data().lista)}catch(e){}EMPRESAS.forEach(function(e){EMP_DATA[e.nome]||(EMP_DATA[e.nome]={cnpj:e.cnpj||"",portais:[],docs:[]}),TOPS["emp-"+e.nome]||(TOPS["emp-"+e.nome]=["Empresa — "+e.nome,"Portais, certidões e documentação"+(e.cnpj?" · CNPJ "+e.cnpj:"")])}),atualizarSelectsEmpresas(),Promise.all(EMPRESAS.map(function(e){return loadEmpData(e.nome)})).then(function(){atualizarSelectsEmpresas()}).catch(function(e){})}async function salvarEmpresas(){await db.collection("config").doc("empresas").set({lista:EMPRESAS})}
 /* ══════════════════════════════════════════════════════════════════
    RESPONSÁVEIS
    Registro próprio, com chave = número do WhatsApp (só dígitos).
@@ -5006,17 +5165,30 @@ function _atualizarIconeTema(){
 }
 document.addEventListener('DOMContentLoaded', _atualizarIconeTema);
 
-function abrirGerenciarEmpresas(){renderListaEmpresas();carregarResponsaveis().then(function(){renderListaResponsaveis();limparFormResp();});var e=document.getElementById("mo-empresas");e.style.display="flex",e.classList.add("open")}function renderListaEmpresas(){var e=document.getElementById("emp-lista");EMPRESAS.length?e.innerHTML=EMPRESAS.map(function(e,a){var t=e.cor||"#f97316",o=[e.cnpj,e.cidade,e.socio?"Sócio: "+e.socio:"",e.robo?"🤖 Robô":""].filter(Boolean).join(" · ");return'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--s2);border:1px solid var(--b1);border-radius:8px;border-left:3px solid '+t+';gap:8px"><div style="flex:1;min-width:0"><span style="font-weight:700;color:'+t+'">'+e.nome+"</span>"+(o?'<div style="font-size:11px;color:#666;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+o+"</div>":"")+'</div><div style="display:flex;gap:6px;flex-shrink:0"><button onclick="editarEmpresa('+a+')" style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);color:#60a5fa;padding:3px 10px;border-radius:5px;cursor:pointer;font-size:11px;font-family:Outfit,sans-serif">✏ Editar</button><button onclick="removerEmpresa('+a+')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#ef4444;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px">✕</button></div></div>'}).join(""):e.innerHTML='<div style="color:var(--t3);font-size:13px;padding:8px">Nenhuma empresa cadastrada</div>'}function gv(e){var a=document.getElementById(e);return a?a.value.trim():""}function adicionarEmpresa(){
+function novaEmpresaForm(){
+  _editEmpIdx=-1;
+  ["emp-razao","emp-fantasia","emp-cnpj","emp-endereco","emp-cep","emp-socio","emp-cpf",
+   "emp-cargo","emp-cidade","emp-tel","emp-email","emp-banco","emp-agencia","emp-conta"]
+    .forEach(function(id){var e=document.getElementById(id);if(e)e.value="";});
+  var r=document.getElementById("emp-robo");if(r)r.checked=false;
+  if("function"==typeof _resetFormTimbrado)_resetFormTimbrado();
+  if("function"==typeof _resetFormTimbradoRodape)_resetFormTimbradoRodape();
+  var b=document.getElementById("emp-btn-add");
+  if(b){b.textContent="+ Adicionar empresa";b.style.background="";}
+  var m=document.getElementById("emp-modo");
+  if(m)m.textContent="Preencha abaixo e clique em Adicionar. Para alterar uma existente, use o \u270f na lista acima.";
+  var f=document.getElementById("emp-razao");if(f)f.focus();}
+function abrirGerenciarEmpresas(){renderListaEmpresas();carregarResponsaveis().then(function(){renderListaResponsaveis();limparFormResp();});var e=document.getElementById("mo-empresas");e.style.display="flex",e.classList.add("open")}function renderListaEmpresas(){var _c=document.getElementById("emp-cnt");if(_c)_c.textContent=EMPRESAS.length+(1===EMPRESAS.length?" empresa":" empresas");var e=document.getElementById("emp-lista");EMPRESAS.length?e.innerHTML=EMPRESAS.map(function(e,a){var t=e.cor||"#f97316",o=[e.cnpj,e.cidade,e.socio?"Sócio: "+e.socio:"",e.robo?"🤖 Robô":""].filter(Boolean).join(" · ");return'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--s2);border:1px solid var(--b1);border-radius:8px;border-left:3px solid '+t+';gap:8px"><div style="flex:1;min-width:0"><span style="font-weight:700;color:'+t+'">'+e.nome+"</span>"+(o?'<div style="font-size:11px;color:#666;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+o+"</div>":"")+'</div><div style="display:flex;gap:6px;flex-shrink:0"><button onclick="editarEmpresa('+a+')" style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);color:#60a5fa;padding:3px 10px;border-radius:5px;cursor:pointer;font-size:11px;font-family:Outfit,sans-serif">✏ Editar</button><button onclick="removerEmpresa('+a+')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#ef4444;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px">✕</button></div></div>'}).join(""):e.innerHTML='<div style="color:var(--t3);font-size:13px;padding:8px">Nenhuma empresa cadastrada</div>'}function gv(e){var a=document.getElementById(e);return a?a.value.trim():""}function adicionarEmpresa(){
   var e=gv("emp-fantasia").toUpperCase(),a=gv("emp-razao"),t=gv("emp-cnpj"),o=gv("emp-novo-cor")||_corSelecionada||"#f97316";
   if(!e){toast("Digite o nome fantasia","err");return;}
   var novaEmp={nome:e,razao:a,cnpj:t,cor:o,
     endereco:gv("emp-endereco"),cep:gv("emp-cep"),
-    socio:gv("emp-socio")||gv("emp-socio2"),cpf:gv("emp-cpf")||gv("emp-cpf2"),robo:document.getElementById("emp-robo")&&document.getElementById("emp-robo").checked||false,
-    cargo:gv("emp-cargo")||gv("emp-cargo2")||"Sócio Administrador",
-    cidade:gv("emp-cidade")||gv("emp-cidade2"),
-    tel:gv("emp-tel")||gv("emp-tel2"),email:gv("emp-email")||gv("emp-email2"),
-    banco:gv("emp-banco")||gv("emp-banco2"),agencia:gv("emp-agencia")||gv("emp-agencia2"),
-    conta:gv("emp-conta")||gv("emp-conta2")};
+    socio:gv("emp-socio"),cpf:gv("emp-cpf"),robo:document.getElementById("emp-robo")&&document.getElementById("emp-robo").checked||false,
+    cargo:gv("emp-cargo")||"Sócio Administrador",
+    cidade:gv("emp-cidade"),
+    tel:gv("emp-tel"),email:gv("emp-email"),
+    banco:gv("emp-banco"),agencia:gv("emp-agencia"),
+    conta:gv("emp-conta")};
   // Papel timbrado: registrar a alteração pendente (salva de fato em confirmarEmpresas())
   if(_timbradoAtual==="REMOVER"){
     _timbradosPendentes[e] = "REMOVER";
@@ -5041,7 +5213,7 @@ function abrirGerenciarEmpresas(){renderListaEmpresas();carregarResponsaveis().t
   }
   _resetFormTimbrado();
   _resetFormTimbradoRodape();
-  ["emp-razao","emp-fantasia","emp-cnpj","emp-endereco","emp-cep","emp-socio","emp-cpf","emp-cargo","emp-cidade","emp-tel","emp-email","emp-banco","emp-agencia","emp-conta","emp-socio2","emp-cpf2","emp-cargo2","emp-cidade2","emp-tel2","emp-email2","emp-banco2","emp-agencia2","emp-conta2","emp-robo"].forEach(function(e){var a=document.getElementById(e);if(a)a.value="";});
+  ["emp-razao","emp-fantasia","emp-cnpj","emp-endereco","emp-cep","emp-socio","emp-cpf","emp-cargo","emp-cidade","emp-tel","emp-email","emp-banco","emp-agencia","emp-conta","emp-robo"].forEach(function(e){var a=document.getElementById(e);if(a)a.value="";});
   // Restaurar botão
   var btn=document.querySelector('[onclick="adicionarEmpresa()"]');
   if(btn){btn.textContent="+ Adicionar Empresa";btn.style.background="";}
@@ -5055,9 +5227,9 @@ function abrirGerenciarEmpresas(){renderListaEmpresas();carregarResponsaveis().t
   var t={
     "emp-razao":a.razao||"","emp-fantasia":a.nome||"","emp-cnpj":a.cnpj||"","emp-robo":a.robo||false,
     "emp-endereco":a.endereco||"","emp-cep":a.cep||"",
-    "emp-socio2":a.socio||"","emp-cpf2":a.cpf||"","emp-cargo2":a.cargo||"",
-    "emp-cidade2":a.cidade||"","emp-tel2":a.tel||"","emp-email2":a.email||"",
-    "emp-banco2":a.banco||"","emp-agencia2":a.agencia||"","emp-conta2":a.conta||""
+    "emp-socio":a.socio||"","emp-cpf":a.cpf||"","emp-cargo":a.cargo||"",
+    "emp-cidade":a.cidade||"","emp-tel":a.tel||"","emp-email":a.email||"",
+    "emp-banco":a.banco||"","emp-agencia":a.agencia||"","emp-conta":a.conta||""
   };
   Object.keys(t).forEach(function(k){var el=document.getElementById(k);if(el)el.value=t[k];});
   if(a.cor)document.getElementById("emp-novo-cor").value=a.cor;
@@ -5086,8 +5258,10 @@ function abrirGerenciarEmpresas(){renderListaEmpresas();carregarResponsaveis().t
     }
   });
   // Atualizar botão para mostrar "Salvar Edição"
-  var btn=document.querySelector('[onclick="adicionarEmpresa()"]');
-  if(btn){btn.textContent="💾 Salvar Edição";btn.style.background="#22c55e";}
+  var btn=document.getElementById("emp-btn-add");
+  if(btn){btn.textContent="💾 Salvar edição";btn.style.background="#22c55e";}
+  var _m=document.getElementById("emp-modo");
+  if(_m)_m.textContent="Editando "+(a.nome||"")+". Altere o que precisar e clique em Salvar edição.";
   var o=document.querySelector('[onclick="adicionarEmpresa()"]');
   o&&o.scrollIntoView({behavior:"smooth"});
   toast("Edite os dados e clique em 💾 Salvar Edição","ok");
