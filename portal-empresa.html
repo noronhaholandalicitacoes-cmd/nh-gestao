@@ -5,25 +5,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NH Gerenciamento de Contratos</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><defs><radialGradient id='g' cx='35%25' cy='30%25' r='70%25'><stop offset='0%25' stop-color='%23f472b6'/><stop offset='100%25' stop-color='%23be185d'/></radialGradient></defs><circle cx='24' cy='24' r='24' fill='url(%23g)'/><text x='24' y='31' text-anchor='middle' fill='white' font-family='Arial Black,sans-serif' font-weight='900' font-size='15'>NH</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 
 <style>
 :root {
-  --bg: #0a0a0f;
-  --s1: #111118;
-  --s2: #18181f;
-  --s3: #22222c;
-  --b1: #2a2a38;
-  --b2: #3a3a4a;
-  --nh: #f97316;
-  --nha: rgba(249,115,22,.12);
-  --g1: #22c55e;
-  --r1: #ef4444;
-  --y1: #eab308;
-  --b_: #3b82f6;
-  --t1: #f0f0f8;
-  --t2: #9898b0;
-  --t3: #5a5a72;
+  /* Paleta do sistema principal — os três aplicativos usam a mesma. */
+  --bg:#0a0e1a; --s1:#111725; --s2:#161d2e; --s3:#1c2438;
+  --b1:#252d40; --b2:#303a52;
+  --nh:#f97316; --nha:rgba(249,115,22,.12);
+  --g1:#22c55e; --r1:#ef4444; --y1:#eab308; --b_:#3b82f6;
+  --t1:#f5f5f5; --t2:#9aa5bd; --t3:#64748b;
+  --t4:#c9d4ea;
+}
+body.light-theme{
+  --bg:#f2f5fc; --s1:#ffffff; --s2:#eef2fb; --s3:#e2e9f8;
+  --b1:#d9e1f2; --b2:#b6c4e6;
+  --nh:#f4560a; --nha:rgba(244,86,10,.12);
+  --g1:#00a86b; --r1:#f0284a; --y1:#e59500; --b_:#2563eb;
+  --t1:#0b1220; --t2:#3d4a66; --t3:#64748b;
+  --t4:#c9d4ea;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
@@ -621,6 +622,125 @@ textarea.mc-input{resize:vertical;min-height:64px}
   #nhd-atmosfera .nhd-orb{animation:none}
   .kpi-card,.stat,.ccard{transition:none}
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   NH ACESSO — tela de entrada, igual nos três aplicativos.
+   As cores saem das variáveis do sistema, então o tema claro vem de
+   graça: basta a classe light-theme no body.
+   ══════════════════════════════════════════════════════════════════ */
+:root{
+  --ac-orb:.34;
+  --ac-vidro:rgba(255,255,255,.05); --ac-vidro-b:rgba(255,255,255,.10);
+  --ac-inp:rgba(255,255,255,.07);   --ac-inp-b:rgba(255,255,255,.13);
+  --ac-pl:rgba(255,255,255,.25);    --ac-som:0 24px 70px -20px rgba(0,0,0,.7);
+}
+body.light-theme{
+  --ac-orb:.15;
+  --ac-vidro:rgba(255,255,255,.74); --ac-vidro-b:rgba(11,18,32,.09);
+  --ac-inp:rgba(255,255,255,.92);   --ac-inp-b:rgba(11,18,32,.13);
+  --ac-pl:rgba(11,18,32,.32);       --ac-som:0 24px 60px -22px rgba(20,30,90,.35);
+}
+
+.nh-acesso{
+  position:fixed;inset:0;z-index:9990;display:none;
+  align-items:center;justify-content:center;padding:24px;
+  background:var(--bg);overflow:hidden;
+  font-family:'Outfit',system-ui,sans-serif;
+}
+/* Bate as regras antigas de #login-screen, que tinham fundo próprio. */
+#login-screen.nh-acesso{background:var(--bg)!important}
+body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
+
+/* Esferas de luz à deriva — a assinatura da tela */
+.ac-bg{position:absolute;inset:0;pointer-events:none}
+.ac-orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:var(--ac-orb)}
+.ac-o1{width:500px;height:500px;background:radial-gradient(circle,#7c3aed,transparent);
+  top:-150px;left:-150px;animation:acF1 10s ease-in-out infinite}
+.ac-o2{width:400px;height:400px;background:radial-gradient(circle,var(--nh),transparent);
+  bottom:-100px;right:-100px;animation:acF2 12s ease-in-out infinite}
+.ac-o3{width:300px;height:300px;background:radial-gradient(circle,#3b82f6,transparent);
+  top:50%;left:50%;animation:acF3 8s ease-in-out infinite}
+@keyframes acF1{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,30px)}}
+@keyframes acF2{0%,100%{transform:translate(0,0)}50%{transform:translate(-30px,-40px)}}
+@keyframes acF3{0%,100%{transform:translate(-50%,-50%)}50%{transform:translate(-45%,-55%)}}
+
+.ac-hero{position:relative;z-index:1;width:100%;max-width:430px;
+  display:flex;flex-direction:column;align-items:center;animation:acSobe .5s ease}
+@keyframes acSobe{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+
+.ac-badge{display:inline-flex;align-items:center;gap:7px;
+  background:var(--ac-vidro);border:1px solid var(--ac-vidro-b);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  padding:6px 14px;border-radius:20px;font-size:11px;font-weight:600;
+  color:var(--t3);letter-spacing:.08em;margin-bottom:28px}
+.ac-dot{width:7px;height:7px;border-radius:50%;background:var(--g1);
+  box-shadow:0 0 8px var(--g1);animation:acPulso 2s infinite}
+@keyframes acPulso{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.7;transform:scale(1.3)}}
+
+/* Anéis girando em torno da marca */
+.ac-logo{position:relative;width:100px;height:100px;display:flex;
+  align-items:center;justify-content:center;margin-bottom:24px}
+.ac-anel{position:absolute;border-radius:50%;border:2px solid transparent;animation:acGira 6s linear infinite}
+.ac-a1{width:100%;height:100%;border-top-color:rgba(249,115,22,.6);border-right-color:rgba(249,115,22,.2);animation-duration:4s}
+.ac-a2{width:80%;height:80%;border-top-color:rgba(124,58,237,.6);border-left-color:rgba(124,58,237,.2);animation-direction:reverse;animation-duration:6s}
+.ac-a3{width:60%;height:60%;border-bottom-color:rgba(59,130,246,.6);border-right-color:rgba(59,130,246,.2);animation-duration:8s}
+@keyframes acGira{to{transform:rotate(360deg)}}
+.ac-marca{position:relative;z-index:2;width:52px;height:52px;border-radius:16px;
+  background:linear-gradient(135deg,#f97316,#dc2626);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;font-weight:800;letter-spacing:-.02em;
+  animation:acBrilho 3s ease-in-out infinite}
+@keyframes acBrilho{0%,100%{box-shadow:0 0 20px rgba(249,115,22,.4)}50%{box-shadow:0 0 40px rgba(249,115,22,.7)}}
+
+.ac-tit{font-size:40px;font-weight:800;text-align:center;line-height:1.1;
+  margin-bottom:9px;letter-spacing:-.03em;color:var(--t1)}
+.ac-tit .grad{background:linear-gradient(90deg,#f97316,#a855f7);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.ac-sub{font-size:13.5px;color:var(--t3);margin-bottom:30px;text-align:center;line-height:1.6}
+
+.ac-form{width:100%;background:var(--ac-vidro);border:1px solid var(--ac-vidro-b);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-radius:20px;padding:30px;box-shadow:var(--ac-som)}
+.ac-campo{margin-bottom:15px}
+.ac-campo label{display:block;font-size:11px;font-weight:700;color:var(--t3);
+  text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px}
+.ac-campo input{width:100%;background:var(--ac-inp);border:1px solid var(--ac-inp-b);
+  color:var(--t1);padding:13px 15px;border-radius:10px;
+  font-family:inherit;font-size:15px;font-weight:500;outline:none;transition:all .15s}
+.ac-campo input:focus{border-color:rgba(249,115,22,.6);box-shadow:0 0 0 3px rgba(249,115,22,.12)}
+.ac-campo input::placeholder{color:var(--ac-pl)}
+
+.ac-btn{width:100%;background:linear-gradient(90deg,#f97316,#dc2626);color:#fff;border:none;
+  padding:14px;border-radius:10px;font-family:inherit;font-size:14.5px;font-weight:700;
+  cursor:pointer;margin-top:6px;letter-spacing:.02em;transition:all .2s;
+  box-shadow:0 4px 20px rgba(249,115,22,.3)}
+.ac-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(249,115,22,.5)}
+.ac-btn:active{transform:translateY(0)}
+.ac-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+
+.ac-err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);
+  color:var(--r1);padding:11px 14px;border-radius:9px;font-size:12.5px;font-weight:600;
+  margin-bottom:14px;display:none;text-align:center;line-height:1.5}
+.ac-rodape{font-size:11.5px;color:var(--t3);text-align:center;margin-top:16px;line-height:1.6}
+
+/* Alternador de tema, no canto */
+.ac-tema{position:absolute;top:18px;right:18px;z-index:3;
+  width:38px;height:38px;border-radius:12px;cursor:pointer;
+  background:var(--ac-vidro);border:1px solid var(--ac-vidro-b);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  color:var(--t2);font-size:16px;line-height:1;
+  display:flex;align-items:center;justify-content:center;transition:all .18s}
+.ac-tema:hover{border-color:rgba(249,115,22,.45);color:var(--nh)}
+
+@media(max-width:480px){
+  .ac-tit{font-size:32px}
+  .ac-form{padding:22px}
+  .ac-logo{width:84px;height:84px;margin-bottom:18px}
+}
+@media (prefers-reduced-motion:reduce){
+  .ac-orb,.ac-anel,.ac-marca,.ac-dot,.ac-hero{animation:none}
+}
+
 </style>
 </head>
 <body>
@@ -633,66 +753,23 @@ textarea.mc-input{resize:vertical;min-height:64px}
 </div>
 
 <!-- Login -->
-<div id="login-screen" style="display:none">
-  <!-- Fundo animado igual ao site -->
-  <div class="login-bg">
-    <div class="login-orb orb1"></div>
-    <div class="login-orb orb2"></div>
-    <div class="login-orb orb3"></div>
-    <div class="login-particles"></div>
-  </div>
-
-  <div class="login-hero">
-    <!-- Status badge -->
-    <div class="login-status-badge">
-      <span class="login-status-dot"></span>
-      SISTEMA ATIVO · NH LICITAÇÕES 2.0
+<div class="nh-acesso" id="login-screen">
+  <div class="ac-bg"><div class="ac-orb ac-o1"></div><div class="ac-orb ac-o2"></div><div class="ac-orb ac-o3"></div></div>
+  <button class="ac-tema" onclick="acTrocarTema()" id="ac-tema-btn" title="Alternar tema claro/escuro">◐</button>
+  <div class="ac-hero">
+    <div class="ac-badge"><span class="ac-dot"></span>SISTEMA ONLINE</div>
+    <div class="ac-logo">
+      <div class="ac-anel ac-a1"></div><div class="ac-anel ac-a2"></div><div class="ac-anel ac-a3"></div>
+      <div class="ac-marca">NH</div>
     </div>
-
-    <!-- Logo igual à imagem -->
-    <div class="login-logo-wrap">
-      <div class="login-logo-ring ring1"></div>
-      <div class="login-logo-ring ring2"></div>
-      <div class="login-logo-ring ring3"></div>
-      <div class="login-logo-icon">
-        <svg viewBox="0 0 48 48" fill="none" width="56" height="56">
-          <circle cx="24" cy="24" r="24" fill="url(#lg_circ)"/>
-          <text x="24" y="31" text-anchor="middle" fill="#fff" font-family="Syne,sans-serif" font-weight="800" font-size="16">NH</text>
-          <defs>
-            <radialGradient id="lg_circ" cx="35%" cy="30%" r="70%">
-              <stop offset="0%" stop-color="#fb923c"/>
-              <stop offset="100%" stop-color="#b45309"/>
-            </radialGradient>
-          </defs>
-        </svg>
-      </div>
-    </div>
-
-    <!-- Título grande -->
-    <div class="login-hero-title">
-      <span class="title-white">Gerenciamento de</span><br>
-      <span class="title-gradient">Contratos</span>
-    </div>
-    <div class="login-hero-sub">Acesse seus contratos com segurança</div>
-
-    <!-- Formulário -->
-    <div class="login-form">
-      <form autocomplete="off" onsubmit="return false" style="display:contents">
-        <div class="login-field">
-          <label>Empresa</label>
-          <input type="text" id="inp-empresa" placeholder="Ex: VISE"
-            autocomplete="off" autocapitalize="characters"
-            name="portal_empresa_nh" readonly onfocus="this.removeAttribute('readonly')">
-        </div>
-        <div class="login-field">
-          <label>Senha</label>
-          <input type="password" id="inp-senha" placeholder="••••••••"
-            autocomplete="new-password"
-            name="portal_senha_nh" readonly onfocus="this.removeAttribute('readonly')">
-        </div>
-        <button class="login-btn" id="btn-login" onclick="fazerLogin()">Entrar no Portal</button>
-        <div class="login-err" id="login-err">Empresa ou senha incorretos.</div>
-      </form>
+    <div class="ac-tit">Portal de <span class="grad">Contratos</span></div>
+    <div class="ac-sub">Acesse os contratos da sua empresa com segurança</div>
+    <div class="ac-form">
+      <div class="ac-err" id="ac-err"></div>
+      <div class="ac-campo"><label>Empresa</label><input type="text" id="inp-empresa" placeholder="Ex: VISE" autocomplete="off" autocapitalize="characters" onkeydown="if(event.key==='Enter')document.getElementById('inp-senha').focus()"></div>
+      <div class="ac-campo"><label>Senha</label><input type="password" id="inp-senha" placeholder="••••••••" autocomplete="off" onkeydown="if(event.key==='Enter')fazerLogin()"></div>
+      <button class="ac-btn" id="btn-entrar" onclick="fazerLogin()">Entrar</button>
+      <div class="ac-rodape">Não tem acesso? Fale com a NH Licitações.</div>
     </div>
   </div>
 </div>
@@ -1108,6 +1185,19 @@ const PS_PORTAL = 20; // registros por página
 const EMPRESAS_SISTEMA = ['VISE','SOS','SOS FILIAL','SAUTEC','ONLAV','ENGEMED'];
 
 // ─── LOGIN ───────────────────────────────────────────────────────
+
+/* Tema claro/escuro. A chave é a mesma usada pelo sistema principal,
+   então escolher aqui vale nos três aplicativos. */
+function acAplicarTema(claro){
+  document.body.classList.toggle('light-theme',!!claro);
+  var b=document.getElementById('ac-tema-btn');
+  if(b){b.textContent=claro?'☾':'☀';b.title=claro?'Mudar para escuro':'Mudar para claro';}
+  try{localStorage.setItem('nh_tema',claro?'claro':'escuro');}catch(e){}
+  /* Mantém em dia o botão de tema da barra lateral, onde ele existe. */
+  if('function'==typeof _atualizarIconeTema)_atualizarIconeTema();}
+function acTrocarTema(){acAplicarTema(!document.body.classList.contains('light-theme'));}
+(function(){try{acAplicarTema('claro'===localStorage.getItem('nh_tema'));}catch(e){}})();
+
 async function fazerLogin(){
   const emp = document.getElementById('inp-empresa').value.trim().toUpperCase();
   const senha = document.getElementById('inp-senha').value.trim();
