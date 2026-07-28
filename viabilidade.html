@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#0a0a0a">
+<meta name="theme-color" content="#0a0e1a" id="meta-tema">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -20,9 +20,16 @@
   --nh:#f97316; --nha:rgba(249,115,22,.12);
   --g1:#22c55e; --r1:#ef4444; --y1:#eab308; --b_:#3b82f6;
   --t1:#f5f5f5; --t2:#9aa5bd; --t3:#64748b;
+  --nh2:#fb923c;
+}
+/* Os apelidos moram no body, e não no :root, de propósito. O tema claro
+   troca --s1 e companhia aqui no body; se os apelidos ficassem no :root
+   seriam calculados com os valores escuros e não mudariam nunca — era
+   por isso que o fundo clareava e os cartões continuavam escuros. */
+body{
   --surf:var(--s1); --surf2:var(--s2); --line:var(--b1); --line2:var(--b2);
   --txt:var(--t1); --txt2:var(--t2); --txt3:var(--t3);
-  --nh2:#fb923c; --sim:var(--g1); --nao:var(--r1); --ana:var(--y1); --blue:var(--b_);
+  --sim:var(--g1); --nao:var(--r1); --ana:var(--y1); --blue:var(--b_);
 }
 body.light-theme{
   --bg:#f2f5fc; --s1:#ffffff; --s2:#eef2fb; --s3:#e2e9f8;
@@ -107,7 +114,7 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
 .meta-tag{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:6px 11px;font-size:13px;color:var(--txt2);display:inline-flex;align-items:center;gap:5px}
 .meta-tag.val{color:var(--nh2);border-color:rgba(249,115,22,.25);font-weight:700}
 .meta-tag.obj{color:var(--txt2);width:100%;line-height:1.6;white-space:normal;align-items:flex-start}
-.meta-link{display:inline-flex;align-items:center;gap:6px;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.28);color:#60a5fa;border-radius:10px;padding:6px 13px;font-size:13px;font-weight:600;text-decoration:none}
+.meta-link{display:inline-flex;align-items:center;gap:6px;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.28);color:var(--b_);border-radius:10px;padding:6px 13px;font-size:13px;font-weight:600;text-decoration:none}
 .meta-link:active{opacity:.7}
 
 /* Ações */
@@ -203,6 +210,15 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
 .card:hover{transform:translateY(-2px);box-shadow:var(--nhd-e2)}
 
 
+
+/* Botões do cabeçalho — o estilo do "sair" havia sumido junto com o
+   bloco antigo de login, e ele estava sem CSS nenhum. */
+.hd-btn{background:var(--surf);border:1px solid var(--line);color:var(--txt3);
+  width:36px;height:36px;border-radius:11px;cursor:pointer;font-size:15px;line-height:1;
+  flex-shrink:0;font-family:'Outfit',sans-serif;display:none;
+  align-items:center;justify-content:center;transition:border-color .18s,color .18s}
+.hd-btn:hover{border-color:rgba(249,115,22,.45);color:var(--nh)}
+.hd-btn:active{transform:scale(.94)}
 
 /* ══════════════════════════════════════════════════════════════════
    NH ACESSO — tela de entrada, igual nos três aplicativos.
@@ -382,7 +398,8 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
   </div>
   <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
     <div class="badge-pend" id="badge-pend">...</div>
-    <button id="btn-sair" onclick="sair()" title="Sair">⎋</button>
+    <button class="hd-btn" id="btn-tema-app" onclick="acTrocarTema()" title="Alternar tema">◐</button>
+    <button class="hd-btn" id="btn-sair" onclick="sair()" title="Sair">⎋</button>
   </div>
 </div>
 
@@ -608,9 +625,12 @@ async function vHash(senha,salt){
    então escolher aqui vale nos três aplicativos. */
 function acAplicarTema(claro){
   document.body.classList.toggle('light-theme',!!claro);
-  var b=document.getElementById('ac-tema-btn');
-  if(b){b.textContent=claro?'☾':'☀';b.title=claro?'Mudar para escuro':'Mudar para claro';}
+  ['ac-tema-btn','btn-tema-app'].forEach(function(id){
+    var b=document.getElementById(id);
+    if(b){b.textContent=claro?'☾':'☀';b.title=claro?'Mudar para escuro':'Mudar para claro';}});
   try{localStorage.setItem('nh_tema',claro?'claro':'escuro');}catch(e){}
+  var mt=document.getElementById('meta-tema');
+  if(mt)mt.setAttribute('content',claro?'#f2f5fc':'#0a0e1a');
   /* Mantém em dia o botão de tema da barra lateral, onde ele existe. */
   if('function'==typeof _atualizarIconeTema)_atualizarIconeTema();}
 function acTrocarTema(){acAplicarTema(!document.body.classList.contains('light-theme'));}
@@ -651,7 +671,8 @@ function abrirApp(){
   document.getElementById('nh-acesso').style.display='none';
   var s=document.getElementById('hd-sub');
   if(s)s.textContent=SESSAO.nome||'Análise de Viabilidade';
-  var b=document.getElementById('btn-sair');if(b)b.style.display='block';
+  ['btn-sair','btn-tema-app'].forEach(function(id){
+    var b=document.getElementById(id);if(b)b.style.display='flex';});
   carregar();}
 
 function sair(){
