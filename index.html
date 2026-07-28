@@ -535,18 +535,31 @@ body.light-theme select{color-scheme:light;}
 .pill.on{border-color:var(--nh);color:var(--nh);background:var(--nha)}
 
 /* ─── MODAL ──────────────────────────────── */
-.overlay{
+.overlay,.modal-overlay{
   display:none;position:fixed;inset:0;
-  background:rgba(0,0,0,.82);backdrop-filter:blur(8px);
+  background:rgba(0,0,0,.82);
+  backdrop-filter:blur(8px) saturate(120%);
+  -webkit-backdrop-filter:blur(8px) saturate(120%);
   z-index:1000;align-items:center;justify-content:center;padding:20px;
+  animation:ovIn .18s ease;
 }
+@keyframes ovIn{from{opacity:0}to{opacity:1}}
 .overlay.open{display:flex}
 .modal{
   background:var(--s1);border:1px solid var(--b1);
-  border-radius:16px;width:750px;max-width:100%;
+  border-radius:18px;width:750px;max-width:100%;
   max-height:90vh;overflow-y:auto;
-  animation:mIn .2s ease;
-  box-shadow:0 24px 80px rgba(0,0,0,.6);
+  animation:mIn .24s cubic-bezier(.22,1,.36,1);
+  /* Duas sombras: uma rente, que desenha a quina, e uma larga e baixa,
+     que descola a janela do fundo. */
+  box-shadow:0 2px 6px rgba(0,0,0,.4),0 32px 90px -12px rgba(0,0,0,.75);
+  position:relative;
+}
+/* Fio de luz na borda de cima, como uma quina captando a luz da tela. */
+.modal::before{
+  content:"";position:absolute;top:0;left:18px;right:18px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.10),transparent);
+  pointer-events:none;z-index:20;
 }
 @keyframes mIn{from{opacity:0;transform:scale(.95) translateY(14px)}to{opacity:1;transform:scale(1)}}
 .mhd{
@@ -569,7 +582,7 @@ body.light-theme select{color-scheme:light;}
 }
 .mx:hover{color:var(--t1);background:var(--b2)}
 .mbd{padding:22px 26px}
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;align-items:center;justify-content:center}
+/* .modal-overlay agora divide o mesmo tratamento de .overlay, acima. */
 .modal-overlay.open{display:flex}
 @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.3)}}
@@ -2039,7 +2052,7 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
     </div>
 
     <!-- EMPRESAS CONFIG -->
-<div class="modal-overlay" id="mo-empresas" onclick="if(event.target===this)closeM('empresas')" style="display:none">
+<div class="modal-overlay" id="mo-empresas" style="display:none">
 <div class="modal" style="width:95vw;max-width:1200px;max-height:92vh">
   <div class="mhd"><div class="mhd-nh"></div><div class="mhd-info"><h2>Gerenciar Empresas</h2><p>Cadastro completo das empresas do grupo NH</p></div><button class="mx" onclick="closeM('empresas')">×</button></div>
   <div class="mbd" style="padding:20px 24px">
@@ -5117,7 +5130,10 @@ var _editEmpIdx = -1;function removerEmpresa(e){confirm("Remover "+EMPRESAS[e].n
           +'style="flex:1;min-width:120px;padding:12px;border-radius:10px;border:2px solid var(--b1);background:var(--s2);color:var(--t2);font-size:14px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:all .2s">'
           +esc0(r.nome)+'</button>';}).join("");
       /* Se o edital já aponta um responsável e ele está na lista, deixa pronto. */
-      var alvo=lista.filter(function(r){return r.nome&&resp.toUpperCase()===r.nome.toUpperCase();});
+      /* Compara sem acento e sem caixa: no histórico o mesmo nome aparece
+     escrito de várias formas ("ANTUNES", "Arthur Noronha"). */
+      var _nz=function(s){return String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim();};
+      var alvo=lista.filter(function(r){return r.nome&&-1!==_nz(resp).indexOf(_nz(r.nome));});
       if(1===alvo.length)selecionarWpp(alvo[0].numero);
       else if(1===lista.length&&!resp)selecionarWpp(lista[0].numero);
     }
@@ -7957,7 +7973,7 @@ async function chamarGemini(key,parts,temp,maxTok){
       </div>
     </div>
   </div>
-<div class="modal-overlay" id="mo-print-opcoes" onclick="if(event.target===this)fecharModalImpressao()" style="display:none">
+<div class="modal-overlay" id="mo-print-opcoes" style="display:none">
 <div class="modal" style="width:94vw;max-width:460px">
   <div class="mhd"><div class="mhd-nh"></div><div class="mhd-info"><h2 id="print-opcoes-titulo">Imprimir</h2><p>Escolha o que vai para o relatório</p></div><button class="mx" onclick="fecharModalImpressao()">×</button></div>
   <div class="mbd" style="padding:22px">
@@ -8037,6 +8053,41 @@ function nhToggleMenu(ev){ev.stopPropagation();var m=document.getElementById('nh
 function nhCloseMenu(){var m=document.getElementById('nh-menu');m&&m.classList.remove('open');}
 document.addEventListener('click',function(e){var w=e.target.closest&&e.target.closest('.nh-menu-wrap');if(!w)nhCloseMenu();});
 document.addEventListener('keydown',function(e){if(e.key==='Escape')nhCloseMenu();});
+/* ── Gestos de janela ──────────────────────────────────────────────
+   Antes só duas das dez janelas fechavam ao clicar fora, e nenhuma
+   fechava no Esc. Um só lugar cuida disso agora, para todas. */
+function nhJanelaAberta(){
+  var abertas=document.querySelectorAll('.overlay.open,.modal-overlay.open');
+  return abertas.length?abertas[abertas.length-1]:null;}
+
+function nhFecharJanela(el){
+  if(!el)return;
+  var id=String(el.id||'');
+  if(0===id.indexOf('mo-')){
+    var nome=id.substring(3);
+    if('print-opcoes'===nome&&'function'==typeof fecharModalImpressao){fecharModalImpressao();return;}
+    if('whatsapp'===nome&&'function'==typeof closeWpp){closeWpp();return;}
+    if('function'==typeof closeM){closeM(nome);return;}
+  }
+  el.classList.remove('open');el.style.display='none';}
+
+document.addEventListener('keydown',function(e){
+  if('Escape'!==e.key)return;
+  var j=nhJanelaAberta();
+  if(j){e.stopPropagation();nhFecharJanela(j);}});
+
+document.addEventListener('mousedown',function(e){
+  /* Só conta quando o clique nasce e morre no próprio fundo — assim
+     arrastar uma seleção de dentro para fora não fecha a janela. */
+  var alvo=e.target;
+  if(!alvo.classList)return;
+  if(!alvo.classList.contains('overlay')&&!alvo.classList.contains('modal-overlay'))return;
+  if(!alvo.classList.contains('open')&&'flex'!==alvo.style.display)return;
+  var solta=function(ev){
+    document.removeEventListener('mouseup',solta,true);
+    if(ev.target===alvo)nhFecharJanela(alvo);};
+  document.addEventListener('mouseup',solta,true);},true);
+
 
 /* Certidões: ordenar por urgência (vencidas → vencendo → em dia → sem data) */
 function _nhCertSort(x,y){
