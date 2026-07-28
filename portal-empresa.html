@@ -1074,21 +1074,16 @@ const db = firebase.firestore();db.settings({experimentalAutoDetectLongPolling:t
 
 // ─── SENHAS POR EMPRESA ──────────────────────────────────────────
 // Para alterar: mude a senha da empresa aqui
-const SENHAS = {
-  'VISE':      'vise2024',
-  'SOS':       'sos2024',
-  'SOS FILIAL':'sosfilial2024',
-  'SAUTEC':    'sautec2024',
-  'ONLAV':     'onlav2024',
-  'ENGEMED':   'engemed2024',
-  'GROWTH':    'growth2024',
-};
+/* As senhas vêm do Firestore (config/portal_acessos). Antes havia aqui
+   uma lista de senhas padrão em texto — como este arquivo é público,
+   qualquer um podia lê-la. Removida: sem conexão, ninguém entra. */
+const SENHAS = {};
 
 // Cores das empresas
 let CORES = {
   'VISE':'#eab308','SOS':'#22c55e','SOS FILIAL':'#ef4444',
   'SAUTEC':'#3b82f6','ONLAV':'#06b6d4','ENGEMED':'#ec4899',
-  'POTIGUAR':'#f97316','GROWTH':'#8b5cf6'
+  'GROWTH':'#8b5cf6'
 };
 // Cores reais vêm do Firebase (config/empresas) — isso é só um fallback
 // de segurança para o caso de falha de conexão antes do fetch completar.
