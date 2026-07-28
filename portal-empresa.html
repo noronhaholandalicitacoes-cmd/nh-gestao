@@ -34,7 +34,7 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
   display:flex;align-items:center;justify-content:center;
   min-height:100vh;padding:20px;
   position:relative;overflow:hidden;
-  background:#1a1035;
+  background:var(--s2);
 }
 
 /* Fundo animado */
@@ -146,7 +146,7 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
 
 .login-err{
   background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);
-  color:#fca5a5;padding:10px 14px;border-radius:8px;font-size:13px;
+  color:var(--r1);padding:10px 14px;border-radius:8px;font-size:13px;
   margin-top:12px;display:none;text-align:center;
 }
 
@@ -170,6 +170,10 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
 }
 .topbar-emp-dot{width:8px;height:8px;border-radius:50%}
 .topbar-emp-name{font-weight:600}
+.topbar-tema{background:var(--s2);border:1px solid var(--b1);color:var(--t3);
+  width:34px;height:34px;border-radius:10px;cursor:pointer;font-size:15px;line-height:1;
+  font-family:'Outfit',sans-serif;margin-right:8px;transition:border-color .18s,color .18s}
+.topbar-tema:hover{border-color:rgba(249,115,22,.45);color:var(--nh)}
 .topbar-logout{
   background:transparent;border:1px solid var(--b1);color:var(--t2);
   padding:7px 13px;border-radius:8px;font-size:12px;cursor:pointer;
@@ -258,10 +262,10 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
   display:inline-flex;align-items:center;padding:3px 10px;
   border-radius:6px;font-size:11px;font-weight:700;white-space:nowrap;letter-spacing:.01em;
 }
-.b-green{background:rgba(34,197,94,.12);color:#4ade80}
-.b-red{background:rgba(239,68,68,.12);color:#f87171}
-.b-yellow{background:rgba(234,179,8,.12);color:#facc15}
-.b-blue{background:rgba(59,130,246,.12);color:#60a5fa}
+.b-green{background:rgba(34,197,94,.12);color:var(--g1)}
+.b-red{background:rgba(239,68,68,.12);color:var(--r1)}
+.b-yellow{background:rgba(234,179,8,.12);color:var(--y1)}
+.b-blue{background:rgba(59,130,246,.12);color:var(--b_)}
 .b-gray{background:rgba(82,82,82,.15);color:var(--t2)}
 .b-orange{background:rgba(249,115,22,.12);color:#fb923c}
 .badge.urgente{position:relative;animation:pulseUrg 1.8s ease-in-out infinite}
@@ -297,7 +301,7 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
 .mc-label{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.07em}
 .mc-input{background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:8px 11px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color .15s;width:100%}
 .mc-input:focus{border-color:var(--nh)}
-.mc-input option{background:#1a1a28}
+.mc-input option{background:var(--s2)}
 textarea.mc-input{resize:vertical;min-height:64px}
 .aditivo-field-val{font-size:13px;color:var(--t1);font-weight:500}
 
@@ -376,10 +380,10 @@ textarea.mc-input{resize:vertical;min-height:64px}
 .venc-alert{
   background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);
   border-radius:8px;padding:10px 14px;margin-bottom:12px;
-  font-size:12px;color:#f87171;display:flex;align-items:center;gap:8px;
+  font-size:12px;color:var(--r1);display:flex;align-items:center;gap:8px;
 }
-.venc-ok{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.2);color:#4ade80}
-.venc-prox{background:rgba(234,179,8,.08);border-color:rgba(234,179,8,.2);color:#facc15}
+.venc-ok{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.2);color:var(--g1)}
+.venc-prox{background:rgba(234,179,8,.08);border-color:rgba(234,179,8,.2);color:var(--y1)}
 
 /* Loading overlay */
 #loading{
@@ -398,9 +402,9 @@ textarea.mc-input{resize:vertical;min-height:64px}
   .topbar-emp-name{display:none}
 }
 
-.edit-hint{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.28);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:11.5px;color:#93c5fd;line-height:1.55}
-.edit-hint strong{color:#bfdbfe}
-.venc-alert.venc-fin{background:rgba(59,130,246,.07);border-color:rgba(59,130,246,.25);color:#93c5fd}
+.edit-hint{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.28);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:11.5px;color:var(--b_);line-height:1.55}
+.edit-hint strong{color:var(--b_)}
+.venc-alert.venc-fin{background:rgba(59,130,246,.07);border-color:rgba(59,130,246,.25);color:var(--b_)}
 .hist-wrap{margin-top:14px;padding-top:12px;border-top:1px solid var(--b1)}
 .hist-title{font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
 .hist-list{list-style:none;margin:0;padding:0;max-height:190px;overflow-y:auto}
@@ -415,7 +419,7 @@ textarea.mc-input{resize:vertical;min-height:64px}
 .avisos-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
 .avisos-titulo{font-size:15px;font-weight:800;color:var(--t1);letter-spacing:-.2px}
 .avisos-badge{margin-left:auto;background:rgba(249,115,22,.14);color:#fb923c;border:1px solid rgba(249,115,22,.3);font-size:11px;font-weight:800;padding:4px 11px;border-radius:20px;letter-spacing:.02em}
-.avisos-badge-ok{background:rgba(34,197,94,.12);color:#4ade80;border-color:rgba(34,197,94,.3)}
+.avisos-badge-ok{background:rgba(34,197,94,.12);color:var(--g1);border-color:rgba(34,197,94,.3)}
 .avisos-vazio{font-size:13px;color:var(--t2);background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.18);border-radius:10px;padding:16px 18px;line-height:1.6}
 .avisos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
 .aviso-card{background:var(--s2);border:1px solid var(--b1);border-left:3px solid var(--ac);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column}
@@ -436,14 +440,14 @@ textarea.mc-input{resize:vertical;min-height:64px}
 
 /* ===== Gráficos do dashboard ===== */
 .graf-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:stretch}
-.graf-panel{background:#060610;border:1px solid #12121e;border-radius:12px;padding:12px 14px 10px;box-sizing:border-box;display:flex;flex-direction:column;min-width:0}
-.graf-title{font-size:9.5px;color:#8f8fb8;text-transform:uppercase;letter-spacing:.09em;font-weight:800;margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.graf-panel{background:var(--bg);border:1px solid var(--b1);border-radius:12px;padding:12px 14px 10px;box-sizing:border-box;display:flex;flex-direction:column;min-width:0}
+.graf-title{font-size:9.5px;color:var(--t3);text-transform:uppercase;letter-spacing:.09em;font-weight:800;margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .graf-svg{display:block;width:100%;height:auto;overflow:visible;max-width:100%}
 @media(max-width:1100px){.graf-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:700px){.graf-grid{grid-template-columns:1fr}}
 
 .mc-sec-title{font-size:11px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;padding-top:6px;border-top:1px solid var(--b1)}
-.mc-ata-calc{font-size:11.5px;color:#9fb0d8;line-height:1.5;padding-top:20px}
+.mc-ata-calc{font-size:11.5px;color:var(--t2);line-height:1.5;padding-top:20px}
 .mc-ata-calc b{font-weight:800}
 
 /* ===== KPIs do topo (Resumo dos Contratos) ===== */
@@ -451,8 +455,8 @@ textarea.mc-input{resize:vertical;min-height:64px}
 .kpi-card{background:linear-gradient(135deg,#12121c 0%,#0e0e16 100%);border:1px solid var(--b1);border-left:4px solid var(--kc);border-radius:14px;padding:18px 20px;min-width:0;transition:transform .15s,box-shadow .15s}
 .kpi-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.35)}
 .kpi-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.kpi-num{font-size:34px;line-height:1;font-weight:800;font-family:'Syne',sans-serif;color:#f4f4fb;letter-spacing:-.5px}
-.kpi-sub{font-size:14px;color:#b8b8d4;margin-top:8px;font-weight:700}
+.kpi-num{font-size:34px;line-height:1;font-weight:800;font-family:'Syne',sans-serif;color:var(--t1);letter-spacing:-.5px}
+.kpi-sub{font-size:14px;color:var(--t2);margin-top:8px;font-weight:700}
 @media(max-width:720px){.kpi-grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}.kpi-num{font-size:26px}}
 
 /* ===== Rosca + legenda em HTML ===== */
@@ -461,8 +465,8 @@ textarea.mc-input{resize:vertical;min-height:64px}
 .donut-leg{flex:1;min-width:130px;display:flex;flex-direction:column;gap:7px}
 .donut-leg-item{display:flex;align-items:center;gap:8px;font-size:12px;line-height:1.3}
 .donut-leg-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
-.donut-leg-lbl{color:#b0b0cc;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.donut-leg-val{color:#e8e8f8;font-weight:700;white-space:nowrap;flex-shrink:0}
+.donut-leg-lbl{color:var(--t2);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.donut-leg-val{color:var(--t1);font-weight:700;white-space:nowrap;flex-shrink:0}
 @media(max-width:1100px){.donut-wrap{flex-direction:column;align-items:center}.donut-svg{width:150px;height:150px}}
 
 /* ===== Animações e interatividade dos gráficos ===== */
@@ -500,16 +504,16 @@ textarea.mc-input{resize:vertical;min-height:64px}
 
 /* ===== Expandir gráfico ===== */
 .graf-title{position:relative;display:flex;align-items:center}
-.graf-expand{margin-left:auto;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#8f8fb8;width:22px;height:22px;border-radius:6px;cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0;transition:all .15s ease;flex-shrink:0}
+.graf-expand{margin-left:auto;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:var(--t3);width:22px;height:22px;border-radius:6px;cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0;transition:all .15s ease;flex-shrink:0}
 .graf-expand:hover{background:var(--nh);border-color:var(--nh);color:#0a0a0a;transform:scale(1.08)}
 .graf-panel{position:relative}
 
 #graf-modal{position:fixed;inset:0;background:rgba(4,4,10,.82);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:9998;display:none;align-items:center;justify-content:center;padding:32px;animation:graf-modal-fade .2s ease}
 #graf-modal.open{display:flex}
 @keyframes graf-modal-fade{from{opacity:0}to{opacity:1}}
-.graf-modal-box{position:relative;background:#0b0b14;border:1px solid var(--b1);border-radius:18px;padding:28px 32px;width:min(920px,94vw);max-height:90vh;overflow:auto;box-shadow:0 24px 80px rgba(0,0,0,.6);animation:graf-modal-pop .25s cubic-bezier(.34,1.15,.64,1)}
+.graf-modal-box{position:relative;background:var(--bg);border:1px solid var(--b1);border-radius:18px;padding:28px 32px;width:min(920px,94vw);max-height:90vh;overflow:auto;box-shadow:0 24px 80px rgba(0,0,0,.6);animation:graf-modal-pop .25s cubic-bezier(.34,1.15,.64,1)}
 @keyframes graf-modal-pop{from{opacity:0;transform:scale(.94) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
-.graf-modal-close{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#b0b0cc;width:34px;height:34px;border-radius:9px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .15s ease;z-index:2}
+.graf-modal-close{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--t2);width:34px;height:34px;border-radius:9px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .15s ease;z-index:2}
 .graf-modal-close:hover{background:#ef4444;border-color:#ef4444;color:#fff}
 .graf-panel-big{background:transparent!important;border:none!important;padding:0!important}
 .graf-panel-big .graf-title{font-size:14px!important;margin-bottom:20px;letter-spacing:.05em}
@@ -525,7 +529,7 @@ textarea.mc-input{resize:vertical;min-height:64px}
 @media(max-width:560px){.graf-panel-big .donut-wrap{flex-direction:column}.graf-panel-big .donut-svg{width:220px;height:220px}}
 
 /* ===== Empresa sem contratos (GROWTH) ===== */
-.emp-vazia{display:flex;align-items:center;gap:12px;background:#0c0c14;border:1px solid var(--b1);border-radius:12px;padding:12px 16px;opacity:.72}
+.emp-vazia{display:flex;align-items:center;gap:12px;background:var(--bg);border:1px solid var(--b1);border-radius:12px;padding:12px 16px;opacity:.72}
 .emp-vazia-ini{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0}
 .emp-vazia-nome{font-weight:700;font-size:14px;color:var(--t1)}
 .emp-vazia-tag{font-size:12px;color:var(--t3);margin-left:auto;font-style:italic}
@@ -802,8 +806,8 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
       <div style="display:flex;align-items:center;gap:10px">
         <div class="nh-marca" style="width:38px;height:38px;border-radius:11px;flex-shrink:0"></div>
         <div>
-          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:#f0f0f8;line-height:1.1">NH <span style="color:#f97316">Licitações</span></div>
-          <div style="font-size:10px;color:#6b7280;font-weight:600;letter-spacing:.04em">Gerenciamento de Contratos</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:var(--t1);line-height:1.1">NH <span style="color:#f97316">Licitações</span></div>
+          <div style="font-size:10px;color:var(--t3);font-weight:600;letter-spacing:.04em">Gerenciamento de Contratos</div>
         </div>
       </div>
     </div>
@@ -812,6 +816,7 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
       <div class="topbar-emp-dot" id="emp-dot"></div>
       <div class="topbar-emp-name" id="emp-nome-top"></div>
     </div>
+    <button class="topbar-tema" id="btn-tema-app" onclick="acTrocarTema()" title="Alternar tema">◐</button>
     <button class="topbar-logout" onclick="fazerLogout()">Sair</button>
   </div>
 
@@ -865,7 +870,7 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
       <div class="section-title" id="section-title-contratos" style="margin-bottom:0">Gerenciamento de Contratos</div>
       <div style="display:flex;align-items:center;gap:10px">
         <span id="contratos-contagem" style="font-size:12px;font-weight:600;color:var(--t2)"></span>
-        <button onclick="abrirModalContrato(null)" style="background:rgba(34,197,94,.15);border:1.5px solid rgba(34,197,94,.4);color:#4ade80;padding:7px 16px;border-radius:9px;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:all .15s" onmouseover="this.style.background='rgba(34,197,94,.25)'" onmouseout="this.style.background='rgba(34,197,94,.15)'">
+        <button onclick="abrirModalContrato(null)" style="background:rgba(34,197,94,.15);border:1.5px solid rgba(34,197,94,.4);color:var(--g1);padding:7px 16px;border-radius:9px;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:all .15s" onmouseover="this.style.background='rgba(34,197,94,.25)'" onmouseout="this.style.background='rgba(34,197,94,.15)'">
           <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
           Novo Contrato
         </button>
@@ -884,14 +889,14 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 
 <!-- ── MODAL NOVO/EDITAR CONTRATO (apenas GROWTH) ── -->
 <div id="modal-contrato" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:600;align-items:center;justify-content:center;padding:16px;overflow-y:auto">
-  <div style="background:#111118;border:1px solid #2a2a38;border-radius:16px;width:100%;max-width:740px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.9)">
+  <div style="background:var(--s1);border:1px solid var(--b2);border-radius:16px;width:100%;max-width:740px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.9)">
     <!-- Header -->
-    <div style="position:sticky;top:0;background:#111118;padding:20px 24px 16px;border-bottom:1px solid #1e1e28;display:flex;align-items:center;justify-content:space-between;z-index:1">
+    <div style="position:sticky;top:0;background:var(--s1);padding:20px 24px 16px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;z-index:1">
       <div>
-        <div id="mc-titulo" style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:#f0f0f8">Novo Contrato</div>
-        <div style="font-size:11px;color:#5a5a72;margin-top:2px">Todos os campos marcados com * são obrigatórios</div>
+        <div id="mc-titulo" style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--t1)">Novo Contrato</div>
+        <div style="font-size:11px;color:var(--t3);margin-top:2px">Todos os campos marcados com * são obrigatórios</div>
       </div>
-      <button onclick="fecharModalContrato()" style="background:rgba(255,255,255,.06);border:1px solid #2a2a38;color:#9898b0;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px">✕</button>
+      <button onclick="fecharModalContrato()" style="background:rgba(255,255,255,.06);border:1px solid var(--b2);color:var(--t2);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px">✕</button>
     </div>
 
     <!-- Campos -->
@@ -1041,8 +1046,8 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
     </div>
 
     <!-- Footer -->
-    <div style="padding:16px 24px;border-top:1px solid #1e1e28;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#0d0d12;border-radius:0 0 16px 16px">
-      <div id="mc-erro" style="font-size:12px;color:#f87171;display:none"></div>
+    <div style="padding:16px 24px;border-top:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--bg);border-radius:0 0 16px 16px">
+      <div id="mc-erro" style="font-size:12px;color:var(--r1);display:none"></div>
       <div style="display:flex;gap:10px;margin-left:auto">
         <button onclick="fecharModalContrato()" style="background:var(--s2);border:1px solid var(--b1);color:var(--t2);padding:9px 18px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer">Cancelar</button>
         <button id="mc-salvar-btn" onclick="mcSalvar()" style="background:linear-gradient(90deg,#f97316,#dc2626);color:#fff;border:none;padding:9px 22px;border-radius:8px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer">💾 Salvar Contrato</button>
@@ -1053,14 +1058,14 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 
 <!-- ── MODAL CONFIRMAR EXCLUSÃO COM SENHA ── -->
 <div id="modal-excluir" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:700;align-items:center;justify-content:center;padding:20px">
-  <div style="background:#111118;border:1px solid rgba(239,68,68,.3);border-radius:16px;width:100%;max-width:420px;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,.9)">
-    <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#f87171;margin-bottom:6px">🗑 Confirmar Exclusão</div>
+  <div style="background:var(--s1);border:1px solid rgba(239,68,68,.3);border-radius:16px;width:100%;max-width:420px;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,.9)">
+    <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--r1);margin-bottom:6px">🗑 Confirmar Exclusão</div>
     <div id="me-desc" style="font-size:13px;color:var(--t2);margin-bottom:20px;line-height:1.6"></div>
     <div class="mc-field" style="margin-bottom:16px">
       <label class="mc-label">Senha de exclusão (definida no Sistema NH)</label>
       <input type="password" id="me-senha" class="mc-input" placeholder="Digite a senha de exclusão...">
     </div>
-    <div id="me-erro" style="font-size:12px;color:#f87171;margin-bottom:12px;display:none"></div>
+    <div id="me-erro" style="font-size:12px;color:var(--r1);margin-bottom:12px;display:none"></div>
     <div style="display:flex;gap:10px;justify-content:flex-end">
       <button onclick="fecharModalExcluir()" style="background:var(--s2);border:1px solid var(--b1);color:var(--t2);padding:8px 16px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer">Cancelar</button>
       <button onclick="confirmarExclusao()" style="background:rgba(239,68,68,.9);color:#fff;border:none;padding:8px 20px;border-radius:8px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer">Confirmar Exclusão</button>
@@ -1071,10 +1076,10 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 
 <!-- ── MODAL OPÇÕES DE IMPRESSÃO ── -->
 <div id="modal-print" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:800;align-items:center;justify-content:center;padding:20px">
-  <div style="background:#111118;border:1px solid #2a2a38;border-radius:16px;width:100%;max-width:480px;box-shadow:0 24px 80px rgba(0,0,0,.9)">
-    <div style="padding:20px 24px 16px;border-bottom:1px solid #1e1e28;display:flex;align-items:center;justify-content:space-between">
-      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#f0f0f8">🖨 Opções de Impressão</div>
-      <button onclick="fecharModalPrint()" style="background:rgba(255,255,255,.06);border:1px solid #2a2a38;color:#9898b0;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px">✕</button>
+  <div style="background:var(--s1);border:1px solid var(--b2);border-radius:16px;width:100%;max-width:480px;box-shadow:0 24px 80px rgba(0,0,0,.9)">
+    <div style="padding:20px 24px 16px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between">
+      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--t1)">🖨 Opções de Impressão</div>
+      <button onclick="fecharModalPrint()" style="background:rgba(255,255,255,.06);border:1px solid var(--b2);color:var(--t2);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px">✕</button>
     </div>
     <div style="padding:20px 24px">
       <div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px">Selecione o que incluir no relatório:</div>
@@ -1201,8 +1206,9 @@ const EMPRESAS_SISTEMA = ['VISE','SOS','SOS FILIAL','SAUTEC','ONLAV','ENGEMED'];
    então escolher aqui vale nos três aplicativos. */
 function acAplicarTema(claro){
   document.body.classList.toggle('light-theme',!!claro);
-  var b=document.getElementById('ac-tema-btn');
-  if(b){b.textContent=claro?'☾':'☀';b.title=claro?'Mudar para escuro':'Mudar para claro';}
+  ['ac-tema-btn','btn-tema-app'].forEach(function(id){
+    var b=document.getElementById(id);
+    if(b){b.textContent=claro?'☾':'☀';b.title=claro?'Mudar para escuro':'Mudar para claro';}});
   try{localStorage.setItem('nh_tema',claro?'claro':'escuro');}catch(e){}
   /* Mantém em dia o botão de tema da barra lateral, onde ele existe. */
   if('function'==typeof _atualizarIconeTema)_atualizarIconeTema();}
@@ -1387,8 +1393,8 @@ function mcCalcAta(){
   var con=parseMoedaV((document.getElementById('mc-atacons')||{}).value)||0;
   var car=parseMoedaV((document.getElementById('mc-atacarona')||{}).value)||0;
   var saldo=tot-con, perc=tot>0?Math.round(saldo/tot*100):0, limite=2*tot, disp=limite-car;
-  d.innerHTML='Saldo da ata: <b style="color:#4ade80">'+_brlKp(saldo)+'</b> ('+perc+'%)<br>'
-    +'Carona dispon\u00edvel: <b style="color:#fb923c">'+_brlKp(disp)+'</b> <span style="color:#6b6b6b">(teto 2\u00d7 = '+_brlKp(limite)+')</span>';
+  d.innerHTML='Saldo da ata: <b style="color:var(--g1)">'+_brlKp(saldo)+'</b> ('+perc+'%)<br>'
+    +'Carona dispon\u00edvel: <b style="color:#fb923c">'+_brlKp(disp)+'</b> <span style="color:var(--t3)">(teto 2\u00d7 = '+_brlKp(limite)+')</span>';
 }
 
 /* Situação -> Próxima Ação: ao escolher uma Situação, sugere a
@@ -1765,7 +1771,7 @@ function nhAuditarRecomposicoes(){
   console.log('\n%c✓ '+recompOk.length+' contrato(s) com recomposição, vigentes (data do aditivo OK):','color:#22c55e');
   if(recompOk.length) console.table(recompOk);
 
-  console.log('\n%c'+vencidosLimpos.length+' contrato(s) vencidos SEM recomposição (vencimento real):','color:#9898b0');
+  console.log('\n%c'+vencidosLimpos.length+' contrato(s) vencidos SEM recomposição (vencimento real):','color:var(--t2)');
   if(vencidosLimpos.length) console.table(vencidosLimpos);
 
   return {suspeitos, recompOk, vencidosLimpos};
@@ -2031,7 +2037,7 @@ function gerarDashboard(){
     var xLabels = ptsArr.map(function(p,i){
       var lbl = meses[i].label;
       var bold = i===0||i===5||i===11 ? ' font-weight="600"' : '';
-      var col = i===0||i===5||i===11 ? '#7878a0' : '#5a5a7a';
+      var col = i===0||i===5||i===11 ? 'var(--t3)' : '#5a5a7a';
       return '<text x="'+p.cx+'" y="'+(PAD_T+GH+16)+'" text-anchor="middle" fill="'+col+'" font-size="7.5"'+bold+'>'+lbl+'</text>';
     }).join('');
 
@@ -2044,14 +2050,14 @@ function gerarDashboard(){
 
     // Aviso de vencimento removido: já consta no Quadro de Avisos, logo abaixo dos gráficos.
 
-    return '<div class="emp-card'+(isAdmin?' emp-colapsavel':'')+'" data-emp="'+emp.replace(/ /g,'_')+'" style="background:#0a0a12;border:1px solid #1a1a28;border-left:3px solid '+cor+';border-radius:14px;padding:20px;min-width:0">' +
+    return '<div class="emp-card'+(isAdmin?' emp-colapsavel':'')+'" data-emp="'+emp.replace(/ /g,'_')+'" style="background:var(--bg);border:1px solid var(--b1);border-left:3px solid '+cor+';border-radius:14px;padding:20px;min-width:0">' +
 
       // Cabeçalho (clicável no modo admin)
       '<div class="emp-header"'+(isAdmin?' onclick="toggleEmpresa(this)" style="cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:14px"':' style="display:flex;align-items:center;gap:10px;margin-bottom:14px"')+'>' +
         '<div style="width:38px;height:38px;border-radius:10px;background:'+cor+'22;border:1px solid '+cor+'44;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:'+cor+';flex-shrink:0">'+initials+'</div>' +
         '<div style="flex:1">' +
-          '<div style="font-family:\'Syne\',sans-serif;font-size:15px;font-weight:800;color:#f0f0f8">'+emp+'</div>' +
-          '<div style="font-size:12px;color:#7878a0;margin-top:2px">'+d.ganhou+' contrato'+(d.ganhou!==1?'s':'')+' · '+ativos+' em execução</div>' +
+          '<div style="font-family:\'Syne\',sans-serif;font-size:15px;font-weight:800;color:var(--t1)">'+emp+'</div>' +
+          '<div style="font-size:12px;color:var(--t3);margin-top:2px">'+d.ganhou+' contrato'+(d.ganhou!==1?'s':'')+' · '+ativos+' em execução</div>' +
         '</div>' +
         (isAdmin?'<div class="emp-chevron" style="color:'+cor+';font-size:20px;flex-shrink:0;transition:transform .25s ease">▾</div>':'') +
       '</div>' +
@@ -2059,35 +2065,35 @@ function gerarDashboard(){
 
       // KPIs portfólio / ativo
       '<div class="emp-kpis" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">' +
-        '<div style="background:#111120;border:1px solid #1e1e30;border-radius:9px;padding:12px">' +
+        '<div style="background:var(--s1);border:1px solid var(--b1);border-radius:9px;padding:12px">' +
           '<div style="font-size:9px;color:'+cor+';text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:4px">Portfólio Total</div>' +
-          '<div style="font-size:16px;font-weight:800;font-family:\'Syne\',sans-serif;color:#f0f0f8">'+fmtM(d.portfolio)+'</div>' +
-          '<div style="font-size:11px;color:#6868a0;margin-top:3px">'+d.ganhou+' contrato'+(d.ganhou!==1?'s':'')+'</div>' +
+          '<div style="font-size:16px;font-weight:800;font-family:\'Syne\',sans-serif;color:var(--t1)">'+fmtM(d.portfolio)+'</div>' +
+          '<div style="font-size:11px;color:var(--t3);margin-top:3px">'+d.ganhou+' contrato'+(d.ganhou!==1?'s':'')+'</div>' +
         '</div>' +
-        '<div style="background:#111120;border:1px solid #1e1e30;border-radius:9px;padding:12px">' +
+        '<div style="background:var(--s1);border:1px solid var(--b1);border-radius:9px;padding:12px">' +
           '<div style="font-size:9px;color:'+cor+';text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:4px">Valor Ativo</div>' +
           '<div style="font-size:16px;font-weight:800;font-family:\'Syne\',sans-serif;color:'+cor+'">'+fmtM(d.ativo)+'</div>' +
-          '<div style="font-size:11px;color:#6868a0;margin-top:3px">'+ativos+' em exec. · '+taxaAtivo+'% do portfólio</div>' +
+          '<div style="font-size:11px;color:var(--t3);margin-top:3px">'+ativos+' em exec. · '+taxaAtivo+'% do portfólio</div>' +
         '</div>' +
       '</div>' +
 
       // KPIs contadores
       '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:16px">' +
-        '<div style="background:#0d0d18;border:1px solid #1a1a28;border-radius:8px;padding:9px 6px;text-align:center">' +
+        '<div style="background:var(--bg);border:1px solid var(--b1);border-radius:8px;padding:9px 6px;text-align:center">' +
           '<div style="font-size:20px;font-weight:800;font-family:\'Syne\',sans-serif;color:'+cor+'">'+d.ganhou+'</div>' +
-          '<div style="font-size:9px;color:#7878a0;text-transform:uppercase;letter-spacing:.06em;margin-top:3px">Total</div>' +
+          '<div style="font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-top:3px">Total</div>' +
         '</div>' +
-        '<div style="background:#0d0d18;border:1px solid #1a1a28;border-radius:8px;padding:9px 6px;text-align:center">' +
+        '<div style="background:var(--bg);border:1px solid var(--b1);border-radius:8px;padding:9px 6px;text-align:center">' +
           '<div style="font-size:20px;font-weight:800;font-family:\'Syne\',sans-serif;color:#22c55e">'+ativos+'</div>' +
-          '<div style="font-size:9px;color:#7878a0;text-transform:uppercase;letter-spacing:.06em;margin-top:3px">Ativos</div>' +
+          '<div style="font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-top:3px">Ativos</div>' +
         '</div>' +
-        '<div style="background:#0d0d18;border:1px solid '+(d.vencer30>0?'rgba(239,68,68,.3)':d.vencer90>0?'rgba(234,179,8,.25)':'#1a1a28')+';border-radius:8px;padding:9px 6px;text-align:center">' +
+        '<div style="background:var(--bg);border:1px solid '+(d.vencer30>0?'rgba(239,68,68,.3)':d.vencer90>0?'rgba(234,179,8,.25)':'var(--b1)')+';border-radius:8px;padding:9px 6px;text-align:center">' +
           '<div style="font-size:20px;font-weight:800;font-family:\'Syne\',sans-serif;color:'+(d.vencer30>0?'#f87171':d.vencer90>0?'#facc15':'#3a3a5a')+'">'+( d.vencer30+d.vencer90)+'</div>' +
-          '<div style="font-size:9px;color:#7878a0;text-transform:uppercase;letter-spacing:.06em;margin-top:3px">A Vencer</div>' +
+          '<div style="font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-top:3px">A Vencer</div>' +
         '</div>' +
-        '<div style="background:#0d0d18;border:1px solid '+(d.recomp>0?'rgba(249,115,22,.25)':'#1a1a28')+';border-radius:8px;padding:9px 6px;text-align:center">' +
+        '<div style="background:var(--bg);border:1px solid '+(d.recomp>0?'rgba(249,115,22,.25)':'var(--b1)')+';border-radius:8px;padding:9px 6px;text-align:center">' +
           '<div style="font-size:20px;font-weight:800;font-family:\'Syne\',sans-serif;color:'+(d.recomp>0?'#fb923c':'#3a3a5a')+'">'+d.recomp+'</div>' +
-          '<div style="font-size:9px;color:#7878a0;text-transform:uppercase;letter-spacing:.06em;margin-top:3px">Recomp.</div>' +
+          '<div style="font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-top:3px">Recomp.</div>' +
         '</div>' +
       '</div>' +
 
@@ -2130,7 +2136,7 @@ function gerarDashboard(){
           '</g>';
         }).join('');
         var xlbls=[0,3,6,9,11].map(function(i){
-          return '<text x="'+(PL+i*xS).toFixed(1)+'" y="'+(PT+GH+22)+'" text-anchor="middle" fill="#8f8fb8" font-size="10">'+meses[i].label+'</text>';
+          return '<text x="'+(PL+i*xS).toFixed(1)+'" y="'+(PT+GH+22)+'" text-anchor="middle" fill="var(--t3)" font-size="10">'+meses[i].label+'</text>';
         }).join('');
         return '<div class="graf-panel">'+
           '<div class="graf-title">📈 Contratos Ganhos / Mês<button class="graf-expand" onclick="expandirGrafico(this)" title="Expandir">⤢</button></div>'+
@@ -2175,7 +2181,7 @@ function gerarDashboard(){
             '<rect class="bar-rect" x="'+bx.toFixed(1)+'" y="'+by.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="4" fill="url(#'+gid+')" style="transform-origin:'+(bx+barW/2).toFixed(1)+'px '+(BPAD+BH)+'px">'+
               '<title>'+s.full+': '+s.v+'</title></rect>'+
             (s.v>0?'<text x="'+(bx+barW/2).toFixed(1)+'" y="'+(by-6).toFixed(1)+'" text-anchor="middle" fill="'+s.cor+'" font-size="12" font-weight="800" font-family="ui-monospace,Menlo,monospace">'+s.v+'</text>':'')+
-            '<text x="'+(bx+barW/2).toFixed(1)+'" y="'+(BPAD+BH+20)+'" text-anchor="middle" fill="#8f8fb8" font-size="9.5">'+s.lbl+'</text>'+
+            '<text x="'+(bx+barW/2).toFixed(1)+'" y="'+(BPAD+BH+20)+'" text-anchor="middle" fill="var(--t3)" font-size="9.5">'+s.lbl+'</text>'+
           '</g>';
         }).join('');
         var bGls=[0,0.5,1].map(function(f){
@@ -2231,8 +2237,8 @@ function gerarDashboard(){
             '<svg viewBox="0 0 160 160" class="donut-svg" preserveAspectRatio="xMidYMid meet">'+
               '<circle cx="80" cy="80" r="'+R+'" fill="rgba(255,255,255,.03)" stroke="rgba(255,255,255,.06)" stroke-width="1"/>'+
               '<g class="donut-rot">'+paths+'</g>'+
-              '<text x="80" y="74" text-anchor="middle" fill="#f0f0f8" font-size="30" font-weight="800" font-family="ui-monospace,Menlo,monospace">'+pct+'%</text>'+
-              '<text x="80" y="96" text-anchor="middle" fill="#8f8fb8" font-size="12">em execução</text>'+
+              '<text x="80" y="74" text-anchor="middle" fill="var(--t1)" font-size="30" font-weight="800" font-family="ui-monospace,Menlo,monospace">'+pct+'%</text>'+
+              '<text x="80" y="96" text-anchor="middle" fill="var(--t3)" font-size="12">em execução</text>'+
             '</svg>'+
             '<div class="donut-leg">'+legHTML+'</div>'+
           '</div>'+
@@ -2738,8 +2744,8 @@ function renderContratos(){
           <button onclick="event.stopPropagation();imprimirContrato('${id}')" title="Imprimir PDF" style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2);color:var(--nh);width:30px;height:30px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;transition:all .15s" onmouseover="this.style.background='rgba(249,115,22,.25)'" onmouseout="this.style.background='rgba(249,115,22,.1)'">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></svg>
           </button>
-          <button onclick="event.stopPropagation();abrirModalContratoById('${id}')" title="Editar contrato completo" style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);color:#60a5fa;width:30px;height:30px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px" onmouseover="this.style.background='rgba(59,130,246,.2)'" onmouseout="this.style.background='rgba(59,130,246,.1)'">✏</button>
-          ${isAdmin ? `<button onclick="event.stopPropagation();abrirModalExcluir('${id}','${String(arr[3]||'').replace(/'/g,'').replace(/"/g,'').substring(0,40)}')" title="Excluir contrato (apenas GROWTH)" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#f87171;width:30px;height:30px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px" onmouseover="this.style.background='rgba(239,68,68,.18)'" onmouseout="this.style.background='rgba(239,68,68,.08)'">🗑</button>` : ''}
+          <button onclick="event.stopPropagation();abrirModalContratoById('${id}')" title="Editar contrato completo" style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);color:var(--b_);width:30px;height:30px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px" onmouseover="this.style.background='rgba(59,130,246,.2)'" onmouseout="this.style.background='rgba(59,130,246,.1)'">✏</button>
+          ${isAdmin ? `<button onclick="event.stopPropagation();abrirModalExcluir('${id}','${String(arr[3]||'').replace(/'/g,'').replace(/"/g,'').substring(0,40)}')" title="Excluir contrato (apenas GROWTH)" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:var(--r1);width:30px;height:30px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px" onmouseover="this.style.background='rgba(239,68,68,.18)'" onmouseout="this.style.background='rgba(239,68,68,.08)'">🗑</button>` : ''}
           <span class="ccard-arrow" id="arrow-${id}">›</span>
         </div>
       </div>
@@ -2868,24 +2874,24 @@ function renderBody(id, arr, entry){
     const ehR = sim.toUpperCase()==='SIM';
     const bodyId = 'rc-'+id+'-'+def.n;
     recompsHTML +=
-      '<div style="border:1px solid #222230;border-radius:10px;overflow:hidden;margin-top:10px'+(ehR?';border-left:3px solid #f97316':'')+'">' +
-      '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#0d0d18;cursor:pointer;user-select:none" onclick="var b=document.getElementById(\'' + bodyId + '\');b.style.display=b.style.display===\'none\'?\'grid\':\'none\'">' +
+      '<div style="border:1px solid var(--b2);border-radius:10px;overflow:hidden;margin-top:10px'+(ehR?';border-left:3px solid #f97316':'')+'">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg);cursor:pointer;user-select:none" onclick="var b=document.getElementById(\'' + bodyId + '\');b.style.display=b.style.display===\'none\'?\'grid\':\'none\'">' +
       '<div style="display:flex;align-items:center;gap:10px">' +
       '<span style="font-size:12px;font-weight:800;color:var(--nh)">Recomp '+def.n+'</span>' +
-      (tipo?'<span style="font-size:11px;color:#888">'+tipo.substring(0,30)+'</span>':'') +
+      (tipo?'<span style="font-size:11px;color:var(--t3)">'+tipo.substring(0,30)+'</span>':'') +
       (ehR?'<span style="font-size:9px;background:rgba(249,115,22,.15);color:#fb923c;padding:2px 6px;border-radius:4px;font-weight:700">\ud83d\udd04 SIM</span>':'') +
       '</div><div style="display:flex;align-items:center;gap:8px">' +
       (stR?'<span style="font-size:11px;font-weight:700;color:'+corSt+';background:'+corSt+'22;padding:2px 8px;border-radius:10px">'+stR+'</span>':'') +
-      (vencR?'<span style="font-size:11px;color:#aaa">Vence: <b style="color:#e5e5e5">'+vencR+'</b></span>':'') +
+      (vencR?'<span style="font-size:11px;color:var(--t2)">Vence: <b style="color:var(--t1)">'+vencR+'</b></span>':'') +
       '</div></div>' +
-      '<div id="'+bodyId+'" style="display:none;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:0;padding:12px 14px;background:#0a0a12">' +
+      '<div id="'+bodyId+'" style="display:none;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:0;padding:12px 14px;background:var(--bg)">' +
       (sim?'<div class="aditivo-field"><div class="aditivo-field-lbl">Recomp.?</div><div class="aditivo-field-val">'+sim+'</div></div>':'') +
       (tipo?'<div class="aditivo-field"><div class="aditivo-field-lbl">Tipo</div><div class="aditivo-field-val">'+tipo+'</div></div>':'') +
       (stR?'<div class="aditivo-field"><div class="aditivo-field-lbl">Status</div><div class="aditivo-field-val" style="color:'+corSt+'">'+stR+'</div></div>':'') +
       (ndv?'<div class="aditivo-field"><div class="aditivo-field-lbl">Nova Data Venc.</div><div class="aditivo-field-val">'+ndv+'</div></div>':'') +
       (vigM?'<div class="aditivo-field"><div class="aditivo-field-lbl">Vig\xeancia (m)</div><div class="aditivo-field-val">'+vigM+'</div></div>':'') +
       (vencR?'<div class="aditivo-field"><div class="aditivo-field-lbl">Venc. Recomp.</div><div class="aditivo-field-val" style="color:#f97316;font-weight:700">'+vencR+'</div></div>':'') +
-      (valF?'<div class="aditivo-field"><div class="aditivo-field-lbl">Valor Final</div><div class="aditivo-field-val" style="color:#4ade80;font-weight:700">'+valF+'</div></div>':'') +
+      (valF?'<div class="aditivo-field"><div class="aditivo-field-lbl">Valor Final</div><div class="aditivo-field-val" style="color:var(--g1);font-weight:700">'+valF+'</div></div>':'') +
       '</div></div>';
   });
 
