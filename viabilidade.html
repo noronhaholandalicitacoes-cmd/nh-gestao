@@ -14,10 +14,23 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
-  --bg:#0a0a0a; --surf:#141416; --surf2:#1c1c20; --line:#26262b; --line2:#323238;
-  --txt:#ececee; --txt2:#9a9aa2; --txt3:#5c5c66;
-  --nh:#f97316; --nh2:#fb923c;
-  --sim:#22c55e; --nao:#ef4444; --ana:#eab308; --blue:#3b82f6;
+  /* Paleta do sistema principal — os três aplicativos usam a mesma. */
+  --bg:#0a0e1a; --s1:#111725; --s2:#161d2e; --s3:#1c2438;
+  --b1:#252d40; --b2:#303a52;
+  --nh:#f97316; --nha:rgba(249,115,22,.12);
+  --g1:#22c55e; --r1:#ef4444; --y1:#eab308; --b_:#3b82f6;
+  --t1:#f5f5f5; --t2:#9aa5bd; --t3:#64748b;
+  --surf:var(--s1); --surf2:var(--s2); --line:var(--b1); --line2:var(--b2);
+  --txt:var(--t1); --txt2:var(--t2); --txt3:var(--t3);
+  --nh2:#fb923c; --sim:var(--g1); --nao:var(--r1); --ana:var(--y1); --blue:var(--b_);
+}
+body.light-theme{
+  --bg:#f2f5fc; --s1:#ffffff; --s2:#eef2fb; --s3:#e2e9f8;
+  --b1:#d9e1f2; --b2:#b6c4e6;
+  --nh:#f4560a; --nha:rgba(244,86,10,.12);
+  --g1:#00a86b; --r1:#f0284a; --y1:#e59500; --b_:#2563eb;
+  --t1:#0b1220; --t2:#3d4a66; --t3:#64748b;
+  --nh2:#ff7a1a;
 }
 body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;padding-bottom:env(safe-area-inset-bottom)}
 body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px 500px at 50% -10%,rgba(249,115,22,.08),transparent 70%);pointer-events:none;z-index:0}
@@ -190,35 +203,125 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
 .card:hover{transform:translateY(-2px);box-shadow:var(--nhd-e2)}
 
 
-/* Tela de acesso */
-#login-ov{position:fixed;inset:0;z-index:900;background:var(--bg);display:none;
-  align-items:center;justify-content:center;padding:24px}
-#login-ov::before{content:"";position:absolute;inset:0;
-  background:radial-gradient(900px 420px at 50% 0%,rgba(249,115,22,.10),transparent 70%)}
-.lg-box{position:relative;width:100%;max-width:380px;display:flex;flex-direction:column;gap:16px}
-.lg-top{display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:4px}
-.lg-mark{width:58px;height:58px;border-radius:17px;background:linear-gradient(135deg,var(--nh2),#ea580c);
-  display:flex;align-items:center;justify-content:center;font-weight:900;font-size:19px;color:#000;
-  box-shadow:0 8px 26px rgba(249,115,22,.4)}
-.lg-tit{font-size:19px;font-weight:800;letter-spacing:-.02em}
-.lg-sub{font-size:12.5px;color:var(--txt3);font-weight:600;text-align:center;line-height:1.5}
-.lg-campo{display:flex;flex-direction:column;gap:6px}
-.lg-campo label{font-size:10.5px;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em;font-weight:700}
-.lg-campo input{background:var(--surf);border:1px solid var(--line);border-radius:12px;
-  padding:14px 15px;color:var(--txt);font-size:16px;font-family:Outfit,sans-serif;font-weight:600;
-  width:100%;transition:border .2s}
-.lg-campo input:focus{outline:none;border-color:rgba(249,115,22,.5)}
-.lg-btn{background:linear-gradient(135deg,var(--nh2),#ea580c);border:none;border-radius:12px;
-  padding:15px;color:#000;font-size:15px;font-weight:800;font-family:Outfit,sans-serif;
-  cursor:pointer;transition:transform .15s,opacity .2s;margin-top:4px}
-.lg-btn:active{transform:scale(.98)}
-.lg-btn:disabled{opacity:.55;cursor:default}
-.lg-erro{display:none;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);
-  color:#fca5a5;border-radius:10px;padding:11px 13px;font-size:12.5px;font-weight:600;line-height:1.5}
-.lg-rodape{font-size:11px;color:var(--txt3);text-align:center;line-height:1.6;margin-top:2px}
-#btn-sair{background:var(--surf);border:1px solid var(--line);color:var(--txt3);width:36px;height:36px;
-  border-radius:11px;cursor:pointer;font-size:15px;flex-shrink:0;font-family:Outfit,sans-serif;display:none}
-#btn-sair:active{transform:scale(.94)}
+
+/* ══════════════════════════════════════════════════════════════════
+   NH ACESSO — tela de entrada, igual nos três aplicativos.
+   As cores saem das variáveis do sistema, então o tema claro vem de
+   graça: basta a classe light-theme no body.
+   ══════════════════════════════════════════════════════════════════ */
+:root{
+  --ac-orb:.34;
+  --ac-vidro:rgba(255,255,255,.05); --ac-vidro-b:rgba(255,255,255,.10);
+  --ac-inp:rgba(255,255,255,.07);   --ac-inp-b:rgba(255,255,255,.13);
+  --ac-pl:rgba(255,255,255,.25);    --ac-som:0 24px 70px -20px rgba(0,0,0,.7);
+}
+body.light-theme{
+  --ac-orb:.15;
+  --ac-vidro:rgba(255,255,255,.74); --ac-vidro-b:rgba(11,18,32,.09);
+  --ac-inp:rgba(255,255,255,.92);   --ac-inp-b:rgba(11,18,32,.13);
+  --ac-pl:rgba(11,18,32,.32);       --ac-som:0 24px 60px -22px rgba(20,30,90,.35);
+}
+
+.nh-acesso{
+  position:fixed;inset:0;z-index:9990;display:none;
+  align-items:center;justify-content:center;padding:24px;
+  background:var(--bg);overflow:hidden;
+  font-family:'Outfit',system-ui,sans-serif;
+}
+/* Bate as regras antigas de #login-screen, que tinham fundo próprio. */
+#login-screen.nh-acesso{background:var(--bg)!important}
+body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
+
+/* Esferas de luz à deriva — a assinatura da tela */
+.ac-bg{position:absolute;inset:0;pointer-events:none}
+.ac-orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:var(--ac-orb)}
+.ac-o1{width:500px;height:500px;background:radial-gradient(circle,#7c3aed,transparent);
+  top:-150px;left:-150px;animation:acF1 10s ease-in-out infinite}
+.ac-o2{width:400px;height:400px;background:radial-gradient(circle,var(--nh),transparent);
+  bottom:-100px;right:-100px;animation:acF2 12s ease-in-out infinite}
+.ac-o3{width:300px;height:300px;background:radial-gradient(circle,#3b82f6,transparent);
+  top:50%;left:50%;animation:acF3 8s ease-in-out infinite}
+@keyframes acF1{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,30px)}}
+@keyframes acF2{0%,100%{transform:translate(0,0)}50%{transform:translate(-30px,-40px)}}
+@keyframes acF3{0%,100%{transform:translate(-50%,-50%)}50%{transform:translate(-45%,-55%)}}
+
+.ac-hero{position:relative;z-index:1;width:100%;max-width:430px;
+  display:flex;flex-direction:column;align-items:center;animation:acSobe .5s ease}
+@keyframes acSobe{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+
+.ac-badge{display:inline-flex;align-items:center;gap:7px;
+  background:var(--ac-vidro);border:1px solid var(--ac-vidro-b);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  padding:6px 14px;border-radius:20px;font-size:11px;font-weight:600;
+  color:var(--t3);letter-spacing:.08em;margin-bottom:28px}
+.ac-dot{width:7px;height:7px;border-radius:50%;background:var(--g1);
+  box-shadow:0 0 8px var(--g1);animation:acPulso 2s infinite}
+@keyframes acPulso{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.7;transform:scale(1.3)}}
+
+/* Anéis girando em torno da marca */
+.ac-logo{position:relative;width:100px;height:100px;display:flex;
+  align-items:center;justify-content:center;margin-bottom:24px}
+.ac-anel{position:absolute;border-radius:50%;border:2px solid transparent;animation:acGira 6s linear infinite}
+.ac-a1{width:100%;height:100%;border-top-color:rgba(249,115,22,.6);border-right-color:rgba(249,115,22,.2);animation-duration:4s}
+.ac-a2{width:80%;height:80%;border-top-color:rgba(124,58,237,.6);border-left-color:rgba(124,58,237,.2);animation-direction:reverse;animation-duration:6s}
+.ac-a3{width:60%;height:60%;border-bottom-color:rgba(59,130,246,.6);border-right-color:rgba(59,130,246,.2);animation-duration:8s}
+@keyframes acGira{to{transform:rotate(360deg)}}
+.ac-marca{position:relative;z-index:2;width:52px;height:52px;border-radius:16px;
+  background:linear-gradient(135deg,#f97316,#dc2626);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;font-weight:800;letter-spacing:-.02em;
+  animation:acBrilho 3s ease-in-out infinite}
+@keyframes acBrilho{0%,100%{box-shadow:0 0 20px rgba(249,115,22,.4)}50%{box-shadow:0 0 40px rgba(249,115,22,.7)}}
+
+.ac-tit{font-size:40px;font-weight:800;text-align:center;line-height:1.1;
+  margin-bottom:9px;letter-spacing:-.03em;color:var(--t1)}
+.ac-tit .grad{background:linear-gradient(90deg,#f97316,#a855f7);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.ac-sub{font-size:13.5px;color:var(--t3);margin-bottom:30px;text-align:center;line-height:1.6}
+
+.ac-form{width:100%;background:var(--ac-vidro);border:1px solid var(--ac-vidro-b);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-radius:20px;padding:30px;box-shadow:var(--ac-som)}
+.ac-campo{margin-bottom:15px}
+.ac-campo label{display:block;font-size:11px;font-weight:700;color:var(--t3);
+  text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px}
+.ac-campo input{width:100%;background:var(--ac-inp);border:1px solid var(--ac-inp-b);
+  color:var(--t1);padding:13px 15px;border-radius:10px;
+  font-family:inherit;font-size:15px;font-weight:500;outline:none;transition:all .15s}
+.ac-campo input:focus{border-color:rgba(249,115,22,.6);box-shadow:0 0 0 3px rgba(249,115,22,.12)}
+.ac-campo input::placeholder{color:var(--ac-pl)}
+
+.ac-btn{width:100%;background:linear-gradient(90deg,#f97316,#dc2626);color:#fff;border:none;
+  padding:14px;border-radius:10px;font-family:inherit;font-size:14.5px;font-weight:700;
+  cursor:pointer;margin-top:6px;letter-spacing:.02em;transition:all .2s;
+  box-shadow:0 4px 20px rgba(249,115,22,.3)}
+.ac-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(249,115,22,.5)}
+.ac-btn:active{transform:translateY(0)}
+.ac-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+
+.ac-err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);
+  color:var(--r1);padding:11px 14px;border-radius:9px;font-size:12.5px;font-weight:600;
+  margin-bottom:14px;display:none;text-align:center;line-height:1.5}
+.ac-rodape{font-size:11.5px;color:var(--t3);text-align:center;margin-top:16px;line-height:1.6}
+
+/* Alternador de tema, no canto */
+.ac-tema{position:absolute;top:18px;right:18px;z-index:3;
+  width:38px;height:38px;border-radius:12px;cursor:pointer;
+  background:var(--ac-vidro);border:1px solid var(--ac-vidro-b);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  color:var(--t2);font-size:16px;line-height:1;
+  display:flex;align-items:center;justify-content:center;transition:all .18s}
+.ac-tema:hover{border-color:rgba(249,115,22,.45);color:var(--nh)}
+
+@media(max-width:480px){
+  .ac-tit{font-size:32px}
+  .ac-form{padding:22px}
+  .ac-logo{width:84px;height:84px;margin-bottom:18px}
+}
+@media (prefers-reduced-motion:reduce){
+  .ac-orb,.ac-anel,.ac-marca,.ac-dot,.ac-hero{animation:none}
+}
+
 
 @media (prefers-reduced-motion:reduce){
   #nhd-atmosfera .nhd-orb{animation:none}
@@ -228,26 +331,24 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
 </head>
 <body>
 
-<div id="login-ov">
-  <div class="lg-box">
-    <div class="lg-top">
-      <div class="lg-mark">NH</div>
-      <div class="lg-tit">Análise de Viabilidade</div>
-      <div class="lg-sub">Entre com o WhatsApp cadastrado<br>para ver os processos das suas empresas</div>
+<div class="nh-acesso" id="nh-acesso">
+  <div class="ac-bg"><div class="ac-orb ac-o1"></div><div class="ac-orb ac-o2"></div><div class="ac-orb ac-o3"></div></div>
+  <button class="ac-tema" onclick="acTrocarTema()" id="ac-tema-btn" title="Alternar tema claro/escuro">◐</button>
+  <div class="ac-hero">
+    <div class="ac-badge"><span class="ac-dot"></span>SISTEMA ONLINE</div>
+    <div class="ac-logo">
+      <div class="ac-anel ac-a1"></div><div class="ac-anel ac-a2"></div><div class="ac-anel ac-a3"></div>
+      <div class="ac-marca">NH</div>
     </div>
-    <div class="lg-erro" id="lg-erro"></div>
-    <div class="lg-campo">
-      <label>WhatsApp</label>
-      <input type="tel" id="lg-wpp" inputmode="numeric" placeholder="(83) 99999-9999"
-        autocomplete="off" oninput="vMascara(this)" onkeydown="if(event.key==='Enter')document.getElementById('lg-senha').focus()">
+    <div class="ac-tit">Análise de <span class="grad">Viabilidade</span></div>
+    <div class="ac-sub">Entre com o WhatsApp cadastrado para ver<br>os processos das suas empresas</div>
+    <div class="ac-form">
+      <div class="ac-err" id="ac-err"></div>
+      <div class="ac-campo"><label>WhatsApp</label><input type="tel" id="lg-wpp" placeholder="(83) 99999-9999" autocomplete="off" inputmode="numeric" oninput="vMascara(this)" onkeydown="if(event.key==='Enter')document.getElementById('lg-senha').focus()"></div>
+      <div class="ac-campo"><label>Senha</label><input type="password" id="lg-senha" placeholder="••••••••" autocomplete="off" onkeydown="if(event.key==='Enter')entrar()"></div>
+      <button class="ac-btn" id="lg-btn" onclick="entrar()">Entrar</button>
+      <div class="ac-rodape">Não tem acesso? Fale com a NH Licitações.</div>
     </div>
-    <div class="lg-campo">
-      <label>Senha</label>
-      <input type="password" id="lg-senha" placeholder="••••••••"
-        autocomplete="off" onkeydown="if(event.key==='Enter')entrar()">
-    </div>
-    <button class="lg-btn" id="lg-btn" onclick="entrar()">Entrar</button>
-    <div class="lg-rodape">Não tem acesso? Fale com a NH Licitações.</div>
   </div>
 </div>
 
@@ -482,8 +583,21 @@ async function vHash(senha,salt){
   var b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(salt+'::'+senha));
   return Array.prototype.map.call(new Uint8Array(b),function(x){return('0'+x.toString(16)).slice(-2);}).join('');}
 
+
+/* Tema claro/escuro. A chave é a mesma usada pelo sistema principal,
+   então escolher aqui vale nos três aplicativos. */
+function acAplicarTema(claro){
+  document.body.classList.toggle('light-theme',!!claro);
+  var b=document.getElementById('ac-tema-btn');
+  if(b){b.textContent=claro?'☾':'☀';b.title=claro?'Mudar para escuro':'Mudar para claro';}
+  try{localStorage.setItem('nh_tema',claro?'claro':'escuro');}catch(e){}
+  /* Mantém em dia o botão de tema da barra lateral, onde ele existe. */
+  if('function'==typeof _atualizarIconeTema)_atualizarIconeTema();}
+function acTrocarTema(){acAplicarTema(!document.body.classList.contains('light-theme'));}
+(function(){try{acAplicarTema('claro'===localStorage.getItem('nh_tema'));}catch(e){}})();
+
 function lgErro(msg){
-  var e=document.getElementById('lg-erro');
+  var e=document.getElementById('ac-err');
   e.textContent=msg;e.style.display='block';
   var b=document.getElementById('lg-btn');
   if(b){b.disabled=false;b.textContent='Entrar';}}
@@ -491,7 +605,7 @@ function lgErro(msg){
 async function entrar(){
   var num=vNumero(document.getElementById('lg-wpp').value),
       senha=document.getElementById('lg-senha').value;
-  document.getElementById('lg-erro').style.display='none';
+  document.getElementById('ac-err').style.display='none';
   if(!num||!senha){lgErro('Preencha o WhatsApp e a senha.');return;}
   var b=document.getElementById('lg-btn');b.disabled=true;b.textContent='Verificando...';
   var lista={};
@@ -514,7 +628,7 @@ async function entrar(){
   abrirApp();}
 
 function abrirApp(){
-  document.getElementById('login-ov').style.display='none';
+  document.getElementById('nh-acesso').style.display='none';
   var s=document.getElementById('hd-sub');
   if(s)s.textContent=SESSAO.nome||'Análise de Viabilidade';
   var b=document.getElementById('btn-sair');if(b)b.style.display='block';
@@ -540,7 +654,7 @@ function iniciarAcesso(){
   if(num)document.getElementById('lg-wpp').value=vFormata(vNumero(num));
   var s=null;try{s=JSON.parse(sessionStorage.getItem('nh_viab_sessao')||'null');}catch(e){}
   if(s&&s.num){SESSAO=s;abrirApp();return;}
-  document.getElementById('login-ov').style.display='flex';
+  document.getElementById('nh-acesso').style.display='flex';
   setTimeout(function(){
     var alvo=document.getElementById(num?'lg-senha':'lg-wpp');
     if(alvo)alvo.focus();},250);}
