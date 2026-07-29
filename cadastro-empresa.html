@@ -232,13 +232,13 @@ body{background:var(--bg)}
 
     <div class="sec">
       <div class="sec-tit">Documentação</div>
-      <div class="sec-desc">Envie o que já tiver — contrato social, certidões, balanço, o que for. Pode mandar aos poucos; o que faltar, avisamos depois. Até 15&nbsp;MB por arquivo.</div>
+      <div class="sec-desc">Envie o que já tiver — contrato social, certidões, balanço, o que for. Pode mandar tudo compactado num ZIP, se preferir. Até 25&nbsp;MB por arquivo.</div>
       <div class="drop" id="drop-area">
         <div class="drop-ic">📎</div>
         <div class="drop-tit">Toque para escolher os arquivos</div>
-        <div class="drop-sub">PDF, imagem, Word ou Excel</div>
+        <div class="drop-sub">PDF, imagem, Word, Excel ou ZIP</div>
       </div>
-      <input type="file" id="input-arquivos" multiple style="display:none" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx">
+      <input type="file" id="input-arquivos" multiple style="display:none" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx,.zip,.rar">
       <div class="arq-lista" id="arq-lista"></div>
     </div>
 
@@ -355,7 +355,7 @@ function pubValidarCadastro(campos) {
 
 /** Cada arquivo é conferido sozinho, antes de qualquer envio — evita
  *  o usuário esperar um upload de 40MB para só então saber que estourou. */
-var PUB_TAMANHO_MAX_MB = 15;
+var PUB_TAMANHO_MAX_MB = 25;
 function pubArquivoValido(arquivo) {
   if (!arquivo || !arquivo.size) return {ok: false, motivo: 'Arquivo vazio ou ilegível.'};
   if (arquivo.size > PUB_TAMANHO_MAX_MB * 1024 * 1024) {
@@ -547,8 +547,24 @@ async function pubEnviar(){
     var payload=Object.assign({},r.dados,{atualizadoEm:Date.now()});
     if(salvos.length)payload.arquivos=firebase.firestore.FieldValue.arrayUnion.apply(null,salvos);
     if(pastaUrl)payload.pastaDriveUrl=pastaUrl;
-    if(!atual.exists){payload.status='novo';payload.criadoEm=Date.now();}
+    var eraNovo=!atual.exists;
+    if(eraNovo){payload.status='novo';payload.criadoEm=Date.now();}
     await ref.set(payload,{merge:true});
+
+    /* Avisa a NH por e-mail só quando é empresa de verdade nova — um
+       reenvio de documentos complementares não deve gerar um segundo
+       aviso de "empresa nova". Isso é só um aviso; se falhar, o
+       cadastro em si já está salvo e o cliente nem percebe. */
+    if(eraNovo&&APPS_SCRIPT_URL){
+      try{
+        var fdN=new FormData();
+        fdN.append('acao','notificar');
+        fdN.append('razao',r.dados.razao); fdN.append('cnpj',r.dados.cnpj);
+        fdN.append('respNome',r.dados.respNome); fdN.append('respWhats',r.dados.respWhats);
+        fdN.append('telefone',r.dados.telefone); fdN.append('email',r.dados.email);
+        fetch(APPS_SCRIPT_URL,{method:'POST',body:fdN}).catch(function(){});
+      }catch(e){}
+    }
 
     document.getElementById('form-area').style.display='none';
     document.getElementById('sucesso').style.display='block';
