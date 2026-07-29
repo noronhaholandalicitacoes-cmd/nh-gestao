@@ -5547,6 +5547,18 @@ async function _cadAgir(acao, idx) {
     }
     return;
   }
+  if ('excluir-cadastro' === acao) {
+    var alvo=_cadAberto;
+    if(!confirm('Excluir o cadastro de "'+(alvo.fantasia||alvo.razao||'')+'"?\n\nOs documentos que a empresa já enviou continuam salvos no Drive — só o registro daqui é apagado. Não dá para desfazer.'))return;
+    try{
+      await db.collection('cadastros_pendentes').doc(alvo._id).delete();
+      CADASTROS=CADASTROS.filter(function(c){return c._id!==alvo._id;});
+      fecharCadastro();
+      renderListaCadastros();
+      toast('Cadastro excluído','ok');
+    }catch(e){toast('Erro ao excluir: '+e.message,'err');}
+    return;
+  }
   if ('fechar' === acao) { fecharCadastro(); return; }
 }
 
@@ -5636,6 +5648,7 @@ function abrirCadastro(id) {
     + '      </div>'
     + '    </div>'
     + '    <button class="btn btn-nh" data-acao="virar-empresa" style="width:100%">✓ Aprovar e virar empresa</button>'
+    + '    <button class="btn" data-acao="excluir-cadastro" style="width:100%;margin-top:8px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444">🗑 Excluir este cadastro</button>'
     + '  </div>'
     + '</div>';
 
@@ -5768,7 +5781,23 @@ function abrirGerenciarEmpresas(){
   o&&o.scrollIntoView({behavior:"smooth"});
   toast("Edite os dados e clique em 💾 Salvar Edição","ok");
 }
-var _editEmpIdx = -1;function removerEmpresa(e){confirm("Remover "+EMPRESAS[e].nome+"? Esta ação não pode ser desfeita.")&&(EMPRESAS.splice(e,1),renderListaEmpresas())}async function confirmarEmpresas(){
+var _editEmpIdx = -1;async function removerEmpresa(e){
+  var nome=EMPRESAS[e]&&EMPRESAS[e].nome;
+  if(!nome)return;
+  if(!confirm('Remover '+nome+'?\n\nIsso tira a empresa do cadastro e da lista lateral. Editais e contratos já lançados com o nome dela não são apagados.'))return;
+  var copia=EMPRESAS.slice();
+  EMPRESAS.splice(e,1);
+  renderListaEmpresas();
+  try{
+    await salvarEmpresas();
+    atualizarSelectsEmpresas();
+    toast('Empresa removida','ok');
+  }catch(err){
+    EMPRESAS=copia;
+    renderListaEmpresas();
+    toast('Erro ao remover: '+err.message,'err');
+  }
+}async function confirmarEmpresas(){
   var e=document.getElementById("btn-salvar-emp");
   e&&(e.disabled=!0,e.textContent="Salvando...");
   try{
