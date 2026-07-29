@@ -583,6 +583,49 @@ body.light-theme select{color-scheme:light;}
   word-break:break-all;line-height:1.5}
 @media(max-width:640px){.cfg-abas{flex-direction:column}.cfg-aba{justify-content:flex-start}}
 
+
+/* Cadastros — captação pública de empresas */
+.cad-linha{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:12px 14px;background:var(--s1);border:1px solid var(--b1);border-radius:10px;
+  cursor:pointer;transition:border-color .15s}
+.cad-linha:hover{border-color:rgba(249,115,22,.4)}
+.cad-nome{font-size:13.5px;font-weight:700;color:var(--t1)}
+.cad-sub{font-size:11.5px;color:var(--t3);margin-top:3px}
+.cad-badge{font-size:10.5px;font-weight:700;padding:4px 10px;border-radius:20px;
+  border:1px solid;white-space:nowrap;flex-shrink:0}
+
+.cad-fundo{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);z-index:9500}
+.cad-painel{position:fixed;z-index:9501;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:680px;max-width:94vw;max-height:90vh;display:flex;flex-direction:column;
+  background:var(--s1);border:1px solid var(--b1);border-radius:16px;
+  box-shadow:0 30px 90px -20px rgba(0,0,0,.7);overflow:hidden}
+.cad-cab{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+  padding:20px 24px;border-bottom:1px solid var(--b1);background:var(--s2);flex-shrink:0}
+.cad-cab-nome{font-size:17px;font-weight:800;color:var(--t1)}
+.cad-cab-sub{font-size:12px;color:var(--t3);margin-top:4px}
+.cad-fechar{background:var(--s1);border:1px solid var(--b1);color:var(--t3);width:32px;height:32px;
+  border-radius:9px;cursor:pointer;font-size:14px;flex-shrink:0}
+.cad-fechar:hover{border-color:rgba(239,68,68,.4);color:#ef4444}
+.cad-corpo{padding:20px 24px;overflow-y:auto;display:flex;flex-direction:column;gap:16px}
+.cad-v{font-size:13px;color:var(--t1);background:var(--s1);border:1px solid var(--b1);
+  border-radius:8px;padding:9px 11px;min-height:20px;line-height:1.5}
+
+.cad-item-row{display:flex;align-items:center;gap:8px;background:var(--s1);border:1px solid var(--b1);
+  border-radius:8px;padding:8px 10px;flex-wrap:wrap}
+.cad-item-link{flex:1;min-width:140px;font-size:12.5px;font-weight:600;color:var(--b_);text-decoration:none}
+.cad-item-link:hover{text-decoration:underline}
+.cad-item-link.sem-link{color:var(--t2);cursor:default}
+.cad-item-status{background:var(--s2);border:1px solid var(--b1);color:var(--t1);border-radius:6px;
+  padding:5px 8px;font-size:12px;font-family:'Outfit',sans-serif;flex-shrink:0}
+.cad-item-obs{flex:1;min-width:120px;background:var(--s2);border:1px solid var(--b1);color:var(--t1);
+  border-radius:6px;padding:5px 8px;font-size:12px;font-family:'Outfit',sans-serif}
+.cad-item-rm{background:none;border:none;color:var(--t3);cursor:pointer;font-size:13px;flex-shrink:0;padding:2px 4px}
+.cad-item-rm:hover{color:#ef4444}
+.cad-add-row{display:flex;gap:8px;margin-top:10px}
+.cad-add-row input{flex:1;background:var(--s1);border:1px solid var(--b1);color:var(--t1);
+  border-radius:8px;padding:9px 11px;font-size:12.5px;font-family:'Outfit',sans-serif}
+@media(max-width:640px){.cad-painel{width:96vw}.cad-item-row{flex-direction:column;align-items:stretch}}
+
 .pc-card{background:var(--s2);border:1px solid var(--b1);border-radius:14px;padding:22px;margin-bottom:18px}
 .pc-card:last-child{margin-bottom:0}
 .pc-tit{font-size:13px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;
@@ -2273,6 +2316,7 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
           <button class="cfg-aba on" id="cfg-ab-empresas" onclick="cfgAba('empresas')">Empresas</button>
           <button class="cfg-aba" id="cfg-ab-portal" onclick="cfgAba('portal')">Portal de Contratos</button>
           <button class="cfg-aba" id="cfg-ab-viab" onclick="cfgAba('viab')">Viabilidade</button>
+          <button class="cfg-aba" id="cfg-ab-cadastros" onclick="cfgAba('cadastros')">Cadastros</button>
         </div>
 
         <div class="cfg-painel on" id="cfg-p-empresas">
@@ -2462,7 +2506,23 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
               <button class="btn btn-ghost" onclick="navigator.clipboard.writeText('https://noronhaholandalicitacoes-cmd.github.io/nh-gestao/viabilidade.html');toast('Link copiado','ok')">Copiar</button>
             </div>
           </div>
-        </div>
+        
+
+        <div class="cfg-painel" id="cfg-p-cadastros">
+  <div class="pc-card">
+    <div class="pc-tit">Link de cadastro para novas empresas</div>
+    <div class="pc-desc">A empresa preenche os dados e envia a documentação por este link. Assim que enviar, o cadastro aparece na lista abaixo para você analisar.</div>
+    <div class="cfg-link">
+      <code id="cad-link-texto">https://noronhaholandalicitacoes-cmd.github.io/nh-gestao/cadastro-empresa.html</code>
+      <button class="btn btn-ghost" onclick="navigator.clipboard.writeText(document.getElementById('cad-link-texto').textContent);toast('Link copiado','ok')">Copiar</button>
+    </div>
+  </div>
+  <div class="pc-card">
+    <div class="pc-tit">Cadastros recebidos</div>
+    <div class="pc-desc">Clique num cadastro para conferir a documentação, marcar o que falta ou está vencido, e montar o parecer para a empresa.</div>
+    <div id="cad-lista" style="display:flex;flex-direction:column;gap:8px"></div>
+  </div>
+        </div></div>
 
       </div>
     </div>
@@ -5254,13 +5314,364 @@ var _cfgAba='empresas';
 
 function cfgAba(nome){
   _cfgAba=nome;
-  ['empresas','portal','viab'].forEach(function(n){
+  ['empresas','portal','viab','cadastros'].forEach(function(n){
     var b=document.getElementById('cfg-ab-'+n),p=document.getElementById('cfg-p-'+n);
     if(b)b.classList.toggle('on',n===nome);
     if(p)p.classList.toggle('on',n===nome);});
   if('portal'===nome&&'function'==typeof initPortalConfig)initPortalConfig();
   if('viab'===nome)carregarResponsaveis().then(function(){renderListaResponsaveis();limparFormResp();});
-  if('empresas'===nome)renderListaEmpresas();}
+  if('empresas'===nome)renderListaEmpresas();
+  if('cadastros'===nome)carregarCadastros();}
+/* ══════════════════════════════════════════════════════════════════
+   CADASTROS — captação pública de novas empresas
+   Lê a coleção cadastros_pendentes (gravada pelo formulário público
+   cadastro-empresa.html) e permite analisar a documentação, montar um
+   parecer e, quando aprovado, transformar em empresa de verdade.
+   ══════════════════════════════════════════════════════════════════ */
+var CADASTROS = [], _cadAberto = null;
+
+function fmtCNPJcad(v) {
+  var d = String(v || '').replace(/\D/g, '');
+  if (d.length !== 14) return v || '';
+  return d.substring(0,2)+'.'+d.substring(2,5)+'.'+d.substring(5,8)+'/'+d.substring(8,12)+'-'+d.substring(12);
+}
+
+function statusCadInfo(s) {
+  return {
+    novo:            {rotulo: 'Novo',            cor: '#3b82f6'},
+    em_analise:      {rotulo: 'Em análise',      cor: '#eab308'},
+    parecer_enviado: {rotulo: 'Parecer enviado', cor: '#a855f7'},
+    aprovado:        {rotulo: 'Aprovado',        cor: '#22c55e'}
+  }[s] || {rotulo: s || 'Novo', cor: '#64748b'};
+}
+
+async function carregarCadastros() {
+  var box = document.getElementById('cad-lista');
+  if (box) box.innerHTML = '<div class="load"><div class="spin"></div>Carregando...</div>';
+  try {
+    var snap = await db.collection('cadastros_pendentes').orderBy('criadoEm', 'desc').get();
+    CADASTROS = [];
+    snap.forEach(function(doc) { CADASTROS.push(Object.assign({_id: doc.id}, doc.data())); });
+  } catch (e) { CADASTROS = []; }
+  renderListaCadastros();
+}
+
+function _cadLigarLista(){
+  var box=document.getElementById('cad-lista');
+  if(!box||box._ligado)return;
+  box._ligado=true;
+  box.addEventListener('click',function(e){
+    var el=e.target.closest?e.target.closest('.cad-linha'):null;
+    if(el)abrirCadastro(el.getAttribute('data-id'));});
+}
+function renderListaCadastros() {
+  _cadLigarLista();
+  var box = document.getElementById('cad-lista');
+  if (!box) return;
+  var aba = document.getElementById('cfg-ab-cadastros');
+  if (aba) {
+    var novos = CADASTROS.filter(function(c) { return 'novo' === (c.status || 'novo'); }).length;
+    aba.textContent = 'Cadastros' + (novos ? ' (' + novos + ')' : '');
+  }
+  if (!CADASTROS.length) {
+    box.innerHTML = '<div style="padding:24px;text-align:center;color:var(--t3);font-size:13px">'
+      + 'Nenhum cadastro recebido ainda.</div>';
+    return;
+  }
+  box.innerHTML = CADASTROS.map(function(c) {
+    var st = statusCadInfo(c.status);
+    var nArq = (c.arquivos || []).length;
+    return '<div class="cad-linha" data-id="' + c._id + '">'
+      + '<div class="cad-info">'
+      + '<div class="cad-nome">' + esc0(c.fantasia || c.razao || '(sem nome)') + '</div>'
+      + '<div class="cad-sub">' + esc0(fmtCNPJcad(c.cnpj)) + ' · ' + esc0(c.respNome || 'sem responsável')
+      + ' · ' + nArq + (1 === nArq ? ' arquivo' : ' arquivos') + '</div>'
+      + '</div>'
+      + '<div class="cad-badge" style="color:' + st.cor + ';border-color:' + st.cor + '55;background:' + st.cor + '14">' + st.rotulo + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+/** Constrói (ou reaproveita) a lista de itens de documentação a analisar,
+ *  a partir dos arquivos recebidos. Chamado só na primeira abertura —
+ *  se o admin já começou a marcar status, não reseta o trabalho dele. */
+function itensParaAnalise(c) {
+  if (c.parecer && c.parecer.itens && c.parecer.itens.length) return c.parecer.itens.slice();
+  return (c.arquivos || []).map(function(a) {
+    return {documento: a.nome, url: a.url, status: '', obs: ''};
+  });
+}
+
+/** Monta o texto do parecer a partir dos itens marcados.
+ *  Pura, sem tocar em tela — testável sozinha. */
+function montarTextoParecer(cadastro, itens) {
+  var nome = cadastro.respNome || '';
+  var razao = cadastro.fantasia || cadastro.razao || '';
+  var faltando = itens.filter(function(i) { return 'faltando' === i.status; });
+  var vencidos = itens.filter(function(i) { return 'vencido' === i.status; });
+  var ok = itens.filter(function(i) { return 'ok' === i.status; });
+
+  var L = [];
+  L.push('Olá' + (nome ? ', ' + nome : '') + '! Segue o retorno da análise da documentação de ' + razao + ':');
+  L.push('');
+  if (faltando.length || vencidos.length) {
+    L.push('Documentos pendentes:');
+    faltando.forEach(function(i) { L.push('- ' + i.documento + ' (não recebido)' + (i.obs ? ' — ' + i.obs : '')); });
+    vencidos.forEach(function(i) { L.push('- ' + i.documento + ' (vencido)' + (i.obs ? ' — ' + i.obs : '')); });
+    L.push('');
+  }
+  if (ok.length) {
+    L.push('Documentos em ordem:');
+    ok.forEach(function(i) { L.push('- ' + i.documento); });
+    L.push('');
+  }
+  L.push(faltando.length || vencidos.length
+    ? 'Assim que os pendentes forem regularizados, seguimos com o cadastro na NH Licitações.'
+    : 'Documentação completa. Seguimos com o cadastro na NH Licitações.');
+  return L.join('\n');
+}
+
+async function salvarAnaliseCadastro(id, itens) {
+  await db.collection('cadastros_pendentes').doc(id).set(
+    {parecer: {itens: itens}, status: 'em_analise', atualizadoEm: Date.now()},
+    {merge: true});
+}
+
+async function registrarEnvioParecer(id, texto, canal) {
+  await db.collection('cadastros_pendentes').doc(id).set(
+    {parecer: {texto: texto, canal: canal, enviadoEm: Date.now()},
+     status: 'parecer_enviado', atualizadoEm: Date.now()},
+    {merge: true});
+}
+
+/** Prepara o formulário de Gerenciar Empresas com os dados do cadastro.
+ *  Não grava nada sozinho — o admin confere e clica em Adicionar,
+ *  do mesmo jeito que faria com qualquer empresa nova. */
+function prepararVirarEmpresa(c) {
+  novaEmpresaForm();
+  setv('emp-razao', c.razao || '');
+  setv('emp-fantasia', c.fantasia || '');
+  setv('emp-cnpj', fmtCNPJcad(c.cnpj));
+  setv('emp-endereco', c.endereco || '');
+  setv('emp-cidade', c.cidade || '');
+  setv('emp-cep', c.cep || '');
+  setv('emp-tel', c.telefone || '');
+  setv('emp-email', c.email || '');
+  return {nome: c.respNome || '', wpp: c.respWhats || ''};
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Painel de análise — aberto por cima da lista de Cadastros.
+   Nada de onclick com dado dinâmico colado no HTML: cada elemento leva
+   um data-attribute, e um único listener delegado interpreta a ação.
+   É a correção do defeito que já pegou os botões de senha antes.
+   ══════════════════════════════════════════════════════════════════ */
+var _cadItens = [];
+
+/** Aplica uma ação vinda do clique. Separada da leitura do evento em si,
+ *  para poder ser testada sem precisar simular o DOM inteiro. */
+async function _cadAgir(acao, idx) {
+  if (!_cadAberto) return;
+  if ('remover-item' === acao) {
+    _cadItens.splice(idx, 1);
+    renderItensCad();
+    return;
+  }
+  if ('add-item' === acao) {
+    var campo = document.getElementById('cad-novo-doc');
+    var nome = campo ? campo.value.trim() : '';
+    if (!nome) { toast('Digite o nome do documento', 'err'); return; }
+    _cadItens.push({documento: nome, status: 'faltando', obs: '', url: ''});
+    if (campo) campo.value = '';
+    renderItensCad();
+    return;
+  }
+  if ('salvar' === acao) {
+    try {
+      await salvarAnaliseCadastro(_cadAberto._id, _cadItens);
+      _cadAberto.status = 'em_analise';
+      _cadAberto.parecer = Object.assign({}, _cadAberto.parecer, {itens: _cadItens});
+      renderListaCadastros();
+      toast('Análise salva', 'ok');
+    } catch (e) { toast('Erro ao salvar: ' + e.message, 'err'); }
+    return;
+  }
+  if ('gerar-parecer' === acao) {
+    var texto = montarTextoParecer(_cadAberto, _cadItens);
+    var box = document.getElementById('cad-parecer-box');
+    var area = document.getElementById('cad-parecer-texto');
+    if (box) box.style.display = 'block';
+    if (area) area.value = texto;
+    return;
+  }
+  if ('copiar' === acao) {
+    var a1 = document.getElementById('cad-parecer-texto');
+    if (a1 && navigator.clipboard) {
+      navigator.clipboard.writeText(a1.value).then(function() { toast('Parecer copiado', 'ok'); });
+    }
+    return;
+  }
+  if ('whatsapp' === acao || 'email' === acao) {
+    var a2 = document.getElementById('cad-parecer-texto');
+    var texto2 = a2 ? a2.value : montarTextoParecer(_cadAberto, _cadItens);
+    if ('whatsapp' === acao) {
+      var num = nhNumeroWpp(_cadAberto.respWhats || '');
+      if (num.length < 12) { toast('Este cadastro não tem um WhatsApp válido', 'err'); return; }
+      window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(texto2), '_blank');
+    } else {
+      if (!_cadAberto.email) { toast('Este cadastro não tem e-mail', 'err'); return; }
+      window.open('mailto:' + _cadAberto.email + '?subject='
+        + encodeURIComponent('Análise de documentação — NH Licitações')
+        + '&body=' + encodeURIComponent(texto2), '_blank');
+    }
+    try {
+      await registrarEnvioParecer(_cadAberto._id, texto2, acao);
+      _cadAberto.status = 'parecer_enviado';
+      renderListaCadastros();
+    } catch (e) {}
+    return;
+  }
+  if ('virar-empresa' === acao) {
+    var resp = prepararVirarEmpresa(_cadAberto);
+    try {
+      await db.collection('cadastros_pendentes').doc(_cadAberto._id)
+        .set({status: 'aprovado', atualizadoEm: Date.now()}, {merge: true});
+    } catch (e) {}
+    fecharCadastro();
+    cfgAba('empresas');
+    if (resp.nome) {
+      toast('Empresa preparada. Não esqueça de cadastrar o responsável: '
+        + resp.nome + (resp.wpp ? ' (' + nhFormataWpp(resp.wpp) + ')' : ''), 'info');
+    } else {
+      toast('Confira os dados e clique em Adicionar empresa', 'info');
+    }
+    return;
+  }
+  if ('fechar' === acao) { fecharCadastro(); return; }
+}
+
+function _cadMudou(idx, campo, valor) {
+  if (_cadItens[idx]) _cadItens[idx][campo] = valor;
+}
+
+function renderItensCad() {
+  var box = document.getElementById('cad-itens');
+  if (!box) return;
+  var opcoes = ['', 'ok', 'vencido', 'faltando'];
+  var rotulos = {'': 'Selecione', ok: 'OK', vencido: 'Vencido', faltando: 'Faltando'};
+  box.innerHTML = _cadItens.map(function(item, i) {
+    var link = item.url ? '<a href="' + item.url + '" target="_blank" class="cad-item-link">' + esc0(item.documento) + '</a>'
+                         : '<span class="cad-item-link sem-link">' + esc0(item.documento) + '</span>';
+    var sel = '<select class="cad-item-status" data-idx="' + i + '" data-campo="status">'
+      + opcoes.map(function(o) { return '<option value="' + o + '"' + (o === item.status ? ' selected' : '') + '>' + rotulos[o] + '</option>'; }).join('')
+      + '</select>';
+    var obs = '<input type="text" class="cad-item-obs" data-idx="' + i + '" data-campo="obs" '
+      + 'value="' + esc0(item.obs || '') + '" placeholder="Observação (opcional)">';
+    var rm = '<button class="cad-item-rm" data-acao="remover-item" data-idx="' + i + '" title="Remover">✕</button>';
+    return '<div class="cad-item-row">' + link + sel + obs + rm + '</div>';
+  }).join('');
+}
+
+function fecharCadastro() {
+  var ov = document.getElementById('cad-overlay');
+  if (ov) { ov.innerHTML = ''; ov.style.display = 'none'; }
+  _cadAberto = null;
+  _cadItens = [];
+}
+
+function abrirCadastro(id) {
+  var c = CADASTROS.find(function(x) { return x._id === id; });
+  if (!c) return;
+  _cadAberto = c;
+  _cadItens = itensParaAnalise(c);
+
+  var st = statusCadInfo(c.status);
+  var estados = (c.estados || []).join(', ') || '—';
+  var dispensa = c.participaDispensa ? 'Sim' : 'Não';
+
+  var html = ''
+    + '<div id="cad-fundo" class="cad-fundo"></div>'
+    + '<div class="cad-painel">'
+    + '  <div class="cad-cab">'
+    + '    <div>'
+    + '      <div class="cad-cab-nome">' + esc0(c.fantasia || c.razao || '') + '</div>'
+    + '      <div class="cad-cab-sub">' + esc0(fmtCNPJcad(c.cnpj)) + ' · <span style="color:' + st.cor + '">' + st.rotulo + '</span></div>'
+    + '    </div>'
+    + '    <button class="cad-fechar" data-acao="fechar">✕</button>'
+    + '  </div>'
+    + '  <div class="cad-corpo">'
+    + '    <div class="pc-card">'
+    + '      <div class="pc-tit">Dados enviados</div>'
+    + '      <div class="pc-grid">'
+    + '        <div class="pc-f"><label>Endereço</label><div class="cad-v">' + esc0(c.endereco || '—') + ', ' + esc0(c.cidade || '') + '</div></div>'
+    + '        <div class="pc-f"><label>Telefone</label><div class="cad-v">' + esc0(c.telefone || '—') + '</div></div>'
+    + '        <div class="pc-f"><label>E-mail</label><div class="cad-v">' + esc0(c.email || '—') + '</div></div>'
+    + '        <div class="pc-f"><label>Responsável</label><div class="cad-v">' + esc0(c.respNome || '—') + (c.respWhats ? ' · ' + nhFormataWpp(c.respWhats) : '') + '</div></div>'
+    + '        <div class="pc-f pc-full"><label>Outros contatos</label><div class="cad-v">' + esc0(c.outrosContatos || '—') + '</div></div>'
+    + '        <div class="pc-f pc-full"><label>Objetos de interesse</label><div class="cad-v">' + esc0(c.objetos || '—') + '</div></div>'
+    + '        <div class="pc-f"><label>Onde quer atuar</label><div class="cad-v">' + esc0(estados) + '</div></div>'
+    + '        <div class="pc-f"><label>Participa de dispensa?</label><div class="cad-v">' + dispensa + '</div></div>'
+    + '      </div>'
+    + '    </div>'
+    + '    <div class="pc-card">'
+    + '      <div class="pc-tit">Documentação<span class="cnt">' + _cadItens.length + '</span></div>'
+    + '      <div class="pc-desc">Marque o que está OK, vencido ou faltando. O que a empresa não mandou também pode ser adicionado manualmente.</div>'
+    + '      <div id="cad-itens" style="display:flex;flex-direction:column;gap:8px"></div>'
+    + '      <div class="cad-add-row">'
+    + '        <input type="text" id="cad-novo-doc" placeholder="Nome do documento (ex: Certidão FGTS)">'
+    + '        <button class="btn btn-ghost" data-acao="add-item">+ Adicionar</button>'
+    + '      </div>'
+    + '      <button class="btn btn-nh" data-acao="salvar" style="width:100%;margin-top:14px">Salvar análise</button>'
+    + '    </div>'
+    + '    <div class="pc-card">'
+    + '      <div class="pc-tit">Parecer</div>'
+    + '      <button class="btn btn-ghost" data-acao="gerar-parecer" style="width:100%">Gerar parecer a partir da análise acima</button>'
+    + '      <div id="cad-parecer-box" style="display:none;margin-top:14px">'
+    + '        <textarea id="cad-parecer-texto" rows="9" style="width:100%;background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:12px;color:var(--t1);font-family:Outfit,sans-serif;font-size:13px;line-height:1.6;resize:vertical"></textarea>'
+    + '        <div style="display:flex;gap:8px;margin-top:10px">'
+    + '          <button class="btn btn-ghost" data-acao="copiar" style="flex:1">Copiar</button>'
+    + '          <button class="btn btn-nh" data-acao="whatsapp" style="flex:1">📲 Enviar por WhatsApp</button>'
+    + '          <button class="btn btn-ghost" data-acao="email" style="flex:1">✉ Enviar por e-mail</button>'
+    + '        </div>'
+    + '      </div>'
+    + '    </div>'
+    + '    <button class="btn btn-nh" data-acao="virar-empresa" style="width:100%">✓ Aprovar e virar empresa</button>'
+    + '  </div>'
+    + '</div>';
+
+  var ov = document.getElementById('cad-overlay');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'cad-overlay';
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML = html;
+  ov.style.display = 'flex';
+  renderItensCad();
+
+  // um único listener delegado — nunca é preciso religar depois de re-renderizar
+  if (!ov._ligado) {
+    ov._ligado = true;
+    ov.addEventListener('click', function(e) {
+      if (e.target.id === 'cad-fundo') { fecharCadastro(); return; }
+      var el = e.target.closest ? e.target.closest('[data-acao]') : null;
+      if (!el) return;
+      var idx = el.getAttribute('data-idx');
+      _cadAgir(el.getAttribute('data-acao'), idx !== null ? parseInt(idx, 10) : null);
+    });
+    ov.addEventListener('change', function(e) {
+      if (e.target.classList && e.target.classList.contains('cad-item-status')) {
+        _cadMudou(parseInt(e.target.getAttribute('data-idx'), 10), 'status', e.target.value);
+      }
+    });
+    ov.addEventListener('input', function(e) {
+      if (e.target.classList && e.target.classList.contains('cad-item-obs')) {
+        _cadMudou(parseInt(e.target.getAttribute('data-idx'), 10), 'obs', e.target.value);
+      }
+    });
+  }
+}
+
 
 function cfgAbrir(aba){
   if(aba)cfgAba(aba); else cfgAba(_cfgAba);}
