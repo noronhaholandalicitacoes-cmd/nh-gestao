@@ -593,6 +593,8 @@ body.light-theme select{color-scheme:light;}
 .cad-sub{font-size:11.5px;color:var(--t3);margin-top:3px}
 .cad-badge{font-size:10.5px;font-weight:700;padding:4px 10px;border-radius:20px;
   border:1px solid;white-space:nowrap;flex-shrink:0}
+.cad-dono{color:var(--t2);font-weight:600}
+.cad-dono.sem{color:var(--y1,#eab308)}
 
 .cad-fundo{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);z-index:9500}
 .cad-painel{position:fixed;z-index:9501;left:50%;top:50%;transform:translate(-50%,-50%);
@@ -612,9 +614,13 @@ body.light-theme select{color-scheme:light;}
 
 .cad-item-row{display:flex;align-items:center;gap:8px;background:var(--s1);border:1px solid var(--b1);
   border-radius:8px;padding:8px 10px;flex-wrap:wrap}
+.cad-item-row.novo{border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.05)}
 .cad-item-link{flex:1;min-width:140px;font-size:12.5px;font-weight:600;color:var(--b_);text-decoration:none}
 .cad-item-link:hover{text-decoration:underline}
 .cad-item-link.sem-link{color:var(--t2);cursor:default}
+.cad-item-novo{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:20px;
+  font-size:9px;font-weight:800;letter-spacing:.06em;background:rgba(34,197,94,.16);
+  color:#22c55e;border:1px solid rgba(34,197,94,.35);vertical-align:middle}
 .cad-item-status{background:var(--s2);border:1px solid var(--b1);color:var(--t1);border-radius:6px;
   padding:5px 8px;font-size:12px;font-family:'Outfit',sans-serif;flex-shrink:0}
 .cad-item-obs{flex:1;min-width:120px;background:var(--s2);border:1px solid var(--b1);color:var(--t1);
@@ -5385,7 +5391,9 @@ function renderListaCadastros() {
       + '<div class="cad-info">'
       + '<div class="cad-nome">' + esc0(c.fantasia || c.razao || '(sem nome)') + '</div>'
       + '<div class="cad-sub">' + esc0(fmtCNPJcad(c.cnpj)) + ' · ' + esc0(c.respNome || 'sem responsável')
-      + ' · ' + nArq + (1 === nArq ? ' arquivo' : ' arquivos') + '</div>'
+      + ' · ' + nArq + (1 === nArq ? ' arquivo' : ' arquivos')
+      + (c.responsavelInterno ? ' · <span class="cad-dono">👤 ' + esc0(c.responsavelInterno) + '</span>' : ' · <span class="cad-dono sem">sem dono</span>')
+      + '</div>'
       + '</div>'
       + '<div class="cad-badge" style="color:' + st.cor + ';border-color:' + st.cor + '55;background:' + st.cor + '14">' + st.rotulo + '</div>'
       + '</div>';
@@ -5396,10 +5404,36 @@ function renderListaCadastros() {
  *  a partir dos arquivos recebidos. Chamado só na primeira abertura —
  *  se o admin já começou a marcar status, não reseta o trabalho dele. */
 function itensParaAnalise(c) {
-  if (c.parecer && c.parecer.itens && c.parecer.itens.length) return c.parecer.itens.slice();
-  return (c.arquivos || []).map(function(a) {
-    return {documento: a.nome, url: a.url, status: '', obs: ''};
+  var salvos = (c.parecer && c.parecer.itens && c.parecer.itens.length)
+    ? c.parecer.itens.slice() : [];
+  var arquivos = c.arquivos || [];
+
+  // Primeira análise: a lista nasce dos arquivos recebidos.
+  if (!salvos.length) {
+    return arquivos.map(function(a) {
+      return {documento: a.nome, url: a.url || '', status: '', obs: ''};
+    });
+  }
+
+  /* Já houve análise antes. Preserva tudo o que o admin marcou e
+     acrescenta só o que chegou depois — é o caso do segundo envio,
+     quando a empresa manda o documento que faltava. Sem isso, o
+     arquivo novo entra no Drive e no banco mas some da tela. */
+  var conhecidos = {};
+  salvos.forEach(function(i) {
+    if (i.url) conhecidos['u:' + i.url] = true;
+    conhecidos['n:' + String(i.documento || '').toLowerCase().trim()] = true;
   });
+
+  arquivos.forEach(function(a) {
+    var visto = a.url
+      ? conhecidos['u:' + a.url]
+      : conhecidos['n:' + String(a.nome || '').toLowerCase().trim()];
+    if (!visto) {
+      salvos.push({documento: a.nome, url: a.url || '', status: '', obs: '', novo: true});
+    }
+  });
+  return salvos;
 }
 
 /** Monta o texto do parecer a partir dos itens marcados.
@@ -5434,6 +5468,15 @@ function montarTextoParecer(cadastro, itens) {
 async function salvarAnaliseCadastro(id, itens) {
   await db.collection('cadastros_pendentes').doc(id).set(
     {parecer: {itens: itens}, status: 'em_analise', atualizadoEm: Date.now()},
+    {merge: true});
+}
+
+/** Marca (ou desmarca) quem, da equipe, está cuidando desse cadastro.
+ *  Separado de status/parecer de propósito: dono do cadastro é uma
+ *  coisa, progresso da análise é outra — não fazia sentido misturar. */
+async function atribuirResponsavelInterno(id, nome) {
+  await db.collection('cadastros_pendentes').doc(id).set(
+    {responsavelInterno: nome || '', atualizadoEm: Date.now()},
     {merge: true});
 }
 
@@ -5547,6 +5590,24 @@ async function _cadAgir(acao, idx) {
     }
     return;
   }
+  if ('atribuir-mim' === acao) {
+    var campoMim = document.getElementById('cad-resp-interno');
+    if (campoMim) campoMim.value = USER_EMAIL || '';
+    return;
+  }
+  if ('salvar-resp-interno' === acao) {
+    var campoResp = document.getElementById('cad-resp-interno');
+    var nomeResp = campoResp ? campoResp.value.trim() : '';
+    try {
+      await atribuirResponsavelInterno(_cadAberto._id, nomeResp);
+      _cadAberto.responsavelInterno = nomeResp;
+      var idx = CADASTROS.findIndex(function(c) { return c._id === _cadAberto._id; });
+      if (idx > -1) CADASTROS[idx].responsavelInterno = nomeResp;
+      renderListaCadastros();
+      toast(nomeResp ? 'Responsável atribuído' : 'Responsável removido', 'ok');
+    } catch (e) { toast('Erro ao salvar: ' + e.message, 'err'); }
+    return;
+  }
   if ('excluir-cadastro' === acao) {
     var alvo=_cadAberto;
     if(!confirm('Excluir o cadastro de "'+(alvo.fantasia||alvo.razao||'')+'"?\n\nOs documentos que a empresa já enviou continuam salvos no Drive — só o registro daqui é apagado. Não dá para desfazer.'))return;
@@ -5572,15 +5633,16 @@ function renderItensCad() {
   var opcoes = ['', 'ok', 'vencido', 'faltando'];
   var rotulos = {'': 'Selecione', ok: 'OK', vencido: 'Vencido', faltando: 'Faltando'};
   box.innerHTML = _cadItens.map(function(item, i) {
-    var link = item.url ? '<a href="' + item.url + '" target="_blank" class="cad-item-link">' + esc0(item.documento) + '</a>'
-                         : '<span class="cad-item-link sem-link">' + esc0(item.documento) + '</span>';
+    var marca = item.novo ? '<span class="cad-item-novo">CHEGOU AGORA</span>' : '';
+    var link = item.url ? '<a href="' + item.url + '" target="_blank" class="cad-item-link">' + esc0(item.documento) + marca + '</a>'
+                         : '<span class="cad-item-link sem-link">' + esc0(item.documento) + marca + '</span>';
     var sel = '<select class="cad-item-status" data-idx="' + i + '" data-campo="status">'
       + opcoes.map(function(o) { return '<option value="' + o + '"' + (o === item.status ? ' selected' : '') + '>' + rotulos[o] + '</option>'; }).join('')
       + '</select>';
     var obs = '<input type="text" class="cad-item-obs" data-idx="' + i + '" data-campo="obs" '
       + 'value="' + esc0(item.obs || '') + '" placeholder="Observação (opcional)">';
     var rm = '<button class="cad-item-rm" data-acao="remover-item" data-idx="' + i + '" title="Remover">✕</button>';
-    return '<div class="cad-item-row">' + link + sel + obs + rm + '</div>';
+    return '<div class="cad-item-row' + (item.novo ? ' novo' : '') + '">' + link + sel + obs + rm + '</div>';
   }).join('');
 }
 
@@ -5623,6 +5685,13 @@ function abrirCadastro(id) {
     + '        <div class="pc-f pc-full"><label>Objetos de interesse</label><div class="cad-v">' + esc0(c.objetos || '—') + '</div></div>'
     + '        <div class="pc-f"><label>Onde quer atuar</label><div class="cad-v">' + esc0(estados) + '</div></div>'
     + '        <div class="pc-f"><label>Participa de dispensa?</label><div class="cad-v">' + dispensa + '</div></div>'
+    + '        <div class="pc-f pc-full"><label>Responsável interno — quem cuida deste cadastro</label>'
+    + '          <div style="display:flex;gap:8px">'
+    + '            <input type="text" id="cad-resp-interno" value="' + esc0(c.responsavelInterno || '') + '" placeholder="Ninguém atribuído ainda" style="flex:1;background:var(--s1);border:1px solid var(--b1);color:var(--t1);border-radius:8px;padding:9px 11px;font-size:13px;font-family:Outfit,sans-serif">'
+    + '            <button class="btn btn-ghost" data-acao="atribuir-mim" style="flex-shrink:0;white-space:nowrap">Sou eu</button>'
+    + '            <button class="btn btn-nh" data-acao="salvar-resp-interno" style="flex-shrink:0">Salvar</button>'
+    + '          </div>'
+    + '        </div>'
     + '      </div>'
     + '    </div>'
     + '    <div class="pc-card">'
