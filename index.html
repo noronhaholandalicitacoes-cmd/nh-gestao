@@ -3253,6 +3253,40 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
 
 <!-- ══════ JS ════════════════════════════════ -->
 <script>const SHEETS={editais:"EDITAIS CAPTURADOS",andamento:"EM ANDAMENTO",finalizados:"FINALIZADOS",ganhas:"LICITAÇÕES GANHAS",atestados:"ATESTADOS",financeiro:"FINANCEIRO",valores:"BANCO DE DADOS"},PS=20;var CUSTOM_OPTS={};async function carregarOptsCustom(){try{var e=await db.collection("config").doc("custom_opts").get();e.exists&&e.data()&&(CUSTOM_OPTS=e.data())}catch(e){}}async function salvarOptsCustom(){await db.collection("config").doc("custom_opts").set(CUSTOM_OPTS)}function getOptsCustom(e,a){return CUSTOM_OPTS[e+"_"+a]||[]}async function adicionarOpcaoCustom(e,a,t){var o=e+"_"+a;CUSTOM_OPTS[o]||(CUSTOM_OPTS[o]=[]),-1===CUSTOM_OPTS[o].indexOf(t)&&(CUSTOM_OPTS[o].push(t),await salvarOptsCustom())}const EMAILS_AUTORIZADOS=["noronhaholandalicitacoes@gmail.com","noronhaholanda@gmail.com"],firebaseConfig={apiKey:"AIzaSyBhcpJP9dRM0SEJsGfcNUXYb1rTMdEDw6M",authDomain:"nh-licitacoes.firebaseapp.com",projectId:"nh-licitacoes",storageBucket:"nh-licitacoes.firebasestorage.app",messagingSenderId:"1081646053691",appId:"1:1081646053691:web:a8abcb5792d026ade71f1e"};(function(){try{if(!localStorage.getItem("nh_idb_limpo_v1")){var _dbs=["firestore/[DEFAULT]/nh-licitacoes/main","firebaseLocalStorageDb"];if(window.indexedDB&&indexedDB.databases){indexedDB.databases().then(function(list){(list||[]).forEach(function(d){if(d&&d.name&&d.name.indexOf("firestore")!==-1){try{indexedDB.deleteDatabase(d.name);}catch(e){}}});});}else{_dbs.forEach(function(n){try{indexedDB.deleteDatabase(n);}catch(e){}});}localStorage.setItem("nh_idb_limpo_v1","1");}}catch(e){}})();firebase.initializeApp(firebaseConfig);const db=firebase.firestore();db.settings({experimentalAutoDetectLongPolling:!0,merge:!0});const auth=firebase.auth();
+
+/* ── Conta de autenticação real para responsáveis ────────────────────
+   Uma segunda instância do Firebase, só para criar conta — criar
+   usuário pela instância principal loga como essa pessoa nova e
+   derruba a sessão de admin, que é o último comportamento que
+   queremos aqui. A instância secundária isola isso por completo.
+
+   O WhatsApp vira um e-mail disfarçado só para o Firebase entender
+   (ninguém vê isso, ninguém digita isso) — a pessoa continua
+   entrando com o WhatsApp de verdade, isso é só o RG interno dele
+   perante o Firebase. */
+var _authSecundario = firebase.initializeApp(firebaseConfig, 'nh-secundario').auth();
+
+function emailFalsoResp(numero) {
+  return String(numero || '').replace(/\D/g, '') + '@nh.interno';
+}
+
+/** Cria a primeira conta de autenticação de um responsável. Só cria —
+ *  nunca tenta trocar senha de conta que já existe (o Firebase não
+ *  permite isso pelo navegador, de propósito). Se a conta já existe,
+ *  devolve {ok:true, jaExistia:true} em vez de erro, para o chamador
+ *  decidir o que fazer sem quebrar o resto do salvamento. */
+async function criarContaAuthResp(numero, senha) {
+  var email = emailFalsoResp(numero);
+  try {
+    await _authSecundario.createUserWithEmailAndPassword(email, senha);
+    await _authSecundario.signOut();
+    return {ok: true, jaExistia: false};
+  } catch (e) {
+    try { await _authSecundario.signOut(); } catch (e2) {}
+    if ('auth/email-already-in-use' === e.code) return {ok: true, jaExistia: true};
+    return {ok: false, erro: e.message};
+  }
+}
 /* Tema claro/escuro. A chave é a mesma usada pelo sistema principal,
    então escolher aqui vale nos três aplicativos. */
 function acAplicarTema(claro){
@@ -3348,9 +3382,12 @@ function renderListaResponsaveis(){
       return'<span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:'+c+'1f;color:'+c+';border:1px solid '+c+'44">'+e+'</span>';}).join(" ");
     if(r.todas)chips='<span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:rgba(167,139,250,.15);color:#a78bfa;border:1px solid rgba(167,139,250,.35)">vê todas</span> '+chips;
     if(!chips)chips='<span style="font-size:10px;color:var(--r2)">nenhuma empresa vinculada</span>';
+    var seloAuth=r.authMigrado
+      ?'<span title="Já tem acesso de verdade (Firebase)" style="font-size:9px;font-weight:800;padding:1px 6px;border-radius:20px;background:rgba(34,197,94,.14);color:#22c55e;border:1px solid rgba(34,197,94,.35)">✓ ACESSO NOVO</span>'
+      :'<span title="Ainda só tem o acesso antigo — abra e salve uma senha para migrar" style="font-size:9px;font-weight:800;padding:1px 6px;border-radius:20px;background:rgba(234,179,8,.12);color:#eab308;border:1px solid rgba(234,179,8,.3)">○ PENDENTE</span>';
     return'<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;background:var(--s2);border:1px solid var(--b1);border-radius:8px">'
       +'<div style="flex:1;min-width:0">'
-      +'<div style="font-weight:700;color:var(--t1);font-size:13px">'+(r.nome||"(sem nome)")+'</div>'
+      +'<div style="display:flex;align-items:center;gap:7px"><span style="font-weight:700;color:var(--t1);font-size:13px">'+(r.nome||"(sem nome)")+'</span>'+seloAuth+'</div>'
       +'<div style="font-size:11px;color:var(--t3);margin-top:2px">'+nhFormataWpp(num)+(r.despedida?' · "'+r.despedida+'"':"")+'</div>'
       +'<div style="margin-top:5px;display:flex;gap:4px;flex-wrap:wrap">'+chips+'</div></div>'
       +'<div style="display:flex;gap:6px;flex-shrink:0">'
@@ -3434,8 +3471,6 @@ async function salvarResponsavel(){
   if(!emps.length&&!todas){toast("Marque ao menos uma empresa","err");return;}
 
   var novo=!RESPONSAVEIS[num];
-  /* Mesmo número já cadastrado: é a mesma pessoa atendendo outra empresa.
-     Não duplica — acrescenta a empresa e mantém a senha que já existe. */
   if(novo&&!_editRespNum&&!senha)senha=nhSenhaSugerida();
   if(!novo&&!_editRespNum)toast("Este número já existe — vinculando as empresas ao mesmo responsável","info");
 
@@ -3443,6 +3478,22 @@ async function salvarResponsavel(){
   reg.nome=nome;reg.despedida=desp;reg.empresas=emps;reg.todas=todas;
   if(senha){reg.salt=nhNovoSalt();reg.hash=await nhHashSenha(senha,reg.salt);}
   if(!reg.hash){toast("Defina uma senha para este responsável","err");return;}
+
+  /* Acesso de verdade (Firebase Auth), por trás do hash de sempre.
+     Criar é sempre seguro. Trocar senha de conta já criada não dá
+     pelo navegador — é limitação do próprio Firebase, de propósito,
+     então avisamos em vez de fingir que funcionou. */
+  var avisoAuth="";
+  if(senha){
+    if(reg.authMigrado){
+      avisoAuth=" Atenção: essa pessoa já tem acesso criado — essa senha nova só vale quando o recurso de redefinir estiver pronto.";
+    }else{
+      var ra=await criarContaAuthResp(num,senha);
+      if(ra.ok)reg.authMigrado=true;
+      else avisoAuth=" Aviso: não consegui preparar o acesso novo agora — "+ra.erro;
+    }
+  }
+
   RESPONSAVEIS[num]=reg;
 
   try{
@@ -3451,7 +3502,8 @@ async function salvarResponsavel(){
     renderListaResponsaveis();
     var criada=senha;limparFormResp();
     if(criada)mostrarSenhaResp(nome,num,criada,true);
-    else toast("Responsável salvo!","ok");
+    else toast("Responsável salvo!"+avisoAuth,avisoAuth?"info":"ok");
+    if(criada&&avisoAuth)toast(avisoAuth.trim(),"info");
   }catch(e){toast("Erro ao salvar: "+e.message,"err");}}
 
 async function verSenhaResp(num){
