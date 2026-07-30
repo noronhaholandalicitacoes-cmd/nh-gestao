@@ -3321,13 +3321,20 @@ async function salvarSenhaResp(num,senha){
 /* Responsáveis de uma empresa. Quem tem "todas" não entra aqui — esse
    sinal serve só para ver tudo no app de viabilidade, não para receber
    mensagem de toda empresa do sistema. */
-function respsDaEmpresa(emp){
-  var alvo=String(emp||"").trim().toUpperCase(),saida=[];
-  Object.keys(RESPONSAVEIS).forEach(function(num){
-    var r=RESPONSAVEIS[num]||{};
-    if((r.empresas||[]).some(function(x){return String(x).trim().toUpperCase()===alvo;}))
-      saida.push({numero:num,nome:r.nome||"",despedida:r.despedida||"",empresas:r.empresas||[]});});
-  return saida.sort(function(a,b){return String(a.nome).localeCompare(String(b.nome),"pt-BR");});}
+function respsDaEmpresa(emp) {
+  var alvoNome = String(emp || '').trim();
+  var empresaObj = EMPRESAS.find(function(e) { return e.nome.toUpperCase() === alvoNome.toUpperCase(); });
+  var saida = [];
+  Object.keys(RESPONSAVEIS).forEach(function(num) {
+    var r = RESPONSAVEIS[num] || {};
+    var bate = (r.empresas || []).some(function(v) {
+      return empresaObj ? empBateComVinculo(v, empresaObj)
+                         : String(v || '').trim().toUpperCase() === alvoNome.toUpperCase();
+    });
+    if (bate) saida.push({numero: num, nome: r.nome || '', despedida: r.despedida || '', empresas: r.empresas || []});
+  });
+  return saida.sort(function(a, b) { return String(a.nome).localeCompare(String(b.nome), 'pt-BR'); });
+}
 
 /* ─── Painel de responsáveis dentro de Gerenciar Empresas ─── */
 function renderListaResponsaveis(){
@@ -3352,14 +3359,45 @@ function renderListaResponsaveis(){
       +'<button onclick="removerResponsavel(\''+num+'\')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#ef4444;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px">✕</button>'
       +'</div></div>';}).join("");}
 
-function renderEmpresasDoResp(){
-  var box=document.getElementById("resp-empresas");if(!box)return;
-  var marcadas=_editRespNum&&RESPONSAVEIS[_editRespNum]?(RESPONSAVEIS[_editRespNum].empresas||[]):[];
-  box.innerHTML=EMPRESAS.map(function(e){
-    var on=marcadas.some(function(x){return String(x).trim().toUpperCase()===e.nome.toUpperCase();});
-    var c=e.cor||"#f97316";
-    return'<label style="display:flex;align-items:center;gap:6px;padding:5px 10px;background:var(--s2);border:1px solid '+(on?c+'66':'var(--b1)')+';border-radius:20px;cursor:pointer;font-size:12px;font-weight:600;color:'+c+'">'
-      +'<input type="checkbox" class="resp-emp-chk" value="'+e.nome+'"'+(on?" checked":"")+' style="width:14px;height:14px;accent-color:'+c+';cursor:pointer">'+e.nome+'</label>';}).join("");}
+/* ── Vínculo responsável ↔ empresa: por CNPJ, não por nome ──────────
+   Nome de fantasia pode mudar; CNPJ nunca muda e nunca se repete — é
+   o mesmo raciocínio que o e-CAC e o Compras.gov.br usam para ligar
+   uma pessoa às empresas que ela representa.
+
+   Migração sem quebrar nada: registros salvos antes de hoje guardam
+   nome ("SAUTEC"); os salvos a partir de agora guardam CNPJ. As duas
+   funções abaixo reconhecem os dois formatos ao mesmo tempo. Quando
+   o admin resalva um responsável, o registro dele vira CNPJ sozinho —
+   não existe um botão de "migrar tudo de uma vez" de propósito, para
+   você conferir empresa por empresa em vez de confiar numa migração
+   em massa silenciosa. */
+
+function empCnpjLimpo(cnpj) { return String(cnpj || '').replace(/\D/g, ''); }
+
+/** Compara um valor salvo (pode ser CNPJ ou, de registro antigo, nome)
+ *  contra uma empresa do cadastro. */
+function empBateComVinculo(valorSalvo, empresa) {
+  var v = String(valorSalvo || '').trim();
+  var cnpjEmp = empCnpjLimpo(empresa.cnpj);
+  if (cnpjEmp && empCnpjLimpo(v) === cnpjEmp) return true;
+  return v.toUpperCase() === String(empresa.nome || '').toUpperCase();
+}
+
+function renderEmpresasDoResp() {
+  var box = document.getElementById('resp-empresas');
+  if (!box) return;
+  var marcadas = _editRespNum && RESPONSAVEIS[_editRespNum] ? (RESPONSAVEIS[_editRespNum].empresas || []) : [];
+  box.innerHTML = EMPRESAS.map(function(e) {
+    var on = marcadas.some(function(v) { return empBateComVinculo(v, e); });
+    var c = e.cor || '#f97316';
+    var semCnpj = !empCnpjLimpo(e.cnpj);
+    var avisoCnpj = semCnpj
+      ? ' <span title="Esta empresa não tem CNPJ cadastrado — preencha em Gerenciar Empresas, senão o vínculo com o responsável pode quebrar se o nome mudar." style="color:#eab308">⚠</span>'
+      : '';
+    return '<label style="display:flex;align-items:center;gap:6px;padding:5px 10px;background:var(--s2);border:1px solid ' + (on ? c + '66' : 'var(--b1)') + ';border-radius:20px;cursor:pointer;font-size:12px;font-weight:600;color:' + c + '">'
+      + '<input type="checkbox" class="resp-emp-chk" value="' + (empCnpjLimpo(e.cnpj) || e.nome) + '"' + (on ? ' checked' : '') + ' style="width:14px;height:14px;accent-color:' + c + ';cursor:pointer">' + e.nome + avisoCnpj + '</label>';
+  }).join('');
+}
 
 function limparFormResp(){
   _editRespNum=null;
