@@ -2320,6 +2320,7 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
 
         <div class="cfg-abas">
           <button class="cfg-aba on" id="cfg-ab-empresas" onclick="cfgAba('empresas')">Empresas</button>
+          <button class="cfg-aba" id="cfg-ab-acessos" onclick="cfgAba('acessos')">Acessos</button>
           <button class="cfg-aba" id="cfg-ab-portal" onclick="cfgAba('portal')">Portal de Contratos</button>
           <button class="cfg-aba" id="cfg-ab-viab" onclick="cfgAba('viab')">Viabilidade</button>
           <button class="cfg-aba" id="cfg-ab-cadastros" onclick="cfgAba('cadastros')">Cadastros</button>
@@ -2421,6 +2422,39 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
           </div>
         </div>
 
+        <div class="cfg-painel" id="cfg-p-acessos">
+<div class="pc-desc" style="margin:-4px 0 18px 2px">Controla quem consegue entrar no <b>Análise de Viabilidade</b> e no <b>Portal de Contratos</b> — é o mesmo login (WhatsApp e senha) valendo para os dois.</div>
+  <div class="pc-card">
+    <div class="pc-tit">Responsáveis</div>
+    <div class="pc-desc">Quem responde pelas empresas na análise de viabilidade e recebe as mensagens de WhatsApp. Um responsável pode atender várias empresas — marque todas e ele verá tudo junto, com um acesso só.</div>
+    <div id="resp-lista" style="display:flex;flex-direction:column;gap:7px"></div>
+    <div id="resp-form" style="margin-top:18px;border-top:1px solid var(--b1);padding-top:18px">
+      <div id="resp-aviso" style="display:none;font-size:12px;color:#60a5fa;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:8px;padding:9px 11px;margin-bottom:13px"></div>
+      <div class="pc-grid">
+        <div class="pc-f"><label>Nome *</label><input type="text" id="resp-nome" placeholder="Antunes"></div>
+        <div class="pc-f"><label>WhatsApp *</label><input type="text" id="resp-wpp" placeholder="(83) 99999-9999" oninput="nhMascaraWpp(this)"></div>
+        <div class="pc-f"><label>Despedida da mensagem</label><input type="text" id="resp-desp" placeholder="Arrocha!"></div>
+        <div class="pc-f"><label>Senha de acesso</label><input type="text" id="resp-senha" placeholder="vazio = gerar uma"></div>
+        <div class="pc-f pc-full"><label>Empresas que ele representa</label>
+          <div id="resp-empresas" style="display:flex;gap:6px;flex-wrap:wrap;background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:10px 12px"></div>
+        </div>
+      </div>
+      <label style="display:flex;align-items:center;gap:9px;margin-top:13px;background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:10px 12px;cursor:pointer">
+        <input type="checkbox" id="resp-todas" style="width:15px;height:15px;accent-color:#a78bfa;cursor:pointer">
+        <span style="font-size:12.5px;font-weight:600;color:var(--t1)">Vê todas as empresas <span style="color:var(--t3);font-weight:400">— acesso da assessoria</span></span>
+      </label>
+      <label style="display:flex;align-items:center;gap:9px;margin-top:8px;background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:10px 12px;cursor:pointer">
+        <input type="checkbox" id="resp-mestra" style="width:15px;height:15px;accent-color:#f97316;cursor:pointer">
+        <span style="font-size:12.5px;font-weight:600;color:var(--t1)">Conta mestra do Portal de Contratos <span style="color:var(--t3);font-weight:400">— painel agregado das empresas marcadas acima, com permissão de excluir contrato. Só marque para quem faz esse papel hoje (o antigo login GROWTH).</span></span>
+      </label>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="btn btn-ghost" onclick="limparFormResp()">Limpar</button>
+        <button class="btn btn-nh" id="resp-btn-salvar" style="flex:1" onclick="salvarResponsavel()">+ Adicionar responsável</button>
+      </div>
+    </div>
+  </div>
+</div>
+
         <div class="cfg-painel" id="cfg-p-portal">
         <!-- Senhas de Acesso das Empresas -->
         <div style="background:var(--s2);border:1px solid var(--b1);border-radius:14px;padding:24px;margin-bottom:20px">
@@ -2476,39 +2510,7 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
         </div>
 
         <div class="cfg-painel" id="cfg-p-viab">
-<!-- Responsáveis -->
-  <div class="pc-card">
-    <div class="pc-tit">Responsáveis</div>
-    <div class="pc-desc">Quem responde pelas empresas na análise de viabilidade e recebe as mensagens de WhatsApp. Um responsável pode atender várias empresas — marque todas e ele verá tudo junto, com um acesso só.</div>
-    <div id="resp-lista" style="display:flex;flex-direction:column;gap:7px"></div>
-    <div id="resp-form" style="margin-top:18px;border-top:1px solid var(--b1);padding-top:18px">
-      <div id="resp-aviso" style="display:none;font-size:12px;color:#60a5fa;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:8px;padding:9px 11px;margin-bottom:13px"></div>
-      <div class="pc-grid">
-        <div class="pc-f"><label>Nome *</label><input type="text" id="resp-nome" placeholder="Antunes"></div>
-        <div class="pc-f"><label>WhatsApp *</label><input type="text" id="resp-wpp" placeholder="(83) 99999-9999" oninput="nhMascaraWpp(this)"></div>
-        <div class="pc-f"><label>Despedida da mensagem</label><input type="text" id="resp-desp" placeholder="Arrocha!"></div>
-        <div class="pc-f"><label>Senha de acesso</label><input type="text" id="resp-senha" placeholder="vazio = gerar uma"></div>
-        <div class="pc-f pc-full"><label>Empresas que ele representa</label>
-          <div id="resp-empresas" style="display:flex;gap:6px;flex-wrap:wrap;background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:10px 12px"></div>
-        </div>
-      </div>
-      <label style="display:flex;align-items:center;gap:9px;margin-top:13px;background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:10px 12px;cursor:pointer">
-        <input type="checkbox" id="resp-todas" style="width:15px;height:15px;accent-color:#a78bfa;cursor:pointer">
-        <span style="font-size:12.5px;font-weight:600;color:var(--t1)">Vê todas as empresas <span style="color:var(--t3);font-weight:400">— acesso da assessoria</span></span>
-      </label>
-      <label style="display:flex;align-items:center;gap:9px;margin-top:8px;background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:10px 12px;cursor:pointer">
-        <input type="checkbox" id="resp-mestra" style="width:15px;height:15px;accent-color:#f97316;cursor:pointer">
-        <span style="font-size:12.5px;font-weight:600;color:var(--t1)">Conta mestra do Portal de Contratos <span style="color:var(--t3);font-weight:400">— painel agregado das empresas marcadas acima, com permissão de excluir contrato. Só marque para quem faz esse papel hoje (o antigo login GROWTH).</span></span>
-      </label>
-      <div style="display:flex;gap:8px;margin-top:14px">
-        <button class="btn btn-ghost" onclick="limparFormResp()">Limpar</button>
-        <button class="btn btn-nh" id="resp-btn-salvar" style="flex:1" onclick="salvarResponsavel()">+ Adicionar responsável</button>
-      </div>
-    </div>
-  </div>
-
-  
-          <div class="pc-card">
+<div class="pc-card">
             <div class="pc-tit">Link da análise de viabilidade</div>
             <div class="pc-desc">Cada responsável entra com o WhatsApp e a senha dele, e vê apenas as empresas que representa. O link enviado pelo botão 🔑 já vai com o número preenchido.</div>
             <div class="cfg-link">
@@ -3382,8 +3384,8 @@ function renderListaResponsaveis(){
   nums.sort(function(a,b){return String((RESPONSAVEIS[a]||{}).nome||"").localeCompare(String((RESPONSAVEIS[b]||{}).nome||""),"pt-BR");});
   box.innerHTML=nums.map(function(num){
     var r=RESPONSAVEIS[num]||{},emps=r.empresas||[];
-    var chips=emps.map(function(e){var c=empColor(e);
-      return'<span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:'+c+'1f;color:'+c+';border:1px solid '+c+'44">'+e+'</span>';}).join(" ");
+    var chips=emps.map(function(e){var nomeReal=nomeEmpResolvido(e);var c=empColor(nomeReal);
+      return'<span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:'+c+'1f;color:'+c+';border:1px solid '+c+'44">'+nomeReal+'</span>';}).join(" ");
     if(r.todas)chips='<span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:rgba(167,139,250,.15);color:#a78bfa;border:1px solid rgba(167,139,250,.35)">vê todas</span> '+chips;
     if(!chips)chips='<span style="font-size:10px;color:var(--r2)">nenhuma empresa vinculada</span>';
     var seloAuth=r.authMigrado
@@ -3422,6 +3424,20 @@ function empBateComVinculo(valorSalvo, empresa) {
   var cnpjEmp = empCnpjLimpo(empresa.cnpj);
   if (cnpjEmp && empCnpjLimpo(v) === cnpjEmp) return true;
   return v.toUpperCase() === String(empresa.nome || '').toUpperCase();
+}
+
+/** Traduz o que está salvo no vínculo (CNPJ, no formato novo; nome,
+ *  no legado) de volta para o nome de exibição. Sem isso, quem já foi
+ *  migrado para CNPJ mostra números crus na lista em vez do nome da
+ *  empresa — foi exatamente o que aconteceu com quem tinha sido
+ *  vinculado a empresas que já tinham CNPJ cadastrado. */
+function nomeEmpResolvido(valorSalvo) {
+  var limpo = empCnpjLimpo(valorSalvo);
+  if (limpo) {
+    var achou = EMPRESAS.find(function(e) { return empCnpjLimpo(e.cnpj) === limpo; });
+    if (achou) return achou.nome;
+  }
+  return String(valorSalvo || '').trim();
 }
 
 function renderEmpresasDoResp() {
@@ -5420,12 +5436,12 @@ var _cfgAba='empresas';
 
 function cfgAba(nome){
   _cfgAba=nome;
-  ['empresas','portal','viab','cadastros'].forEach(function(n){
+  ['empresas','acessos','portal','viab','cadastros'].forEach(function(n){
     var b=document.getElementById('cfg-ab-'+n),p=document.getElementById('cfg-p-'+n);
     if(b)b.classList.toggle('on',n===nome);
     if(p)p.classList.toggle('on',n===nome);});
   if('portal'===nome&&'function'==typeof initPortalConfig)initPortalConfig();
-  if('viab'===nome)carregarResponsaveis().then(function(){renderListaResponsaveis();limparFormResp();});
+  if('acessos'===nome)carregarResponsaveis().then(function(){renderListaResponsaveis();limparFormResp();});
   if('empresas'===nome)renderListaEmpresas();
   if('cadastros'===nome)carregarCadastros();}
 /* ══════════════════════════════════════════════════════════════════
