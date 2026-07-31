@@ -787,16 +787,40 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
       <div class="ac-marca">NH</div>
     </div>
     <div class="ac-tit">Portal de <span class="grad">Contratos</span></div>
-    <div class="ac-sub">Acesse os contratos da sua empresa com segurança</div>
+    <div class="ac-sub">Acesse os contratos das suas empresas com segurança</div>
     <div class="ac-form">
       <div class="ac-err" id="login-err"></div>
-      <div class="ac-campo"><label>Empresa</label><input type="text" id="inp-empresa" placeholder="Ex: VISE" autocomplete="off" autocapitalize="characters" onkeydown="if(event.key==='Enter')document.getElementById('inp-senha').focus()"></div>
+      <div class="ac-campo"><label>WhatsApp</label><input type="tel" id="inp-empresa" placeholder="(83) 99999-9999" autocomplete="off" inputmode="numeric" oninput="vMascaraPortal(this)" onkeydown="if(event.key==='Enter')document.getElementById('inp-senha').focus()"></div>
       <div class="ac-campo"><label>Senha</label><input type="password" id="inp-senha" placeholder="••••••••" autocomplete="off" onkeydown="if(event.key==='Enter')fazerLogin()"></div>
       <button class="ac-btn" id="btn-login" onclick="fazerLogin()">Entrar</button>
       <div class="ac-rodape">Não tem acesso? Fale com a NH Licitações.</div>
     </div>
   </div>
 </div>
+
+<!-- Escolher empresa — para quem representa mais de uma, sem ser conta mestra -->
+<div class="nh-acesso" id="tela-escolher-empresa" style="display:none">
+  <div class="ac-bg"><div class="ac-orb ac-o1"></div><div class="ac-orb ac-o2"></div><div class="ac-orb ac-o3"></div></div>
+  <div class="ac-hero">
+    <div class="ac-logo">
+      <div class="ac-anel ac-a1"></div><div class="ac-anel ac-a2"></div><div class="ac-anel ac-a3"></div>
+      <div class="ac-marca">NH</div>
+    </div>
+    <div class="ac-tit">Qual <span class="grad">empresa</span>?</div>
+    <div class="ac-sub">Você representa mais de uma. Escolha qual quer acompanhar agora — dá para trocar depois.</div>
+    <div class="ac-form">
+      <div id="escolher-lista" style="display:flex;flex-direction:column;gap:10px"></div>
+      <button class="ac-btn" style="background:transparent;border:1px solid var(--b1);margin-top:14px" onclick="fazerLogout()">Sair</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.escolher-item{width:100%;padding:14px 18px;border-radius:12px;border:1px solid var(--b1);
+  background:var(--s2,rgba(255,255,255,.04));color:var(--t1,#fff);font-size:15px;font-weight:600;
+  cursor:pointer;text-align:left;transition:border-color .15s,background .15s;font-family:inherit}
+.escolher-item:hover{border-color:var(--nh,#f97316);background:rgba(249,115,22,.08)}
+</style>
 
 <!-- Portal -->
 <div id="portal">
@@ -1152,6 +1176,7 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-auth-compat.js"></script>
 <script>
 // ─── FIREBASE ────────────────────────────────────────────────────
 const firebaseConfig = {
@@ -1186,6 +1211,7 @@ async function carregarCoresEmpresas(){
     if(snap.exists && snap.data().lista){
       snap.data().lista.forEach(function(emp){
         if(emp.nome && emp.cor) CORES[emp.nome.toUpperCase().trim()] = emp.cor;
+        if(emp.nome && emp.cnpj) EMP_NOME_POR_CNPJ[String(emp.cnpj).replace(/\D/g,'')] = emp.nome.toUpperCase().trim();
       });
     }
   }catch(e){/* mantém fallback em caso de erro */}
@@ -1199,6 +1225,60 @@ let filtroAtual = 'todos';
 let _pgAtual = 1;
 const PS_PORTAL = 20; // registros por página
 const EMPRESAS_SISTEMA = ['VISE','SOS','SOS FILIAL','SAUTEC','ONLAV','ENGEMED'];
+const auth = firebase.auth();
+var CONTA_MESTRA_EMPRESAS = null; // travado no login da conta mestra — nunca cresce sozinho
+var EMP_NOME_POR_CNPJ = {};
+
+function emailFalsoPortal(numero) {
+  return String(numero || '').replace(/\D/g, '') + '@nh.interno';
+}
+function vNumeroPortal(v){
+  var d=String(v||'').replace(/\D/g,'');
+  if(!d)return'';
+  if(d.length<=11)d='55'+d;
+  return d;
+}
+function vMascaraPortal(el){
+  var d=String(el.value||'').replace(/\D/g,'');
+  if(d.length>11)d=d.substring(0,11);
+  el.value=d.length>6?'('+d.substring(0,2)+') '+d.substring(2,7)+(d.length>7?'-'+d.substring(7):'')
+    :d.length>2?'('+d.substring(0,2)+') '+d.substring(2):d;
+}
+
+/** Depois do login confirmado pelo Firebase, decide o que a pessoa
+ *  pode ver no portal. Pura — recebe a lista de responsáveis e o mapa
+ *  cnpj→nome (para traduzir o vínculo salvo de volta em nome de
+ *  empresa, que é como o resto do portal já trabalha).
+ *
+ *  Três desfechos:
+ *   - contaMestra: painel agregado, lista TRAVADA nas empresas que
+ *     estão explicitamente marcadas para essa conta — nunca cresce
+ *     sozinha quando uma empresa nova é cadastrada.
+ *   - uma empresa só: entra direto nela, como já era.
+ *   - mais de uma (responsável comum, não conta mestra): precisa
+ *     escolher qual ver — nunca vê duas misturadas, nunca ganha
+ *     poder de excluir contrato. */
+function resolverPerfilPortal(num, lista, cnpjParaNome) {
+  var r = (lista || {})[num];
+  if (!r) return {ok: false, motivo: 'Seu acesso não está mais disponível. Fale com a NH.'};
+
+  var nomes = (r.empresas || []).map(function(v) {
+    var limpo = String(v || '').replace(/\D/g, '');
+    return (limpo && cnpjParaNome[limpo]) || String(v || '').trim().toUpperCase();
+  }).filter(function(n, i, arr) { return n && arr.indexOf(n) === i; });
+
+  if (!nomes.length) {
+    return {ok: false, motivo: 'Seu acesso ainda não tem empresa vinculada. Fale com a NH.'};
+  }
+
+  if (r.contaMestra) {
+    return {ok: true, modo: 'mestra', nome: r.nome || '', empresas: nomes};
+  }
+  if (1 === nomes.length) {
+    return {ok: true, modo: 'direto', nome: r.nome || '', empresa: nomes[0]};
+  }
+  return {ok: true, modo: 'escolher', nome: r.nome || '', empresas: nomes};
+}
 
 // ─── LOGIN ───────────────────────────────────────────────────────
 
@@ -1216,47 +1296,69 @@ function acTrocarTema(){acAplicarTema(!document.body.classList.contains('light-t
 (function(){try{acAplicarTema('claro'===localStorage.getItem('nh_tema'));}catch(e){}})();
 
 async function fazerLogin(){
-  const emp = document.getElementById('inp-empresa').value.trim().toUpperCase();
-  const senha = document.getElementById('inp-senha').value.trim();
+  const num = vNumeroPortal(document.getElementById('inp-empresa').value);
+  const senha = document.getElementById('inp-senha').value;
   const err = document.getElementById('login-err');
   const btn = document.getElementById('btn-login');
 
   err.style.display = 'none';
-  if(!emp || !senha){err.textContent='Preencha todos os campos.';err.style.display='block';return;}
+  if(!num || !senha){err.textContent='Preencha o WhatsApp e a senha.';err.style.display='block';return;}
 
   btn.disabled = true;
   btn.textContent = 'Verificando...';
 
-  // Carregar senhas atualizadas do Firestore antes de validar
   try{
-    const doc = await db.collection('config').doc('portal_acessos').get();
-    if(doc.exists && doc.data()){
-      const d = doc.data();
-      // Suporta dois formatos: {senhas:{...}} (legado) e {VISE:'...', SOS:'...'} (novo)
-      const mapa = d.senhas || d;
-      Object.keys(SENHAS).forEach(k => delete SENHAS[k]);
-      Object.assign(SENHAS, mapa);
+    await auth.signInWithEmailAndPassword(emailFalsoPortal(num), senha);
+    /* onAuthStateChanged cuida do resto — login novo e sessão restaurada
+       passam pelo mesmo caminho, sem duas lógicas fazendo a mesma coisa. */
+  }catch(e){
+    var semAcesso=['auth/user-not-found','auth/wrong-password','auth/invalid-credential','auth/invalid-login-credentials'];
+    if(semAcesso.indexOf(e.code)>-1){
+      err.textContent = 'WhatsApp ou senha incorretos.';
+    }else{
+      err.textContent = 'Não consegui conectar. Verifique a internet e tente de novo.';
     }
-  } catch(e){ /* usa defaults locais se offline */ }
-
-  const senhaCorreta = SENHAS[emp];
-  if(!senhaCorreta || senha !== senhaCorreta){
-    err.textContent = 'Empresa ou senha incorretos.';
     err.style.display = 'block';
     btn.disabled = false;
-    btn.textContent = 'Entrar no Portal';
+    btn.textContent = 'Entrar';
+  }
+}
+
+/** Aplica a decisão de resolverPerfilPortal — entra direto, abre o
+ *  seletor, ou monta o painel agregado da conta mestra. */
+function abrirComPerfil(perfil){
+  if('mestra'===perfil.modo){
+    isAdmin=true;
+    CONTA_MESTRA_EMPRESAS=perfil.empresas.slice();
+    empAtual='';
+    document.getElementById('login-screen').style.display='none';
+    iniciarPortal();
     return;
   }
-
-  // Salvar sessão
-  sessionStorage.setItem('nh_portal_emp', emp);
-  empAtual = emp;
-  isAdmin  = (emp === 'GROWTH');
-
-  // Admin: carregar acessos do Firestore (para que outros possam logar com senhas atualizadas)
-  if(isAdmin){
+  if('direto'===perfil.modo){
+    isAdmin=false;
+    empAtual=perfil.empresa;
+    document.getElementById('login-screen').style.display='none';
+    iniciarPortal();
+    return;
   }
+  isAdmin=false;
+  mostrarSeletorEmpresa(perfil.empresas);
+}
 
+function mostrarSeletorEmpresa(nomes){
+  document.getElementById('login-screen').style.display='none';
+  var tela=document.getElementById('tela-escolher-empresa');
+  var lista=document.getElementById('escolher-lista');
+  lista.innerHTML=nomes.map(function(n){
+    return '<button class="escolher-item" onclick="escolherEmpresaPortal(\''+n+'\')">'+n+'</button>';
+  }).join('');
+  tela.style.display='flex';
+}
+
+function escolherEmpresaPortal(nome){
+  empAtual=nome;
+  document.getElementById('tela-escolher-empresa').style.display='none';
   iniciarPortal();
 }
 
@@ -1579,16 +1681,8 @@ function abrirModalContratoById(id){
   if(entry) abrirModalContrato(entry);
 }
 
-function fazerLogout(){
-  sessionStorage.removeItem('nh_portal_emp');
-  empAtual = '';
-  dadosGanhas = [];
-  document.getElementById('portal').style.display = 'none';
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('btn-login').disabled = false;
-  document.getElementById('btn-login').textContent = 'Entrar';
-  document.getElementById('inp-empresa').value = '';
-  document.getElementById('inp-senha').value = '';
+async function fazerLogout(){
+  await auth.signOut();
 }
 
 // ─── PORTAL ──────────────────────────────────────────────────────
@@ -1936,7 +2030,7 @@ function gerarDashboard(){
 
   const hoje = new Date(); hoje.setHours(0,0,0,0);
 
-  const empresasParaMostrar = isAdmin ? EMPRESAS_SISTEMA : [empAtual];
+  const empresasParaMostrar = isAdmin ? (CONTA_MESTRA_EMPRESAS || EMPRESAS_SISTEMA) : [empAtual];
 
   // Agrupa por empresa usando a classificação única
   const _arrsPorEmp = {};
@@ -3805,25 +3899,43 @@ window.addEventListener('load', async ()=>{
 
   document.getElementById('loading').style.display = 'none';
 
-  // Verificar sessão
-  const empSessao = sessionStorage.getItem('nh_portal_emp');
-  if(empSessao){
-    // Carregar senhas do Firestore antes de validar sessão
-    try{
-      const doc = await db.collection('config').doc('portal_acessos').get();
-      if(doc.exists && doc.data().senhas) Object.assign(SENHAS, doc.data().senhas);
-    }catch(e){}
-
-    if(SENHAS[empSessao]){
-      empAtual = empSessao;
-      isAdmin  = (empSessao === 'GROWTH');
-      document.getElementById('login-screen').style.display = 'none';
-      iniciarPortal();
+  /* A sessão não é mais restaurada por sessionStorage — o próprio
+     Firebase decide, com a persistência dele, se já existe alguém
+     autenticado. login-screen só aparece se o listener concluir
+     que ninguém está logado. */
+  auth.onAuthStateChanged(async function(user){
+    if(!user){
+      empAtual=''; isAdmin=false; CONTA_MESTRA_EMPRESAS=null; dadosGanhas=[];
+      document.getElementById('portal').style.display='none';
+      var tsel=document.getElementById('tela-escolher-empresa');
+      if(tsel) tsel.style.display='none';
+      document.getElementById('login-screen').style.display='flex';
+      document.getElementById('btn-login').disabled=false;
+      document.getElementById('btn-login').textContent='Entrar';
+      document.getElementById('inp-empresa').value='';
+      document.getElementById('inp-senha').value='';
       return;
     }
-  }
-
-  document.getElementById('login-screen').style.display = 'flex';
+    var num=String(user.email||'').split('@')[0];
+    var lista={};
+    try{
+      var snap=await db.collection('config').doc('responsaveis').get();
+      lista=(snap.exists&&snap.data()&&snap.data().lista)||{};
+    }catch(e){
+      document.getElementById('login-err').textContent='Não consegui conectar. Verifique a internet e tente de novo.';
+      document.getElementById('login-err').style.display='block';
+      await auth.signOut();
+      return;
+    }
+    var perfil=resolverPerfilPortal(num,lista,EMP_NOME_POR_CNPJ);
+    if(!perfil.ok){
+      document.getElementById('login-err').textContent=perfil.motivo;
+      document.getElementById('login-err').style.display='block';
+      await auth.signOut();
+      return;
+    }
+    abrirComPerfil(perfil);
+  });
 });
 </script>
 
