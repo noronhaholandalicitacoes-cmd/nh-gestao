@@ -3523,9 +3523,12 @@ async function verSenhaResp(num){
 function mostrarSenhaResp(nome,num,senha,nova){
   var w=document.getElementById("resp-senha-ov");
   if(!w){w=document.createElement("div");w.id="resp-senha-ov";document.body.appendChild(w);}
-  var texto="Ola, "+(nome||"")+"! Seu acesso a analise de viabilidade:\n\n"
-    +"Link: https://noronhaholandalicitacoes-cmd.github.io/nh-gestao/viabilidade.html?r="+num
-    +"\nSenha: "+senha;
+  /* O mesmo login abre os dois sistemas — por isso os dois links na
+     mensagem, não só o do viabilidade como era antes. */
+  var texto="Ola, "+(nome||"")+"! Segue o seu acesso aos sistemas da NH:\n\n"
+    +"Analise de Viabilidade:\nhttps://noronhaholandalicitacoes-cmd.github.io/nh-gestao/viabilidade.html?r="+num
+    +"\n\nPortal de Contratos:\nhttps://noronhaholandalicitacoes-cmd.github.io/nh-gestao/portal-empresa.html?r="+num
+    +"\n\nSenha (a mesma para os dois): "+senha;
   /* O HTML sai sem manipulador nenhum; eles são ligados por JS logo abaixo.
      Antes o texto era colado dentro do onclick via JSON.stringify, e as
      aspas duplas dele fechavam o atributo antes da hora — os botões de
