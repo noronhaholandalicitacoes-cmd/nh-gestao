@@ -3912,7 +3912,13 @@ window.addEventListener('load', async ()=>{
       document.getElementById('login-screen').style.display='flex';
       document.getElementById('btn-login').disabled=false;
       document.getElementById('btn-login').textContent='Entrar';
-      document.getElementById('inp-empresa').value='';
+      try{
+        var numUrl=new URLSearchParams(location.search).get('r')||'';
+        var d=numUrl.replace(/\D/g,'');
+        if(0===d.indexOf('55')&&d.length>11)d=d.substring(2); // tira o 55 do início, igual o viabilidade faz
+        document.getElementById('inp-empresa').value=11===d.length
+          ?'('+d.substring(0,2)+') '+d.substring(2,7)+'-'+d.substring(7):'';
+      }catch(e){document.getElementById('inp-empresa').value='';}
       document.getElementById('inp-senha').value='';
       return;
     }
