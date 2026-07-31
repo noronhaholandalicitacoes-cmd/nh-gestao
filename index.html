@@ -2496,6 +2496,10 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
         <input type="checkbox" id="resp-todas" style="width:15px;height:15px;accent-color:#a78bfa;cursor:pointer">
         <span style="font-size:12.5px;font-weight:600;color:var(--t1)">Vê todas as empresas <span style="color:var(--t3);font-weight:400">— acesso da assessoria</span></span>
       </label>
+      <label style="display:flex;align-items:center;gap:9px;margin-top:8px;background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:10px 12px;cursor:pointer">
+        <input type="checkbox" id="resp-mestra" style="width:15px;height:15px;accent-color:#f97316;cursor:pointer">
+        <span style="font-size:12.5px;font-weight:600;color:var(--t1)">Conta mestra do Portal de Contratos <span style="color:var(--t3);font-weight:400">— painel agregado das empresas marcadas acima, com permissão de excluir contrato. Só marque para quem faz esse papel hoje (o antigo login GROWTH).</span></span>
+      </label>
       <div style="display:flex;gap:8px;margin-top:14px">
         <button class="btn btn-ghost" onclick="limparFormResp()">Limpar</button>
         <button class="btn btn-nh" id="resp-btn-salvar" style="flex:1" onclick="salvarResponsavel()">+ Adicionar responsável</button>
@@ -3387,7 +3391,7 @@ function renderListaResponsaveis(){
       :'<span title="Ainda só tem o acesso antigo — abra e salve uma senha para migrar" style="font-size:9px;font-weight:800;padding:1px 6px;border-radius:20px;background:rgba(234,179,8,.12);color:#eab308;border:1px solid rgba(234,179,8,.3)">○ PENDENTE</span>';
     return'<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;background:var(--s2);border:1px solid var(--b1);border-radius:8px">'
       +'<div style="flex:1;min-width:0">'
-      +'<div style="display:flex;align-items:center;gap:7px"><span style="font-weight:700;color:var(--t1);font-size:13px">'+(r.nome||"(sem nome)")+'</span>'+seloAuth+'</div>'
+      +'<div style="display:flex;align-items:center;gap:7px"><span style="font-weight:700;color:var(--t1);font-size:13px">'+(r.nome||"(sem nome)")+'</span>'+seloAuth+(r.contaMestra?'<span title="Conta mestra do Portal de Contratos" style="font-size:9px;font-weight:800;padding:1px 6px;border-radius:20px;background:rgba(249,115,22,.14);color:#f97316;border:1px solid rgba(249,115,22,.35)">👑 MESTRA</span>':'')+'</div>'
       +'<div style="font-size:11px;color:var(--t3);margin-top:2px">'+nhFormataWpp(num)+(r.despedida?' · "'+r.despedida+'"':"")+'</div>'
       +'<div style="margin-top:5px;display:flex;gap:4px;flex-wrap:wrap">'+chips+'</div></div>'
       +'<div style="display:flex;gap:6px;flex-shrink:0">'
@@ -3441,6 +3445,7 @@ function limparFormResp(){
   ["resp-nome","resp-wpp","resp-desp","resp-senha"].forEach(function(id){
     var el=document.getElementById(id);if(el)el.value="";});
   var t=document.getElementById("resp-todas");if(t)t.checked=false;
+  var tm=document.getElementById("resp-mestra");if(tm)tm.checked=false;
   var w=document.getElementById("resp-wpp");if(w)w.disabled=false;
   var b=document.getElementById("resp-btn-salvar");if(b)b.textContent="+ Adicionar Responsável";
   var a=document.getElementById("resp-aviso");if(a)a.style.display="none";
@@ -3454,6 +3459,7 @@ function editarResponsavel(num){
   document.getElementById("resp-desp").value=r.despedida||"";
   document.getElementById("resp-senha").value="";
   document.getElementById("resp-todas").checked=!!r.todas;
+  document.getElementById("resp-mestra").checked=!!r.contaMestra;
   document.getElementById("resp-wpp").disabled=true;
   document.getElementById("resp-btn-salvar").textContent="💾 Salvar Responsável";
   var a=document.getElementById("resp-aviso");
@@ -3464,7 +3470,8 @@ function editarResponsavel(num){
 async function salvarResponsavel(){
   var nome=gv("resp-nome").trim(),num=nhNumeroWpp(gv("resp-wpp")),
       desp=gv("resp-desp").trim(),senha=gv("resp-senha").trim(),
-      todas=!!(document.getElementById("resp-todas")||{}).checked;
+      todas=!!(document.getElementById("resp-todas")||{}).checked,
+      mestra=!!(document.getElementById("resp-mestra")||{}).checked;
   if(!nome){toast("Digite o nome do responsável","err");return;}
   if(num.length<12){toast("WhatsApp incompleto — use DDD + número","err");return;}
   var emps=[];document.querySelectorAll(".resp-emp-chk").forEach(function(c){if(c.checked)emps.push(c.value);});
@@ -3475,7 +3482,7 @@ async function salvarResponsavel(){
   if(!novo&&!_editRespNum)toast("Este número já existe — vinculando as empresas ao mesmo responsável","info");
 
   var reg=RESPONSAVEIS[num]||{};
-  reg.nome=nome;reg.despedida=desp;reg.empresas=emps;reg.todas=todas;
+  reg.nome=nome;reg.despedida=desp;reg.empresas=emps;reg.todas=todas;reg.contaMestra=mestra;
   if(senha){reg.salt=nhNovoSalt();reg.hash=await nhHashSenha(senha,reg.salt);}
   if(!reg.hash){toast("Defina uma senha para este responsável","err");return;}
 
