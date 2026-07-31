@@ -444,6 +444,7 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-auth-compat.js"></script>
 <script>
 const firebaseConfig={apiKey:"AIzaSyBhcpJP9dRM0SEJsGfcNUXYb1rTMdEDw6M",authDomain:"nh-licitacoes.firebaseapp.com",projectId:"nh-licitacoes",storageBucket:"nh-licitacoes.firebasestorage.app",messagingSenderId:"1081646053691",appId:"1:1081646053691:web:a8abcb5792d026ade71f1e"};
 (function(){try{if(!localStorage.getItem("nh_idb_limpo_v1")){var _dbs=["firestore/[DEFAULT]/nh-licitacoes/main","firebaseLocalStorageDb"];if(window.indexedDB&&indexedDB.databases){indexedDB.databases().then(function(list){(list||[]).forEach(function(d){if(d&&d.name&&d.name.indexOf("firestore")!==-1){try{indexedDB.deleteDatabase(d.name);}catch(e){}}});});}else{_dbs.forEach(function(n){try{indexedDB.deleteDatabase(n);}catch(e){}});}localStorage.setItem("nh_idb_limpo_v1","1");}}catch(e){}})();firebase.initializeApp(firebaseConfig);
@@ -456,6 +457,29 @@ var FILTRO_RESP='todos';
 var FILTRO_EMP='todos';
 
 var EMP_CORES={'VISE':'#eab308','SAUTEC':'#3b82f6','SOS':'#22c55e','SOS FILIAL':'#ef4444','ONLAV':'#06b6d4','ENGEMED':'#ec4899'};
+var EMP_CNPJS={};
+const auth=firebase.auth();
+
+/* ── Login de verdade (Firebase Auth), no lugar do hash comparado
+   aqui no navegador. O WhatsApp continua sendo o que a pessoa digita;
+   por trás, vira um e-mail disfarçado que só o Firebase entende. */
+function emailFalsoViab(numero) {
+  return String(numero || '').replace(/\D/g, '') + '@nh.interno';
+}
+
+/** A partir do número (já autenticado) e da lista de responsáveis,
+ *  decide se a pessoa pode entrar e monta o perfil da sessão. Pura —
+ *  não toca em Firebase Auth nem em tela, só decide com o que já tem
+ *  em mãos. Usada tanto depois de um login quanto ao restaurar uma
+ *  sessão salva pelo próprio Firebase. */
+function resolverPerfilResponsavel(num, lista) {
+  var r = (lista || {})[num];
+  if (!r) return {ok: false, motivo: 'Seu acesso não está mais disponível. Fale com a NH.'};
+  if (!r.todas && !(r.empresas || []).length) {
+    return {ok: false, motivo: 'Seu acesso ainda não tem empresa vinculada. Fale com a NH.'};
+  }
+  return {ok: true, sessao: {num: num, nome: r.nome || '', empresas: r.empresas || [], todas: !!r.todas}};
+}
 // Cores reais vêm do Firebase (config/empresas) — o objeto acima é só fallback
 // de segurança para o caso de falha de conexão antes do fetch completar.
 async function carregarCoresEmpresas(){
@@ -464,6 +488,7 @@ async function carregarCoresEmpresas(){
     if(snap.exists&&snap.data().lista){
       snap.data().lista.forEach(function(emp){
         if(emp.nome&&emp.cor) EMP_CORES[emp.nome.toUpperCase().trim()]=emp.cor;
+        if(emp.nome&&emp.cnpj) EMP_CNPJS[emp.nome.toUpperCase().trim()]=String(emp.cnpj).replace(/\D/g,'');
       });
     }
   }catch(e){/* mantém fallback em caso de erro */}
@@ -648,24 +673,29 @@ async function entrar(){
   document.getElementById('ac-err').style.display='none';
   if(!num||!senha){lgErro('Preencha o WhatsApp e a senha.');return;}
   var b=document.getElementById('lg-btn');b.disabled=true;b.textContent='Verificando...';
-  var lista={};
+
   try{
-    var snap=await db.collection('config').doc('responsaveis').get();
-    lista=(snap.exists&&snap.data()&&snap.data().lista)||{};
-  }catch(e){lgErro('Não consegui conectar. Verifique a internet e tente de novo.');return;}
-  var r=lista[num];
-  /* Mesmo aviso para número desconhecido e senha errada — assim a tela
-     não serve para descobrir quais números estão cadastrados. */
-  if(!r||!r.hash||!r.salt){lgErro('WhatsApp ou senha incorretos.');return;}
-  var h;
-  try{h=await vHash(senha,r.salt);}catch(e){lgErro('Este navegador não conseguiu validar a senha. Tente pelo Chrome.');return;}
-  if(h!==r.hash){lgErro('WhatsApp ou senha incorretos.');return;}
-  if(!r.todas&&!(r.empresas||[]).length){
-    lgErro('Seu acesso ainda não tem empresa vinculada. Fale com a NH.');return;}
-  SESSAO={num:num,nome:r.nome||'',empresas:r.empresas||[],todas:!!r.todas};
-  try{sessionStorage.setItem('nh_viab_sessao',JSON.stringify(SESSAO));}catch(e){}
-  try{localStorage.setItem('nh_viab_num',num);}catch(e){}
-  abrirApp();}
+    await auth.signInWithEmailAndPassword(emailFalsoViab(num),senha);
+    /* Sucesso não faz mais nada aqui — o onAuthStateChanged reage
+       sozinho ao login e abre o app. Um caminho só para os dois
+       casos (login novo e sessão restaurada) evita duas lógicas
+       fazendo a mesma coisa de jeitos ligeiramente diferentes. */
+  }catch(e){
+    var semAcesso=['auth/user-not-found','auth/wrong-password','auth/invalid-credential','auth/invalid-login-credentials'];
+    if(semAcesso.indexOf(e.code)>-1){
+      var pendente=false;
+      try{
+        var snap=await db.collection('config').doc('responsaveis').get();
+        var lista=(snap.exists&&snap.data()&&snap.data().lista)||{};
+        pendente=!!(lista[num]&&!lista[num].authMigrado);
+      }catch(e2){}
+      lgErro(pendente?'Seu acesso ainda está sendo atualizado. Fale com a NH.':'WhatsApp ou senha incorretos.');
+    }else{
+      lgErro('Não consegui conectar. Verifique a internet e tente de novo.');
+    }
+    b.disabled=false;b.textContent='Entrar';
+  }
+}
 
 function abrirApp(){
   document.getElementById('nh-acesso').style.display='none';
@@ -675,26 +705,29 @@ function abrirApp(){
     var b=document.getElementById(id);if(b)b.style.display='flex';});
   carregar();}
 
-function sair(){
+async function sair(){
   if(!confirm('Sair do acesso?'))return;
-  try{sessionStorage.removeItem('nh_viab_sessao');}catch(e){}
-  location.reload();}
+  await auth.signOut();}
 
 /* Só enxerga as empresas que o responsável representa. Quem tem "vê
    todas" marcado no cadastro (a assessoria) enxerga tudo. */
-function podeVer(emp){
-  if(!SESSAO)return false;
-  if(SESSAO.todas)return true;
-  var e=String(emp||'').trim().toUpperCase();
-  return (SESSAO.empresas||[]).some(function(x){return String(x).trim().toUpperCase()===e;});}
+function podeVer(emp) {
+  if (!SESSAO) return false;
+  if (SESSAO.todas) return true;
+  var nomeAlvo = String(emp || '').trim().toUpperCase();
+  var cnpjAlvo = EMP_CNPJS[nomeAlvo] || '';
+  return (SESSAO.empresas || []).some(function(v) {
+    var s = String(v || '').trim();
+    if (cnpjAlvo && s.replace(/\D/g, '') === cnpjAlvo) return true;
+    return s.toUpperCase() === nomeAlvo;
+  });
+}
 
 function iniciarAcesso(){
   var num='';
   try{num=new URLSearchParams(location.search).get('r')||'';}catch(e){}
   if(!num){try{num=localStorage.getItem('nh_viab_num')||'';}catch(e){}}
   if(num)document.getElementById('lg-wpp').value=vFormata(vNumero(num));
-  var s=null;try{s=JSON.parse(sessionStorage.getItem('nh_viab_sessao')||'null');}catch(e){}
-  if(s&&s.num){SESSAO=s;abrirApp();return;}
   document.getElementById('nh-acesso').style.display='flex';
   setTimeout(function(){
     var alvo=document.getElementById(num?'lg-senha':'lg-wpp');
@@ -954,7 +987,24 @@ async function salvar(id){
   if(btn){btn.disabled=false;btn.textContent='💾 Salvar';}
 }
 
-iniciarAcesso();
+/* A chamada final não é mais iniciarAcesso() direto — é o próprio
+   Firebase quem decide, com a persistência dele, se já existe alguém
+   logado. iniciarAcesso() só entra em cena dentro do próprio listener,
+   no caso de ninguém estar autenticado. */
+auth.onAuthStateChanged(async function(user){
+  if(!user){SESSAO=null;iniciarAcesso();return;}
+  var num=String(user.email||'').split('@')[0];
+  var lista={};
+  try{
+    var snap=await db.collection('config').doc('responsaveis').get();
+    lista=(snap.exists&&snap.data()&&snap.data().lista)||{};
+  }catch(e){lgErro('Não consegui conectar. Verifique a internet e tente de novo.');await auth.signOut();return;}
+  var r=resolverPerfilResponsavel(num,lista);
+  if(!r.ok){lgErro(r.motivo);await auth.signOut();return;}
+  SESSAO=r.sessao;
+  try{localStorage.setItem('nh_viab_num',num);}catch(e){}
+  abrirApp();
+});
 
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw-viabilidade.js').catch(function(){});
