@@ -1269,10 +1269,16 @@ function vMascaraPortal(el){
  *  cnpj→nome (para traduzir o vínculo salvo de volta em nome de
  *  empresa, que é como o resto do portal já trabalha).
  *
- *  Três desfechos:
- *   - contaMestra: painel agregado, lista TRAVADA nas empresas que
- *     estão explicitamente marcadas para essa conta — nunca cresce
- *     sozinha quando uma empresa nova é cadastrada.
+ *  O escopo (quais empresas) vem de duas fontes, nessa ordem:
+ *   - "Vê todas as empresas" (todas) marcado no cadastro do sistema:
+ *     escopo = todas as empresas cadastradas, e passa a incluir
+ *     sozinho as que forem cadastradas depois. Mesmo significado que
+ *     essa marcação já tem no Análise de Viabilidade — o cadastro é
+ *     único e vale para os dois sistemas.
+ *   - senão: só as empresas explicitamente marcadas para essa conta.
+ *
+ *  Quem manda no PODER continua sendo contaMestra, separado do escopo:
+ *   - contaMestra: painel agregado + permissão de excluir contrato.
  *   - uma empresa só: entra direto nela, como já era.
  *   - mais de uma (responsável comum, não conta mestra): precisa
  *     escolher qual ver — nunca vê duas misturadas, nunca ganha
@@ -1281,10 +1287,16 @@ function resolverPerfilPortal(num, lista, cnpjParaNome) {
   var r = (lista || {})[num];
   if (!r) return {ok: false, motivo: 'Seu acesso não está mais disponível. Fale com a NH.'};
 
-  var nomes = (r.empresas || []).map(function(v) {
-    var limpo = String(v || '').replace(/\D/g, '');
-    return (limpo && cnpjParaNome[limpo]) || String(v || '').trim().toUpperCase();
-  }).filter(function(n, i, arr) { return n && arr.indexOf(n) === i; });
+  var nomes;
+  if (r.todas) {
+    nomes = Object.keys(cnpjParaNome || {}).map(function(c) { return cnpjParaNome[c]; })
+      .filter(function(n, i, arr) { return n && arr.indexOf(n) === i; });
+  } else {
+    nomes = (r.empresas || []).map(function(v) {
+      var limpo = String(v || '').replace(/\D/g, '');
+      return (limpo && cnpjParaNome[limpo]) || String(v || '').trim().toUpperCase();
+    }).filter(function(n, i, arr) { return n && arr.indexOf(n) === i; });
+  }
 
   if (!nomes.length) {
     return {ok: false, motivo: 'Seu acesso ainda não tem empresa vinculada. Fale com a NH.'};
@@ -3956,6 +3968,11 @@ window.addEventListener('load', async ()=>{
       await auth.signOut();
       return;
     }
+    /* Precisa vir antes de resolver o perfil: é daqui que sai a lista
+       de empresas usada quando o acesso é "vê todas". Sem isso o mapa
+       ainda está vazio nesse ponto (era carregado só dentro do
+       iniciarPortal, depois da decisão). */
+    try{ await carregarCoresEmpresas(); }catch(e){}
     var perfil=resolverPerfilPortal(num,lista,EMP_NOME_POR_CNPJ);
     if(!perfil.ok){
       document.getElementById('login-err').textContent=perfil.motivo;
