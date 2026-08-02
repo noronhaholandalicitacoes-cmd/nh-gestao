@@ -477,8 +477,14 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-auth-compat.js"></script>
 <script>
 const firebaseConfig={apiKey:"AIzaSyBhcpJP9dRM0SEJsGfcNUXYb1rTMdEDw6M",authDomain:"nh-licitacoes.firebaseapp.com",projectId:"nh-licitacoes",storageBucket:"nh-licitacoes.firebasestorage.app",messagingSenderId:"1081646053691",appId:"1:1081646053691:web:a8abcb5792d026ade71f1e"};
-(function(){try{if(!localStorage.getItem("nh_idb_limpo_v1")){var _dbs=["firestore/[DEFAULT]/nh-licitacoes/main","firebaseLocalStorageDb"];if(window.indexedDB&&indexedDB.databases){indexedDB.databases().then(function(list){(list||[]).forEach(function(d){if(d&&d.name&&d.name.indexOf("firestore")!==-1){try{indexedDB.deleteDatabase(d.name);}catch(e){}}});});}else{_dbs.forEach(function(n){try{indexedDB.deleteDatabase(n);}catch(e){}});}localStorage.setItem("nh_idb_limpo_v1","1");}}catch(e){}})();firebase.initializeApp(firebaseConfig);
-const db=firebase.firestore();
+(function(){try{if(!localStorage.getItem("nh_idb_limpo_v1")){var _dbs=["firestore/[DEFAULT]/nh-licitacoes/main","firebaseLocalStorageDb"];if(window.indexedDB&&indexedDB.databases){indexedDB.databases().then(function(list){(list||[]).forEach(function(d){if(d&&d.name&&d.name.indexOf("firestore")!==-1){try{indexedDB.deleteDatabase(d.name);}catch(e){}}});});}else{_dbs.forEach(function(n){try{indexedDB.deleteDatabase(n);}catch(e){}});}localStorage.setItem("nh_idb_limpo_v1","1");}}catch(e){}})();
+/* Instância nomeada, isolada da instância padrão que o index (74).html usa —
+   sem isso, o login por WhatsApp aqui derruba a sessão de admin do sistema
+   principal quando os dois ficam abertos em abas ao mesmo tempo (mesmo
+   problema documentado em index (74).html para o cadastro de responsáveis,
+   só que aqui era o login normal desta página que causava). */
+var _viabApp=(firebase.apps||[]).filter(function(a){return a.name==='nh-viabilidade';})[0]||firebase.initializeApp(firebaseConfig,'nh-viabilidade');
+const db=_viabApp.firestore();
 db.settings({experimentalAutoDetectLongPolling:true,merge:true});
 
 var TODOS=[];
@@ -502,7 +508,7 @@ async function carregarAnalisesViab(){
     snap.forEach(function(d){ANALISES_VIAB[d.id]=d.data()._arr||d.data();});
   }catch(e){console.warn('[Viabilidade] analise_viabilidade:',e.message);}
 }
-const auth=firebase.auth();
+const auth=_viabApp.auth();
 
 /* ── Login de verdade (Firebase Auth), no lugar do hash comparado
    aqui no navegador. O WhatsApp continua sendo o que a pessoa digita;
