@@ -15,7 +15,7 @@
   --b1:#252d40; --b2:#303a52;
   --nh:#f97316; --nha:rgba(249,115,22,.12);
   --g1:#22c55e; --r1:#ef4444; --y1:#eab308; --b_:#3b82f6;
-  --t1:#f5f5f5; --t2:#9aa5bd; --t3:#64748b;
+  --t1:#f5f5f5; --t2:#a3a3a3; --t3:#8b95a1;
   --t4:#c9d4ea;
 }
 body.light-theme{
@@ -283,9 +283,10 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
   padding:14px;margin-bottom:16px;
   background:var(--s2);border:1px solid var(--b1);border-radius:10px;
 }
-.cmeta{display:flex;flex-direction:column;gap:3px}
-.cmeta-lbl{font-size:9.5px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.07em}
-.cmeta-val{font-size:13.5px;color:var(--t1);font-weight:600}
+/* Mesma linha label/valor do Sistema NH (.kmeta/.kmeta-lbl/.kmeta-val) */
+.cmeta{display:flex;align-items:center;gap:7px}
+.cmeta-lbl{font-size:12px;font-weight:700;color:var(--nh);text-transform:uppercase;letter-spacing:.08em;flex-shrink:0}
+.cmeta-val{font-size:14px;color:var(--t1);font-weight:500}
 .cmeta-val.hl{color:var(--nh);font-weight:800;font-size:16px;font-family:'DM Sans',sans-serif}
 
 /* Aditivos */
@@ -1095,7 +1096,7 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
       <button onclick="confirmarExclusao()" style="background:rgba(239,68,68,.9);color:#fff;border:none;padding:8px 20px;border-radius:8px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer">Confirmar Exclusão</button>
     </div>
   </div>
-</div> -->
+</div>
 
 
 <!-- ── MODAL OPÇÕES DE IMPRESSÃO ── -->
@@ -1190,18 +1191,32 @@ const firebaseConfig = {
 (function(){try{if(!localStorage.getItem("nh_idb_limpo_v1")){var _dbs=["firestore/[DEFAULT]/nh-licitacoes/main","firebaseLocalStorageDb"];if(window.indexedDB&&indexedDB.databases){indexedDB.databases().then(function(list){(list||[]).forEach(function(d){if(d&&d.name&&d.name.indexOf("firestore")!==-1){try{indexedDB.deleteDatabase(d.name);}catch(e){}}});});}else{_dbs.forEach(function(n){try{indexedDB.deleteDatabase(n);}catch(e){}});}localStorage.setItem("nh_idb_limpo_v1","1");}}catch(e){}})();if(!firebase.apps || !firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();db.settings({experimentalAutoDetectLongPolling:true,merge:true});
 
-// ─── SENHAS POR EMPRESA ──────────────────────────────────────────
-// Para alterar: mude a senha da empresa aqui
-/* As senhas vêm do Firestore (config/portal_acessos). Antes havia aqui
-   uma lista de senhas padrão em texto — como este arquivo é público,
-   qualquer um podia lê-la. Removida: sem conexão, ninguém entra. */
-const SENHAS = {};
-
 // Cores das empresas
 let CORES = {
   'VISE':'#eab308','SOS':'#22c55e','SOS FILIAL':'#ef4444',
   'SAUTEC':'#3b82f6','ONLAV':'#06b6d4','ENGEMED':'#ec4899',
   'GROWTH':'#8b5cf6'
+};
+
+// Blocos de Recomposição contratual — mesmo índice em todo o arquivo.
+// Cada bloco de 7 posições no array de "ganhas": [Flag SIM/NÃO, Tipo,
+// Status, Nova Vigência, Vig.Mês, Vencimento, Valor Final]. Antes disso
+// os mesmos 4 arrays de índices eram redigitados à mão em ~6 lugares —
+// qualquer usuário que precisar deles deve referenciar RECOMP_IDX.
+const RECOMP_IDX = [
+  [13,14,15,16,17,18,19],
+  [20,21,22,23,24,25,26],
+  [27,28,29,30,31,32,33],
+  [34,35,36,37,38,39,40]
+];
+
+// Índices "isolados" do array de ganhas — os que ficam fora dos blocos
+// de Recomposição (ver RECOMP_IDX acima). Mesmo schema usado no Sistema NH.
+const IDX = {
+  ID:0, DATA:1, EMPRESA:2, LICITACAO:3, OBJETO:4, LOCAL:5, MUNICIPIO:6,
+  VALOR:7, CONTRATO:8, STATUS:9, VIGENCIA:10, DT_ASSINATURA:11, VENCIMENTO:12,
+  OBS:41, LINK:42,
+  SITUACAO:43, SRP:44, ATA_TOTAL:45, ATA_CONSUMIDO:46, ATA_CARONA:47, ATA_VIGENCIA:48, PROX_ACAO:49
 };
 // Cores reais vêm do Firebase (config/empresas) — isso é só um fallback
 // de segurança para o caso de falha de conexão antes do fetch completar.
@@ -1432,18 +1447,18 @@ function abrirModalContrato(entry){
     _mcEditId = entry.id;
     document.getElementById('mc-titulo').textContent = 'Editar Contrato';
     var arr=entry.arr;
-    mcSv('mc-data',arr[1]); mcSv('mc-empresa',arr[2]); mcSv('mc-licit',arr[3]);
-    mcSv('mc-objeto',arr[4]); mcSv('mc-local',arr[5]); mcSv('mc-mun',arr[6]);
-    mcSv('mc-valor',arr[7]); mcSv('mc-contrato',arr[8]); mcSv('mc-status',arr[9]);
-    mcSv('mc-vig',arr[10]); mcSv('mc-dtcont',arr[11]); mcSv('mc-venc',arr[12]);
-    mcSv('mc-link',arr[42]||arr[21]||''); mcSv('mc-obs',arr[41]||'');
-    mcSv('mc-situacao',arr[43]||''); mcSv('mc-proxacao',arr[49]||'');
-    mcSv('mc-srp',arr[44]||''); mcSv('mc-atatotal',arr[45]||'');
-    mcSv('mc-atacons',arr[46]||''); mcSv('mc-atacarona',arr[47]||'');
-    mcSv('mc-atavig',arr[48]||'');
+    mcSv('mc-data',arr[IDX.DATA]); mcSv('mc-empresa',arr[IDX.EMPRESA]); mcSv('mc-licit',arr[IDX.LICITACAO]);
+    mcSv('mc-objeto',arr[IDX.OBJETO]); mcSv('mc-local',arr[IDX.LOCAL]); mcSv('mc-mun',arr[IDX.MUNICIPIO]);
+    mcSv('mc-valor',arr[IDX.VALOR]); mcSv('mc-contrato',arr[IDX.CONTRATO]); mcSv('mc-status',arr[IDX.STATUS]);
+    mcSv('mc-vig',arr[IDX.VIGENCIA]); mcSv('mc-dtcont',arr[IDX.DT_ASSINATURA]); mcSv('mc-venc',arr[IDX.VENCIMENTO]);
+    mcSv('mc-link',arr[IDX.LINK]||arr[21]||''); mcSv('mc-obs',arr[IDX.OBS]||'');
+    mcSv('mc-situacao',arr[IDX.SITUACAO]||''); mcSv('mc-proxacao',arr[IDX.PROX_ACAO]||'');
+    mcSv('mc-srp',arr[IDX.SRP]||''); mcSv('mc-atatotal',arr[IDX.ATA_TOTAL]||'');
+    mcSv('mc-atacons',arr[IDX.ATA_CONSUMIDO]||''); mcSv('mc-atacarona',arr[IDX.ATA_CARONA]||'');
+    mcSv('mc-atavig',arr[IDX.ATA_VIGENCIA]||'');
     mcCalcAta();
     // Recomposições
-    var rIdxs=[[13,14,15,16,17,18,19],[20,21,22,23,24,25,26],[27,28,29,30,31,32,33],[34,35,36,37,38,39,40]];
+    var rIdxs=RECOMP_IDX;
     for(var n=1;n<=4;n++){
       var idx=rIdxs[n-1];
       mcSv('mc-recomp'+n,arr[idx[0]]);
@@ -1551,17 +1566,17 @@ async function mcSalvar(){
   while(arr.length<50) arr.push('');
   for(var _z=0;_z<arr.length;_z++) if(arr[_z]===undefined||arr[_z]===null) arr[_z]='';
 
-  arr[1]=data; arr[2]=emp; arr[3]=licit;
-  arr[4]=mcGv('mc-objeto'); arr[5]=mcGv('mc-local'); arr[6]=mcGv('mc-mun');
-  arr[7]=mcGv('mc-valor'); arr[8]=mcGv('mc-contrato'); arr[9]=mcGv('mc-status');
-  arr[10]=mcGv('mc-vig'); arr[11]=mcGvDate('mc-dtcont'); arr[12]=mcGvDate('mc-venc');
-  arr[41]=mcGv('mc-obs'); arr[42]=mcGv('mc-link');
-  arr[43]=mcGv('mc-situacao');
-  arr[44]=mcGv('mc-srp'); arr[45]=mcGv('mc-atatotal');
-  arr[46]=mcGv('mc-atacons'); arr[47]=mcGv('mc-atacarona'); arr[48]=mcGvDate('mc-atavig');
-  arr[49]=mcGv('mc-proxacao');
+  arr[IDX.DATA]=data; arr[IDX.EMPRESA]=emp; arr[IDX.LICITACAO]=licit;
+  arr[IDX.OBJETO]=mcGv('mc-objeto'); arr[IDX.LOCAL]=mcGv('mc-local'); arr[IDX.MUNICIPIO]=mcGv('mc-mun');
+  arr[IDX.VALOR]=mcGv('mc-valor'); arr[IDX.CONTRATO]=mcGv('mc-contrato'); arr[IDX.STATUS]=mcGv('mc-status');
+  arr[IDX.VIGENCIA]=mcGv('mc-vig'); arr[IDX.DT_ASSINATURA]=mcGvDate('mc-dtcont'); arr[IDX.VENCIMENTO]=mcGvDate('mc-venc');
+  arr[IDX.OBS]=mcGv('mc-obs'); arr[IDX.LINK]=mcGv('mc-link');
+  arr[IDX.SITUACAO]=mcGv('mc-situacao');
+  arr[IDX.SRP]=mcGv('mc-srp'); arr[IDX.ATA_TOTAL]=mcGv('mc-atatotal');
+  arr[IDX.ATA_CONSUMIDO]=mcGv('mc-atacons'); arr[IDX.ATA_CARONA]=mcGv('mc-atacarona'); arr[IDX.ATA_VIGENCIA]=mcGvDate('mc-atavig');
+  arr[IDX.PROX_ACAO]=mcGv('mc-proxacao');
 
-  var rIdxs=[[13,14,15,16,17,18,19],[20,21,22,23,24,25,26],[27,28,29,30,31,32,33],[34,35,36,37,38,39,40]];
+  var rIdxs=RECOMP_IDX;
   for(var n=1;n<=4;n++){
     var idx=rIdxs[n-1];
     arr[idx[0]]=mcGv('mc-recomp'+n); arr[idx[1]]=mcGv('mc-trecomp'+n);
@@ -1753,7 +1768,7 @@ const CAT_COR = {
 const CAT_ORDEM = ['exec','vencido','aguard','seraEncerrado','suspenso','encerrado','semStatus'];
 
 function classificarContrato(arr){
-  const st    = String(arr[9]||'').trim().toUpperCase();
+  const st    = String(arr[IDX.STATUS]||'').trim().toUpperCase();
   const valor = calcValorGanhas(arr);
   const venc  = vencVigente(arr).valor;
   const dias  = _pDias(venc);
@@ -1779,7 +1794,7 @@ function classificarContrato(arr){
     ativo:  cat==='exec',
     prox30: cat==='exec' && dias!==null && dias>=0 && dias<=30,
     prox90: cat==='exec' && dias!==null && dias>30  && dias<=90,
-    recomp: [13,20,27,34].some(function(ix){return String(arr[ix]||'').toUpperCase().trim()==='SIM'})
+    recomp: RECOMP_IDX.map(function(b){return b[0]}).some(function(ix){return String(arr[ix]||'').toUpperCase().trim()==='SIM'})
   };
 }
 
@@ -1818,7 +1833,7 @@ function nhAuditarRecomposicoes(){
   if(!arrs.length){ console.warn('[NH] Nenhum contrato carregado.'); return; }
 
   const fmt = v => 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2});
-  const blocos=[[13,1],[20,2],[27,3],[34,4]];
+  const blocos=RECOMP_IDX.map((idx,i)=>[idx[0], i+1]);
 
   const suspeitos=[], vencidosLimpos=[], recompOk=[];
   arrs.forEach(a=>{
@@ -1840,15 +1855,15 @@ function nhAuditarRecomposicoes(){
       // vencido MAS tem recomposição — investigar
       const semDataAditivo = aditivos.some(ad => !ad.vencRecomp && !ad.novaData);
       suspeitos.push({
-        '#': a[0], empresa:(a[2]||'').toUpperCase(), venc_usado:c.venc,
+        '#': a[IDX.ID], empresa:(a[IDX.EMPRESA]||'').toUpperCase(), venc_usado:c.venc,
         dias:c.dias, valor:fmt(c.valor),
         aditivos:aditivos.length,
         problema: semDataAditivo ? '⚠️ aditivo SEM data de vencimento' : 'vencimento do aditivo já passou'
       });
     } else if(c.cat==='vencido'){
-      vencidosLimpos.push({'#':a[0], empresa:(a[2]||'').toUpperCase(), venc:c.venc, dias:c.dias});
+      vencidosLimpos.push({'#':a[IDX.ID], empresa:(a[IDX.EMPRESA]||'').toUpperCase(), venc:c.venc, dias:c.dias});
     } else if(temRecomp && c.cat==='exec'){
-      recompOk.push({'#':a[0], empresa:(a[2]||'').toUpperCase(), venc_vigente:c.venc});
+      recompOk.push({'#':a[IDX.ID], empresa:(a[IDX.EMPRESA]||'').toUpperCase(), venc_vigente:c.venc});
     }
   });
 
@@ -1880,7 +1895,7 @@ function nhAuditarEmpresas(){
   /* 1) Empresas presentes nos dados vs. lista do sistema */
   const nomesNosDados = {};
   arrs.forEach(a => {
-    const bruto = String(a[2]||'');
+    const bruto = String(a[IDX.EMPRESA]||'');
     const norm  = bruto.trim().toUpperCase();
     (nomesNosDados[norm] = nomesNosDados[norm] || {n:0, brutos:new Set()});
     nomesNosDados[norm].n++;
@@ -1905,7 +1920,7 @@ function nhAuditarEmpresas(){
   const linhas = [];
   const todas = Array.from(new Set(EMPRESAS_SISTEMA.concat(Object.keys(nomesNosDados))));
   todas.forEach(emp => {
-    const meus = arrs.filter(a => String(a[2]||'').trim().toUpperCase() === emp);
+    const meus = arrs.filter(a => String(a[IDX.EMPRESA]||'').trim().toUpperCase() === emp);
     if(!meus.length) return;
     const ag = agregarContratos(meus);
     const somaC = CAT_ORDEM.reduce((s,k)=>s+ag[k],0);
@@ -1934,7 +1949,7 @@ function nhAuditarEmpresas(){
   console.log('O portal separa os vencidos numa categoria própria.');
   const div = [];
   todas.forEach(emp => {
-    const meus = arrs.filter(a => String(a[2]||'').trim().toUpperCase() === emp);
+    const meus = arrs.filter(a => String(a[IDX.EMPRESA]||'').trim().toUpperCase() === emp);
     if(!meus.length) return;
     const ag = agregarContratos(meus);
     if(!ag.vencido) return;
@@ -1955,12 +1970,12 @@ function nhAuditarEmpresas(){
   const prob = [];
   arrs.forEach(a => {
     const c = classificarContrato(a);
-    const emp = String(a[2]||'').trim().toUpperCase() || '(vazio)';
-    if(c.semStatus)                    prob.push({'#':a[0], empresa:emp, problema:'Status não preenchido', detalhe:'entra em "Sem status"'});
-    if(!c.venc && !c.encerrado)        prob.push({'#':a[0], empresa:emp, problema:'Sem vencimento', detalhe:'não entra em nenhum alerta de prazo'});
-    if(!c.valor)                       prob.push({'#':a[0], empresa:emp, problema:'Valor zero ou vazio', detalhe:'reduz o portfólio'});
-    if(!String(a[2]||'').trim())       prob.push({'#':a[0], empresa:'(vazio)', problema:'Empresa não informada', detalhe:'sai do dashboard'});
-    if(c.vencido)                      prob.push({'#':a[0], empresa:emp, problema:'Vencido e marcado Em Execução', detalhe:'vencido há '+Math.abs(c.dias)+' dia(s)'});
+    const emp = String(a[IDX.EMPRESA]||'').trim().toUpperCase() || '(vazio)';
+    if(c.semStatus)                    prob.push({'#':a[IDX.ID], empresa:emp, problema:'Status não preenchido', detalhe:'entra em "Sem status"'});
+    if(!c.venc && !c.encerrado)        prob.push({'#':a[IDX.ID], empresa:emp, problema:'Sem vencimento', detalhe:'não entra em nenhum alerta de prazo'});
+    if(!c.valor)                       prob.push({'#':a[IDX.ID], empresa:emp, problema:'Valor zero ou vazio', detalhe:'reduz o portfólio'});
+    if(!String(a[IDX.EMPRESA]||'').trim())       prob.push({'#':a[IDX.ID], empresa:'(vazio)', problema:'Empresa não informada', detalhe:'sai do dashboard'});
+    if(c.vencido)                      prob.push({'#':a[IDX.ID], empresa:emp, problema:'Vencido e marcado Em Execução', detalhe:'vencido há '+Math.abs(c.dias)+' dia(s)'});
   });
   console.log('%c\n── Contratos que distorcem os gráficos ──','font-weight:bold');
   if(prob.length){ console.table(prob); }
@@ -2037,13 +2052,13 @@ function gerarDashboard(){
   empresasParaMostrar.forEach(e => { _arrsPorEmp[e] = []; });
   const _semEmpresa = [];
   dadosGanhas.forEach(({arr}) => {
-    const emp = String(arr[2]||'').trim().toUpperCase();
+    const emp = String(arr[IDX.EMPRESA]||'').trim().toUpperCase();
     if(_arrsPorEmp[emp]) _arrsPorEmp[emp].push(arr);
     else _semEmpresa.push(arr);
   });
   if(_semEmpresa.length){
     console.warn('[NH] '+_semEmpresa.length+' contrato(s) com empresa fora da lista do sistema ficam de fora do dashboard:',
-      _semEmpresa.map(a=>'#'+a[0]+' ('+(a[2]||'sem empresa')+')').join(', '));
+      _semEmpresa.map(a=>'#'+a[IDX.ID]+' ('+(a[IDX.EMPRESA]||'sem empresa')+')').join(', '));
   }
 
   const porEmp = {};
@@ -2090,7 +2105,7 @@ function gerarDashboard(){
       meses.push({label:ref.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}),v:0,mes:ref.getMonth(),ano:ref.getFullYear()});
     }
     d.contratos.forEach(arr=>{
-      const p=String(arr[1]||'').split('/');
+      const p=String(arr[IDX.DATA]||'').split('/');
       if(p.length===3){
         const dt=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
         meses.forEach(m=>{if(dt.getMonth()===m.mes&&dt.getFullYear()===m.ano) m.v++;});
@@ -2433,7 +2448,7 @@ function renderAvisos(){
 
   const hoje = new Date(); hoje.setHours(0,0,0,0);
   const ativos = dadosGanhas.filter(({arr})=>{
-    const st = String(arr[9]||'').trim().toUpperCase();
+    const st = String(arr[IDX.STATUS]||'').trim().toUpperCase();
     return st!=='FINALIZADO' && st!=='RESCINDIDO' && st!=='CANCELADO';
   });
 
@@ -2441,8 +2456,8 @@ function renderAvisos(){
     const itens = ativos.filter(filtro).map(({arr})=>{
       const vv = vencVigente(arr);
       return {
-        principal: pEsc(arr[3]||'Sem identifica\u00e7\u00e3o'),
-        secundario: pEsc([arr[2], arr[8]].filter(Boolean).join(' \u00b7 ')),
+        principal: pEsc(arr[IDX.LICITACAO]||'Sem identifica\u00e7\u00e3o'),
+        secundario: pEsc([arr[IDX.EMPRESA], arr[IDX.CONTRATO]].filter(Boolean).join(' \u00b7 ')),
         extra: rotulo(vv.valor, _pDias(vv.valor)),
         _d: _pDias(vv.valor)
       };
@@ -2451,7 +2466,7 @@ function renderAvisos(){
   }
 
   grupoContratos(
-    ({arr})=>{ const st=String(arr[9]||'').toUpperCase().trim(); const d=_pDias(vencVigente(arr).valor);
+    ({arr})=>{ const st=String(arr[IDX.STATUS]||'').toUpperCase().trim(); const d=_pDias(vencVigente(arr).valor);
                return (st==='EM EXECUÇÃO'||st==='EM EXECUCAO') && d!==null && d<0; },
     '\ud83d\udea8','#ef4444','Contratos vencidos ainda ativos','Vencimento passou e o status continua Em Execução',
     (v,d)=>'Vencido h\u00e1 '+Math.abs(d)+' dia(s) \u2014 '+v
@@ -2467,7 +2482,7 @@ function renderAvisos(){
     (v,d)=>'Vence em '+d+' dia(s) \u2014 '+v
   );
   grupoContratos(
-    ({arr})=>String(arr[9]||'').toUpperCase().trim()==='AGUARDANDO CONTRATO',
+    ({arr})=>String(arr[IDX.STATUS]||'').toUpperCase().trim()==='AGUARDANDO CONTRATO',
     '\u270d\ufe0f','#3b82f6','Aguardando contrato / assinatura','Contrato ainda n\u00e3o formalizado',
     ()=>''
   );
@@ -2516,7 +2531,7 @@ async function carregarContratos(){
     snap.forEach(doc => {
       const d = doc.data();
       const arr = d._arr || [];
-      const emp = String(arr[2]||'').trim().toUpperCase();
+      const emp = String(arr[IDX.EMPRESA]||'').trim().toUpperCase();
       // GROWTH vê todos; outras empresas veem só os seus
       if(isAdmin || emp === empAtual){
         todos.push({
@@ -2556,8 +2571,8 @@ async function carregarContratos(){
             var docId = change.doc.id;
             var idx = dadosGanhas.findIndex(function(e){ return e.id === docId; });
             if(idx >= 0){
-              var antigaObs = dadosGanhas[idx].arr[41] || '';
-              var novaObs = arr[41] || '';
+              var antigaObs = dadosGanhas[idx].arr[IDX.OBS] || '';
+              var novaObs = arr[IDX.OBS] || '';
               var editor = d._portalUltimaEdicao || '';
               // Notifica GROWTH quando empresa (não GROWTH) edita
               if(isAdmin && editor && editor.indexOf('GROWTH') === -1 && novaObs !== antigaObs){
@@ -2576,7 +2591,7 @@ async function carregarContratos(){
     if(isAdmin){
       const fe = document.getElementById('filtros-empresa-area');
       if(fe){
-        const emps = [...new Set(dadosGanhas.map(({arr})=>String(arr[2]||'').trim().toUpperCase()).filter(Boolean))].sort();
+        const emps = [...new Set(dadosGanhas.map(({arr})=>String(arr[IDX.EMPRESA]||'').trim().toUpperCase()).filter(Boolean))].sort();
         fe.innerHTML = emps.map(e=>`<button class="filtro-btn" onclick="filtrarEmpresa('${e}',this)" style="border-color:${CORES[e]||'#444'};color:${CORES[e]||'#888'}">${e}</button>`).join('');
       }
     }
@@ -2721,7 +2736,7 @@ function renderContratos(){
 
   // Filtro empresa (GROWTH)
   if(filtroEmpresa){
-    lista = lista.filter(({arr})=>String(arr[2]||'').trim().toUpperCase()===filtroEmpresa);
+    lista = lista.filter(({arr})=>String(arr[IDX.EMPRESA]||'').trim().toUpperCase()===filtroEmpresa);
   }
 
   // Busca — todos os campos (igual ao sistema)
@@ -2736,17 +2751,17 @@ function renderContratos(){
   const ordem = document.getElementById('sel-ordem')?.value || 'recente';
   lista.sort((a,b)=>{
     if(ordem==='recente'){
-      const da=parseDateBR(a.arr[1]),db2=parseDateBR(b.arr[1]);
+      const da=parseDateBR(a.arr[IDX.DATA]),db2=parseDateBR(b.arr[IDX.DATA]);
       return (db2||0)-(da||0);
     } else if(ordem==='vencimento'){
-      const va=a.arr[39]||a.arr[32]||a.arr[25]||a.arr[18]||a.arr[12]||'';
-      const vb=b.arr[39]||b.arr[32]||b.arr[25]||b.arr[18]||b.arr[12]||'';
+      const va=a.arr[RECOMP_IDX[3][5]]||a.arr[RECOMP_IDX[2][5]]||a.arr[RECOMP_IDX[1][5]]||a.arr[RECOMP_IDX[0][5]]||a.arr[IDX.VENCIMENTO]||'';
+      const vb=b.arr[RECOMP_IDX[3][5]]||b.arr[RECOMP_IDX[2][5]]||b.arr[RECOMP_IDX[1][5]]||b.arr[RECOMP_IDX[0][5]]||b.arr[IDX.VENCIMENTO]||'';
       const da=parseDateBR(va),db2=parseDateBR(vb);
       return (da||new Date(9999,0))-(db2||new Date(9999,0));
     } else if(ordem==='valor'){
-      return parseMoedaPortal(b.arr[7])-parseMoedaPortal(a.arr[7]);
+      return parseMoedaPortal(b.arr[IDX.VALOR])-parseMoedaPortal(a.arr[IDX.VALOR]);
     } else if(ordem==='az'){
-      return String(a.arr[3]||'').localeCompare(String(b.arr[3]||''));
+      return String(a.arr[IDX.LICITACAO]||'').localeCompare(String(b.arr[IDX.LICITACAO]||''));
     }
     return 0;
   });
@@ -2781,12 +2796,12 @@ function renderContratos(){
 
   document.getElementById('contratos-area').innerHTML = listaPag.map((entry) => {
     const {id,arr} = entry;
-    const status = String(arr[9]||'').trim() || 'EM EXECUÇÃO';
+    const status = String(arr[IDX.STATUS]||'').trim() || 'EM EXECUÇÃO';
     const statusUp = status.toUpperCase();
     const cor = statusUp==='FINALIZADO'?'azul':statusUp==='RESCINDIDO'?'vermelho':statusUp==='SUSPENSO'?'amarelo':'verde';
 
     // Vencimento efetivo (último aditivo ou contrato)
-    const venc = arr[39]||arr[32]||arr[25]||arr[18]||arr[12]||'';
+    const venc = arr[RECOMP_IDX[3][5]]||arr[RECOMP_IDX[2][5]]||arr[RECOMP_IDX[1][5]]||arr[RECOMP_IDX[0][5]]||arr[IDX.VENCIMENTO]||'';
     const encerrado = statusUp==='FINALIZADO'||statusUp==='RESCINDIDO'||statusUp==='CANCELADO';
     let vencBadge = '';
     if(venc && !encerrado){
@@ -2817,7 +2832,7 @@ function renderContratos(){
 
     // O badge genérico "Recomp." vira redundante quando a Situação já fala de recomposição
     const _sitCobreRecomp = situacao==='Aguardando recomposição' || situacao==='Recomposição em andamento' || situacao==='Prorrogado';
-    const recomp = (!_sitCobreRecomp && String(arr[13]||'').toUpperCase().trim()==='SIM')
+    const recomp = (!_sitCobreRecomp && String(arr[RECOMP_IDX[0][0]]||'').toUpperCase().trim()==='SIM')
       ? '<span class="badge b-orange">Recomp.</span>' : '';
 
     const statusBadge = `<span class="badge ${cor==='verde'?'b-green':cor==='azul'?'b-blue':cor==='vermelho'?'b-red':'b-yellow'}">${status}</span>`;
@@ -2827,11 +2842,11 @@ function renderContratos(){
       <div class="ccard-header" onclick="toggleCard('${id}')">
         <div style="flex:1">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-            <span class="ccard-id">#${arr[0]||'?'}</span>
-            <span style="font-size:11px;color:var(--t3)">${arr[1]||''}</span>
+            <span class="ccard-id">#${arr[IDX.ID]||'?'}</span>
+            <span style="font-size:11px;color:var(--t3)">${arr[IDX.DATA]||''}</span>
           </div>
-          <div class="ccard-titulo">${pEsc(arr[3]||'Sem título')}</div>
-          ${isAdmin && arr[2] ? `<div style="font-size:11px;color:${CORES[arr[2].trim().toUpperCase()]||'#888'};font-weight:700;margin-top:3px">${arr[2].trim().toUpperCase()}</div>` : ''}
+          <div class="ccard-titulo">${pEsc(arr[IDX.LICITACAO]||'Sem título')}</div>
+          ${isAdmin && arr[IDX.EMPRESA] ? `<div style="font-size:11px;color:${CORES[arr[IDX.EMPRESA].trim().toUpperCase()]||'#888'};font-weight:700;margin-top:3px">${arr[IDX.EMPRESA].trim().toUpperCase()}</div>` : ''}
         </div>
         <div class="ccard-badges">
           ${statusBadge}${situacaoBadge}${vencBadge}${recomp}
@@ -2839,7 +2854,7 @@ function renderContratos(){
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></svg>
           </button>
           <button onclick="event.stopPropagation();abrirModalContratoById('${id}')" title="Editar contrato completo" style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);color:var(--b_);width:30px;height:30px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px" onmouseover="this.style.background='rgba(59,130,246,.2)'" onmouseout="this.style.background='rgba(59,130,246,.1)'">✏</button>
-          ${isAdmin ? `<button onclick="event.stopPropagation();abrirModalExcluir('${id}','${String(arr[3]||'').replace(/'/g,'').replace(/"/g,'').substring(0,40)}')" title="Excluir contrato (apenas GROWTH)" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:var(--r1);width:30px;height:30px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px" onmouseover="this.style.background='rgba(239,68,68,.18)'" onmouseout="this.style.background='rgba(239,68,68,.08)'">🗑</button>` : ''}
+          ${isAdmin ? `<button onclick="event.stopPropagation();abrirModalExcluir('${id}','${String(arr[IDX.LICITACAO]||'').replace(/'/g,'').replace(/"/g,'').substring(0,40)}')" title="Excluir contrato (apenas GROWTH)" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:var(--r1);width:30px;height:30px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px" onmouseover="this.style.background='rgba(239,68,68,.18)'" onmouseout="this.style.background='rgba(239,68,68,.08)'">🗑</button>` : ''}
           <span class="ccard-arrow" id="arrow-${id}">›</span>
         </div>
       </div>
@@ -2874,17 +2889,17 @@ const OPCOES_PROXACAO = ['Solicitar prorrogação','Solicitar reajuste','Solicit
 /* Índice do vencimento vigente: último aditivo preenchido, senão o original [12].
    Devolve {idx, valor, nAditivo} para que a edição grave no campo certo. */
 function vencVigente(arr){
-  // Cada aditivo tem DUAS datas possíveis: Venc. Recomp. [base+5] e Nova Data Venc. [base+2].
+  // Cada aditivo tem DUAS datas possíveis: Venc. Recomp. [base+5] e Nova Vigência [base+3].
   // Do último aditivo para o primeiro, usa a primeira data preenchida entre as duas.
   // Assim um aditivo preenchido só na "Nova Data" não é ignorado (não marca vencido à toa).
-  const blocos=[[34,4],[27,3],[20,2],[13,1]];
+  const blocos=RECOMP_IDX.map((idx,i)=>[idx[0], i+1]).reverse();
   for(const [base,n] of blocos){
     const vencRecomp = String(arr[base+5]||'').trim();  // [18],[25],[32],[39]
     const novaData   = String(arr[base+3]||'').trim();  // [16],[23],[30],[37]
     if(vencRecomp) return {idx:base+5, valor:vencRecomp, nAditivo:n};
     if(novaData)   return {idx:base+3, valor:novaData,   nAditivo:n};
   }
-  return {idx:12, valor:String(arr[12]||'').trim(), nAditivo:0};
+  return {idx:IDX.VENCIMENTO, valor:String(arr[IDX.VENCIMENTO]||'').trim(), nAditivo:0};
 }
 
 
@@ -2921,9 +2936,9 @@ function renderBody(id, arr, entry){
   const nAditivo = _vv.nAditivo;
   const histHTML = renderHistorico(entry);
   const hoje = new Date(); hoje.setHours(0,0,0,0);
-  const venc = String(arr[39]||'').trim()||String(arr[32]||'').trim()||String(arr[25]||'').trim()||String(arr[18]||'').trim()||String(arr[12]||'').trim();
+  const venc = String(arr[RECOMP_IDX[3][5]]||'').trim()||String(arr[RECOMP_IDX[2][5]]||'').trim()||String(arr[RECOMP_IDX[1][5]]||'').trim()||String(arr[RECOMP_IDX[0][5]]||'').trim()||String(arr[IDX.VENCIMENTO]||'').trim();
 
-  const _stUp = String(arr[9]||'').trim().toUpperCase();
+  const _stUp = String(arr[IDX.STATUS]||'').trim().toUpperCase();
   const _encerrado = _stUp==='FINALIZADO'||_stUp==='RESCINDIDO'||_stUp==='CANCELADO';
   let vencAlert = '';
   if(_encerrado){
@@ -2940,19 +2955,13 @@ function renderBody(id, arr, entry){
     }
   }
 
-  const hasRecomp = String(arr[13]||'').toUpperCase().trim()==='SIM';
+  const hasRecomp = String(arr[RECOMP_IDX[0][0]]||'').toUpperCase().trim()==='SIM';
   const recompBanner = hasRecomp ?
-    '<div style="background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.25);border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px"><span>\ud83d\udd04</span><span style="font-size:12px;font-weight:700;color:#fb923c">Recompos\xe7\xe3o Contratual prevista neste contrato</span></div>'
+    '<div style="background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.25);border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px"><span>\ud83d\udd04</span><span style="font-size:12px;font-weight:700;color:#fb923c">Recomposi\xe7\xe3o Contratual prevista neste contrato</span></div>'
     : '';
 
-  // 4 Recomposicoes - indices identicos ao sistema NH
-  // Recomp1:[13..19] Recomp2:[20..26] Recomp3:[27..33] Recomp4:[34..40]
-  const recompDefs = [
-    {n:1, idxs:[13,14,15,16,17,18,19]},
-    {n:2, idxs:[20,21,22,23,24,25,26]},
-    {n:3, idxs:[27,28,29,30,31,32,33]},
-    {n:4, idxs:[34,35,36,37,38,39,40]},
-  ];
+  // 4 Recomposicoes - indices identicos ao sistema NH (ver RECOMP_IDX)
+  const recompDefs = RECOMP_IDX.map((idxs,i)=>({n:i+1, idxs:idxs}));
   let recompsHTML = '';
   recompDefs.forEach(function(def){
     const idxs = def.idxs;
@@ -2989,44 +2998,44 @@ function renderBody(id, arr, entry){
       '</div></div>';
   });
 
-  const linkPasta = arr[42]||arr[21]||'';
-  const obs = arr[41]||'';
+  const linkPasta = arr[IDX.LINK]||arr[21]||'';
+  const obs = arr[IDX.OBS]||'';
   const ultimaEdicao = entry._portalUltimaEdicao || '';
 
   return vencAlert + recompBanner +
     '<div class="ccard-meta">' +
-    (arr[5]?'<div class="cmeta"><span class="cmeta-lbl">Local</span><span class="cmeta-val">'+arr[5]+'</span></div>':'') +
-    (arr[6]?'<div class="cmeta"><span class="cmeta-lbl">Munic\xedpio</span><span class="cmeta-val">'+arr[6]+'</span></div>':'') +
-    (arr[7]?'<div class="cmeta"><span class="cmeta-lbl">Valor</span><span class="cmeta-val hl">'+fmtValPortal(arr[7])+'</span></div>':'') +
-    (arr[8]?'<div class="cmeta"><span class="cmeta-lbl">Contrato</span><span class="cmeta-val">'+arr[8]+'</span></div>':'') +
-    (arr[10]?'<div class="cmeta"><span class="cmeta-lbl">Vig\xeancia</span><span class="cmeta-val">'+arr[10]+' meses</span></div>':'') +
-    (arr[11]?'<div class="cmeta"><span class="cmeta-lbl">Dt. Assinatura</span><span class="cmeta-val">'+arr[11]+'</span></div>':'') +
+    (arr[IDX.LOCAL]?'<div class="cmeta"><span class="cmeta-lbl">Local</span><span class="cmeta-val">'+arr[IDX.LOCAL]+'</span></div>':'') +
+    (arr[IDX.MUNICIPIO]?'<div class="cmeta"><span class="cmeta-lbl">Munic\xedpio</span><span class="cmeta-val">'+arr[IDX.MUNICIPIO]+'</span></div>':'') +
+    (arr[IDX.VALOR]?'<div class="cmeta"><span class="cmeta-lbl">Valor</span><span class="cmeta-val hl">'+fmtValPortal(arr[IDX.VALOR])+'</span></div>':'') +
+    (arr[IDX.CONTRATO]?'<div class="cmeta"><span class="cmeta-lbl">Contrato</span><span class="cmeta-val">'+arr[IDX.CONTRATO]+'</span></div>':'') +
+    (arr[IDX.VIGENCIA]?'<div class="cmeta"><span class="cmeta-lbl">Vig\xeancia</span><span class="cmeta-val">'+arr[IDX.VIGENCIA]+' meses</span></div>':'') +
+    (arr[IDX.DT_ASSINATURA]?'<div class="cmeta"><span class="cmeta-lbl">Dt. Assinatura</span><span class="cmeta-val">'+arr[IDX.DT_ASSINATURA]+'</span></div>':'') +
     (venc?'<div class="cmeta"><span class="cmeta-lbl">Vencimento</span><span class="cmeta-val">'+venc+'</span></div>':'') +
     (hasRecomp?'<div class="cmeta"><span class="cmeta-lbl" style="color:#f97316">Recomposi\xe7\xe3o</span><span class="cmeta-val" style="color:#fb923c;font-weight:700">Sim</span></div>':'') +
     '</div>' +
-    (arr[4]?'<p style="font-size:13px;color:var(--t2);line-height:1.7;margin-bottom:14px">'+pEsc(arr[4])+'</p>':'') +
+    (arr[IDX.OBJETO]?'<p style="font-size:13px;color:var(--t2);line-height:1.7;margin-bottom:14px">'+pEsc(arr[IDX.OBJETO])+'</p>':'') +
     (linkPasta?'<a href="'+linkPasta+'" target="_blank" class="link-pasta">\ud83d\udcc1 Abrir Pasta do Contrato <span style="opacity:.6">\u2197</span></a>':'') +
     (recompsHTML?'<div class="aditivos-wrap"><div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Recomposi\xe7\xf5es / Aditivos</div>'+recompsHTML+'</div>':'') +
     '<div class="edit-section">' +
     '<div class="edit-section-title">\u270f\ufe0f Atualizar Contrato</div>' +
-    (vencEditavel!==String(arr[12]||'')
-      ? '<div class="edit-hint">Este contrato possui aditivo. O campo abaixo altera o <strong>vencimento vigente</strong> (aditivo '+nAditivo+'\xba). O vencimento original ('+(arr[12]||'\u2014')+') n\xe3o \xe9 modificado.</div>'
+    (vencEditavel!==String(arr[IDX.VENCIMENTO]||'')
+      ? '<div class="edit-hint">Este contrato possui aditivo. O campo abaixo altera o <strong>vencimento vigente</strong> (aditivo '+nAditivo+'\xba). O vencimento original ('+(arr[IDX.VENCIMENTO]||'\u2014')+') n\xe3o \xe9 modificado.</div>'
       : '') +
     '<div class="edit-grid">' +
     '<div class="edit-field"><label>Status do Contrato</label>' +
     '<select id="edit-status-'+id+'" onchange="marcarAlterado(\''+id+'\')">'+
     '<option value="">\u2014 manter atual \u2014</option>'+
-    OPCOES_STATUS.map(function(o){return '<option value="'+o+'"'+(String(arr[9]||'').toUpperCase()===o?' selected':'')+'>'+o.charAt(0)+o.slice(1).toLowerCase()+'</option>';}).join('')+
+    OPCOES_STATUS.map(function(o){return '<option value="'+o+'"'+(String(arr[IDX.STATUS]||'').toUpperCase()===o?' selected':'')+'>'+o.charAt(0)+o.slice(1).toLowerCase()+'</option>';}).join('')+
     '</select></div>' +
     '<div class="edit-field"><label>Situa\xe7\xe3o</label>' +
     '<select id="edit-sit-'+id+'" onchange="marcarAlterado(\''+id+'\');edSituacaoLink(\''+id+'\',this.value)">'+
     '<option value="">\u2014 autom\xe1tico \u2014</option>'+
-    OPCOES_SITUACAO.map(function(o){return '<option value="'+o+'"'+(String(arr[43]||'')===o?' selected':'')+'>'+o+'</option>';}).join('')+
+    OPCOES_SITUACAO.map(function(o){return '<option value="'+o+'"'+(String(arr[IDX.SITUACAO]||'')===o?' selected':'')+'>'+o+'</option>';}).join('')+
     '</select></div>' +
     '<div class="edit-field"><label>Pr\xf3xima A\xe7\xe3o</label>' +
     '<select id="edit-pa-'+id+'" onchange="marcarAlterado(\''+id+'\')">'+
     '<option value="">\u2014 n\xe3o definida \u2014</option>'+
-    OPCOES_PROXACAO.map(function(o){return '<option value="'+o+'"'+(String(arr[49]||'')===o?' selected':'')+'>'+o+'</option>';}).join('')+
+    OPCOES_PROXACAO.map(function(o){return '<option value="'+o+'"'+(String(arr[IDX.PROX_ACAO]||'')===o?' selected':'')+'>'+o+'</option>';}).join('')+
     '</select></div>' +
     '<div class="edit-field"><label>Vencimento Vigente</label>'+
     '<input type="text" id="edit-venc-'+id+'" placeholder="DD/MM/AAAA" value="'+pEsc(vencEditavel)+'" onchange="marcarAlterado(\''+id+'\')"></div>' +
@@ -3061,28 +3070,31 @@ function rpD(s){
   return isNaN(d.getTime())?null:d;
 }
 /* Vencimento vigente: último aditivo, senão o original */
-function rpVenc(a){ return String(a[39]||'').trim()||String(a[32]||'').trim()||String(a[25]||'').trim()||String(a[18]||'').trim()||String(a[12]||'').trim(); }
+function rpVenc(a){
+  for(var i=3;i>=0;i--){ var v=String(a[RECOMP_IDX[i][5]]||'').trim(); if(v) return v; }
+  return String(a[IDX.VENCIMENTO]||'').trim();
+}
 /* Valor vigente: valor final do último aditivo, senão o original — igual a calcValorGanhas() */
 function rpValor(a){
   var v=parseMoedaV(a[40])||parseMoedaV(a[33])||parseMoedaV(a[26])||parseMoedaV(a[19]);
   return v>0?v:(parseMoedaV(a[7])||0);
 }
 function rpDias(a){ var d=rpD(rpVenc(a)); return d?Math.round((d-rpHoje())/864e5):null; }
-function rpSt(a){ return String(a[9]||'').toUpperCase().trim(); }
+function rpSt(a){ return String(a[IDX.STATUS]||'').toUpperCase().trim(); }
 function rpEncerrado(a){ var s=rpSt(a); return s==='FINALIZADO'||s==='RESCINDIDO'||s==='CANCELADO'; }
 function rpExec(a){ var s=rpSt(a); return s==='EM EXECUÇÃO'||s==='EM EXECUCAO'; }
 function rpAguard(a){ return rpSt(a).indexOf('AGUARDANDO')===0; }
-function rpEmerg(a){ return /emergenc/i.test(String(a[3]||'')+' '+String(a[4]||'')+' '+String(a[41]||'')); }
+function rpEmerg(a){ return /emergenc/i.test(String(a[IDX.LICITACAO]||'')+' '+String(a[IDX.OBJETO]||'')+' '+String(a[IDX.OBS]||'')); }
 
 /* Situação [43]; se vazia, derivada do status dos aditivos */
 function rpSituacao(a){
-  var ovr=String(a[43]||'').trim();
+  var ovr=String(a[IDX.SITUACAO]||'').trim();
   if(ovr && ovr.charAt(0)!=='(') return ovr;
   var st=rpSt(a);
   if(st==='FINALIZADO'||st==='RESCINDIDO'||st==='SUSPENSO') return '';
   if(st==='SERÁ ENCERRADO'||st==='SERA ENCERRADO') return 'Será encerrado';
   var A=false,T=false,C=false,N=false;
-  [[13,15],[20,22],[27,29],[34,36]].forEach(function(p){
+  RECOMP_IDX.map(function(b){return [b[0],b[2]]}).forEach(function(p){
     var rec=String(a[p[0]]||'').toUpperCase().trim(), sta=String(a[p[1]]||'').toUpperCase().trim();
     if(rec==='SIM'){
       if(sta.indexOf('CONCLU')>=0) C=true;
@@ -3139,7 +3151,7 @@ function rpBucket(a){
 }
 function rpOrdenar(lista){
   return lista.slice().sort(function(x,y){
-    var ex=String(x.arr[2]||'').trim(), ey=String(y.arr[2]||'').trim();
+    var ex=String(x.arr[IDX.EMPRESA]||'').trim(), ey=String(y.arr[IDX.EMPRESA]||'').trim();
     if(ex!==ey) return ex.localeCompare(ey,'pt-BR');
     var bx=rpBucket(x.arr), by=rpBucket(y.arr);
     if(bx!==by) return bx-by;
@@ -3227,7 +3239,7 @@ function rpDashboard(lista, valTot, corEmp){
   /* Distribuição por empresa */
   var qe={},ve={};
   lista.forEach(function(e){
-    var n=String(e.arr[2]||'').trim()||'Outros';
+    var n=String(e.arr[IDX.EMPRESA]||'').trim()||'Outros';
     qe[n]=(qe[n]||0)+1;
     ve[n]=(ve[n]||0)+rpValor(e.arr);
   });
@@ -3250,7 +3262,7 @@ function rpDashboard(lista, valTot, corEmp){
 function rpResumoEmpresa(lista, corEmp){
   var mp={};
   lista.forEach(function(e){
-    var a=e.arr, n=String(a[2]||'').trim()||'Outros';
+    var a=e.arr, n=String(a[IDX.EMPRESA]||'').trim()||'Outros';
     if(!mp[n]) mp[n]={q:0,v:0,ex:0,fi:0,en:0,ag:0};
     var o=mp[n]; o.q++; o.v+=rpValor(a);
     if(rpExec(a)) o.ex++;
@@ -3276,7 +3288,7 @@ function rpAlertas(lista){
   var g={venc:[],d30:[],d60:[],emer:[],agu:[],naoProrr:[],recomp:[],semVenc:[]};
   lista.forEach(function(e){
     var a=e.arr;
-    var lb=pEsc(String(a[2]||'')+' · '+(rpProc(a[3])||('#'+a[0])));
+    var lb=pEsc(String(a[IDX.EMPRESA]||'')+' · '+(rpProc(a[IDX.LICITACAO])||('#'+a[IDX.ID])));
     var d=rpDias(a);
     if(!rpEncerrado(a)){
       if(d!==null&&d<0) g.venc.push(lb+' — vencido há '+Math.abs(d)+'d');
@@ -3334,7 +3346,7 @@ function rpResumoFinal(lista){
     crit.sort(function(x,y){ var a=rpDias(x.a), b=rpDias(y.a); if(a===null)return 1; if(b===null)return -1; return a-b; });
     h+='<table class="rp-mini"><thead><tr><th>#</th><th>Empresa</th><th>Processo</th><th>Valor</th><th>Motivo da classificação</th></tr></thead><tbody>';
     crit.slice(0,30).forEach(function(x){
-      h+='<tr><td>'+pEsc(x.a[0])+'</td><td>'+pEsc(x.a[2])+'</td><td style="text-align:left">'+pEsc(rpProc(x.a[3]))+'</td>'
+      h+='<tr><td>'+pEsc(x.a[IDX.ID])+'</td><td>'+pEsc(x.a[IDX.EMPRESA])+'</td><td style="text-align:left">'+pEsc(rpProc(x.a[IDX.LICITACAO]))+'</td>'
         +'<td>'+rpBRL(rpValor(x.a))+'</td><td style="text-align:left">'+pEsc(x.mot)+'</td></tr>';
     });
     h+='</tbody></table>';
@@ -3346,7 +3358,7 @@ function rpResumoFinal(lista){
     h+='<div class="rp-nota-ok">'+opo.length+' contrato(s) em execução vencem entre 61 e 120 dias — janela adequada para instrução tempestiva de aditivo, reajuste ou nova contratação, conforme a situação registrada em cada processo.</div>';
     h+='<table class="rp-mini"><thead><tr><th>#</th><th>Empresa</th><th>Processo</th><th>Vencimento</th><th>Dias</th></tr></thead><tbody>';
     opo.sort(function(a,b){return rpDias(a)-rpDias(b);}).slice(0,20).forEach(function(a){
-      h+='<tr><td>'+pEsc(a[0])+'</td><td>'+pEsc(a[2])+'</td><td style="text-align:left">'+pEsc(rpProc(a[3]))+'</td>'
+      h+='<tr><td>'+pEsc(a[IDX.ID])+'</td><td>'+pEsc(a[IDX.EMPRESA])+'</td><td style="text-align:left">'+pEsc(rpProc(a[IDX.LICITACAO]))+'</td>'
         +'<td>'+pEsc(rpVenc(a))+'</td><td>'+rpDias(a)+'</td></tr>';
     });
     h+='</tbody></table>';
@@ -3454,7 +3466,7 @@ function gerarHTMLImpressao(entries, opts){
   const _lista   = rpOrdenar(entries);
   const _valTot  = _lista.reduce((s,e)=>s+rpValor(e.arr),0);
   const _corEmp  = (n)=> CORES[String(n||'').trim().toUpperCase()] || '#374151';
-  const _multi   = new Set(_lista.map(e=>String(e.arr[2]||'').trim())).size > 1;
+  const _multi   = new Set(_lista.map(e=>String(e.arr[IDX.EMPRESA]||'').trim())).size > 1;
 
   _RPSEC=0;
   if(_execOn){
@@ -3467,10 +3479,10 @@ function gerarHTMLImpressao(entries, opts){
 
   const hoje2 = new Date(); hoje2.setHours(0,0,0,0);
   _lista.forEach(({arr, _portalUltimaEdicao})=>{
-    const status = String(arr[9]||'').trim() || 'EM EXECUÇÃO';
+    const status = String(arr[IDX.STATUS]||'').trim() || 'EM EXECUÇÃO';
     const statusUp = status.toUpperCase();
     const badgeCls = statusUp==='FINALIZADO'?'b-fin':statusUp==='RESCINDIDO'||statusUp==='SUSPENSO'?'b-sus':statusUp.includes('VENCID')?'b-venc':'b-exec';
-    const venc = arr[39]||arr[32]||arr[25]||arr[18]||arr[12]||'';
+    const venc = arr[RECOMP_IDX[3][5]]||arr[RECOMP_IDX[2][5]]||arr[RECOMP_IDX[1][5]]||arr[RECOMP_IDX[0][5]]||arr[IDX.VENCIMENTO]||'';
     let vencAlert = '';
     if(venc){
       const p=venc.split(' ')[0].split('/');
@@ -3481,9 +3493,9 @@ function gerarHTMLImpressao(entries, opts){
         else if(dias<=90) vencAlert=`<div class="venc-alert venc-prox">⏰ Vence em ${dias} dias</div>`;
       }
     }
-    const linkPasta = arr[42]||arr[19]||'';
-    const obs = arr[41]||'';
-    const empNome = String(arr[2]||'').trim().toUpperCase();
+    const linkPasta = arr[IDX.LINK]||arr[21]||''; // link antigo gravado por engano em [21] — ver mcAbrirEdicao
+    const obs = arr[IDX.OBS]||'';
+    const empNome = String(arr[IDX.EMPRESA]||'').trim().toUpperCase();
     const empCor = CORES[empNome] || '#6b7280';
     // Borda lateral colorida pela empresa (GROWTH vê todas)
     const borderCor = isAdmin ? empCor : cor;
@@ -3492,25 +3504,25 @@ function gerarHTMLImpressao(entries, opts){
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
         <div>
           ${isAdmin && empNome ? `<span class="emp-tag" style="background:${empCor}22;color:${empCor};border:1px solid ${empCor}44">${empNome}</span>` : ''}
-          <span class="c-titulo" style="display:inline">#${arr[0]||'?'} — ${arr[3]||'Sem título'}</span>
+          <span class="c-titulo" style="display:inline">#${arr[IDX.ID]||'?'} — ${arr[IDX.LICITACAO]||'Sem título'}</span>
         </div>
         <span class="badge-status ${badgeCls}">${status}</span>
       </div>
       ${vencAlert}
       ${opts.basico ? `<div class="c-grid">
-        ${arr[5]?`<div class="c-field"><div class="c-lbl" style="color:${borderCor}">Local</div><div class="c-val">${arr[5]}</div></div>`:''}
-        ${arr[6]?`<div class="c-field"><div class="c-lbl" style="color:${borderCor}">Município</div><div class="c-val">${arr[6]}</div></div>`:''}
-        ${arr[7]?`<div class="c-field"><div class="c-lbl" style="color:${borderCor}">Valor</div><div class="c-val">${fmtValPortal(arr[7])}</div></div>`:''}
-        ${arr[8]?`<div class="c-field"><div class="c-lbl" style="color:${borderCor}">Contrato</div><div class="c-val">${arr[8]}</div></div>`:''}
-        ${arr[10]?`<div class="c-field"><div class="c-lbl" style="color:${borderCor}">Vigência</div><div class="c-val">${arr[10]} meses</div></div>`:''}
-        ${arr[11]?`<div class="c-field"><div class="c-lbl" style="color:${borderCor}">Dt. Assinatura</div><div class="c-val">${arr[11]}</div></div>`:''}
+        ${arr[IDX.LOCAL]?`<div class="c-field"><div class="c-lbl" style="color:${borderCor}">Local</div><div class="c-val">${arr[IDX.LOCAL]}</div></div>`:''}
+        ${arr[IDX.MUNICIPIO]?`<div class="c-field"><div class="c-lbl" style="color:${borderCor}">Município</div><div class="c-val">${arr[IDX.MUNICIPIO]}</div></div>`:''}
+        ${arr[IDX.VALOR]?`<div class="c-field"><div class="c-lbl" style="color:${borderCor}">Valor</div><div class="c-val">${fmtValPortal(arr[IDX.VALOR])}</div></div>`:''}
+        ${arr[IDX.CONTRATO]?`<div class="c-field"><div class="c-lbl" style="color:${borderCor}">Contrato</div><div class="c-val">${arr[IDX.CONTRATO]}</div></div>`:''}
+        ${arr[IDX.VIGENCIA]?`<div class="c-field"><div class="c-lbl" style="color:${borderCor}">Vigência</div><div class="c-val">${arr[IDX.VIGENCIA]} meses</div></div>`:''}
+        ${arr[IDX.DT_ASSINATURA]?`<div class="c-field"><div class="c-lbl" style="color:${borderCor}">Dt. Assinatura</div><div class="c-val">${arr[IDX.DT_ASSINATURA]}</div></div>`:''}
         ${venc?`<div class="c-field"><div class="c-lbl" style="color:${borderCor}">Vencimento</div><div class="c-val">${venc}</div></div>`:''}
-        ${arr[13]==='SIM'?`<div class="c-field"><div class="c-lbl" style="color:#f97316">Recomp.</div><div class="c-val" style="color:#f97316;font-weight:700">Sim</div></div>`:''}
+        ${arr[RECOMP_IDX[0][0]]==='SIM'?`<div class="c-field"><div class="c-lbl" style="color:#f97316">Recomp.</div><div class="c-val" style="color:#f97316;font-weight:700">Sim</div></div>`:''}
       </div>` : ''}
       ${opts.link && linkPasta ? `<div style="margin:6px 0 8px"><span style="font-size:9px;font-weight:700;color:${borderCor}">PASTA: </span><span style="font-size:9px;color:#374151;word-break:break-all">${linkPasta}</span></div>` : ''}
-      ${opts.objeto && arr[4] ? `<div style="font-size:10px;color:#6b7280;margin-bottom:8px;line-height:1.5;padding:6px 8px;background:#f9fafb;border-radius:4px"><strong style="color:#374151">Objeto: </strong>${arr[4]}</div>` : ''}
+      ${opts.objeto && arr[IDX.OBJETO] ? `<div style="font-size:10px;color:#6b7280;margin-bottom:8px;line-height:1.5;padding:6px 8px;background:#f9fafb;border-radius:4px"><strong style="color:#374151">Objeto: </strong>${arr[IDX.OBJETO]}</div>` : ''}
       ${opts.recomp ? (() => {
-        const rGrupos = [[13,14,15,16,17,18,19],[20,21,22,23,24,25,26],[27,28,29,30,31,32,33],[34,35,36,37,38,39,40]];
+        const rGrupos = RECOMP_IDX;
         const rHtml = rGrupos.map((idx,i) => {
           const sim=String(arr[idx[0]]||'').trim(), tipo=String(arr[idx[1]]||'').trim(),
                 stR=String(arr[idx[2]]||'').trim(), ndv=String(arr[idx[3]]||'').trim(),
@@ -3550,8 +3562,8 @@ function gerarHTMLImpressao(entries, opts){
     var p=String(venc).split(' ')[0].split('/'); if(p.length!==3) return null;
     return Math.round((new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]))-_hoje2)/86400000);
   }
-  function _vencFinal(arr){ return arr[39]||arr[32]||arr[25]||arr[18]||arr[12]||''; }
-  function _status(arr){ return String(arr[9]||'').trim().toUpperCase(); }
+  function _vencFinal(arr){ return arr[RECOMP_IDX[3][5]]||arr[RECOMP_IDX[2][5]]||arr[RECOMP_IDX[1][5]]||arr[RECOMP_IDX[0][5]]||arr[IDX.VENCIMENTO]||''; }
+  function _status(arr){ return String(arr[IDX.STATUS]||'').trim().toUpperCase(); }
 
   var totCats = {
     total:      { lbl:'Total Geral',         cor:'#8b5cf6', n:0, val:0 },
@@ -3624,12 +3636,23 @@ function irPagina(p){
 }
 
 // ─── EXPANDIR / RECOLHER TUDO ────────────────────────────────────
+// Aplica o mesmo mecanismo do toggleCard (classe 'open' no ccard-body +
+// rotação da seta) a todos os cards renderizados na página atual.
 let _todoExpandido = false;
 function toggleExpandirTudo(){
   _todoExpandido = !_todoExpandido;
-  document.querySelectorAll('.ccard').forEach(el=>{
-    if(_todoExpandido) el.classList.remove('collapsed');
-    else el.classList.add('collapsed');
+  document.querySelectorAll('.ccard-body').forEach(body=>{
+    const id = body.id.slice(5); // remove o prefixo 'body-'
+    const arrow = document.getElementById('arrow-'+id);
+    if(_todoExpandido){
+      body.classList.add('open');
+      if(arrow) arrow.style.transform = 'rotate(90deg)';
+      abertos[id] = true;
+    } else {
+      body.classList.remove('open');
+      if(arrow) arrow.style.transform = 'rotate(0deg)';
+      abertos[id] = false;
+    }
   });
   const btn = document.getElementById('btn-expandir-tudo');
   if(btn) btn.textContent = _todoExpandido ? '⊟ Recolher tudo' : '⊞ Expandir tudo';
@@ -3652,12 +3675,12 @@ function exportarExcelPortal(){
   const rows = [cols];
   lista.forEach(({arr})=>{
     rows.push([
-      s(arr[0]),s(arr[1]),s(arr[2]),s(arr[3]),s(arr[4]),s(arr[5]),s(arr[6]),
-      parseMoedaV(arr[7])||s(arr[7]),
-      s(arr[8]),s(arr[9]),s(arr[10]),s(arr[11]),s(arr[12]),s(arr[13]),
-      s(arr[14]),s(arr[15]),s(arr[16]),s(arr[17]),s(arr[18]),
-      parseMoedaV(arr[19])||s(arr[19]),
-      s(arr[41]),s(arr[42])
+      s(arr[IDX.ID]),s(arr[IDX.DATA]),s(arr[IDX.EMPRESA]),s(arr[IDX.LICITACAO]),s(arr[IDX.OBJETO]),s(arr[IDX.LOCAL]),s(arr[IDX.MUNICIPIO]),
+      parseMoedaV(arr[IDX.VALOR])||s(arr[IDX.VALOR]),
+      s(arr[IDX.CONTRATO]),s(arr[IDX.STATUS]),s(arr[IDX.VIGENCIA]),s(arr[IDX.DT_ASSINATURA]),s(arr[IDX.VENCIMENTO]),s(arr[RECOMP_IDX[0][0]]),
+      s(arr[RECOMP_IDX[0][1]]),s(arr[RECOMP_IDX[0][2]]),s(arr[RECOMP_IDX[0][3]]),s(arr[RECOMP_IDX[0][4]]),s(arr[RECOMP_IDX[0][5]]),
+      parseMoedaV(arr[RECOMP_IDX[0][6]])||s(arr[RECOMP_IDX[0][6]]),
+      s(arr[IDX.OBS]),s(arr[IDX.LINK])
     ]);
   });
 
@@ -3722,8 +3745,8 @@ function getListaFiltrada(){
 
   if(filtroStatus){
     lista = lista.filter(({arr})=>{
-      const st=String(arr[9]||'').trim().toUpperCase();
-      const vd=arr[39]||arr[32]||arr[25]||arr[18]||arr[12]||'';
+      const st=String(arr[IDX.STATUS]||'').trim().toUpperCase();
+      const vd=arr[RECOMP_IDX[3][5]]||arr[RECOMP_IDX[2][5]]||arr[RECOMP_IDX[1][5]]||arr[RECOMP_IDX[0][5]]||arr[IDX.VENCIMENTO]||'';
       let dtVenc=null;
       if(vd){const p=String(vd).split(' ')[0].split('/');if(p.length===3)dtVenc=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));}
       const exec=st==='EM EXECUÇÃO'||st==='EM EXECUCAO';
@@ -3733,22 +3756,18 @@ function getListaFiltrada(){
       if(filtroStatus==='prox'){if(!exec||vencido||!dtVenc)return false;return Math.round((dtVenc-hoje)/86400000)>0&&Math.round((dtVenc-hoje)/86400000)<=90;}
       if(filtroStatus==='fin')    return st==='FINALIZADO';
       if(filtroStatus==='aguard') return st==='AGUARDANDO CONTRATO';
-      if(filtroStatus==='recomp') return String(arr[13]||'').toUpperCase().trim()==='SIM';
+      if(filtroStatus==='recomp') return String(arr[RECOMP_IDX[0][0]]||'').toUpperCase().trim()==='SIM';
       if(filtroStatus==='susp')   return st==='SUSPENSO';
       if(filtroStatus==='resc')   return st==='RESCINDIDO';
       return true;
     });
   }
-  if(filtroEmpresa) lista=lista.filter(({arr})=>String(arr[2]||'').trim().toUpperCase()===filtroEmpresa);
+  if(filtroEmpresa) lista=lista.filter(({arr})=>String(arr[IDX.EMPRESA]||'').trim().toUpperCase()===filtroEmpresa);
   const busca=(document.getElementById('inp-busca')?.value||'').toLowerCase().trim();
   if(busca) lista=lista.filter(({arr})=>arr.some(v=>String(v||'').toLowerCase().includes(busca)));
   return lista;
 }
 
-function imprimirTodos(){
-  _printLista = null;
-  abrirModalPrint();
-}
 function toggleCard(id){
   const body = document.getElementById('body-'+id);
   const arrow = document.getElementById('arrow-'+id);
@@ -3830,14 +3849,14 @@ async function salvarAlteracoes(id){
     const vv = vencVigente(entry.arr);
 
     const mudou = {};
-    if(novoStatus && novoStatus!==arr[9]){ arr[9]=novoStatus; mudou.status=novoStatus; }
-    if(novaSit !== String(arr[43]||'')){ arr[43]=novaSit; mudou.situacao = novaSit || '(automático)'; }
-    if(novaPA  !== String(arr[49]||'')){ arr[49]=novaPA;  mudou.proxAcao = novaPA || '(não definida)'; }
+    if(novoStatus && novoStatus!==arr[IDX.STATUS]){ arr[IDX.STATUS]=novoStatus; mudou.status=novoStatus; }
+    if(novaSit !== String(arr[IDX.SITUACAO]||'')){ arr[IDX.SITUACAO]=novaSit; mudou.situacao = novaSit || '(automático)'; }
+    if(novaPA  !== String(arr[IDX.PROX_ACAO]||'')){ arr[IDX.PROX_ACAO]=novaPA;  mudou.proxAcao = novaPA || '(não definida)'; }
     if(novoVenc && novoVenc!==String(arr[vv.idx]||'')){
       arr[vv.idx]=novoVenc;
       mudou.venc = novoVenc + (vv.nAditivo ? ' ('+vv.nAditivo+'º aditivo)' : '');
     }
-    if(novaObs !== String(arr[41]||'')){ arr[41]=novaObs; mudou.obsAlterada = true; }
+    if(novaObs !== String(arr[IDX.OBS]||'')){ arr[IDX.OBS]=novaObs; mudou.obsAlterada = true; }
 
     if(!Object.keys(mudou).length){
       btn.disabled=false; btn.textContent='\ud83d\udcbe Salvar Alterações';
