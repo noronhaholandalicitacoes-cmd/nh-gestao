@@ -1188,8 +1188,12 @@ const firebaseConfig = {
   messagingSenderId: "1081646053691",
   appId: "1:1081646053691:web:a8abcb5792d026ade71f1e"
 };
-(function(){try{if(!localStorage.getItem("nh_idb_limpo_v1")){var _dbs=["firestore/[DEFAULT]/nh-licitacoes/main","firebaseLocalStorageDb"];if(window.indexedDB&&indexedDB.databases){indexedDB.databases().then(function(list){(list||[]).forEach(function(d){if(d&&d.name&&d.name.indexOf("firestore")!==-1){try{indexedDB.deleteDatabase(d.name);}catch(e){}}});});}else{_dbs.forEach(function(n){try{indexedDB.deleteDatabase(n);}catch(e){}});}localStorage.setItem("nh_idb_limpo_v1","1");}}catch(e){}})();if(!firebase.apps || !firebase.apps.length) firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();db.settings({experimentalAutoDetectLongPolling:true,merge:true});
+(function(){try{if(!localStorage.getItem("nh_idb_limpo_v1")){var _dbs=["firestore/[DEFAULT]/nh-licitacoes/main","firebaseLocalStorageDb"];if(window.indexedDB&&indexedDB.databases){indexedDB.databases().then(function(list){(list||[]).forEach(function(d){if(d&&d.name&&d.name.indexOf("firestore")!==-1){try{indexedDB.deleteDatabase(d.name);}catch(e){}}});});}else{_dbs.forEach(function(n){try{indexedDB.deleteDatabase(n);}catch(e){}});}localStorage.setItem("nh_idb_limpo_v1","1");}}catch(e){}})();
+/* Instância nomeada, isolada da instância padrão que o index (74).html usa —
+   sem isso, o login por WhatsApp aqui derruba a sessão de admin do sistema
+   principal quando os dois ficam abertos em abas ao mesmo tempo. */
+var _portalApp=(firebase.apps||[]).filter(function(a){return a.name==='nh-portal';})[0]||firebase.initializeApp(firebaseConfig,'nh-portal');
+const db = _portalApp.firestore();db.settings({experimentalAutoDetectLongPolling:true,merge:true});
 
 // Cores das empresas
 let CORES = {
@@ -1240,7 +1244,7 @@ let filtroAtual = 'todos';
 let _pgAtual = 1;
 const PS_PORTAL = 20; // registros por página
 const EMPRESAS_SISTEMA = ['VISE','SOS','SOS FILIAL','SAUTEC','ONLAV','ENGEMED'];
-const auth = firebase.auth();
+const auth = _portalApp.auth();
 var CONTA_MESTRA_EMPRESAS = null; // travado no login da conta mestra — nunca cresce sozinho
 var EMP_NOME_POR_CNPJ = {};
 
