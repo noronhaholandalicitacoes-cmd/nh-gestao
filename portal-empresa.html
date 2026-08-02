@@ -7,6 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><defs><radialGradient id='g' cx='35%25' cy='30%25' r='70%25'><stop offset='0%25' stop-color='%23f472b6'/><stop offset='100%25' stop-color='%23be185d'/></radialGradient></defs><circle cx='24' cy='24' r='24' fill='url(%23g)'/><text x='24' y='31' text-anchor='middle' fill='white' font-family='Arial Black,sans-serif' font-weight='900' font-size='15'>NH</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;800&display=swap" rel="stylesheet">
 
 <style>
 :root {
@@ -279,15 +280,33 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
 @keyframes ccardOpen{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 
 .ccard-meta{
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;
-  padding:14px;margin-bottom:16px;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:16px 22px;align-items:start;
+  padding:16px 18px;margin-bottom:16px;
   background:var(--s2);border:1px solid var(--b1);border-radius:10px;
 }
-/* Mesma linha label/valor do Sistema NH (.kmeta/.kmeta-lbl/.kmeta-val) */
-.cmeta{display:flex;align-items:center;gap:7px}
-.cmeta-lbl{font-size:12px;font-weight:700;color:var(--nh);text-transform:uppercase;letter-spacing:.08em;flex-shrink:0}
-.cmeta-val{font-size:14px;color:var(--t1);font-weight:500}
-.cmeta-val.hl{color:var(--nh);font-weight:800;font-size:16px;font-family:'DM Sans',sans-serif}
+/* Label em cima, valor embaixo: com 7 campos de tamanhos muito
+   diferentes na mesma faixa (de "12 meses" a um endereço de 4 linhas),
+   label e valor lado a lado brigavam pela largura da célula e o bloco
+   inteiro ficava desalinhado. Empilhado, os labels alinham entre si e
+   os valores também, independente do tamanho do texto. */
+.cmeta{display:flex;flex-direction:column;gap:5px;min-width:0}
+.cmeta-lbl{
+  font-size:9.5px;font-weight:700;color:var(--t3);
+  text-transform:uppercase;letter-spacing:.09em;line-height:1;
+}
+.cmeta-val{
+  font-size:13.5px;color:var(--t1);font-weight:600;line-height:1.45;
+  overflow-wrap:anywhere;
+}
+.cmeta-val.hl{
+  color:var(--nh);font-weight:800;font-size:17px;line-height:1.2;
+  font-family:'DM Sans',sans-serif;letter-spacing:-.01em;
+}
+/* O endereço é sempre o campo mais longo — ocupa 2 colunas para não
+   virar uma coluna estreita de 4 linhas ao lado de datas curtas. */
+.cmeta.wide{grid-column:span 2}
+@media(max-width:620px){.cmeta.wide{grid-column:auto}}
 
 /* Aditivos */
 .aditivos-wrap{margin-bottom:16px}
@@ -452,13 +471,23 @@ textarea.mc-input{resize:vertical;min-height:64px}
 .mc-ata-calc b{font-weight:800}
 
 /* ===== KPIs do topo (Resumo dos Contratos) ===== */
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:18px}
-.kpi-card{background:linear-gradient(135deg,#12121c 0%,#0e0e16 100%);border:1px solid var(--b1);border-left:4px solid var(--kc);border-radius:14px;padding:18px 20px;min-width:0;transition:transform .15s,box-shadow .15s}
+/* Mesmo cartão de indicador do Resumo Geral do sistema (.r-kpi):
+   fundo liso, borda esquerda na cor do indicador, fio de brilho no
+   topo, label miúdo e mudo, número grande em fonte monoespaçada.
+   O brilho do topo vai no background (e não em ::before) porque os
+   pseudo-elementos do .kpi-card já são usados pelo efeito NH DEPTH. */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:13px;margin-bottom:20px}
+.kpi-card{
+  background:linear-gradient(90deg,var(--kc),transparent 55%) top left/100% 2px no-repeat,var(--s2);
+  border:1px solid var(--b1);border-left:4px solid var(--kc);
+  border-radius:12px;padding:20px 19px;min-width:0;
+  transition:transform .15s ease,box-shadow .15s ease;
+}
 .kpi-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.35)}
-.kpi-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.kpi-num{font-size:34px;line-height:1;font-weight:800;font-family:'Syne',sans-serif;color:var(--t1);letter-spacing:-.5px}
-.kpi-sub{font-size:14px;color:var(--t2);margin-top:8px;font-weight:700}
-@media(max-width:720px){.kpi-grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}.kpi-num{font-size:26px}}
+.kpi-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi-num{font-size:32px;line-height:1;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--kc);letter-spacing:-1px;position:relative;z-index:1}
+.kpi-sub{font-size:11px;color:var(--t3);margin-top:5px;font-weight:500;position:relative;z-index:1}
+@media(max-width:720px){.kpi-grid{grid-template-columns:repeat(auto-fit,minmax(145px,1fr))}.kpi-num{font-size:26px}}
 
 /* ===== Rosca + legenda em HTML ===== */
 .donut-wrap{display:flex;align-items:center;justify-content:flex-start;gap:18px;flex-wrap:nowrap;flex:1}
@@ -2644,7 +2673,7 @@ function renderStats(){
 
   const sc = function(lbl,n,cor,sub){
     return '<div class="kpi-card" style="--kc:'+cor+'">'+
-      '<div class="kpi-lbl" style="color:'+cor+'">'+lbl+'</div>'+
+      '<div class="kpi-lbl">'+lbl+'</div>'+
       '<div class="kpi-num">'+n+'</div>'+
       (sub?'<div class="kpi-sub">'+sub+'</div>':'')+
     '</div>';
@@ -3020,7 +3049,7 @@ function renderBody(id, arr, entry){
 
   return vencAlert + recompBanner +
     '<div class="ccard-meta">' +
-    (arr[IDX.LOCAL]?'<div class="cmeta"><span class="cmeta-lbl">Local</span><span class="cmeta-val">'+arr[IDX.LOCAL]+'</span></div>':'') +
+    (arr[IDX.LOCAL]?'<div class="cmeta wide"><span class="cmeta-lbl">Local</span><span class="cmeta-val">'+arr[IDX.LOCAL]+'</span></div>':'') +
     (arr[IDX.MUNICIPIO]?'<div class="cmeta"><span class="cmeta-lbl">Munic\xedpio</span><span class="cmeta-val">'+arr[IDX.MUNICIPIO]+'</span></div>':'') +
     (arr[IDX.VALOR]?'<div class="cmeta"><span class="cmeta-lbl">Valor</span><span class="cmeta-val hl">'+fmtValPortal(arr[IDX.VALOR])+'</span></div>':'') +
     (arr[IDX.CONTRATO]?'<div class="cmeta"><span class="cmeta-lbl">Contrato</span><span class="cmeta-val">'+arr[IDX.CONTRATO]+'</span></div>':'') +
