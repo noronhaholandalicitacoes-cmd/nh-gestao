@@ -1175,6 +1175,142 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
   .bsc-meta{grid-template-columns:1fr 1fr;gap:10px 14px}
 }
 
+/* ══════════════════════════════════════════════════════════
+   PESQUISA DE PREÇO (.pp-*)
+   Preços realmente homologados, vindos do módulo de
+   contratações do Compras.gov.br. Mesma linguagem visual do
+   buscador (.bsc-*), com a área de estatísticas por cima.
+   ══════════════════════════════════════════════════════════ */
+.pp-hero{
+  position:relative;overflow:hidden;
+  background:
+    radial-gradient(900px 300px at 12% -40%,rgba(34,197,94,.13),transparent 70%),
+    linear-gradient(180deg,var(--s2),var(--s1));
+  border:1px solid var(--b1);border-radius:18px;
+  padding:24px 26px 22px;margin-bottom:18px;
+  box-shadow:0 1px 2px rgba(0,0,0,.4),0 20px 44px -22px rgba(0,0,0,.7);
+}
+.pp-hero::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,#22c55e,rgba(34,197,94,.25) 35%,transparent 70%);
+}
+.pp-hero-top{display:flex;align-items:flex-start;gap:14px;margin-bottom:18px}
+.pp-hero-tit{font-size:19px;font-weight:800;color:var(--t1);letter-spacing:-.2px;line-height:1.15}
+.pp-hero-sub{font-size:12px;color:var(--t3);margin-top:4px;line-height:1.5}
+.pp-campo-lbl{
+  display:block;font-size:10.5px;font-weight:800;color:#22c55e;
+  text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;
+}
+.pp-row{display:flex;gap:11px;align-items:stretch}
+.pp-busca{
+  flex:1;min-width:0;display:flex;align-items:center;gap:10px;
+  background:var(--bg);border:2px solid var(--b2);border-radius:13px;
+  padding:0 8px 0 20px;transition:border-color .18s,box-shadow .18s;
+}
+.pp-busca:focus-within{border-color:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,.14)}
+.pp-busca input{
+  flex:1;min-width:0;background:none;border:none;outline:none;
+  color:var(--t1);font-size:17px;font-weight:600;font-family:Outfit,sans-serif;
+  padding:19px 0;letter-spacing:-.1px;
+}
+.pp-busca input::placeholder{color:var(--t3);font-weight:400;letter-spacing:0}
+.pp-btn{
+  background:linear-gradient(135deg,#059669,#22c55e);color:#fff;border:none;
+  padding:0 34px;border-radius:13px;font-weight:800;font-size:15px;cursor:pointer;
+  font-family:Outfit,sans-serif;white-space:nowrap;
+  box-shadow:0 4px 16px rgba(34,197,94,.3);transition:filter .15s,transform .12s;
+}
+.pp-btn:hover{filter:brightness(1.1)}
+.pp-btn:active{transform:translateY(1px)}
+.pp-btn:disabled{opacity:.55;cursor:default;filter:none;box-shadow:none}
+
+.pp-linha{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;margin-top:14px}
+.pp-item{display:flex;flex-direction:column;gap:6px}
+.pp-lbl{font-size:9.5px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.09em}
+.pp-item select,.pp-item input{
+  background:var(--s2);border:1px solid var(--b1);color:var(--t1);
+  padding:9px 12px;border-radius:9px;font-size:12.5px;font-family:Outfit,sans-serif;
+  transition:border-color .15s;
+}
+.pp-item select:focus,.pp-item input:focus{outline:none;border-color:#22c55e}
+.pp-seg{display:flex;gap:0;background:var(--s2);border:1px solid var(--b1);border-radius:9px;padding:3px}
+.pp-seg button{
+  background:none;border:none;color:var(--t3);padding:6px 15px;border-radius:7px;
+  font-size:11.5px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;
+  transition:all .15s;white-space:nowrap;
+}
+.pp-seg button.on{background:#22c55e;color:#fff;box-shadow:0 2px 8px rgba(34,197,94,.35)}
+.pp-seg button:not(.on):hover{color:var(--t1)}
+
+/* Barra de progresso da carga */
+.pp-prog{margin-top:16px;display:none}
+.pp-prog.on{display:block}
+.pp-prog-txt{font-size:12px;color:var(--t2);margin-bottom:7px;display:flex;justify-content:space-between;gap:10px}
+.pp-prog-bar{height:6px;background:var(--s3);border-radius:3px;overflow:hidden}
+.pp-prog-fill{height:100%;background:linear-gradient(90deg,#059669,#22c55e);border-radius:3px;transition:width .25s;width:0}
+
+/* Painel de estatísticas */
+.pp-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:13px;margin-bottom:16px}
+.pp-stat{
+  background:linear-gradient(90deg,var(--pc,var(--t3)),transparent 55%) top left/100% 2px no-repeat,var(--s2);
+  border:1px solid var(--b1);border-left:4px solid var(--pc,var(--b2));
+  border-radius:12px;padding:18px 17px;
+}
+.pp-stat-l{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:8px}
+.pp-stat-v{font-size:22px;font-weight:800;line-height:1.1;font-family:'JetBrains Mono',monospace;letter-spacing:-1px;color:var(--pc,var(--t1));overflow-wrap:anywhere}
+.pp-stat-s{font-size:10.5px;color:var(--t3);margin-top:5px}
+
+/* Aviso de comparação com o nosso banco */
+.pp-nosso{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  background:linear-gradient(90deg,rgba(249,115,22,.10),transparent 70%);
+  border-left:3px solid var(--nh);border-radius:0 10px 10px 0;
+  padding:12px 15px;margin-bottom:16px;font-size:12.5px;color:var(--t2);
+}
+
+.pp-barra{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  background:var(--s1);border:1px solid var(--b1);border-radius:12px;
+  padding:12px 16px;margin-bottom:12px;
+}
+.pp-cont{font-size:12.5px;color:var(--t2);font-weight:600;display:flex;align-items:baseline;gap:7px}
+.pp-cont b{color:#22c55e;font-size:21px;font-weight:800;font-family:'JetBrains Mono',monospace;letter-spacing:-1px}
+
+/* Lista de compras */
+.pp-tab-wrap{overflow-x:auto;background:var(--s1);border:1px solid var(--b1);border-radius:12px}
+.pp-tab{width:100%;border-collapse:collapse;min-width:820px}
+.pp-tab th{
+  text-align:left;padding:11px 13px;font-size:9.5px;color:var(--t3);
+  text-transform:uppercase;letter-spacing:.09em;font-weight:700;
+  border-bottom:1px solid var(--b1);white-space:nowrap;background:var(--s2);
+}
+.pp-tab td{padding:12px 13px;font-size:12.5px;color:var(--t1);border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top}
+.pp-tab tr:last-child td{border-bottom:none}
+.pp-tab tr:hover td{background:var(--s2)}
+.pp-desc{max-width:340px;line-height:1.5;font-weight:500}
+.pp-val{font-family:'JetBrains Mono',monospace;font-weight:800;color:#22c55e;white-space:nowrap;font-size:13px}
+.pp-val.alto{color:#ef4444}
+.pp-val.baixo{color:#3b82f6}
+.pp-forn{font-size:11.5px;color:var(--t2);font-weight:600}
+.pp-loc{font-size:11px;color:var(--t3);white-space:nowrap}
+.pp-uf{
+  display:inline-block;font-size:9.5px;font-weight:800;padding:2px 7px;
+  border-radius:5px;background:var(--s3);border:1px solid var(--b1);color:var(--t2);margin-left:4px;
+}
+.pp-vazio{text-align:center;color:var(--t3);padding:56px 20px;font-size:13.5px;line-height:1.7}
+.pp-vazio .ic{font-size:42px;display:block;margin-bottom:14px;opacity:.45}
+
+@media(max-width:620px){
+  .pp-hero{padding:18px 16px}
+  .pp-hero-tit{font-size:17px}
+  .pp-row{flex-direction:column}
+  .pp-busca input{font-size:15.5px;padding:15px 0}
+  .pp-btn{padding:14px}
+  .pp-linha{gap:13px}
+  .pp-stats{grid-template-columns:1fr 1fr;gap:10px}
+  .pp-stat{padding:14px 13px}
+  .pp-stat-v{font-size:18px}
+}
 /* ─── Filtro de período ───────────────────────────────── */
 .r-periodo{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap}
 .r-periodo-label{font-size:11px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
@@ -2349,6 +2485,10 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
       <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
       <span>Buscador</span>
     </div>
+    <div class="sb-item" id="nav-precos" onclick="go('precos',this)">
+      <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 20h18M7 20V10m5 10V4m5 16v-7"/></svg>
+      <span>Pesquisa de Pre&ccedil;o</span>
+    </div>
     <div class="sb-divider"></div>
     <div class="sb-item" id="nav-editais" onclick="go('editais',this)">
       <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -3260,6 +3400,75 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
 </div>
 </div>
 
+    <div class="page" id="page-precos">
+<div style="padding:0 0 32px">
+
+  <div class="pp-hero">
+    <div class="pp-hero-top">
+      <div>
+        <div class="pp-hero-tit">Pesquisa de Pre&ccedil;o</div>
+        <div class="pp-hero-sub">Pre&ccedil;os <b>realmente homologados</b> em compras p&uacute;blicas &mdash; base oficial do Compras.gov.br / PNCP</div>
+      </div>
+      <div class="pp-hero-chip" id="pp-chip" style="margin-left:auto;font-size:11px;font-weight:700;color:var(--t3);background:var(--s2);border:1px solid var(--b1);border-radius:20px;padding:5px 12px;white-space:nowrap"></div>
+    </div>
+
+    <label class="pp-campo-lbl" for="pp-termo">&#128269; O que voc&ecirc; quer or&ccedil;ar</label>
+    <div class="pp-row">
+      <div class="pp-busca">
+        <input type="text" id="pp-termo" placeholder="Ex: cadeira giratória, manutenção de ar condicionado, papel A4..." onkeydown="if(event.key==='Enter')nhPPAnalisar()">
+      </div>
+      <button class="pp-btn" id="pp-btn" onclick="nhPPAnalisar()">Analisar mercado</button>
+    </div>
+
+    <div class="pp-linha">
+      <div class="pp-item">
+        <span class="pp-lbl">Tipo</span>
+        <div class="pp-seg" id="pp-tipo">
+          <button class="on" data-t="M" onclick="nhPPSetTipo('M')">&#128230; Material</button>
+          <button data-t="S" onclick="nhPPSetTipo('S')">&#128736; Servi&ccedil;o</button>
+        </div>
+      </div>
+      <div class="pp-item">
+        <span class="pp-lbl">Per&iacute;odo analisado</span>
+        <select id="pp-periodo" onchange="nhPPPeriodoMudou()">
+          <option value="30">&Uacute;ltimos 30 dias</option>
+          <option value="60">&Uacute;ltimos 60 dias</option>
+          <option value="90" selected>&Uacute;ltimos 90 dias</option>
+        </select>
+      </div>
+      <div class="pp-item">
+        <span class="pp-lbl">Combinar palavras</span>
+        <div class="pp-seg" id="pp-modo">
+          <button class="on" data-m="e" onclick="nhPPSetModo('e')">Todas</button>
+          <button data-m="ou" onclick="nhPPSetModo('ou')">Qualquer</button>
+          <button data-m="exato" onclick="nhPPSetModo('exato')">Frase exata</button>
+        </div>
+      </div>
+      <div class="pp-item">
+        <span class="pp-lbl">Estado (UF)</span>
+        <select id="pp-uf" onchange="nhPPRender()">
+          <option value="">Todos os estados</option>
+          <option>AC</option><option>AL</option><option>AM</option><option>AP</option><option>BA</option><option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option><option>MG</option><option>MS</option><option>MT</option><option>PA</option><option>PB</option><option>PE</option><option>PI</option><option>PR</option><option>RJ</option><option>RN</option><option>RO</option><option>RR</option><option>RS</option><option>SC</option><option>SE</option><option>SP</option><option>TO</option>
+        </select>
+      </div>
+      <div class="pp-item">
+        <span class="pp-lbl">Descartar extremos</span>
+        <label class="bsc-chk" style="padding:9px 0" title="Ignora os 10% mais baratos e os 10% mais caros ao calcular a média — evita que um preço errado distorça tudo">
+          <input type="checkbox" id="pp-apara" checked onchange="nhPPRender()"> 10% de cada ponta
+        </label>
+      </div>
+    </div>
+
+    <div class="pp-prog" id="pp-prog">
+      <div class="pp-prog-txt"><span id="pp-prog-txt">Carregando...</span><span id="pp-prog-pct">0%</span></div>
+      <div class="pp-prog-bar"><div class="pp-prog-fill" id="pp-prog-fill"></div></div>
+    </div>
+  </div>
+
+  <div id="pp-saida"></div>
+</div>
+</div>
+
 <div class="page" id="page-financeiro">
       <!-- Filtro de empresa no financeiro -->
       <div id="fin-emp-pills" style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap"></div>
@@ -3976,7 +4185,7 @@ function popularRespEdital(emp,valor){
   if(valor&&nomes.indexOf(valor)===-1&&valor!==nomes.join(" & "))
     html+='<option>'+valor+'</option>';
   sel.innerHTML=html;sel.value=valor;}
-function getCertBadge(e){try{var a=null;if(window._empCache&&window._empCache[e]&&window._empCache[e].certs&&window._empCache[e].certs.length?a=window._empCache[e].certs:EMP_DATA[e]&&EMP_DATA[e].certidoes&&(a=EMP_DATA[e].certidoes),!a||!a.length)return null;var t=new Date;t.setHours(0,0,0,0);var o=0,i=0;a.forEach(function(e){var a=String(e.validade||e.vencimento||"").trim();if(a&&"-"!==a){var n=a.split("/");if(3===n.length){var r=new Date(parseInt(n[2]),parseInt(n[1])-1,parseInt(n[0]));if(!isNaN(r.getTime())){var s=Math.round((r-t)/864e5);s<0?o++:s<=5&&i++}}}});var n=[];return o>0&&n.push({txt:o,cor:"#f87171",bg:"rgba(239,68,68,.06)",title:o+" certidão(ões) VENCIDA(S)"}),i>0&&n.push({txt:i,cor:"#fbbf24",bg:"rgba(234,179,8,.06)",title:i+" certidão(ões) vence(m) em até 5 dias"}),n.length?n:null}catch(e){return null}}function atualizarSelectsEmpresas(){var e='<option value="">Selecione...</option>'+EMPRESAS.map(function(e){return"<option>"+e.nome+"</option>"}).join("");["e-empresa","a-emp","g-emp","at-emp"].forEach(function(a){var t=document.getElementById(a),o=t?t.value:"";t&&(t.innerHTML=e,t.value=o)}),EMPRESAS.forEach(function(e){TOPS["emp-"+e.nome]||(TOPS["emp-"+e.nome]=["Empresa — "+e.nome,"Portais, certidões e documentação"+(e.cnpj?" · CNPJ "+e.cnpj:"")]),EMP_DATA[e.nome]||(EMP_DATA[e.nome]={cnpj:e.cnpj||"",portais:[],docs:[]})});var a=document.getElementById("sb-empresas-lista");if(a&&(a.innerHTML=EMPRESAS.map(function(e){var a="nav-emp-"+e.nome,t=e.cor||"#f97316",o=getCertBadge(e.nome),i="";return o&&o.length&&(i='<div style="display:flex;gap:4px;flex-shrink:0">',o.forEach(function(e){i+='<span title="'+e.title+'" style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:'+e.bg+";color:"+e.cor+";border:1px solid "+e.cor+'33">'+e.txt+"</span>"}),i+="</div>"),'<div class="sb-item" id="'+a+'" data-emp="'+e.nome+'" style="position:relative;padding:0;border-left:3px solid '+t+';border-radius:8px;background:linear-gradient(135deg,'+t+'18,transparent);margin:2px 0;overflow:hidden;display:flex;align-items:center;justify-content:space-between;gap:4px;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease" onmouseenter="hoverEmpOn(this)" onmouseleave="hoverEmpOff(this)" onclick="go(\'emp-'+e.nome+'\',this)"><span style="flex:1;font-size:12px;font-weight:700;color:'+t+';padding:8px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.nome+"</span>"+i+"</div>"}).join(""),CUR&&CUR.startsWith("emp-"))){var t=document.getElementById("nav-"+CUR);t&&t.classList.add("on")}}let API="firebase",ALL={editais:[],andamento:[],finalizados:[],ganhas:[],atestados:[],financeiro:[],valores:[]},FIL={editais:[],andamento:[],finalizados:[],ganhas:[],atestados:[],financeiro:[],valores:[]},PG={editais:1,andamento:1,finalizados:1,ganhas:1,atestados:1,financeiro:1,valores:1},EROW={editais:null,andamento:null,ganhas:null,atestados:null,valores:null},VALORES_EMP_ATUAL=null,CUR="resumo";const TOPS={config:["Configurações","Empresas, portal de contratos e análise de viabilidade"],buscador:["Buscador PNCP","Localize oportunidades no Portal Nacional de Contratações Públicas"],resumo:["Resumo Geral","Visão consolidada · NH Licitações 2026"],editais:["Editais Capturados","Licitações identificadas e avaliadas para participação"],andamento:["Em Andamento","Licitações em disputa — ADJU = sim copia para Finalizados"],finalizados:["Finalizados","Registros com ADJU = sim copiados automaticamente"],ganhas:["Licitações Ganhas","Contratos conquistados pela NH"],atestados:["Atestados","Controle de documentos técnicos"],financeiro:["Financeiro","Controle de gastos e recargas mensais do escritório · FINANCEIRO"],valores:["Banco de Dados","Histórico de valores praticados por item — suas empresas e concorrentes"],calendario:["Calendário","Disputas e reaberturas do mês · integrado com Google Calendar"],tarefas:["Tarefas","Tarefas e anotações da semana · integrado com empresas"],"emp-VISE":["Empresa — VISE","Portais, certidões e documentação · CNPJ 08.348.687/0001-62"],"emp-SAUTEC":["Empresa — SAUTEC","Portais, certidões e documentação · CNPJ 31.586.684/0001-89"],"emp-SOS":["Empresa — SOS","Portais, certidões e documentação · CNPJ 38.714.702/0001-00"],"emp-SOS FILIAL":["Empresa — SOS Filial","Portais, certidões e documentação · CNPJ 38.714.702/0002-90"],"emp-ONLAV":["Empresa — ONLAV","Portais, certidões e documentação · CNPJ 13.141.717/0001-03"],"emp-ENGEMED":["Empresa — ENGEMED","Portais, certidões e documentação · CNPJ 10.488.327/0001-08"]};var EMP_DATA={},EMP_DOCS={VISE:[{categoria:"1. Doc. Jurídica",documento:"Contrato Social e Alterações",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"Cartão CNPJ atualizado",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"Inscrição Estadual e Municipal",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"Alvará de Funcionamento",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"RG e CPF dos Sócios",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Federais e INSS",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Estaduais",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Municipais",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão de Regularidade com o FGTS (CRF)",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Trabalhistas (CNDT)",conferido:"OK",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Certidão de Falência e Concordata",conferido:"OK",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Balanço Patrimonial do último exercício",conferido:"OK",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Índices financeiros (Liquidez, Solvência etc.)",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"COREN PJ",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"COREN PF",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Atestado(s) de Capacidade Técnica",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Registro da empresa no CREA-PB",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Certidão de Regularidade do Resp. Técnico (Gleidson – CREA-PB)",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"ARTs de serviços já executados",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Portfólio, Catálogos, fichas técnicas dos produtos",conferido:"",observacoes:""},{categoria:"6. Licenças Ambientais",documento:"Licença da Vigilância Sanitária Municipal",conferido:"OK",observacoes:"Temos uma Declaração"},{categoria:"7. Doc. Complementares",documento:"Certificado de calibração dos equipamentos",conferido:"OK",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Certificados dos analisadores eletrônicos",conferido:"OK",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Certificado da empresa na ANVISA",conferido:"OK",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Licença Ambiental (se exigido)",conferido:"",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Manual de Procedimentos Operacionais (POP)",conferido:"OK",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Plano de Gestão da Manutenção",conferido:"OK",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Certificado ISO (9001, 13485 etc.)",conferido:"",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Contratos de parceria com laboratórios",conferido:"",observacoes:""}],SAUTEC:[{categoria:"1. Doc. Jurídica",documento:"Contrato Social e Alterações",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"Cartão CNPJ atualizado",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"Inscrição Estadual e Municipal",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"Alvará de Funcionamento",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"RG e CPF dos Sócios",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Federais e INSS",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Estaduais",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Municipais",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão de Regularidade com o FGTS (CRF)",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Trabalhistas (CNDT)",conferido:"OK",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Certidão de Falência e Concordata",conferido:"OK",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Balanço Patrimonial do último exercício",conferido:"OK",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Índices financeiros (Liquidez, Solvência etc.)",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Certificado de ME/EPP (Simples Nacional)",conferido:"",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Atestado(s) de Capacidade Técnica",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Registro da empresa no CREA-PB",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Certidão de Regularidade do Resp. Técnico (Thiago – CREA-PB)",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"ARTs de serviços já executados",conferido:"",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"CRF PJ",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"CRF PF",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"COREN PJ",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"COREN PF",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Portfólio, Catálogos, fichas técnicas",conferido:"",observacoes:""},{categoria:"6. Licenças Ambientais",documento:"Licença da Vigilância Sanitária Municipal",conferido:"OK",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Certificado de calibração dos equipamentos",conferido:"",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Certificados dos analisadores eletrônicos",conferido:"",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Registro ou cadastro dos produtos na ANVISA",conferido:"",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Licença Ambiental (se exigido)",conferido:"",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Manual de Procedimentos Operacionais (POP)",conferido:"OK",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Plano de Gestão da Manutenção",conferido:"",observacoes:""}],SOS:[{categoria:"1. Doc. Jurídica",documento:"Contrato Social e Alterações",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"CNPJ",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"Inscrição Estadual e Municipal",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"Alvará de Funcionamento",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"RG e CPF dos Sócios",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Federais (RFB + PGFN)",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Estadual de Débitos",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Municipal de Débitos",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Trabalhistas (CNDT)",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão de Regularidade do FGTS (CRF)",conferido:"OK",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Balanço Patrimonial dos últimos 2 exercícios",conferido:"OK",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Certidão negativa de falência ou recuperação judicial",conferido:"OK",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Índices financeiros (Liquidez, Solvência etc.)",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Atestados de Capacidade Técnica",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Registro no CRF (Conselho Regional de Farmácia)",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Catálogo ou ficha técnica dos materiais",conferido:"",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"FISPQ – Ficha de Informações de Segurança do Produto",conferido:"",observacoes:""},{categoria:"5. Transporte de Prod. Perigosos",documento:"RNTRC – Registro na ANTT",conferido:"",observacoes:""},{categoria:"5. Transporte de Prod. Perigosos",documento:"Autorização para Transporte de Produtos Perigosos (ANTT)",conferido:"",observacoes:""},{categoria:"6. Licenças Ambientais",documento:"Licença Ambiental de Operação (LO)",conferido:"",observacoes:""},{categoria:"6. Licenças Ambientais",documento:"IDEMA",conferido:"OK",observacoes:""},{categoria:"6. Licenças Ambientais",documento:"Cadastro Técnico Federal no IBAMA",conferido:"OK",observacoes:""},{categoria:"7. Documentos Sanitários",documento:"Autorização de Funcionamento (AFE) – ANVISA",conferido:"OK",observacoes:""},{categoria:"7. Documentos Sanitários",documento:"Licença Sanitária",conferido:"OK",observacoes:""},{categoria:"7. Documentos Sanitários",documento:"Boas Práticas de Distribuição e Armazenamento (RDC 16/2014)",conferido:"",observacoes:""},{categoria:"7. Documentos Sanitários",documento:"Certificado de Boas Práticas de Fabricação - ANVISA",conferido:"",observacoes:""},{categoria:"7. Documentos Sanitários",documento:"Autorização Especial (AE) – ANVISA",conferido:"",observacoes:""},{categoria:"8. Segurança e Engenharia",documento:"ART de Engenheiro Responsável",conferido:"OK",observacoes:""},{categoria:"9. Doc. Complementares",documento:"Plano de logística e fornecimento (se exigido)",conferido:"",observacoes:""},{categoria:"10. CREA e Manutenção",documento:"Registro da empresa no CREA estadual",conferido:"OK",observacoes:""},{categoria:"10. CREA e Manutenção",documento:"Engenheiro responsável técnico com registro ativo no CREA",conferido:"OK",observacoes:""},{categoria:"10. CREA e Manutenção",documento:"ART de cargo e função (vínculo do engenheiro com a empresa)",conferido:"OK",observacoes:""}],"SOS FILIAL":[{categoria:"1. Doc. Jurídica",documento:"Contrato Social e Alterações",conferido:"",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"CNPJ",conferido:"",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"Inscrição Estadual e Municipal",conferido:"",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"Alvará de Funcionamento",conferido:"",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"RG e CPF dos Sócios",conferido:"",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Federais (RFB + PGFN)",conferido:"",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Estadual de Débitos",conferido:"",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Municipal de Débitos",conferido:"",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Trabalhistas (CNDT)",conferido:"",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão de Regularidade do FGTS (CRF)",conferido:"",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Balanço Patrimonial dos últimos 2 exercícios",conferido:"",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Certidão negativa de falência ou recuperação judicial",conferido:"",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Índices financeiros (Liquidez, Solvência etc.)",conferido:"",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Atestados de Capacidade Técnica",conferido:"",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Registro no CRF (Conselho Regional de Farmácia)",conferido:"",observacoes:""},{categoria:"5. Transporte de Prod. Perigosos",documento:"RNTRC – Registro na ANTT",conferido:"",observacoes:""},{categoria:"6. Licenças Ambientais",documento:"Licença Ambiental de Operação (LO)",conferido:"",observacoes:""},{categoria:"7. Documentos Sanitários",documento:"Autorização de Funcionamento (AFE) – ANVISA",conferido:"",observacoes:""},{categoria:"7. Documentos Sanitários",documento:"Licença Sanitária",conferido:"",observacoes:""}],ONLAV:[{categoria:"1. Doc. Jurídica",documento:"Contrato Social e Alterações",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"Cartão CNPJ atualizado",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"Inscrição Estadual e Municipal",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"Alvará de Funcionamento",conferido:"Pendente",observacoes:"Em processamento"},{categoria:"1. Doc. Jurídica",documento:"RG e CPF dos Sócios",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Federais e INSS",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Estaduais",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Municipais",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão de Regularidade com o FGTS (CRF)",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Trabalhistas (CNDT)",conferido:"OK",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Certidão de Falência e Concordata",conferido:"OK",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Balanço Patrimonial do último exercício",conferido:"OK",observacoes:"Falta o Balanço de 2025"},{categoria:"3. Econômico-Financeira",documento:"Índices financeiros (Liquidez, Solvência etc.)",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Certificado de ME/EPP (Simples Nacional)",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Atestado(s) de Capacidade Técnica",conferido:"OK",observacoes:""},{categoria:"5. Licenças e Registros",documento:"Licença da Vigilância Sanitária Municipal",conferido:"Pendente",observacoes:"Em processamento"},{categoria:"5. Licenças e Registros",documento:"Responsável Técnico com vínculo à empresa",conferido:"OK",observacoes:"Contrato de prestação de serviço"},{categoria:"5. Licenças e Registros",documento:"Comprovante de inscrição da empresa no CRQ",conferido:"OK",observacoes:""},{categoria:"5. Licenças e Registros",documento:"Comprovante de inscrição do RT no CRQ",conferido:"OK",observacoes:""},{categoria:"5. Licenças e Registros",documento:"Registro ou cadastro na ANVISA",conferido:"",observacoes:""},{categoria:"5. Licenças e Registros",documento:"Licença Ambiental de operações LO",conferido:"",observacoes:""},{categoria:"6. Doc. Complementares",documento:"Manual de Procedimentos Operacionais (POP)",conferido:"",observacoes:""},{categoria:"6. Doc. Complementares",documento:"Plano de Gestão",conferido:"",observacoes:""}],ENGEMED:[{categoria:"1. Doc. Jurídica",documento:"Contrato Social e Alterações",conferido:"OK",observacoes:"Consolidado"},{categoria:"1. Doc. Jurídica",documento:"Cartão CNPJ atualizado",conferido:"OK",observacoes:"Atualizado"},{categoria:"1. Doc. Jurídica",documento:"Inscrição Estadual e Municipal",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"Alvará de Funcionamento",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"RG e CPF dos Sócios",conferido:"Pendente",observacoes:"Falta doc da sócia — sairá da sociedade"},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Federais e INSS",conferido:"Pendente",observacoes:"Pendência"},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Estaduais",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Municipais",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão de Regularidade com o FGTS (CRF)",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Trabalhistas (CNDT)",conferido:"OK",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Certidão de Falência e Concordata",conferido:"OK",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Balanço Patrimonial do último exercício",conferido:"Pendente",observacoes:"Último balanço 2021"},{categoria:"3. Econômico-Financeira",documento:"Índices financeiros (Liquidez, Solvência etc.)",conferido:"Pendente",observacoes:"Último 2021"},{categoria:"4. Qualificação Técnica",documento:"Atestado(s) de Capacidade Técnica",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Registro da empresa no CREA-PB",conferido:"Pendente",observacoes:"Está c/ débito conf conv Isabel"},{categoria:"4. Qualificação Técnica",documento:"Certidão de Regularidade do Resp. Técnico (Claudio CREA-PB)",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"ARTs de serviços já executados",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Portfólio, Catálogos, fichas técnicas",conferido:"",observacoes:""},{categoria:"6. Licenças Ambientais",documento:"Licença da Vigilância Sanitária Municipal",conferido:"",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Certificado de calibração dos equipamentos",conferido:"",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Certificados dos analisadores eletrônicos",conferido:"",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Certificado da empresa na ANVISA",conferido:"",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Licença Ambiental (se exigido)",conferido:"",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Manual de Procedimentos Operacionais (POP)",conferido:"",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Plano de Gestão da Manutenção",conferido:"",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Certificado ISO (9001, 13485 etc.)",conferido:"",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Contratos de parceria com laboratórios",conferido:"",observacoes:""}]},senhaVis={};function toggleSenha(e){var a=document.getElementById("pw-"+e),t=document.getElementById("pwbtn-"+e);a&&(senhaVis[e]=!senhaVis[e],a.textContent=senhaVis[e]?a.getAttribute("data-val"):"••••••••",t.textContent=senhaVis[e]?"ocultar":"mostrar")}function stBadge(e,a){return e||null!=a?"Vencido"===e||"Vencida"===e||"Pendência"===e?'<span class="badge b-red">'+("Pendência"===e?"Pendência":"Vencida")+"</span>":null!=a&&a<0?'<span class="badge b-red">Vencida</span>':null!=a&&a<=30?'<span class="badge b-yellow">'+a+" dias</span>":'<span class="badge b-green">Em dia</span>':'<span class="badge b-gray">—</span>'}function calcDias(e){if(!e)return null;var a=e.split("/");if(3!==a.length)return null;var t=new Date(parseInt(a[2]),parseInt(a[1])-1,parseInt(a[0])),o=new Date;return o.setHours(0,0,0,0),Math.round((t-o)/864e5)}function certCls(e){var a=calcDias(e);return null===a?"":a<0?"vencida":a<=30?"prox":"ok"}function getLS(e,a){try{var t=localStorage.getItem(e);return t?JSON.parse(t):a}catch(e){return a}}function setLS(e,a){try{localStorage.setItem(e,JSON.stringify(a))}catch(e){}}var _empCache={};async function loadEmpData(e){if(_empCache[e])return _empCache[e];var _novo=false;try{var a=await db.collection("emp_data").doc(e).get();if(a.exists&&a.data()){var t=a.data();_empCache[e]={portais:t.portais||[],certs:t.certs||[],docs:t.docs||[]}}else{_empCache[e]={portais:[],certs:[],docs:[]};_novo=true}}catch(a){_empCache[e]={portais:[],certs:[],docs:[]};return _empCache[e]}
+function getCertBadge(e){try{var a=null;if(window._empCache&&window._empCache[e]&&window._empCache[e].certs&&window._empCache[e].certs.length?a=window._empCache[e].certs:EMP_DATA[e]&&EMP_DATA[e].certidoes&&(a=EMP_DATA[e].certidoes),!a||!a.length)return null;var t=new Date;t.setHours(0,0,0,0);var o=0,i=0;a.forEach(function(e){var a=String(e.validade||e.vencimento||"").trim();if(a&&"-"!==a){var n=a.split("/");if(3===n.length){var r=new Date(parseInt(n[2]),parseInt(n[1])-1,parseInt(n[0]));if(!isNaN(r.getTime())){var s=Math.round((r-t)/864e5);s<0?o++:s<=5&&i++}}}});var n=[];return o>0&&n.push({txt:o,cor:"#f87171",bg:"rgba(239,68,68,.06)",title:o+" certidão(ões) VENCIDA(S)"}),i>0&&n.push({txt:i,cor:"#fbbf24",bg:"rgba(234,179,8,.06)",title:i+" certidão(ões) vence(m) em até 5 dias"}),n.length?n:null}catch(e){return null}}function atualizarSelectsEmpresas(){var e='<option value="">Selecione...</option>'+EMPRESAS.map(function(e){return"<option>"+e.nome+"</option>"}).join("");["e-empresa","a-emp","g-emp","at-emp"].forEach(function(a){var t=document.getElementById(a),o=t?t.value:"";t&&(t.innerHTML=e,t.value=o)}),EMPRESAS.forEach(function(e){TOPS["emp-"+e.nome]||(TOPS["emp-"+e.nome]=["Empresa — "+e.nome,"Portais, certidões e documentação"+(e.cnpj?" · CNPJ "+e.cnpj:"")]),EMP_DATA[e.nome]||(EMP_DATA[e.nome]={cnpj:e.cnpj||"",portais:[],docs:[]})});var a=document.getElementById("sb-empresas-lista");if(a&&(a.innerHTML=EMPRESAS.map(function(e){var a="nav-emp-"+e.nome,t=e.cor||"#f97316",o=getCertBadge(e.nome),i="";return o&&o.length&&(i='<div style="display:flex;gap:4px;flex-shrink:0">',o.forEach(function(e){i+='<span title="'+e.title+'" style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:'+e.bg+";color:"+e.cor+";border:1px solid "+e.cor+'33">'+e.txt+"</span>"}),i+="</div>"),'<div class="sb-item" id="'+a+'" data-emp="'+e.nome+'" style="position:relative;padding:0;border-left:3px solid '+t+';border-radius:8px;background:linear-gradient(135deg,'+t+'18,transparent);margin:2px 0;overflow:hidden;display:flex;align-items:center;justify-content:space-between;gap:4px;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease" onmouseenter="hoverEmpOn(this)" onmouseleave="hoverEmpOff(this)" onclick="go(\'emp-'+e.nome+'\',this)"><span style="flex:1;font-size:12px;font-weight:700;color:'+t+';padding:8px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.nome+"</span>"+i+"</div>"}).join(""),CUR&&CUR.startsWith("emp-"))){var t=document.getElementById("nav-"+CUR);t&&t.classList.add("on")}}let API="firebase",ALL={editais:[],andamento:[],finalizados:[],ganhas:[],atestados:[],financeiro:[],valores:[]},FIL={editais:[],andamento:[],finalizados:[],ganhas:[],atestados:[],financeiro:[],valores:[]},PG={editais:1,andamento:1,finalizados:1,ganhas:1,atestados:1,financeiro:1,valores:1},EROW={editais:null,andamento:null,ganhas:null,atestados:null,valores:null},VALORES_EMP_ATUAL=null,CUR="resumo";const TOPS={config:["Configurações","Empresas, portal de contratos e análise de viabilidade"],buscador:["Buscador PNCP","Localize oportunidades no Portal Nacional de Contratações Públicas"],precos:["Pesquisa de Preço","Preços realmente homologados em compras públicas — referência de mercado"],resumo:["Resumo Geral","Visão consolidada · NH Licitações 2026"],editais:["Editais Capturados","Licitações identificadas e avaliadas para participação"],andamento:["Em Andamento","Licitações em disputa — ADJU = sim copia para Finalizados"],finalizados:["Finalizados","Registros com ADJU = sim copiados automaticamente"],ganhas:["Licitações Ganhas","Contratos conquistados pela NH"],atestados:["Atestados","Controle de documentos técnicos"],financeiro:["Financeiro","Controle de gastos e recargas mensais do escritório · FINANCEIRO"],valores:["Banco de Dados","Histórico de valores praticados por item — suas empresas e concorrentes"],calendario:["Calendário","Disputas e reaberturas do mês · integrado com Google Calendar"],tarefas:["Tarefas","Tarefas e anotações da semana · integrado com empresas"],"emp-VISE":["Empresa — VISE","Portais, certidões e documentação · CNPJ 08.348.687/0001-62"],"emp-SAUTEC":["Empresa — SAUTEC","Portais, certidões e documentação · CNPJ 31.586.684/0001-89"],"emp-SOS":["Empresa — SOS","Portais, certidões e documentação · CNPJ 38.714.702/0001-00"],"emp-SOS FILIAL":["Empresa — SOS Filial","Portais, certidões e documentação · CNPJ 38.714.702/0002-90"],"emp-ONLAV":["Empresa — ONLAV","Portais, certidões e documentação · CNPJ 13.141.717/0001-03"],"emp-ENGEMED":["Empresa — ENGEMED","Portais, certidões e documentação · CNPJ 10.488.327/0001-08"]};var EMP_DATA={},EMP_DOCS={VISE:[{categoria:"1. Doc. Jurídica",documento:"Contrato Social e Alterações",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"Cartão CNPJ atualizado",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"Inscrição Estadual e Municipal",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"Alvará de Funcionamento",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"RG e CPF dos Sócios",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Federais e INSS",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Estaduais",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Municipais",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão de Regularidade com o FGTS (CRF)",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Trabalhistas (CNDT)",conferido:"OK",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Certidão de Falência e Concordata",conferido:"OK",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Balanço Patrimonial do último exercício",conferido:"OK",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Índices financeiros (Liquidez, Solvência etc.)",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"COREN PJ",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"COREN PF",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Atestado(s) de Capacidade Técnica",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Registro da empresa no CREA-PB",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Certidão de Regularidade do Resp. Técnico (Gleidson – CREA-PB)",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"ARTs de serviços já executados",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Portfólio, Catálogos, fichas técnicas dos produtos",conferido:"",observacoes:""},{categoria:"6. Licenças Ambientais",documento:"Licença da Vigilância Sanitária Municipal",conferido:"OK",observacoes:"Temos uma Declaração"},{categoria:"7. Doc. Complementares",documento:"Certificado de calibração dos equipamentos",conferido:"OK",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Certificados dos analisadores eletrônicos",conferido:"OK",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Certificado da empresa na ANVISA",conferido:"OK",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Licença Ambiental (se exigido)",conferido:"",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Manual de Procedimentos Operacionais (POP)",conferido:"OK",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Plano de Gestão da Manutenção",conferido:"OK",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Certificado ISO (9001, 13485 etc.)",conferido:"",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Contratos de parceria com laboratórios",conferido:"",observacoes:""}],SAUTEC:[{categoria:"1. Doc. Jurídica",documento:"Contrato Social e Alterações",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"Cartão CNPJ atualizado",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"Inscrição Estadual e Municipal",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"Alvará de Funcionamento",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"RG e CPF dos Sócios",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Federais e INSS",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Estaduais",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Municipais",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão de Regularidade com o FGTS (CRF)",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Trabalhistas (CNDT)",conferido:"OK",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Certidão de Falência e Concordata",conferido:"OK",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Balanço Patrimonial do último exercício",conferido:"OK",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Índices financeiros (Liquidez, Solvência etc.)",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Certificado de ME/EPP (Simples Nacional)",conferido:"",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Atestado(s) de Capacidade Técnica",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Registro da empresa no CREA-PB",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Certidão de Regularidade do Resp. Técnico (Thiago – CREA-PB)",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"ARTs de serviços já executados",conferido:"",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"CRF PJ",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"CRF PF",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"COREN PJ",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"COREN PF",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Portfólio, Catálogos, fichas técnicas",conferido:"",observacoes:""},{categoria:"6. Licenças Ambientais",documento:"Licença da Vigilância Sanitária Municipal",conferido:"OK",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Certificado de calibração dos equipamentos",conferido:"",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Certificados dos analisadores eletrônicos",conferido:"",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Registro ou cadastro dos produtos na ANVISA",conferido:"",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Licença Ambiental (se exigido)",conferido:"",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Manual de Procedimentos Operacionais (POP)",conferido:"OK",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Plano de Gestão da Manutenção",conferido:"",observacoes:""}],SOS:[{categoria:"1. Doc. Jurídica",documento:"Contrato Social e Alterações",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"CNPJ",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"Inscrição Estadual e Municipal",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"Alvará de Funcionamento",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"RG e CPF dos Sócios",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Federais (RFB + PGFN)",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Estadual de Débitos",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Municipal de Débitos",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Trabalhistas (CNDT)",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão de Regularidade do FGTS (CRF)",conferido:"OK",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Balanço Patrimonial dos últimos 2 exercícios",conferido:"OK",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Certidão negativa de falência ou recuperação judicial",conferido:"OK",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Índices financeiros (Liquidez, Solvência etc.)",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Atestados de Capacidade Técnica",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Registro no CRF (Conselho Regional de Farmácia)",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Catálogo ou ficha técnica dos materiais",conferido:"",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"FISPQ – Ficha de Informações de Segurança do Produto",conferido:"",observacoes:""},{categoria:"5. Transporte de Prod. Perigosos",documento:"RNTRC – Registro na ANTT",conferido:"",observacoes:""},{categoria:"5. Transporte de Prod. Perigosos",documento:"Autorização para Transporte de Produtos Perigosos (ANTT)",conferido:"",observacoes:""},{categoria:"6. Licenças Ambientais",documento:"Licença Ambiental de Operação (LO)",conferido:"",observacoes:""},{categoria:"6. Licenças Ambientais",documento:"IDEMA",conferido:"OK",observacoes:""},{categoria:"6. Licenças Ambientais",documento:"Cadastro Técnico Federal no IBAMA",conferido:"OK",observacoes:""},{categoria:"7. Documentos Sanitários",documento:"Autorização de Funcionamento (AFE) – ANVISA",conferido:"OK",observacoes:""},{categoria:"7. Documentos Sanitários",documento:"Licença Sanitária",conferido:"OK",observacoes:""},{categoria:"7. Documentos Sanitários",documento:"Boas Práticas de Distribuição e Armazenamento (RDC 16/2014)",conferido:"",observacoes:""},{categoria:"7. Documentos Sanitários",documento:"Certificado de Boas Práticas de Fabricação - ANVISA",conferido:"",observacoes:""},{categoria:"7. Documentos Sanitários",documento:"Autorização Especial (AE) – ANVISA",conferido:"",observacoes:""},{categoria:"8. Segurança e Engenharia",documento:"ART de Engenheiro Responsável",conferido:"OK",observacoes:""},{categoria:"9. Doc. Complementares",documento:"Plano de logística e fornecimento (se exigido)",conferido:"",observacoes:""},{categoria:"10. CREA e Manutenção",documento:"Registro da empresa no CREA estadual",conferido:"OK",observacoes:""},{categoria:"10. CREA e Manutenção",documento:"Engenheiro responsável técnico com registro ativo no CREA",conferido:"OK",observacoes:""},{categoria:"10. CREA e Manutenção",documento:"ART de cargo e função (vínculo do engenheiro com a empresa)",conferido:"OK",observacoes:""}],"SOS FILIAL":[{categoria:"1. Doc. Jurídica",documento:"Contrato Social e Alterações",conferido:"",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"CNPJ",conferido:"",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"Inscrição Estadual e Municipal",conferido:"",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"Alvará de Funcionamento",conferido:"",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"RG e CPF dos Sócios",conferido:"",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Federais (RFB + PGFN)",conferido:"",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Estadual de Débitos",conferido:"",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Municipal de Débitos",conferido:"",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Trabalhistas (CNDT)",conferido:"",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão de Regularidade do FGTS (CRF)",conferido:"",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Balanço Patrimonial dos últimos 2 exercícios",conferido:"",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Certidão negativa de falência ou recuperação judicial",conferido:"",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Índices financeiros (Liquidez, Solvência etc.)",conferido:"",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Atestados de Capacidade Técnica",conferido:"",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Registro no CRF (Conselho Regional de Farmácia)",conferido:"",observacoes:""},{categoria:"5. Transporte de Prod. Perigosos",documento:"RNTRC – Registro na ANTT",conferido:"",observacoes:""},{categoria:"6. Licenças Ambientais",documento:"Licença Ambiental de Operação (LO)",conferido:"",observacoes:""},{categoria:"7. Documentos Sanitários",documento:"Autorização de Funcionamento (AFE) – ANVISA",conferido:"",observacoes:""},{categoria:"7. Documentos Sanitários",documento:"Licença Sanitária",conferido:"",observacoes:""}],ONLAV:[{categoria:"1. Doc. Jurídica",documento:"Contrato Social e Alterações",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"Cartão CNPJ atualizado",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"Inscrição Estadual e Municipal",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"Alvará de Funcionamento",conferido:"Pendente",observacoes:"Em processamento"},{categoria:"1. Doc. Jurídica",documento:"RG e CPF dos Sócios",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Federais e INSS",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Estaduais",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Municipais",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão de Regularidade com o FGTS (CRF)",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Trabalhistas (CNDT)",conferido:"OK",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Certidão de Falência e Concordata",conferido:"OK",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Balanço Patrimonial do último exercício",conferido:"OK",observacoes:"Falta o Balanço de 2025"},{categoria:"3. Econômico-Financeira",documento:"Índices financeiros (Liquidez, Solvência etc.)",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Certificado de ME/EPP (Simples Nacional)",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Atestado(s) de Capacidade Técnica",conferido:"OK",observacoes:""},{categoria:"5. Licenças e Registros",documento:"Licença da Vigilância Sanitária Municipal",conferido:"Pendente",observacoes:"Em processamento"},{categoria:"5. Licenças e Registros",documento:"Responsável Técnico com vínculo à empresa",conferido:"OK",observacoes:"Contrato de prestação de serviço"},{categoria:"5. Licenças e Registros",documento:"Comprovante de inscrição da empresa no CRQ",conferido:"OK",observacoes:""},{categoria:"5. Licenças e Registros",documento:"Comprovante de inscrição do RT no CRQ",conferido:"OK",observacoes:""},{categoria:"5. Licenças e Registros",documento:"Registro ou cadastro na ANVISA",conferido:"",observacoes:""},{categoria:"5. Licenças e Registros",documento:"Licença Ambiental de operações LO",conferido:"",observacoes:""},{categoria:"6. Doc. Complementares",documento:"Manual de Procedimentos Operacionais (POP)",conferido:"",observacoes:""},{categoria:"6. Doc. Complementares",documento:"Plano de Gestão",conferido:"",observacoes:""}],ENGEMED:[{categoria:"1. Doc. Jurídica",documento:"Contrato Social e Alterações",conferido:"OK",observacoes:"Consolidado"},{categoria:"1. Doc. Jurídica",documento:"Cartão CNPJ atualizado",conferido:"OK",observacoes:"Atualizado"},{categoria:"1. Doc. Jurídica",documento:"Inscrição Estadual e Municipal",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"Alvará de Funcionamento",conferido:"OK",observacoes:""},{categoria:"1. Doc. Jurídica",documento:"RG e CPF dos Sócios",conferido:"Pendente",observacoes:"Falta doc da sócia — sairá da sociedade"},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Federais e INSS",conferido:"Pendente",observacoes:"Pendência"},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Estaduais",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Municipais",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão de Regularidade com o FGTS (CRF)",conferido:"OK",observacoes:""},{categoria:"2. Fiscal e Trabalhista",documento:"Certidão Negativa de Débitos Trabalhistas (CNDT)",conferido:"OK",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Certidão de Falência e Concordata",conferido:"OK",observacoes:""},{categoria:"3. Econômico-Financeira",documento:"Balanço Patrimonial do último exercício",conferido:"Pendente",observacoes:"Último balanço 2021"},{categoria:"3. Econômico-Financeira",documento:"Índices financeiros (Liquidez, Solvência etc.)",conferido:"Pendente",observacoes:"Último 2021"},{categoria:"4. Qualificação Técnica",documento:"Atestado(s) de Capacidade Técnica",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Registro da empresa no CREA-PB",conferido:"Pendente",observacoes:"Está c/ débito conf conv Isabel"},{categoria:"4. Qualificação Técnica",documento:"Certidão de Regularidade do Resp. Técnico (Claudio CREA-PB)",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"ARTs de serviços já executados",conferido:"OK",observacoes:""},{categoria:"4. Qualificação Técnica",documento:"Portfólio, Catálogos, fichas técnicas",conferido:"",observacoes:""},{categoria:"6. Licenças Ambientais",documento:"Licença da Vigilância Sanitária Municipal",conferido:"",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Certificado de calibração dos equipamentos",conferido:"",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Certificados dos analisadores eletrônicos",conferido:"",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Certificado da empresa na ANVISA",conferido:"",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Licença Ambiental (se exigido)",conferido:"",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Manual de Procedimentos Operacionais (POP)",conferido:"",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Plano de Gestão da Manutenção",conferido:"",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Certificado ISO (9001, 13485 etc.)",conferido:"",observacoes:""},{categoria:"7. Doc. Complementares",documento:"Contratos de parceria com laboratórios",conferido:"",observacoes:""}]},senhaVis={};function toggleSenha(e){var a=document.getElementById("pw-"+e),t=document.getElementById("pwbtn-"+e);a&&(senhaVis[e]=!senhaVis[e],a.textContent=senhaVis[e]?a.getAttribute("data-val"):"••••••••",t.textContent=senhaVis[e]?"ocultar":"mostrar")}function stBadge(e,a){return e||null!=a?"Vencido"===e||"Vencida"===e||"Pendência"===e?'<span class="badge b-red">'+("Pendência"===e?"Pendência":"Vencida")+"</span>":null!=a&&a<0?'<span class="badge b-red">Vencida</span>':null!=a&&a<=30?'<span class="badge b-yellow">'+a+" dias</span>":'<span class="badge b-green">Em dia</span>':'<span class="badge b-gray">—</span>'}function calcDias(e){if(!e)return null;var a=e.split("/");if(3!==a.length)return null;var t=new Date(parseInt(a[2]),parseInt(a[1])-1,parseInt(a[0])),o=new Date;return o.setHours(0,0,0,0),Math.round((t-o)/864e5)}function certCls(e){var a=calcDias(e);return null===a?"":a<0?"vencida":a<=30?"prox":"ok"}function getLS(e,a){try{var t=localStorage.getItem(e);return t?JSON.parse(t):a}catch(e){return a}}function setLS(e,a){try{localStorage.setItem(e,JSON.stringify(a))}catch(e){}}var _empCache={};async function loadEmpData(e){if(_empCache[e])return _empCache[e];var _novo=false;try{var a=await db.collection("emp_data").doc(e).get();if(a.exists&&a.data()){var t=a.data();_empCache[e]={portais:t.portais||[],certs:t.certs||[],docs:t.docs||[]}}else{_empCache[e]={portais:[],certs:[],docs:[]};_novo=true}}catch(a){_empCache[e]={portais:[],certs:[],docs:[]};return _empCache[e]}
 /* Migração única: a tabela de Documentação lia do localStorage e gravava no Firestore.
    Se o Firestore ainda não tem docs, sobe o que existir localmente (ou a lista padrão). */
 try{if(!_empCache[e].docs.length){var _sd=_seedDocs(e);if(_sd&&_sd.length){_empCache[e].docs=_sd;_novo=true}}
@@ -7166,23 +7375,37 @@ async function salvarAcessosPortal(){
   } catch(e){ toast("Erro: "+e.message,"err"); }
 }
 
+/* Guarda a senha de exclusão como hash SHA-256 com salt, igual já é
+   feito com a senha dos responsáveis — não mais em texto puro. */
 async function salvarSenhaExclusao(){
   var atual = document.getElementById("pc-senha-atual").value.trim();
   var nova  = document.getElementById("pc-senha-nova").value.trim();
   var msg   = document.getElementById("pc-msg");
-  if(!nova){ msg.style.display="block"; msg.style.color="#f87171"; msg.textContent="Digite a nova senha."; return; }
+  function erro(t){ msg.style.display="block"; msg.style.color="#f87171"; msg.textContent=t; }
+  if(!nova){ erro("Digite a nova senha."); return; }
+  if(nova.length < 6){ erro("Use pelo menos 6 caracteres."); return; }
   try {
     var docSnap = await db.collection("config").doc("senha_exclusao").get();
-    if(docSnap.exists && docSnap.data().senha && docSnap.data().senha !== atual){
-      msg.style.display="block"; msg.style.color="#f87171";
-      msg.textContent="Senha atual incorreta."; return;
+    var d = docSnap.exists ? (docSnap.data()||{}) : {};
+    if(d.hash && d.salt){
+      /* Já está no formato novo: exige a senha atual. */
+      if((await nhHashSenha(atual, d.salt)) !== d.hash){ erro("Senha atual incorreta."); return; }
+    } else if(d.senha){
+      /* Formato antigo em texto puro: aceita a senha atual uma última
+         vez para permitir a migração, e daqui em diante grava hash. */
+      if(d.senha !== atual){ erro("Senha atual incorreta."); return; }
     }
-    await db.collection("config").doc("senha_exclusao").set({senha: nova, atualizadoEm: new Date().toLocaleString("pt-BR")});
+    /* Se não existir nenhuma senha ainda, o admin define a primeira. */
+    var salt = nhNovoSalt();
+    var hash = await nhHashSenha(nova, salt);
+    await db.collection("config").doc("senha_exclusao").set({
+      hash: hash, salt: salt, atualizadoEm: new Date().toLocaleString("pt-BR")
+    });
     msg.style.display="block"; msg.style.color="#4ade80";
-    msg.textContent="✅ Senha de exclusão alterada com sucesso!";
+    msg.textContent="✅ Senha de exclusão definida (guardada com hash, não em texto puro).";
     document.getElementById("pc-senha-atual").value="";
     document.getElementById("pc-senha-nova").value="";
-  } catch(e){ msg.style.display="block"; msg.style.color="#f87171"; msg.textContent="Erro: "+e.message; }
+  } catch(e){ erro("Erro: "+e.message); }
 }
 
 var _goOrig = go;
@@ -9477,6 +9700,364 @@ function nhExportarBusca(){
   toast('✅ Excel exportado!','ok');
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   PESQUISA DE PREÇO — preços realmente homologados
+   ------------------------------------------------------------------
+   Fonte: módulo de contratações do Compras.gov.br, filtrando por
+   temResultado=true — ou seja, só itens que já foram arrematados,
+   com o valor que o fornecedor de fato ganhou.
+
+   Por que não é por código de catálogo (como fazem os concorrentes):
+   testei 500 registros reais e NENHUM traz CATMAT/CATSER preenchido,
+   então filtrar por código do catálogo simplesmente não acha nada.
+   A busca aqui é por texto na descrição do que foi comprado, que é
+   o dado que existe de verdade.
+
+   O período inteiro é baixado uma vez e fica em cache na memória;
+   depois disso toda busca por texto é instantânea.
+   ══════════════════════════════════════════════════════════════════ */
+var PP_API='https://dadosabertos.compras.gov.br/modulo-contratacoes/2_consultarItensContratacoes_PNCP_14133';
+var PP_TIPO='M', PP_MODO='e';
+var PP_CACHE={};        /* chave "tipo|dias" -> array de itens */
+var PP_LOCAL={};        /* cnpj -> {codigoUnidade: {orgao,unidade,municipio,uf}} */
+var PP_ITENS=[];        /* o período carregado no momento */
+var PP_ACHADOS=[];      /* o que passou no filtro de texto */
+var _ppCarregando=false;
+
+function nhPPSetTipo(t){
+  PP_TIPO=t;
+  document.querySelectorAll('#pp-tipo button').forEach(function(b){
+    b.classList.toggle('on',b.getAttribute('data-t')===t);});
+}
+function nhPPSetModo(m){
+  PP_MODO=m;
+  document.querySelectorAll('#pp-modo button').forEach(function(b){
+    b.classList.toggle('on',b.getAttribute('data-m')===m);});
+  if(PP_ACHADOS.length||PP_ITENS.length)nhPPAnalisar();
+}
+function nhPPPeriodoMudou(){
+  /* Trocar o período invalida o que está na tela, mas o cache do
+     período anterior fica guardado — voltar nele é instantâneo. */
+  PP_ITENS=[];PP_ACHADOS=[];
+  document.getElementById('pp-saida').innerHTML='';
+  nhPPChip();
+}
+function nhPPChip(){
+  var c=document.getElementById('pp-chip');if(!c)return;
+  var k=PP_TIPO+'|'+document.getElementById('pp-periodo').value;
+  c.innerHTML=PP_CACHE[k]?('<b style="color:#22c55e">'+PP_CACHE[k].length.toLocaleString('pt-BR')+'</b> compras em cache'):'';
+}
+function _ppData(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
+
+/* ── Carga do período (uma vez, depois fica em cache) ────────────── */
+async function nhPPCarregar(dias){
+  var chave=PP_TIPO+'|'+dias;
+  if(PP_CACHE[chave])return PP_CACHE[chave];
+
+  var fim=new Date(), ini=new Date();
+  ini.setDate(ini.getDate()-parseInt(dias,10));
+  var qs='?tamanhoPagina=500&temResultado=true&materialOuServico='+PP_TIPO+
+         '&dataInclusaoPncpInicial='+_ppData(ini)+'&dataInclusaoPncpFinal='+_ppData(fim);
+
+  var prog=document.getElementById('pp-prog');
+  var fill=document.getElementById('pp-prog-fill');
+  var txt=document.getElementById('pp-prog-txt');
+  var pct=document.getElementById('pp-prog-pct');
+  prog.classList.add('on');
+  txt.textContent='Consultando o Compras.gov.br...';
+  fill.style.width='2%';pct.textContent='';
+
+  var todos=[],pagina=1,totalPaginas=1;
+  var MAX_PAGINAS=180;   /* teto de segurança: 90 mil registros */
+  do{
+    var r=await fetch(PP_API+qs+'&pagina='+pagina);
+    if(!r.ok){
+      if(pagina===1)throw new Error('O Compras.gov.br respondeu '+r.status);
+      break;  /* já temos parte dos dados — melhor seguir com eles */
+    }
+    var j=await r.json();
+    var lote=j.resultado||[];
+    todos=todos.concat(lote);
+    if(pagina===1){
+      totalPaginas=Math.min(j.totalPaginas||1,MAX_PAGINAS);
+      if((j.totalRegistros||0)>90000)
+        txt.textContent='Período grande — carregando uma amostra de 90 mil compras...';
+    }
+    var p=Math.round(pagina/totalPaginas*100);
+    fill.style.width=Math.min(p,100)+'%';
+    pct.textContent=p+'%';
+    txt.textContent='Baixando compras homologadas — '+todos.length.toLocaleString('pt-BR')+' de '+
+      ((j.totalRegistros||todos.length).toLocaleString('pt-BR'));
+    pagina++;
+    if(!lote.length)break;
+  }while(pagina<=totalPaginas);
+
+  prog.classList.remove('on');
+  PP_CACHE[chave]=todos;
+  return todos;
+}
+
+/* ── Resolve órgão/município/UF (só para o que passou no filtro) ─── */
+async function nhPPResolverLocais(itens){
+  var cnpjs={};
+  itens.forEach(function(it){ if(it.orgaoEntidadeCnpj)cnpjs[it.orgaoEntidadeCnpj]=1; });
+  var faltam=Object.keys(cnpjs).filter(function(c){return !PP_LOCAL[c];});
+  if(!faltam.length)return;
+
+  var prog=document.getElementById('pp-prog');
+  var fill=document.getElementById('pp-prog-fill');
+  var txt=document.getElementById('pp-prog-txt');
+  var pct=document.getElementById('pp-prog-pct');
+  prog.classList.add('on');
+  txt.textContent='Descobrindo o órgão e o estado de cada compra...';
+
+  /* Em blocos, para não disparar centenas de chamadas de uma vez. */
+  var BLOCO=6;
+  for(var i=0;i<faltam.length;i+=BLOCO){
+    await Promise.all(faltam.slice(i,i+BLOCO).map(async function(cnpj){
+      try{
+        var r=await fetch('https://pncp.gov.br/api/pncp/v1/orgaos/'+cnpj+'/unidades');
+        var mapa={};
+        if(r.ok){
+          (await r.json()).forEach(function(u){
+            mapa[String(u.codigoUnidade)]={
+              orgao:(u.orgao&&u.orgao.razaoSocial)||'',
+              unidade:u.nomeUnidade||'',
+              municipio:(u.municipio&&u.municipio.nome)||'',
+              uf:(u.municipio&&u.municipio.uf&&u.municipio.uf.siglaUF)||''
+            };
+          });
+        }
+        PP_LOCAL[cnpj]=mapa;
+      }catch(e){ PP_LOCAL[cnpj]={}; }
+    }));
+    var p=Math.round(Math.min(i+BLOCO,faltam.length)/faltam.length*100);
+    fill.style.width=p+'%';pct.textContent=p+'%';
+  }
+  prog.classList.remove('on');
+}
+function nhPPLocal(it){
+  var m=PP_LOCAL[it.orgaoEntidadeCnpj];
+  return (m&&m[String(it.unidadeOrgaoCodigoUnidade)])||null;
+}
+
+/* ── Fluxo principal ────────────────────────────────────────────── */
+async function nhPPAnalisar(){
+  if(_ppCarregando)return;
+  var termo=document.getElementById('pp-termo').value.trim();
+  if(!termo){toast('Digite o que você quer orçar','err');return;}
+
+  var btn=document.getElementById('pp-btn');
+  var dias=document.getElementById('pp-periodo').value;
+  _ppCarregando=true;btn.disabled=true;btn.textContent='Analisando...';
+  try{
+    PP_ITENS=await nhPPCarregar(dias);
+    PP_ACHADOS=nhPPFiltrar(PP_ITENS,termo);
+    /* Resolve o local só do que interessa — no máximo 400 linhas. */
+    await nhPPResolverLocais(PP_ACHADOS.slice(0,400));
+    nhPPRender();
+    nhPPChip();
+  }catch(e){
+    document.getElementById('pp-prog').classList.remove('on');
+    document.getElementById('pp-saida').innerHTML=
+      '<div class="pp-vazio"><span class="ic">&#9888;</span>Não consegui consultar a base agora.<br>'+
+      '<span style="font-size:12px">'+esc0(e.message||String(e))+'</span></div>';
+  }finally{
+    _ppCarregando=false;btn.disabled=false;btn.textContent='Analisar mercado';
+  }
+}
+
+/* Tira acento e baixa a caixa, para "manutenção" achar "MANUTENCAO". */
+function _ppNorm(s){
+  return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+/* Casa PALAVRA INTEIRA, não pedaço. Sem isto, buscar "cadeira" traz
+   "picadeira de solda", e "ar" traria metade do catálogo. */
+function _ppTemPalavra(alvo,palavra){
+  if(palavra.length<=2)return false;   /* termo curto demais não filtra nada */
+  var i=alvo.indexOf(palavra);
+  while(i>=0){
+    var antes=i===0?'':alvo.charAt(i-1);
+    var depois=alvo.charAt(i+palavra.length);
+    var limiteAntes=(antes===''||!/[a-z0-9]/.test(antes));
+    /* aceita plural e flexão: cadeira → cadeiras, cadeirao */
+    var limiteDepois=(depois===''||!/[a-z0-9]/.test(depois)||/[s]/.test(depois));
+    if(limiteAntes&&limiteDepois)return true;
+    i=alvo.indexOf(palavra,i+1);
+  }
+  return false;
+}
+function nhPPFiltrar(lista,termo){
+  var t=_ppNorm(termo).trim();
+  var termos=t.split(/\s+/).filter(Boolean);
+  return lista.filter(function(it){
+    var v=parseFloat(it.valorUnitarioResultado);
+    if(!v||v<=0)return false;              /* sem preço não serve de referência */
+    var alvo=_ppNorm((it.descricaoResumida||'')+' '+(it.descricaodetalhada||''));
+    if(PP_MODO==='exato')return alvo.indexOf(t)>=0;
+    if(PP_MODO==='ou')return termos.some(function(x){return _ppTemPalavra(alvo,x);});
+    return termos.every(function(x){return _ppTemPalavra(alvo,x);});
+  });
+}
+
+/* ── Estatística ────────────────────────────────────────────────── */
+function _ppEstat(vals,apara){
+  var v=vals.slice().sort(function(a,b){return a-b;});
+  if(!v.length)return null;
+  var usados=v;
+  if(apara&&v.length>=10){
+    var corte=Math.floor(v.length*0.1);
+    usados=v.slice(corte,v.length-corte);
+    if(!usados.length)usados=v;
+  }
+  var soma=usados.reduce(function(a,b){return a+b;},0);
+  var media=soma/usados.length;
+  function mediana(a){
+    var m=Math.floor(a.length/2);
+    return a.length%2?a[m]:(a[m-1]+a[m])/2;
+  }
+  var dp=Math.sqrt(usados.reduce(function(a,b){return a+Math.pow(b-media,2);},0)/usados.length);
+  return {min:v[0],max:v[v.length-1],media:media,mediana:mediana(usados),
+          dp:dp,n:v.length,nUsados:usados.length,
+          minUsado:usados[0],maxUsado:usados[usados.length-1]};
+}
+
+/* Procura no nosso Banco de Dados um item parecido, para comparar. */
+function _ppNosso(termo){
+  try{
+    var t=propNorm(termo).substring(0,16);
+    if(t.length<4)return null;
+    var achados=[];
+    (ALL.valores||[]).forEach(function(r){
+      if(propNorm(String(r[3]||'')).indexOf(t)>-1){
+        var v=parseMoeda(r[5]||0);
+        if(v>0)achados.push({item:String(r[3]||''),valor:v});
+      }
+    });
+    if(!achados.length)return null;
+    var soma=achados.reduce(function(a,b){return a+b.valor;},0);
+    return {n:achados.length,media:soma/achados.length};
+  }catch(e){return null;}
+}
+
+function nhPPRender(){
+  var el=document.getElementById('pp-saida');
+  var termo=document.getElementById('pp-termo').value.trim();
+  var uf=document.getElementById('pp-uf').value;
+  var apara=document.getElementById('pp-apara').checked;
+
+  var lista=PP_ACHADOS;
+  if(uf)lista=lista.filter(function(it){var l=nhPPLocal(it);return l&&l.uf===uf;});
+
+  if(!PP_ITENS.length){
+    el.innerHTML='<div class="pp-vazio"><span class="ic">&#128202;</span>Digite o que voc&ecirc; quer or&ccedil;ar e clique em <b>Analisar mercado</b>.<br>'+
+      '<span style="font-size:12px">O sistema baixa as compras j&aacute; homologadas do per&iacute;odo e mostra por quanto o item realmente saiu.</span></div>';
+    return;
+  }
+  if(!lista.length){
+    el.innerHTML='<div class="pp-vazio"><span class="ic">&#129335;</span>Nenhuma compra homologada encontrada para <b>'+esc0(termo)+'</b>'+
+      (uf?(' em <b>'+uf+'</b>'):'')+'.<br><span style="font-size:12px">Foram analisadas '+PP_ITENS.length.toLocaleString('pt-BR')+
+      ' compras do per&iacute;odo. Tente menos palavras, o modo <b>Qualquer</b>, um per&iacute;odo maior'+
+      (uf?', ou tire o filtro de estado':'')+'.</span></div>';
+    return;
+  }
+
+  var vals=lista.map(function(it){return parseFloat(it.valorUnitarioResultado);});
+  var st=_ppEstat(vals,apara);
+  var nosso=_ppNosso(termo);
+
+  function card(lbl,val,sub,cor){
+    return '<div class="pp-stat" style="--pc:'+cor+'"><div class="pp-stat-l">'+lbl+'</div>'+
+      '<div class="pp-stat-v">'+val+'</div>'+(sub?'<div class="pp-stat-s">'+sub+'</div>':'')+'</div>';
+  }
+  var html='<div class="pp-stats">'+
+    card('Pre&ccedil;o mediano',fmtMoeda(st.mediana),'o valor do meio &mdash; a refer&ecirc;ncia mais segura','#22c55e')+
+    card('M&eacute;dia',fmtMoeda(st.media),apara&&st.n>=10?('sem os 10% extremos ('+st.nUsados+' de '+st.n+')'):'de todas as amostras','#3b82f6')+
+    card('Mais barato',fmtMoeda(st.min),'menor valor homologado','#8b95a1')+
+    card('Mais caro',fmtMoeda(st.max),'maior valor homologado','#ef4444')+
+    card('Amostras',String(st.n),'compras encontradas'+(uf?(' em '+uf):''),'#a855f7')+
+  '</div>';
+
+  if(nosso){
+    var dif=((nosso.media-st.mediana)/st.mediana)*100;
+    var seta=dif>0?'acima':'abaixo';
+    var cor=Math.abs(dif)<=10?'#22c55e':Math.abs(dif)<=25?'#eab308':'#ef4444';
+    html+='<div class="pp-nosso">&#128200; No <b>nosso Banco de Dados</b> temos <b>'+nosso.n+'</b> registro(s) parecido(s), '+
+      'com m&eacute;dia de <b style="color:var(--nh)">'+fmtMoeda(nosso.media)+'</b> &mdash; '+
+      '<b style="color:'+cor+'">'+Math.abs(dif).toFixed(0)+'% '+seta+'</b> do pre&ccedil;o mediano do mercado.</div>';
+  }
+
+  html+='<div class="pp-barra">'+
+    '<span class="pp-cont"><b>'+lista.length.toLocaleString('pt-BR')+'</b> <span>compra(s) homologada(s)'+
+      (uf?(' em '+uf):'')+' &middot; de '+PP_ITENS.length.toLocaleString('pt-BR')+' analisadas</span></span>'+
+    '<div style="margin-left:auto"><button class="bsc-mini" onclick="nhPPExportar()">&#11015; Excel</button></div>'+
+  '</div>';
+
+  var ordenada=lista.slice().sort(function(a,b){
+    return parseFloat(a.valorUnitarioResultado)-parseFloat(b.valorUnitarioResultado);});
+  var mostrar=ordenada.slice(0,300);
+
+  html+='<div class="pp-tab-wrap"><table class="pp-tab"><thead><tr>'+
+    '<th>Item comprado</th><th>Valor unit&aacute;rio</th><th>Qtd</th><th>Fornecedor</th><th>&Oacute;rg&atilde;o</th><th>Data</th>'+
+    '</tr></thead><tbody>';
+  mostrar.forEach(function(it){
+    var v=parseFloat(it.valorUnitarioResultado);
+    var cls=v<st.mediana*0.7?' baixo':v>st.mediana*1.5?' alto':'';
+    var loc=nhPPLocal(it);
+    var d=it.dataResultado?new Date(it.dataResultado).toLocaleDateString('pt-BR'):'—';
+    html+='<tr>'+
+      '<td class="pp-desc">'+esc0(String(it.descricaoResumida||'').substring(0,200))+
+        (it.tipoBeneficioNome&&it.tipoBeneficioNome!=='Não se aplica'?'<div style="font-size:10px;color:#a855f7;margin-top:3px">'+esc0(it.tipoBeneficioNome)+'</div>':'')+'</td>'+
+      '<td class="pp-val'+cls+'">'+fmtMoeda(v)+'<div style="font-size:9.5px;color:var(--t3);font-weight:500;font-family:Outfit">'+esc0(it.unidadeMedida||'')+'</div></td>'+
+      '<td style="font-size:11.5px;color:var(--t2);white-space:nowrap">'+(it.quantidadeResultado||it.quantidade||'—')+'</td>'+
+      '<td class="pp-forn">'+esc0(String(it.nomeFornecedor||'—').substring(0,32))+'</td>'+
+      '<td class="pp-loc">'+(loc?(esc0(String(loc.orgao||loc.unidade||'').substring(0,34))+
+          (loc.uf?('<span class="pp-uf">'+loc.municipio+'/'+loc.uf+'</span>'):'')):'<span style="color:var(--t3)">—</span>')+'</td>'+
+      '<td style="font-size:11px;color:var(--t3);white-space:nowrap">'+d+'</td>'+
+    '</tr>';
+  });
+  html+='</tbody></table></div>';
+  if(ordenada.length>mostrar.length)
+    html+='<div style="font-size:11.5px;color:var(--t3);margin-top:10px;text-align:center">Mostrando as '+
+      mostrar.length+' mais baratas de '+ordenada.length.toLocaleString('pt-BR')+'. O Excel traz todas.</div>';
+
+  el.innerHTML=html;
+}
+
+function nhPPExportar(){
+  if(typeof XLSX==='undefined'){toast('SheetJS não carregado','err');return;}
+  var uf=document.getElementById('pp-uf').value;
+  var lista=PP_ACHADOS;
+  if(uf)lista=lista.filter(function(it){var l=nhPPLocal(it);return l&&l.uf===uf;});
+  if(!lista.length){toast('Nada para exportar','err');return;}
+  var cols=['Item','Valor Unitário Homologado','Valor Estimado','Unidade','Quantidade','Fornecedor','Órgão','Município','UF','Benefício','Critério de Julgamento','Data do Resultado'];
+  var aoa=[cols];
+  lista.slice().sort(function(a,b){
+    return parseFloat(a.valorUnitarioResultado)-parseFloat(b.valorUnitarioResultado);
+  }).forEach(function(it){
+    var loc=nhPPLocal(it)||{};
+    aoa.push([
+      String(it.descricaoResumida||''),
+      parseFloat(it.valorUnitarioResultado)||0,
+      parseFloat(it.valorUnitarioEstimado)||0,
+      it.unidadeMedida||'',
+      parseFloat(it.quantidadeResultado||it.quantidade)||0,
+      it.nomeFornecedor||'',
+      loc.orgao||loc.unidade||'',
+      loc.municipio||'',
+      loc.uf||'',
+      it.tipoBeneficioNome||'',
+      it.criterioJulgamentoNome||'',
+      it.dataResultado?new Date(it.dataResultado).toLocaleDateString('pt-BR'):''
+    ]);
+  });
+  var wb=XLSX.utils.book_new(),ws=XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols']=cols.map(function(c,i){
+    return {wch:Math.min(55,Math.max(12,aoa.reduce(function(m,r){return Math.max(m,String(r[i]||'').length);},0)))};});
+  XLSX.utils.book_append_sheet(wb,ws,'Pesquisa de Preço');
+  XLSX.writeFile(wb,'NH_Pesquisa_Preco_'+new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')+'.xlsx');
+  toast('✅ Excel exportado!','ok');
+}
 /* Carrega favoritos/anotações/filtros junto do resto do sistema. */
 if(typeof loadAll==='function'){
   var _nhLoadAllBusca=loadAll;
