@@ -8903,16 +8903,22 @@ async function chamarClaude(key,parts,maxTok){
   return j;
 }
 async function _nhClaudeLongo(key,parts,onMsg){
-  var j=await chamarClaude(key,parts,8000);
+  var j=await chamarClaude(key,parts,16000);
   var blk=j.content&&j.content[0];
   var resp=blk&&blk.text||'';
+  if(!resp&&j.stop_reason==='max_tokens'){
+    if(onMsg)onMsg('Resposta cortada sem conteúdo — tentando novamente...');
+    j=await chamarClaude(key,parts,16000);
+    blk=j.content&&j.content[0];
+    resp=blk&&blk.text||'';
+  }
   if(!resp)throw new Error('Resposta vazia da IA'+(j.stop_reason?' ('+j.stop_reason+')':''));
   var tent=0;
   while(j.stop_reason==='max_tokens'&&tent<2){
     tent++;
     if(onMsg)onMsg('Análise longa — continuando (parte '+(tent+1)+')...');
     try{
-      var jc=await chamarClaude(key,[{text:'Você estava fazendo uma análise e parou no meio. CONTINUE EXATAMENTE de onde parou, sem repetir nada, mantendo o mesmo formato. Últimos 1500 caracteres do que você já escreveu:\n'+resp.slice(-1500)}],8000);
+      var jc=await chamarClaude(key,[{text:'Você estava fazendo uma análise e parou no meio. CONTINUE EXATAMENTE de onde parou, sem repetir nada, mantendo o mesmo formato. Últimos 1500 caracteres do que você já escreveu:\n'+resp.slice(-1500)}],16000);
       var cblk=jc.content&&jc.content[0];
       var mais=cblk&&cblk.text||'';
       if(!mais)break;
