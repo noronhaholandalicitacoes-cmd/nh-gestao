@@ -19,7 +19,7 @@
   --b1:#252d40; --b2:#303a52;
   --nh:#f97316; --nha:rgba(249,115,22,.12);
   --g1:#22c55e; --r1:#ef4444; --y1:#eab308; --b_:#3b82f6;
-  --t1:#f5f5f5; --t2:#9aa5bd; --t3:#64748b;
+  --t1:#f5f5f5; --t2:#a3a3a3; --t3:#8b95a1;
   --nh2:#fb923c;
 }
 /* Os apelidos moram no body, e não no :root, de propósito. O tema claro
@@ -77,7 +77,8 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
 /* Cards */
 .cards{padding:4px 18px 120px;display:flex;flex-direction:column;gap:16px;position:relative;z-index:1}
 .card{background:var(--surf);border:1px solid var(--line);border-radius:18px;overflow:hidden;transition:border .2s,transform .2s,box-shadow .2s;position:relative}
-.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--txt3);opacity:.5}
+.card::after{content:"";position:absolute;left:0;top:0;right:0;height:4px;background:linear-gradient(90deg,#3b82f6,#a855f7,var(--nh));z-index:1}
+.card::before{content:"";position:absolute;left:0;top:4px;bottom:0;width:4px;background:var(--txt3);opacity:.5}
 .card.sim::before{background:linear-gradient(180deg,var(--sim),#16a34a);opacity:1}
 .card.nao::before{background:linear-gradient(180deg,var(--nao),#dc2626);opacity:1}
 .card.analise::before{background:linear-gradient(180deg,var(--ana),#ca8a04);opacity:1}
@@ -137,6 +138,35 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
 .btn-salvar.ativo{background:linear-gradient(135deg,var(--nh2),#ea580c);color:#000;box-shadow:0 6px 20px rgba(249,115,22,.3)}
 .btn-salvar.ativo:active{opacity:.85;transform:scale(.98)}
 .btn-salvar:disabled{cursor:not-allowed}
+
+/* Cabeçalho do card: eyebrow + badges de risco/CAPAG */
+.card-eyebrow-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.card-eyebrow{font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--txt3)}
+.badges-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.badge-risco{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:20px;font-size:11.5px;font-weight:800;white-space:nowrap}
+.badge-risco.r-baixo{background:rgba(34,197,94,.15);color:var(--g1)}
+.badge-risco.r-medio{background:rgba(234,179,8,.15);color:var(--y1)}
+.badge-risco.r-alto{background:rgba(239,68,68,.15);color:var(--r1)}
+.badge-risco.r-sem{background:rgba(120,120,130,.12);color:var(--txt3)}
+.badge-capag{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:20px;font-size:11.5px;font-weight:700;background:var(--bg);border:1px solid var(--line);color:var(--txt2);white-space:nowrap}
+
+.card-tags-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+
+/* Linhas de informação label-esquerda/valor-direita (mesmo padrão do Sistema NH) */
+.card-info{padding:2px 18px 8px 22px;display:flex;flex-direction:column;gap:7px}
+.info-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:13px;border-bottom:1px dashed var(--line);padding-bottom:6px}
+.info-row:last-child{border-bottom:none;padding-bottom:0}
+.info-row .lbl{color:var(--nh);font-weight:800;text-transform:uppercase;font-size:10.5px;letter-spacing:.05em;flex-shrink:0}
+.info-row .val{color:var(--txt);font-weight:700;text-align:right}
+
+/* Nota de viabilidade (gauge circular) */
+.score-wrap{margin:4px 18px 14px 22px;padding:14px;background:var(--bg);border:1px solid var(--line);border-radius:14px;display:flex;align-items:center;gap:14px}
+.score-txt{font-size:12px;color:var(--txt2);line-height:1.5}
+
+/* SIM vira o botão de ação primário (maior, cheio), sem perder a ordem
+   0/1/2 (SIM,NÃO,ANÁLISE) de que selecionarVoto() depende. */
+.btn-part:first-child{flex:1 1 100%;padding:16px;font-size:15px;border-width:2px;border-style:solid;border-color:var(--nh);color:var(--nh);background:var(--nha)}
+.btn-part:first-child.on-sim{background:linear-gradient(135deg,var(--nh),#ea580c);color:#fff;border-color:transparent;box-shadow:0 6px 18px rgba(249,115,22,.32)}
 
 /* Loading / vazio */
 .loading{text-align:center;padding:70px 20px;color:var(--txt3);position:relative;z-index:1}
@@ -458,6 +488,20 @@ var FILTRO_EMP='todos';
 
 var EMP_CORES={'VISE':'#eab308','SAUTEC':'#3b82f6','SOS':'#22c55e','SOS FILIAL':'#ef4444','ONLAV':'#06b6d4','ENGEMED':'#ec4899'};
 var EMP_CNPJS={};
+
+/* Nota de Viabilidade (IA) e nota CAPAG — calculadas e gravadas pelo
+   Sistema NH principal (a nota CAPAG já vem congelada dentro de cada
+   registro, em an.capag); aqui só lemos e exibimos. */
+var ANALISES_VIAB={};
+async function carregarAnalisesViab(){
+  /* Só leitura — quem calcula e grava é o Sistema NH principal (chip
+     "Analisar Viabilidade" no card de Editais Capturados). */
+  try{
+    var snap=await db.collection('analise_viabilidade').get();
+    ANALISES_VIAB={};
+    snap.forEach(function(d){ANALISES_VIAB[d.id]=d.data()._arr||d.data();});
+  }catch(e){console.warn('[Viabilidade] analise_viabilidade:',e.message);}
+}
 const auth=firebase.auth();
 
 /* ── Login de verdade (Firebase Auth), no lugar do hash comparado
@@ -521,8 +565,9 @@ function isNao(p){var s=String(p||'').toUpperCase().trim();return s==='NÃO'||s=
 
 /* ══════════════════════════════════════════════════════════════════
    ACESSO
-   Entra pelo WhatsApp cadastrado no sistema principal. A conferência é
-   por hash: o Firestore guarda salt + hash, nunca a senha. O número
+   Entra pelo WhatsApp cadastrado no sistema principal. O login é feito
+   direto no Firebase Auth (e-mail falso gerado a partir do número +
+   senha real da pessoa) — não há comparação de hash local. O número
    pode vir pronto no link (?r=55...), então a pessoa só digita a senha.
    ══════════════════════════════════════════════════════════════════ */
 /* ── Responsáveis ──────────────────────────────────────────────────
@@ -641,11 +686,6 @@ function vFormata(d){d=vSoDigitos(d);if(0===d.indexOf('55')&&d.length>11)d=d.sub
 function vMascara(el){var d=vSoDigitos(el.value);if(d.length>11)d=d.substring(0,11);
   el.value=d.length>6?'('+d.substring(0,2)+') '+d.substring(2,7)+(d.length>7?'-'+d.substring(7):'')
           :d.length>2?'('+d.substring(0,2)+') '+d.substring(2):d;}
-async function vHash(senha,salt){
-  var b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(salt+'::'+senha));
-  return Array.prototype.map.call(new Uint8Array(b),function(x){return('0'+x.toString(16)).slice(-2);}).join('');}
-
-
 /* Tema claro/escuro. A chave é a mesma usada pelo sistema principal,
    então escolher aqui vale nos três aplicativos. */
 function acAplicarTema(claro){
@@ -737,6 +777,7 @@ async function carregar(){
   try{
     await carregarCoresEmpresas();
     await carregarRespsCad();
+    await carregarAnalisesViab();
     var snap=await db.collection('editais').orderBy('_id','desc').get();
     TODOS=[];
     snap.forEach(function(doc){
@@ -858,6 +899,38 @@ function renderizar(){
   document.getElementById('main-content').appendChild(wrap);
 }
 
+/* ── Nota de Viabilidade (IA) e CAPAG — cores/labels/gauge ── */
+function corRisco(risco){
+  return risco==='baixo'?'var(--g1)':risco==='medio'?'var(--y1)':risco==='alto'?'var(--r1)':'var(--txt3)';
+}
+function labelRisco(risco){
+  return risco==='baixo'?'Risco Baixo':risco==='medio'?'Risco Médio':risco==='alto'?'Risco Alto':'Sem análise';
+}
+function iconeRisco(risco){
+  return risco==='baixo'?'🟢':risco==='medio'?'🟡':risco==='alto'?'🔴':'⚪';
+}
+function renderBadgeRisco(an){
+  var risco = an&&an.risco ? an.risco : null;
+  var cls = risco==='baixo'?'r-baixo':risco==='medio'?'r-medio':risco==='alto'?'r-alto':'r-sem';
+  return '<span class="badge-risco '+cls+'">'+iconeRisco(risco)+' '+labelRisco(risco)+'</span>';
+}
+function renderBadgeCapag(cap){
+  return '<span class="badge-capag">💰 CAPAG: '+(cap&&cap.nota?esc(cap.nota):'—')+'</span>';
+}
+function renderGaugeViab(an){
+  var nota = an&&typeof an.nota==='number'&&!isNaN(an.nota) ? Math.max(0,Math.min(10,an.nota)) : null;
+  var cor = corRisco(an&&an.risco);
+  var R=26, C=2*Math.PI*R;
+  var off = nota===null ? C : C*(1-nota/10);
+  var txt = nota===null ? '—' : nota.toFixed(1).replace('.',',');
+  return '<svg width="60" height="60" viewBox="0 0 60 60" style="flex-shrink:0">'+
+    '<circle cx="30" cy="30" r="'+R+'" fill="none" stroke="var(--line)" stroke-width="5"/>'+
+    '<circle cx="30" cy="30" r="'+R+'" fill="none" stroke="'+cor+'" stroke-width="5" stroke-linecap="round" '+
+      'stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'" transform="rotate(-90 30 30)"/>'+
+    '<text x="30" y="31" text-anchor="middle" dominant-baseline="middle" font-size="15" font-weight="800" fill="var(--txt)" font-family="Outfit,sans-serif">'+txt+'</text>'+
+  '</svg>';
+}
+
 function renderCard(d){
   var arr=d.arr;
   var id=d.id;
@@ -885,24 +958,40 @@ function renderCard(d){
   var temPart = part!=='';
   var justDisabled = !temPart ? 'disabled' : '';
 
+  /* Preenchidas pelo Sistema NH principal (Parte 3/4) — aqui só leitura. */
+  var an = ANALISES_VIAB[id] || null;
+  var cap = (an && an.capag) || null;
+
   return '<div class="card '+cardCls+'" id="card-'+id+'">'+
     '<div class="card-head">'+
-      '<div class="card-top-row">'+
+      '<div class="card-eyebrow-row">'+
+        '<span class="card-eyebrow">Análise de Viabilidade</span>'+
+        '<div class="badges-top">'+renderBadgeRisco(an)+renderBadgeCapag(cap)+'</div>'+
+      '</div>'+
+      '<div class="card-licit">'+esc(licit)+'</div>'+
+      '<div class="card-tags-row">'+
         '<span class="card-emp" style="background:'+empCor+'22;color:'+empCor+';border:1px solid '+empCor+'44">'+esc(emp)+'</span>'+
         tagResp+
         pill+
       '</div>'+
-      '<div class="card-licit">'+esc(licit)+'</div>'+
+    '</div>'+
+    '<div class="card-info">'+
+      (mun?'<div class="info-row"><span class="lbl">Município/UF</span><span class="val">'+esc(mun)+'</span></div>':'')+
+      (val>0?'<div class="info-row"><span class="lbl">Valor Estimado</span><span class="val">'+fmtMoeda(val)+'</span></div>':'')+
+      (resp?'<div class="info-row"><span class="lbl">Responsável</span><span class="val">'+esc(resp)+'</span></div>':'')+
     '</div>'+
     '<div class="card-meta">'+
       (obj?'<span class="meta-tag obj">'+esc(obj.substring(0,180))+(obj.length>180?'…':'')+'</span>':'')+
-      (local?'<span class="meta-tag">📍 '+esc(local)+(mun?' · '+esc(mun):'')+'</span>':'')+
-      (val>0?'<span class="meta-tag val">💰 '+fmtMoeda(val)+'</span>':'')+
+      (local&&local!==mun?'<span class="meta-tag">📍 '+esc(local)+'</span>':'')+
       (linkPub?'<a href="'+esc(linkPub)+'" target="_blank" rel="noopener" class="meta-link" onclick="event.stopPropagation()">📄 Consultar Edital / TR</a>':'')+
+    '</div>'+
+    '<div class="score-wrap">'+
+      renderGaugeViab(an)+
+      '<div class="score-txt">'+(an&&an.motivo?esc(an.motivo):'Nota calculada sobre exigências, concorrência prevista e histórico de preços do órgão. Analise pelo Sistema NH.')+'</div>'+
     '</div>'+
     '<div class="card-acoes">'+
       '<div class="btns-part">'+
-        '<button class="btn-part'+(isSim(part)?' on-sim':'')+'" onclick="selecionarVoto(\''+id+'\',\'SIM\')">✅ SIM</button>'+
+        '<button class="btn-part'+(isSim(part)?' on-sim':'')+'" onclick="selecionarVoto(\''+id+'\',\'SIM\')">✅ SIM, PARTICIPAR</button>'+
         '<button class="btn-part'+(isNao(part)?' on-nao':'')+'" onclick="selecionarVoto(\''+id+'\',\'NÃO\')">❌ NÃO</button>'+
         '<button class="btn-part'+(isAnalise(part)?' on-analise':'')+'" style="font-size:12px" onclick="selecionarVoto(\''+id+'\',\'EM ANÁLISE\')">🔍 ANÁLISE</button>'+
       '</div>'+
