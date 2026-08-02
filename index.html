@@ -9966,8 +9966,11 @@ function nhCapagChave(municipioUf,ufSep){
   var s=String(municipioUf||'').trim();
   var mun=s,uf=ufSep;
   if(!uf){
-    var partes=s.split('/');
-    if(partes.length===2){mun=partes[0].trim();uf=partes[1].trim();}
+    /* Campo de município do edital é texto livre — aceita "Cidade/UF",
+       "Cidade - UF", "Cidade UF" etc. UF é sempre as 2 letras finais,
+       separadas por espaço/traço/barra/vírgula. */
+    var m=s.match(/^(.*?)[\s\-\/,]+([A-Za-z]{2})$/);
+    if(m){mun=m[1].trim();uf=m[2].trim();}
   }
   return propNorm(mun)+'-'+String(uf||'').trim().toLowerCase();
 }
