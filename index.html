@@ -931,6 +931,184 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 
 .r-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
 
+/* ══════════════════════════════════════════════════════════
+   BUSCADOR DE LICITAÇÕES (.bsc-*)
+   Campo de busca grande no topo + filtros à esquerda +
+   resultados à direita. Tokens e linguagem visual do sistema.
+   ══════════════════════════════════════════════════════════ */
+.bsc-hero{
+  background:linear-gradient(135deg,rgba(249,115,22,.10),transparent 55%),var(--s1);
+  border:1px solid var(--b1);border-radius:16px;padding:22px 24px;margin-bottom:16px;
+}
+.bsc-hero-row{display:flex;gap:10px;align-items:stretch}
+.bsc-busca{
+  flex:1;min-width:0;display:flex;align-items:center;gap:12px;
+  background:var(--s2);border:2px solid var(--b1);border-radius:12px;
+  padding:0 18px;transition:border-color .18s,box-shadow .18s;
+}
+.bsc-busca:focus-within{border-color:var(--nh);box-shadow:0 0 0 4px rgba(249,115,22,.12)}
+.bsc-busca .ico{font-size:20px;opacity:.7;flex-shrink:0}
+.bsc-busca input{
+  flex:1;min-width:0;background:none;border:none;outline:none;
+  color:var(--t1);font-size:17px;font-weight:500;font-family:Outfit,sans-serif;
+  padding:18px 0;
+}
+.bsc-busca input::placeholder{color:var(--t3);font-weight:400}
+.bsc-btn-buscar{
+  background:linear-gradient(135deg,var(--nh),#ea580c);color:#fff;border:none;
+  padding:0 34px;border-radius:12px;font-weight:800;font-size:15px;cursor:pointer;
+  font-family:Outfit,sans-serif;white-space:nowrap;transition:filter .15s,transform .15s;
+}
+.bsc-btn-buscar:hover{filter:brightness(1.08)}
+.bsc-btn-buscar:active{transform:scale(.98)}
+.bsc-btn-buscar:disabled{opacity:.6;cursor:default;filter:none}
+/* Canais de busca (publicadas / recebendo proposta / atualizadas) */
+.bsc-canais{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.bsc-canal{
+  display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:10px;
+  border:1px solid var(--b1);background:var(--s2);color:var(--t2);
+  font-size:12.5px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;
+  transition:all .15s;
+}
+.bsc-canal:hover{border-color:var(--nh);color:var(--t1)}
+.bsc-canal.on{background:var(--nha);border-color:var(--nh);color:var(--nh)}
+.bsc-canal .sub{font-weight:500;font-size:11px;opacity:.75}
+
+/* Layout de duas colunas */
+.bsc-wrap{display:grid;grid-template-columns:290px 1fr;gap:16px;align-items:start}
+.bsc-filtros{
+  background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:18px;
+  position:sticky;top:16px;max-height:calc(100vh - 32px);overflow-y:auto;
+}
+.bsc-filtros::-webkit-scrollbar{width:6px}
+.bsc-filtros::-webkit-scrollbar-thumb{background:var(--b2);border-radius:3px}
+.bsc-fgrupo{margin-bottom:16px}
+.bsc-flabel{
+  font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;
+  font-weight:700;margin-bottom:7px;display:block;
+}
+.bsc-filtros input[type=text],.bsc-filtros input[type=date],
+.bsc-filtros input[type=number],.bsc-filtros select{
+  width:100%;background:var(--s2);border:1px solid var(--b1);color:var(--t1);
+  padding:9px 11px;border-radius:8px;font-size:12.5px;font-family:Outfit,sans-serif;
+  box-sizing:border-box;transition:border-color .15s;
+}
+.bsc-filtros input:focus,.bsc-filtros select:focus{outline:none;border-color:var(--nh)}
+.bsc-duo{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.bsc-chk{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12.5px;color:var(--t2);font-weight:600;padding:4px 0}
+.bsc-chk input{width:15px;height:15px;accent-color:var(--nh);cursor:pointer;flex-shrink:0}
+.bsc-mini{
+  background:var(--s2);border:1px solid var(--b1);color:var(--t2);
+  padding:7px 12px;border-radius:8px;font-size:11.5px;font-weight:700;
+  cursor:pointer;font-family:Outfit,sans-serif;transition:all .15s;
+}
+.bsc-mini:hover{border-color:var(--nh);color:var(--nh)}
+.bsc-modo{display:flex;gap:5px}
+.bsc-modo button{
+  flex:1;background:var(--s2);border:1px solid var(--b1);color:var(--t3);
+  padding:6px 4px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;
+  font-family:Outfit,sans-serif;transition:all .15s;
+}
+.bsc-modo button.on{background:var(--nha);border-color:var(--nh);color:var(--nh)}
+
+/* Barra de resultados */
+.bsc-barra{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  background:var(--s1);border:1px solid var(--b1);border-radius:12px;
+  padding:12px 16px;margin-bottom:12px;
+}
+.bsc-cont{font-size:13px;color:var(--t1);font-weight:700}
+.bsc-cont b{color:var(--nh);font-size:16px;font-family:'JetBrains Mono',monospace}
+
+/* Card de resultado */
+.bsc-card{
+  background:var(--s1);border:1px solid var(--b1);border-left:4px solid var(--b2);
+  border-radius:12px;padding:16px 18px;margin-bottom:11px;
+  transition:border-color .18s,transform .15s,box-shadow .18s;position:relative;
+}
+.bsc-card:hover{border-color:var(--nh);transform:translateY(-1px);box-shadow:0 8px 22px rgba(0,0,0,.3)}
+.bsc-card.sel{border-left-color:var(--nh);background:var(--s2)}
+.bsc-card.capturado{border-left-color:#22c55e}
+.bsc-chead{display:flex;align-items:center;gap:8px;margin-bottom:9px;flex-wrap:wrap}
+.bsc-num{
+  font-size:11px;font-weight:800;color:var(--t3);font-family:'JetBrains Mono',monospace;
+  background:var(--s2);border:1px solid var(--b1);border-radius:6px;padding:2px 8px;flex-shrink:0;
+}
+.bsc-tag{
+  display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;
+  padding:3px 9px;border-radius:20px;letter-spacing:.03em;white-space:nowrap;
+}
+.bsc-star{
+  margin-left:auto;background:none;border:none;font-size:17px;cursor:pointer;
+  opacity:.35;transition:opacity .15s,transform .15s;line-height:1;flex-shrink:0;
+}
+.bsc-star:hover{opacity:.8;transform:scale(1.15)}
+.bsc-star.on{opacity:1}
+.bsc-obj{font-size:13.5px;color:var(--t1);line-height:1.6;margin-bottom:11px;font-weight:500}
+.bsc-obj.clamp{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.bsc-vermais{background:none;border:none;color:var(--nh);font-size:11.5px;font-weight:700;cursor:pointer;padding:0;font-family:Outfit,sans-serif}
+.bsc-meta{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:10px 18px;padding:11px 0;margin-bottom:10px;
+  border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);
+}
+.bsc-mi{display:flex;flex-direction:column;gap:3px;min-width:0}
+.bsc-mi-l{font-size:9.5px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+.bsc-mi-v{font-size:12.5px;color:var(--t1);font-weight:600;overflow-wrap:anywhere}
+.bsc-mi-v.nh{color:var(--nh);font-weight:800;font-size:14px}
+/* Faixa com o que já sabemos do município (histórico próprio) */
+.bsc-nosso{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.22);
+  border-radius:8px;padding:7px 11px;margin-bottom:10px;font-size:11.5px;color:var(--t2);
+}
+.bsc-acoes{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.bsc-a{
+  display:inline-flex;align-items:center;gap:5px;text-decoration:none;
+  padding:6px 12px;border-radius:7px;font-size:11.5px;font-weight:700;
+  cursor:pointer;font-family:Outfit,sans-serif;border:1px solid;transition:filter .15s;
+}
+.bsc-a:hover{filter:brightness(1.2)}
+.bsc-a.az{background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.3);color:#3b82f6}
+.bsc-a.lj{background:var(--nha);border-color:rgba(249,115,22,.3);color:var(--nh)}
+.bsc-a.vd{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.3);color:#22c55e}
+.bsc-a.rx{background:var(--s2);border-color:var(--b1);color:var(--t2)}
+.bsc-a[disabled]{opacity:.55;cursor:default;filter:none}
+.bsc-nota{
+  width:100%;margin-top:10px;background:var(--s2);border:1px solid var(--b1);
+  color:var(--t1);padding:8px 11px;border-radius:8px;font-size:12px;
+  font-family:Outfit,sans-serif;box-sizing:border-box;resize:vertical;min-height:36px;
+}
+.bsc-nota:focus{outline:none;border-color:var(--nh)}
+.bsc-ia{
+  margin-top:10px;background:var(--s2);border:1px solid var(--b1);
+  border-radius:9px;padding:12px 14px;font-size:12.5px;color:var(--t1);line-height:1.7;
+}
+.bsc-vazio{text-align:center;color:var(--t3);padding:56px 20px;font-size:13px}
+.bsc-vazio .ic{font-size:40px;display:block;margin-bottom:12px;opacity:.5}
+
+/* Botão que abre os filtros no celular — escondido no desktop */
+.bsc-toggle-filtros{display:none}
+
+@media(max-width:960px){
+  .bsc-wrap{grid-template-columns:1fr}
+  .bsc-filtros{position:static;max-height:none;display:none}
+  .bsc-filtros.aberto{display:block}
+  .bsc-toggle-filtros{
+    display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+    background:var(--s1);border:1px solid var(--b1);color:var(--t1);
+    padding:11px;border-radius:10px;font-size:13px;font-weight:700;
+    cursor:pointer;font-family:Outfit,sans-serif;margin-bottom:12px;
+  }
+}
+@media(max-width:620px){
+  .bsc-hero{padding:16px}
+  .bsc-hero-row{flex-direction:column}
+  .bsc-busca input{font-size:15px;padding:14px 0}
+  .bsc-btn-buscar{padding:13px}
+  .bsc-meta{grid-template-columns:1fr 1fr;gap:9px 12px}
+}
+
 /* ─── Filtro de período ───────────────────────────────── */
 .r-periodo{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap}
 .r-periodo-label{font-size:11px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
@@ -2882,21 +3060,125 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
 
     <div class="page" id="page-buscador">
 <div style="padding:0 0 32px">
-<div style="background:var(--s1);border:1px solid var(--b1);border-radius:12px;padding:20px;margin-bottom:16px">
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
-    <div style="grid-column:1/-1"><input type="text" id="pncp-termo" placeholder="Palavras-chave: equipamentos, manutenção, locação..." style="width:100%;background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:10px 14px;border-radius:8px;font-size:13px;font-family:Outfit,sans-serif;box-sizing:border-box"></div>
-    <select id="pncp-uf" onchange="carregarMunicipios(this.value)" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:10px;border-radius:8px;font-size:12px;font-family:Outfit,sans-serif"><option value="">Todos os Estados</option><option value="PB" selected>Paraíba</option><option value="PE">Pernambuco</option><option value="RN">Rio Grande do Norte</option><option value="CE">Ceará</option><option value="AL">Alagoas</option><option value="SE">Sergipe</option><option value="BA">Bahia</option><option value="MA">Maranhão</option><option value="PI">Piauí</option><option value="AC">Acre</option><option value="AM">Amazonas</option><option value="AP">Amapá</option><option value="DF">Distrito Federal</option><option value="ES">Espírito Santo</option><option value="GO">Goiás</option><option value="MG">Minas Gerais</option><option value="MS">Mato Grosso do Sul</option><option value="MT">Mato Grosso</option><option value="PA">Pará</option><option value="PR">Paraná</option><option value="RJ">Rio de Janeiro</option><option value="RO">Rondônia</option><option value="RR">Roraima</option><option value="RS">Rio Grande do Sul</option><option value="SC">Santa Catarina</option><option value="SP">São Paulo</option><option value="TO">Tocantins</option></select>
-    <select id="pncp-mun" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:10px;border-radius:8px;font-size:12px;font-family:Outfit,sans-serif"><option value="">Todos Municípios</option></select>
-    <select id="pncp-modalidade" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:10px;border-radius:8px;font-size:12px;font-family:Outfit,sans-serif"><option value="">Todas Modalidades</option><option value="6" selected>Pregão Eletrônico</option><option value="8">Dispensa</option><option value="7">Concorrência</option><option value="4">Concurso</option><option value="2">Diálogo Competitivo</option><option value="9">Pré-qualificação</option><option value="13">Leilão</option></select>
-    <input type="date" id="pncp-dt-ini" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:10px;border-radius:8px;font-size:12px;font-family:Outfit,sans-serif">
-    <input type="date" id="pncp-dt-fim" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:10px;border-radius:8px;font-size:12px;font-family:Outfit,sans-serif">
+
+  <!-- ── Campo de busca grande + canais ────────────────── -->
+  <div class="bsc-hero">
+    <div class="bsc-hero-row">
+      <div class="bsc-busca">
+        <span class="ico">&#128269;</span>
+        <input type="text" id="bsc-termo" placeholder="Busque por objeto, &oacute;rg&atilde;o ou palavra-chave &mdash; ex: manuten&ccedil;&atilde;o predial, locação de equipamentos m&eacute;dicos..." onkeydown="if(event.key==='Enter')nhBuscar()">
+      </div>
+      <button class="bsc-btn-buscar" id="bsc-btn" onclick="nhBuscar()">Buscar</button>
+    </div>
+    <div class="bsc-canais" id="bsc-canais">
+      <button class="bsc-canal on" data-canal="proposta" onclick="nhSetCanal('proposta')">&#9201; Recebendo proposta <span class="sub">&mdash; d&aacute; para participar agora</span></button>
+      <button class="bsc-canal" data-canal="publicacao" onclick="nhSetCanal('publicacao')">&#128196; Publicadas <span class="sub">&mdash; por data de publica&ccedil;&atilde;o</span></button>
+      <button class="bsc-canal" data-canal="atualizacao" onclick="nhSetCanal('atualizacao')">&#128260; Atualizadas <span class="sub">&mdash; alteradas ou reabertas</span></button>
+    </div>
   </div>
-  <div style="display:flex;gap:8px;align-items:center">
-    <button onclick="buscarPNCP()" style="background:var(--nh);color:#000;border:none;padding:10px 24px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;font-family:Outfit,sans-serif">Buscar</button>
-    <span id="pncp-status" style="font-size:12px;color:var(--t3)"></span>
+
+  <button class="bsc-toggle-filtros" onclick="nhToggleFiltros()"><span>&#9776;</span> Filtros da busca</button>
+
+  <div class="bsc-wrap">
+    <!-- ── Filtros ────────────────────────────────────── -->
+    <div class="bsc-filtros" id="bsc-filtros">
+
+      <div class="bsc-fgrupo">
+        <label class="bsc-flabel">Como combinar as palavras</label>
+        <div class="bsc-modo" id="bsc-modo">
+          <button class="on" data-modo="ou" onclick="nhSetModo('ou')" title="Traz resultados que tenham qualquer uma das palavras">Qualquer</button>
+          <button data-modo="e" onclick="nhSetModo('e')" title="S&oacute; traz resultados que tenham todas as palavras">Todas</button>
+          <button data-modo="exato" onclick="nhSetModo('exato')" title="Busca a frase exata, do jeito que foi digitada">Frase exata</button>
+        </div>
+      </div>
+
+      <div class="bsc-fgrupo">
+        <label class="bsc-flabel">Excluir resultados com</label>
+        <input type="text" id="bsc-excluir" placeholder="ex: merenda, combust&iacute;vel" title="Separe por v&iacute;rgula. Resultados com essas palavras somem da lista.">
+      </div>
+
+      <div class="bsc-fgrupo">
+        <label class="bsc-flabel">Estado</label>
+        <select id="bsc-uf" onchange="carregarMunicipios(this.value)">
+          <option value="">Todos os Estados</option>
+          <option value="PB" selected>Para&iacute;ba</option><option value="PE">Pernambuco</option><option value="RN">Rio Grande do Norte</option><option value="CE">Cear&aacute;</option><option value="AL">Alagoas</option><option value="SE">Sergipe</option><option value="BA">Bahia</option><option value="MA">Maranh&atilde;o</option><option value="PI">Piau&iacute;</option><option value="AC">Acre</option><option value="AM">Amazonas</option><option value="AP">Amap&aacute;</option><option value="DF">Distrito Federal</option><option value="ES">Esp&iacute;rito Santo</option><option value="GO">Goi&aacute;s</option><option value="MG">Minas Gerais</option><option value="MS">Mato Grosso do Sul</option><option value="MT">Mato Grosso</option><option value="PA">Par&aacute;</option><option value="PR">Paran&aacute;</option><option value="RJ">Rio de Janeiro</option><option value="RO">Rond&ocirc;nia</option><option value="RR">Roraima</option><option value="RS">Rio Grande do Sul</option><option value="SC">Santa Catarina</option><option value="SP">S&atilde;o Paulo</option><option value="TO">Tocantins</option>
+        </select>
+      </div>
+
+      <div class="bsc-fgrupo">
+        <label class="bsc-flabel">Munic&iacute;pio</label>
+        <select id="bsc-mun"><option value="">Todos Munic&iacute;pios</option></select>
+      </div>
+
+      <div class="bsc-fgrupo">
+        <label class="bsc-flabel">Modalidade</label>
+        <select id="bsc-modalidade">
+          <option value="">Todas Modalidades</option>
+          <option value="6" selected>Preg&atilde;o Eletr&ocirc;nico</option>
+          <option value="8">Dispensa</option>
+          <option value="7">Concorr&ecirc;ncia</option>
+          <option value="4">Concurso</option>
+          <option value="2">Di&aacute;logo Competitivo</option>
+          <option value="9">Pr&eacute;-qualifica&ccedil;&atilde;o</option>
+          <option value="13">Leil&atilde;o</option>
+        </select>
+      </div>
+
+      <div class="bsc-fgrupo">
+        <label class="bsc-flabel">Valor estimado (R$)</label>
+        <div class="bsc-duo">
+          <input type="number" id="bsc-vmin" placeholder="m&iacute;nimo" min="0">
+          <input type="number" id="bsc-vmax" placeholder="m&aacute;ximo" min="0">
+        </div>
+      </div>
+
+      <div class="bsc-fgrupo" id="bsc-grupo-datas">
+        <label class="bsc-flabel" id="bsc-lbl-datas">Per&iacute;odo</label>
+        <div class="bsc-duo">
+          <input type="date" id="bsc-dt-ini" title="De">
+          <input type="date" id="bsc-dt-fim" title="At&eacute;">
+        </div>
+        <div style="font-size:10.5px;color:var(--t3);margin-top:5px" id="bsc-dica-datas">Em branco = pr&oacute;ximos 90 dias.</div>
+      </div>
+
+      <div class="bsc-fgrupo">
+        <label class="bsc-chk"><input type="checkbox" id="bsc-srp"> Somente Registro de Pre&ccedil;os (SRP)</label>
+        <label class="bsc-chk"><input type="checkbox" id="bsc-inedito"> Esconder os j&aacute; capturados</label>
+        <label class="bsc-chk"><input type="checkbox" id="bsc-favoritos"> Somente favoritos</label>
+      </div>
+
+      <div class="bsc-fgrupo" style="display:flex;gap:6px">
+        <button class="bsc-mini" style="flex:1" onclick="nhLimparFiltros()">Limpar</button>
+        <button class="bsc-mini" style="flex:1" onclick="nhSalvarFiltro()">&#128190; Salvar</button>
+      </div>
+
+      <div class="bsc-fgrupo" style="border-top:1px solid var(--b1);padding-top:14px;margin-bottom:0">
+        <label class="bsc-flabel">Buscas salvas</label>
+        <div id="bsc-salvos" style="display:flex;flex-direction:column;gap:5px"></div>
+      </div>
+    </div>
+
+    <!-- ── Resultados ─────────────────────────────────── -->
+    <div style="min-width:0">
+      <div class="bsc-barra" id="bsc-barra" style="display:none">
+        <span class="bsc-cont" id="bsc-cont"></span>
+        <select id="bsc-ordem" onchange="nhRenderResultados()" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:7px 10px;border-radius:8px;font-size:12px;font-family:Outfit,sans-serif;cursor:pointer">
+          <option value="prazo">Prazo mais pr&oacute;ximo</option>
+          <option value="abertura">Data de abertura</option>
+          <option value="valor_desc">Maior valor</option>
+          <option value="valor_asc">Menor valor</option>
+          <option value="municipio">Munic&iacute;pio (A-Z)</option>
+        </select>
+        <div style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap">
+          <button class="bsc-mini" onclick="nhSelecionarTodos()" id="bsc-btn-sel">&#9744; Selecionar todos</button>
+          <button class="bsc-mini" onclick="nhCapturarLote()" id="bsc-btn-lote" style="display:none">&#43; Capturar selecionados (<span id="bsc-n-sel">0</span>)</button>
+          <button class="bsc-mini" onclick="nhExportarBusca()">&#11015; Excel</button>
+        </div>
+      </div>
+      <div id="bsc-status" style="font-size:12.5px;color:var(--t3);margin-bottom:10px"></div>
+      <div id="bsc-resultados"></div>
+    </div>
   </div>
-</div>
-<div id="pncp-resultados"></div>
 </div>
 </div>
 
@@ -8427,7 +8709,7 @@ function saveDateTime(e,a,t,el){var row=el.parentElement;var dEl=row.querySelect
 
 function initPNCPDates(){carregarMunicipios("PB");var h=new Date,d=new Date(h);d.setDate(d.getDate()-7);var f=function(d){return d.toISOString().split("T")[0]};var di=document.getElementById("pncp-dt-ini");var df=document.getElementById("pncp-dt-fim");if(di&&!di.value)di.value=f(d);if(df&&!df.value)df.value=f(h)}
 async function carregarMunicipios(uf){
-  var sel=document.getElementById('pncp-mun');if(!sel)return;
+  var sel=document.getElementById('bsc-mun');if(!sel)return;
   sel.innerHTML='<option value="">Todos Municípios</option>';
   if(!uf)return;
   sel.innerHTML='<option value="">Carregando...</option>';
@@ -8443,65 +8725,674 @@ async function carregarMunicipios(uf){
     if(typeof toast==='function')toast('Não foi possível carregar municípios','err');
   }
 }
-async function _pncpFetch(url){
-  var proxies=["https://api.allorigins.win/raw?url=","https://corsproxy.io/?url=","https://api.codetabs.com/v1/proxy?quest="];
-  var lastErr="";
+/* ══════════════════════════════════════════════════════════════════
+   BUSCADOR DE LICITAÇÕES — PNCP
+   4 canais oficiais: publicação, proposta aberta, atualização e itens.
+   O PNCP libera CORS (access-control-allow-origin: *), então a chamada
+   vai direta; os proxies públicos ficaram só como rede de segurança.
+   ══════════════════════════════════════════════════════════════════ */
+var BSC_CANAL='proposta', BSC_MODO='ou';
+var BSC_BRUTO=[];        /* o que voltou da API, sem filtro de tela */
+var BSC_LISTA=[];        /* já filtrado e ordenado — é o que aparece */
+var BSC_SEL={};          /* selecionados para captura em lote */
+var BSC_FAV={}, BSC_NOTAS={}, BSC_FILTROS_SALVOS=[];
+var _bscBuscando=false;
+
+async function nhPncpFetch(url){
+  /* 1) direto — rápido e sem terceiro no meio */
+  try{
+    var r=await Promise.race([
+      fetch(url,{cache:'no-cache'}),
+      new Promise(function(_,rj){setTimeout(function(){rj(new Error('timeout'))},15000)})
+    ]);
+    if(r.ok){
+      var j=await r.json();
+      if(Array.isArray(j))return{data:j,totalPaginas:1,totalRegistros:j.length};
+      if(j&&j.data!==undefined)return j;
+    }
+    if(r.status===204)return{data:[],totalPaginas:0,totalRegistros:0};
+  }catch(e){/* cai para os proxies */}
+  /* 2) proxies — só se o direto falhar */
+  var proxies=['https://api.allorigins.win/raw?url=','https://corsproxy.io/?url=','https://api.codetabs.com/v1/proxy?quest='];
+  var lastErr='';
   for(var i=0;i<proxies.length;i++){
     try{
       var resp=await Promise.race([
-        fetch(proxies[i]+encodeURIComponent(url),{cache:"no-cache"}),
-        new Promise(function(_,rj){setTimeout(function(){rj(new Error("timeout"))},12000)})
+        fetch(proxies[i]+encodeURIComponent(url),{cache:'no-cache'}),
+        new Promise(function(_,rj){setTimeout(function(){rj(new Error('timeout'))},12000)})
       ]);
-      if(!resp.ok){lastErr="HTTP "+resp.status;continue;}
-      var txt=await resp.text();var obj;
-      try{obj=JSON.parse(txt);}catch(pe){lastErr="JSON inválido";continue;}
+      if(!resp.ok){lastErr='HTTP '+resp.status;continue;}
+      var txt=await resp.text(),obj;
+      try{obj=JSON.parse(txt);}catch(pe){lastErr='JSON inválido';continue;}
       if(obj&&obj.contents){try{obj=JSON.parse(obj.contents);}catch(pe2){}}
-      if(Array.isArray(obj))obj={data:obj,totalPaginas:1};
+      if(Array.isArray(obj))obj={data:obj,totalPaginas:1,totalRegistros:obj.length};
       if(obj&&obj.data!==undefined)return obj;
-      lastErr="Resposta inválida";
-    }catch(e){lastErr=(e&&e.message)||"erro";continue;}
+      lastErr='Resposta inválida';
+    }catch(e){lastErr=(e&&e.message)||'erro';continue;}
   }
-  throw new Error(lastErr||"falha");
+  throw new Error(lastErr||'falha ao consultar o PNCP');
 }
-async function buscarPNCP(){
-  var st=document.getElementById("pncp-status");
-  var termo=document.getElementById("pncp-termo").value.trim();
-  var uf=document.getElementById("pncp-uf").value;
-  var mod=document.getElementById("pncp-modalidade").value;
-  var munCod=document.getElementById("pncp-mun").value;
-  var di=document.getElementById("pncp-dt-ini").value;
-  var df=document.getElementById("pncp-dt-fim").value;
-  if(!di||!df){toast("Informe as datas de início e fim","err");return}
-  st.textContent="Buscando no PNCP...";st.style.color="var(--nh)";
-  var dIni=di.replace(/-/g,"");var dFim=df.replace(/-/g,"");
+
+function nhSetCanal(c){
+  BSC_CANAL=c;
+  document.querySelectorAll('#bsc-canais .bsc-canal').forEach(function(b){
+    b.classList.toggle('on',b.getAttribute('data-canal')===c);
+  });
+  var lbl=document.getElementById('bsc-lbl-datas'),dica=document.getElementById('bsc-dica-datas');
+  if(c==='proposta'){lbl.textContent='Prazo para envio da proposta';dica.textContent='Em branco = próximos 90 dias.';}
+  else if(c==='publicacao'){lbl.textContent='Período de publicação';dica.textContent='Em branco = últimos 30 dias.';}
+  else{lbl.textContent='Período de atualização';dica.textContent='Em branco = últimos 30 dias.';}
+}
+function nhSetModo(m){
+  BSC_MODO=m;
+  document.querySelectorAll('#bsc-modo button').forEach(function(b){
+    b.classList.toggle('on',b.getAttribute('data-modo')===m);
+  });
+  if(BSC_BRUTO.length)nhRenderResultados();
+}
+function nhToggleFiltros(){document.getElementById('bsc-filtros').classList.toggle('aberto');}
+
+function _bscData(d){var x=new Date(d);return x.getFullYear()+('0'+(x.getMonth()+1)).slice(-2)+('0'+x.getDate()).slice(-2);}
+function _bscHoje(){return new Date();}
+function _bscMaisDias(n){var d=new Date();d.setDate(d.getDate()+n);return d;}
+
+async function nhBuscar(){
+  if(_bscBuscando)return;
+  var st=document.getElementById('bsc-status');
+  var btn=document.getElementById('bsc-btn');
+  var uf=document.getElementById('bsc-uf').value;
+  var mod=document.getElementById('bsc-modalidade').value;
+  var munCod=document.getElementById('bsc-mun').value;
+  var di=document.getElementById('bsc-dt-ini').value;
+  var df=document.getElementById('bsc-dt-fim').value;
+
+  /* Datas deixaram de ser obrigatórias — cada canal tem um padrão útil. */
+  var dIni,dFim;
+  if(BSC_CANAL==='proposta'){
+    dIni=di?di.replace(/-/g,''):_bscData(_bscHoje());
+    dFim=df?df.replace(/-/g,''):_bscData(_bscMaisDias(90));
+  }else{
+    dIni=di?di.replace(/-/g,''):_bscData(_bscMaisDias(-30));
+    dFim=df?df.replace(/-/g,''):_bscData(_bscHoje());
+  }
+
   function buildUrl(pg){
-    var u="https://pncp.gov.br/api/consulta/v1/contratacoes/publicacao?dataInicial="+dIni+"&dataFinal="+dFim+"&tamanhoPagina=50&pagina="+pg;
-    if(mod)u+="&codigoModalidadeContratacao="+mod;
-    if(uf)u+="&uf="+uf;
-    if(munCod)u+="&codigoMunicipioIbge="+munCod;
+    var base='https://pncp.gov.br/api/consulta/v1/contratacoes/'+BSC_CANAL;
+    var u=base+'?tamanhoPagina=50&pagina='+pg;
+    /* /proposta usa só dataFinal (janela aberta até tal data) */
+    if(BSC_CANAL==='proposta')u+='&dataFinal='+dFim;
+    else u+='&dataInicial='+dIni+'&dataFinal='+dFim;
+    if(mod)u+='&codigoModalidadeContratacao='+mod;
+    if(uf)u+='&uf='+uf;
+    if(munCod)u+='&codigoMunicipioIbge='+munCod;
     return u;
   }
-  var data=[],totalPag=1,MAX=10,erro="";
+
+  _bscBuscando=true;btn.disabled=true;btn.textContent='Buscando...';
+  st.style.color='var(--nh)';st.textContent='Consultando o PNCP...';
+  document.getElementById('bsc-resultados').innerHTML='';
+  document.getElementById('bsc-barra').style.display='none';
+  BSC_SEL={};
+
+  var data=[],MAX=10,erro='';
   try{
-    var first=await _pncpFetch(buildUrl(1));
+    var first=await nhPncpFetch(buildUrl(1));
     data=first.data||[];
-    totalPag=Math.min(first.totalPaginas||1,MAX);
+    var totalPag=Math.min(first.totalPaginas||1,MAX);
     for(var pg=2;pg<=totalPag;pg++){
-      st.textContent="Carregando página "+pg+"/"+totalPag+"...";
-      try{var more=await _pncpFetch(buildUrl(pg));if(more.data&&more.data.length)data=data.concat(more.data);}catch(ep){break;}
+      st.textContent='Carregando página '+pg+' de '+totalPag+'...';
+      try{
+        var more=await nhPncpFetch(buildUrl(pg));
+        if(more.data&&more.data.length)data=data.concat(more.data);
+      }catch(ep){break;}
     }
-  }catch(e){erro=(e&&e.message)||"falha";}
+  }catch(e){erro=(e&&e.message)||'falha';}
+
+  _bscBuscando=false;btn.disabled=false;btn.textContent='Buscar';
+
   if(erro){
-    st.innerHTML='Não foi possível conectar ao PNCP. <a href="https://pncp.gov.br/app/editais?q='+encodeURIComponent(termo)+'&uf='+uf+'" target="_blank" style="color:var(--nh);text-decoration:underline">Abrir PNCP direto ↗</a><br><small style="color:var(--t3)">Erro: '+erro+'</small>';
-    st.style.color="#ef4444";return;
+    var termo=document.getElementById('bsc-termo').value.trim();
+    st.style.color='#ef4444';
+    st.innerHTML='Não foi possível consultar o PNCP agora. '+
+      '<a href="https://pncp.gov.br/app/editais?q='+encodeURIComponent(termo)+'&uf='+uf+'" target="_blank" style="color:var(--nh);text-decoration:underline">Abrir o PNCP direto ↗</a>'+
+      '<br><small style="color:var(--t3)">Detalhe técnico: '+esc0(erro)+'</small>';
+    return;
   }
-  if(termo){var ts=termo.toLowerCase().split(/\s+/);data=data.filter(function(e){var o=String(e.objetoCompra||"").toLowerCase();var g=String((e.orgaoEntidade||{}).razaoSocial||"").toLowerCase();return ts.some(function(t){return o.indexOf(t)>=0||g.indexOf(t)>=0});});}
-  st.textContent=data.length+" resultado(s) encontrado(s)"+(totalPag>=MAX?" (máx "+(MAX*50)+")":"");
-  st.style.color=data.length>0?"var(--g2)":"var(--t3)";
-  renderPNCPResults(data);
+
+  BSC_BRUTO=data;
+  st.textContent='';
+  nhRenderResultados();
 }
-function renderPNCPResults(data){var el=document.getElementById("pncp-resultados");if(!data.length){el.innerHTML='<div style="text-align:center;color:var(--t3);padding:40px">Nenhum resultado encontrado</div>';return}el.innerHTML=data.map(function(e){var org=e.orgaoEntidade||{};var dt=e.dataPublicacaoPncp?new Date(e.dataPublicacaoPncp).toLocaleDateString("pt-BR"):"—";var dtA=e.dataAberturaProposta?new Date(e.dataAberturaProposta).toLocaleDateString("pt-BR")+" "+new Date(e.dataAberturaProposta).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}):"—";var val=e.valorTotalEstimado?fmtMoeda(e.valorTotalEstimado):"Sigiloso";var mod=e.modalidadeNome||"—";var uf=org.uf||e.unidadeOrgao&&e.unidadeOrgao.ufSigla||"";var mun=e.unidadeOrgao&&e.unidadeOrgao.municipioNome||"";var link=e.linkSistemaOrigem||"";var pncp="https://pncp.gov.br/app/editais/"+e.numeroControlePNCP;return'<div style="background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:16px;transition:border-color .2s" onmouseover="this.style.borderColor=\'var(--nh)\'" onmouseout="this.style.borderColor=\'var(--b1)\'">'+'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px">'+'<div style="flex:1"><div style="font-size:14px;font-weight:700;color:var(--t1);margin-bottom:4px">'+mod+" — "+(e.processo||"")+"</div>"+'<div style="font-size:12px;color:var(--t2);line-height:1.5;margin-bottom:8px">'+String(e.objetoCompra||"").substring(0,300)+"</div></div>"+'<div style="text-align:right;white-space:nowrap"><div style="font-size:14px;font-weight:700;color:var(--nh)">'+val+"</div>"+'<div style="font-size:10px;color:var(--t3)">'+dt+"</div></div></div>"+'<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:11px">'+'<span style="color:var(--g2)">🏢 '+String(org.razaoSocial||"").substring(0,60)+"</span>"+'<span style="color:var(--t3)">📍 '+mun+" "+uf+"</span>"+'<span style="color:var(--y2)">📅 Abertura: '+dtA+"</span>"+'<div style="margin-left:auto;display:flex;gap:6px">'+(link?'<a href="'+link+'" target="_blank" style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.3);color:#3b82f6;padding:4px 10px;border-radius:6px;text-decoration:none;font-weight:600;font-size:11px">🔗 Portal</a>':"")+'<a href="'+pncp+'" target="_blank" style="background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.3);color:var(--nh);padding:4px 10px;border-radius:6px;text-decoration:none;font-weight:600;font-size:11px">📄 PNCP</a>'+'<button onclick="importarPNCP(this)" data-pncp=\''+encodeURIComponent(JSON.stringify({obj:String(e.objetoCompra||"").substring(0,200),org:String(org.razaoSocial||"").substring(0,80),mun:mun+" "+uf,val:e.valorTotalEstimado||0,mod:mod,proc:e.processo||"",seq:e.sequencialCompra||"",ano:e.anoCompra||"",dt:dt,dtA:dtA,link:link,pncp:pncp}))+'\' style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:#22c55e;padding:4px 10px;border-radius:6px;font-weight:600;font-size:11px;cursor:pointer;font-family:Outfit,sans-serif">+ Capturar</button>'+"</div></div></div>"}).join("")}
-async function importarPNCP(btn){var d=JSON.parse(decodeURIComponent(btn.getAttribute("data-pncp")));if(EMPRESAS.length===0){toast("Cadastre uma empresa primeiro","err");return}var opts=EMPRESAS.map(function(e,i){return(i+1)+". "+e.nome}).join("\n");var sel=prompt("Selecione a empresa (número):\n"+opts);if(!sel)return;var idx=parseInt(sel)-1;if(idx<0||idx>=EMPRESAS.length){toast("Empresa inválida","err");return}sel=EMPRESAS[idx].nome;var nextId=await fbGetNextId("editais");var modAbrev={"Pregão - Eletrônico":"PE","Pregão Eletrônico":"PE","Dispensa de Licitação":"DL","Dispensa Eletrônica":"DL","Concorrência":"CC","Concorrência - Eletrônica":"CC","Concurso":"CO","Diálogo Competitivo":"DC","Leilão":"LE","Manifestação de Interesse":"MI","Pré-qualificação":"PQ"};var abr=modAbrev[d.mod]||d.mod.substring(0,2).toUpperCase();var munParts=d.mun.trim().split(/\s+/);var munUf=munParts.length>=2?munParts.slice(0,-1).join(" ")+" "+munParts[munParts.length-1]:d.mun;var dtParts=d.dtA.split(/[\s/]/);var dtFmt=dtParts.length>=3?dtParts[0]+"."+dtParts[1]+"."+dtParts[2].substring(2):"";var hrFmt=dtParts.length>=4?" as "+dtParts[3].replace(":","h"):"";var titulo=abr+" - "+(d.seq||"")+"."+(d.ano||"")+" - "+munUf+" - "+dtFmt+hrFmt;var row=[nextId,d.dt,sel,titulo,d.obj,d.org,d.mun,d.val?fmtMoeda(d.val):"Sigiloso","MÉDIA","","","","",d.pncp||d.link];await fbSave(FB_COLS.editais,nextId,row);ALL.editais.push(row);FIL.editais=ALL.editais.slice();btn.textContent="✓ Capturado";btn.style.background="rgba(34,197,94,.3)";btn.disabled=true;toast("✅ Edital importado para Editais Capturados!","ok")}
+
+/* ── Filtros que rodam na tela, depois que os dados chegaram ─────── */
+function nhFiltrarBusca(lista){
+  var termo=document.getElementById('bsc-termo').value.trim().toLowerCase();
+  var excl=document.getElementById('bsc-excluir').value.trim().toLowerCase();
+  var vmin=parseFloat(document.getElementById('bsc-vmin').value)||0;
+  var vmax=parseFloat(document.getElementById('bsc-vmax').value)||0;
+  var soSrp=document.getElementById('bsc-srp').checked;
+  var soInedito=document.getElementById('bsc-inedito').checked;
+  var soFav=document.getElementById('bsc-favoritos').checked;
+
+  var termos=termo?termo.split(/\s+/).filter(Boolean):[];
+  var exclui=excl?excl.split(/[,;]+/).map(function(s){return s.trim();}).filter(Boolean):[];
+
+  return lista.filter(function(e){
+    var alvo=(String(e.objetoCompra||'')+' '+String((e.orgaoEntidade||{}).razaoSocial||'')+' '+
+              String((e.unidadeOrgao||{}).municipioNome||'')).toLowerCase();
+
+    if(termos.length){
+      if(BSC_MODO==='exato'){ if(alvo.indexOf(termo)<0)return false; }
+      else if(BSC_MODO==='e'){ if(!termos.every(function(t){return alvo.indexOf(t)>=0;}))return false; }
+      else { if(!termos.some(function(t){return alvo.indexOf(t)>=0;}))return false; }
+    }
+    if(exclui.length&&exclui.some(function(t){return alvo.indexOf(t)>=0;}))return false;
+
+    var v=parseFloat(e.valorTotalEstimado)||0;
+    if(vmin&&v<vmin)return false;
+    if(vmax&&v>vmax)return false;
+    if(soSrp&&!e.srp)return false;
+    if(soInedito&&nhJaCapturado(e))return false;
+    if(soFav&&!BSC_FAV[nhBscId(e)])return false;
+    return true;
+  });
+}
+
+function nhOrdenarBusca(lista){
+  var ord=(document.getElementById('bsc-ordem')||{}).value||'prazo';
+  var c=lista.slice();
+  function dt(x){var d=new Date(x);return isNaN(d.getTime())?null:d;}
+  if(ord==='valor_desc')c.sort(function(a,b){return (parseFloat(b.valorTotalEstimado)||0)-(parseFloat(a.valorTotalEstimado)||0);});
+  else if(ord==='valor_asc')c.sort(function(a,b){return (parseFloat(a.valorTotalEstimado)||0)-(parseFloat(b.valorTotalEstimado)||0);});
+  else if(ord==='municipio')c.sort(function(a,b){
+    return String((a.unidadeOrgao||{}).municipioNome||'').localeCompare(String((b.unidadeOrgao||{}).municipioNome||''),'pt-BR');});
+  else if(ord==='abertura')c.sort(function(a,b){
+    var x=dt(a.dataAberturaProposta),y=dt(b.dataAberturaProposta);
+    if(!x&&!y)return 0; if(!x)return 1; if(!y)return -1; return x-y;});
+  else c.sort(function(a,b){ /* prazo mais próximo de encerrar */
+    var x=dt(a.dataEncerramentoProposta),y=dt(b.dataEncerramentoProposta);
+    if(!x&&!y)return 0; if(!x)return 1; if(!y)return -1; return x-y;});
+  return c;
+}
+
+/* ── Cruzamentos com os dados que já são nossos ─────────────────── */
+function nhBscId(e){return String(e.numeroControlePNCP||'').replace(/[^\w-]/g,'_');}
+
+function nhBscCapag(e){
+  try{
+    var u=e.unidadeOrgao||{};
+    var mun=u.municipioNome||'', uf=u.ufSigla||(e.orgaoEntidade||{}).uf||'';
+    if(!mun||!uf||typeof CAPAG_CACHE==='undefined')return null;
+    return CAPAG_CACHE[nhCapagChave(mun,uf)]||null;
+  }catch(_e){return null;}
+}
+function nhJaCapturado(e){
+  var ctrl=String(e.numeroControlePNCP||'');
+  if(!ctrl)return null;
+  var achou=null;
+  (ALL.editais||[]).forEach(function(r){
+    if(!achou&&String(r[13]||'').indexOf(ctrl)>-1)achou=r;
+  });
+  return achou;
+}
+function nhBscHistorico(e){
+  /* Quantos processos nossos já rolaram naquele município e quantos ganhamos.
+     É informação que só nós temos — nenhum dos concorrentes mostra isso. */
+  try{
+    var u=e.unidadeOrgao||{};
+    var mun=propNorm(u.municipioNome||'');
+    if(!mun)return null;
+    var tot=0,ganhos=0;
+    (ALL.finalizados||[]).forEach(function(r){ if(propNorm(String(r[6]||'')).indexOf(mun)>-1)tot++; });
+    (ALL.ganhas||[]).forEach(function(r){ if(propNorm(String(r[6]||'')).indexOf(mun)>-1)ganhos++; });
+    if(!tot&&!ganhos)return null;
+    return {total:tot,ganhos:ganhos};
+  }catch(_e){return null;}
+}
+function _bscPrazo(e){
+  var d=e.dataEncerramentoProposta?new Date(e.dataEncerramentoProposta):null;
+  if(!d||isNaN(d.getTime()))return null;
+  var hoje=new Date();hoje.setHours(0,0,0,0);
+  var alvo=new Date(d);alvo.setHours(0,0,0,0);
+  return Math.round((alvo-hoje)/86400000);
+}
+
+function nhRenderResultados(){
+  var el=document.getElementById('bsc-resultados');
+  var barra=document.getElementById('bsc-barra');
+  BSC_LISTA=nhOrdenarBusca(nhFiltrarBusca(BSC_BRUTO));
+
+  document.getElementById('bsc-cont').innerHTML='<b>'+BSC_LISTA.length+'</b> resultado'+(BSC_LISTA.length===1?'':'s')+
+    (BSC_BRUTO.length!==BSC_LISTA.length?' <span style="color:var(--t3);font-weight:500">de '+BSC_BRUTO.length+' recebidos</span>':'');
+  barra.style.display=BSC_BRUTO.length?'flex':'none';
+
+  if(!BSC_BRUTO.length){
+    el.innerHTML='<div class="bsc-vazio"><span class="ic">&#128269;</span>Escolha os filtros e clique em <b>Buscar</b> para consultar o PNCP.</div>';
+    return;
+  }
+  if(!BSC_LISTA.length){
+    el.innerHTML='<div class="bsc-vazio"><span class="ic">&#129335;</span>Vieram <b>'+BSC_BRUTO.length+'</b> licitações do PNCP, mas nenhuma passou pelos filtros da tela.<br><span style="font-size:12px">Tente afrouxar as palavras-chave, a faixa de valor ou o modo de combinação.</span></div>';
+    return;
+  }
+  el.innerHTML=BSC_LISTA.map(function(e,i){return nhBscCard(e,i);}).join('');
+  nhAtualizarLote();
+}
+
+function nhBscCard(e,i){
+  var org=e.orgaoEntidade||{}, uni=e.unidadeOrgao||{};
+  var id=nhBscId(e);
+  var mun=uni.municipioNome||'', uf=uni.ufSigla||org.uf||'';
+  var val=e.valorTotalEstimado?fmtMoeda(e.valorTotalEstimado):'Sigiloso';
+  var pncpUrl='https://pncp.gov.br/app/editais/'+e.numeroControlePNCP;
+  var dtA=e.dataAberturaProposta?new Date(e.dataAberturaProposta).toLocaleDateString('pt-BR')+' '+new Date(e.dataAberturaProposta).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'—';
+  var dias=_bscPrazo(e);
+  var capag=nhBscCapag(e), jaCap=nhJaCapturado(e), hist=nhBscHistorico(e);
+  var fav=!!BSC_FAV[id], nota=(BSC_NOTAS[id]||{}).texto||'';
+
+  var tags='';
+  if(dias!==null){
+    var cor=dias<0?'#ef4444':dias<=2?'#ef4444':dias<=7?'#eab308':'#22c55e';
+    var txt=dias<0?'Encerrado':dias===0?'Encerra HOJE':dias===1?'Encerra amanhã':'Encerra em '+dias+'d';
+    tags+='<span class="bsc-tag" style="background:'+cor+'1f;color:'+cor+';border:1px solid '+cor+'55">&#9201; '+txt+'</span>';
+  }
+  if(capag&&capag.nota){
+    var cc={A:'#22c55e',B:'#3b82f6',C:'#eab308',D:'#ef4444'}[String(capag.nota).toUpperCase()]||'#8b95a1';
+    tags+='<span class="bsc-tag" style="background:'+cc+'1f;color:'+cc+';border:1px solid '+cc+'55" title="Capacidade de pagamento do município, segundo o Tesouro Nacional">&#128176; CAPAG '+esc0(capag.nota)+'</span>';
+  }
+  if(e.srp)tags+='<span class="bsc-tag" style="background:rgba(168,85,247,.14);color:#a855f7;border:1px solid rgba(168,85,247,.4)" title="Registro de Preços">SRP</span>';
+  if(jaCap)tags+='<span class="bsc-tag" style="background:rgba(34,197,94,.14);color:#22c55e;border:1px solid rgba(34,197,94,.4)">&#10003; J&aacute; capturado (#'+esc0(jaCap[0])+')</span>';
+
+  var histHtml='';
+  if(hist){
+    histHtml='<div class="bsc-nosso">&#128204; <b style="color:var(--t1)">'+hist.total+'</b> processo(s) nossos j&aacute; passaram por '+esc0(mun)+
+      (hist.ganhos?' &middot; <b style="color:#22c55e">'+hist.ganhos+' ganho(s)</b>':' &middot; <span style="color:var(--t3)">nenhum ganho ainda</span>')+'</div>';
+  }
+
+  var m=function(l,v,cls){return '<div class="bsc-mi"><span class="bsc-mi-l">'+l+'</span><span class="bsc-mi-v'+(cls?' '+cls:'')+'">'+v+'</span></div>';};
+
+  return '<div class="bsc-card'+(jaCap?' capturado':'')+(BSC_SEL[id]?' sel':'')+'" id="bsc-c-'+id+'">'+
+    '<div class="bsc-chead">'+
+      '<input type="checkbox" class="bsc-chk-item" '+(BSC_SEL[id]?'checked':'')+' onchange="nhToggleSel(\''+id+'\',this.checked)" style="width:15px;height:15px;accent-color:var(--nh);cursor:pointer" title="Selecionar para captura em lote">'+
+      '<span class="bsc-num">N&ordm; '+(i+1)+'</span>'+tags+
+      '<button class="bsc-star'+(fav?' on':'')+'" onclick="nhToggleFav(\''+id+'\')" title="Favoritar">'+(fav?'&#11088;':'&#9734;')+'</button>'+
+    '</div>'+
+    '<div class="bsc-obj clamp" id="bsc-obj-'+id+'">'+esc0(String(e.objetoCompra||'Sem objeto informado'))+'</div>'+
+    '<button class="bsc-vermais" onclick="nhVerMais(\''+id+'\',this)">ver objeto completo</button>'+
+    '<div class="bsc-meta">'+
+      m('&Oacute;rg&atilde;o',esc0(String(org.razaoSocial||'—')))+
+      m('Cidade / UF',esc0(mun+(uf?' - '+uf:'')))+
+      m('Abertura',dtA)+
+      m('Valor estimado',val,'nh')+
+      m('Modalidade',esc0(e.modalidadeNome||'—'))+
+      m('Disputa',esc0(e.modoDisputaNome||'—'))+
+      (e.situacaoCompraNome?m('Situa&ccedil;&atilde;o',esc0(e.situacaoCompraNome)):'')+
+      (e.processo?m('Processo',esc0(e.processo)):'')+
+    '</div>'+
+    histHtml+
+    '<div class="bsc-acoes">'+
+      (e.linkSistemaOrigem?'<a class="bsc-a az" href="'+esc0(e.linkSistemaOrigem)+'" target="_blank">&#128279; Portal de origem</a>':'')+
+      '<a class="bsc-a lj" href="'+pncpUrl+'" target="_blank">&#128196; Ver no PNCP</a>'+
+      '<button class="bsc-a rx" onclick="nhVerItens('+i+')">&#128203; Ver itens</button>'+
+      '<button class="bsc-a rx" onclick="nhResumoIA('+i+')">&#129302; Resumo por IA</button>'+
+      (jaCap
+        ? '<button class="bsc-a vd" disabled>&#10003; J&aacute; est&aacute; no sistema</button>'
+        : '<button class="bsc-a vd" onclick="nhAbrirCaptura('+i+')">&#43; Capturar edital</button>')+
+    '</div>'+
+    '<div id="bsc-ia-'+id+'"></div>'+
+    '<textarea class="bsc-nota" placeholder="&#128221; Anota&ccedil;&atilde;o da equipe sobre esta licita&ccedil;&atilde;o..." onblur="nhSalvarNota(\''+id+'\',this.value)">'+esc0(nota)+'</textarea>'+
+  '</div>';
+}
+
+function nhVerMais(id,btn){
+  var o=document.getElementById('bsc-obj-'+id);
+  if(!o)return;
+  var aberto=!o.classList.contains('clamp');
+  o.classList.toggle('clamp',aberto);
+  btn.textContent=aberto?'ver objeto completo':'ver menos';
+}
+
+/* ── Seleção em lote ────────────────────────────────────────────── */
+function nhToggleSel(id,on){
+  if(on)BSC_SEL[id]=true; else delete BSC_SEL[id];
+  var c=document.getElementById('bsc-c-'+id);
+  if(c)c.classList.toggle('sel',!!on);
+  nhAtualizarLote();
+}
+function nhAtualizarLote(){
+  var n=Object.keys(BSC_SEL).length;
+  var b=document.getElementById('bsc-btn-lote');
+  var s=document.getElementById('bsc-n-sel');
+  if(s)s.textContent=n;
+  if(b)b.style.display=n?'':'none';
+}
+function nhSelecionarTodos(){
+  var todos=BSC_LISTA.filter(function(e){return !nhJaCapturado(e);});
+  var marcar=Object.keys(BSC_SEL).length<todos.length;
+  BSC_SEL={};
+  if(marcar)todos.forEach(function(e){BSC_SEL[nhBscId(e)]=true;});
+  document.getElementById('bsc-btn-sel').innerHTML=marcar?'&#9746; Limpar sele&ccedil;&atilde;o':'&#9744; Selecionar todos';
+  nhRenderResultados();
+}
+
+/* ── Favoritos e anotações (Firestore, compartilhado com a equipe) ── */
+async function nhToggleFav(id){
+  var e=BSC_LISTA.filter(function(x){return nhBscId(x)===id;})[0];
+  if(!e)return;
+  try{
+    if(BSC_FAV[id]){
+      delete BSC_FAV[id];
+      await db.collection('busca_favoritos').doc(id).delete();
+    }else{
+      var uni=e.unidadeOrgao||{};
+      var reg={pncp:e.numeroControlePNCP||'',objeto:String(e.objetoCompra||'').substring(0,300),
+        orgao:String((e.orgaoEntidade||{}).razaoSocial||''),municipio:(uni.municipioNome||'')+' '+(uni.ufSigla||''),
+        valor:e.valorTotalEstimado||0,abertura:e.dataAberturaProposta||'',criadoEm:Date.now()};
+      BSC_FAV[id]=reg;
+      await db.collection('busca_favoritos').doc(id).set(reg);
+    }
+    nhRenderResultados();
+  }catch(err){toast('Não consegui salvar o favorito: '+err.message,'err');}
+}
+async function nhSalvarNota(id,texto){
+  texto=String(texto||'').trim();
+  var antes=(BSC_NOTAS[id]||{}).texto||'';
+  if(texto===antes)return;
+  try{
+    if(!texto){delete BSC_NOTAS[id];await db.collection('busca_anotacoes').doc(id).delete();}
+    else{
+      var reg={texto:texto,autor:(auth.currentUser&&auth.currentUser.email)||'',atualizadoEm:Date.now()};
+      BSC_NOTAS[id]=reg;
+      await db.collection('busca_anotacoes').doc(id).set(reg);
+    }
+    toast('Anotação salva','ok');
+  }catch(err){toast('Não consegui salvar a anotação: '+err.message,'err');}
+}
+async function nhLoadBuscaMeta(){
+  try{
+    var f=await db.collection('busca_favoritos').get();
+    BSC_FAV={};f.forEach(function(d){BSC_FAV[d.id]=d.data();});
+  }catch(e){console.warn('busca_favoritos',e.message);}
+  try{
+    var n=await db.collection('busca_anotacoes').get();
+    BSC_NOTAS={};n.forEach(function(d){BSC_NOTAS[d.id]=d.data();});
+  }catch(e){console.warn('busca_anotacoes',e.message);}
+  try{
+    var s=await db.collection('config').doc('busca_filtros').get();
+    BSC_FILTROS_SALVOS=(s.exists&&s.data()&&s.data().lista)||[];
+    nhRenderSalvos();
+  }catch(e){console.warn('busca_filtros',e.message);}
+}
+
+/* ── Filtros salvos ─────────────────────────────────────────────── */
+function _bscLerFiltros(){
+  return {canal:BSC_CANAL,modo:BSC_MODO,
+    termo:document.getElementById('bsc-termo').value,
+    excluir:document.getElementById('bsc-excluir').value,
+    uf:document.getElementById('bsc-uf').value,
+    modalidade:document.getElementById('bsc-modalidade').value,
+    vmin:document.getElementById('bsc-vmin').value,
+    vmax:document.getElementById('bsc-vmax').value,
+    srp:document.getElementById('bsc-srp').checked};
+}
+async function nhSalvarFiltro(){
+  var nome=prompt('Nome para esta busca:');
+  if(!nome)return;
+  BSC_FILTROS_SALVOS=BSC_FILTROS_SALVOS.filter(function(f){return f.nome!==nome;});
+  BSC_FILTROS_SALVOS.push({nome:nome,f:_bscLerFiltros()});
+  try{
+    await db.collection('config').doc('busca_filtros').set({lista:BSC_FILTROS_SALVOS});
+    nhRenderSalvos();toast('✅ Busca salva','ok');
+  }catch(e){toast('Não consegui salvar: '+e.message,'err');}
+}
+function nhRenderSalvos(){
+  var el=document.getElementById('bsc-salvos');
+  if(!el)return;
+  if(!BSC_FILTROS_SALVOS.length){el.innerHTML='<div style="font-size:11px;color:var(--t3)">Nenhuma busca salva ainda.</div>';return;}
+  el.innerHTML=BSC_FILTROS_SALVOS.map(function(f,i){
+    return '<div style="display:flex;gap:4px;align-items:center">'+
+      '<button class="bsc-mini" style="flex:1;text-align:left" onclick="nhCarregarFiltro('+i+')">'+esc0(f.nome)+'</button>'+
+      '<button class="bsc-mini" style="padding:7px 9px" onclick="nhExcluirFiltro('+i+')" title="Excluir">&times;</button></div>';
+  }).join('');
+}
+function nhCarregarFiltro(i){
+  var f=(BSC_FILTROS_SALVOS[i]||{}).f;if(!f)return;
+  document.getElementById('bsc-termo').value=f.termo||'';
+  document.getElementById('bsc-excluir').value=f.excluir||'';
+  document.getElementById('bsc-uf').value=f.uf||'';
+  document.getElementById('bsc-modalidade').value=f.modalidade||'';
+  document.getElementById('bsc-vmin').value=f.vmin||'';
+  document.getElementById('bsc-vmax').value=f.vmax||'';
+  document.getElementById('bsc-srp').checked=!!f.srp;
+  nhSetCanal(f.canal||'proposta');nhSetModo(f.modo||'ou');
+  if(f.uf)carregarMunicipios(f.uf);
+  toast('Filtros carregados — clique em Buscar','ok');
+}
+async function nhExcluirFiltro(i){
+  BSC_FILTROS_SALVOS.splice(i,1);
+  try{await db.collection('config').doc('busca_filtros').set({lista:BSC_FILTROS_SALVOS});nhRenderSalvos();}
+  catch(e){toast('Erro: '+e.message,'err');}
+}
+function nhLimparFiltros(){
+  ['bsc-termo','bsc-excluir','bsc-vmin','bsc-vmax','bsc-dt-ini','bsc-dt-fim'].forEach(function(id){
+    var el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('bsc-uf').value='';
+  document.getElementById('bsc-modalidade').value='';
+  document.getElementById('bsc-mun').innerHTML='<option value="">Todos Municípios</option>';
+  ['bsc-srp','bsc-inedito','bsc-favoritos'].forEach(function(id){
+    var el=document.getElementById(id);if(el)el.checked=false;});
+  nhSetModo('ou');
+  if(BSC_BRUTO.length)nhRenderResultados();
+}
+
+/* ── Itens da licitação (cruzados com o nosso banco de preços) ───── */
+async function nhVerItens(i){
+  var e=BSC_LISTA[i];if(!e)return;
+  var org=e.orgaoEntidade||{};
+  var mo=document.getElementById('mo-bsc-itens');
+  mo.style.display='flex';
+  var body=document.getElementById('bsc-itens-body');
+  body.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh);padding:20px"><div class="spin" style="width:20px;height:20px"></div> Carregando itens no PNCP...</div>';
+  document.getElementById('bsc-itens-sub').textContent=String(e.objetoCompra||'').substring(0,110);
+  try{
+    var url='https://pncp.gov.br/api/pncp/v1/orgaos/'+org.cnpj+'/compras/'+e.anoCompra+'/'+e.sequencialCompra+'/itens';
+    var r=await fetch(url);
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    var itens=await r.json();
+    if(!itens.length){body.innerHTML='<div style="color:var(--t3);padding:20px;text-align:center">Esta licitação não tem itens detalhados publicados no PNCP.</div>';return;}
+    var linhas=itens.map(function(it){
+      var ref=_bscPrecoRef(it.descricao);
+      return '<tr style="border-bottom:1px solid var(--b1)">'+
+        '<td style="padding:9px 8px;color:var(--t3);font-size:11px">'+(it.numeroItem||'')+'</td>'+
+        '<td style="padding:9px 8px;font-size:12px;color:var(--t1)">'+esc0(String(it.descricao||''))+
+          (ref?'<div style="font-size:10.5px;color:#22c55e;margin-top:3px">&#128200; já temos preço nosso: '+esc0(ref)+'</div>':'')+'</td>'+
+        '<td style="padding:9px 8px;font-size:12px;color:var(--t2);white-space:nowrap">'+(it.quantidade||'—')+' '+esc0(it.unidadeMedida||'')+'</td>'+
+        '<td style="padding:9px 8px;font-size:12px;color:var(--nh);font-weight:700;white-space:nowrap">'+(it.valorUnitarioEstimado?fmtMoeda(it.valorUnitarioEstimado):'sigiloso')+'</td>'+
+        '<td style="padding:9px 8px;font-size:11px;color:var(--t3)">'+esc0(it.tipoBeneficioNome||'—')+'</td>'+
+      '</tr>';
+    }).join('');
+    body.innerHTML='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">'+
+      '<thead><tr style="border-bottom:1px solid var(--b1)">'+
+      ['#','Descrição','Qtd','Valor unit. estimado','Benefício'].map(function(h){
+        return '<th style="text-align:left;padding:8px;font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em">'+h+'</th>';}).join('')+
+      '</tr></thead><tbody>'+linhas+'</tbody></table></div>'+
+      '<div style="font-size:11px;color:var(--t3);margin-top:12px">'+itens.length+' item(ns). O marcador verde aparece quando já existe preço parecido no seu Banco de Dados.</div>';
+  }catch(err){
+    body.innerHTML='<div style="color:#ef4444;padding:20px">Não consegui carregar os itens: '+esc0(err.message)+'</div>';
+  }
+}
+function _bscPrecoRef(desc){
+  /* Procura no Banco de Dados (coleção valores) um item parecido. */
+  try{
+    var d=propNorm(String(desc||'')).substring(0,18);
+    if(d.length<6)return null;
+    var achado=null;
+    (ALL.valores||[]).forEach(function(r){
+      if(achado)return;
+      if(propNorm(String(r[3]||'')).indexOf(d)>-1)achado=r;
+    });
+    return achado?(String(achado[3]||'').substring(0,40)+' — '+fmtMoeda(parseMoeda(achado[5]||0))):null;
+  }catch(_e){return null;}
+}
+
+/* ── Resumo por IA (Claude, mesma chave das outras análises) ─────── */
+async function nhResumoIA(i){
+  var e=BSC_LISTA[i];if(!e)return;
+  var id=nhBscId(e);
+  var box=document.getElementById('bsc-ia-'+id);
+  var key=localStorage.getItem('nh_claude_key');
+  if(!key){toast('Configure a API Key do Claude na aba Documentos','err');return;}
+  box.innerHTML='<div class="bsc-ia"><div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:18px;height:18px"></div> Lendo a licitação...</div></div>';
+  var org=e.orgaoEntidade||{},uni=e.unidadeOrgao||{};
+  var capag=nhBscCapag(e),hist=nhBscHistorico(e);
+  var prompt='Você é um consultor sênior de licitações públicas no Brasil. Analise esta oportunidade e responda em português do Brasil, de forma direta e curta.\n\n'+
+    'OBJETO: '+String(e.objetoCompra||'')+'\n'+
+    'ÓRGÃO: '+String(org.razaoSocial||'')+'\n'+
+    'MUNICÍPIO: '+(uni.municipioNome||'')+' - '+(uni.ufSigla||'')+'\n'+
+    'MODALIDADE: '+(e.modalidadeNome||'')+' | MODO DE DISPUTA: '+(e.modoDisputaNome||'')+'\n'+
+    'VALOR ESTIMADO: '+(e.valorTotalEstimado?fmtMoeda(e.valorTotalEstimado):'sigiloso')+'\n'+
+    'REGISTRO DE PREÇOS: '+(e.srp?'sim':'não')+'\n'+
+    (capag&&capag.nota?'CAPAG DO MUNICÍPIO (Tesouro Nacional): '+capag.nota+'\n':'')+
+    (hist?'HISTÓRICO DA NOSSA EMPRESA NESSE MUNICÍPIO: '+hist.total+' processos, '+hist.ganhos+' ganhos\n':'')+
+    '\nResponda em no máximo 4 tópicos curtos:\n'+
+    '1. O que está sendo comprado, em uma frase simples.\n'+
+    '2. Pontos de atenção ou risco que você percebe.\n'+
+    '3. Que tipo de empresa costuma ganhar esse tipo de objeto.\n'+
+    '4. Vale a pena olhar com prioridade? Responda ALTA, MÉDIA ou BAIXA e explique em uma linha.\n'+
+    'Não invente exigências do edital que não estejam no texto acima — se precisar do edital completo para responder algo, diga isso.';
+  try{
+    var resp=await _nhClaudeLongo(key,[{text:prompt}],function(m){
+      box.innerHTML='<div class="bsc-ia"><div style="color:var(--nh)">'+esc0(m)+'</div></div>';});
+    box.innerHTML='<div class="bsc-ia">'+
+      '<div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:8px">&#129302; Resumo da IA</div>'+
+      formatarRespostaIA(resp)+'</div>';
+  }catch(err){
+    box.innerHTML='<div class="bsc-ia" style="color:#ef4444">Erro na IA: '+esc0(err.message)+'</div>';
+  }
+}
+
+/* ── Captura para Editais Capturados ────────────────────────────── */
+var _bscCapturaIdx=null,_bscCapturaLote=null;
+
+function _bscTitulo(e){
+  var uni=e.unidadeOrgao||{};
+  var modAbrev={'Pregão - Eletrônico':'PE','Pregão Eletrônico':'PE','Dispensa de Licitação':'DL','Dispensa Eletrônica':'DL','Concorrência':'CC','Concorrência - Eletrônica':'CC','Concurso':'CO','Diálogo Competitivo':'DC','Leilão':'LE','Manifestação de Interesse':'MI','Pré-qualificação':'PQ'};
+  var abr=modAbrev[e.modalidadeNome]||String(e.modalidadeNome||'').substring(0,2).toUpperCase();
+  var munUf=(uni.municipioNome||'')+' '+(uni.ufSigla||'');
+  var dtFmt='',hrFmt='';
+  if(e.dataAberturaProposta){
+    var d=new Date(e.dataAberturaProposta);
+    dtFmt=('0'+d.getDate()).slice(-2)+'.'+('0'+(d.getMonth()+1)).slice(-2)+'.'+String(d.getFullYear()).slice(-2);
+    hrFmt=' as '+('0'+d.getHours()).slice(-2)+'h'+('0'+d.getMinutes()).slice(-2);
+  }
+  return abr+' - '+(e.sequencialCompra||'')+'.'+(e.anoCompra||'')+' - '+munUf.trim()+' - '+dtFmt+hrFmt;
+}
+
+function nhAbrirCaptura(i){
+  if(!EMPRESAS.length){toast('Cadastre uma empresa primeiro','err');return;}
+  _bscCapturaIdx=i;_bscCapturaLote=null;
+  var e=BSC_LISTA[i];
+  document.getElementById('bsc-cap-titulo').value=_bscTitulo(e);
+  document.getElementById('bsc-cap-obj').textContent=String(e.objetoCompra||'').substring(0,260);
+  document.getElementById('bsc-cap-quantos').style.display='none';
+  document.getElementById('bsc-cap-linha-titulo').style.display='';
+  _bscPreencherSelects();
+  document.getElementById('mo-bsc-captura').style.display='flex';
+}
+function nhCapturarLote(){
+  var ids=Object.keys(BSC_SEL);
+  if(!ids.length)return;
+  if(!EMPRESAS.length){toast('Cadastre uma empresa primeiro','err');return;}
+  _bscCapturaIdx=null;
+  _bscCapturaLote=BSC_LISTA.filter(function(e){return BSC_SEL[nhBscId(e)]&&!nhJaCapturado(e);});
+  if(!_bscCapturaLote.length){toast('Os selecionados já estão no sistema','err');return;}
+  document.getElementById('bsc-cap-quantos').style.display='';
+  document.getElementById('bsc-cap-quantos').innerHTML='Vai capturar <b style="color:var(--nh)">'+_bscCapturaLote.length+'</b> licitações de uma vez. O título de cada uma é gerado automaticamente.';
+  document.getElementById('bsc-cap-linha-titulo').style.display='none';
+  document.getElementById('bsc-cap-obj').textContent=_bscCapturaLote.map(function(e){return '• '+String(e.objetoCompra||'').substring(0,80);}).join('\n');
+  _bscPreencherSelects();
+  document.getElementById('mo-bsc-captura').style.display='flex';
+}
+function _bscPreencherSelects(){
+  var se=document.getElementById('bsc-cap-empresa');
+  se.innerHTML=EMPRESAS.map(function(x){return '<option>'+esc0(x.nome)+'</option>';}).join('');
+  var sr=document.getElementById('bsc-cap-resp');
+  var resps=[];
+  try{ if(typeof RESPONSAVEIS==='object')resps=Object.keys(RESPONSAVEIS).map(function(k){return RESPONSAVEIS[k].nome;}).filter(Boolean); }catch(_e){}
+  sr.innerHTML='<option value="">— sem responsável —</option>'+resps.map(function(n){return '<option>'+esc0(n)+'</option>';}).join('');
+}
+function nhFecharCaptura(){document.getElementById('mo-bsc-captura').style.display='none';}
+
+async function nhConfirmarCaptura(){
+  var emp=document.getElementById('bsc-cap-empresa').value;
+  var resp=document.getElementById('bsc-cap-resp').value;
+  var prio=document.getElementById('bsc-cap-prio').value;
+  var btn=document.getElementById('bsc-cap-btn');
+  btn.disabled=true;btn.textContent='Gravando...';
+  var lista=_bscCapturaLote||[BSC_LISTA[_bscCapturaIdx]];
+  var tituloManual=_bscCapturaLote?null:document.getElementById('bsc-cap-titulo').value.trim();
+  var ok=0,falhou=0;
+  for(var k=0;k<lista.length;k++){
+    var e=lista[k];
+    try{
+      var uni=e.unidadeOrgao||{},org=e.orgaoEntidade||{};
+      var nextId=await fbGetNextId('editais');
+      var dtPub=e.dataPublicacaoPncp?new Date(e.dataPublicacaoPncp).toLocaleDateString('pt-BR'):'';
+      var pncpUrl='https://pncp.gov.br/app/editais/'+e.numeroControlePNCP;
+      /* Mesmo formato de array de sempre — 0..13 — para Editais Capturados
+         continuar lendo exatamente como já lê. */
+      var row=[nextId,dtPub,emp,(tituloManual||_bscTitulo(e)),
+        String(e.objetoCompra||'').substring(0,400),
+        String(org.razaoSocial||'').substring(0,120),
+        (uni.municipioNome||'')+' '+(uni.ufSigla||''),
+        e.valorTotalEstimado?fmtMoeda(e.valorTotalEstimado):'Sigiloso',
+        prio,resp,'','','',pncpUrl];
+      await fbSave(FB_COLS.editais,nextId,row);
+      ALL.editais.push(row);
+      ok++;
+    }catch(err){falhou++;console.error('captura',err);}
+  }
+  FIL.editais=ALL.editais.slice();
+  btn.disabled=false;btn.textContent='Capturar';
+  nhFecharCaptura();
+  BSC_SEL={};
+  nhRenderResultados();
+  try{if(CUR==='editais')renderTbl('editais');}catch(_e){}
+  toast(falhou?('Capturados '+ok+', com '+falhou+' erro(s)'):('✅ '+ok+' edital(is) em Editais Capturados!'),falhou?'err':'ok');
+}
+
+/* ── Exportar para Excel ────────────────────────────────────────── */
+function nhExportarBusca(){
+  if(typeof XLSX==='undefined'){toast('SheetJS não carregado','err');return;}
+  if(!BSC_LISTA.length){toast('Nada para exportar','err');return;}
+  var cols=['Objeto','Órgão','Município','UF','Modalidade','Disputa','SRP','Valor Estimado','Abertura','Encerramento','CAPAG','Já capturado','Situação','Link PNCP'];
+  var aoa=[cols];
+  BSC_LISTA.forEach(function(e){
+    var uni=e.unidadeOrgao||{},cap=nhBscCapag(e);
+    aoa.push([
+      String(e.objetoCompra||''),String((e.orgaoEntidade||{}).razaoSocial||''),
+      uni.municipioNome||'',uni.ufSigla||'',e.modalidadeNome||'',e.modoDisputaNome||'',
+      e.srp?'Sim':'Não',parseFloat(e.valorTotalEstimado)||0,
+      e.dataAberturaProposta?new Date(e.dataAberturaProposta).toLocaleString('pt-BR'):'',
+      e.dataEncerramentoProposta?new Date(e.dataEncerramentoProposta).toLocaleString('pt-BR'):'',
+      (cap&&cap.nota)||'',nhJaCapturado(e)?'Sim':'Não',e.situacaoCompraNome||'',
+      'https://pncp.gov.br/app/editais/'+e.numeroControlePNCP]);
+  });
+  var wb=XLSX.utils.book_new(),ws=XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols']=cols.map(function(c,i){
+    return {wch:Math.min(60,Math.max(12,aoa.reduce(function(m,r){return Math.max(m,String(r[i]||'').length);},0)))};});
+  XLSX.utils.book_append_sheet(wb,ws,'Busca PNCP');
+  XLSX.writeFile(wb,'NH_Busca_PNCP_'+new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')+'.xlsx');
+  toast('✅ Excel exportado!','ok');
+}
+
+/* Carrega favoritos/anotações/filtros junto do resto do sistema. */
+if(typeof loadAll==='function'){
+  var _nhLoadAllBusca=loadAll;
+  loadAll=async function(){
+    await _nhLoadAllBusca();
+    await nhLoadBuscaMeta();
+  };
+}
 function salvarIAKey(){
   var k=document.getElementById("ia-apikey").value.trim();
   if(!k){toast("Informe a API Key do Gemini","err");return;}
@@ -8933,6 +9824,64 @@ async function _nhClaudeLongo(key,parts,onMsg){
 }
 
 </script>
+
+  <!-- MODAL CAPTURA DO BUSCADOR (no lugar do prompt() antigo) -->
+  <div id="mo-bsc-captura" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);z-index:3000;align-items:center;justify-content:center;padding:16px">
+    <div style="background:var(--s1);border:1px solid var(--b1);border-radius:16px;max-width:560px;width:100%;max-height:92vh;overflow-y:auto">
+      <div style="padding:18px 22px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:10px">
+        <div style="flex:1">
+          <div style="font-size:15px;font-weight:800;color:var(--t1)">&#43; Capturar para Editais Capturados</div>
+          <div style="font-size:12px;color:var(--t3);margin-top:2px">Confira os dados antes de gravar no sistema</div>
+        </div>
+        <button onclick="nhFecharCaptura()" style="background:none;border:none;color:var(--t3);font-size:20px;cursor:pointer;line-height:1">&times;</button>
+      </div>
+      <div style="padding:20px 22px">
+        <div id="bsc-cap-quantos" style="display:none;background:var(--nha);border:1px solid rgba(249,115,22,.3);border-radius:9px;padding:10px 13px;font-size:12.5px;color:var(--t1);margin-bottom:14px"></div>
+        <div style="background:var(--s2);border:1px solid var(--b1);border-radius:9px;padding:11px 13px;margin-bottom:16px">
+          <div style="font-size:9.5px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:5px">Objeto</div>
+          <div id="bsc-cap-obj" style="font-size:12.5px;color:var(--t2);line-height:1.6;white-space:pre-line;max-height:130px;overflow-y:auto"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+          <div>
+            <label style="font-size:9.5px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:700;display:block;margin-bottom:6px">Empresa *</label>
+            <select id="bsc-cap-empresa" style="width:100%;background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:10px;border-radius:8px;font-size:13px;font-family:Outfit,sans-serif;box-sizing:border-box"></select>
+          </div>
+          <div>
+            <label style="font-size:9.5px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:700;display:block;margin-bottom:6px">Respons&aacute;vel</label>
+            <select id="bsc-cap-resp" style="width:100%;background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:10px;border-radius:8px;font-size:13px;font-family:Outfit,sans-serif;box-sizing:border-box"></select>
+          </div>
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="font-size:9.5px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:700;display:block;margin-bottom:6px">Prioridade</label>
+          <select id="bsc-cap-prio" style="width:100%;background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:10px;border-radius:8px;font-size:13px;font-family:Outfit,sans-serif;box-sizing:border-box">
+            <option>ALTA</option><option selected>M&Eacute;DIA</option><option>BAIXA</option>
+          </select>
+        </div>
+        <div style="margin-bottom:18px" id="bsc-cap-linha-titulo">
+          <label style="font-size:9.5px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:700;display:block;margin-bottom:6px">T&iacute;tulo da licita&ccedil;&atilde;o <span style="font-weight:500;text-transform:none;letter-spacing:0">(gerado automaticamente, mas d&aacute; para editar)</span></label>
+          <input type="text" id="bsc-cap-titulo" style="width:100%;background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:10px;border-radius:8px;font-size:13px;font-family:Outfit,sans-serif;box-sizing:border-box">
+        </div>
+        <div style="display:flex;gap:8px">
+          <button id="bsc-cap-btn" onclick="nhConfirmarCaptura()" style="flex:1;background:linear-gradient(135deg,#059669,#22c55e);color:#fff;border:none;padding:12px;border-radius:9px;font-weight:800;font-size:13.5px;cursor:pointer;font-family:Outfit,sans-serif">Capturar</button>
+          <button onclick="nhFecharCaptura()" style="background:var(--s2);border:1px solid var(--b1);color:var(--t2);padding:12px 20px;border-radius:9px;font-size:13px;cursor:pointer;font-family:Outfit,sans-serif">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL ITENS DA LICITAÇÃO -->
+  <div id="mo-bsc-itens" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);z-index:3000;align-items:center;justify-content:center;padding:16px">
+    <div style="background:var(--s1);border:1px solid var(--b1);border-radius:16px;max-width:900px;width:100%;max-height:92vh;display:flex;flex-direction:column;overflow:hidden">
+      <div style="padding:18px 22px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:10px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:15px;font-weight:800;color:var(--t1)">&#128203; Itens da licita&ccedil;&atilde;o</div>
+          <div id="bsc-itens-sub" style="font-size:11.5px;color:var(--t3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+        </div>
+        <button onclick="document.getElementById('mo-bsc-itens').style.display='none'" style="background:none;border:none;color:var(--t3);font-size:20px;cursor:pointer;line-height:1">&times;</button>
+      </div>
+      <div id="bsc-itens-body" style="padding:16px 22px;overflow-y:auto;flex:1"></div>
+    </div>
+  </div>
 
   <!-- MODAL API KEY GEMINI -->
   <div id="ia-key-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:3000;align-items:center;justify-content:center">
