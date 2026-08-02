@@ -964,8 +964,10 @@ function renderCard(d){
   var temPart = part!=='';
   var justDisabled = !temPart ? 'disabled' : '';
 
-  /* Preenchidas pelo Sistema NH principal (Parte 3/4) — aqui só leitura. */
-  var an = ANALISES_VIAB[id] || null;
+  /* Preenchidas pelo Sistema NH principal (Parte 3/4) — aqui só leitura.
+     analise_viabilidade é gravada com a chave 'e-'+id (mesma convenção
+     de pendencias), não o id puro do edital. */
+  var an = ANALISES_VIAB['e-'+id] || null;
   var cap = (an && an.capag) || null;
 
   return '<div class="card '+cardCls+'" id="card-'+id+'">'+
