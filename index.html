@@ -933,58 +933,119 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 
 /* ══════════════════════════════════════════════════════════
    BUSCADOR DE LICITAÇÕES (.bsc-*)
-   Campo de busca grande no topo + filtros à esquerda +
-   resultados à direita. Tokens e linguagem visual do sistema.
+   Bloco de busca em destaque no topo (palavras-chave, modo de
+   combinação e exclusão ficam juntos, porque são a mesma tarefa),
+   coluna de refinamento à esquerda e resultados à direita.
    ══════════════════════════════════════════════════════════ */
 .bsc-hero{
-  background:linear-gradient(135deg,rgba(249,115,22,.10),transparent 55%),var(--s1);
-  border:1px solid var(--b1);border-radius:16px;padding:22px 24px;margin-bottom:16px;
+  position:relative;overflow:hidden;
+  background:
+    radial-gradient(900px 300px at 12% -40%,rgba(249,115,22,.16),transparent 70%),
+    linear-gradient(180deg,var(--s2),var(--s1));
+  border:1px solid var(--b1);border-radius:18px;
+  padding:24px 26px 22px;margin-bottom:18px;
+  box-shadow:0 1px 2px rgba(0,0,0,.4),0 20px 44px -22px rgba(0,0,0,.7);
 }
-.bsc-hero-row{display:flex;gap:10px;align-items:stretch}
+.bsc-hero::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--nh),rgba(249,115,22,.25) 35%,transparent 70%);
+}
+.bsc-hero-top{display:flex;align-items:flex-start;gap:14px;margin-bottom:18px}
+.bsc-hero-tit{font-size:19px;font-weight:800;color:var(--t1);letter-spacing:-.2px;line-height:1.15}
+.bsc-hero-sub{font-size:12px;color:var(--t3);margin-top:4px;line-height:1.5}
+.bsc-hero-chip{
+  margin-left:auto;font-size:11px;font-weight:700;color:var(--t3);
+  background:var(--s2);border:1px solid var(--b1);border-radius:20px;
+  padding:5px 12px;white-space:nowrap;
+}
+.bsc-hero-chip b{color:var(--nh);font-family:'JetBrains Mono',monospace}
+
+/* Rótulo do campo — sem isso ninguém percebe que ali se busca palavra */
+.bsc-campo-lbl{
+  display:block;font-size:10.5px;font-weight:800;color:var(--nh);
+  text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;
+}
+.bsc-hero-row{display:flex;gap:11px;align-items:stretch}
 .bsc-busca{
-  flex:1;min-width:0;display:flex;align-items:center;gap:12px;
-  background:var(--s2);border:2px solid var(--b1);border-radius:12px;
-  padding:0 18px;transition:border-color .18s,box-shadow .18s;
+  flex:1;min-width:0;display:flex;align-items:center;gap:10px;
+  background:var(--bg);border:2px solid var(--b2);border-radius:13px;
+  padding:0 8px 0 20px;transition:border-color .18s,box-shadow .18s;
 }
-.bsc-busca:focus-within{border-color:var(--nh);box-shadow:0 0 0 4px rgba(249,115,22,.12)}
-.bsc-busca .ico{font-size:20px;opacity:.7;flex-shrink:0}
+.bsc-busca:focus-within{border-color:var(--nh);box-shadow:0 0 0 4px rgba(249,115,22,.14)}
 .bsc-busca input{
   flex:1;min-width:0;background:none;border:none;outline:none;
-  color:var(--t1);font-size:17px;font-weight:500;font-family:Outfit,sans-serif;
-  padding:18px 0;
+  color:var(--t1);font-size:17px;font-weight:600;font-family:Outfit,sans-serif;
+  padding:19px 0;letter-spacing:-.1px;
 }
-.bsc-busca input::placeholder{color:var(--t3);font-weight:400}
+.bsc-busca input::placeholder{color:var(--t3);font-weight:400;letter-spacing:0}
+.bsc-x{
+  background:var(--s2);border:1px solid var(--b1);color:var(--t3);
+  width:28px;height:28px;border-radius:50%;font-size:16px;cursor:pointer;
+  line-height:1;flex-shrink:0;transition:all .15s;
+}
+.bsc-x:hover{color:var(--t1);border-color:var(--nh)}
 .bsc-btn-buscar{
   background:linear-gradient(135deg,var(--nh),#ea580c);color:#fff;border:none;
-  padding:0 34px;border-radius:12px;font-weight:800;font-size:15px;cursor:pointer;
-  font-family:Outfit,sans-serif;white-space:nowrap;transition:filter .15s,transform .15s;
+  padding:0 38px;border-radius:13px;font-weight:800;font-size:15.5px;cursor:pointer;
+  font-family:Outfit,sans-serif;white-space:nowrap;letter-spacing:.2px;
+  box-shadow:0 4px 16px rgba(249,115,22,.3);transition:filter .15s,transform .12s,box-shadow .15s;
 }
-.bsc-btn-buscar:hover{filter:brightness(1.08)}
-.bsc-btn-buscar:active{transform:scale(.98)}
-.bsc-btn-buscar:disabled{opacity:.6;cursor:default;filter:none}
-/* Canais de busca (publicadas / recebendo proposta / atualizadas) */
-.bsc-canais{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.bsc-btn-buscar:hover{filter:brightness(1.1);box-shadow:0 6px 22px rgba(249,115,22,.42)}
+.bsc-btn-buscar:active{transform:translateY(1px)}
+.bsc-btn-buscar:disabled{opacity:.55;cursor:default;filter:none;box-shadow:none}
+
+/* Linha secundária: modo de combinação + exclusão */
+.bsc-hero-linha{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end;margin-top:14px}
+.bsc-hero-item{display:flex;flex-direction:column;gap:6px}
+.bsc-mini-lbl{font-size:9.5px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.09em}
+.bsc-excluir-inp{
+  width:100%;background:var(--s2);border:1px solid var(--b1);color:var(--t1);
+  padding:9px 13px;border-radius:9px;font-size:12.5px;font-family:Outfit,sans-serif;
+  box-sizing:border-box;transition:border-color .15s;
+}
+.bsc-excluir-inp:focus{outline:none;border-color:var(--nh)}
+.bsc-modo{display:flex;gap:0;background:var(--s2);border:1px solid var(--b1);border-radius:9px;padding:3px}
+.bsc-modo button{
+  background:none;border:none;color:var(--t3);padding:6px 14px;border-radius:7px;
+  font-size:11.5px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;
+  transition:all .15s;white-space:nowrap;
+}
+.bsc-modo button.on{background:var(--nh);color:#fff;box-shadow:0 2px 8px rgba(249,115,22,.35)}
+.bsc-modo button:not(.on):hover{color:var(--t1)}
+
+/* Canais */
+.bsc-canais{display:flex;gap:9px;margin-top:18px;flex-wrap:wrap}
 .bsc-canal{
-  display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:10px;
-  border:1px solid var(--b1);background:var(--s2);color:var(--t2);
-  font-size:12.5px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;
-  transition:all .15s;
+  display:flex;flex-direction:column;gap:2px;align-items:flex-start;
+  padding:10px 17px;border-radius:11px;border:1px solid var(--b1);
+  background:var(--s2);cursor:pointer;font-family:Outfit,sans-serif;
+  transition:all .15s;text-align:left;
 }
-.bsc-canal:hover{border-color:var(--nh);color:var(--t1)}
-.bsc-canal.on{background:var(--nha);border-color:var(--nh);color:var(--nh)}
-.bsc-canal .sub{font-weight:500;font-size:11px;opacity:.75}
+.bsc-canal b{font-size:12.5px;font-weight:700;color:var(--t2)}
+.bsc-canal .sub{font-size:10.5px;color:var(--t3);font-weight:500}
+.bsc-canal:hover{border-color:var(--b2);background:var(--s3)}
+.bsc-canal:hover b{color:var(--t1)}
+.bsc-canal.on{background:var(--nha);border-color:var(--nh)}
+.bsc-canal.on b{color:var(--nh)}
+.bsc-canal.on .sub{color:var(--nh2)}
 
 /* Layout de duas colunas */
-.bsc-wrap{display:grid;grid-template-columns:290px 1fr;gap:16px;align-items:start}
+.bsc-wrap{display:grid;grid-template-columns:288px 1fr;gap:18px;align-items:start}
 .bsc-filtros{
   background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:18px;
   position:sticky;top:16px;max-height:calc(100vh - 32px);overflow-y:auto;
 }
 .bsc-filtros::-webkit-scrollbar{width:6px}
 .bsc-filtros::-webkit-scrollbar-thumb{background:var(--b2);border-radius:3px}
-.bsc-fgrupo{margin-bottom:16px}
+.bsc-filtros-tit{
+  font-size:12px;font-weight:800;color:var(--t1);margin-bottom:16px;
+  padding-bottom:11px;border-bottom:1px solid var(--b1);
+  display:flex;align-items:center;gap:7px;
+}
+.bsc-filtros-tit::before{content:'';width:3px;height:13px;background:var(--nh);border-radius:2px}
+.bsc-fgrupo{margin-bottom:15px}
 .bsc-flabel{
-  font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;
+  font-size:9.5px;color:var(--t3);text-transform:uppercase;letter-spacing:.09em;
   font-weight:700;margin-bottom:7px;display:block;
 }
 .bsc-filtros input[type=text],.bsc-filtros input[type=date],
@@ -995,97 +1056,97 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 }
 .bsc-filtros input:focus,.bsc-filtros select:focus{outline:none;border-color:var(--nh)}
 .bsc-duo{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.bsc-chk{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12.5px;color:var(--t2);font-weight:600;padding:4px 0}
+.bsc-chk{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12.5px;color:var(--t2);font-weight:600;padding:5px 0}
+.bsc-chk:hover{color:var(--t1)}
 .bsc-chk input{width:15px;height:15px;accent-color:var(--nh);cursor:pointer;flex-shrink:0}
 .bsc-mini{
   background:var(--s2);border:1px solid var(--b1);color:var(--t2);
-  padding:7px 12px;border-radius:8px;font-size:11.5px;font-weight:700;
+  padding:8px 12px;border-radius:8px;font-size:11.5px;font-weight:700;
   cursor:pointer;font-family:Outfit,sans-serif;transition:all .15s;
 }
 .bsc-mini:hover{border-color:var(--nh);color:var(--nh)}
-.bsc-modo{display:flex;gap:5px}
-.bsc-modo button{
-  flex:1;background:var(--s2);border:1px solid var(--b1);color:var(--t3);
-  padding:6px 4px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;
-  font-family:Outfit,sans-serif;transition:all .15s;
-}
-.bsc-modo button.on{background:var(--nha);border-color:var(--nh);color:var(--nh)}
 
 /* Barra de resultados */
 .bsc-barra{
-  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
   background:var(--s1);border:1px solid var(--b1);border-radius:12px;
-  padding:12px 16px;margin-bottom:12px;
+  padding:13px 17px;margin-bottom:13px;
 }
-.bsc-cont{font-size:13px;color:var(--t1);font-weight:700}
-.bsc-cont b{color:var(--nh);font-size:16px;font-family:'JetBrains Mono',monospace}
+.bsc-cont{font-size:12.5px;color:var(--t2);font-weight:600;display:flex;align-items:baseline;gap:7px}
+.bsc-cont b{color:var(--nh);font-size:23px;font-weight:800;font-family:'JetBrains Mono',monospace;letter-spacing:-1px}
 
 /* Card de resultado */
 .bsc-card{
-  background:var(--s1);border:1px solid var(--b1);border-left:4px solid var(--b2);
-  border-radius:12px;padding:16px 18px;margin-bottom:11px;
+  background:var(--s1);border:1px solid var(--b1);border-left:3px solid var(--b2);
+  border-radius:13px;padding:17px 19px;margin-bottom:12px;
   transition:border-color .18s,transform .15s,box-shadow .18s;position:relative;
 }
-.bsc-card:hover{border-color:var(--nh);transform:translateY(-1px);box-shadow:0 8px 22px rgba(0,0,0,.3)}
-.bsc-card.sel{border-left-color:var(--nh);background:var(--s2)}
+.bsc-card:hover{border-color:var(--b2);border-left-color:var(--nh);transform:translateY(-2px);box-shadow:0 10px 28px rgba(0,0,0,.35)}
+.bsc-card.sel{border-left-color:var(--nh);background:var(--s2);box-shadow:0 0 0 1px rgba(249,115,22,.3)}
 .bsc-card.capturado{border-left-color:#22c55e}
-.bsc-chead{display:flex;align-items:center;gap:8px;margin-bottom:9px;flex-wrap:wrap}
+.bsc-card.urgente{border-left-color:#ef4444}
+.bsc-chead{display:flex;align-items:center;gap:7px;margin-bottom:11px;flex-wrap:wrap}
 .bsc-num{
-  font-size:11px;font-weight:800;color:var(--t3);font-family:'JetBrains Mono',monospace;
-  background:var(--s2);border:1px solid var(--b1);border-radius:6px;padding:2px 8px;flex-shrink:0;
+  font-size:10.5px;font-weight:800;color:var(--t3);font-family:'JetBrains Mono',monospace;
+  flex-shrink:0;min-width:26px;
 }
 .bsc-tag{
   display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;
-  padding:3px 9px;border-radius:20px;letter-spacing:.03em;white-space:nowrap;
+  padding:3px 9px;border-radius:6px;letter-spacing:.02em;white-space:nowrap;
 }
 .bsc-star{
-  margin-left:auto;background:none;border:none;font-size:17px;cursor:pointer;
-  opacity:.35;transition:opacity .15s,transform .15s;line-height:1;flex-shrink:0;
+  margin-left:auto;background:none;border:none;font-size:18px;cursor:pointer;
+  opacity:.3;transition:opacity .15s,transform .15s;line-height:1;flex-shrink:0;
 }
-.bsc-star:hover{opacity:.8;transform:scale(1.15)}
+.bsc-star:hover{opacity:.85;transform:scale(1.18)}
 .bsc-star.on{opacity:1}
-.bsc-obj{font-size:13.5px;color:var(--t1);line-height:1.6;margin-bottom:11px;font-weight:500}
-.bsc-obj.clamp{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.bsc-vermais{background:none;border:none;color:var(--nh);font-size:11.5px;font-weight:700;cursor:pointer;padding:0;font-family:Outfit,sans-serif}
+.bsc-obj{font-size:14.5px;color:var(--t1);line-height:1.6;margin-bottom:4px;font-weight:600;letter-spacing:-.1px}
+.bsc-obj.clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.bsc-vermais{background:none;border:none;color:var(--nh);font-size:11px;font-weight:700;cursor:pointer;padding:0 0 10px;font-family:Outfit,sans-serif}
+.bsc-vermais:hover{text-decoration:underline}
 .bsc-meta{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
-  gap:10px 18px;padding:11px 0;margin-bottom:10px;
-  border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));
+  gap:12px 20px;padding:13px 0;margin-bottom:11px;
+  border-top:1px solid rgba(255,255,255,.055);border-bottom:1px solid rgba(255,255,255,.055);
 }
-.bsc-mi{display:flex;flex-direction:column;gap:3px;min-width:0}
-.bsc-mi-l{font-size:9.5px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:700}
-.bsc-mi-v{font-size:12.5px;color:var(--t1);font-weight:600;overflow-wrap:anywhere}
-.bsc-mi-v.nh{color:var(--nh);font-weight:800;font-size:14px}
+.bsc-mi{display:flex;flex-direction:column;gap:4px;min-width:0}
+.bsc-mi-l{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-weight:700}
+.bsc-mi-v{font-size:12.5px;color:var(--t1);font-weight:600;overflow-wrap:anywhere;line-height:1.4}
+.bsc-mi-v.nh{color:var(--nh);font-weight:800;font-size:16px;font-family:'JetBrains Mono',monospace;letter-spacing:-.5px}
 /* Faixa com o que já sabemos do município (histórico próprio) */
 .bsc-nosso{
   display:flex;align-items:center;gap:8px;flex-wrap:wrap;
-  background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.22);
-  border-radius:8px;padding:7px 11px;margin-bottom:10px;font-size:11.5px;color:var(--t2);
+  background:linear-gradient(90deg,rgba(59,130,246,.10),transparent 70%);
+  border-left:2px solid rgba(59,130,246,.5);
+  border-radius:0 8px 8px 0;padding:8px 12px;margin-bottom:11px;font-size:11.5px;color:var(--t2);
 }
 .bsc-acoes{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .bsc-a{
   display:inline-flex;align-items:center;gap:5px;text-decoration:none;
-  padding:6px 12px;border-radius:7px;font-size:11.5px;font-weight:700;
-  cursor:pointer;font-family:Outfit,sans-serif;border:1px solid;transition:filter .15s;
+  padding:7px 13px;border-radius:8px;font-size:11.5px;font-weight:700;
+  cursor:pointer;font-family:Outfit,sans-serif;border:1px solid;transition:filter .15s,transform .12s;
 }
-.bsc-a:hover{filter:brightness(1.2)}
+.bsc-a:hover{filter:brightness(1.22)}
+.bsc-a:active{transform:translateY(1px)}
 .bsc-a.az{background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.3);color:#3b82f6}
-.bsc-a.lj{background:var(--nha);border-color:rgba(249,115,22,.3);color:var(--nh)}
-.bsc-a.vd{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.3);color:#22c55e}
+.bsc-a.lj{background:var(--nha);border-color:rgba(249,115,22,.32);color:var(--nh)}
+.bsc-a.vd{background:linear-gradient(135deg,#059669,#22c55e);border-color:transparent;color:#fff;box-shadow:0 2px 10px rgba(34,197,94,.28)}
 .bsc-a.rx{background:var(--s2);border-color:var(--b1);color:var(--t2)}
-.bsc-a[disabled]{opacity:.55;cursor:default;filter:none}
+.bsc-a.rx:hover{color:var(--t1);border-color:var(--b2)}
+.bsc-a[disabled]{opacity:.5;cursor:default;filter:none;box-shadow:none}
 .bsc-nota{
-  width:100%;margin-top:10px;background:var(--s2);border:1px solid var(--b1);
-  color:var(--t1);padding:8px 11px;border-radius:8px;font-size:12px;
-  font-family:Outfit,sans-serif;box-sizing:border-box;resize:vertical;min-height:36px;
+  width:100%;margin-top:11px;background:var(--s2);border:1px solid var(--b1);
+  color:var(--t1);padding:9px 12px;border-radius:8px;font-size:12px;
+  font-family:Outfit,sans-serif;box-sizing:border-box;resize:vertical;min-height:38px;
 }
 .bsc-nota:focus{outline:none;border-color:var(--nh)}
 .bsc-ia{
-  margin-top:10px;background:var(--s2);border:1px solid var(--b1);
-  border-radius:9px;padding:12px 14px;font-size:12.5px;color:var(--t1);line-height:1.7;
+  margin-top:11px;background:var(--s2);border:1px solid var(--b1);
+  border-left:3px solid var(--nh);
+  border-radius:9px;padding:13px 15px;font-size:12.5px;color:var(--t1);line-height:1.7;
 }
-.bsc-vazio{text-align:center;color:var(--t3);padding:56px 20px;font-size:13px}
-.bsc-vazio .ic{font-size:40px;display:block;margin-bottom:12px;opacity:.5}
+.bsc-vazio{text-align:center;color:var(--t3);padding:60px 20px;font-size:13.5px;line-height:1.7}
+.bsc-vazio .ic{font-size:44px;display:block;margin-bottom:14px;opacity:.45}
 
 /* Botão que abre os filtros no celular — escondido no desktop */
 .bsc-toggle-filtros{display:none}
@@ -1097,16 +1158,21 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
   .bsc-toggle-filtros{
     display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
     background:var(--s1);border:1px solid var(--b1);color:var(--t1);
-    padding:11px;border-radius:10px;font-size:13px;font-weight:700;
-    cursor:pointer;font-family:Outfit,sans-serif;margin-bottom:12px;
+    padding:12px;border-radius:10px;font-size:13px;font-weight:700;
+    cursor:pointer;font-family:Outfit,sans-serif;margin-bottom:13px;
   }
 }
 @media(max-width:620px){
-  .bsc-hero{padding:16px}
+  .bsc-hero{padding:18px 16px}
+  .bsc-hero-tit{font-size:17px}
+  .bsc-hero-chip{display:none}
   .bsc-hero-row{flex-direction:column}
-  .bsc-busca input{font-size:15px;padding:14px 0}
-  .bsc-btn-buscar{padding:13px}
-  .bsc-meta{grid-template-columns:1fr 1fr;gap:9px 12px}
+  .bsc-busca input{font-size:15.5px;padding:15px 0}
+  .bsc-btn-buscar{padding:14px}
+  .bsc-hero-linha{gap:13px}
+  .bsc-canais{flex-direction:column}
+  .bsc-canal{width:100%;box-sizing:border-box}
+  .bsc-meta{grid-template-columns:1fr 1fr;gap:10px 14px}
 }
 
 /* ─── Filtro de período ───────────────────────────────── */
@@ -3061,41 +3127,53 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
     <div class="page" id="page-buscador">
 <div style="padding:0 0 32px">
 
-  <!-- ── Campo de busca grande + canais ────────────────── -->
+  <!-- ── Bloco de busca: tudo que é palavra fica aqui, junto ────── -->
   <div class="bsc-hero">
+    <div class="bsc-hero-top">
+      <div>
+        <div class="bsc-hero-tit">Buscar licita&ccedil;&otilde;es</div>
+        <div class="bsc-hero-sub">Base oficial do PNCP &mdash; todo &oacute;rg&atilde;o p&uacute;blico do pa&iacute;s &eacute; obrigado a publicar aqui</div>
+      </div>
+      <div class="bsc-hero-chip" id="bsc-hero-chip"></div>
+    </div>
+
+    <label class="bsc-campo-lbl" for="bsc-termo">&#128269; Palavras-chave</label>
     <div class="bsc-hero-row">
       <div class="bsc-busca">
-        <span class="ico">&#128269;</span>
-        <input type="text" id="bsc-termo" placeholder="Busque por objeto, &oacute;rg&atilde;o ou palavra-chave &mdash; ex: manuten&ccedil;&atilde;o predial, locação de equipamentos m&eacute;dicos..." onkeydown="if(event.key==='Enter')nhBuscar()">
+        <input type="text" id="bsc-termo" placeholder="Ex: manuten&ccedil;&atilde;o predial, loca&ccedil;&atilde;o de equipamentos m&eacute;dicos, limpeza hospitalar..." onkeydown="if(event.key==='Enter')nhBuscar()">
+        <button class="bsc-x" id="bsc-x" onclick="document.getElementById('bsc-termo').value='';this.style.display='none';if(BSC_BRUTO.length)nhRenderResultados();" style="display:none" title="Limpar">&times;</button>
       </div>
       <button class="bsc-btn-buscar" id="bsc-btn" onclick="nhBuscar()">Buscar</button>
     </div>
-    <div class="bsc-canais" id="bsc-canais">
-      <button class="bsc-canal on" data-canal="proposta" onclick="nhSetCanal('proposta')">&#9201; Recebendo proposta <span class="sub">&mdash; d&aacute; para participar agora</span></button>
-      <button class="bsc-canal" data-canal="publicacao" onclick="nhSetCanal('publicacao')">&#128196; Publicadas <span class="sub">&mdash; por data de publica&ccedil;&atilde;o</span></button>
-      <button class="bsc-canal" data-canal="atualizacao" onclick="nhSetCanal('atualizacao')">&#128260; Atualizadas <span class="sub">&mdash; alteradas ou reabertas</span></button>
-    </div>
-  </div>
 
-  <button class="bsc-toggle-filtros" onclick="nhToggleFiltros()"><span>&#9776;</span> Filtros da busca</button>
-
-  <div class="bsc-wrap">
-    <!-- ── Filtros ────────────────────────────────────── -->
-    <div class="bsc-filtros" id="bsc-filtros">
-
-      <div class="bsc-fgrupo">
-        <label class="bsc-flabel">Como combinar as palavras</label>
+    <div class="bsc-hero-linha">
+      <div class="bsc-hero-item">
+        <span class="bsc-mini-lbl">Combinar</span>
         <div class="bsc-modo" id="bsc-modo">
           <button class="on" data-modo="ou" onclick="nhSetModo('ou')" title="Traz resultados que tenham qualquer uma das palavras">Qualquer</button>
           <button data-modo="e" onclick="nhSetModo('e')" title="S&oacute; traz resultados que tenham todas as palavras">Todas</button>
           <button data-modo="exato" onclick="nhSetModo('exato')" title="Busca a frase exata, do jeito que foi digitada">Frase exata</button>
         </div>
       </div>
-
-      <div class="bsc-fgrupo">
-        <label class="bsc-flabel">Excluir resultados com</label>
-        <input type="text" id="bsc-excluir" placeholder="ex: merenda, combust&iacute;vel" title="Separe por v&iacute;rgula. Resultados com essas palavras somem da lista.">
+      <div class="bsc-hero-item" style="flex:1;min-width:210px">
+        <span class="bsc-mini-lbl">Sem estas palavras</span>
+        <input type="text" id="bsc-excluir" class="bsc-excluir-inp" placeholder="ex: merenda, combust&iacute;vel" title="Separe por v&iacute;rgula. Resultados com essas palavras somem da lista." onkeydown="if(event.key==='Enter')nhBuscar()">
       </div>
+    </div>
+
+    <div class="bsc-canais" id="bsc-canais">
+      <button class="bsc-canal on" data-canal="proposta" onclick="nhSetCanal('proposta')"><b>&#9201; Recebendo proposta</b><span class="sub">d&aacute; para participar agora</span></button>
+      <button class="bsc-canal" data-canal="publicacao" onclick="nhSetCanal('publicacao')"><b>&#128196; Publicadas</b><span class="sub">por data de publica&ccedil;&atilde;o</span></button>
+      <button class="bsc-canal" data-canal="atualizacao" onclick="nhSetCanal('atualizacao')"><b>&#128260; Atualizadas</b><span class="sub">alteradas ou reabertas</span></button>
+    </div>
+  </div>
+
+  <button class="bsc-toggle-filtros" onclick="nhToggleFiltros()"><span>&#9776;</span> Refinar resultados</button>
+
+  <div class="bsc-wrap">
+    <!-- ── Refinar (só recortes; palavras ficam no bloco de busca) ── -->
+    <div class="bsc-filtros" id="bsc-filtros">
+      <div class="bsc-filtros-tit">Refinar resultados</div>
 
       <div class="bsc-fgrupo">
         <label class="bsc-flabel">Estado</label>
@@ -8962,12 +9040,25 @@ function nhRenderResultados(){
   var barra=document.getElementById('bsc-barra');
   BSC_LISTA=nhOrdenarBusca(nhFiltrarBusca(BSC_BRUTO));
 
-  document.getElementById('bsc-cont').innerHTML='<b>'+BSC_LISTA.length+'</b> resultado'+(BSC_LISTA.length===1?'':'s')+
-    (BSC_BRUTO.length!==BSC_LISTA.length?' <span style="color:var(--t3);font-weight:500">de '+BSC_BRUTO.length+' recebidos</span>':'');
+  document.getElementById('bsc-cont').innerHTML='<b>'+BSC_LISTA.length+'</b> <span>'+
+    (BSC_LISTA.length===1?'licitação encontrada':'licitações encontradas')+
+    (BSC_BRUTO.length!==BSC_LISTA.length?' <span style="color:var(--t3)">· '+BSC_BRUTO.length+' vieram do PNCP</span>':'')+'</span>';
   barra.style.display=BSC_BRUTO.length?'flex':'none';
 
+  /* Chip do topo: quantas estão encerrando nos próximos 3 dias */
+  var chip=document.getElementById('bsc-hero-chip');
+  if(chip){
+    if(BSC_LISTA.length){
+      var urg=BSC_LISTA.filter(function(x){var d=_bscPrazo(x);return d!==null&&d>=0&&d<=3;}).length;
+      chip.innerHTML=urg?('<b>'+urg+'</b> encerrando em at&eacute; 3 dias'):('<b>'+BSC_LISTA.length+'</b> na lista');
+    }else chip.innerHTML='';
+  }
+  /* Botão de limpar o campo só aparece quando há texto */
+  var x=document.getElementById('bsc-x');
+  if(x)x.style.display=document.getElementById('bsc-termo').value?'':'none';
+
   if(!BSC_BRUTO.length){
-    el.innerHTML='<div class="bsc-vazio"><span class="ic">&#128269;</span>Escolha os filtros e clique em <b>Buscar</b> para consultar o PNCP.</div>';
+    el.innerHTML='<div class="bsc-vazio"><span class="ic">&#128269;</span>Digite as <b>palavras-chave</b> l&aacute; em cima e clique em <b>Buscar</b>.<br><span style="font-size:12px">Sem palavra nenhuma tamb&eacute;m funciona &mdash; traz tudo do estado e da modalidade escolhidos.</span></div>';
     return;
   }
   if(!BSC_LISTA.length){
@@ -9010,7 +9101,8 @@ function nhBscCard(e,i){
 
   var m=function(l,v,cls){return '<div class="bsc-mi"><span class="bsc-mi-l">'+l+'</span><span class="bsc-mi-v'+(cls?' '+cls:'')+'">'+v+'</span></div>';};
 
-  return '<div class="bsc-card'+(jaCap?' capturado':'')+(BSC_SEL[id]?' sel':'')+'" id="bsc-c-'+id+'">'+
+  var urgente=(dias!==null&&dias>=0&&dias<=2);
+  return '<div class="bsc-card'+(jaCap?' capturado':urgente?' urgente':'')+(BSC_SEL[id]?' sel':'')+'" id="bsc-c-'+id+'">'+
     '<div class="bsc-chead">'+
       '<input type="checkbox" class="bsc-chk-item" '+(BSC_SEL[id]?'checked':'')+' onchange="nhToggleSel(\''+id+'\',this.checked)" style="width:15px;height:15px;accent-color:var(--nh);cursor:pointer" title="Selecionar para captura em lote">'+
       '<span class="bsc-num">N&ordm; '+(i+1)+'</span>'+tags+
