@@ -66,13 +66,38 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
   position:relative;overflow:hidden;
   transition:transform .15s ease,box-shadow .15s ease;
 }
-.stat:hover{transform:translateY(-2px)}
+.stat{cursor:pointer;-webkit-user-select:none;user-select:none}
+.stat:hover{transform:translateY(-2px);border-color:var(--accent,var(--b2))}
+.stat:focus-visible{outline:2px solid var(--accent,var(--nh));outline-offset:2px}
+/* Selecionado: o cartão vira o próprio botão de filtro ligado. */
+.stat.on{
+  background:linear-gradient(90deg,var(--accent,var(--t3)),transparent 55%) top left/100% 3px no-repeat,var(--s3);
+  border-color:var(--accent,var(--b2));
+  box-shadow:0 0 0 1px var(--accent,var(--b2)),0 8px 24px rgba(0,0,0,.35);
+}
 .stat.s-t{--accent:var(--nh)} .stat.s-p{--accent:var(--t3)} .stat.s-a{--accent:var(--ana)} .stat.s-s{--accent:var(--sim)} .stat.s-n{--accent:var(--nao)}
 .stat-l{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:9px}
 .stat-n{font-size:32px;font-weight:800;line-height:1;font-family:'JetBrains Mono',monospace;letter-spacing:-1px;position:relative;z-index:1}
 
+/* Celular: com 5 cartões em 2 colunas sobrava um sozinho na última
+   linha. Pendentes — que é o filtro padrão e o número que mais importa
+   no dia a dia — passa a abrir sozinho na linha inteira, e os outros
+   quatro fecham certinho 2 a 2. */
+@media(max-width:620px){
+  .stats{grid-template-columns:1fr 1fr;gap:10px;padding:14px 14px 8px}
+  .stat{padding:15px 14px}
+  .stat-l{margin-bottom:7px}
+  .stat-n{font-size:25px}
+  .stat.s-p{grid-column:1/-1;order:-1;padding:18px 16px}
+  .stat.s-p .stat-n{font-size:38px}
+}
+
 /* Filtros */
-.filtros-wrap{padding:8px 18px 14px;display:flex;flex-direction:column;gap:12px;position:relative;z-index:1}
+/* Sem padding por padrão: com a linha de Status removida, quem não é
+   admin não vê nenhum filtro aqui, e o padding deixava uma faixa vazia.
+   A classe .tem-filtro é ligada quando alguma linha aparece. */
+.filtros-wrap{padding:0 18px;display:flex;flex-direction:column;gap:12px;position:relative;z-index:1}
+.filtros-wrap.tem-filtro{padding:8px 18px 14px}
 .filtros-row{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
 .filtros-row::-webkit-scrollbar{display:none}
 .filtro-label{font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;font-weight:700}
@@ -444,25 +469,18 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
   </div>
 </div>
 
-<div class="stats">
-  <div class="stat s-t"><div class="stat-l">Total</div><div class="stat-n" style="color:var(--nh)" id="st-total">—</div></div>
-  <div class="stat s-p"><div class="stat-l">Pendentes</div><div class="stat-n" style="color:var(--t2)" id="st-pend">—</div></div>
-  <div class="stat s-a"><div class="stat-l">Em Análise</div><div class="stat-n" style="color:var(--ana)" id="st-ana">—</div></div>
-  <div class="stat s-s"><div class="stat-l">Participar</div><div class="stat-n" style="color:var(--sim)" id="st-sim">—</div></div>
-  <div class="stat s-n"><div class="stat-l">Recusados</div><div class="stat-n" style="color:var(--nao)" id="st-nao">—</div></div>
+<!-- Os cartões SÃO o filtro de status: cada um corresponde a um estado,
+     então a antiga linha de botões "Status" logo abaixo era a mesma coisa
+     duas vezes. Clicar no cartão filtra a lista. -->
+<div class="stats" id="filtros-status">
+  <div class="stat s-t" role="button" tabindex="0" data-f="todos"><div class="stat-l">Total</div><div class="stat-n" style="color:var(--nh)" id="st-total">—</div></div>
+  <div class="stat s-p" role="button" tabindex="0" data-f="pendente"><div class="stat-l">Pendentes</div><div class="stat-n" style="color:var(--t2)" id="st-pend">—</div></div>
+  <div class="stat s-a" role="button" tabindex="0" data-f="analise"><div class="stat-l">Em Análise</div><div class="stat-n" style="color:var(--ana)" id="st-ana">—</div></div>
+  <div class="stat s-s" role="button" tabindex="0" data-f="sim"><div class="stat-l">Participar</div><div class="stat-n" style="color:var(--sim)" id="st-sim">—</div></div>
+  <div class="stat s-n" role="button" tabindex="0" data-f="nao"><div class="stat-l">Recusados</div><div class="stat-n" style="color:var(--nao)" id="st-nao">—</div></div>
 </div>
 
 <div class="filtros-wrap">
-  <div>
-    <div class="filtro-label">Status</div>
-    <div class="filtros-row" id="filtros-status">
-      <button class="f-btn" id="fb-pend" onclick="setFiltroStatus('pendente',this)">⏳ Pendentes</button>
-      <button class="f-btn" id="fb-ana" onclick="setFiltroStatus('analise',this)">🔍 Em Análise</button>
-      <button class="f-btn" id="fb-todos" onclick="setFiltroStatus('todos',this)">Todos</button>
-      <button class="f-btn" id="fb-sim" onclick="setFiltroStatus('sim',this)">✅ SIM</button>
-      <button class="f-btn" id="fb-nao" onclick="setFiltroStatus('nao',this)">❌ NÃO</button>
-    </div>
-  </div>
   <div id="linha-resp" style="display:none">
     <div class="filtro-label">Responsável</div>
     <div class="filtros-row" id="filtros-resp">
@@ -807,8 +825,7 @@ async function carregar(){
     _canon=null;
     buildFiltrosEmpresas();
     buildFiltrosResp();
-    document.getElementById('fb-pend').classList.add('on');
-    renderizar();
+    setFiltroStatus(FILTRO_STATUS);
   }catch(e){
     document.getElementById('main-content').innerHTML='<div class="empty"><div class="empty-ico">⚠️</div>Erro ao carregar: '+esc(e.message)+'</div>';
   }
@@ -823,6 +840,7 @@ function buildFiltrosResp(){
   /* Com um responsável só, o filtro não separa nada — fica escondido. */
   if(lista.length<2){FILTRO_RESP='todos';return;}
   document.getElementById('linha-resp').style.display='';
+  document.querySelector('.filtros-wrap').classList.add('tem-filtro');
   var wrap=document.getElementById('filtros-resp');
   lista.forEach(function(nome){
     var btn=document.createElement('button');
@@ -839,6 +857,7 @@ function buildFiltrosEmpresas(){
   var chaves=Object.keys(emps).sort();
   if(chaves.length<2){FILTRO_EMP='todos';return;}
   document.getElementById('linha-emp').style.display='';
+  document.querySelector('.filtros-wrap').classList.add('tem-filtro');
   var wrap=document.getElementById('filtros-emp');
   chaves.forEach(function(emp){
     var btn=document.createElement('button');
@@ -850,15 +869,24 @@ function buildFiltrosEmpresas(){
   });
 }
 
-function setFiltroStatus(f,btn){
+function setFiltroStatus(f){
   FILTRO_STATUS=f;
-  document.querySelectorAll('#filtros-status .f-btn').forEach(function(b){b.classList.remove('on','on-sim','on-nao','on-analise');});
-  if(f==='sim') btn.classList.add('on-sim');
-  else if(f==='nao') btn.classList.add('on-nao');
-  else if(f==='analise') btn.classList.add('on-analise');
-  else btn.classList.add('on');
+  document.querySelectorAll('#filtros-status .stat').forEach(function(c){
+    c.classList.toggle('on',c.getAttribute('data-f')===f);
+    c.setAttribute('aria-pressed',c.getAttribute('data-f')===f?'true':'false');
+  });
   renderizar();
 }
+/* Os cartões viraram o filtro — clique e teclado (Enter/Espaço), já que
+   são div com role=button e não <button> de verdade. */
+document.addEventListener('DOMContentLoaded',function(){
+  document.querySelectorAll('#filtros-status .stat').forEach(function(c){
+    c.addEventListener('click',function(){setFiltroStatus(c.getAttribute('data-f'));});
+    c.addEventListener('keydown',function(e){
+      if(e.key==='Enter'||e.key===' '){e.preventDefault();setFiltroStatus(c.getAttribute('data-f'));}
+    });
+  });
+});
 function setFiltroResp(f,btn){
   FILTRO_RESP=f;
   document.querySelectorAll('#filtros-resp .f-btn').forEach(function(b){b.classList.remove('on');});
