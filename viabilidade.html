@@ -11,6 +11,7 @@
 <link rel="manifest" href="manifest-viabilidade.json">
 <title>NH — Viabilidade</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -52,13 +53,23 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
 .badge-pend{background:linear-gradient(135deg,rgba(249,115,22,.2),rgba(249,115,22,.08));color:var(--nh2);border:1px solid rgba(249,115,22,.35);padding:7px 14px;border-radius:22px;font-size:12px;font-weight:800;white-space:nowrap;flex-shrink:0}
 
 /* Stats */
-.stats{display:flex;gap:10px;padding:16px 18px 8px;overflow-x:auto;scrollbar-width:none;position:relative;z-index:1}
-.stats::-webkit-scrollbar{display:none}
-.stat{background:linear-gradient(160deg,var(--surf),var(--bg));border:1px solid var(--line);border-radius:16px;padding:14px 16px;min-width:88px;flex-shrink:0;position:relative;overflow:hidden}
-.stat::after{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent,var(--txt3));opacity:.9}
-.stat.s-t{--accent:var(--nh)} .stat.s-p{--accent:var(--txt3)} .stat.s-a{--accent:var(--ana)} .stat.s-s{--accent:var(--sim)} .stat.s-n{--accent:var(--nao)}
-.stat-n{font-size:30px;font-weight:800;line-height:1;letter-spacing:-.03em}
-.stat-l{font-size:10.5px;color:var(--txt3);margin-top:6px;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+/* Mesmo cartão de indicador do Resumo Geral do sistema (.r-kpi):
+   grid no lugar da faixa rolável, borda esquerda na cor do indicador,
+   fio de brilho no topo, label miúdo em cima e número grande embaixo.
+   O brilho vai no background (e não em ::after) porque os
+   pseudo-elementos do .stat já são usados pelo efeito NH DEPTH. */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:13px;padding:16px 18px 8px;position:relative;z-index:1}
+.stat{
+  background:linear-gradient(90deg,var(--accent,var(--t3)),transparent 55%) top left/100% 2px no-repeat,var(--s2);
+  border:1px solid var(--b1);border-left:4px solid var(--accent,var(--b2));
+  border-radius:12px;padding:20px 19px;min-width:0;
+  position:relative;overflow:hidden;
+  transition:transform .15s ease,box-shadow .15s ease;
+}
+.stat:hover{transform:translateY(-2px)}
+.stat.s-t{--accent:var(--nh)} .stat.s-p{--accent:var(--t3)} .stat.s-a{--accent:var(--ana)} .stat.s-s{--accent:var(--sim)} .stat.s-n{--accent:var(--nao)}
+.stat-l{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:9px}
+.stat-n{font-size:32px;font-weight:800;line-height:1;font-family:'JetBrains Mono',monospace;letter-spacing:-1px;position:relative;z-index:1}
 
 /* Filtros */
 .filtros-wrap{padding:8px 18px 14px;display:flex;flex-direction:column;gap:12px;position:relative;z-index:1}
@@ -434,11 +445,11 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 </div>
 
 <div class="stats">
-  <div class="stat s-t"><div class="stat-n" style="color:var(--nh)" id="st-total">—</div><div class="stat-l">Total</div></div>
-  <div class="stat s-p"><div class="stat-n" style="color:var(--txt2)" id="st-pend">—</div><div class="stat-l">Pendentes</div></div>
-  <div class="stat s-a"><div class="stat-n" style="color:var(--ana)" id="st-ana">—</div><div class="stat-l">Em Análise</div></div>
-  <div class="stat s-s"><div class="stat-n" style="color:var(--sim)" id="st-sim">—</div><div class="stat-l">Participar</div></div>
-  <div class="stat s-n"><div class="stat-n" style="color:var(--nao)" id="st-nao">—</div><div class="stat-l">Recusados</div></div>
+  <div class="stat s-t"><div class="stat-l">Total</div><div class="stat-n" style="color:var(--nh)" id="st-total">—</div></div>
+  <div class="stat s-p"><div class="stat-l">Pendentes</div><div class="stat-n" style="color:var(--t2)" id="st-pend">—</div></div>
+  <div class="stat s-a"><div class="stat-l">Em Análise</div><div class="stat-n" style="color:var(--ana)" id="st-ana">—</div></div>
+  <div class="stat s-s"><div class="stat-l">Participar</div><div class="stat-n" style="color:var(--sim)" id="st-sim">—</div></div>
+  <div class="stat s-n"><div class="stat-l">Recusados</div><div class="stat-n" style="color:var(--nao)" id="st-nao">—</div></div>
 </div>
 
 <div class="filtros-wrap">
