@@ -3437,12 +3437,10 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
         </select>
       </div>
       <div class="pp-item">
-        <span class="pp-lbl">Combinar palavras</span>
-        <div class="pp-seg" id="pp-modo">
-          <button class="on" data-m="e" onclick="nhPPSetModo('e')">Todas</button>
-          <button data-m="ou" onclick="nhPPSetModo('ou')">Qualquer</button>
-          <button data-m="exato" onclick="nhPPSetModo('exato')">Frase exata</button>
-        </div>
+        <span class="pp-lbl">Refinar a lista por</span>
+        <input type="text" id="pp-refina" placeholder="ex: toalha, 500g" style="width:170px"
+               title="Opcional. Depois de trazer os preços, mostra só os itens cuja descrição contém isto."
+               onkeydown="if(event.key==='Enter')nhPPRender()" onblur="nhPPRender()">
       </div>
       <div class="pp-item">
         <span class="pp-lbl">Estado (UF)</span>
@@ -9716,129 +9714,67 @@ function nhExportarBusca(){
    O período inteiro é baixado uma vez e fica em cache na memória;
    depois disso toda busca por texto é instantânea.
    ══════════════════════════════════════════════════════════════════ */
-var PP_API='https://dadosabertos.compras.gov.br/modulo-contratacoes/2_consultarItensContratacoes_PNCP_14133';
-var PP_TIPO='M', PP_MODO='e';
-var PP_CACHE={};        /* chave "tipo|dias" -> array de itens */
-var PP_LOCAL={};        /* cnpj -> {codigoUnidade: {orgao,unidade,municipio,uf}} */
-var PP_ITENS=[];        /* o período carregado no momento */
-var PP_ACHADOS=[];      /* o que passou no filtro de texto */
+/* ══════════════════════════════════════════════════════════════════
+   PESQUISA DE PREÇO — preços realmente homologados
+   ------------------------------------------------------------------
+   Fonte: PNCP (pncp.gov.br), que é o único caminho que funciona com o
+   sistema publicado. O Compras.gov.br tem os dados num formato mais
+   cômodo, mas NÃO envia cabeçalho de CORS — testado: a resposta traz
+   "Vary: Origin" e nenhum "access-control-allow-origin", então o
+   navegador bloqueia ("Failed to fetch") em qualquer site hospedado.
+   Os proxies públicos de contorno também não servem: um passou a
+   cobrar, dois estavam fora do ar. Depender deles seria frágil.
+
+   O PNCP libera CORS, filtra por UF na origem e entrega o preço
+   homologado. O caminho é:
+     1) contratações do período/UF/modalidade
+     2) filtra pelo objeto do contrato (texto da busca)
+     3) itens de cada contrato que casou
+     4) resultado de cada item que casou -> preço homologado
+
+   Limite honesto: acha itens dentro de contratos cujo OBJETO casa com
+   a busca. Um item solto dentro de um contrato genérico pode escapar.
+   ══════════════════════════════════════════════════════════════════ */
+var PP_TIPO='M';
+var PP_CACHE={};        /* chave da busca -> resultados já apurados */
+var PP_ACHADOS=[];      /* itens com preço homologado encontrados */
+var PP_CONTRATOS=0;     /* quantos contratos o PNCP achou para o termo */
+var PP_AFROUXOU=false;  /* true = o período pedido rendeu pouco e foi ampliado */
 var _ppCarregando=false;
+var PP_MAX_CONTRATOS=70;  /* teto de contratos abertos por busca */
 
 function nhPPSetTipo(t){
   PP_TIPO=t;
   document.querySelectorAll('#pp-tipo button').forEach(function(b){
     b.classList.toggle('on',b.getAttribute('data-t')===t);});
 }
-function nhPPSetModo(m){
-  PP_MODO=m;
-  document.querySelectorAll('#pp-modo button').forEach(function(b){
-    b.classList.toggle('on',b.getAttribute('data-m')===m);});
-  if(PP_ACHADOS.length||PP_ITENS.length)nhPPAnalisar();
-}
 function nhPPPeriodoMudou(){
-  /* Trocar o período invalida o que está na tela, mas o cache do
-     período anterior fica guardado — voltar nele é instantâneo. */
-  PP_ITENS=[];PP_ACHADOS=[];
+  PP_ACHADOS=[];PP_CONTRATOS=0;
   document.getElementById('pp-saida').innerHTML='';
   nhPPChip();
 }
 function nhPPChip(){
   var c=document.getElementById('pp-chip');if(!c)return;
-  var k=PP_TIPO+'|'+document.getElementById('pp-periodo').value;
-  c.innerHTML=PP_CACHE[k]?('<b style="color:#22c55e">'+PP_CACHE[k].length.toLocaleString('pt-BR')+'</b> compras em cache'):'';
+  c.innerHTML=PP_CONTRATOS?('<b style="color:#22c55e">'+PP_CONTRATOS.toLocaleString('pt-BR')+'</b> contratos no PNCP'):'';
 }
-function _ppData(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
-
-/* ── Carga do período (uma vez, depois fica em cache) ────────────── */
-async function nhPPCarregar(dias){
-  var chave=PP_TIPO+'|'+dias;
-  if(PP_CACHE[chave])return PP_CACHE[chave];
-
-  var fim=new Date(), ini=new Date();
-  ini.setDate(ini.getDate()-parseInt(dias,10));
-  var qs='?tamanhoPagina=500&temResultado=true&materialOuServico='+PP_TIPO+
-         '&dataInclusaoPncpInicial='+_ppData(ini)+'&dataInclusaoPncpFinal='+_ppData(fim);
-
-  var prog=document.getElementById('pp-prog');
-  var fill=document.getElementById('pp-prog-fill');
-  var txt=document.getElementById('pp-prog-txt');
-  var pct=document.getElementById('pp-prog-pct');
-  prog.classList.add('on');
-  txt.textContent='Consultando o Compras.gov.br...';
-  fill.style.width='2%';pct.textContent='';
-
-  var todos=[],pagina=1,totalPaginas=1;
-  var MAX_PAGINAS=180;   /* teto de segurança: 90 mil registros */
-  do{
-    var r=await fetch(PP_API+qs+'&pagina='+pagina);
-    if(!r.ok){
-      if(pagina===1)throw new Error('O Compras.gov.br respondeu '+r.status);
-      break;  /* já temos parte dos dados — melhor seguir com eles */
-    }
-    var j=await r.json();
-    var lote=j.resultado||[];
-    todos=todos.concat(lote);
-    if(pagina===1){
-      totalPaginas=Math.min(j.totalPaginas||1,MAX_PAGINAS);
-      if((j.totalRegistros||0)>90000)
-        txt.textContent='Período grande — carregando uma amostra de 90 mil compras...';
-    }
-    var p=Math.round(pagina/totalPaginas*100);
-    fill.style.width=Math.min(p,100)+'%';
-    pct.textContent=p+'%';
-    txt.textContent='Baixando compras homologadas — '+todos.length.toLocaleString('pt-BR')+' de '+
-      ((j.totalRegistros||todos.length).toLocaleString('pt-BR'));
-    pagina++;
-    if(!lote.length)break;
-  }while(pagina<=totalPaginas);
-
-  prog.classList.remove('on');
-  PP_CACHE[chave]=todos;
-  return todos;
+function _ppData(d){return d.getFullYear()+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2);}
+function _ppProg(txt,pct){
+  var p=document.getElementById('pp-prog');
+  p.classList.add('on');
+  document.getElementById('pp-prog-txt').textContent=txt;
+  document.getElementById('pp-prog-fill').style.width=Math.min(pct,100)+'%';
+  document.getElementById('pp-prog-pct').textContent=Math.round(pct)+'%';
 }
+function _ppFimProg(){document.getElementById('pp-prog').classList.remove('on');}
 
-/* ── Resolve órgão/município/UF (só para o que passou no filtro) ─── */
-async function nhPPResolverLocais(itens){
-  var cnpjs={};
-  itens.forEach(function(it){ if(it.orgaoEntidadeCnpj)cnpjs[it.orgaoEntidadeCnpj]=1; });
-  var faltam=Object.keys(cnpjs).filter(function(c){return !PP_LOCAL[c];});
-  if(!faltam.length)return;
-
-  var prog=document.getElementById('pp-prog');
-  var fill=document.getElementById('pp-prog-fill');
-  var txt=document.getElementById('pp-prog-txt');
-  var pct=document.getElementById('pp-prog-pct');
-  prog.classList.add('on');
-  txt.textContent='Descobrindo o órgão e o estado de cada compra...';
-
-  /* Em blocos, para não disparar centenas de chamadas de uma vez. */
-  var BLOCO=6;
-  for(var i=0;i<faltam.length;i+=BLOCO){
-    await Promise.all(faltam.slice(i,i+BLOCO).map(async function(cnpj){
-      try{
-        var r=await fetch('https://pncp.gov.br/api/pncp/v1/orgaos/'+cnpj+'/unidades');
-        var mapa={};
-        if(r.ok){
-          (await r.json()).forEach(function(u){
-            mapa[String(u.codigoUnidade)]={
-              orgao:(u.orgao&&u.orgao.razaoSocial)||'',
-              unidade:u.nomeUnidade||'',
-              municipio:(u.municipio&&u.municipio.nome)||'',
-              uf:(u.municipio&&u.municipio.uf&&u.municipio.uf.siglaUF)||''
-            };
-          });
-        }
-        PP_LOCAL[cnpj]=mapa;
-      }catch(e){ PP_LOCAL[cnpj]={}; }
-    }));
-    var p=Math.round(Math.min(i+BLOCO,faltam.length)/faltam.length*100);
-    fill.style.width=p+'%';pct.textContent=p+'%';
+/* Roda várias promessas em blocos, para não abrir 70 conexões de uma vez. */
+async function _ppEmLotes(itens,tamanho,fn,aoAndar){
+  var feitos=0;
+  for(var i=0;i<itens.length;i+=tamanho){
+    await Promise.all(itens.slice(i,i+tamanho).map(fn));
+    feitos=Math.min(i+tamanho,itens.length);
+    if(aoAndar)aoAndar(feitos);
   }
-  prog.classList.remove('on');
-}
-function nhPPLocal(it){
-  var m=PP_LOCAL[it.orgaoEntidadeCnpj];
-  return (m&&m[String(it.unidadeOrgaoCodigoUnidade)])||null;
 }
 
 /* ── Fluxo principal ────────────────────────────────────────────── */
@@ -9848,19 +9784,123 @@ async function nhPPAnalisar(){
   if(!termo){toast('Digite o que você quer orçar','err');return;}
 
   var btn=document.getElementById('pp-btn');
-  var dias=document.getElementById('pp-periodo').value;
+  var dias=parseInt(document.getElementById('pp-periodo').value,10);
+  var uf=document.getElementById('pp-uf').value;
+  var chave=[dias,uf,_ppNorm(termo)].join('|');
+
+  if(PP_CACHE[chave]){
+    PP_ACHADOS=PP_CACHE[chave].itens;PP_CONTRATOS=PP_CACHE[chave].contratos;
+    nhPPRender();nhPPChip();return;
+  }
+
   _ppCarregando=true;btn.disabled=true;btn.textContent='Analisando...';
+  PP_ACHADOS=[];PP_CONTRATOS=0;
   try{
-    PP_ITENS=await nhPPCarregar(dias);
-    PP_ACHADOS=nhPPFiltrar(PP_ITENS,termo);
-    /* Resolve o local só do que interessa — no máximo 400 linhas. */
-    await nhPPResolverLocais(PP_ACHADOS.slice(0,400));
-    nhPPRender();
-    nhPPChip();
+    /* 1) Busca textual do PNCP — acha os contratos que realmente falam
+          do que foi pedido, em vez de varrer a base às cegas. */
+    _ppProg('Procurando "'+termo+'" no PNCP...',3);
+    var achados=[],pagina=1,total=0,MAXPAG=3;   /* até 300 contratos */
+    do{
+      var u='https://pncp.gov.br/api/search/?tipos_documento=edital&tam_pagina=100'+
+            '&pagina='+pagina+'&q='+encodeURIComponent(termo)+(uf?('&ufs='+uf):'');
+      var r=await fetch(u);
+      if(!r.ok){ if(pagina===1)throw new Error('A busca do PNCP respondeu '+r.status); break; }
+      var j=await r.json();
+      if(pagina===1)total=j.total||0;
+      achados=achados.concat(j.items||[]);
+      _ppProg('Procurando "'+termo+'" no PNCP — '+achados.length+' contratos...',3+(pagina/MAXPAG)*20);
+      if(!(j.items||[]).length)break;
+      pagina++;
+    }while(pagina<=MAXPAG);
+
+    PP_CONTRATOS=total;
+
+    /* 2) Só os que já têm resultado e estão dentro do período pedido. */
+    var limite=new Date(); limite.setDate(limite.getDate()-dias);
+    var candidatos=achados.filter(function(c){
+      if(!c.tem_resultado)return false;
+      var d=c.data_publicacao_pncp?new Date(c.data_publicacao_pncp):null;
+      return !d||isNaN(d.getTime())?true:(d>=limite);
+    }).slice(0,PP_MAX_CONTRATOS);
+
+    /* Se o período apertou demais, afrouxa e avisa depois. */
+    var afrouxou=false;
+    if(candidatos.length<8){
+      var todosComResultado=achados.filter(function(c){return c.tem_resultado;});
+      if(todosComResultado.length>candidatos.length){
+        candidatos=todosComResultado.slice(0,PP_MAX_CONTRATOS);
+        afrouxou=true;
+      }
+    }
+
+    if(!candidatos.length){
+      _ppFimProg();PP_ACHADOS=[];
+      PP_CACHE[chave]={itens:[],contratos:total};
+      nhPPRender();nhPPChip();return;
+    }
+
+    /* 3) TODOS os itens de cada contrato que casou. Filtrar o item pelo
+          termo de novo seria errado: um contrato de "material de limpeza"
+          tem itens chamados "Detergente", que são exatamente o preço que
+          interessa. */
+    var itens=[];
+    await _ppEmLotes(candidatos,6,async function(c){
+      try{
+        var ri=await fetch('https://pncp.gov.br/api/pncp/v1/orgaos/'+c.orgao_cnpj+
+                           '/compras/'+c.ano+'/'+c.numero_sequencial+'/itens');
+        if(!ri.ok)return;
+        (await ri.json()).forEach(function(it){
+          if(!it.temResultado)return;
+          itens.push({
+            descricao:it.descricao||'', unidade:it.unidadeMedida||'',
+            quantidade:it.quantidade||0, estimado:parseFloat(it.valorUnitarioEstimado)||0,
+            numeroItem:it.numeroItem, beneficio:it.tipoBeneficioNome||'',
+            criterio:it.criterioJulgamentoNome||'',
+            cnpj:c.orgao_cnpj, ano:c.ano, seq:c.numero_sequencial,
+            orgao:c.orgao_nome||'', municipio:c.municipio_nome||'', uf:c.uf||'',
+            data:c.data_publicacao_pncp||'',
+            objeto:c.description||c.title||'',
+            pncp:'https://pncp.gov.br/app/editais'+(c.item_url||'')
+          });
+        });
+      }catch(e){}
+    },function(f){ _ppProg('Abrindo os contratos encontrados — '+f+' de '+candidatos.length+'...',23+(f/candidatos.length)*40); });
+
+    if(!itens.length){
+      _ppFimProg();PP_ACHADOS=[];
+      PP_CACHE[chave]={itens:[],contratos:total};
+      nhPPRender();nhPPChip();return;
+    }
+
+    /* 4) Preço homologado item a item. */
+    var alvo=itens.slice(0,400), comPreco=[];
+    await _ppEmLotes(alvo,8,async function(it){
+      try{
+        var rr=await fetch('https://pncp.gov.br/api/pncp/v1/orgaos/'+it.cnpj+
+                           '/compras/'+it.ano+'/'+it.seq+'/itens/'+it.numeroItem+'/resultados');
+        if(!rr.ok)return;
+        (await rr.json()).forEach(function(res){
+          var v=parseFloat(res.valorUnitarioHomologado)||0;
+          if(v<=0)return;
+          comPreco.push(Object.assign({},it,{
+            valor:v,
+            fornecedor:res.nomeRazaoSocialFornecedor||res.niFornecedor||'',
+            porte:res.porteFornecedorNome||'',
+            qtdHomologada:res.quantidadeHomologada||it.quantidade
+          }));
+        });
+      }catch(e){}
+    },function(f){ _ppProg('Buscando o preço homologado de cada item — '+f+' de '+alvo.length+'...',63+(f/alvo.length)*35); });
+
+    _ppFimProg();
+    PP_ACHADOS=comPreco;
+    PP_AFROUXOU=afrouxou;
+    PP_CACHE[chave]={itens:comPreco,contratos:total,afrouxou:afrouxou};
+    nhPPRender();nhPPChip();
   }catch(e){
-    document.getElementById('pp-prog').classList.remove('on');
+    _ppFimProg();
     document.getElementById('pp-saida').innerHTML=
-      '<div class="pp-vazio"><span class="ic">&#9888;</span>Não consegui consultar a base agora.<br>'+
+      '<div class="pp-vazio"><span class="ic">&#9888;</span>Não consegui consultar o PNCP agora.<br>'+
       '<span style="font-size:12px">'+esc0(e.message||String(e))+'</span></div>';
   }finally{
     _ppCarregando=false;btn.disabled=false;btn.textContent='Analisar mercado';
@@ -9886,18 +9926,6 @@ function _ppTemPalavra(alvo,palavra){
     i=alvo.indexOf(palavra,i+1);
   }
   return false;
-}
-function nhPPFiltrar(lista,termo){
-  var t=_ppNorm(termo).trim();
-  var termos=t.split(/\s+/).filter(Boolean);
-  return lista.filter(function(it){
-    var v=parseFloat(it.valorUnitarioResultado);
-    if(!v||v<=0)return false;              /* sem preço não serve de referência */
-    var alvo=_ppNorm((it.descricaoResumida||'')+' '+(it.descricaodetalhada||''));
-    if(PP_MODO==='exato')return alvo.indexOf(t)>=0;
-    if(PP_MODO==='ou')return termos.some(function(x){return _ppTemPalavra(alvo,x);});
-    return termos.every(function(x){return _ppTemPalavra(alvo,x);});
-  });
 }
 
 /* ── Estatística ────────────────────────────────────────────────── */
@@ -9946,23 +9974,33 @@ function nhPPRender(){
   var uf=document.getElementById('pp-uf').value;
   var apara=document.getElementById('pp-apara').checked;
 
+  /* A UF já vem filtrada na origem. O "refinar" é opcional e roda aqui,
+     sobre a descrição do item — útil quando o contrato traz muita coisa
+     junto e você quer só uma parte. */
   var lista=PP_ACHADOS;
-  if(uf)lista=lista.filter(function(it){var l=nhPPLocal(it);return l&&l.uf===uf;});
+  var refina=(document.getElementById('pp-refina')||{}).value||'';
+  if(refina.trim()){
+    var rt=_ppNorm(refina).split(/\s+/).filter(Boolean);
+    lista=lista.filter(function(it){
+      var alvo=_ppNorm(it.descricao||'');
+      return rt.every(function(x){return alvo.indexOf(x)>=0;});
+    });
+  }
 
-  if(!PP_ITENS.length){
+  if(!PP_CONTRATOS){
     el.innerHTML='<div class="pp-vazio"><span class="ic">&#128202;</span>Digite o que voc&ecirc; quer or&ccedil;ar e clique em <b>Analisar mercado</b>.<br>'+
-      '<span style="font-size:12px">O sistema baixa as compras j&aacute; homologadas do per&iacute;odo e mostra por quanto o item realmente saiu.</span></div>';
+      '<span style="font-size:12px">O sistema procura contratos parecidos no PNCP e mostra por quanto cada item foi realmente homologado.</span></div>';
     return;
   }
   if(!lista.length){
-    el.innerHTML='<div class="pp-vazio"><span class="ic">&#129335;</span>Nenhuma compra homologada encontrada para <b>'+esc0(termo)+'</b>'+
-      (uf?(' em <b>'+uf+'</b>'):'')+'.<br><span style="font-size:12px">Foram analisadas '+PP_ITENS.length.toLocaleString('pt-BR')+
-      ' compras do per&iacute;odo. Tente menos palavras, o modo <b>Qualquer</b>, um per&iacute;odo maior'+
+    el.innerHTML='<div class="pp-vazio"><span class="ic">&#129335;</span>Nenhum item homologado encontrado para <b>'+esc0(termo)+'</b>'+
+      (uf?(' em <b>'+uf+'</b>'):'')+'.<br><span style="font-size:12px">Foram varridos '+PP_CONTRATOS.toLocaleString('pt-BR')+
+      ' contratos do per&iacute;odo. Tente menos palavras, o modo <b>Qualquer</b>, um per&iacute;odo maior'+
       (uf?', ou tire o filtro de estado':'')+'.</span></div>';
     return;
   }
 
-  var vals=lista.map(function(it){return parseFloat(it.valorUnitarioResultado);});
+  var vals=lista.map(function(it){return it.valor;});
   var st=_ppEstat(vals,apara);
   var nosso=_ppNosso(termo);
 
@@ -9975,7 +10013,7 @@ function nhPPRender(){
     card('M&eacute;dia',fmtMoeda(st.media),apara&&st.n>=10?('sem os 10% extremos ('+st.nUsados+' de '+st.n+')'):'de todas as amostras','#3b82f6')+
     card('Mais barato',fmtMoeda(st.min),'menor valor homologado','#8b95a1')+
     card('Mais caro',fmtMoeda(st.max),'maior valor homologado','#ef4444')+
-    card('Amostras',String(st.n),'compras encontradas'+(uf?(' em '+uf):''),'#a855f7')+
+    card('Amostras',String(st.n),'itens homologados'+(uf?(' em '+uf):''),'#a855f7')+
   '</div>';
 
   if(nosso){
@@ -9987,68 +10025,74 @@ function nhPPRender(){
       '<b style="color:'+cor+'">'+Math.abs(dif).toFixed(0)+'% '+seta+'</b> do pre&ccedil;o mediano do mercado.</div>';
   }
 
+  if(PP_AFROUXOU)
+    html+='<div class="pp-nosso" style="background:linear-gradient(90deg,rgba(234,179,8,.10),transparent 70%);border-left-color:#eab308">'+
+      '&#9888; O per&iacute;odo escolhido rendeu poucas amostras, ent&atilde;o ampliei a busca para al&eacute;m dele. '+
+      'Confira a coluna <b>Data</b> &mdash; pre&ccedil;o antigo pode estar defasado.</div>';
+
   html+='<div class="pp-barra">'+
-    '<span class="pp-cont"><b>'+lista.length.toLocaleString('pt-BR')+'</b> <span>compra(s) homologada(s)'+
-      (uf?(' em '+uf):'')+' &middot; de '+PP_ITENS.length.toLocaleString('pt-BR')+' analisadas</span></span>'+
+    '<span class="pp-cont"><b>'+lista.length.toLocaleString('pt-BR')+'</b> <span>item(ns) homologado(s)'+
+      (uf?(' em '+uf):'')+' &middot; de '+PP_CONTRATOS.toLocaleString('pt-BR')+' contratos que citam o termo</span></span>'+
     '<div style="margin-left:auto"><button class="bsc-mini" onclick="nhPPExportar()">&#11015; Excel</button></div>'+
   '</div>';
 
-  var ordenada=lista.slice().sort(function(a,b){
-    return parseFloat(a.valorUnitarioResultado)-parseFloat(b.valorUnitarioResultado);});
+  var ordenada=lista.slice().sort(function(a,b){return a.valor-b.valor;});
   var mostrar=ordenada.slice(0,300);
 
   html+='<div class="pp-tab-wrap"><table class="pp-tab"><thead><tr>'+
-    '<th>Item comprado</th><th>Valor unit&aacute;rio</th><th>Qtd</th><th>Fornecedor</th><th>&Oacute;rg&atilde;o</th><th>Data</th>'+
+    '<th>Item comprado</th><th>Valor unit&aacute;rio</th><th>Estimado</th><th>Fornecedor</th><th>&Oacute;rg&atilde;o</th><th>Data</th>'+
     '</tr></thead><tbody>';
   mostrar.forEach(function(it){
-    var v=parseFloat(it.valorUnitarioResultado);
+    var v=it.valor;
     var cls=v<st.mediana*0.7?' baixo':v>st.mediana*1.5?' alto':'';
-    var loc=nhPPLocal(it);
-    var d=it.dataResultado?new Date(it.dataResultado).toLocaleDateString('pt-BR'):'—';
+    var d=it.data?new Date(it.data).toLocaleDateString('pt-BR'):'—';
+    /* Desconto obtido: quanto o homologado ficou abaixo do estimado. */
+    var desc=(it.estimado>0&&v>0)?Math.round((1-v/it.estimado)*100):null;
     html+='<tr>'+
-      '<td class="pp-desc">'+esc0(String(it.descricaoResumida||'').substring(0,200))+
-        (it.tipoBeneficioNome&&it.tipoBeneficioNome!=='Não se aplica'?'<div style="font-size:10px;color:#a855f7;margin-top:3px">'+esc0(it.tipoBeneficioNome)+'</div>':'')+'</td>'+
-      '<td class="pp-val'+cls+'">'+fmtMoeda(v)+'<div style="font-size:9.5px;color:var(--t3);font-weight:500;font-family:Outfit">'+esc0(it.unidadeMedida||'')+'</div></td>'+
-      '<td style="font-size:11.5px;color:var(--t2);white-space:nowrap">'+(it.quantidadeResultado||it.quantidade||'—')+'</td>'+
-      '<td class="pp-forn">'+esc0(String(it.nomeFornecedor||'—').substring(0,32))+'</td>'+
-      '<td class="pp-loc">'+(loc?(esc0(String(loc.orgao||loc.unidade||'').substring(0,34))+
-          (loc.uf?('<span class="pp-uf">'+loc.municipio+'/'+loc.uf+'</span>'):'')):'<span style="color:var(--t3)">—</span>')+'</td>'+
+      '<td class="pp-desc"><a href="'+it.pncp+'" target="_blank" style="color:var(--t1);text-decoration:none">'+
+        esc0(String(it.descricao||'').substring(0,200))+'</a>'+
+        (it.beneficio&&it.beneficio.indexOf('o se aplica')<0?'<div style="font-size:10px;color:#a855f7;margin-top:3px">'+esc0(it.beneficio)+'</div>':'')+'</td>'+
+      '<td class="pp-val'+cls+'">'+fmtMoeda(v)+'<div style="font-size:9.5px;color:var(--t3);font-weight:500;font-family:Outfit">'+esc0(it.unidade||'')+'</div></td>'+
+      '<td style="font-size:11.5px;color:var(--t3);white-space:nowrap">'+(it.estimado>0?fmtMoeda(it.estimado):'—')+
+        (desc!==null&&desc>0?'<div style="font-size:10px;color:#22c55e">&minus;'+desc+'%</div>':'')+'</td>'+
+      '<td class="pp-forn">'+esc0(String(it.fornecedor||'—').substring(0,30))+
+        (it.porte?'<div style="font-size:9.5px;color:var(--t3)">'+esc0(it.porte)+'</div>':'')+'</td>'+
+      '<td class="pp-loc">'+esc0(String(it.orgao||'').substring(0,32))+
+        (it.uf?('<span class="pp-uf">'+esc0(it.municipio)+'/'+esc0(it.uf)+'</span>'):'')+'</td>'+
       '<td style="font-size:11px;color:var(--t3);white-space:nowrap">'+d+'</td>'+
     '</tr>';
   });
   html+='</tbody></table></div>';
   if(ordenada.length>mostrar.length)
-    html+='<div style="font-size:11.5px;color:var(--t3);margin-top:10px;text-align:center">Mostrando as '+
-      mostrar.length+' mais baratas de '+ordenada.length.toLocaleString('pt-BR')+'. O Excel traz todas.</div>';
+    html+='<div style="font-size:11.5px;color:var(--t3);margin-top:10px;text-align:center">Mostrando os '+
+      mostrar.length+' mais baratos de '+ordenada.length.toLocaleString('pt-BR')+'. O Excel traz todos.</div>';
 
   el.innerHTML=html;
 }
 
 function nhPPExportar(){
   if(typeof XLSX==='undefined'){toast('SheetJS não carregado','err');return;}
-  var uf=document.getElementById('pp-uf').value;
   var lista=PP_ACHADOS;
-  if(uf)lista=lista.filter(function(it){var l=nhPPLocal(it);return l&&l.uf===uf;});
   if(!lista.length){toast('Nada para exportar','err');return;}
-  var cols=['Item','Valor Unitário Homologado','Valor Estimado','Unidade','Quantidade','Fornecedor','Órgão','Município','UF','Benefício','Critério de Julgamento','Data do Resultado'];
+  var cols=['Item','Valor Unitário Homologado','Valor Estimado','Desconto %','Unidade','Quantidade','Fornecedor','Porte','Órgão','Município','UF','Benefício','Critério de Julgamento','Data','Link PNCP'];
   var aoa=[cols];
-  lista.slice().sort(function(a,b){
-    return parseFloat(a.valorUnitarioResultado)-parseFloat(b.valorUnitarioResultado);
-  }).forEach(function(it){
-    var loc=nhPPLocal(it)||{};
+  lista.slice().sort(function(a,b){return a.valor-b.valor;}).forEach(function(it){
     aoa.push([
-      String(it.descricaoResumida||''),
-      parseFloat(it.valorUnitarioResultado)||0,
-      parseFloat(it.valorUnitarioEstimado)||0,
-      it.unidadeMedida||'',
-      parseFloat(it.quantidadeResultado||it.quantidade)||0,
-      it.nomeFornecedor||'',
-      loc.orgao||loc.unidade||'',
-      loc.municipio||'',
-      loc.uf||'',
-      it.tipoBeneficioNome||'',
-      it.criterioJulgamentoNome||'',
-      it.dataResultado?new Date(it.dataResultado).toLocaleDateString('pt-BR'):''
+      String(it.descricao||''),
+      it.valor||0,
+      it.estimado||0,
+      (it.estimado>0&&it.valor>0)?Math.round((1-it.valor/it.estimado)*100):'',
+      it.unidade||'',
+      parseFloat(it.qtdHomologada||it.quantidade)||0,
+      it.fornecedor||'',
+      it.porte||'',
+      it.orgao||'',
+      it.municipio||'',
+      it.uf||'',
+      it.beneficio||'',
+      it.criterio||'',
+      it.data?new Date(it.data).toLocaleDateString('pt-BR'):'',
+      it.pncp||''
     ]);
   });
   var wb=XLSX.utils.book_new(),ws=XLSX.utils.aoa_to_sheet(aoa);
