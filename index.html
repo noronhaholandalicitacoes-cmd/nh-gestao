@@ -13822,35 +13822,99 @@ async function nhAcCarregarPasta(){
   }
   p1.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh);font-size:12px"><div class="spin" style="width:15px;height:15px"></div> Lendo os arquivos da pasta...</div>';
   try{
-    var q=encodeURIComponent("'"+folderId+"' in parents and trashed=false");
-    var url='https://www.googleapis.com/drive/v3/files?q='+q+'&fields=files(id,name,mimeType,size)&pageSize=60&key='+driveKey;
-    var r=await fetch(url);
-    if(!r.ok)throw new Error('HTTP '+r.status+' — confira se a pasta está compartilhada como "Qualquer pessoa com o link"');
-    var data=await r.json();
-    var files=(data.files||[]).filter(function(f){return /^(application\/pdf|image\/(png|jpeg|jpg|webp))$/.test(f.mimeType);});
-    if(!files.length)throw new Error('nenhum PDF ou imagem encontrado na pasta');
+    /* Varre a pasta e tambem as subpastas (1 nivel). Contrato e aditivos
+       costumam ficar separados numa subpasta; antes eles simplesmente nao
+       apareciam na lista, e era ai que dava a duvida sobre a IA estar
+       lendo o documento certo. */
+    var achados=await _acListarPasta(folderId,driveKey,'',true);
+    if(!achados.length)throw new Error('a pasta esta vazia');
+
+    var SUP=/^(application\/pdf|image\/(png|jpeg|jpg|webp))$/;
+    var files=achados.filter(function(f){return SUP.test(f.mimeType);});
+    var ignorados=achados.filter(function(f){return !SUP.test(f.mimeType);});
+    if(!files.length)throw new Error('nenhum PDF ou imagem na pasta (encontrei '+ignorados.length+' arquivo(s) de outro tipo)');
+
     _acArquivos=files;
-    // Sugere o arquivo cujo nome parece ser o contrato
-    var sugerido=-1;
-    files.forEach(function(f,i){
-      if(sugerido<0&&/contrato|termo.?de.?contrato|instrumento/i.test(f.name))sugerido=i;
+    _acSelecionados=[];
+
+    /* Nada vem marcado: quem decide o que entra na analise e voce. O que
+       parece contrato ou aditivo so ganha um selo de sugestao. */
+    files.forEach(function(f){
+      f._sug=/contrato|termo.?de.?contrato|instrumento|aditivo|apostilamento/i.test(f.name);
     });
-    p1.innerHTML='<div style="font-size:11.5px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px">Selecione o contrato e seus aditivos</div>'
-      +'<div style="font-size:11px;color:var(--t3);line-height:1.55">'+files.length+' arquivo(s) na pasta'+(sugerido>=0?' · sugerimos o destacado':'')
-      +'<br>Marque <b>todos</b> os documentos que compõem o contrato — o instrumento original e cada termo aditivo. A IA lê em conjunto e avalia, por exemplo, se ainda resta prazo de prorrogação depois dos aditivos já firmados.</div>';
-    document.getElementById('ac-lista').innerHTML=files.map(function(f,i){
-      var kb=f.size?Math.round(f.size/1024):0;
-      var sug=(i===sugerido);
-      return '<label style="display:flex;align-items:center;gap:9px;cursor:pointer;padding:8px 12px;margin-bottom:5px;background:'+(sug?'var(--nha2)':'var(--s2)')+';border:1px solid '+(sug?'var(--nh)':'var(--b1)')+';border-radius:8px">'
-        +'<input type="checkbox" value="'+i+'"'+(sug?' checked':'')+' onchange="nhAcToggle('+i+',this.checked)" style="width:15px;height:15px;accent-color:var(--nh)">'
-        +'<span style="font-size:12.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+f.name+'</span>'
-        +'<span style="font-size:10.5px;color:var(--t3)">'+(kb?kb+' KB':'')+'</span></label>';
-    }).join('');
-    if(sugerido>=0){nhAcToggle(sugerido,true);}else{_acAtualizarSel();}
+    var nSug=files.filter(function(f){return f._sug;}).length;
+
+    p1.innerHTML='<div style="font-size:11.5px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Escolha os documentos que a IA vai ler</div>'
+      +'<div style="font-size:11px;color:var(--t3);line-height:1.55">'+files.length+' arquivo(s) disponivel(is) na pasta'
+      +(ignorados.length?' · '+ignorados.length+' ignorado(s) por formato':'')
+      +'<br>Marque o instrumento original e <b>cada termo aditivo</b>. A IA le em conjunto e avalia, por exemplo, se ainda resta prazo de prorrogacao depois dos aditivos ja firmados.</div>'
+      +'<div style="display:flex;gap:6px;margin-top:9px;flex-wrap:wrap">'
+        +'<button type="button" onclick="nhAcMarcar(\'todos\')" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:5px 11px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif">Marcar todos</button>'
+        +(nSug?'<button type="button" onclick="nhAcMarcar(\'sugeridos\')" style="background:var(--nha2);border:1px solid var(--nh);color:var(--nh);padding:5px 11px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif">Marcar os '+nSug+' sugerido(s)</button>':'')
+        +'<button type="button" onclick="nhAcMarcar(\'nenhum\')" style="background:var(--s2);border:1px solid var(--b1);color:var(--t3);padding:5px 11px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif">Limpar selecao</button>'
+      +'</div>';
+
+    _acRenderLista();
+
+    if(ignorados.length){
+      document.getElementById('ac-manuais').innerHTML='<div style="margin-top:8px;font-size:11px;color:var(--t3);line-height:1.5">'
+        +'Nao analisaveis (so PDF e imagem): '+ignorados.slice(0,6).map(function(f){return f.name;}).join(', ')
+        +(ignorados.length>6?' e mais '+(ignorados.length-6):'')+'</div>';
+    }
+    _acAtualizarSel();
   }catch(e){
     console.error('ac pasta',e);
-    p1.innerHTML='<div style="background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.3);color:#eab308;border-radius:8px;padding:10px 13px;font-size:12px;line-height:1.55">⚠️ Não consegui listar a pasta ('+(e.message||'erro')+'). <a href="'+link+'" target="_blank" style="color:#eab308;font-weight:700">Abrir a pasta</a> e anexar o contrato manualmente pelo botão abaixo.</div>';
+    p1.innerHTML='<div style="background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.3);color:#eab308;border-radius:8px;padding:10px 13px;font-size:12px;line-height:1.55">⚠️ Nao consegui listar a pasta ('+(e.message||'erro')+'). <a href="'+link+'" target="_blank" style="color:#eab308;font-weight:700">Abrir a pasta</a> e anexar o contrato manualmente pelo botao abaixo.</div>';
   }
+}
+
+/* Lista a pasta e, opcionalmente, as subpastas de primeiro nivel. */
+async function _acListarPasta(folderId,driveKey,prefixo,entrarEmSubpastas){
+  var q=encodeURIComponent("'"+folderId+"' in parents and trashed=false");
+  var url='https://www.googleapis.com/drive/v3/files?q='+q+'&fields=files(id,name,mimeType,size)&pageSize=100&key='+driveKey;
+  var r=await fetch(url);
+  if(!r.ok)throw new Error('HTTP '+r.status+' — confira se a pasta esta compartilhada como "Qualquer pessoa com o link"');
+  var data=await r.json();
+  var itens=data.files||[],saida=[],subs=[];
+  itens.forEach(function(f){
+    if('application/vnd.google-apps.folder'===f.mimeType){subs.push(f);return;}
+    f.pasta=prefixo;
+    saida.push(f);
+  });
+  if(entrarEmSubpastas){
+    for(var i=0;i<subs.length&&i<8;i++){
+      try{
+        var dentro=await _acListarPasta(subs[i].id,driveKey,(prefixo?prefixo+' / ':'')+subs[i].name,false);
+        saida=saida.concat(dentro);
+      }catch(_e){}
+    }
+  }
+  return saida;
+}
+
+function _acRenderLista(){
+  var box=document.getElementById('ac-lista');
+  if(!box)return;
+  box.innerHTML=_acArquivos.map(function(f,i){
+    var kb=f.size?Math.round(f.size/1024):0;
+    var on=_acSelecionados.some(function(x){return 'drive'===x.tipo&&x.file&&x.file.id===f.id;});
+    return '<label style="display:flex;align-items:center;gap:9px;cursor:pointer;padding:8px 12px;margin-bottom:5px;background:'+(on?'var(--nha2)':'var(--s2)')+';border:1px solid '+(on?'var(--nh)':'var(--b1)')+';border-radius:8px">'
+      +'<input type="checkbox" value="'+i+'"'+(on?' checked':'')+' onchange="nhAcToggle('+i+',this.checked)" style="width:15px;height:15px;accent-color:var(--nh)">'
+      +'<span style="flex:1;min-width:0">'
+        +'<span style="display:block;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+f.name+'</span>'
+        +(f.pasta?'<span style="display:block;font-size:10px;color:var(--t3);margin-top:1px">📁 '+f.pasta+'</span>':'')
+      +'</span>'
+      +(f._sug?'<span style="font-size:9.5px;font-weight:800;color:var(--nh);background:var(--nha2);border:1px solid var(--nh);padding:2px 7px;border-radius:20px;flex-shrink:0">sugerido</span>':'')
+      +'<span style="font-size:10.5px;color:var(--t3);flex-shrink:0">'+(kb?kb+' KB':'')+'</span></label>';
+  }).join('');
+}
+
+function nhAcMarcar(modo){
+  _acSelecionados=_acSelecionados.filter(function(x){return 'drive'!==x.tipo;});
+  if('todos'===modo)_acArquivos.forEach(function(f){_acSelecionados.push({tipo:'drive',file:f});});
+  if('sugeridos'===modo)_acArquivos.forEach(function(f){if(f._sug)_acSelecionados.push({tipo:'drive',file:f});});
+  _acRenderLista();
+  _acAtualizarSel();
 }
 
 function nhAcToggle(i,marcado){
@@ -13863,16 +13927,28 @@ function nhAcToggle(i,marcado){
       return !(x.tipo==='drive'&&x.file&&x.file.id===_acArquivos[i].id);
     });
   }
+  _acRenderLista();
   _acAtualizarSel();
 }
 
-/* Mostra quantos documentos entram na análise e libera o botão */
+/* Mostra NOMINALMENTE o que vai ser lido. Só a contagem não resolvia a
+   dúvida de estar analisando o documento certo. */
 function _acAtualizarSel(){
   var n=_acSelecionados.length;
   var el=document.getElementById('ac-sel-info');
   if(el){
-    el.innerHTML=n?('<b style="color:var(--nh)">'+n+' documento(s)</b> selecionado(s) para análise conjunta'
-      +(n===1?' <span style="color:var(--t3)">— se houver aditivos, marque-os também</span>':'')):'';
+    if(!n){
+      el.innerHTML='<span style="color:var(--t3)">Nenhum documento marcado — escolha acima o que a IA deve ler.</span>';
+    }else{
+      var nomes=_acSelecionados.map(function(x){
+        return 'drive'===x.tipo?((x.file&&x.file.name)||'?'):(x.name+' (do computador)');});
+      el.innerHTML='<div style="background:var(--s2);border:1px solid var(--b1);border-left:3px solid var(--nh);border-radius:8px;padding:9px 12px;line-height:1.6">'
+        +'<b style="color:var(--nh)">A IA vai ler '+n+' documento(s):</b>'
+        +'<ol style="margin:5px 0 0;padding-left:20px">'+nomes.map(function(nm){
+          return '<li style="font-size:11.5px;color:var(--t2)">'+nm+'</li>';}).join('')+'</ol>'
+        +(1===n?'<div style="color:var(--t3);font-size:11px;margin-top:4px">Se existirem termos aditivos, marque-os também — sem eles o parecer sobre prazo e valor fica incompleto.</div>':'')
+      +'</div>';
+    }
   }
   var b=document.getElementById('ac-btn-analisar');
   if(b)b.textContent=n>1?('✓ Analisar '+n+' documentos'):'✓ Analisar contrato';
