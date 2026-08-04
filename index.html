@@ -13868,7 +13868,7 @@ async function nhAcCarregarPasta(){
 /* Lista a pasta e, opcionalmente, as subpastas de primeiro nivel. */
 async function _acListarPasta(folderId,driveKey,prefixo,entrarEmSubpastas){
   var q=encodeURIComponent("'"+folderId+"' in parents and trashed=false");
-  var url='https://www.googleapis.com/drive/v3/files?q='+q+'&fields=files(id,name,mimeType,size)&pageSize=100&key='+driveKey;
+  var url='https://www.googleapis.com/drive/v3/files?q='+q+'&fields=files(id,name,mimeType,size)&pageSize=100&supportsAllDrives=true&includeItemsFromAllDrives=true&key='+driveKey;
   var r=await fetch(url);
   if(!r.ok)throw new Error('HTTP '+r.status+' — confira se a pasta esta compartilhada como "Qualquer pessoa com o link"');
   var data=await r.json();
@@ -13981,9 +13981,19 @@ function _acAtualizarSel(){
       el.innerHTML='<span style="color:var(--t3)">Nenhum documento na analise — restaure algum acima ou anexe do computador.</span>';
     }else{
       var locais=_acSelecionados.filter(function(x){return 'local'===x.tipo;}).length;
+      /* Peso total na tela: o envio para a IA tem teto de ~38 MB, e o
+         usuario precisa saber disso ANTES de clicar em analisar. */
+      var kb=0;
+      _acSelecionados.forEach(function(x){
+        if('local'===x.tipo)kb+=Math.round((x.base64||'').length*0.75/1024);
+        else if(x.file&&x.file.size)kb+=Math.round(x.file.size/1024);
+      });
+      var mb=(kb/1024).toFixed(1).replace('.',','), pesado=kb>38000;
       el.innerHTML='<b style="color:var(--nh)">'+n+' documento(s)</b> entram na analise conjunta'
+        +(kb?' <span style="color:'+(pesado?'#eab308':'var(--t3)')+'">— '+mb+' MB no total</span>':'')
         +(locais?' <span style="color:var(--t3)">('+locais+' anexado(s) do computador)</span>':'')
-        +(1===n?' <span style="color:var(--t3)">— se houver termos aditivos, eles precisam estar aqui</span>':'');
+        +(pesado?'<div style="color:#eab308;font-size:11px;margin-top:4px">Acima do limite de envio (~37 MB). Remova pelo ✕ os documentos que nao sao o contrato nem aditivos, ou analise em duas rodadas — a segunda soma a primeira.</div>':'')
+        +(1===n&&!pesado?' <span style="color:var(--t3)">— se houver termos aditivos, eles precisam estar aqui</span>':'');
     }
   }
   var b=document.getElementById('ac-btn-analisar');
@@ -14024,27 +14034,72 @@ async function nhAcAnalisar(){
   passo('Preparando os documentos...');
 
   try{
-    /* ── Reúne TODOS os documentos marcados ── */
-    var partes=[], nomes=[], dk=localStorage.getItem('nh_drive_key');
+    /* ── Reúne TODOS os documentos marcados ──
+       Antes: o primeiro arquivo que falhava derrubava a análise inteira,
+       com a mensagem genérica "falha ao baixar". Agora cada arquivo é
+       tentado duas vezes, o que falha é pulado (dizendo o porquê) e a
+       análise segue com os que deram certo. Também entrou um teto de
+       tamanho: com todos os arquivos vindo marcados por padrão, uma
+       pasta pesada estourava o limite de envio da IA. */
+    var partes=[], nomes=[], falhas=[], dk=localStorage.getItem('nh_drive_key');
+    var TETO_KB=38000, somaKB=0, cortados=[];
+
     for(var n=0;n<_acSelecionados.length;n++){
       var sel=_acSelecionados[n];
       passo('Preparando documento '+(n+1)+' de '+_acSelecionados.length+'...');
+
       if(sel.tipo==='local'){
+        var kbL=Math.round((sel.base64||'').length*0.75/1024);
+        if(somaKB+kbL>TETO_KB){cortados.push(sel.name);continue;}
         partes.push({inline_data:{mime_type:sel.mime,data:sel.base64}});
-        nomes.push(sel.name);
-      } else {
-        var f=sel.file;
-        var fr=await fetch('https://www.googleapis.com/drive/v3/files/'+f.id+'?alt=media&key='+dk);
-        if(!fr.ok)throw new Error('não consegui baixar "'+f.name+'" da pasta');
-        var blob=await fr.blob();
-        var b64=await new Promise(function(res,rej){
-          var rd=new FileReader();
-          rd.onload=function(){res(rd.result.split(',')[1]);};
-          rd.onerror=rej; rd.readAsDataURL(blob);
-        });
-        partes.push({inline_data:{mime_type:f.mimeType,data:b64}});
-        nomes.push(f.name);
+        nomes.push(sel.name); somaKB+=kbL;
+        continue;
       }
+
+      var f=sel.file;
+      var kbEst=f.size?Math.round(f.size/1024):0;
+      if(kbEst&&somaKB+kbEst>TETO_KB){cortados.push(f.name);continue;}
+
+      var okArq=false, motivo='';
+      for(var tent=0;tent<2&&!okArq;tent++){
+        try{
+          var fr=await fetch('https://www.googleapis.com/drive/v3/files/'+f.id
+                 +'?alt=media&supportsAllDrives=true&key='+dk);
+          if(!fr.ok){
+            motivo=(403===fr.status?'sem permissão de leitura (a pasta ou a subpasta não está compartilhada como "Qualquer pessoa com o link")'
+                  :404===fr.status?'arquivo não encontrado (pode ser um atalho para outro Drive)'
+                  :'HTTP '+fr.status);
+            continue;
+          }
+          var blob=await fr.blob();
+          var kbReal=Math.round(blob.size/1024);
+          if(somaKB+kbReal>TETO_KB){cortados.push(f.name);okArq=true;break;}
+          var b64=await new Promise(function(res,rej){
+            var rd=new FileReader();
+            rd.onload=function(){res(rd.result.split(',')[1]);};
+            rd.onerror=function(){rej(new Error('não deu para ler o conteúdo'));};
+            rd.readAsDataURL(blob);
+          });
+          partes.push({inline_data:{mime_type:f.mimeType,data:b64}});
+          nomes.push(f.name); somaKB+=kbReal; okArq=true;
+        }catch(eArq){ motivo=eArq.message||'erro de rede'; }
+      }
+      if(!okArq&&nomes.indexOf(f.name)===-1&&cortados.indexOf(f.name)===-1)
+        falhas.push(f.name+' — '+motivo);
+    }
+
+    if(!partes.length){
+      throw new Error('nenhum documento pôde ser lido.'
+        +(falhas.length?' Motivo: '+falhas.join('; ')+'.':'')
+        +' Se a pasta for de um Drive compartilhado, abra-a e anexe o contrato pelo botão "Anexar do computador".');
+    }
+    if(falhas.length||cortados.length){
+      var aviso=document.getElementById('ac-sel-info');
+      if(aviso)aviso.innerHTML='<div style="background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.3);color:#eab308;border-radius:8px;padding:9px 12px;font-size:11.5px;line-height:1.6">'
+        +'Analisando '+partes.length+' documento(s). '
+        +(falhas.length?'<br><b>Não consegui baixar:</b> '+falhas.join(' · '):'')
+        +(cortados.length?'<br><b>Fora por limite de tamanho ('+Math.round(TETO_KB/1000)+' MB no total):</b> '+cortados.join(', ')+'. Remova algum documento grande pelo ✕ e analise em duas rodadas.':'')
+        +'</div>';
     }
 
     /* ── Análise anterior entra como contexto: a nova SOMA, não substitui ── */
