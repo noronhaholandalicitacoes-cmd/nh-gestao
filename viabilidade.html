@@ -124,6 +124,17 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
 .card-head{padding:18px 18px 12px 22px}
 .card-top-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 .card-emp{font-size:12px;font-weight:800;padding:5px 13px;border-radius:20px;flex-shrink:0;letter-spacing:.02em}
+/* Etiqueta de prazo — a cor acompanha a urgência, na mesma escala já usada
+   pelos status dos cards. */
+.prazo-tag{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:800;
+  padding:5px 12px;border-radius:20px;flex-shrink:0;letter-spacing:.01em;white-space:nowrap}
+.prazo-tag::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.pz-hoje{background:rgba(239,68,68,.16);color:var(--nao);border:1px solid rgba(239,68,68,.4)}
+.pz-hoje::before{animation:pulse 1.2s ease-in-out infinite}
+.pz-urg{background:rgba(249,115,22,.16);color:var(--nh2);border:1px solid rgba(249,115,22,.4)}
+.pz-med{background:rgba(234,179,8,.15);color:var(--ana);border:1px solid rgba(234,179,8,.35)}
+.pz-ok{background:rgba(120,120,130,.1);color:var(--txt3);border:1px solid var(--line)}
+.pz-fim{background:rgba(120,120,130,.08);color:var(--txt3);border:1px solid var(--line);opacity:.75}
 .tag-resp{display:inline-flex;align-items:center;gap:7px;border-radius:20px;
   padding:3px 12px 3px 3px;flex-shrink:0;max-width:100%;
   background:var(--rcb);border:1px solid var(--rcl)}
@@ -998,7 +1009,7 @@ function atualizarStats(){
 
 function renderizar(){
   atualizarStats();
-  var lista=getFiltrados();
+  var lista=ordenarPorPrazo(getFiltrados());
   if(!lista.length){
     document.getElementById('main-content').innerHTML='<div class="empty"><div class="empty-ico">📭</div>Nenhum edital neste filtro</div>';
     return;
@@ -1042,6 +1053,61 @@ function renderGaugeViab(an){
   '</svg>';
 }
 
+/* ─── Prazo da sessão ───
+   A data vem do campo Data do edital (arr[1]), gravada pelo <input type=date>
+   como AAAA-MM-DD. A hora não fica em campo próprio: vem escrita no texto da
+   licitação ("... - 20.08.2026 as 09h"), então é lida de lá para desempatar
+   duas sessões no mesmo dia. Se o texto trouxer uma data e o campo Data
+   estiver vazio, o texto vale como data. */
+function dataSessao(arr){
+  var bruto=String((arr||[])[1]||'').trim();
+  var ano,mes,dia,m;
+  if((m=bruto.match(/^(\d{4})-(\d{2})-(\d{2})/))){ano=+m[1];mes=+m[2];dia=+m[3];}
+  else if((m=bruto.match(/^(\d{2})[\/.](\d{2})[\/.](\d{4})/))){dia=+m[1];mes=+m[2];ano=+m[3];}
+  if(!ano){
+    m=String((arr||[])[3]||'').match(/(\d{2})[\/.](\d{2})[\/.](\d{2,4})/);
+    if(m){dia=+m[1];mes=+m[2];ano=+m[3];if(ano<100)ano+=2000;}
+  }
+  if(!ano||!mes||!dia)return null;
+  if(mes<1||mes>12||dia<1||dia>31||ano<2000||ano>2100)return null;
+  var hh=0,mm=0;
+  var mh=String((arr||[])[3]||'').match(/(\d{1,2})\s*[:h]\s*(\d{2})?/i);
+  if(mh){hh=+mh[1];mm=mh[2]?+mh[2]:0;}
+  if(hh>23)hh=0;
+  if(mm>59)mm=0;
+  var dt=new Date(ano,mes-1,dia,hh,mm,0,0);
+  /* O JS "rola" data impossível (31/02 vira 03/03). Se o dia mudou, a data
+     estava errada na origem e não serve para ordenar prazo. */
+  if(dt.getDate()!==dia||dt.getMonth()!==mes-1)return null;
+  return isNaN(dt.getTime())?null:dt;
+}
+
+/* Dias inteiros até a sessão: 0 = hoje, negativo = já passou. */
+function diasAteSessao(arr){
+  var dt=dataSessao(arr);
+  if(!dt)return null;
+  var hoje=new Date();hoje.setHours(0,0,0,0);
+  var alvo=new Date(dt.getFullYear(),dt.getMonth(),dt.getDate());
+  return Math.round((alvo-hoje)/864e5);
+}
+
+/* Ordem da fila: quem vence primeiro fica no topo. Sessão já passada vai
+   para o fim — não dá mais para decidir participação, então ficar no topo
+   só empurraria para baixo o que ainda dá tempo de avaliar. Edital sem
+   data fica entre os dois, ordenado do mais recente para o mais antigo. */
+function ordenarPorPrazo(lista){
+  return lista.slice().sort(function(a,b){
+    var da=dataSessao(a.arr),db_=dataSessao(b.arr);
+    var ga=da?(diasAteSessao(a.arr)<0?2:0):1;
+    var gb=db_?(diasAteSessao(b.arr)<0?2:0):1;
+    if(ga!==gb)return ga-gb;
+    if(1===ga)return b._id-a._id;              /* sem data: mais novo antes */
+    if(2===ga)return db_-da;                    /* vencidos: o mais recente antes */
+    if(da-db_)return da-db_;                    /* a vencer: o mais próximo antes */
+    return b._id-a._id;
+  });
+}
+
 function renderCard(d){
   var arr=d.arr;
   var id=d.id;
@@ -1075,6 +1141,21 @@ function renderCard(d){
   var an = ANALISES_VIAB['e-'+id] || null;
   var cap = (an && an.capag) || null;
 
+  /* Prazo visível: sem ele a ordem da fila parece aleatória. */
+  var dias=diasAteSessao(arr),dtS=dataSessao(arr),tagPrazo='';
+  if(dias!==null){
+    var dd=('0'+dtS.getDate()).slice(-2)+'/'+('0'+(dtS.getMonth()+1)).slice(-2)+'/'+dtS.getFullYear();
+    var hr=(dtS.getHours()||dtS.getMinutes())?(' às '+('0'+dtS.getHours()).slice(-2)+'h'+(dtS.getMinutes()?('0'+dtS.getMinutes()).slice(-2):'')):'';
+    var cls,txt;
+    if(dias<0){cls='pz-fim';txt='Encerrado há '+Math.abs(dias)+(Math.abs(dias)===1?' dia':' dias');}
+    else if(0===dias){cls='pz-hoje';txt='Sessão HOJE'+hr;}
+    else if(1===dias){cls='pz-hoje';txt='Sessão AMANHÃ'+hr;}
+    else if(dias<=3){cls='pz-urg';txt='Faltam '+dias+' dias';}
+    else if(dias<=7){cls='pz-med';txt='Faltam '+dias+' dias';}
+    else{cls='pz-ok';txt='Faltam '+dias+' dias';}
+    tagPrazo='<span class="prazo-tag '+cls+'" title="Sessão em '+dd+hr+'">'+txt+' · '+dd+'</span>';
+  }
+
   return '<div class="card '+cardCls+'" id="card-'+id+'">'+
     '<div class="card-head">'+
       '<div class="card-eyebrow-row">'+
@@ -1083,6 +1164,7 @@ function renderCard(d){
       '</div>'+
       '<div class="card-licit">'+esc(licit)+'</div>'+
       '<div class="card-tags-row">'+
+        tagPrazo+
         '<span class="card-emp" style="background:'+empCor+'22;color:'+empCor+';border:1px solid '+empCor+'44">'+esc(emp)+'</span>'+
         tagResp+
         pill+
