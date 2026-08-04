@@ -104,11 +104,10 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
 .f-btn{background:var(--surf);border:1px solid var(--line);color:var(--txt2);padding:9px 16px;border-radius:22px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:Outfit,sans-serif;transition:all .18s;flex-shrink:0}
 .f-btn:active{transform:scale(.95)}
 .f-btn.on{background:linear-gradient(135deg,rgba(249,115,22,.18),rgba(249,115,22,.08));border-color:rgba(249,115,22,.45);color:var(--nh2)}
-.f-btn.on-sim{background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.45);color:var(--sim)}
-.f-btn.on-nao{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.45);color:var(--nao)}
-.f-btn.on-analise{background:rgba(234,179,8,.15);border-color:rgba(234,179,8,.45);color:var(--ana)}
-.f-btn.on-antunes{background:rgba(234,179,8,.15);border-color:rgba(234,179,8,.4);color:var(--ana)}
-.f-btn.on-noronha{background:rgba(59,130,246,.15);border-color:rgba(59,130,246,.4);color:var(--blue)}
+/* As variantes .on-sim/.on-nao/.on-analise saíram junto com a linha de
+   botões "Status" (hoje o filtro são os próprios cartões). As .on-antunes
+   /.on-noronha já não eram aplicadas por nenhum código. Os filtros que
+   restam aqui (Responsável e Empresa) usam só .on. */
 
 /* Cards */
 .cards{padding:4px 18px 120px;display:flex;flex-direction:column;gap:16px;position:relative;z-index:1}
@@ -551,9 +550,28 @@ function emailFalsoViab(numero) {
  *  não toca em Firebase Auth nem em tela, só decide com o que já tem
  *  em mãos. Usada tanto depois de um login quanto ao restaurar uma
  *  sessão salva pelo próprio Firebase. */
+/* Cadastros feitos antes do controle por sistema não têm o campo
+   'acessos'. Nesse caso valem os dois — era o comportamento de então,
+   e ninguém pode perder acesso por causa de um campo novo. */
 function resolverPerfilResponsavel(num, lista) {
   var r = (lista || {})[num];
   if (!r) return {ok: false, motivo: 'Seu acesso não está mais disponível. Fale com a NH.'};
+
+  if (r.ativo === false)
+    return {ok: false, motivo: 'Seu acesso está desativado. Fale com a NH.'};
+
+  var acessos = r.acessos || {viabilidade: true, portal: true};
+  if (!acessos.viabilidade)
+    return {ok: false, motivo: 'Seu acesso não inclui a Análise de Viabilidade. Fale com a NH.'};
+
+  if (r.validade) {
+    var lim = new Date(r.validade + 'T23:59:59');
+    if (!isNaN(lim.getTime()) && lim < new Date()) {
+      var p = String(r.validade).split('-');
+      return {ok: false, motivo: 'Seu acesso venceu em ' + (p.length === 3 ? (p[2]+'/'+p[1]+'/'+p[0]) : r.validade) + '. Fale com a NH para renovar.'};
+    }
+  }
+
   if (!r.todas && !(r.empresas || []).length) {
     return {ok: false, motivo: 'Seu acesso ainda não tem empresa vinculada. Fale com a NH.'};
   }
