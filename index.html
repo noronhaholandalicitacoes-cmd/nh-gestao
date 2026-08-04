@@ -4115,8 +4115,16 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
    perante o Firebase. */
 var _authSecundario = firebase.initializeApp(firebaseConfig, 'nh-secundario').auth();
 
-function emailFalsoResp(numero) {
-  return String(numero || '').replace(/\D/g, '') + '@nh.interno';
+/* O Firebase não deixa um site estático trocar a senha de uma conta que
+   já existe (isso exigiria servidor). Então, ao redefinir, criamos uma
+   conta NOVA com um e-mail versionado e guardamos a versão vigente no
+   cadastro. O login procura a versão certa, e uma senha antiga — mesmo
+   que a conta velha continue existindo — é recusada por não bater com a
+   versão vigente. Assim a redefinição funciona sem ninguém abrir o
+   console do Firebase. */
+function emailFalsoResp(numero, versao) {
+  var n = String(numero || '').replace(/\D/g, '');
+  return (versao > 1 ? (n + '.r' + versao) : n) + '@nh.interno';
 }
 
 /** Cria a primeira conta de autenticação de um responsável. Só cria —
@@ -4124,17 +4132,24 @@ function emailFalsoResp(numero) {
  *  permite isso pelo navegador, de propósito). Se a conta já existe,
  *  devolve {ok:true, jaExistia:true} em vez de erro, para o chamador
  *  decidir o que fazer sem quebrar o resto do salvamento. */
-async function criarContaAuthResp(numero, senha) {
-  var email = emailFalsoResp(numero);
-  try {
-    await _authSecundario.createUserWithEmailAndPassword(email, senha);
-    await _authSecundario.signOut();
-    return {ok: true, jaExistia: false};
-  } catch (e) {
-    try { await _authSecundario.signOut(); } catch (e2) {}
-    if ('auth/email-already-in-use' === e.code) return {ok: true, jaExistia: true};
-    return {ok: false, erro: e.message};
+/* Cria a conta de login. Se o e-mail daquela versão já estiver ocupado,
+   sobe a versão e tenta de novo — é isso que faz "Nova senha" funcionar
+   sem precisar apagar nada à mão. Devolve a versão que ficou valendo. */
+async function criarContaAuthResp(numero, senha, versaoInicial) {
+  var v = Math.max(1, parseInt(versaoInicial, 10) || 1);
+  var ultimoErro = '';
+  for (var tent = 0; tent < 8; tent++, v++) {
+    try {
+      await _authSecundario.createUserWithEmailAndPassword(emailFalsoResp(numero, v), senha);
+      try { await _authSecundario.signOut(); } catch (e2) {}
+      return {ok: true, versao: v};
+    } catch (e) {
+      try { await _authSecundario.signOut(); } catch (e2) {}
+      if ('auth/email-already-in-use' === e.code) { ultimoErro = e.message; continue; }
+      return {ok: false, erro: e.message};
+    }
   }
+  return {ok: false, erro: ultimoErro || 'não consegui criar o login'};
 }
 /* Tema claro/escuro. A chave é a mesma usada pelo sistema principal,
    então escolher aqui vale nos três aplicativos. */
@@ -4480,16 +4495,13 @@ async function acSalvar(){
       return;
     }
 
-    /* Quem manda no login é o Firebase Auth, não o hash daqui. Criar
-       conta nova funciona; TROCAR a senha de uma conta que já existe
-       não dá pelo navegador (é limitação do Firebase — exige servidor).
-       Por isso o resultado é informado com honestidade em vez de
-       mostrar uma senha que não vai funcionar. */
+    /* Quem libera o login é o Firebase Auth. Como não dá para trocar a
+       senha de uma conta existente pelo navegador, criamos uma conta
+       numa versão nova e guardamos qual é a vigente. */
     var authAviso=null;
     if(senhaGerada){
-      var ra=await criarContaAuthResp(num,senhaGerada);
-      if(ra.ok&&!ra.jaExistia){ reg.authMigrado=true; }
-      else if(ra.ok&&ra.jaExistia){ reg.authMigrado=true; authAviso='existente'; }
+      var ra=await criarContaAuthResp(num,senhaGerada,(reg.authVersao||0)+1);
+      if(ra.ok){ reg.authVersao=ra.versao; reg.authMigrado=true; }
       else { authAviso='falhou:'+(ra.erro||''); }
     }
 
@@ -4515,10 +4527,9 @@ async function acRedefinir(num){
     r.salt=nhNovoSalt();
     r.hash=await nhHashSenha(nova,r.salt);
     r.atualizadoEm=Date.now();
-    var ra=await criarContaAuthResp(num,nova);
+    var ra=await criarContaAuthResp(num,nova,(r.authVersao||0)+1);
     var authAviso=null;
-    if(ra.ok&&!ra.jaExistia){ r.authMigrado=true; }
-    else if(ra.ok&&ra.jaExistia){ r.authMigrado=true; authAviso='existente'; }
+    if(ra.ok){ r.authVersao=ra.versao; r.authMigrado=true; }
     else { authAviso='falhou:'+(ra.erro||''); }
     RESPONSAVEIS[num]=r;
     await salvarResponsaveis();
@@ -4552,23 +4563,9 @@ function acMostrarSenha(nome,num,senha,nova,authAviso){
   document.getElementById('ac-sn-wpp').textContent=nhFormataWpp(num);
   document.getElementById('ac-sn-senha').textContent=senha;
 
-  /* Quando a conta de login já existia, o Firebase não deixa trocar a
-     senha pelo navegador. Avisar é obrigatório: sem isso o admin manda
-     uma senha que não entra — foi exatamente o que aconteceu. */
   var box=document.getElementById('ac-sn-alerta');
   if(box){
-    if(authAviso==='existente'){
-      box.className='ac-erro on';
-      box.style.background='rgba(234,179,8,.1)';box.style.borderColor='rgba(234,179,8,.4)';box.style.color='#eab308';
-      box.innerHTML='<b>&#9888; Esta senha ainda N&Atilde;O vale para entrar.</b><br>'+
-        'Esta pessoa j&aacute; tinha login criado, e o Firebase n&atilde;o deixa trocar a senha de uma conta existente pelo navegador '+
-        '(exige servidor). Para valer, fa&ccedil;a assim:<br>'+
-        '<span style="display:block;margin-top:7px;line-height:1.7">'+
-        '1. Abra o <a href="https://console.firebase.google.com/project/nh-licitacoes/authentication/users" target="_blank" style="color:var(--nh);text-decoration:underline">Firebase &rarr; Authentication</a><br>'+
-        '2. Procure por <b>'+esc0(num)+'@nh.interno</b><br>'+
-        '3. No menu <b>&#8942;</b> da linha, escolha <b>Excluir usu&aacute;rio</b><br>'+
-        '4. Volte aqui e clique em <b>Nova senha</b> de novo &mdash; a&iacute; a conta &eacute; recriada e a senha passa a funcionar</span>';
-    }else if(authAviso&&authAviso.indexOf('falhou:')===0){
+    if(authAviso&&authAviso.indexOf('falhou:')===0){
       box.className='ac-erro on';
       box.innerHTML='<b>N&atilde;o consegui criar o login desta pessoa.</b><br>'+esc0(authAviso.replace('falhou:',''))+
         '<br>O cadastro foi salvo, mas ela ainda n&atilde;o consegue entrar. Tente "Nova senha" novamente.';
