@@ -3891,7 +3891,7 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
     <div class="fsec">Avaliação</div>
     <div class="fg"><label>Valor Estimado</label><input type="text" id="e-valor" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
     <div class="fg"><label>Prioridade</label><select id="e-prior"><option value="">-</option><option>ALTA</option><option>MÉDIA</option><option>BAIXA</option></select></div>
-    <div class="fg"><label>Portal <span style="font-weight:400;color:var(--t3);font-size:10px">— segue para Em Andamento</span></label><select id="e-portal"><option value="">-</option></select></div>
+    <div class="fg"><label>Portal <span style="font-weight:400;color:var(--t3);font-size:10px">— segue para Em Andamento</span></label><select id="e-portal" data-vazio="-" onchange="portalSelecionado(this)"><option value="">-</option></select></div>
     <div class="fg"><label>Responsável</label><select id="e-resp"><option value="">-</option></select></div>
     <div class="fg"><label>Participar?</label><select id="e-part"><option value="">-</option><option>SIM</option><option>NÃO</option><option>EM ANÁLISE</option></select></div>
     <div class="fg"><label>Viabilidade</label><select id="e-viab"><option value="">-</option><option>POSITIVO</option><option>NEGATIVO</option><option>PENDENTE</option></select></div>
@@ -4211,6 +4211,19 @@ async function carregarResponsaveis(){
 async function salvarResponsaveis(){
   await db.collection("config").doc("responsaveis").set({lista:RESPONSAVEIS});}
 
+
+/* O cadastro de Acessos grava a empresa pelo CNPJ (só dígitos) quando ela
+   tem CNPJ, e pelo nome quando não tem. Esta função existia sendo chamada
+   em respsDaEmpresa mas nunca foi definida no arquivo — o resultado era o
+   campo Responsável vir sempre vazio no cadastro de edital. */
+function empBateComVinculo(vinculo, empresaObj) {
+  var v = String(vinculo || '').trim();
+  if (!v || !empresaObj) return false;
+  var vDig = v.replace(/\D/g, '');
+  var cnpjEmp = String(empresaObj.cnpj || '').replace(/\D/g, '');
+  if (vDig && cnpjEmp && vDig === cnpjEmp) return true;
+  return v.toUpperCase() === String(empresaObj.nome || '').trim().toUpperCase();
+}
 
 /* Responsáveis de uma empresa. Quem tem "todas" não entra aqui — esse
    sinal serve só para ver tudo no app de viabilidade, não para receber
@@ -4679,6 +4692,16 @@ function popularRespEdital(emp,valor){
   if(void 0===emp)emp=(document.getElementById("e-empresa")||{}).value||"";
   if(void 0===valor)valor=sel.value||"";
   var lista=respsDaEmpresa(emp),nomes=lista.map(function(r){return r.nome;});
+  /* Se o cadastro de acessos ainda não tinha chegado do Firebase quando o
+     modal abriu, busca e remonta — antes ficava vazio até recarregar a
+     página inteira. */
+  if(!lista.length&&emp&&!Object.keys(RESPONSAVEIS||{}).length&&!popularRespEdital._buscando){
+    popularRespEdital._buscando=true;
+    carregarResponsaveis().then(function(){
+      popularRespEdital._buscando=false;
+      popularRespEdital(emp,valor);
+    }).catch(function(){popularRespEdital._buscando=false;});
+  }
   var html='<option value="">-</option>';
   nomes.forEach(function(n){html+='<option>'+n+'</option>';});
   if(lista.length>1)html+='<option>'+nomes.join(" & ")+'</option>';
@@ -4705,17 +4728,38 @@ function portaisLista(){
   return out;
 }
 
+/* Monta qualquer select de portal. O "+ Outro portal..." abre a caixa para
+   digitar; o nome digitado é gravado nas opções personalizadas da coluna
+   Portal (mesma lista de Em Andamento), então passa a aparecer sozinho da
+   próxima vez, aqui, no buscador e na tabela. */
+function encherSelectPortal(sel,valor,labelVazio){
+  if(!sel)return;
+  valor=String(valor||"").trim();
+  var lista=portaisLista();
+  if(valor&&lista.indexOf(valor)===-1)lista.push(valor);
+  sel.innerHTML='<option value="">'+(labelVazio||"-")+'</option>'
+    +lista.map(function(p){return '<option>'+esc0(p)+'</option>';}).join("")
+    +'<option value="__outro__">+ Outro portal...</option>';
+  sel.value=valor;
+  sel.setAttribute("data-portal-ant",valor);
+}
+
+async function portalSelecionado(sel){
+  if(!sel)return;
+  if("__outro__"!==sel.value){sel.setAttribute("data-portal-ant",sel.value);return;}
+  var anterior=sel.getAttribute("data-portal-ant")||"";
+  var nome=(window.prompt("Nome do portal:")||"").trim();
+  if(!nome){encherSelectPortal(sel,anterior,sel.getAttribute("data-vazio"));return;}
+  try{await adicionarOpcaoCustom("andamento",9,nome);}
+  catch(e){toast&&toast("Não deu para salvar o portal na lista: "+e.message,"err");}
+  encherSelectPortal(sel,nome,sel.getAttribute("data-vazio"));
+  toast&&toast('Portal "'+nome+'" adicionado à lista',"ok");
+}
+
 function popularPortalEdital(valor){
   var sel=document.getElementById("e-portal");if(!sel)return;
   if(void 0===valor)valor=sel.value||"";
-  valor=String(valor||"").trim();
-  var lista=portaisLista();
-  /* Portal antigo fora da lista vira opção extra, senão o select viria
-     vazio e o valor seria apagado no próximo salvamento. */
-  if(valor&&lista.indexOf(valor)===-1)lista.push(valor);
-  sel.innerHTML='<option value="">-</option>'+lista.map(function(p){
-    return '<option>'+p+'</option>';}).join("");
-  sel.value=valor;
+  encherSelectPortal(sel,valor,"-");
 }
 
 /* Chamado ao abrir o modal em branco (Novo Edital): sem isso o select de
@@ -10175,12 +10219,9 @@ function _bscPreencherSelects(){
     var alvo=null;
     if(null!==_bscCapturaIdx)alvo=BSC_LISTA[_bscCapturaIdx];
     else if(_bscCapturaLote&&1===_bscCapturaLote.length)alvo=_bscCapturaLote[0];
-    var sug=alvo?_bscPortalSugerido(alvo):'';
-    var lista=portaisLista();
-    if(sug&&lista.indexOf(sug)===-1)lista.push(sug);
-    sp.innerHTML='<option value="">— definir depois —</option>'+lista.map(function(p){
-      return '<option>'+esc0(p)+'</option>';}).join('');
-    sp.value=sug;
+    sp.setAttribute('data-vazio','— definir depois —');
+    sp.onchange=function(){portalSelecionado(sp);};
+    encherSelectPortal(sp,alvo?_bscPortalSugerido(alvo):'','— definir depois —');
   }
 }
 function nhFecharCaptura(){document.getElementById('mo-bsc-captura').style.display='none';}
