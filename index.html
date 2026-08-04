@@ -2853,6 +2853,7 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
           <button class="cfg-aba" id="cfg-ab-acessos" onclick="cfgAba('acessos')">Acessos</button>
           <button class="cfg-aba" id="cfg-ab-portal" onclick="cfgAba('portal')">Portal de Contratos</button>
           <button class="cfg-aba" id="cfg-ab-viab" onclick="cfgAba('viab')">Viabilidade</button>
+          <button class="cfg-aba" id="cfg-ab-portais" onclick="cfgAba('portais')">Portais</button>
           <button class="cfg-aba" id="cfg-ab-cadastros" onclick="cfgAba('cadastros')">Cadastros</button>
         </div>
 
@@ -3183,6 +3184,19 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
             <div id="capag-import-status" style="margin-top:10px;font-size:12px"></div>
             <div style="font-size:11px;color:var(--t3);margin-top:8px">A planilha do Tesouro é atualizada 2 a 4 vezes por ano (não em ciclo anual fixo) — vale reimportar a cada ~3 meses para manter as notas em dia.</div>
           </div>
+        </div>
+
+        <div class="cfg-painel" id="cfg-p-portais">
+  <div class="pc-card">
+    <div class="pc-tit">Portais<span class="cnt" id="pt-cnt"></span></div>
+    <div class="pc-desc">Esta lista alimenta o campo <b>Portal</b> do cadastro de Editais Capturados, da captura do Buscador e da coluna Portal em Em Andamento.</div>
+    <div style="display:flex;gap:8px;margin:12px 0 14px">
+      <input type="text" id="pt-novo" placeholder="Nome do portal (ex: Licitar Digital)" onkeydown="if(event.key==='Enter')ptAdicionar()" style="flex:1;background:var(--s1);border:1px solid var(--b1);color:var(--t1);border-radius:8px;padding:10px 12px;font-size:13px;font-family:Outfit,sans-serif">
+      <button class="btn btn-nh" onclick="ptAdicionar()">+ Incluir</button>
+    </div>
+    <div id="pt-lista" style="display:flex;flex-direction:column;gap:7px"></div>
+    <div class="pc-desc" style="margin-top:12px">Ao renomear um portal, os processos que já usavam o nome antigo são atualizados junto, em Editais e em Em Andamento. Um portal em uso não pode ser excluído — renomeie ou troque o portal desses processos antes.</div>
+  </div>
         </div>
 
         <div class="cfg-painel" id="cfg-p-cadastros">
@@ -4718,14 +4732,12 @@ var PORTAIS_BASE=["Compras Gov","BLL","LICITANET","CONLICITACAO","BNC","Publinex
   "PE-Integrado","Compras Públicas","Apoio Cotações","Licitar Digital",
   "Licitações-e","Enviada por E-mail"];
 
+/* A lista viva é a de Configurações › Portais. PORTAIS_BASE só serve de
+   ponto de partida na primeira vez, antes de alguém editar a lista. */
 function portaisLista(){
-  var out=PORTAIS_BASE.slice();
-  try{
-    (getOptsCustom("andamento",9)||[]).forEach(function(o){
-      o=String(o||"").trim();
-      if(o&&out.indexOf(o)===-1)out.push(o);});
-  }catch(e){}
-  return out;
+  var l=CUSTOM_OPTS['andamento_9'];
+  if(l&&l.length)return l.slice();
+  return PORTAIS_BASE.slice();
 }
 
 /* Monta qualquer select de portal. O "+ Outro portal..." abre a caixa para
@@ -6605,13 +6617,116 @@ var _cfgAba='empresas';
 
 function cfgAba(nome){
   _cfgAba=nome;
-  ['empresas','acessos','portal','viab','cadastros'].forEach(function(n){
+  ['empresas','acessos','portal','viab','portais','cadastros'].forEach(function(n){
     var b=document.getElementById('cfg-ab-'+n),p=document.getElementById('cfg-p-'+n);
     if(b)b.classList.toggle('on',n===nome);
     if(p)p.classList.toggle('on',n===nome);});
   if('acessos'===nome)acCarregar();
   if('empresas'===nome)renderListaEmpresas();
+  if('portais'===nome)ptRender();
   if('cadastros'===nome)carregarCadastros();}
+
+/* ══════════════════════════════════════════════════════════════════
+   PORTAIS — lista única usada por Editais, Buscador e Em Andamento
+   ------------------------------------------------------------------
+   Fica em CUSTOM_OPTS["andamento_9"], que já era o lugar das opções
+   personalizadas da coluna Portal. Na primeira abertura a lista base
+   embutida no código é copiada para lá, e a partir daí tudo é editável:
+   o que estiver aqui é o que aparece nos selects.
+   ══════════════════════════════════════════════════════════════════ */
+function ptLista(){
+  var l=CUSTOM_OPTS['andamento_9'];
+  if(!l||!l.length){
+    /* Primeira vez: parte da lista base + o que já estiver em uso. */
+    l=PORTAIS_BASE.slice();
+    ptEmUso().forEach(function(p){if(-1===l.indexOf(p))l.push(p);});
+  }
+  return l.slice();
+}
+
+/* Portais realmente usados hoje — para não deixar excluir um que esteja
+   preso a processo e sumir com a informação do card. */
+function ptEmUso(){
+  var uso={};
+  (ALL.editais||[]).forEach(function(r){var v=String(r[15]||'').trim();if(v)uso[v]=(uso[v]||0)+1;});
+  ['andamento','finalizados'].forEach(function(k){
+    (ALL[k]||[]).forEach(function(r){var v=String(r[9]||'').trim();if(v)uso[v]=(uso[v]||0)+1;});});
+  ptEmUso.mapa=uso;
+  return Object.keys(uso);
+}
+
+async function ptSalvar(lista){
+  CUSTOM_OPTS['andamento_9']=lista;
+  await salvarOptsCustom();
+  ptRender();
+  try{if(document.getElementById('e-portal'))popularPortalEdital();}catch(_e){}
+}
+
+function ptRender(){
+  var box=document.getElementById('pt-lista');if(!box)return;
+  var lista=ptLista();ptEmUso();
+  var uso=ptEmUso.mapa||{};
+  document.getElementById('pt-cnt').textContent=lista.length;
+  if(!lista.length){box.innerHTML='<div style="font-size:12px;color:var(--t3)">Nenhum portal cadastrado ainda.</div>';return;}
+  box.innerHTML=lista.slice().sort(function(a,b){return a.localeCompare(b,'pt-BR');}).map(function(p){
+    var n=uso[p]||0;
+    return '<div style="display:flex;align-items:center;gap:8px;background:var(--s1);border:1px solid var(--b1);border-radius:9px;padding:9px 12px">'
+      +'<span style="flex:1;font-size:13px;font-weight:600;color:var(--t1)">'+esc0(p)+'</span>'
+      +(n?'<span style="font-size:10.5px;color:var(--t3);background:var(--s3);padding:2px 8px;border-radius:20px">'+n+' processo'+(n>1?'s':'')+'</span>':'')
+      +'<button class="btn btn-ghost" style="padding:5px 10px;font-size:11px" onclick="ptRenomear(\''+esc0(p).replace(/'/g,"\\'")+'\')">Alterar</button>'
+      +'<button class="btn btn-ghost" style="padding:5px 10px;font-size:11px;color:var(--r1)" onclick="ptExcluir(\''+esc0(p).replace(/'/g,"\\'")+'\')">Excluir</button>'
+      +'</div>';}).join('');
+}
+
+async function ptAdicionar(){
+  var inp=document.getElementById('pt-novo');
+  var nome=String(inp.value||'').trim();
+  if(!nome){toast('Digite o nome do portal','err');return;}
+  var lista=ptLista();
+  if(lista.some(function(p){return p.toUpperCase()===nome.toUpperCase();})){
+    toast('Esse portal já está na lista','err');return;}
+  lista.push(nome);
+  await ptSalvar(lista);
+  inp.value='';
+  toast('Portal "'+nome+'" incluído','ok');
+}
+
+async function ptRenomear(antigo){
+  var novo=(window.prompt('Novo nome do portal:',antigo)||'').trim();
+  if(!novo||novo===antigo)return;
+  var lista=ptLista();
+  if(lista.some(function(p){return p.toUpperCase()===novo.toUpperCase()&&p!==antigo;})){
+    toast('Já existe um portal com esse nome','err');return;}
+  var i=lista.indexOf(antigo);
+  if(-1===i)return;
+  lista[i]=novo;
+  /* Arrasta junto os processos que já apontavam para o nome antigo. */
+  var alterados=0;
+  try{
+    var pend=[];
+    (ALL.editais||[]).forEach(function(r){
+      if(String(r[15]||'').trim()===antigo){r[15]=novo;pend.push({col:'editais',row:r});}});
+    ['andamento','finalizados'].forEach(function(k){
+      (ALL[k]||[]).forEach(function(r){
+        if(String(r[9]||'').trim()===antigo){r[9]=novo;pend.push({col:k,row:r});}});});
+    for(var j=0;j<pend.length;j++){
+      await fbSave(FB_COLS[pend[j].col],parseInt(pend[j].row[0]),pend[j].row,pend[j].row._fbId||null);
+      alterados++;
+    }
+  }catch(e){toast('Portal renomeado, mas houve erro ao atualizar processos: '+e.message,'err');}
+  await ptSalvar(lista);
+  try{renderTbl(CUR);}catch(_e){}
+  toast('Renomeado para "'+novo+'"'+(alterados?' — '+alterados+' processo(s) atualizado(s)':''),'ok');
+}
+
+async function ptExcluir(nome){
+  ptEmUso();
+  var n=(ptEmUso.mapa||{})[nome]||0;
+  if(n){toast('"'+nome+'" está em '+n+' processo(s) — renomeie ou troque o portal deles antes','err');return;}
+  if(!confirm('Excluir o portal "'+nome+'" da lista?'))return;
+  await ptSalvar(ptLista().filter(function(p){return p!==nome;}));
+  toast('Portal excluído','ok');
+}
 /* ══════════════════════════════════════════════════════════════════
    CADASTROS — captação pública de novas empresas
    Lê a coleção cadastros_pendentes (gravada pelo formulário público
@@ -11338,10 +11453,29 @@ function nhFecharJanela(el){
   }
   el.classList.remove('open');el.style.display='none';}
 
+/* Uma janela "tem trabalho dentro" quando algum campo dela foi preenchido.
+   Só nesse caso ela vira à prova de clique fora — janelas de consulta,
+   sem formulário, continuam fechando no fundo como antes. */
+function nhJanelaComDados(el){
+  if(!el)return false;
+  var campos=el.querySelectorAll('input,select,textarea');
+  for(var i=0;i<campos.length;i++){
+    var c=campos[i];
+    if(c.type==='hidden'||c.disabled)continue;
+    if(c.type==='checkbox'||c.type==='radio'){if(c.checked)return true;continue;}
+    if(String(c.value||'').trim())return true;
+  }
+  return false;
+}
+
 document.addEventListener('keydown',function(e){
   if('Escape'!==e.key)return;
   var j=nhJanelaAberta();
-  if(j){e.stopPropagation();nhFecharJanela(j);}});
+  if(!j)return;
+  e.stopPropagation();
+  /* Esc ainda fecha, mas confirma antes quando há algo digitado. */
+  if(nhJanelaComDados(j)&&!confirm('Fechar sem salvar? O que você preencheu será perdido.'))return;
+  nhFecharJanela(j);});
 
 document.addEventListener('mousedown',function(e){
   /* Só conta quando o clique nasce e morre no próprio fundo — assim
@@ -11352,7 +11486,14 @@ document.addEventListener('mousedown',function(e){
   if(!alvo.classList.contains('open')&&'flex'!==alvo.style.display)return;
   var solta=function(ev){
     document.removeEventListener('mouseup',solta,true);
-    if(ev.target===alvo)nhFecharJanela(alvo);};
+    if(ev.target!==alvo)return;
+    /* Cadastro em andamento não se perde por um clique fora: avisa e
+       mantém tudo como estava. Para fechar, use Cancelar ou o ✕. */
+    if(nhJanelaComDados(alvo)){
+      if('function'==typeof toast)toast('Use Cancelar ou o ✕ para fechar — assim você não perde o que preencheu','info');
+      return;
+    }
+    nhFecharJanela(alvo);};
   document.addEventListener('mouseup',solta,true);},true);
 
 
