@@ -863,11 +863,12 @@ function buildFiltrosResp(){
   TODOS.forEach(function(d){
     respsDoEdital(d.arr[9]).forEach(function(r){nomes[r.nome]=true;});});
   var lista=Object.keys(nomes).sort(function(a,b){return a.localeCompare(b,'pt-BR');});
+  var wrap=document.getElementById('filtros-resp');
+  wrap.innerHTML='';
   /* Com um responsável só, o filtro não separa nada — fica escondido. */
-  if(lista.length<2){FILTRO_RESP='todos';return;}
+  if(lista.length<2){FILTRO_RESP='todos';document.getElementById('linha-resp').style.display='none';return;}
   document.getElementById('linha-resp').style.display='';
   document.querySelector('.filtros-wrap').classList.add('tem-filtro');
-  var wrap=document.getElementById('filtros-resp');
   lista.forEach(function(nome){
     var btn=document.createElement('button');
     btn.className='f-btn';
@@ -881,10 +882,11 @@ function buildFiltrosEmpresas(){
   var emps={};
   TODOS.forEach(function(d){var e=String(d.arr[2]||'').trim();if(e)emps[e]=true;});
   var chaves=Object.keys(emps).sort();
-  if(chaves.length<2){FILTRO_EMP='todos';return;}
+  var wrap=document.getElementById('filtros-emp');
+  wrap.innerHTML='';
+  if(chaves.length<2){FILTRO_EMP='todos';document.getElementById('linha-emp').style.display='none';return;}
   document.getElementById('linha-emp').style.display='';
   document.querySelector('.filtros-wrap').classList.add('tem-filtro');
-  var wrap=document.getElementById('filtros-emp');
   chaves.forEach(function(emp){
     var btn=document.createElement('button');
     btn.className='f-btn';
