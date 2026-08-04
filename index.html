@@ -2975,6 +2975,11 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
   </div>
 
   <div id="ac-lista"></div>
+
+  <div style="margin-top:22px;padding-top:16px;border-top:1px dashed var(--b1);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+    <div style="font-size:11px;color:var(--t3);max-width:480px">Editais antigos podem ter o campo "Responsável" com o nome de mais de uma pessoa junto (ex.: "Antunes &amp; Noronha"), de antes desse controle por empresa existir.</div>
+    <button class="btn btn-ghost" onclick="acLimparResponsaveis()">&#129529; Corrigir Respons&aacute;vel dos editais antigos</button>
+  </div>
 </div>
 
 <!-- ── MODAL: criar / editar acesso ─────────────────────────── -->
@@ -4554,6 +4559,57 @@ async function acExcluir(num){
   delete RESPONSAVEIS[num];
   try{ await salvarResponsaveis(); acRender(); toast('Acesso excluído','info'); }
   catch(e){ RESPONSAVEIS[num]=backup; acRender(); toast('Erro ao excluir: '+e.message,'err'); }
+}
+
+/* Corrige o campo "Responsável" (índice 9) dos editais antigos, que
+   antes desse controle por empresa vinham com mais de um nome junto
+   (ex.: "Antunes & Noronha"). Só mexe em empresas com dono único e
+   inequívoco segundo o cadastro de Acessos — o resto fica de fora,
+   pra não arriscar trocar errado. */
+async function acLimparResponsaveis(){
+  var porEmpresa={};
+  Object.keys(RESPONSAVEIS).forEach(function(num){
+    var r=acNormaliza(RESPONSAVEIS[num]);
+    if(!r.nome||r.todas)return;
+    (r.empresas||[]).forEach(function(v){
+      var chave=_ppNorm(acNomeEmpresa(v));
+      if(!chave)return;
+      porEmpresa[chave]=porEmpresa[chave]||{};
+      porEmpresa[chave][r.nome]=true;
+    });
+  });
+
+  var alteracoes=[],ambiguas={};
+  (ALL.editais||[]).forEach(function(row){
+    var emp=String(row[2]||'').trim();
+    if(!emp||!row._fbId)return;
+    var candidatos=Object.keys(porEmpresa[_ppNorm(emp)]||{});
+    if(1!==candidatos.length){ambiguas[emp]=candidatos.length;return;}
+    var certo=candidatos[0],atual=String(row[9]||'').trim();
+    if(atual!==certo)alteracoes.push({fbId:row._fbId,empresa:emp,de:atual,para:certo,row:row});
+  });
+
+  if(!alteracoes.length){
+    toast(Object.keys(ambiguas).length?'Nada pra corrigir automaticamente — nenhuma empresa com edital tem um dono único no cadastro de Acessos.':'Nenhum edital precisa de ajuste no campo Responsável.','info');
+    return;
+  }
+
+  var exemplos=alteracoes.slice(0,4).map(function(a){return a.empresa+': "'+(a.de||'(vazio)')+'" → "'+a.para+'"';}).join('\n');
+  var avisoAmb=Object.keys(ambiguas).length?('\n\n'+Object.keys(ambiguas).length+' empresa(s) ficaram de fora por não terem dono único (ex.: '+Object.keys(ambiguas).slice(0,3).join(', ')+') — não mexo nelas.'):'';
+  if(!confirm('Vou corrigir o campo "Responsável" de '+alteracoes.length+' edital(is):\n\n'+exemplos+(alteracoes.length>4?'\n...':'')+avisoAmb+'\n\nContinuar?'))return;
+
+  var lote=db.batch(),n=0,feitos=0;
+  for(var i=0;i<alteracoes.length;i++){
+    var a=alteracoes[i],row=a.row.slice();
+    row[9]=a.para;
+    lote.update(db.collection('editais').doc(a.fbId),{_arr:row,_updatedAt:Date.now()});
+    n++;
+    if(n===400||i===alteracoes.length-1){
+      await lote.commit();feitos+=n;lote=db.batch();n=0;
+    }
+  }
+  toast('Responsável corrigido em '+feitos+' edital(is).','ok');
+  await loadPage('editais');
 }
 
 /* ── Senha gerada ───────────────────────────────────────────────── */
