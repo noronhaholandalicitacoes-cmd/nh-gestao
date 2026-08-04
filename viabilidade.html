@@ -15,7 +15,6 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
-  /* Paleta do sistema principal — os três aplicativos usam a mesma. */
   --bg:#0a0e1a; --s1:#111725; --s2:#161d2e; --s3:#1c2438;
   --b1:#252d40; --b2:#303a52;
   --nh:#f97316; --nha:rgba(249,115,22,.12);
@@ -23,10 +22,6 @@
   --t1:#f5f5f5; --t2:#a3a3a3; --t3:#8b95a1;
   --nh2:#fb923c;
 }
-/* Os apelidos moram no body, e não no :root, de propósito. O tema claro
-   troca --s1 e companhia aqui no body; se os apelidos ficassem no :root
-   seriam calculados com os valores escuros e não mudariam nunca — era
-   por isso que o fundo clareava e os cartões continuavam escuros. */
 body{
   --surf:var(--s1); --surf2:var(--s2); --line:var(--b1); --line2:var(--b2);
   --txt:var(--t1); --txt2:var(--t2); --txt3:var(--t3);
@@ -43,7 +38,6 @@ body.light-theme{
 body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;padding-bottom:env(safe-area-inset-bottom)}
 body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px 500px at 50% -10%,rgba(249,115,22,.08),transparent 70%);pointer-events:none;z-index:0}
 
-/* Header */
 .header{background:rgba(10,10,10,.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--line);padding:14px 18px;padding-top:calc(14px + env(safe-area-inset-top));position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .logo{display:flex;align-items:center;gap:11px;min-width:0}
 .logo-mark{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#000;flex-shrink:0;box-shadow:0 4px 14px rgba(249,115,22,.35)}
@@ -52,12 +46,6 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
 .logo-info .sub{font-size:11px;color:var(--txt3);font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-top:1px}
 .badge-pend{background:linear-gradient(135deg,rgba(249,115,22,.2),rgba(249,115,22,.08));color:var(--nh2);border:1px solid rgba(249,115,22,.35);padding:7px 14px;border-radius:22px;font-size:12px;font-weight:800;white-space:nowrap;flex-shrink:0}
 
-/* Stats */
-/* Mesmo cartão de indicador do Resumo Geral do sistema (.r-kpi):
-   grid no lugar da faixa rolável, borda esquerda na cor do indicador,
-   fio de brilho no topo, label miúdo em cima e número grande embaixo.
-   O brilho vai no background (e não em ::after) porque os
-   pseudo-elementos do .stat já são usados pelo efeito NH DEPTH. */
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:13px;padding:16px 18px 8px;position:relative;z-index:1}
 .stat{
   background:linear-gradient(90deg,var(--accent,var(--t3)),transparent 55%) top left/100% 2px no-repeat,var(--s2);
@@ -65,11 +53,10 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
   border-radius:12px;padding:20px 19px;min-width:0;
   position:relative;overflow:hidden;
   transition:transform .15s ease,box-shadow .15s ease;
+  cursor:pointer;-webkit-user-select:none;user-select:none;
 }
-.stat{cursor:pointer;-webkit-user-select:none;user-select:none}
 .stat:hover{transform:translateY(-2px);border-color:var(--accent,var(--b2))}
 .stat:focus-visible{outline:2px solid var(--accent,var(--nh));outline-offset:2px}
-/* Selecionado: o cartão vira o próprio botão de filtro ligado. */
 .stat.on{
   background:linear-gradient(90deg,var(--accent,var(--t3)),transparent 55%) top left/100% 3px no-repeat,var(--s3);
   border-color:var(--accent,var(--b2));
@@ -79,10 +66,6 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
 .stat-l{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:9px}
 .stat-n{font-size:32px;font-weight:800;line-height:1;font-family:'JetBrains Mono',monospace;letter-spacing:-1px;position:relative;z-index:1}
 
-/* Celular: com 5 cartões em 2 colunas sobrava um sozinho na última
-   linha. Pendentes — que é o filtro padrão e o número que mais importa
-   no dia a dia — passa a abrir sozinho na linha inteira, e os outros
-   quatro fecham certinho 2 a 2. */
 @media(max-width:620px){
   .stats{grid-template-columns:1fr 1fr;gap:10px;padding:14px 14px 8px}
   .stat{padding:15px 14px}
@@ -92,10 +75,6 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
   .stat.s-p .stat-n{font-size:38px}
 }
 
-/* Filtros */
-/* Sem padding por padrão: com a linha de Status removida, quem não é
-   admin não vê nenhum filtro aqui, e o padding deixava uma faixa vazia.
-   A classe .tem-filtro é ligada quando alguma linha aparece. */
 .filtros-wrap{padding:0 18px;display:flex;flex-direction:column;gap:12px;position:relative;z-index:1}
 .filtros-wrap.tem-filtro{padding:8px 18px 14px}
 .filtros-row{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
@@ -104,12 +83,8 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
 .f-btn{background:var(--surf);border:1px solid var(--line);color:var(--txt2);padding:9px 16px;border-radius:22px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:Outfit,sans-serif;transition:all .18s;flex-shrink:0}
 .f-btn:active{transform:scale(.95)}
 .f-btn.on{background:linear-gradient(135deg,rgba(249,115,22,.18),rgba(249,115,22,.08));border-color:rgba(249,115,22,.45);color:var(--nh2)}
-/* As variantes .on-sim/.on-nao/.on-analise saíram junto com a linha de
-   botões "Status" (hoje o filtro são os próprios cartões). As .on-antunes
-   /.on-noronha já não eram aplicadas por nenhum código. Os filtros que
-   restam aqui (Responsável e Empresa) usam só .on. */
+.f-btn .pt{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--rc);margin-right:7px;vertical-align:middle}
 
-/* Cards */
 .cards{padding:4px 18px 120px;display:flex;flex-direction:column;gap:16px;position:relative;z-index:1}
 .card{background:var(--surf);border:1px solid var(--line);border-radius:18px;overflow:hidden;transition:border .2s,transform .2s,box-shadow .2s;position:relative}
 .card::after{content:"";position:absolute;left:0;top:0;right:0;height:4px;background:linear-gradient(90deg,#3b82f6,#a855f7,var(--nh));z-index:1}
@@ -124,18 +99,9 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
 .card-head{padding:18px 18px 12px 22px}
 .card-top-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 .card-emp{font-size:12px;font-weight:800;padding:5px 13px;border-radius:20px;flex-shrink:0;letter-spacing:.02em}
-.tag-resp{display:inline-flex;align-items:center;gap:7px;border-radius:20px;
-  padding:3px 12px 3px 3px;flex-shrink:0;max-width:100%;
-  background:var(--rcb);border:1px solid var(--rcl)}
-.tag-resp .ini{width:21px;height:21px;border-radius:50%;flex-shrink:0;
-  background:var(--rcl);color:var(--rc);
-  font-size:9px;font-weight:800;letter-spacing:.02em;
-  display:flex;align-items:center;justify-content:center}
-.tag-resp .nm{font-size:11.5px;font-weight:700;color:var(--rc);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-/* Ponto de cor nos botões de filtro, para amarrar filtro e cartão. */
-.f-btn .pt{display:inline-block;width:7px;height:7px;border-radius:50%;
-  background:var(--rc);margin-right:7px;vertical-align:middle}
+.tag-resp{display:inline-flex;align-items:center;gap:7px;border-radius:20px;padding:3px 12px 3px 3px;flex-shrink:0;max-width:100%;background:var(--rcb);border:1px solid var(--rcl)}
+.tag-resp .ini{width:21px;height:21px;border-radius:50%;flex-shrink:0;background:var(--rcl);color:var(--rc);font-size:9px;font-weight:800;letter-spacing:.02em;display:flex;align-items:center;justify-content:center}
+.tag-resp .nm{font-size:11.5px;font-weight:700;color:var(--rc);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 .status-pill{display:inline-flex;align-items:center;gap:5px;padding:5px 13px;border-radius:20px;font-size:12.5px;font-weight:700;flex-shrink:0;margin-left:auto}
 .s-sim{background:rgba(34,197,94,.15);color:var(--sim)}
@@ -149,19 +115,14 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
 .card-meta{padding:0 18px 14px 22px;display:flex;flex-wrap:wrap;gap:8px}
 .meta-tag{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:6px 11px;font-size:13px;color:var(--txt2);display:inline-flex;align-items:center;gap:5px}
 .meta-tag.val{color:var(--nh2);border-color:rgba(249,115,22,.25);font-weight:700}
-.meta-tag.obj{color:var(--txt2);width:100%;line-height:1.6;white-space:normal;align-items:flex-start}
-.badge-risco{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;flex-shrink:0}
-.badge-risco.r-sim,.badge-risco.r-baixo{background:rgba(34,197,94,.15);color:var(--g1)}
-.badge-risco.r-nao,.badge-risco.r-alto{background:rgba(239,68,68,.15);color:var(--r1)}
-.badge-risco.r-analise,.badge-risco.r-medio{background:rgba(234,179,8,.15);color:var(--y1)}
-.badge-risco.r-sem{background:rgba(120,120,130,.1);color:var(--txt3)}
-.badge-capag{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;background:rgba(59,130,246,.15);color:var(--b_);flex-shrink:0}
+
 .empty{text-align:center;padding:60px 20px;color:var(--txt3)}
 .empty-ico{font-size:48px;margin-bottom:12px}
 #toast{display:none;position:fixed;bottom:20px;left:20px;right:20px;background:var(--s1);border:1px solid var(--line);border-radius:12px;padding:16px;font-weight:600;z-index:1000;text-align:center;animation:slide-up .3s ease}
 #toast.ok{background:rgba(34,197,94,.15);color:var(--g1);border-color:rgba(34,197,94,.3)}
 #toast.err{background:rgba(239,68,68,.15);color:var(--r1);border-color:rgba(239,68,68,.3)}
 @keyframes slide-up{from{transform:translateY(100px);opacity:0}to{transform:translateY(0);opacity:1}}
+
 .card-footer{padding:12px 18px;border-top:1px solid var(--line);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .card-footer button{padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--surf2);color:var(--txt2);font-weight:600;cursor:pointer;transition:all .18s;font-size:12px}
 .card-footer button:hover{background:var(--s3);color:var(--txt)}
@@ -184,10 +145,10 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
       <div class="sub">Análise de participação</div>
     </div>
   </div>
-  <div class="badge-pend" id="badge-pend">6 p/ avaliar</div>
+  <div class="badge-pend" id="badge-pend">0 p/ avaliar</div>
 </div>
 
-<div id="ac-login" style="display:none;position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999">
+<div id="ac-login" style="position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999">
   <div style="background:var(--s1);border:1px solid var(--b1);border-radius:20px;padding:32px;max-width:360px;width:90%">
     <div style="font-size:20px;font-weight:800;color:var(--txt);margin-bottom:6px">Entrar em Viabilidade</div>
     <div style="font-size:12px;color:var(--txt3);margin-bottom:20px">WhatsApp + Senha</div>
@@ -232,29 +193,70 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"></script>
 
 <script>
+/* ═══════════════════════════════════════════════════════════════════════
+   CONFIGURAÇÃO FIREBASE — COPIE SUAS CREDENCIAIS AQUI
+   
+   Obtenha em: Firebase Console > Project Settings > Web App Config
+   ═══════════════════════════════════════════════════════════════════════ */
+
 const firebaseConfig={
-  apiKey:"AIzaSyA50ZHGhqBXLd...",
-  authDomain:"nh-licitacoes.firebaseapp.com",
-  projectId:"nh-licitacoes",
-  storageBucket:"nh-licitacoes.appspot.com",
-  messagingSenderId:"...",
-  appId:"1:...:web:..."
+  apiKey:"YOUR_API_KEY_HERE",
+  authDomain:"YOUR_AUTH_DOMAIN_HERE",
+  projectId:"YOUR_PROJECT_ID_HERE",
+  storageBucket:"YOUR_STORAGE_BUCKET_HERE",
+  messagingSenderId:"YOUR_MESSAGING_SENDER_ID_HERE",
+  appId:"YOUR_APP_ID_HERE"
 };
+
+// Inicializar Firebase
 firebase.initializeApp(firebaseConfig);
+
+// ⚠️ AGUARDAR: Não usar auth/db antes desta linha
 const auth=firebase.auth();
 const db=firebase.firestore();
 
+console.log('✅ Firebase inicializado com sucesso');
+
+/* ═══════════════════════════════════════════════════════════════════════
+   VARIÁVEIS GLOBAIS
+   ═══════════════════════════════════════════════════════════════════════ */
+
 var TODOS=[],ANALISES_VIAB={},RESPS_CAD={},_canon=null;
 var FILTRO_STATUS='pendente',FILTRO_RESP='todos',FILTRO_EMP='todos';
-var EMP_CORES={'SOS':'#22c55e','SOS FILIAL':'#3b82f6','ONLAV':'#a855f7','ENGAGED':'#f59e0b','VISE':'#ec4899','SAUTEC':'#06b6d4'};
+var EMP_CORES={
+  'SOS':'#22c55e',
+  'SOS FILIAL':'#3b82f6',
+  'ONLAV':'#a855f7',
+  'ENGAGED':'#f59e0b',
+  'VISE':'#ec4899',
+  'SAUTEC':'#06b6d4'
+};
+var _pendentes={};
+
+/* ═══════════════════════════════════════════════════════════════════════
+   FUNÇÕES AUXILIARES
+   ═══════════════════════════════════════════════════════════════════════ */
+
+function esc(s){
+  return String(s==null?'':s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
 
 function normTxt(s){
-  return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
+  return String(s||'')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .toUpperCase()
+    .trim();
 }
 
 function tituloCaso(s){
   return String(s||'').toLowerCase().split(/\s+/).map(function(p){
-    return p?p.charAt(0).toUpperCase()+p.slice(1):p;}).join(' ');
+    return p?p.charAt(0).toUpperCase()+p.slice(1):p;
+  }).join(' ');
 }
 
 function iniciais(nome){
@@ -264,9 +266,12 @@ function iniciais(nome){
   return (p[0].charAt(0)+p[p.length-1].charAt(0)).toUpperCase();
 }
 
-/* CORREÇÃO: Função que separa os responsáveis do campo */
+/* Separa responsáveis: "A & B" → ["A", "B"] */
 function partesResp(valor){
-  return String(valor||'').split(/\s*[&\/;+]\s*/).map(function(s){return s.trim();}).filter(Boolean);
+  return String(valor||'')
+    .split(/\s*[&\/;+]\s*/)
+    .map(function(s){return s.trim();})
+    .filter(Boolean);
 }
 
 var TONS_RESP=[205,230,255,280,305,330,175,155,265,195,290,140];
@@ -274,9 +279,40 @@ function corResp(nome){
   var s=normTxt(nome),h=0;
   for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;
   var t=TONS_RESP[h%TONS_RESP.length];
-  return {cor:'hsl('+t+',62%,64%)',
-          bg:'hsla('+t+',62%,64%,.12)',
-          leve:'hsla('+t+',62%,64%,.24)'};}
+  return {
+    cor:'hsl('+t+',62%,64%)',
+    bg:'hsla('+t+',62%,64%,.12)',
+    leve:'hsla('+t+',62%,64%,.24)'
+  };
+}
+
+function construirCanonicos(){
+  var brutos={};
+  TODOS.forEach(function(d){
+    partesResp(d.arr[9]).forEach(function(p){brutos[p]=true;});
+  });
+  var cad=[],mapa={},grupos=[];
+  Object.keys(brutos).forEach(function(b){
+    var nb=normTxt(b),i;
+    for(i=0;i<cad.length;i++){
+      var nc=normTxt(cad[i]);
+      if(nc.length<3||nb.length<3)continue;
+      if(-1!==nb.indexOf(nc)||-1!==nc.indexOf(nb)){mapa[b]=cad[i];return;}
+    }
+    for(i=0;i<grupos.length;i++){
+      var g=grupos[i];
+      if(-1!==nb.indexOf(g.norm)||-1!==g.norm.indexOf(nb)){
+        if(nb.length<g.norm.length){g.norm=nb;g.canon=tituloCaso(b);}
+        g.membros.push(b);return;
+      }
+    }
+    grupos.push({norm:nb,canon:tituloCaso(b),membros:[b]});
+  });
+  grupos.forEach(function(g){
+    g.membros.forEach(function(m){if(!mapa[m])mapa[m]=g.canon;});
+  });
+  return mapa;
+}
 
 function respsDoEdital(valor){
   var partes=partesResp(valor);
@@ -286,29 +322,11 @@ function respsDoEdital(valor){
   partes.forEach(function(p){
     var nome=_canon[p]||tituloCaso(p);
     if(ja[nome])return;
-    ja[nome]=true;saida.push({nome:nome,c:corResp(nome)});});
-  return saida;}
-
-function construirCanonicos(){
-  var brutos={};
-  TODOS.forEach(function(d){
-    partesResp(d.arr[9]).forEach(function(p){brutos[p]=true;});});
-  var cad=[],mapa={},grupos=[];
-  Object.keys(brutos).forEach(function(b){
-    var nb=normTxt(b),i;
-    for(i=0;i<cad.length;i++){
-      var nc=normTxt(cad[i]);
-      if(nc.length<3||nb.length<3)continue;
-      if(-1!==nb.indexOf(nc)||-1!==nc.indexOf(nb)){mapa[b]=cad[i];return;}}
-    for(i=0;i<grupos.length;i++){
-      var g=grupos[i];
-      if(-1!==nb.indexOf(g.norm)||-1!==g.norm.indexOf(nb)){
-        if(nb.length<g.norm.length){g.norm=nb;g.canon=tituloCaso(b);}
-        g.membros.push(b);return;}}
-    grupos.push({norm:nb,canon:tituloCaso(b),membros:[b]});});
-  grupos.forEach(function(g){
-    g.membros.forEach(function(m){if(!mapa[m])mapa[m]=g.canon;});});
-  return mapa;}
+    ja[nome]=true;
+    saida.push({nome:nome,c:corResp(nome)});
+  });
+  return saida;
+}
 
 function tagResponsavel(valor){
   var lista=respsDoEdital(valor);
@@ -316,12 +334,11 @@ function tagResponsavel(valor){
   return lista.slice(0,2).map(function(r){
     return '<span class="tag-resp" style="--rc:'+r.c.cor+';--rcb:'+r.c.bg+';--rcl:'+r.c.leve+'">'
       +'<span class="ini">'+esc(iniciais(r.nome))+'</span>'
-      +'<span class="nm">'+esc(r.nome)+'</span></span>';})
-    .join('')+(lista.length>2
-      ?'<span class="tag-resp" style="--rc:var(--txt3);--rcb:transparent;--rcl:var(--line2)"><span class="nm">+'+(lista.length-2)+'</span></span>'
-      :'');}
-
-function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+      +'<span class="nm">'+esc(r.nome)+'</span></span>';
+  }).join('')+(lista.length>2
+    ?'<span class="tag-resp" style="--rc:var(--txt3);--rcb:transparent;--rcl:var(--line2)"><span class="nm">+'+(lista.length-2)+'</span></span>'
+    :'');
+}
 
 function parseMoeda(v){
   var s=String(v||'').replace(/R\$\s*/g,'').replace(/\s/g,'').trim();
@@ -342,21 +359,17 @@ function isNao(p){var s=String(p||'').toUpperCase().trim();return s==='NÃO'||s=
 
 function toast(msg,tipo){
   var t=document.getElementById('toast');
-  t.textContent=msg; t.className='toast '+(tipo||'ok'); t.style.display='block';
+  t.textContent=msg;
+  t.className='toast '+(tipo||'ok');
+  t.style.display='block';
   setTimeout(function(){t.style.display='none';},2500);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   CORREÇÃO DO BUG: Função getFiltrados() 
-   
-   ANTES: Usava indexOf() para comparar responsáveis — se você filtrava por
-   "Arthur Antunes", apareciam TODOS os editais que contivessem "Arthur Antunes"
-   no campo, incluindo aqueles onde ele estava junto com "Arthur Noronha".
-   
-   DEPOIS: Agora separa os responsáveis usando partesResp() e compara nome
-   a nome — apenas editais onde O RESPONSÁVEL ESPECÍFICO aparece serão mostrados.
+   FILTROS — CORREÇÃO DO BUG DO RESPONSÁVEL
    ═══════════════════════════════════════════════════════════════════════ */
 
+/* ✅ CORREÇÃO: Agora separa responsáveis e compara nome a nome */
 function getFiltrados(){
   return TODOS.filter(function(d){
     var part=String(d.arr[10]||'').toUpperCase().trim();
@@ -370,10 +383,12 @@ function getFiltrados(){
     if(FILTRO_STATUS==='sim' && !isSim(part)) return false;
     if(FILTRO_STATUS==='nao' && !isNao(part)) return false;
     
-    /* CORREÇÃO: Filtro por Responsável — agora compara por nome específico */
+    /* Responsável — COMPARAÇÃO CORRIGIDA */
     if(FILTRO_RESP!=='todos'){
       var respsDo=respsDoEdital(respRaw);
-      var temResp=respsDo.some(function(r){return normTxt(r.nome)===normTxt(FILTRO_RESP);});
+      var temResp=respsDo.some(function(r){
+        return normTxt(r.nome)===normTxt(FILTRO_RESP);
+      });
       if(!temResp) return false;
     }
     
@@ -401,11 +416,16 @@ function atualizarStats(){
 function buildFiltrosResp(){
   var nomes={};
   TODOS.forEach(function(d){
-    respsDoEdital(d.arr[9]).forEach(function(r){nomes[r.nome]=true;});});
+    respsDoEdital(d.arr[9]).forEach(function(r){nomes[r.nome]=true;});
+  });
   var lista=Object.keys(nomes).sort(function(a,b){return a.localeCompare(b,'pt-BR');});
   var wrap=document.getElementById('filtros-resp');
   wrap.innerHTML='';
-  if(lista.length<2){FILTRO_RESP='todos';document.getElementById('linha-resp').style.display='none';return;}
+  if(lista.length<2){
+    FILTRO_RESP='todos';
+    document.getElementById('linha-resp').style.display='none';
+    return;
+  }
   document.getElementById('linha-resp').style.display='';
   document.querySelector('.filtros-wrap').classList.add('tem-filtro');
   lista.forEach(function(nome){
@@ -423,7 +443,11 @@ function buildFiltrosEmpresas(){
   var chaves=Object.keys(emps).sort();
   var wrap=document.getElementById('filtros-emp');
   wrap.innerHTML='';
-  if(chaves.length<2){FILTRO_EMP='todos';document.getElementById('linha-emp').style.display='none';return;}
+  if(chaves.length<2){
+    FILTRO_EMP='todos';
+    document.getElementById('linha-emp').style.display='none';
+    return;
+  }
   document.getElementById('linha-emp').style.display='';
   document.querySelector('.filtros-wrap').classList.add('tem-filtro');
   chaves.forEach(function(emp){
@@ -464,14 +488,12 @@ function renderCard(d){
   var id=d.id;
   var emp=String(arr[2]||'').trim();
   var licit=String(arr[3]||'').trim();
-  var obj=String(arr[4]||'').trim();
   var val=parseMoeda(arr[7]);
   var part=String(arr[10]||'').toUpperCase().trim();
   var just=String(arr[12]||'').trim();
 
   var empCor=EMP_CORES[emp]||'#f97316';
   var cardCls=isSim(part)?'sim':isNao(part)?'nao':isAnalise(part)?'analise':'';
-
   var tagResp=tagResponsavel(arr[9]);
 
   var pill='<span class="status-pill s-pend">— Pendente</span>';
@@ -523,8 +545,6 @@ function atualizarCard(id,valor){
   card.className='card '+(valor==='SIM'?'sim':valor==='NÃO'?'nao':'');
 }
 
-var _pendentes={};
-
 async function salvar(id){
   var d=TODOS.find(function(x){return x.id===id;});
   if(!d) return;
@@ -548,6 +568,7 @@ async function salvar(id){
     atualizarStats();
     toast('✅ Salvo com sucesso!','ok');
   }catch(e){
+    console.error('Erro ao salvar:', e);
     toast('Erro ao salvar: '+e.message,'err');
     if(btn){btn.disabled=false;btn.textContent='💾 Salvar';}
     return;
@@ -567,14 +588,9 @@ function renderizar(){
   document.getElementById('main-content').innerHTML=html;
 }
 
-function abrirApp(){
-  document.getElementById('ac-login').style.display='none';
-  document.getElementById('main-content').style.display='block';
-  carregarEditais();
-}
-
 async function carregarEditais(){
   try{
+    console.log('Carregando editais...');
     var snap=await db.collection('editais').orderBy('_id','desc').get();
     TODOS=[];
     snap.forEach(function(doc){
@@ -586,23 +602,54 @@ async function carregarEditais(){
     buildFiltrosEmpresas();
     buildFiltrosResp();
     setFiltroStatus(FILTRO_STATUS);
+    console.log('✅ Editais carregados:', TODOS.length);
   }catch(e){
+    console.error('Erro ao carregar editais:', e);
     document.getElementById('main-content').innerHTML='<div class="empty"><div class="empty-ico">⚠️</div>Erro ao carregar: '+esc(e.message)+'</div>';
+    document.getElementById('main-content').style.display='block';
+    document.getElementById('ac-login').style.display='none';
   }
+}
+
+function abrirApp(){
+  console.log('Abrindo aplicativo...');
+  document.getElementById('ac-login').style.display='none';
+  document.getElementById('main-content').style.display='block';
+  carregarEditais();
 }
 
 function entrar(){
   var wpp=document.getElementById('lg-wpp').value;
   var senha=document.getElementById('lg-senha').value;
-  if(!wpp||!senha){toast('Preencha o WhatsApp e a senha','err');return;}
+  if(!wpp||!senha){
+    toast('Preencha o WhatsApp e a senha','err');
+    return;
+  }
   abrirApp();
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   INICIALIZAÇÃO — Aguarda Firebase + Autenticação
+   ═══════════════════════════════════════════════════════════════════════ */
+
 document.addEventListener('DOMContentLoaded',function(){
+  console.log('DOM carregado');
+  
   document.querySelectorAll('#filtros-status .stat').forEach(function(c){
     c.addEventListener('click',function(){setFiltroStatus(c.getAttribute('data-f'));});
   });
-  abrirApp();
+
+  /* Verificar autenticação — se estiver logado, abrir app direto */
+  auth.onAuthStateChanged(function(user){
+    console.log('Auth State Changed:', user ? user.email : 'Não autenticado');
+    if(user){
+      abrirApp();
+    } else {
+      console.log('Usuário não autenticado — mostrando login');
+      document.getElementById('ac-login').style.display='flex';
+      document.getElementById('main-content').style.display='none';
+    }
+  });
 });
 </script>
 
