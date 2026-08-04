@@ -1316,6 +1316,24 @@ function resolverPerfilPortal(num, lista, cnpjParaNome) {
   var r = (lista || {})[num];
   if (!r) return {ok: false, motivo: 'Seu acesso não está mais disponível. Fale com a NH.'};
 
+  /* Cadastros feitos antes do controle por sistema não têm 'acessos'.
+     Nesse caso valem os dois — ninguém pode perder acesso por causa de
+     um campo que passou a existir depois. */
+  if (r.ativo === false)
+    return {ok: false, motivo: 'Seu acesso está desativado. Fale com a NH.'};
+
+  var acessos = r.acessos || {viabilidade: true, portal: true};
+  if (!acessos.portal)
+    return {ok: false, motivo: 'Seu acesso não inclui o Portal de Contratos. Fale com a NH.'};
+
+  if (r.validade) {
+    var lim = new Date(r.validade + 'T23:59:59');
+    if (!isNaN(lim.getTime()) && lim < new Date()) {
+      var p = String(r.validade).split('-');
+      return {ok: false, motivo: 'Seu acesso venceu em ' + (p.length === 3 ? (p[2]+'/'+p[1]+'/'+p[0]) : r.validade) + '. Fale com a NH para renovar.'};
+    }
+  }
+
   var nomes;
   if (r.todas) {
     nomes = Object.keys(cnpjParaNome || {}).map(function(c) { return cnpjParaNome[c]; })
@@ -1669,7 +1687,16 @@ async function mcSalvar(){
 }
 
 // ── EXCLUSÃO COM SENHA ───────────────────────────────────────────
-var SENHA_EXCLUSAO = 'growth@del2026'; // fallback local — substituído pelo Firebase
+/* A senha vive só no Firestore (config/senha_exclusao), guardada como
+   hash SHA-256 com salt — nunca em texto puro e nunca dentro deste
+   arquivo. Havia aqui uma senha fixa de fallback: como este HTML é
+   público, ela era legível por qualquer pessoa que abrisse o código.
+   Sem senha configurada, a exclusão fica bloqueada (falha fechando,
+   nunca liberando). Para definir: Sistema NH → Configurações. */
+async function _hashSenhaExcl(senha, salt){
+  var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(salt + '::' + senha));
+  return Array.prototype.map.call(new Uint8Array(buf), function(b){ return ('0'+b.toString(16)).slice(-2); }).join('');
+}
 
 function abrirModalExcluir(id, titulo){
   if(!isAdmin){ portalToast('Apenas o GROWTH pode excluir contratos.','err'); return; }
@@ -1696,23 +1723,29 @@ async function confirmarExclusao(){
 
   if(!senha){ erroEl.textContent='Digite a senha de exclusão.'; erroEl.style.display='block'; return; }
 
-  // Busca senha de exclusão no Firebase (config/senha_exclusao)
-  var senhaValida = false;
+  /* Confere contra o hash guardado no Firestore. Qualquer coisa fora do
+     caminho feliz (sem senha definida, erro de leitura, formato antigo)
+     BLOQUEIA a exclusão — antes disso, um erro de leitura liberava a
+     senha fixa do código. */
+  var senhaValida = false, motivo = '';
   try{
     var docSnap = await db.collection('config').doc('senha_exclusao').get();
-    if(docSnap.exists && docSnap.data().senha){
-      senhaValida = (senha === docSnap.data().senha);
+    var d = docSnap.exists ? (docSnap.data() || {}) : {};
+    if(d.hash && d.salt){
+      senhaValida = ((await _hashSenhaExcl(senha, d.salt)) === d.hash);
+      if(!senhaValida) motivo = 'Senha incorreta.';
+    } else if(d.senha){
+      /* Formato antigo (texto puro), de antes desta correção. */
+      motivo = 'A senha de exclusão precisa ser redefinida antes de excluir contratos. No Sistema NH: Configurações → Senha de Exclusão.';
     } else {
-      // Fallback: senha hardcoded (será substituída ao alterar pelo sistema NH)
-      senhaValida = (senha === SENHA_EXCLUSAO);
+      motivo = 'Nenhuma senha de exclusão foi definida ainda. Defina no Sistema NH: Configurações → Senha de Exclusão.';
     }
   } catch(e){
-    // Em caso de erro de leitura, usa fallback
-    senhaValida = (senha === SENHA_EXCLUSAO);
+    motivo = 'Não consegui verificar a senha agora (' + (e.code || e.message) + '). Por segurança, a exclusão foi bloqueada.';
   }
 
   if(!senhaValida){
-    erroEl.textContent='Senha incorreta. Altere a senha de exclusão no Sistema NH (Configurações → Senha de Exclusão).';
+    erroEl.textContent = motivo || 'Senha incorreta.';
     erroEl.style.display='block'; return;
   }
 
