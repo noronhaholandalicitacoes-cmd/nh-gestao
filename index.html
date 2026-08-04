@@ -4567,30 +4567,43 @@ async function acExcluir(num){
    inequívoco segundo o cadastro de Acessos — o resto fica de fora,
    pra não arriscar trocar errado. */
 async function acLimparResponsaveis(){
-  var porEmpresa={};
-  Object.keys(RESPONSAVEIS).forEach(function(num){
-    var r=acNormaliza(RESPONSAVEIS[num]);
-    if(!r.nome||r.todas)return;
-    (r.empresas||[]).forEach(function(v){
-      var chave=_ppNorm(acNomeEmpresa(v));
-      if(!chave)return;
-      porEmpresa[chave]=porEmpresa[chave]||{};
-      porEmpresa[chave][r.nome]=true;
-    });
+  /* Compara igual o login compara (podeVer, no viabilidade.html): por
+     CNPJ quando dá, senão por nome — em vez de resolver a empresa uma
+     única vez, o que falhava sempre que o CNPJ cadastrado no acesso não
+     batia com o EMPRESAS carregado (aí a "chave" virava o CNPJ cru e
+     nunca casava com o nome da empresa no edital). */
+  function casaEmpresa(v,nomeEmp,cnpjEmp){
+    var s=String(v||'').trim();
+    if(cnpjEmp){var sDig=s.replace(/\D/g,'');if(sDig.length>=11&&sDig===cnpjEmp)return true;}
+    return s.toUpperCase()===String(nomeEmp||'').trim().toUpperCase();
+  }
+  var cnpjPorNome={};
+  (EMPRESAS||[]).forEach(function(e){
+    if(e.nome&&e.cnpj)cnpjPorNome[String(e.nome).trim().toUpperCase()]=String(e.cnpj).replace(/\D/g,'');
   });
+  var pessoas=Object.keys(RESPONSAVEIS).map(function(num){return acNormaliza(RESPONSAVEIS[num]);})
+    .filter(function(r){return r.nome&&!r.todas;});
 
   var alteracoes=[],ambiguas={};
   (ALL.editais||[]).forEach(function(row){
     var emp=String(row[2]||'').trim();
     if(!emp||!row._fbId)return;
-    var candidatos=Object.keys(porEmpresa[_ppNorm(emp)]||{});
-    if(1!==candidatos.length){ambiguas[emp]=candidatos.length;return;}
+    var cnpjEmp=cnpjPorNome[emp.toUpperCase()]||'';
+    var nomes={};
+    pessoas.forEach(function(r){
+      if((r.empresas||[]).some(function(v){return casaEmpresa(v,emp,cnpjEmp);}))nomes[r.nome]=true;
+    });
+    var candidatos=Object.keys(nomes);
+    if(1!==candidatos.length){
+      if(!ambiguas[emp])console.warn('[ac-limpar] "'+emp+'" ficou com '+candidatos.length+' dono(s):',candidatos,'— pessoas cadastradas:',pessoas.map(function(p){return p.nome+' → '+JSON.stringify(p.empresas);}));
+      ambiguas[emp]=candidatos.length;return;
+    }
     var certo=candidatos[0],atual=String(row[9]||'').trim();
     if(atual!==certo)alteracoes.push({fbId:row._fbId,empresa:emp,de:atual,para:certo,row:row});
   });
 
   if(!alteracoes.length){
-    toast(Object.keys(ambiguas).length?'Nada pra corrigir automaticamente — nenhuma empresa com edital tem um dono único no cadastro de Acessos.':'Nenhum edital precisa de ajuste no campo Responsável.','info');
+    toast(Object.keys(ambiguas).length?'Nada pra corrigir automaticamente — nenhuma empresa com edital tem um dono único no cadastro de Acessos. Abri o console (F12) com os detalhes.':'Nenhum edital precisa de ajuste no campo Responsável.','info');
     return;
   }
 
