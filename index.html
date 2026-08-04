@@ -1311,6 +1311,152 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
   .pp-stat{padding:14px 13px}
   .pp-stat-v{font-size:18px}
 }
+/* ══════════════════════════════════════════════════════════
+   ACESSOS (.ac-*) — quem entra no Viabilidade e no Portal
+   ══════════════════════════════════════════════════════════ */
+.ac-topo{display:flex;align-items:flex-start;gap:16px;margin-bottom:18px;flex-wrap:wrap}
+.ac-topo-tit{font-size:17px;font-weight:800;color:var(--t1);letter-spacing:-.2px}
+.ac-topo-sub{font-size:12.5px;color:var(--t3);margin-top:4px;line-height:1.55;max-width:640px}
+.ac-topo .btn{margin-left:auto;white-space:nowrap}
+
+/* Contadores */
+.ac-resumo{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:11px;margin-bottom:16px}
+.ac-rc{
+  background:linear-gradient(90deg,var(--cc,var(--t3)),transparent 55%) top left/100% 2px no-repeat,var(--s2);
+  border:1px solid var(--b1);border-left:3px solid var(--cc,var(--b2));
+  border-radius:11px;padding:14px 15px;
+}
+.ac-rc-v{font-size:22px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--cc,var(--t1));line-height:1;letter-spacing:-1px}
+.ac-rc-l{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-top:7px}
+
+.ac-filtros{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.ac-filtros input{
+  flex:1;min-width:210px;background:var(--s2);border:1px solid var(--b1);color:var(--t1);
+  padding:10px 13px;border-radius:9px;font-size:13px;font-family:Outfit,sans-serif;box-sizing:border-box;
+}
+.ac-filtros input:focus{outline:none;border-color:var(--nh)}
+.ac-seg{display:flex;background:var(--s2);border:1px solid var(--b1);border-radius:9px;padding:3px}
+.ac-seg button{
+  background:none;border:none;color:var(--t3);padding:7px 14px;border-radius:7px;
+  font-size:11.5px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:all .15s;white-space:nowrap;
+}
+.ac-seg button.on{background:var(--nh);color:#fff}
+.ac-seg button:not(.on):hover{color:var(--t1)}
+
+/* Cartão de cada pessoa */
+.ac-card{
+  background:var(--s2);border:1px solid var(--b1);border-left:3px solid var(--b2);
+  border-radius:12px;padding:15px 17px;margin-bottom:10px;transition:border-color .16s,transform .14s;
+}
+.ac-card:hover{border-color:var(--b2);transform:translateY(-1px)}
+.ac-card.ativo{border-left-color:#22c55e}
+.ac-card.expirado{border-left-color:#eab308}
+.ac-card.inativo{border-left-color:#6b7280;opacity:.72}
+.ac-card-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:9px}
+.ac-nome{font-size:14.5px;font-weight:800;color:var(--t1)}
+.ac-wpp{font-size:12px;color:var(--t3);font-family:'JetBrains Mono',monospace}
+.ac-tag{
+  display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:800;
+  padding:3px 9px;border-radius:6px;letter-spacing:.03em;white-space:nowrap;
+}
+.ac-acoes{margin-left:auto;display:flex;gap:5px;flex-wrap:wrap}
+.ac-bt{
+  background:var(--s1);border:1px solid var(--b1);color:var(--t2);
+  padding:6px 11px;border-radius:7px;font-size:11px;font-weight:700;
+  cursor:pointer;font-family:Outfit,sans-serif;transition:all .15s;white-space:nowrap;
+}
+.ac-bt:hover{border-color:var(--nh);color:var(--nh)}
+.ac-bt.perigo:hover{border-color:#ef4444;color:#ef4444}
+.ac-info{display:flex;gap:8px 20px;flex-wrap:wrap;font-size:11.5px;color:var(--t3)}
+.ac-info b{color:var(--t2);font-weight:600}
+.ac-vazio{text-align:center;color:var(--t3);padding:48px 20px;font-size:13px;line-height:1.7}
+.ac-vazio .ic{font-size:38px;display:block;margin-bottom:12px;opacity:.45}
+
+/* Modal */
+.ac-modal{
+  background:var(--s1);border:1px solid var(--b1);border-radius:16px;
+  max-width:600px;width:100%;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,.5),0 32px 80px -18px rgba(0,0,0,.8);
+}
+.ac-modal-hd{padding:19px 22px;border-bottom:1px solid var(--b1);display:flex;align-items:flex-start;gap:12px}
+.ac-modal-tit{font-size:16px;font-weight:800;color:var(--t1)}
+.ac-modal-sub{font-size:12px;color:var(--t3);margin-top:3px;line-height:1.5}
+.ac-x{background:none;border:none;color:var(--t3);font-size:22px;cursor:pointer;line-height:1;padding:0 2px}
+.ac-x:hover{color:var(--t1)}
+.ac-modal-bd{padding:20px 22px;overflow-y:auto;flex:1}
+.ac-modal-ft{padding:15px 22px;border-top:1px solid var(--b1);display:flex;gap:9px}
+
+.ac-erro{
+  display:none;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.35);
+  color:#f87171;border-radius:9px;padding:11px 13px;font-size:12.5px;margin-bottom:16px;line-height:1.5;
+}
+.ac-erro.on{display:block}
+
+.ac-secao{margin-bottom:20px}
+.ac-secao:last-child{margin-bottom:0}
+.ac-secao-tit{
+  font-size:12px;font-weight:800;color:var(--t1);margin-bottom:11px;
+  display:flex;align-items:center;gap:8px;
+}
+.ac-num{
+  width:19px;height:19px;border-radius:50%;background:var(--nha);border:1px solid var(--nh);
+  color:var(--nh);font-size:10px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.ac-req{color:#ef4444;font-weight:800}
+.ac-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.ac-f label{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:700;display:block;margin-bottom:6px}
+.ac-f input{
+  width:100%;background:var(--s2);border:1px solid var(--b1);color:var(--t1);
+  padding:10px 12px;border-radius:9px;font-size:13.5px;font-family:Outfit,sans-serif;box-sizing:border-box;transition:border-color .15s;
+}
+.ac-f input:focus{outline:none;border-color:var(--nh)}
+.ac-f input.erro{border-color:#ef4444}
+.ac-dica{font-size:10.5px;color:var(--t3);margin-top:5px;line-height:1.5}
+
+/* Escolha de sistema */
+.ac-sistemas{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.ac-sis{
+  display:flex;align-items:flex-start;gap:10px;cursor:pointer;
+  background:var(--s2);border:2px solid var(--b1);border-radius:11px;padding:13px 14px;transition:all .16s;
+}
+.ac-sis:hover{border-color:var(--b2)}
+.ac-sis:has(input:checked){border-color:var(--nh);background:var(--nha)}
+.ac-sis input{width:17px;height:17px;accent-color:var(--nh);cursor:pointer;flex-shrink:0;margin-top:1px}
+.ac-sis-nome{font-size:12.5px;font-weight:700;color:var(--t1);line-height:1.3}
+.ac-sis-desc{font-size:10.5px;color:var(--t3);margin-top:4px;line-height:1.45}
+
+.ac-linha{
+  display:flex;align-items:flex-start;gap:10px;cursor:pointer;
+  background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:12px 14px;margin-bottom:10px;transition:all .16s;
+}
+.ac-linha:hover{border-color:var(--b2)}
+.ac-linha:has(input:checked){border-color:var(--nh)}
+.ac-linha input{width:16px;height:16px;accent-color:var(--nh);cursor:pointer;flex-shrink:0;margin-top:1px}
+.ac-linha-nome{font-size:12.5px;font-weight:700;color:var(--t1);line-height:1.35}
+.ac-linha-desc{font-size:10.5px;color:var(--t3);margin-top:4px;line-height:1.5}
+.ac-linha-alerta:has(input:checked){border-color:#eab308;background:rgba(234,179,8,.07)}
+
+.ac-emps{display:flex;gap:7px;flex-wrap:wrap;background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:12px 13px}
+.ac-emps.off{opacity:.4;pointer-events:none}
+.ac-emp{
+  display:inline-flex;align-items:center;gap:6px;cursor:pointer;
+  background:var(--s1);border:1px solid var(--b1);border-radius:20px;
+  padding:6px 13px;font-size:12px;font-weight:600;color:var(--t2);transition:all .15s;
+}
+.ac-emp:has(input:checked){border-color:var(--nh);color:var(--nh);background:var(--nha)}
+.ac-emp input{width:14px;height:14px;accent-color:var(--nh);cursor:pointer}
+
+/* Credenciais geradas */
+.ac-cred{background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:13px 15px}
+.ac-cred-l{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:6px}
+.ac-cred-v{font-size:15px;color:var(--t1);font-weight:700;font-family:'JetBrains Mono',monospace;word-break:break-all}
+.ac-cred-senha{color:var(--nh);font-size:19px;letter-spacing:1px}
+
+@media(max-width:640px){
+  .ac-grid,.ac-sistemas{grid-template-columns:1fr}
+  .ac-topo .btn{margin-left:0;width:100%}
+  .ac-acoes{margin-left:0;width:100%;margin-top:8px}
+}
 /* ─── Filtro de período ───────────────────────────────── */
 .r-periodo{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap}
 .r-periodo-label{font-size:11px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
@@ -2807,50 +2953,162 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
         </div>
 
         <div class="cfg-painel" id="cfg-p-acessos">
-<div class="pc-desc" style="margin:-4px 0 18px 2px">Controla quem consegue entrar no <b>Análise de Viabilidade</b> e no <b>Portal de Contratos</b> — é o mesmo login (WhatsApp e senha) valendo para os dois.</div>
-  <div class="pc-card">
-    <div class="pc-tit">Responsáveis</div>
-    <div class="pc-desc">Quem responde pelas empresas na análise de viabilidade e recebe as mensagens de WhatsApp. Um responsável pode atender várias empresas — marque todas e ele verá tudo junto, com um acesso só.</div>
-    <div id="resp-lista" style="display:flex;flex-direction:column;gap:7px"></div>
-    <div id="resp-form" style="margin-top:18px;border-top:1px solid var(--b1);padding-top:18px">
-      <div id="resp-aviso" style="display:none;font-size:12px;color:#60a5fa;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:8px;padding:9px 11px;margin-bottom:13px"></div>
-      <div class="pc-grid">
-        <div class="pc-f"><label>Nome *</label><input type="text" id="resp-nome" placeholder="Antunes"></div>
-        <div class="pc-f"><label>WhatsApp *</label><input type="text" id="resp-wpp" placeholder="(83) 99999-9999" oninput="nhMascaraWpp(this)"></div>
-        <div class="pc-f"><label>Despedida da mensagem</label><input type="text" id="resp-desp" placeholder="Arrocha!"></div>
-        <div class="pc-f"><label>Senha de acesso</label><input type="text" id="resp-senha" placeholder="vazio = gerar uma"></div>
-        <div class="pc-f pc-full"><label>Empresas que ele representa</label>
-          <div id="resp-empresas" style="display:flex;gap:6px;flex-wrap:wrap;background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:10px 12px"></div>
+
+  <div class="ac-topo">
+    <div>
+      <div class="ac-topo-tit">Acessos das pessoas</div>
+      <div class="ac-topo-sub">Quem entra no <b>An&aacute;lise de Viabilidade</b> e no <b>Portal de Contratos</b>. O login &eacute; o WhatsApp da pessoa e uma senha.</div>
+    </div>
+    <button class="btn btn-nh" onclick="acNovo()">&#43; Novo acesso</button>
+  </div>
+
+  <div class="ac-resumo" id="ac-resumo"></div>
+
+  <div class="ac-filtros">
+    <input type="text" id="ac-busca" placeholder="&#128269; Buscar por nome, WhatsApp ou empresa..." oninput="acRender()">
+    <div class="ac-seg" id="ac-filtro">
+      <button class="on" data-f="todos" onclick="acFiltro('todos')">Todos</button>
+      <button data-f="ativos" onclick="acFiltro('ativos')">Ativos</button>
+      <button data-f="expirados" onclick="acFiltro('expirados')">Expirados</button>
+      <button data-f="inativos" onclick="acFiltro('inativos')">Desativados</button>
+    </div>
+  </div>
+
+  <div id="ac-lista"></div>
+</div>
+
+<!-- ── MODAL: criar / editar acesso ─────────────────────────── -->
+<div id="mo-acesso" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(7px);z-index:3200;align-items:center;justify-content:center;padding:16px">
+  <div class="ac-modal">
+    <div class="ac-modal-hd">
+      <div style="flex:1">
+        <div class="ac-modal-tit" id="ac-md-tit">Novo acesso</div>
+        <div class="ac-modal-sub" id="ac-md-sub">Preencha os dados e escolha o que a pessoa pode abrir</div>
+      </div>
+      <button class="ac-x" onclick="acFechar()">&times;</button>
+    </div>
+
+    <div class="ac-modal-bd">
+      <div class="ac-erro" id="ac-erro"></div>
+
+      <!-- 1. quem é -->
+      <div class="ac-secao">
+        <div class="ac-secao-tit"><span class="ac-num">1</span> Quem &eacute;</div>
+        <div class="ac-grid">
+          <div class="ac-f">
+            <label>Nome <span class="ac-req">*</span></label>
+            <input type="text" id="ac-nome" placeholder="Ex: Antunes" autocomplete="off">
+          </div>
+          <div class="ac-f">
+            <label>WhatsApp <span class="ac-req">*</span></label>
+            <input type="text" id="ac-wpp" placeholder="(83) 99999-9999" oninput="nhMascaraWpp(this)" autocomplete="off">
+            <div class="ac-dica" id="ac-wpp-dica">&Eacute; com ele que a pessoa entra nos sistemas.</div>
+          </div>
         </div>
       </div>
-      <label style="display:flex;align-items:center;gap:9px;margin-top:13px;background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:10px 12px;cursor:pointer">
-        <input type="checkbox" id="resp-todas" style="width:15px;height:15px;accent-color:#a78bfa;cursor:pointer">
-        <span style="font-size:12.5px;font-weight:600;color:var(--t1)">Vê todas as empresas <span style="color:var(--t3);font-weight:400">— acesso da assessoria</span></span>
-      </label>
-      <label style="display:flex;align-items:center;gap:9px;margin-top:8px;background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:10px 12px;cursor:pointer">
-        <input type="checkbox" id="resp-mestra" style="width:15px;height:15px;accent-color:#f97316;cursor:pointer">
-        <span style="font-size:12.5px;font-weight:600;color:var(--t1)">Conta mestra do Portal de Contratos <span style="color:var(--t3);font-weight:400">— painel agregado das empresas marcadas acima, com permissão de excluir contrato. Só marque para quem faz esse papel hoje (o antigo login GROWTH).</span></span>
-      </label>
-      <div style="display:flex;gap:8px;margin-top:14px">
-        <button class="btn btn-ghost" onclick="limparFormResp()">Limpar</button>
-        <button class="btn btn-nh" id="resp-btn-salvar" style="flex:1" onclick="salvarResponsavel()">+ Adicionar responsável</button>
+
+      <!-- 2. o que acessa -->
+      <div class="ac-secao">
+        <div class="ac-secao-tit"><span class="ac-num">2</span> O que pode abrir <span class="ac-req">*</span></div>
+        <div class="ac-sistemas">
+          <label class="ac-sis" id="ac-sis-viab">
+            <input type="checkbox" id="ac-viab" onchange="acAtualizarForm()">
+            <div>
+              <div class="ac-sis-nome">&#128202; An&aacute;lise de Viabilidade</div>
+              <div class="ac-sis-desc">Marcar SIM / N&Atilde;O / EM AN&Aacute;LISE nos editais</div>
+            </div>
+          </label>
+          <label class="ac-sis" id="ac-sis-portal">
+            <input type="checkbox" id="ac-portal" onchange="acAtualizarForm()">
+            <div>
+              <div class="ac-sis-nome">&#128188; Portal de Contratos</div>
+              <div class="ac-sis-desc">Acompanhar contratos, vig&ecirc;ncias e recomposi&ccedil;&otilde;es</div>
+            </div>
+          </label>
+        </div>
       </div>
+
+      <!-- 3. empresas -->
+      <div class="ac-secao">
+        <div class="ac-secao-tit"><span class="ac-num">3</span> Quais empresas <span class="ac-req">*</span></div>
+        <label class="ac-linha" id="ac-linha-todas">
+          <input type="checkbox" id="ac-todas" onchange="acAtualizarForm()">
+          <div>
+            <div class="ac-linha-nome">Todas as empresas</div>
+            <div class="ac-linha-desc">Inclui automaticamente as que forem cadastradas depois</div>
+          </div>
+        </label>
+        <div id="ac-empresas" class="ac-emps"></div>
+      </div>
+
+      <!-- 4. permissão extra do portal -->
+      <div class="ac-secao" id="ac-secao-mestra" style="display:none">
+        <div class="ac-secao-tit"><span class="ac-num">4</span> Permiss&atilde;o no Portal</div>
+        <label class="ac-linha ac-linha-alerta">
+          <input type="checkbox" id="ac-mestra">
+          <div>
+            <div class="ac-linha-nome">&#128081; Conta mestra &mdash; v&ecirc; tudo junto e pode excluir contrato</div>
+            <div class="ac-linha-desc">Sem isto, a pessoa escolhe uma empresa por vez e n&atilde;o consegue excluir nada. Marque s&oacute; para quem administra.</div>
+          </div>
+        </label>
+      </div>
+
+      <!-- 5. validade -->
+      <div class="ac-secao">
+        <div class="ac-secao-tit"><span class="ac-num" id="ac-num-val">5</span> At&eacute; quando vale</div>
+        <div class="ac-grid">
+          <div class="ac-f">
+            <label>Validade do acesso</label>
+            <input type="date" id="ac-validade">
+            <div class="ac-dica">Em branco = <b>nunca vence</b>. Com data, a pessoa deixa de entrar depois dela.</div>
+          </div>
+          <div class="ac-f" id="ac-f-senha">
+            <label>Senha</label>
+            <input type="text" id="ac-senha" placeholder="deixe vazio para gerar uma" autocomplete="off">
+            <div class="ac-dica" id="ac-senha-dica">Ser&aacute; mostrada uma &uacute;nica vez, para voc&ecirc; enviar &agrave; pessoa.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ac-modal-ft">
+      <button class="btn btn-ghost" onclick="acFechar()">Cancelar</button>
+      <button class="btn btn-nh" id="ac-btn-salvar" style="flex:1" onclick="acSalvar()">Salvar acesso</button>
     </div>
   </div>
 </div>
 
+<!-- ── MODAL: senha gerada ──────────────────────────────────── -->
+<div id="mo-ac-senha" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(7px);z-index:3300;align-items:center;justify-content:center;padding:16px">
+  <div class="ac-modal" style="max-width:460px">
+    <div class="ac-modal-hd">
+      <div style="flex:1">
+        <div class="ac-modal-tit" id="ac-sn-tit">Acesso criado</div>
+        <div class="ac-modal-sub">Anote ou envie agora &mdash; por seguran&ccedil;a, n&atilde;o d&aacute; para ver de novo depois</div>
+      </div>
+    </div>
+    <div class="ac-modal-bd">
+      <div class="ac-cred">
+        <div class="ac-cred-l">Entra com</div>
+        <div class="ac-cred-v" id="ac-sn-wpp"></div>
+      </div>
+      <div class="ac-cred" style="margin-top:10px">
+        <div class="ac-cred-l">Senha</div>
+        <div class="ac-cred-v ac-cred-senha" id="ac-sn-senha"></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
+        <button class="btn btn-ghost" style="flex:1" onclick="acCopiar()">&#128203; Copiar</button>
+        <button class="btn btn-nh" style="flex:1" onclick="acEnviarWpp()">&#128172; Enviar no WhatsApp</button>
+      </div>
+    </div>
+    <div class="ac-modal-ft">
+      <button class="btn btn-nh" style="flex:1" onclick="document.getElementById('mo-ac-senha').style.display='none'">Pronto, j&aacute; anotei</button>
+    </div>
+  </div>
+</div>
+
+
         <div class="cfg-painel" id="cfg-p-portal">
-        <!-- Senhas de Acesso das Empresas -->
-        <div style="background:var(--s2);border:1px solid var(--b1);border-radius:14px;padding:24px;margin-bottom:20px">
-          <div style="font-size:13px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px;display:flex;align-items:center;gap:8px">
-            <span style="width:3px;height:14px;background:var(--nh);border-radius:2px;display:inline-block"></span>
-            Senhas de Acesso das Empresas
-          </div>
-          <div id="portal-acessos-lista" style="display:flex;flex-direction:column;gap:10px">
-            <div style="color:var(--t3);font-size:13px">Carregando...</div>
-          </div>
-          <button onclick="salvarAcessosPortal()" style="margin-top:16px;background:linear-gradient(90deg,#f97316,#dc2626);color:#fff;border:none;padding:9px 22px;border-radius:8px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer">💾 Salvar Senhas de Acesso</button>
-        </div>
 
         <!-- Senha de Exclusão -->
         <div style="background:var(--s2);border:1px solid rgba(239,68,68,.3);border-radius:14px;padding:24px;margin-bottom:20px">
@@ -3891,20 +4149,20 @@ function acTrocarTema(){acAplicarTema(!document.body.classList.contains('light-t
 
 function loginEmailSenha(){var e=document.getElementById("login-email").value.trim(),a=document.getElementById("login-senha").value,t=document.getElementById("btn-login"),o=document.getElementById("login-err");if(!e||!a)return o.style.display="block",void(o.textContent="Preencha email e senha");t&&(t.textContent="Entrando..."),o.style.display="none",auth.signInWithEmailAndPassword(e,a).catch(function(e){t&&(t.textContent="Entrar"),o.style.display="block","auth/wrong-password"===e.code||"auth/user-not-found"===e.code||"auth/invalid-credential"===e.code?o.textContent="Email ou senha incorretos":o.textContent="Erro: "+e.message})}function logoutGoogle(){auth.signOut()}var ADMIN_EMAIL="noronhaholandalicitacoes@gmail.com",USUARIOS=null,USER_EMAIL="",IS_ADMIN=false,USER_SOS=true,IS_READONLY=false;async function carregarUsuarios(){if(USUARIOS!==null)return USUARIOS;USUARIOS={};try{if(db){var d=await db.collection("config").doc("usuarios").get();if(d.exists){var x=d.data();if(x&&x.lista)USUARIOS=x.lista;}}}catch(e){}return USUARIOS;}async function resolveAcesso(em){if(em===ADMIN_EMAIL)return{ok:true,admin:true,sos:true,readonly:false};var U=await carregarUsuarios();var u=U[em];if(u)return{ok:true,admin:"admin"===u.role,sos:"admin"===u.role||!!u.sos,readonly:"admin"!==u.role};if(EMAILS_AUTORIZADOS.indexOf(em)>-1)return{ok:true,admin:true,sos:true,readonly:false};return{ok:false};}function aplicarPermissoes(){try{document.body.classList.toggle("ro-mode",!!IS_READONLY);document.body.classList.toggle("no-sos",!USER_SOS);if(!USER_SOS)MOSTRAR_SOS=false;var bu=document.getElementById("btn-usuarios");bu&&(bu.style.display=IS_ADMIN?"inline-block":"none");}catch(e){}}function abrirUsuarios(){if(!IS_ADMIN)return;carregarUsuarios().then(function(){var w=document.getElementById("usuarios-ovwrap");if(!w){w=document.createElement("div");w.id="usuarios-ovwrap";document.body.appendChild(w);}w.innerHTML='<div class="uov" onclick="if(event.target===this)fecharUsuarios()"><div class="upanel"><div class="uhead"><div class="uhc"><div class="uicon">👥</div><h3>Usuários do sistema</h3></div><button class="uclose" onclick="fecharUsuarios()">&times;</button></div><div class="uhint">O admin vê e edita tudo. Os demais entram em <b>somente leitura</b>. Ative <b>vê Externo</b> só para quem pode ver os processos externos.</div><div class="uform"><input id="nu-email" type="email" placeholder="email@exemplo.com" class="uinput"><select id="nu-role" class="uinput usel"><option value="leitura">Somente leitura</option><option value="admin">Admin</option></select><label class="uswlbl"><span>vê Externo</span><span class="usw"><input id="nu-sos" type="checkbox"><span></span></span></label><button class="ubtn-add" onclick="addUsuario()">Adicionar</button></div><div id="usuarios-lista"></div></div></div>';renderListaUsuarios();});}function fecharUsuarios(){var w=document.getElementById("usuarios-ovwrap");if(w)w.innerHTML="";}function renderListaUsuarios(){var box=document.getElementById("usuarios-lista");if(!box)return;var html='<div class="urow uadmin"><div class="uinfo"><b>'+ADMIN_EMAIL+'</b><div class="umeta"><span class="ubadge badm">Admin</span><span class="ubadge bext">vê Externo</span></div></div><span class="ufix">fixo</span></div>';var ks=Object.keys(USUARIOS||{});if(!ks.length)html+='<div class="uempty">Nenhum usuário adicional cadastrado.</div>';ks.forEach(function(em,n){var u=USUARIOS[em]||{};var adm="admin"===u.role;var vs=adm||u.sos;html+='<div class="urow"><div class="uinfo"><b>'+em+'</b><div class="umeta"><span class="ubadge '+(adm?"badm":"ble")+'">'+(adm?"Admin":"Leitura")+'</span>'+(vs?'<span class="ubadge bext">vê Externo</span>':'')+'</div></div><div class="uacts">'+(adm?"":'<button class="upill '+(u.sos?"on":"")+'" onclick="toggleSosIdx('+n+')">'+(u.sos?"vê Externo":"sem Externo")+'</button>')+'<button class="utrash" onclick="removerIdx('+n+')" title="Remover">🗑</button></div></div>';});box.innerHTML=html;}function salvarUsuarios(){if(typeof db!=="undefined"&&db){db.collection("config").doc("usuarios").set({lista:USUARIOS||{}},{merge:true}).catch(function(){toast&&toast("Erro ao salvar usuários","err");});}}function addUsuario(){var em=(document.getElementById("nu-email").value||"").trim().toLowerCase();if(!em||em.indexOf("@")<1){toast&&toast("E-mail inválido","err");return;}if(em===ADMIN_EMAIL){toast&&toast("Esse já é o admin","err");return;}var role=document.getElementById("nu-role").value;var sos=document.getElementById("nu-sos").checked;USUARIOS=USUARIOS||{};USUARIOS[em]={role:role,sos:!!sos};salvarUsuarios();document.getElementById("nu-email").value="";document.getElementById("nu-sos").checked=false;renderListaUsuarios();toast&&toast("Usuário adicionado","ok");}function removerIdx(n){var em=Object.keys(USUARIOS||{})[n];if(em){delete USUARIOS[em];salvarUsuarios();renderListaUsuarios();toast&&toast("Usuário removido","ok");}}function toggleSosIdx(n){var em=Object.keys(USUARIOS||{})[n];if(em){USUARIOS[em].sos=!USUARIOS[em].sos;salvarUsuarios();renderListaUsuarios();}}auth.onAuthStateChanged(function(e){var a=document.getElementById("login-screen"),t=document.getElementById("sb"),o=document.querySelector(".topbar"),i=document.querySelector(".main");if(e){resolveAcesso(e.email).then(function(acc){if(!acc.ok){auth.signOut();var n=document.getElementById("login-err");return void(n&&(n.style.display="block",n.textContent="Email não autorizado: "+e.email))}IS_ADMIN=acc.admin,USER_SOS=acc.sos,IS_READONLY=acc.readonly,USER_EMAIL=e.email;a&&(a.style.display="none"),t&&(t.style.display=""),o&&(o.style.display=""),i&&(i.style.display="");var r=document.getElementById("user-info"),s=document.getElementById("user-name");r&&(r.style.display="flex"),s&&(s.textContent=e.email),aplicarPermissoes(),window._appInited||(window._appInited=!0,initApp())})}else{a&&(a.style.display="flex"),t&&(t.style.display="none"),o&&(o.style.display="none"),i&&(i.style.display="none"),(r=document.getElementById("user-info"))&&(r.style.display="none")}});const FB_COLS={editais:"editais",andamento:"andamento",finalizados:"finalizados",ganhas:"ganhas",atestados:"atestados",financeiro:"financeiro",valores:"valores",config:"config"};var EMPRESAS=[{nome:"VISE",cor:"#eab308"},{nome:"SAUTEC",cor:"#3b82f6"},{nome:"SOS",cor:"#22c55e"},{nome:"SOS FILIAL",cor:"#ef4444"},{nome:"ONLAV",cor:"#06b6d4"},{nome:"ENGEMED",cor:"#ec4899"}];async function carregarEmpresas(){try{var e=await db.collection("config").doc("empresas").get();e.exists&&e.data().lista&&(EMPRESAS=e.data().lista)}catch(e){}EMPRESAS.forEach(function(e){EMP_DATA[e.nome]||(EMP_DATA[e.nome]={cnpj:e.cnpj||"",portais:[],docs:[]}),TOPS["emp-"+e.nome]||(TOPS["emp-"+e.nome]=["Empresa — "+e.nome,"Portais, certidões e documentação"+(e.cnpj?" · CNPJ "+e.cnpj:"")])}),atualizarSelectsEmpresas(),Promise.all(EMPRESAS.map(function(e){return loadEmpData(e.nome)})).then(function(){atualizarSelectsEmpresas()}).catch(function(e){})}async function salvarEmpresas(){await db.collection("config").doc("empresas").set({lista:EMPRESAS})}
 /* ══════════════════════════════════════════════════════════════════
-   RESPONSÁVEIS
+   ACESSOS DAS PESSOAS
    Registro próprio, com chave = número do WhatsApp (só dígitos).
-   Mora fora da empresa de propósito: um responsável pode atender
-   várias empresas, e assim editar a empresa nunca apaga o vínculo.
+   Mora fora da empresa de propósito: uma pessoa pode atender várias
+   empresas, e assim editar a empresa nunca apaga o vínculo.
 
-     config/responsaveis        {lista:{"5583...":{nome,despedida,
-                                 empresas:[],hash,salt,todas}}}
-     senhas_admin/responsaveis  {lista:{"5583...":"senha em texto"}}
-                                — protegido por regra do Firestore,
-                                  só o admin autenticado lê.
-   O login do responsável confere pelo hash; a senha em texto existe
-   apenas para o admin poder reenviar.
+     config/responsaveis  {lista:{"5583...":{nome, despedida,
+                           acessos:{viabilidade,portal}, empresas:[],
+                           todas, contaMestra, validade, ativo,
+                           hash, salt, authMigrado}}}
+
+   A senha existe só como hash com salt — nunca em texto legível.
+   Esqueceu? O admin redefine e o sistema gera uma nova.
    ══════════════════════════════════════════════════════════════════ */
-var RESPONSAVEIS={},_RESP_SENHAS=null,_editRespNum=null;
+var RESPONSAVEIS={};
 
 function nhSoDigitos(v){return String(v||"").replace(/\D/g,"");}
 function nhNumeroWpp(v){var d=nhSoDigitos(v);if(!d)return"";if(d.length<=11)d="55"+d;return d;}
@@ -3931,16 +4189,6 @@ async function carregarResponsaveis(){
 async function salvarResponsaveis(){
   await db.collection("config").doc("responsaveis").set({lista:RESPONSAVEIS});}
 
-async function carregarSenhasResp(){
-  if(_RESP_SENHAS)return _RESP_SENHAS;
-  try{var d=await db.collection("senhas_admin").doc("responsaveis").get();
-    _RESP_SENHAS=(d.exists&&d.data()&&d.data().lista)||{};}
-  catch(e){_RESP_SENHAS={};_RESP_SENHAS._erro=1;}
-  return _RESP_SENHAS;}
-async function salvarSenhaResp(num,senha){
-  await carregarSenhasResp();var m={};Object.keys(_RESP_SENHAS).forEach(function(k){
-    if("_erro"!==k)m[k]=_RESP_SENHAS[k];});m[num]=senha;_RESP_SENHAS[num]=senha;
-  await db.collection("senhas_admin").doc("responsaveis").set({lista:m});}
 
 /* Responsáveis de uma empresa. Quem tem "todas" não entra aqui — esse
    sinal serve só para ver tudo no app de viabilidade, não para receber
@@ -3961,210 +4209,373 @@ function respsDaEmpresa(emp) {
 }
 
 /* ─── Painel de responsáveis dentro de Gerenciar Empresas ─── */
-function renderListaResponsaveis(){
-  var box=document.getElementById("resp-lista");if(!box)return;
+/* ══════════════════════════════════════════════════════════════════
+   ACESSOS — quem entra no Viabilidade e no Portal de Contratos
+   ------------------------------------------------------------------
+   Um registro por pessoa, guardado em config/responsaveis:
+
+     { nome, despedida,
+       acessos:{viabilidade:bool, portal:bool},   quais sistemas abre
+       empresas:[...], todas:bool,                quais empresas vê
+       contaMestra:bool,                          admin do Portal
+       validade:'AAAA-MM-DD'|'',                  vazio = nunca vence
+       ativo:bool,                                desativar sem apagar
+       hash, salt, authMigrado, criadoEm, atualizadoEm }
+
+   A senha NUNCA fica guardada legível. Se a pessoa esquecer, o admin
+   redefine e o sistema gera uma nova — como faz qualquer sistema
+   sério. (Antes havia uma cópia em texto puro em senhas_admin; era
+   isso que quebrava o cadastro depois que as regras do Firestore
+   fecharam aquela coleção.)
+   ══════════════════════════════════════════════════════════════════ */
+var _acEdit=null, _acFiltro='todos', _acCred=null;
+
+/* Cadastros antigos não têm 'acessos'/'ativo'. Em vez de migrar o banco
+   de uma vez, cada leitura assume o padrão seguro: quem já existia
+   abria os dois sistemas, então continua abrindo os dois. */
+function acNormaliza(r){
+  r=r||{};
+  if(!r.acessos)r.acessos={viabilidade:true,portal:true};
+  if(r.ativo===undefined)r.ativo=true;
+  if(r.validade===undefined)r.validade='';
+  return r;
+}
+function acExpirado(r){
+  if(!r.validade)return false;
+  var d=new Date(r.validade+'T23:59:59');
+  return !isNaN(d.getTime())&&d<new Date();
+}
+function acStatus(r){
+  if(!r.ativo)return 'inativo';
+  if(acExpirado(r))return 'expirado';
+  return 'ativo';
+}
+
+async function acCarregar(){
+  await carregarResponsaveis();
+  acRender();
+}
+
+/* ── Lista ──────────────────────────────────────────────────────── */
+function acFiltro(f){
+  _acFiltro=f;
+  document.querySelectorAll('#ac-filtro button').forEach(function(b){
+    b.classList.toggle('on',b.getAttribute('data-f')===f);});
+  acRender();
+}
+
+function acRender(){
+  var el=document.getElementById('ac-lista');if(!el)return;
+  var busca=_ppNorm((document.getElementById('ac-busca')||{}).value||'');
   var nums=Object.keys(RESPONSAVEIS);
-  if(!nums.length){box.innerHTML='<div style="color:var(--t3);font-size:13px;padding:8px">Nenhum responsável cadastrado</div>';return;}
-  nums.sort(function(a,b){return String((RESPONSAVEIS[a]||{}).nome||"").localeCompare(String((RESPONSAVEIS[b]||{}).nome||""),"pt-BR");});
-  box.innerHTML=nums.map(function(num){
-    var r=RESPONSAVEIS[num]||{},emps=r.empresas||[];
-    var chips=emps.map(function(e){var nomeReal=nomeEmpResolvido(e);var c=empColor(nomeReal);
-      return'<span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:'+c+'1f;color:'+c+';border:1px solid '+c+'44">'+nomeReal+'</span>';}).join(" ");
-    if(r.todas)chips='<span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:rgba(167,139,250,.15);color:#a78bfa;border:1px solid rgba(167,139,250,.35)">vê todas</span> '+chips;
-    if(!chips)chips='<span style="font-size:10px;color:var(--r2)">nenhuma empresa vinculada</span>';
-    var seloAuth=r.authMigrado
-      ?'<span title="Já tem acesso de verdade (Firebase)" style="font-size:9px;font-weight:800;padding:1px 6px;border-radius:20px;background:rgba(34,197,94,.14);color:#22c55e;border:1px solid rgba(34,197,94,.35)">✓ ACESSO NOVO</span>'
-      :'<span title="Ainda só tem o acesso antigo — abra e salve uma senha para migrar" style="font-size:9px;font-weight:800;padding:1px 6px;border-radius:20px;background:rgba(234,179,8,.12);color:#eab308;border:1px solid rgba(234,179,8,.3)">○ PENDENTE</span>';
-    return'<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;background:var(--s2);border:1px solid var(--b1);border-radius:8px">'
-      +'<div style="flex:1;min-width:0">'
-      +'<div style="display:flex;align-items:center;gap:7px"><span style="font-weight:700;color:var(--t1);font-size:13px">'+(r.nome||"(sem nome)")+'</span>'+seloAuth+(r.contaMestra?'<span title="Conta mestra do Portal de Contratos" style="font-size:9px;font-weight:800;padding:1px 6px;border-radius:20px;background:rgba(249,115,22,.14);color:#f97316;border:1px solid rgba(249,115,22,.35)">👑 MESTRA</span>':'')+'</div>'
-      +'<div style="font-size:11px;color:var(--t3);margin-top:2px">'+nhFormataWpp(num)+(r.despedida?' · "'+r.despedida+'"':"")+'</div>'
-      +'<div style="margin-top:5px;display:flex;gap:4px;flex-wrap:wrap">'+chips+'</div></div>'
-      +'<div style="display:flex;gap:6px;flex-shrink:0">'
-      +'<button onclick="verSenhaResp(\''+num+'\')" style="background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.25);color:#eab308;padding:3px 9px;border-radius:5px;cursor:pointer;font-size:11px;font-family:Outfit,sans-serif" title="Ver a senha">🔑</button>'
-      +'<button onclick="editarResponsavel(\''+num+'\')" style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);color:#60a5fa;padding:3px 9px;border-radius:5px;cursor:pointer;font-size:11px;font-family:Outfit,sans-serif">✏</button>'
-      +'<button onclick="removerResponsavel(\''+num+'\')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#ef4444;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px">✕</button>'
-      +'</div></div>';}).join("");}
 
-/* ── Vínculo responsável ↔ empresa: por CNPJ, não por nome ──────────
-   Nome de fantasia pode mudar; CNPJ nunca muda e nunca se repete — é
-   o mesmo raciocínio que o e-CAC e o Compras.gov.br usam para ligar
-   uma pessoa às empresas que ela representa.
+  var cont={ativo:0,expirado:0,inativo:0};
+  nums.forEach(function(n){cont[acStatus(acNormaliza(RESPONSAVEIS[n]))]++;});
+  var res=document.getElementById('ac-resumo');
+  if(res)res.innerHTML=
+    '<div class="ac-rc" style="--cc:#22c55e"><div class="ac-rc-v">'+cont.ativo+'</div><div class="ac-rc-l">Ativos</div></div>'+
+    '<div class="ac-rc" style="--cc:#eab308"><div class="ac-rc-v">'+cont.expirado+'</div><div class="ac-rc-l">Expirados</div></div>'+
+    '<div class="ac-rc" style="--cc:#6b7280"><div class="ac-rc-v">'+cont.inativo+'</div><div class="ac-rc-l">Desativados</div></div>'+
+    '<div class="ac-rc" style="--cc:var(--nh)"><div class="ac-rc-v">'+nums.length+'</div><div class="ac-rc-l">Total</div></div>';
 
-   Migração sem quebrar nada: registros salvos antes de hoje guardam
-   nome ("SAUTEC"); os salvos a partir de agora guardam CNPJ. As duas
-   funções abaixo reconhecem os dois formatos ao mesmo tempo. Quando
-   o admin resalva um responsável, o registro dele vira CNPJ sozinho —
-   não existe um botão de "migrar tudo de uma vez" de propósito, para
-   você conferir empresa por empresa em vez de confiar numa migração
-   em massa silenciosa. */
+  var lista=nums.filter(function(num){
+    var r=acNormaliza(RESPONSAVEIS[num]);
+    var st=acStatus(r);
+    if(_acFiltro==='ativos'&&st!=='ativo')return false;
+    if(_acFiltro==='expirados'&&st!=='expirado')return false;
+    if(_acFiltro==='inativos'&&st!=='inativo')return false;
+    if(busca){
+      var alvo=_ppNorm((r.nome||'')+' '+num+' '+(r.empresas||[]).join(' '));
+      if(alvo.indexOf(busca)<0)return false;
+    }
+    return true;
+  }).sort(function(a,b){
+    return String((RESPONSAVEIS[a]||{}).nome||'').localeCompare(String((RESPONSAVEIS[b]||{}).nome||''),'pt-BR');
+  });
 
-function empCnpjLimpo(cnpj) { return String(cnpj || '').replace(/\D/g, ''); }
-
-/** Compara um valor salvo (pode ser CNPJ ou, de registro antigo, nome)
- *  contra uma empresa do cadastro. */
-function empBateComVinculo(valorSalvo, empresa) {
-  var v = String(valorSalvo || '').trim();
-  var cnpjEmp = empCnpjLimpo(empresa.cnpj);
-  if (cnpjEmp && empCnpjLimpo(v) === cnpjEmp) return true;
-  return v.toUpperCase() === String(empresa.nome || '').toUpperCase();
-}
-
-/** Traduz o que está salvo no vínculo (CNPJ, no formato novo; nome,
- *  no legado) de volta para o nome de exibição. Sem isso, quem já foi
- *  migrado para CNPJ mostra números crus na lista em vez do nome da
- *  empresa — foi exatamente o que aconteceu com quem tinha sido
- *  vinculado a empresas que já tinham CNPJ cadastrado. */
-function nomeEmpResolvido(valorSalvo) {
-  var limpo = empCnpjLimpo(valorSalvo);
-  if (limpo) {
-    var achou = EMPRESAS.find(function(e) { return empCnpjLimpo(e.cnpj) === limpo; });
-    if (achou) return achou.nome;
+  if(!nums.length){
+    el.innerHTML='<div class="ac-vazio"><span class="ic">&#128100;</span>Nenhum acesso cadastrado ainda.<br>'+
+      '<span style="font-size:12px">Clique em <b>+ Novo acesso</b> para liberar a primeira pessoa.</span></div>';
+    return;
   }
-  return String(valorSalvo || '').trim();
-}
+  if(!lista.length){
+    el.innerHTML='<div class="ac-vazio"><span class="ic">&#128269;</span>Nenhum acesso com esse filtro.</div>';
+    return;
+  }
 
-function renderEmpresasDoResp() {
-  var box = document.getElementById('resp-empresas');
-  if (!box) return;
-  var marcadas = _editRespNum && RESPONSAVEIS[_editRespNum] ? (RESPONSAVEIS[_editRespNum].empresas || []) : [];
-  box.innerHTML = EMPRESAS.map(function(e) {
-    var on = marcadas.some(function(v) { return empBateComVinculo(v, e); });
-    var c = e.cor || '#f97316';
-    var semCnpj = !empCnpjLimpo(e.cnpj);
-    var avisoCnpj = semCnpj
-      ? ' <span title="Esta empresa não tem CNPJ cadastrado — preencha em Gerenciar Empresas, senão o vínculo com o responsável pode quebrar se o nome mudar." style="color:#eab308">⚠</span>'
-      : '';
-    return '<label style="display:flex;align-items:center;gap:6px;padding:5px 10px;background:var(--s2);border:1px solid ' + (on ? c + '66' : 'var(--b1)') + ';border-radius:20px;cursor:pointer;font-size:12px;font-weight:600;color:' + c + '">'
-      + '<input type="checkbox" class="resp-emp-chk" value="' + (empCnpjLimpo(e.cnpj) || e.nome) + '"' + (on ? ' checked' : '') + ' style="width:14px;height:14px;accent-color:' + c + ';cursor:pointer">' + e.nome + avisoCnpj + '</label>';
+  el.innerHTML=lista.map(function(num){
+    var r=acNormaliza(RESPONSAVEIS[num]);
+    var st=acStatus(r);
+    var tags='';
+    if(st==='inativo')tags+='<span class="ac-tag" style="background:rgba(107,114,128,.18);color:#9ca3af;border:1px solid rgba(107,114,128,.4)">DESATIVADO</span>';
+    else if(st==='expirado')tags+='<span class="ac-tag" style="background:rgba(234,179,8,.15);color:#eab308;border:1px solid rgba(234,179,8,.4)">EXPIROU '+acDataBR(r.validade)+'</span>';
+    if(r.acessos.viabilidade)tags+='<span class="ac-tag" style="background:rgba(59,130,246,.14);color:#3b82f6;border:1px solid rgba(59,130,246,.35)">&#128202; Viabilidade</span>';
+    if(r.acessos.portal)tags+='<span class="ac-tag" style="background:rgba(34,197,94,.14);color:#22c55e;border:1px solid rgba(34,197,94,.35)">&#128188; Contratos</span>';
+    if(r.contaMestra)tags+='<span class="ac-tag" style="background:rgba(249,115,22,.15);color:var(--nh);border:1px solid rgba(249,115,22,.4)">&#128081; Conta mestra</span>';
+
+    var emps=r.todas?'<b>Todas as empresas</b>':((r.empresas||[]).length?
+        ('<b>'+(r.empresas||[]).map(function(v){return acNomeEmpresa(v);}).join('</b>, <b>')+'</b>'):
+        '<span style="color:#ef4444">nenhuma empresa</span>');
+
+    return '<div class="ac-card '+st+'">'+
+      '<div class="ac-card-top">'+
+        '<span class="ac-nome">'+esc0(r.nome||'(sem nome)')+'</span>'+
+        '<span class="ac-wpp">'+nhFormataWpp(num)+'</span>'+
+        tags+
+        '<div class="ac-acoes">'+
+          '<button class="ac-bt" onclick="acEditar(\''+num+'\')">&#9998; Editar</button>'+
+          '<button class="ac-bt" onclick="acRedefinir(\''+num+'\')">&#128273; Nova senha</button>'+
+          '<button class="ac-bt" onclick="acAtivar(\''+num+'\')">'+(r.ativo?'&#9209; Desativar':'&#9654; Reativar')+'</button>'+
+          '<button class="ac-bt perigo" onclick="acExcluir(\''+num+'\')">&#128465; Excluir</button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="ac-info">'+
+        '<span>&#127970; '+emps+'</span>'+
+        '<span>&#128197; '+(r.validade?('Vale at&eacute; <b>'+acDataBR(r.validade)+'</b>'):'<b>Sem prazo</b>')+'</span>'+
+      '</div>'+
+    '</div>';
   }).join('');
 }
-
-function limparFormResp(){
-  _editRespNum=null;
-  ["resp-nome","resp-wpp","resp-desp","resp-senha"].forEach(function(id){
-    var el=document.getElementById(id);if(el)el.value="";});
-  var t=document.getElementById("resp-todas");if(t)t.checked=false;
-  var tm=document.getElementById("resp-mestra");if(tm)tm.checked=false;
-  var w=document.getElementById("resp-wpp");if(w)w.disabled=false;
-  var b=document.getElementById("resp-btn-salvar");if(b)b.textContent="+ Adicionar Responsável";
-  var a=document.getElementById("resp-aviso");if(a)a.style.display="none";
-  renderEmpresasDoResp();}
-
-function editarResponsavel(num){
-  var r=RESPONSAVEIS[num];if(!r)return;
-  _editRespNum=num;
-  document.getElementById("resp-nome").value=r.nome||"";
-  document.getElementById("resp-wpp").value=nhFormataWpp(num);
-  document.getElementById("resp-desp").value=r.despedida||"";
-  document.getElementById("resp-senha").value="";
-  document.getElementById("resp-todas").checked=!!r.todas;
-  document.getElementById("resp-mestra").checked=!!r.contaMestra;
-  document.getElementById("resp-wpp").disabled=true;
-  document.getElementById("resp-btn-salvar").textContent="💾 Salvar Responsável";
-  var a=document.getElementById("resp-aviso");
-  if(a){a.style.display="block";a.innerHTML='Editando <b>'+(r.nome||num)+'</b>. Deixe a senha em branco para manter a atual.';}
-  renderEmpresasDoResp();
-  var f=document.getElementById("resp-form");if(f)f.scrollIntoView({behavior:"smooth",block:"nearest"});}
-
-async function salvarResponsavel(){
-  var nome=gv("resp-nome").trim(),num=nhNumeroWpp(gv("resp-wpp")),
-      desp=gv("resp-desp").trim(),senha=gv("resp-senha").trim(),
-      todas=!!(document.getElementById("resp-todas")||{}).checked,
-      mestra=!!(document.getElementById("resp-mestra")||{}).checked;
-  if(!nome){toast("Digite o nome do responsável","err");return;}
-  if(num.length<12){toast("WhatsApp incompleto — use DDD + número","err");return;}
-  var emps=[];document.querySelectorAll(".resp-emp-chk").forEach(function(c){if(c.checked)emps.push(c.value);});
-  if(!emps.length&&!todas){toast("Marque ao menos uma empresa","err");return;}
-
-  var novo=!RESPONSAVEIS[num];
-  if(novo&&!_editRespNum&&!senha)senha=nhSenhaSugerida();
-  if(!novo&&!_editRespNum)toast("Este número já existe — vinculando as empresas ao mesmo responsável","info");
-
-  var reg=RESPONSAVEIS[num]||{};
-  reg.nome=nome;reg.despedida=desp;reg.empresas=emps;reg.todas=todas;reg.contaMestra=mestra;
-  if(senha){reg.salt=nhNovoSalt();reg.hash=await nhHashSenha(senha,reg.salt);}
-  if(!reg.hash){toast("Defina uma senha para este responsável","err");return;}
-
-  /* Acesso de verdade (Firebase Auth), por trás do hash de sempre.
-     Criar é sempre seguro. Trocar senha de conta já criada não dá
-     pelo navegador — é limitação do próprio Firebase, de propósito,
-     então avisamos em vez de fingir que funcionou. */
-  var avisoAuth="";
-  if(senha){
-    if(reg.authMigrado){
-      avisoAuth=" Atenção: essa pessoa já tem acesso criado — essa senha nova só vale quando o recurso de redefinir estiver pronto.";
-    }else{
-      var ra=await criarContaAuthResp(num,senha);
-      if(ra.ok)reg.authMigrado=true;
-      else avisoAuth=" Aviso: não consegui preparar o acesso novo agora — "+ra.erro;
-    }
+function acDataBR(d){
+  if(!d)return '';
+  var p=String(d).split('-');
+  return p.length===3?(p[2]+'/'+p[1]+'/'+p[0]):d;
+}
+function acNomeEmpresa(v){
+  var limpo=String(v||'').replace(/\D/g,'');
+  if(limpo.length>=11){
+    var e=EMPRESAS.filter(function(x){return String(x.cnpj||'').replace(/\D/g,'')===limpo;})[0];
+    if(e)return esc0(e.nome);
   }
-
-  RESPONSAVEIS[num]=reg;
-
-  try{
-    await salvarResponsaveis();
-    if(senha)await salvarSenhaResp(num,senha);
-    renderListaResponsaveis();
-    var criada=senha;limparFormResp();
-    if(criada)mostrarSenhaResp(nome,num,criada,true);
-    else toast("Responsável salvo!"+avisoAuth,avisoAuth?"info":"ok");
-    if(criada&&avisoAuth)toast(avisoAuth.trim(),"info");
-  }catch(e){toast("Erro ao salvar: "+e.message,"err");}}
-
-async function verSenhaResp(num){
-  var r=RESPONSAVEIS[num]||{};
-  var m=await carregarSenhasResp();
-  if(m._erro||!m[num]){
-    toast("Senha não disponível — redefina pelo botão ✏","err");return;}
-  mostrarSenhaResp(r.nome||"",num,m[num],false);}
-
-function mostrarSenhaResp(nome,num,senha,nova){
-  var w=document.getElementById("resp-senha-ov");
-  if(!w){w=document.createElement("div");w.id="resp-senha-ov";document.body.appendChild(w);}
-  /* O mesmo login abre os dois sistemas — por isso os dois links na
-     mensagem, não só o do viabilidade como era antes. */
-  var texto="Ola, "+(nome||"")+"! Segue o seu acesso aos sistemas da NH:\n\n"
-    +"Analise de Viabilidade:\nhttps://noronhaholandalicitacoes-cmd.github.io/nh-gestao/viabilidade.html?r="+num
-    +"\n\nPortal de Contratos:\nhttps://noronhaholandalicitacoes-cmd.github.io/nh-gestao/portal-empresa.html?r="+num
-    +"\n\nSenha (a mesma para os dois): "+senha;
-  /* O HTML sai sem manipulador nenhum; eles são ligados por JS logo abaixo.
-     Antes o texto era colado dentro do onclick via JSON.stringify, e as
-     aspas duplas dele fechavam o atributo antes da hora — os botões de
-     copiar e de WhatsApp não faziam nada. */
-  w.innerHTML='<div style="position:fixed;inset:0;z-index:9600;display:flex;align-items:center;justify-content:center">'
-    +'<div id="rs-fundo" style="position:absolute;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(6px)"></div>'
-    +'<div style="position:relative;background:var(--s1);border:1px solid var(--b1);border-radius:16px;padding:26px;width:420px;max-width:94vw;display:flex;flex-direction:column;gap:14px;box-shadow:0 30px 90px -20px rgba(0,0,0,.7)">'
-    +'<div style="font-size:16px;font-weight:800;color:var(--nh)">🔑 '+(nova?"Senha criada":"Senha de acesso")+'</div>'
-    +'<div style="font-size:13px;color:var(--t2)">'+esc0(nome||"")+' · '+nhFormataWpp(num)+'</div>'
-    +'<div style="font-family:JetBrains Mono,monospace;font-size:22px;font-weight:700;letter-spacing:.08em;color:var(--t1);background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:14px;text-align:center">'+esc0(senha)+'</div>'
-    +'<div style="display:flex;gap:8px">'
-    +'<button class="btn btn-ghost" id="rs-copiar" style="flex:1">Copiar senha</button>'
-    +'<button class="btn btn-nh" id="rs-wpp" style="flex:1">📲 Enviar no WhatsApp</button>'
-    +'</div>'
-    +'<button class="btn btn-ghost" id="rs-fechar">Fechar</button>'
-    +'</div></div>';
-  var fechar=function(){w.innerHTML="";};
-  document.getElementById("rs-fechar").onclick=fechar;
-  document.getElementById("rs-fundo").onclick=fechar;
-  document.getElementById("rs-copiar").onclick=function(){
-    if(navigator.clipboard&&navigator.clipboard.writeText)
-      navigator.clipboard.writeText(senha).then(function(){toast("Senha copiada","ok");},
-        function(){toast("Não consegui copiar — anote: "+senha,"err");});
-    else toast("Anote a senha: "+senha,"info");};
-  document.getElementById("rs-wpp").onclick=function(){
-    window.open("https://wa.me/"+num+"?text="+encodeURIComponent(texto),"_blank");};
+  return esc0(String(v||'').trim());
 }
 
-async function removerResponsavel(num){
+/* ── Modal ──────────────────────────────────────────────────────── */
+function acNovo(){ acAbrir(null); }
+function acEditar(num){ acAbrir(num); }
+
+function acAbrir(num){
+  _acEdit=num;
+  /* Cadastro novo abre com nada marcado, para a escolha do que a pessoa
+     pode abrir ser consciente. Só os registros antigos (sem o campo)
+     assumem os dois, para ninguém perder acesso. */
+  var r=num?acNormaliza(Object.assign({},RESPONSAVEIS[num]))
+           :{acessos:{viabilidade:false,portal:false},ativo:true,validade:''};
+  document.getElementById('ac-md-tit').textContent=num?'Editar acesso':'Novo acesso';
+  document.getElementById('ac-md-sub').textContent=num?
+    'Alterando o acesso de '+(r.nome||'')+'. A senha só muda se você preencher o campo.':
+    'Preencha os dados e escolha o que a pessoa pode abrir';
+  document.getElementById('ac-nome').value=r.nome||'';
+  document.getElementById('ac-wpp').value=num?nhFormataWpp(num):'';
+  document.getElementById('ac-wpp').disabled=!!num;
+  document.getElementById('ac-wpp-dica').innerHTML=num?
+    'O WhatsApp identifica a pessoa e n&atilde;o pode ser trocado. Se mudou de n&uacute;mero, crie um acesso novo e exclua este.':
+    '&Eacute; com ele que a pessoa entra nos sistemas.';
+  document.getElementById('ac-viab').checked=!!r.acessos.viabilidade;
+  document.getElementById('ac-portal').checked=!!r.acessos.portal;
+  document.getElementById('ac-todas').checked=!!r.todas;
+  document.getElementById('ac-mestra').checked=!!r.contaMestra;
+  document.getElementById('ac-validade').value=r.validade||'';
+  document.getElementById('ac-senha').value='';
+  document.getElementById('ac-senha-dica').innerHTML=num?
+    'Deixe vazio para <b>manter a senha atual</b>.':'Ser&aacute; mostrada uma &uacute;nica vez, para voc&ecirc; enviar &agrave; pessoa.';
+  document.getElementById('ac-btn-salvar').textContent=num?'Salvar altera&ccedil;&otilde;es':'Criar acesso';
+  acErro('');
+  acEmpresasBox(r.empresas||[]);
+  acAtualizarForm();
+  document.getElementById('mo-acesso').style.display='flex';
+  setTimeout(function(){var n=document.getElementById('ac-nome');if(n&&!num)n.focus();},80);
+}
+function acFechar(){ document.getElementById('mo-acesso').style.display='none'; _acEdit=null; }
+function acErro(msg){
+  var e=document.getElementById('ac-erro');
+  e.innerHTML=msg||''; e.classList.toggle('on',!!msg);
+  if(msg)e.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function acEmpresasBox(sel){
+  var box=document.getElementById('ac-empresas');
+  var marcadas=(sel||[]).map(function(v){return String(v||'').replace(/\D/g,'')||String(v||'').trim().toUpperCase();});
+  box.innerHTML=EMPRESAS.map(function(e){
+    var cnpj=String(e.cnpj||'').replace(/\D/g,'');
+    var val=cnpj||e.nome;
+    var on=marcadas.indexOf(cnpj)>-1||marcadas.indexOf(String(e.nome).toUpperCase())>-1;
+    return '<label class="ac-emp"><input type="checkbox" class="ac-emp-chk" value="'+esc0(val)+'"'+(on?' checked':'')+'> '+esc0(e.nome)+'</label>';
+  }).join('')||'<span style="font-size:12px;color:var(--t3)">Cadastre uma empresa primeiro, na aba Empresas.</span>';
+}
+/* Liga/desliga partes do formulário conforme o que foi marcado, para
+   não sobrar campo sem sentido na tela. */
+function acAtualizarForm(){
+  var portal=document.getElementById('ac-portal').checked;
+  var todas=document.getElementById('ac-todas').checked;
+  document.getElementById('ac-secao-mestra').style.display=portal?'':'none';
+  if(!portal)document.getElementById('ac-mestra').checked=false;
+  document.getElementById('ac-empresas').classList.toggle('off',todas);
+  document.getElementById('ac-num-val').textContent=portal?'5':'4';
+}
+
+async function acSalvar(){
+  var btn=document.getElementById('ac-btn-salvar');
+  var nome=document.getElementById('ac-nome').value.trim();
+  var num=_acEdit||nhNumeroWpp(document.getElementById('ac-wpp').value);
+  var viab=document.getElementById('ac-viab').checked;
+  var portal=document.getElementById('ac-portal').checked;
+  var todas=document.getElementById('ac-todas').checked;
+  var mestra=document.getElementById('ac-mestra').checked;
+  var validade=document.getElementById('ac-validade').value;
+  var senha=document.getElementById('ac-senha').value.trim();
+  var emps=[];
+  document.querySelectorAll('.ac-emp-chk').forEach(function(c){if(c.checked)emps.push(c.value);});
+
+  /* Valida tudo de uma vez e diz exatamente o que falta — nada de
+     salvar pela metade e mostrar erro depois, como acontecia antes. */
+  var faltas=[];
+  if(!nome)faltas.push('o <b>nome</b>');
+  if(!_acEdit&&num.length<12)faltas.push('um <b>WhatsApp</b> completo (DDD + n&uacute;mero)');
+  if(!viab&&!portal)faltas.push('marcar <b>ao menos um sistema</b> que a pessoa vai abrir');
+  if(!todas&&!emps.length)faltas.push('marcar <b>ao menos uma empresa</b> (ou "Todas as empresas")');
+  if(validade){
+    var dv=new Date(validade+'T23:59:59');
+    if(isNaN(dv.getTime()))faltas.push('uma <b>validade</b> v&aacute;lida');
+    else if(dv<new Date())faltas.push('uma validade <b>no futuro</b> — a data escolhida j&aacute; passou');
+  }
+  if(!_acEdit&&senha&&senha.length<4)faltas.push('uma senha com <b>4 caracteres ou mais</b>');
+  if(faltas.length){
+    acErro(faltas.length>1
+      ? 'Para salvar, ainda falta:<br>&bull; '+faltas.join('<br>&bull; ')
+      : 'Para salvar, ainda falta '+faltas[0]+'.');
+    return;
+  }
+  if(!_acEdit&&RESPONSAVEIS[num]){
+    acErro('J&aacute; existe um acesso com esse WhatsApp (<b>'+esc0(RESPONSAVEIS[num].nome||'')+'</b>). Edite aquele em vez de criar outro.');
+    return;
+  }
+
+  btn.disabled=true;btn.textContent='Salvando...';
+  acErro('');
+  try{
+    var novo=!RESPONSAVEIS[num];
+    var reg=acNormaliza(Object.assign({},RESPONSAVEIS[num]||{}));
+    reg.nome=nome;
+    reg.acessos={viabilidade:viab,portal:portal};
+    reg.empresas=todas?[]:emps;
+    reg.todas=todas;
+    reg.contaMestra=portal&&mestra;
+    reg.validade=validade||'';
+    if(reg.ativo===undefined)reg.ativo=true;
+    if(novo)reg.criadoEm=Date.now();
+    reg.atualizadoEm=Date.now();
+
+    /* Senha: gera uma se for cadastro novo e o campo estiver vazio. */
+    var senhaGerada='';
+    if(novo&&!senha)senha=nhSenhaSugerida();
+    if(senha){
+      reg.salt=nhNovoSalt();
+      reg.hash=await nhHashSenha(senha,reg.salt);
+      senhaGerada=senha;
+    }
+    if(!reg.hash){
+      acErro('Esta pessoa ainda n&atilde;o tem senha. Preencha o campo <b>Senha</b> para definir uma.');
+      btn.disabled=false;btn.textContent=_acEdit?'Salvar alterações':'Criar acesso';
+      return;
+    }
+
+    /* Conta no Firebase Auth (é o que de fato deixa a pessoa entrar). */
+    var aviso='';
+    if(senhaGerada){
+      if(reg.authMigrado){
+        aviso='A conta desta pessoa já existe. A senha nova vale a partir de agora no sistema, mas se ela não conseguir entrar, me avise.';
+      }else{
+        var ra=await criarContaAuthResp(num,senhaGerada);
+        if(ra.ok)reg.authMigrado=true;
+        else aviso='Não consegui preparar o acesso no Firebase agora — '+ra.erro;
+      }
+    }
+
+    RESPONSAVEIS[num]=reg;
+    await salvarResponsaveis();
+
+    acFechar();
+    acRender();
+    if(senhaGerada)acMostrarSenha(nome,num,senhaGerada,novo);
+    else toast('✅ Acesso atualizado','ok');
+    if(aviso)toast(aviso,'info');
+  }catch(e){
+    acErro('N&atilde;o consegui salvar: '+esc0(e.message||String(e)));
+  }finally{
+    btn.disabled=false;btn.textContent=_acEdit?'Salvar alterações':'Criar acesso';
+  }
+}
+
+async function acRedefinir(num){
   var r=RESPONSAVEIS[num]||{};
-  if(!confirm('Remover "'+(r.nome||num)+'"?\n\nEle perde o acesso à análise de viabilidade.'))return;
+  if(!confirm('Gerar uma senha nova para "'+(r.nome||num)+'"?\n\nA senha atual deixa de valer na hora.'))return;
+  try{
+    var nova=nhSenhaSugerida();
+    r.salt=nhNovoSalt();
+    r.hash=await nhHashSenha(nova,r.salt);
+    r.atualizadoEm=Date.now();
+    var aviso='';
+    if(!r.authMigrado){
+      var ra=await criarContaAuthResp(num,nova);
+      if(ra.ok)r.authMigrado=true; else aviso=ra.erro;
+    }
+    RESPONSAVEIS[num]=r;
+    await salvarResponsaveis();
+    acRender();
+    acMostrarSenha(r.nome,num,nova,false);
+    if(aviso)toast('Aviso: '+aviso,'info');
+  }catch(e){toast('Erro ao redefinir: '+e.message,'err');}
+}
+
+async function acAtivar(num){
+  var r=acNormaliza(RESPONSAVEIS[num]||{});
+  r.ativo=!r.ativo;r.atualizadoEm=Date.now();
+  RESPONSAVEIS[num]=r;
+  try{ await salvarResponsaveis(); acRender();
+    toast(r.ativo?'Acesso reativado':'Acesso desativado — a pessoa não entra mais','ok');
+  }catch(e){toast('Erro: '+e.message,'err');}
+}
+
+async function acExcluir(num){
+  var r=RESPONSAVEIS[num]||{};
+  if(!confirm('Excluir o acesso de "'+(r.nome||num)+'"?\n\nEla perde a entrada nos dois sistemas.\n\nSe for algo temporário, prefira "Desativar" — dá para reativar depois.'))return;
+  var backup=RESPONSAVEIS[num];
   delete RESPONSAVEIS[num];
-  try{await salvarResponsaveis();renderListaResponsaveis();
-    if(_editRespNum===num)limparFormResp();
-    toast("Responsável removido","info");}
-  catch(e){toast("Erro ao remover: "+e.message,"err");}}
+  try{ await salvarResponsaveis(); acRender(); toast('Acesso excluído','info'); }
+  catch(e){ RESPONSAVEIS[num]=backup; acRender(); toast('Erro ao excluir: '+e.message,'err'); }
+}
+
+/* ── Senha gerada ───────────────────────────────────────────────── */
+function acMostrarSenha(nome,num,senha,nova){
+  _acCred={nome:nome,num:num,senha:senha};
+  document.getElementById('ac-sn-tit').textContent=nova?'Acesso criado':'Senha redefinida';
+  document.getElementById('ac-sn-wpp').textContent=nhFormataWpp(num);
+  document.getElementById('ac-sn-senha').textContent=senha;
+  document.getElementById('mo-ac-senha').style.display='flex';
+}
+function _acTexto(){
+  if(!_acCred)return '';
+  var r=acNormaliza(RESPONSAVEIS[_acCred.num]||{});
+  var t='Ola, '+(_acCred.nome||'')+'! Segue o seu acesso aos sistemas da NH:\n';
+  if(r.acessos.viabilidade)
+    t+='\nAnalise de Viabilidade:\nhttps://noronhaholandalicitacoes-cmd.github.io/nh-gestao/viabilidade.html?r='+_acCred.num+'\n';
+  if(r.acessos.portal)
+    t+='\nPortal de Contratos:\nhttps://noronhaholandalicitacoes-cmd.github.io/nh-gestao/portal-empresa.html?r='+_acCred.num+'\n';
+  t+='\nSenha: '+_acCred.senha;
+  if(r.validade)t+='\n\nSeu acesso vale ate '+acDataBR(r.validade)+'.';
+  return t;
+}
+function acCopiar(){
+  var t=_acTexto();
+  if(navigator.clipboard&&navigator.clipboard.writeText)
+    navigator.clipboard.writeText(t).then(function(){toast('Copiado','ok');},
+      function(){toast('Não consegui copiar — anote a senha: '+_acCred.senha,'err');});
+  else toast('Anote a senha: '+_acCred.senha,'info');
+}
+function acEnviarWpp(){
+  if(!_acCred)return;
+  window.open('https://wa.me/'+_acCred.num+'?text='+encodeURIComponent(_acTexto()),'_blank');
+}
 
 /* ─── Campo Responsável em Editais ───
    As opções vêm dos responsáveis da empresa escolhida. Um valor antigo que
@@ -6024,8 +6435,7 @@ function cfgAba(nome){
     var b=document.getElementById('cfg-ab-'+n),p=document.getElementById('cfg-p-'+n);
     if(b)b.classList.toggle('on',n===nome);
     if(p)p.classList.toggle('on',n===nome);});
-  if('portal'===nome&&'function'==typeof initPortalConfig)initPortalConfig();
-  if('acessos'===nome)carregarResponsaveis().then(function(){renderListaResponsaveis();limparFormResp();});
+  if('acessos'===nome)acCarregar();
   if('empresas'===nome)renderListaEmpresas();
   if('cadastros'===nome)carregarCadastros();}
 /* ══════════════════════════════════════════════════════════════════
@@ -7334,43 +7744,6 @@ function toggleRobo(e){
   e.style.opacity=on?"1":".3";
   e.querySelector("svg").setAttribute("stroke",on?"#a78bfa":"#aaa");
   e.title=on?"🤖 Lance via Robô":"Robô de Lances";
-}
-
-// ─── PORTAL CONFIG ───────────────────────────────────────────────
-
-async function initPortalConfig(){
-  var lista = document.getElementById("portal-acessos-lista");
-  if(!lista) return;
-  try {
-    var doc = await db.collection("config").doc("portal_acessos").get();
-    var acessos = doc.exists ? doc.data() : {};
-    var empresas = EMPRESAS.map(function(x){return x.nome;}).concat(["GROWTH"])
-      .filter(function(n,i,t){return n&&t.indexOf(n)===i;});
-    lista.innerHTML = empresas.map(function(emp){
-      var s = String(acessos[emp]||"");
-      return '<div style="display:flex;align-items:center;gap:10px;background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:10px 14px">'
-        +'<span style="font-size:12px;font-weight:700;color:var(--nh);min-width:90px">'+emp+'</span>'
-        +'<input type="text" id="pa-'+emp.replace(/ /g,"_")+'" value="'+s+'" placeholder="Senha para '+emp+'..." '
-        +'style="flex:1;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.1);color:var(--t1);font-family:JetBrains Mono,monospace;font-size:13px;outline:none;padding:3px 0">'
-        +'</div>';
-    }).join("");
-  } catch(e) {
-    lista.innerHTML = '<div style="color:#f87171;font-size:13px">Erro ao carregar: '+e.message+'</div>';
-  }
-}
-
-async function salvarAcessosPortal(){
-  var empresas = EMPRESAS.map(function(x){return x.nome;}).concat(["GROWTH"])
-      .filter(function(n,i,t){return n&&t.indexOf(n)===i;});
-  var obj = {};
-  empresas.forEach(function(emp){
-    var el = document.getElementById("pa-"+emp.replace(/ /g,"_"));
-    if(el && el.value.trim()) obj[emp] = el.value.trim();
-  });
-  try {
-    await db.collection("config").doc("portal_acessos").set(obj);
-    toast("✅ Senhas de acesso salvas!","ok");
-  } catch(e){ toast("Erro: "+e.message,"err"); }
 }
 
 /* Guarda a senha de exclusão como hash SHA-256 com salt, igual já é
