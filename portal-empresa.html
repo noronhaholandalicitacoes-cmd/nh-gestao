@@ -1277,8 +1277,21 @@ const auth = _portalApp.auth();
 var CONTA_MESTRA_EMPRESAS = null; // travado no login da conta mestra — nunca cresce sozinho
 var EMP_NOME_POR_CNPJ = {};
 
-function emailFalsoPortal(numero) {
-  return String(numero || '').replace(/\D/g, '') + '@nh.interno';
+/* A senha de acesso pode ser redefinida pela NH. Como um site estático
+   não consegue trocar a senha de uma conta já criada no Firebase, cada
+   redefinição cria uma conta numa "versão" nova. O login procura a
+   versão certa, e o cadastro guarda qual é a vigente — por isso uma
+   senha antiga é recusada mesmo que a conta velha ainda exista. */
+var PORTAL_MAX_VERSOES = 8;
+function emailFalsoPortal(numero, versao) {
+  var n = String(numero || '').replace(/\D/g, '');
+  return (versao > 1 ? (n + '.r' + versao) : n) + '@nh.interno';
+}
+/* Do e-mail de volta para {numero, versao}. */
+function _portalDoEmail(email) {
+  var local = String(email || '').split('@')[0];
+  var m = local.match(/^(\d+)(?:\.r(\d+))?$/);
+  return m ? {num: m[1], versao: parseInt(m[2] || '1', 10)} : {num: local, versao: 1};
 }
 function vNumeroPortal(v){
   var d=String(v||'').replace(/\D/g,'');
@@ -1385,17 +1398,21 @@ async function fazerLogin(){
   btn.disabled = true;
   btn.textContent = 'Verificando...';
 
-  try{
-    await auth.signInWithEmailAndPassword(emailFalsoPortal(num), senha);
-    /* onAuthStateChanged cuida do resto — login novo e sessão restaurada
-       passam pelo mesmo caminho, sem duas lógicas fazendo a mesma coisa. */
-  }catch(e){
-    var semAcesso=['auth/user-not-found','auth/wrong-password','auth/invalid-credential','auth/invalid-login-credentials'];
-    if(semAcesso.indexOf(e.code)>-1){
-      err.textContent = 'WhatsApp ou senha incorretos.';
-    }else{
-      err.textContent = 'Não consegui conectar. Verifique a internet e tente de novo.';
+  /* Tenta da versão mais nova para a mais antiga: quem teve a senha
+     redefinida entra na primeira tentativa. */
+  var credRuim=['auth/user-not-found','auth/wrong-password','auth/invalid-credential','auth/invalid-login-credentials'];
+  var erroRede=null, entrou=false;
+  for(var v=PORTAL_MAX_VERSOES; v>=1 && !entrou; v--){
+    try{
+      await auth.signInWithEmailAndPassword(emailFalsoPortal(num, v), senha);
+      entrou=true;   /* onAuthStateChanged assume daqui */
+    }catch(e){
+      if(credRuim.indexOf(e.code)<0){ erroRede=e; break; }
     }
+  }
+  if(!entrou){
+    err.textContent = erroRede ? 'Não consegui conectar. Verifique a internet e tente de novo.'
+                               : 'WhatsApp ou senha incorretos.';
     err.style.display = 'block';
     btn.disabled = false;
     btn.textContent = 'Entrar';
@@ -4019,7 +4036,8 @@ window.addEventListener('load', async ()=>{
       document.getElementById('inp-senha').value='';
       return;
     }
-    var num=String(user.email||'').split('@')[0];
+    var _id=_portalDoEmail(user.email);
+    var num=_id.num;
     var lista={};
     try{
       var snap=await db.collection('config').doc('responsaveis').get();
@@ -4034,6 +4052,18 @@ window.addEventListener('load', async ()=>{
        de empresas usada quando o acesso é "vê todas". Sem isso o mapa
        ainda está vazio nesse ponto (era carregado só dentro do
        iniciarPortal, depois da decisão). */
+    /* Senha antiga não vale: a conta velha continua existindo no
+       Firebase, mas o cadastro diz qual versão está valendo. Se a
+       pessoa entrou por uma versão vencida, cai fora aqui. */
+    var _vAtual=parseInt((lista[num]||{}).authVersao||1,10);
+    if(_id.versao!==_vAtual){
+      document.getElementById('login-err').textContent='Esta senha foi substituída. Use a senha mais recente que a NH enviou.';
+      document.getElementById('login-err').style.display='block';
+      document.getElementById('btn-login').disabled=false;
+      document.getElementById('btn-login').textContent='Entrar';
+      await auth.signOut();
+      return;
+    }
     try{ await carregarCoresEmpresas(); }catch(e){}
     var perfil=resolverPerfilPortal(num,lista,EMP_NOME_POR_CNPJ);
     if(!perfil.ok){
