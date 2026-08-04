@@ -11453,9 +11453,22 @@ function nhFecharJanela(el){
   }
   el.classList.remove('open');el.style.display='none';}
 
-/* Uma janela "tem trabalho dentro" quando algum campo dela foi preenchido.
-   Só nesse caso ela vira à prova de clique fora — janelas de consulta,
+/* Janela de cadastro = tem campo para preencher. Essas nunca fecham por
+   clique no fundo, mesmo ainda vazias: um clique fora sem querer logo no
+   começo do preenchimento também custa retrabalho. Janelas de consulta,
    sem formulário, continuam fechando no fundo como antes. */
+function nhJanelaEhFormulario(el){
+  if(!el)return false;
+  var campos=el.querySelectorAll('input,select,textarea');
+  for(var i=0;i<campos.length;i++){
+    var c=campos[i];
+    if(c.type==='hidden'||c.disabled)continue;
+    return true;
+  }
+  return false;
+}
+
+/* Usado só para decidir se o Esc pergunta antes de descartar. */
 function nhJanelaComDados(el){
   if(!el)return false;
   var campos=el.querySelectorAll('input,select,textarea');
@@ -11487,9 +11500,7 @@ document.addEventListener('mousedown',function(e){
   var solta=function(ev){
     document.removeEventListener('mouseup',solta,true);
     if(ev.target!==alvo)return;
-    /* Cadastro em andamento não se perde por um clique fora: avisa e
-       mantém tudo como estava. Para fechar, use Cancelar ou o ✕. */
-    if(nhJanelaComDados(alvo)){
+    if(nhJanelaEhFormulario(alvo)){
       if('function'==typeof toast)toast('Use Cancelar ou o ✕ para fechar — assim você não perde o que preencheu','info');
       return;
     }
