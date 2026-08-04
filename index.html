@@ -3088,6 +3088,7 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
       </div>
     </div>
     <div class="ac-modal-bd">
+      <div class="ac-erro" id="ac-sn-alerta"></div>
       <div class="ac-cred">
         <div class="ac-cred-l">Entra com</div>
         <div class="ac-cred-v" id="ac-sn-wpp"></div>
@@ -4479,16 +4480,17 @@ async function acSalvar(){
       return;
     }
 
-    /* Conta no Firebase Auth (é o que de fato deixa a pessoa entrar). */
-    var aviso='';
+    /* Quem manda no login é o Firebase Auth, não o hash daqui. Criar
+       conta nova funciona; TROCAR a senha de uma conta que já existe
+       não dá pelo navegador (é limitação do Firebase — exige servidor).
+       Por isso o resultado é informado com honestidade em vez de
+       mostrar uma senha que não vai funcionar. */
+    var authAviso=null;
     if(senhaGerada){
-      if(reg.authMigrado){
-        aviso='A conta desta pessoa já existe. A senha nova vale a partir de agora no sistema, mas se ela não conseguir entrar, me avise.';
-      }else{
-        var ra=await criarContaAuthResp(num,senhaGerada);
-        if(ra.ok)reg.authMigrado=true;
-        else aviso='Não consegui preparar o acesso no Firebase agora — '+ra.erro;
-      }
+      var ra=await criarContaAuthResp(num,senhaGerada);
+      if(ra.ok&&!ra.jaExistia){ reg.authMigrado=true; }
+      else if(ra.ok&&ra.jaExistia){ reg.authMigrado=true; authAviso='existente'; }
+      else { authAviso='falhou:'+(ra.erro||''); }
     }
 
     RESPONSAVEIS[num]=reg;
@@ -4496,9 +4498,8 @@ async function acSalvar(){
 
     acFechar();
     acRender();
-    if(senhaGerada)acMostrarSenha(nome,num,senhaGerada,novo);
+    if(senhaGerada)acMostrarSenha(nome,num,senhaGerada,novo,authAviso);
     else toast('✅ Acesso atualizado','ok');
-    if(aviso)toast(aviso,'info');
   }catch(e){
     acErro('N&atilde;o consegui salvar: '+esc0(e.message||String(e)));
   }finally{
@@ -4508,22 +4509,21 @@ async function acSalvar(){
 
 async function acRedefinir(num){
   var r=RESPONSAVEIS[num]||{};
-  if(!confirm('Gerar uma senha nova para "'+(r.nome||num)+'"?\n\nA senha atual deixa de valer na hora.'))return;
+  if(!confirm('Gerar uma senha nova para "'+(r.nome||num)+'"?'))return;
   try{
     var nova=nhSenhaSugerida();
     r.salt=nhNovoSalt();
     r.hash=await nhHashSenha(nova,r.salt);
     r.atualizadoEm=Date.now();
-    var aviso='';
-    if(!r.authMigrado){
-      var ra=await criarContaAuthResp(num,nova);
-      if(ra.ok)r.authMigrado=true; else aviso=ra.erro;
-    }
+    var ra=await criarContaAuthResp(num,nova);
+    var authAviso=null;
+    if(ra.ok&&!ra.jaExistia){ r.authMigrado=true; }
+    else if(ra.ok&&ra.jaExistia){ r.authMigrado=true; authAviso='existente'; }
+    else { authAviso='falhou:'+(ra.erro||''); }
     RESPONSAVEIS[num]=r;
     await salvarResponsaveis();
     acRender();
-    acMostrarSenha(r.nome,num,nova,false);
-    if(aviso)toast('Aviso: '+aviso,'info');
+    acMostrarSenha(r.nome,num,nova,false,authAviso);
   }catch(e){toast('Erro ao redefinir: '+e.message,'err');}
 }
 
@@ -4546,11 +4546,36 @@ async function acExcluir(num){
 }
 
 /* ── Senha gerada ───────────────────────────────────────────────── */
-function acMostrarSenha(nome,num,senha,nova){
+function acMostrarSenha(nome,num,senha,nova,authAviso){
   _acCred={nome:nome,num:num,senha:senha};
   document.getElementById('ac-sn-tit').textContent=nova?'Acesso criado':'Senha redefinida';
   document.getElementById('ac-sn-wpp').textContent=nhFormataWpp(num);
   document.getElementById('ac-sn-senha').textContent=senha;
+
+  /* Quando a conta de login já existia, o Firebase não deixa trocar a
+     senha pelo navegador. Avisar é obrigatório: sem isso o admin manda
+     uma senha que não entra — foi exatamente o que aconteceu. */
+  var box=document.getElementById('ac-sn-alerta');
+  if(box){
+    if(authAviso==='existente'){
+      box.className='ac-erro on';
+      box.style.background='rgba(234,179,8,.1)';box.style.borderColor='rgba(234,179,8,.4)';box.style.color='#eab308';
+      box.innerHTML='<b>&#9888; Esta senha ainda N&Atilde;O vale para entrar.</b><br>'+
+        'Esta pessoa j&aacute; tinha login criado, e o Firebase n&atilde;o deixa trocar a senha de uma conta existente pelo navegador '+
+        '(exige servidor). Para valer, fa&ccedil;a assim:<br>'+
+        '<span style="display:block;margin-top:7px;line-height:1.7">'+
+        '1. Abra o <a href="https://console.firebase.google.com/project/nh-licitacoes/authentication/users" target="_blank" style="color:var(--nh);text-decoration:underline">Firebase &rarr; Authentication</a><br>'+
+        '2. Procure por <b>'+esc0(num)+'@nh.interno</b><br>'+
+        '3. No menu <b>&#8942;</b> da linha, escolha <b>Excluir usu&aacute;rio</b><br>'+
+        '4. Volte aqui e clique em <b>Nova senha</b> de novo &mdash; a&iacute; a conta &eacute; recriada e a senha passa a funcionar</span>';
+    }else if(authAviso&&authAviso.indexOf('falhou:')===0){
+      box.className='ac-erro on';
+      box.innerHTML='<b>N&atilde;o consegui criar o login desta pessoa.</b><br>'+esc0(authAviso.replace('falhou:',''))+
+        '<br>O cadastro foi salvo, mas ela ainda n&atilde;o consegue entrar. Tente "Nova senha" novamente.';
+    }else{
+      box.className='ac-erro';box.innerHTML='';
+    }
+  }
   document.getElementById('mo-ac-senha').style.display='flex';
 }
 function _acTexto(){
