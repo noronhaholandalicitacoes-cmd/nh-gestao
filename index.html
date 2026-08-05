@@ -13968,8 +13968,15 @@ if(typeof loadAll==='function'){
 function nhAbrirAnaliseContrato(idx){
   var g=(FIL.ganhas||[])[idx];
   if(!g){toast('Contrato não encontrado','err');return;}
+  /* Leva junto o que o sistema já sabe do contrato. A IA lia os PDFs às
+     cegas: não sabia de quem era, quando foi assinado nem quando vence —
+     e prazo é justamente o que decide se ainda dá para pedir alguma coisa. */
   _acCtx={idx:idx, id:String(g[0]||'').trim(), emp:String(g[2]||'').trim(),
-          titulo:String(g[3]||'').trim(), pasta:String(g[42]||'').trim()};
+          titulo:String(g[3]||'').trim(), pasta:String(g[42]||'').trim(),
+          objeto:String(g[4]||'').trim(), municipio:String(g[6]||'').trim(),
+          valor:String(g[7]||'').trim(), contrato:String(g[8]||'').trim(),
+          vigencia:String(g[10]||'').trim(), assinatura:String(g[11]||'').trim(),
+          vencimento:String(g[12]||'').trim()};
   _acArquivos=[]; _acSelecionados=[]; _acRemovidos=[];
 
   var m=document.getElementById('ac-modal');
@@ -13986,7 +13993,7 @@ function nhAbrirAnaliseContrato(idx){
       +'<div style="padding:16px 18px;overflow-y:auto;flex:1">'
         +'<div style="font-size:12px;color:var(--t3);line-height:1.6;margin-bottom:12px">A IA vai ler o contrato e identificar o que o instrumento <b>permite</b>: recomposição/reequilíbrio, reajuste por índice, prorrogação de prazo e acréscimo de valor — com as cláusulas correspondentes. O resultado fica salvo no card e alimenta o parecer de encerramento.</div>'
         +'<div id="ac-passo1"></div>'
-        +'<div id="ac-lista" style="margin-top:10px"></div>'
+        +'<div id="ac-doc-lista" style="margin-top:10px"></div>'
         +'<div id="ac-removidos" style="margin-top:2px"></div>'
         +'<div id="ac-manuais" style="margin-top:6px"></div>'
         +'<div id="ac-sel-info" style="margin-top:8px;font-size:11.5px;color:var(--t2)"></div>'
@@ -14004,7 +14011,7 @@ function nhAbrirAnaliseContrato(idx){
 
   document.getElementById('ac-sub').textContent=_acCtx.emp+' · #'+_acCtx.id+(_acCtx.titulo?' · '+_acCtx.titulo.substring(0,50):'');
   document.getElementById('ac-result').innerHTML='';
-  document.getElementById('ac-lista').innerHTML='';
+  document.getElementById('ac-doc-lista').innerHTML='';
   document.getElementById('ac-manuais').innerHTML='';
   var _rm=document.getElementById('ac-removidos'); if(_rm)_rm.innerHTML='';
   document.getElementById('ac-sel-info').innerHTML='';
@@ -14116,7 +14123,12 @@ async function _acListarPasta(folderId,driveKey,prefixo,entrarEmSubpastas){
 }
 
 function _acRenderLista(){
-  var box=document.getElementById('ac-lista');
+  /* "ac-doc-lista", não "ac-lista": este modal e o painel Configurações →
+     Acessos nasceram com o mesmo prefixo ac-, e os dois tinham um elemento
+     "ac-lista". getElementById devolve o primeiro do documento, que é o de
+     Acessos — então a lista de arquivos ia parar num painel invisível e o
+     modal ficava só com o contador. */
+  var box=document.getElementById('ac-doc-lista');
   if(!box)return;
   if(!_acArquivos.length){box.innerHTML='';return;}
   /* Caixinha de marcar/desmarcar: o que estiver marcado e exatamente o que
@@ -14335,28 +14347,53 @@ async function nhAcAnalisar(){
 
     passo('A IA está lendo '+partes.length+' documento(s) em conjunto...');
 
+    /* A IA precisa saber a data de hoje e o que o cadastro já registra:
+       sem isso não dá para dizer se ainda há tempo de pedir prorrogação,
+       nem para apontar divergência entre o papel e o sistema. */
+    var _dh=new Date();
+    var _hoje=('0'+_dh.getDate()).slice(-2)+'/'+('0'+(_dh.getMonth()+1)).slice(-2)+'/'+_dh.getFullYear();
+    var _fichaLinhas=[
+      ['Empresa contratada',_acCtx.emp],['Órgão / processo',_acCtx.titulo],
+      ['Objeto',_acCtx.objeto],['Município',_acCtx.municipio],
+      ['Nº do contrato',_acCtx.contrato],['Valor registrado',_acCtx.valor],
+      ['Vigência (meses)',_acCtx.vigencia],['Data de assinatura',_acCtx.assinatura],
+      ['Vencimento registrado',_acCtx.vencimento]
+    ].filter(function(p){return p[1];}).map(function(p){return '- '+p[0]+': '+p[1];}).join('\n');
+
     var prompt=contexto
-      +'Você é advogado especialista em contratos administrativos brasileiros (Lei 14.133/2021 e Lei 8.666/93). '
+      +'HOJE É '+_hoje+'.\n\n'
+      +'Você é advogado especialista em contratos administrativos brasileiros (Lei 14.133/2021 e Lei 8.666/93), '
+      +'assessorando a CONTRATADA '+(_acCtx.emp||'(empresa)')+' — ou seja, seu foco é o que ELA pode pleitear.\n\n'
+      +(_fichaLinhas?('DADOS JÁ REGISTRADOS NO SISTEMA (podem estar desatualizados — confira contra os documentos):\n'+_fichaLinhas+'\nSe algum documento contradisser um destes dados, aponte a divergência no campo "alerta".\n\n'):'')
       +'Foram anexados '+partes.length+' documento(s) referentes ao MESMO contrato ('+nomes.join(', ')+') — pode haver o instrumento original e termos aditivos. '
-      +'Leia TODOS em conjunto e identifique EXCLUSIVAMENTE o que os instrumentos preveem, considerando as alterações que os aditivos fizeram no contrato original. '
-      +'Não invente cláusulas: se algo não constar, marque como não previsto.\n'
+      +'Leia TODOS em conjunto e identifique o que os instrumentos preveem, considerando as alterações que os aditivos fizeram no contrato original. '
+      +'Não invente cláusulas: se algo não constar do contrato, diga que não está previsto e cite qual documento você leu para concluir isso.\n'
+      +'DISTINÇÃO IMPORTANTE: reequilíbrio econômico-financeiro é DIREITO do contratado por lei (art. 124 e 130 da Lei 14.133/2021), mesmo que o contrato seja silente. '
+      +'Portanto "permite_recomposicao" só deve ser false se o contrato VEDAR expressamente ou se o caso for juridicamente incabível — nunca apenas por ausência de cláusula. '
+      +'Quando o direito vier da lei e não do contrato, diga isso com todas as letras no texto.\n'
       +'ATENÇÃO ESPECIAL: se houver termos aditivos de prorrogação, calcule quanto do prazo máximo já foi utilizado e quanto AINDA RESTA. '
       +'Um contrato pode ser prorrogável em tese, mas já ter esgotado o limite legal — nesse caso "permite_prorrogacao" deve ser false, e o motivo explicado.\n'
-      +'REGRA DE FORMATO: os campos "indice_reajuste", "periodicidade_reajuste", "limite_prorrogacao", "limite_acrescimo", "prazo_utilizado" e "prazo_restante" são ETIQUETAS CURTAS de no máximo 4 palavras (ex.: "IPCA", "anual", "até 60 meses", "25%", "24 meses", "36 meses"). Se não houver definição, deixe "". A explicação completa vai no texto da análise, nunca nesses campos. O campo "resumo" tem no máximo 35 palavras.\n\n'
+      +'PRAZO DE AÇÃO: usando a data de hoje, calcule e diga explicitamente ATÉ QUANDO cada pedido precisa ser protocolado '
+      +'(prorrogação tem de ser requerida e assinada ANTES do vencimento — contrato vencido não se prorroga, refaz-se). '
+      +'Se faltarem menos de 90 dias para o vencimento, ou se algum prazo já tiver passado, escreva isso no campo "alerta" começando com "URGENTE:".\n'
+      +'REGRA DE FORMATO: os campos "indice_reajuste", "periodicidade_reajuste", "limite_prorrogacao", "limite_acrescimo", "prazo_utilizado", "prazo_restante", "vence_em" e "prazo_para_prorrogar" são ETIQUETAS CURTAS de no máximo 4 palavras (ex.: "IPCA", "anual", "até 60 meses", "25%", "24 meses", "31/12/2026"). Se não houver definição, deixe "". A explicação completa vai no texto da análise, nunca nesses campos. O campo "resumo" tem no máximo 35 palavras.\n\n'
       +'COMECE a resposta com este bloco (JSON válido em uma linha):\n'
       +'<VEREDITO>{"permite_recomposicao":true|false,"permite_reajuste":true|false,"permite_prorrogacao":true|false,"permite_acrescimo":true|false,'
+      +'"base_recomposicao":"lei|contrato|ambos|vedado",'
       +'"indice_reajuste":"","periodicidade_reajuste":"","limite_prorrogacao":"","limite_acrescimo":"",'
       +'"aditivos_identificados":0,"prazo_utilizado":"","prazo_restante":"",'
+      +'"vence_em":"","prazo_para_prorrogar":"",'
       +'"clausulas":{"recomposicao":"","reajuste":"","prorrogacao":"","acrescimo":""},'
       +'"resumo":"frase objetiva sobre o que o contrato admite HOJE","alerta":"","mudou_em_relacao_anterior":""}</VEREDITO>\n\n'
       +'Depois do bloco, escreva a análise em texto, sem tabelas markdown, nesta ordem:\n'
       +'#### 1. Documentos analisados\nLista do que foi lido e o que cada um alterou (contrato original, 1º aditivo, etc.).\n\n'
-      +'#### 2. Reequilíbrio econômico-financeiro / Recomposição\nO contrato prevê? Em que hipóteses? Cite a cláusula.\n\n'
-      +'#### 3. Reajuste de preços\nHá índice definido? Qual a periodicidade mínima? Algum aditivo alterou isso? Cláusula.\n\n'
+      +'#### 2. Reequilíbrio econômico-financeiro / Recomposição\nO contrato prevê? Em que hipóteses? Cite a cláusula. Se não houver cláusula, diga que o direito decorre da lei e qual artigo.\n\n'
+      +'#### 3. Reajuste de preços\nHá índice definido? Qual a periodicidade mínima? A partir de que data-base conta? Algum aditivo alterou isso? Cláusula.\n\n'
       +'#### 4. Prorrogação de prazo\nÉ prorrogável? Quanto do limite já foi usado pelos aditivos e quanto resta? Cláusula e fundamento legal.\n\n'
-      +'#### 5. Acréscimos e supressões\nQual o percentual admitido? Já houve acréscimo? Quanto resta de margem?\n\n'
-      +'#### 6. Conclusão\nO que esta empresa pode pleitear neste contrato HOJE, e o que está vedado.'
-      +(regAnt&&regAnt.veredito?'\n\n#### 7. O que mudou em relação à análise anterior\nSe nada mudou, diga que a leitura anterior foi confirmada.':'');
+      +'#### 5. Acréscimos e supressões\nQual o percentual admitido? Já houve acréscimo? Quanto resta de margem, em % e em R$?\n\n'
+      +'#### 6. Prazos e próximos passos\nCom base na data de hoje: quando vence o contrato, até quando protocolar o pedido de prorrogação, e quando o próximo reajuste fica exigível. Se algum prazo estiver perto ou vencido, diga na primeira linha.\n\n'
+      +'#### 7. Conclusão\nO que esta empresa pode pleitear neste contrato HOJE, e o que está vedado.'
+      +(regAnt&&regAnt.veredito?'\n\n#### 8. O que mudou em relação à análise anterior\nSe nada mudou, diga que a leitura anterior foi confirmada.':'');
 
     var resp=await _nhGeminiLongo(key,partes.concat([{text:prompt}]),passo);
 
@@ -14413,7 +14450,20 @@ function _acRenderVeredito(reg){
     +chip(v.permite_prorrogacao,'Prorrogação',v.limite_prorrogacao||'')
     +chip(v.permite_acrescimo,'Acréscimo',v.limite_acrescimo||'')
     +(v.resumo?'<div style="font-size:12px;color:var(--t2);margin-top:8px;line-height:1.6">'+v.resumo+'</div>':'')
-    +(v.alerta?'<div style="font-size:11.5px;color:#eab308;margin-top:6px;line-height:1.55">⚠️ '+v.alerta+'</div>':'')
+    +((v.vence_em||v.prazo_para_prorrogar)
+      ?'<div style="font-size:11px;color:var(--t3);margin-top:7px;line-height:1.6">'
+        +(v.vence_em?'📅 Vence em <b style="color:var(--t2)">'+v.vence_em+'</b>':'')
+        +(v.vence_em&&v.prazo_para_prorrogar?' &nbsp;·&nbsp; ':'')
+        +(v.prazo_para_prorrogar?'Prorrogar até <b style="color:var(--t2)">'+v.prazo_para_prorrogar+'</b>':'')
+      +'</div>':'')
+    /* "URGENTE:" vem do prompt quando falta pouco para vencer — aí o aviso
+       precisa gritar em vermelho, não passar como observação amarela. */
+    +(v.alerta?(function(){
+        var urg=/^\s*URGENTE/i.test(v.alerta);
+        return '<div style="font-size:11.5px;color:'+(urg?'#ef4444':'#eab308')+';margin-top:6px;line-height:1.55;'
+          +(urg?'background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.35);border-radius:7px;padding:6px 9px;font-weight:700':'')
+          +'">'+(urg?'🚨 ':'⚠️ ')+v.alerta+'</div>';
+      })():'')
     +'<div style="font-size:10px;color:var(--t3);margin-top:7px">Analisado em '+(reg.analisadoEm||'')+(reg.arquivo?' · '+reg.arquivo:'')+'</div>'
     +'</div>';
 }
