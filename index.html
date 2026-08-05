@@ -1564,6 +1564,47 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
 #tabela-proposta th .btn-rm-col:hover{opacity:1}
 #tabela-proposta th .btn-fx-col{background:none;border:none;color:var(--nh);cursor:pointer;font-size:11px;font-style:italic;font-weight:800;padding:0 2px;opacity:.65;flex-shrink:0;line-height:1}
 #tabela-proposta th .btn-fx-col:hover{opacity:1}
+
+/* ── Tela da empresa: abas e lista de certidões ─────────────── */
+.emp-abas{display:flex;gap:4px;background:var(--s2);border:1px solid var(--b1);
+  border-radius:11px;padding:4px;margin-bottom:16px;overflow-x:auto}
+.emp-aba{flex:1;min-width:104px;background:none;border:none;color:var(--t3);
+  font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:700;padding:9px 12px;
+  border-radius:8px;cursor:pointer;white-space:nowrap;display:flex;align-items:center;
+  justify-content:center;gap:6px;transition:all .15s}
+.emp-aba:hover{color:var(--t2)}
+.emp-aba.on{background:var(--s1);color:var(--nh);box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.emp-aba-n{background:var(--s3);color:var(--t3);font-size:10px;font-weight:800;
+  padding:1px 7px;border-radius:20px;min-width:18px}
+.emp-aba.on .emp-aba-n{background:var(--nha2);color:var(--nh)}
+
+.emp-acoes{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:13px}
+.emp-bt-nh{background:linear-gradient(135deg,#ea580c,#f97316);border:none;color:#fff;
+  padding:8px 15px;border-radius:9px;cursor:pointer;font-size:12.5px;font-weight:800;
+  font-family:'Outfit',sans-serif}
+.emp-bt{background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:8px 14px;
+  border-radius:9px;cursor:pointer;font-size:12.5px;font-weight:700;font-family:'Outfit',sans-serif}
+.emp-bt:hover{border-color:var(--b2)}
+.emp-dica{font-size:11px;color:var(--t3);flex:1;min-width:180px}
+
+.cert-linha{background:var(--s2);border:1px solid var(--b1);border-left:3px solid var(--b1);
+  border-radius:9px;margin-bottom:6px;overflow:hidden}
+.cert-linha-topo{display:flex;align-items:center;gap:9px;padding:11px 13px;cursor:pointer}
+.cert-linha-topo:hover{background:var(--s3)}
+.cert-linha-nome{flex:1;min-width:0;font-size:13px;font-weight:600;color:var(--t1);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cert-linha-data{font-size:11.5px;color:var(--t3);flex-shrink:0;font-family:'JetBrains Mono',monospace}
+.cert-linha-st{font-size:11px;font-weight:800;flex-shrink:0;min-width:104px;text-align:right}
+.cert-linha-seta{font-size:11px;color:var(--t3);flex-shrink:0;width:12px;text-align:center}
+.cert-flag{font-size:9px;font-weight:800;color:#ef4444;background:rgba(239,68,68,.12);
+  border:1px solid rgba(239,68,68,.35);padding:2px 6px;border-radius:20px;flex-shrink:0}
+.cert-linha-edit:empty{display:none}
+.cert-linha-edit{padding:0 11px 11px}
+@media(max-width:640px){
+  .cert-linha-data{display:none}
+  .cert-linha-st{min-width:auto}
+  .emp-aba{min-width:auto;font-size:11.5px;padding:8px 9px}
+}
 #tabela-proposta td{border:1px solid #2a2a2a;padding:0;position:relative}
 #tabela-proposta td input,#tabela-proposta td textarea{background:transparent;border:none;color:#e5e5e5;font-family:Outfit,sans-serif;font-size:12px;padding:7px 9px;width:100%;outline:none;resize:none;overflow:hidden}
 #tabela-proposta td input:focus,#tabela-proposta td textarea:focus{background:rgba(249,115,22,.05);outline:1px solid rgba(249,115,22,.4)}
@@ -14817,14 +14858,145 @@ async function addPortal(emp){
   }else buildEmpresa(emp);
 }
 
-/* Ao abrir a empresa, o catálogo precisa já estar em memória — senão o
-   primeiro desenho dos cards não acha endereço nenhum e some o atalho. */
-if('function'===typeof buildEmpresa){
-  var _origBuildEmpresa=buildEmpresa;
-  buildEmpresa=async function(emp){
-    try{ if(!Object.keys(PORTAL_URLS||{}).length)await ptCarregarUrls(); }catch(_e){}
-    return _origBuildEmpresa(emp);
+/* ══════════════════════════════════════════════════════════════════
+   TELA DA EMPRESA — reorganizada em abas
+   Antes as quatro áreas (portais, certidões, documentação e dossiê)
+   vinham empilhadas na mesma rolagem, cada uma com cartões grandes.
+   Era informação demais de uma vez. Agora o topo resume a situação e
+   só a aba escolhida aparece.
+   ══════════════════════════════════════════════════════════════════ */
+var _empAbaAtual='certidoes';
+
+async function buildEmpresa(emp){
+  var body=document.getElementById('emp-body');
+  if(!body)return;
+  body.innerHTML='<div class="load"><div class="spin"></div>Carregando '+esc0(emp)+'...</div>';
+  try{ if(!Object.keys(PORTAL_URLS||{}).length)await ptCarregarUrls(); }catch(_e){}
+  await loadEmpData(emp);
+
+  var daLista=(EMPRESAS||[]).filter(function(x){return x.nome===emp;})[0]||{};
+  if(!EMP_DATA[emp])EMP_DATA[emp]={cnpj:daLista.cnpj||'',portais:[],docs:[]};
+  if(daLista.cnpj&&!EMP_DATA[emp].cnpj)EMP_DATA[emp].cnpj=daLista.cnpj;
+  if(!TOPS['emp-'+emp])TOPS['emp-'+emp]=['Empresa — '+emp,'Portais, certidões e documentação'];
+
+  var cor=empColor(emp), certs=getCerts(emp);
+  var venc=0,perto=0;
+  certs.forEach(function(c){var d=calcDias(c.validade);
+    if(null!==d){ if(d<0)venc++; else if(d<=30)perto++; }});
+
+  var pill=function(n,txt,cor2){
+    return n?('<span style="background:'+cor2+'1a;border:1px solid '+cor2+'55;color:'+cor2+';padding:4px 11px;border-radius:20px;font-size:11px;font-weight:800;white-space:nowrap">'+n+' '+txt+'</span>'):'';
   };
+
+  var h=''
+   +'<div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;padding:16px 20px;background:var(--s2);border:1px solid var(--b1);border-radius:13px;flex-wrap:wrap">'
+     +'<div style="width:44px;height:44px;border-radius:11px;background:'+cor+';display:flex;align-items:center;justify-content:center;font-family:JetBrains Mono,monospace;font-weight:800;font-size:14px;color:#000;flex-shrink:0">'+esc0(emp.substring(0,2))+'</div>'
+     +'<div style="flex:1;min-width:140px">'
+       +'<div style="font-size:19px;font-weight:800;color:var(--t1);line-height:1.2">'+esc0(emp)+'</div>'
+       +'<div style="font-size:12px;color:var(--t3)">'+(EMP_DATA[emp].cnpj?('CNPJ '+esc0(EMP_DATA[emp].cnpj)):'sem CNPJ cadastrado')+'</div>'
+     +'</div>'
+     +'<div style="display:flex;gap:6px;flex-wrap:wrap">'+pill(venc,'vencida'+(venc>1?'s':''),'#ef4444')+pill(perto,'vencendo','#eab308')+'</div>'
+   +'</div>';
+
+  var abas=[['certidoes','Certidões',certs.length],
+            ['portais','Portais',getPortais(emp).length],
+            ['documentos','Documentação',getDocs(emp).length],
+            ['dossie','Dossiê IA',null]];
+  h+='<div class="emp-abas">'+abas.map(function(a){
+      return '<button class="emp-aba'+(a[0]===_empAbaAtual?' on':'')+'" data-aba="'+a[0]+'" onclick="empAba(\''+a[0]+'\',\''+emp.replace(/'/g,"\\'")+'\')">'
+        +esc0(a[1])+(null!==a[2]?'<span class="emp-aba-n">'+a[2]+'</span>':'')+'</button>';
+    }).join('')+'</div>';
+
+  h+='<div id="emp-aba-conteudo"></div>';
+  body.innerHTML=h;
+  empAba(_empAbaAtual,emp);
+}
+
+async function empAba(nome,emp){
+  _empAbaAtual=nome;
+  document.querySelectorAll('.emp-aba').forEach(function(b){
+    b.classList.toggle('on',b.getAttribute('data-aba')===nome);});
+  var box=document.getElementById('emp-aba-conteudo');
+  if(!box)return;
+
+  if('certidoes'===nome){
+    box.innerHTML=
+      '<div class="emp-acoes">'
+       +'<button class="emp-bt-nh" onclick="nhCertCentral(\''+emp.replace(/'/g,"\\'")+'\')">&#128203; Central de Certid&otilde;es</button>'
+       +'<button class="emp-bt" onclick="addCert(\''+emp.replace(/'/g,"\\'")+'\')">+ Nova certid&atilde;o</button>'
+       +'<span class="emp-dica">Emitir, ler a validade por IA e enviar por e-mail &mdash; tudo na Central.</span>'
+      +'</div>'
+      +'<div id="cert-lista-emp"></div>'
+      +'<div class="cert-grid" id="cert-grid-'+emp.replace(/ /g,'_')+'" style="display:none"></div>';
+    _empRenderCerts(emp);
+  }
+  else if('portais'===nome){
+    box.innerHTML=
+      '<div class="emp-acoes">'
+       +'<button class="emp-bt-nh" onclick="addPortal(\''+emp.replace(/'/g,"\\'")+'\')">+ Novo portal</button>'
+       +'<span class="emp-dica">O endere&ccedil;o vem de <b>Configura&ccedil;&otilde;es &rsaquo; Portais</b> e vira o bot&atilde;o de acesso.</span>'
+      +'</div>'+renderPortaisGrid(emp);
+    setTimeout(lfRenderAll,0);
+  }
+  else if('documentos'===nome){
+    box.innerHTML=
+      '<div class="emp-acoes">'
+       +'<button class="emp-bt-nh" onclick="addDoc(\''+emp.replace(/'/g,"\\'")+'\')">+ Novo documento</button>'
+       +'<span class="emp-dica">Checklist do que costuma ser exigido em habilita&ccedil;&atilde;o.</span>'
+      +'</div>'+renderDocsTable(emp);
+  }
+  else if('dossie'===nome){
+    box.innerHTML='';
+    try{
+      await nhInjectDossieCard(emp);
+      var c=document.getElementById('nh-dossie-card');
+      if(c&&c.parentNode!==box)box.appendChild(c);   /* nasce no emp-body; trago para a aba */
+    }catch(_e){ box.innerHTML='<div class="empty">Não consegui carregar o dossiê.</div>'; }
+  }
+}
+
+/* Lista enxuta, do mais urgente para o menos. O cartão de edição só
+   aparece quando se clica na linha — antes todos ficavam abertos ao
+   mesmo tempo e a tela virava um paredão. */
+function _empRenderCerts(emp){
+  var box=document.getElementById('cert-lista-emp');
+  if(!box)return;
+  var certs=getCerts(emp).slice();
+  if(!certs.length){
+    box.innerHTML='<div class="empty nh-empty"><p>Nenhuma certidão cadastrada ainda</p>'
+      +'<button class="btn btn-nh btn-sm" onclick="nhCertCentral(\''+emp.replace(/'/g,"\\'")+'\')">Abrir a Central de Certidões</button></div>';
+    return;
+  }
+  certs.sort(function(a,b){
+    var da=calcDias(a.validade), db_=calcDias(b.validade);
+    if(null===da)return 1; if(null===db_)return -1; return da-db_;
+  });
+  box.innerHTML=certs.map(function(c){
+    var st=_ccStatus(c), t=emp.replace(/\s/g,'')+'-c'+c.id;
+    return '<div class="cert-linha" style="border-left-color:'+st.cor+'">'
+      +'<div class="cert-linha-topo" onclick="empAbrirCert(\''+emp.replace(/'/g,"\\'")+'\','+c.id+')">'
+        +'<span class="cert-linha-nome">'+esc0(c.item||'(sem nome)')+'</span>'
+        +(c.arquivoGuardado?'<span title="Arquivo guardado">&#128206;</span>':'')
+        +(false===c.negativa?'<span class="cert-flag">POSITIVA</span>':'')
+        +'<span class="cert-linha-data">'+esc0(c.validade||'—')+'</span>'
+        +'<span class="cert-linha-st" style="color:'+st.cor+'">'+st.txt+'</span>'
+        +'<span class="cert-linha-seta" id="seta-'+t+'">&#9662;</span>'
+      +'</div>'
+      +'<div class="cert-linha-edit" id="edit-'+t+'"></div>'
+    +'</div>';
+  }).join('');
+}
+
+function empAbrirCert(emp,id){
+  var t=emp.replace(/\s/g,'')+'-c'+id;
+  var box=document.getElementById('edit-'+t), seta=document.getElementById('seta-'+t);
+  if(!box)return;
+  if(box.innerHTML){ box.innerHTML=''; if(seta)seta.innerHTML='&#9662;'; return; }
+  var c=getCerts(emp).filter(function(x){return x.id===id;})[0];
+  if(!c)return;
+  box.innerHTML=renderCertCard(emp,c);
+  if(seta)seta.innerHTML='&#9652;';
+  setTimeout(lfRenderAll,0);
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -15278,30 +15450,33 @@ async function nhCertEnviarEmail(){
   if(btn){btn.disabled=false;btn.innerHTML='&#9993; Enviar por e-mail';}
 }
 
-/* Coloca a porta de entrada da central junto do título da seção de
-   certidões, sem mexer no buildEmpresa minificado. */
-if('function'===typeof buildEmpresa){
-  var _bldAntesCert=buildEmpresa;
-  buildEmpresa=async function(emp){
-    var r=await _bldAntesCert(emp);
-    try{
-      var alvo=null;
-      document.querySelectorAll('#emp-body button.btn-cert-add').forEach(function(b){
-        if(!alvo&&String(b.getAttribute('onclick')||'').indexOf('addCert(')>=0)alvo=b;
-      });
-      if(alvo&&!document.getElementById('cc-abrir')){
-        var b=document.createElement('button');
-        b.id='cc-abrir';
-        b.className='btn-cert-add';
-        b.style.cssText='background:linear-gradient(135deg,#ea580c,#f97316);border:none;color:#fff;margin-right:6px';
-        b.innerHTML='&#128203; Central de Certid&otilde;es';
-        b.onclick=function(){nhCertCentral(emp);};
-        alvo.parentNode.insertBefore(b,alvo);
-      }
-    }catch(_e){}
-    return r;
+/* Depois de mexer nas certidões pela Central, a lista da aba precisa
+   refletir o que mudou sem recarregar a tela inteira. */
+if('function'===typeof nhCertFechar){
+  var _ccFecharOrig=nhCertFechar;
+  nhCertFechar=function(){
+    var m=document.getElementById('cc-modal');
+    if(m)m.style.display='none';
+    if(_ccEmp&&'certidoes'===_empAbaAtual&&document.getElementById('cert-lista-emp'))_empRenderCerts(_ccEmp);
+    else if(_ccEmp)try{buildEmpresa(_ccEmp);}catch(_e){}
   };
 }
+
+/* addCert/deleteCert/saveCertCard mexem na lista; a aba tem de
+   acompanhar, senão o usuário salva e parece que nada aconteceu. */
+['addCert','deleteCert','saveCertCard'].forEach(function(fn){
+  if('function'!==typeof window[fn])return;
+  var orig=window[fn];
+  window[fn]=function(){
+    var r=orig.apply(this,arguments);
+    var emp=arguments[0];
+    var atualiza=function(){
+      if('certidoes'===_empAbaAtual&&document.getElementById('cert-lista-emp'))_empRenderCerts(emp);
+    };
+    if(r&&'function'===typeof r.then)r.then(atualiza,function(){}); else setTimeout(atualiza,60);
+    return r;
+  };
+});
 </script>
 </body>
 </html>
