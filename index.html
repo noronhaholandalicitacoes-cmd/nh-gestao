@@ -3191,7 +3191,7 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
         <div class="cfg-painel" id="cfg-p-portais">
   <div class="pc-card">
     <div class="pc-tit">Portais<span class="cnt" id="pt-cnt"></span></div>
-    <div class="pc-desc">Esta lista alimenta o campo <b>Portal</b> do cadastro de Editais Capturados, da captura do Buscador e da coluna Portal em Em Andamento.</div>
+    <div class="pc-desc">Esta lista alimenta o campo <b>Portal</b> do cadastro de Editais Capturados, da captura do Buscador e da coluna Portal em Em Andamento. O <b>endereço</b> preenchido aqui vira o atalho de acesso direto no card de cada empresa.</div>
     <div style="display:flex;gap:8px;margin:12px 0 14px">
       <input type="text" id="pt-novo" placeholder="Nome do portal (ex: Licitar Digital)" onkeydown="if(event.key==='Enter')ptAdicionar()" style="flex:1;background:var(--s1);border:1px solid var(--b1);color:var(--t1);border-radius:8px;padding:10px 12px;font-size:13px;font-family:Outfit,sans-serif">
       <button class="btn btn-nh" onclick="ptAdicionar()">+ Incluir</button>
@@ -4734,6 +4734,62 @@ function popularRespEdital(emp,valor){
 var PORTAIS_BASE=["Compras Gov","BLL","LICITANET","CONLICITACAO","BNC","Publinexo",
   "PE-Integrado","Compras Públicas","Apoio Cotações","Licitar Digital",
   "Licitações-e","Enviada por E-mail"];
+
+/* ══════════════════════════════════════════════════════════════════
+   ENDEREÇO DOS PORTAIS
+   A lista de NOMES continua em CUSTOM_OPTS['andamento_9'], que é o que
+   alimenta os selects de Editais, Buscador e Em Andamento — mexer no
+   formato dela quebraria os três. Então o endereço mora à parte, num
+   mapa nome→url, e os dois andam juntos ao renomear/excluir.
+   ══════════════════════════════════════════════════════════════════ */
+var PORTAL_URLS={};
+var PORTAL_URLS_PADRAO={
+  "Compras Gov":"https://www.gov.br/compras/pt-br",
+  "BLL":"https://bllcompras.com/",
+  "LICITANET":"https://licitanet.com.br/",
+  "CONLICITACAO":"https://www.conlicitacao.com.br/",
+  "BNC":"https://bnc.org.br/",
+  "Publinexo":"https://www.publinexo.com.br/",
+  "Compras Públicas":"https://www.compraspublicas.com.br/",
+  "Licitar Digital":"https://www.licitardigital.com.br/",
+  "Licitações-e":"https://www.licitacoes-e.com.br/"
+};
+
+async function ptCarregarUrls(){
+  try{
+    var d=await db.collection('config').doc('portais_meta').get();
+    PORTAL_URLS=(d.exists&&d.data()&&d.data().urls)||{};
+  }catch(e){PORTAL_URLS={};}
+  /* Só preenche o que ainda não tem endereço — nunca sobrescreve o seu. */
+  Object.keys(PORTAL_URLS_PADRAO).forEach(function(n){
+    if(!PORTAL_URLS[n])PORTAL_URLS[n]=PORTAL_URLS_PADRAO[n];
+  });
+  return PORTAL_URLS;
+}
+
+async function ptSalvarUrls(){
+  await db.collection('config').doc('portais_meta').set({urls:PORTAL_URLS});
+}
+
+function ptUrl(nome){
+  var u=PORTAL_URLS[String(nome||'').trim()];
+  return u?String(u).trim():'';
+}
+
+/* Aceita "bll.com.br" sem o https:// — senão o link abre como caminho
+   relativo do próprio sistema e cai numa página que não existe. */
+function ptNormalizaUrl(u){
+  u=String(u||'').trim();
+  if(!u)return '';
+  if(!/^https?:\/\//i.test(u))u='https://'+u.replace(/^\/+/,'');
+  return u;
+}
+
+function ptAbrir(nome){
+  var u=ptUrl(nome);
+  if(!u){toast('Esse portal ainda não tem endereço cadastrado','err');return;}
+  window.open(u,'_blank','noopener');
+}
 
 /* A lista viva é a de Configurações › Portais. PORTAIS_BASE só serve de
    ponto de partida na primeira vez, antes de alguém editar a lista. */
@@ -6626,7 +6682,7 @@ function cfgAba(nome){
     if(p)p.classList.toggle('on',n===nome);});
   if('acessos'===nome)acCarregar();
   if('empresas'===nome)renderListaEmpresas();
-  if('portais'===nome)ptRender();
+  if('portais'===nome)ptCarregarUrls().then(ptRender).catch(function(){ptRender();});
   if('cadastros'===nome)carregarCadastros();}
 
 /* ══════════════════════════════════════════════════════════════════
@@ -6672,13 +6728,41 @@ function ptRender(){
   document.getElementById('pt-cnt').textContent=lista.length;
   if(!lista.length){box.innerHTML='<div style="font-size:12px;color:var(--t3)">Nenhum portal cadastrado ainda.</div>';return;}
   box.innerHTML=lista.slice().sort(function(a,b){return a.localeCompare(b,'pt-BR');}).map(function(p){
-    var n=uso[p]||0;
-    return '<div style="display:flex;align-items:center;gap:8px;background:var(--s1);border:1px solid var(--b1);border-radius:9px;padding:9px 12px">'
-      +'<span style="flex:1;font-size:13px;font-weight:600;color:var(--t1)">'+esc0(p)+'</span>'
-      +(n?'<span style="font-size:10.5px;color:var(--t3);background:var(--s3);padding:2px 8px;border-radius:20px">'+n+' processo'+(n>1?'s':'')+'</span>':'')
-      +'<button class="btn btn-ghost" style="padding:5px 10px;font-size:11px" onclick="ptRenomear(\''+esc0(p).replace(/'/g,"\\'")+'\')">Alterar</button>'
-      +'<button class="btn btn-ghost" style="padding:5px 10px;font-size:11px;color:var(--r1)" onclick="ptExcluir(\''+esc0(p).replace(/'/g,"\\'")+'\')">Excluir</button>'
+    var n=uso[p]||0, u=ptUrl(p), esc=esc0(p), js=esc.replace(/'/g,"\\'");
+    return '<div style="background:var(--s1);border:1px solid var(--b1);border-radius:9px;padding:9px 12px">'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+        +'<span style="flex:1;font-size:13px;font-weight:600;color:var(--t1)">'+esc+'</span>'
+        +(n?'<span style="font-size:10.5px;color:var(--t3);background:var(--s3);padding:2px 8px;border-radius:20px">'+n+' processo'+(n>1?'s':'')+'</span>':'')
+        +(u?'<button class="btn btn-ghost" style="padding:5px 10px;font-size:11px;color:var(--nh)" onclick="ptAbrir(\''+js+'\')" title="'+esc0(u)+'">&#8599; Abrir</button>':'')
+        +'<button class="btn btn-ghost" style="padding:5px 10px;font-size:11px" onclick="ptRenomear(\''+js+'\')">Alterar</button>'
+        +'<button class="btn btn-ghost" style="padding:5px 10px;font-size:11px;color:var(--r1)" onclick="ptExcluir(\''+js+'\')">Excluir</button>'
+      +'</div>'
+      /* O endereço fica aqui, junto do nome: é ele que vira o atalho no
+         card da empresa, então tem de ser óbvio quando está faltando. */
+      +'<div style="display:flex;align-items:center;gap:7px;margin-top:7px">'
+        +'<span style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;flex-shrink:0">Endere&ccedil;o</span>'
+        +'<input type="url" value="'+esc0(u).replace(/"/g,'&quot;')+'" placeholder="https://... (usado no atalho do card da empresa)" '
+          +'onchange="ptDefinirUrl(\''+js+'\',this.value)" '
+          +'style="flex:1;background:var(--s2);border:1px solid var(--b1);color:'+(u?'var(--nh)':'var(--t2)')+';border-radius:7px;padding:6px 9px;font-size:11.5px;font-family:Outfit,sans-serif;outline:none">'
+      +'</div>'
       +'</div>';}).join('');
+}
+
+async function ptDefinirUrl(nome,url){
+  var u=ptNormalizaUrl(url);
+  /* Guarda o valor anterior: se a gravação falhar, a memória volta ao que
+     era. Sem isso a tela mostraria um endereço que o banco não tem. */
+  var antes=PORTAL_URLS[nome], tinha=Object.prototype.hasOwnProperty.call(PORTAL_URLS,nome);
+  if(u)PORTAL_URLS[nome]=u; else delete PORTAL_URLS[nome];
+  try{
+    await ptSalvarUrls();
+    ptRender();
+    toast(u?('Endereço de "'+nome+'" salvo'):('Endereço de "'+nome+'" removido'),'ok');
+  }catch(e){
+    if(tinha)PORTAL_URLS[nome]=antes; else delete PORTAL_URLS[nome];
+    ptRender();
+    toast('Não consegui salvar o endereço: '+e.message,'err');
+  }
 }
 
 async function ptAdicionar(){
@@ -6703,6 +6787,12 @@ async function ptRenomear(antigo){
   var i=lista.indexOf(antigo);
   if(-1===i)return;
   lista[i]=novo;
+  /* O endereço acompanha o nome, senão o atalho do card fica órfão. */
+  if(PORTAL_URLS[antigo]){
+    PORTAL_URLS[novo]=PORTAL_URLS[antigo];
+    delete PORTAL_URLS[antigo];
+    try{await ptSalvarUrls();}catch(_e){}
+  }
   /* Arrasta junto os processos que já apontavam para o nome antigo. */
   var alterados=0;
   try{
@@ -6727,6 +6817,7 @@ async function ptExcluir(nome){
   var n=(ptEmUso.mapa||{})[nome]||0;
   if(n){toast('"'+nome+'" está em '+n+' processo(s) — renomeie ou troque o portal deles antes','err');return;}
   if(!confirm('Excluir o portal "'+nome+'" da lista?'))return;
+  if(PORTAL_URLS[nome]){delete PORTAL_URLS[nome];try{await ptSalvarUrls();}catch(_e){}}
   await ptSalvar(ptLista().filter(function(p){return p!==nome;}));
   toast('Portal excluído','ok');
 }
@@ -14548,6 +14639,667 @@ if(typeof _pecMontarPDF==='function'){
       }
     }catch(_e){console.error('pec+analise',_e);}
     return _pecOrig(idx, textoExtra);
+  };
+}
+</script>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   PORTAIS DA EMPRESA — refeitos
+   O nome do portal era digitado livre em cada empresa, então "BLL",
+   "bll" e "B.L.L." viravam coisas diferentes e nada conseguia ligar o
+   cadastro ao endereço. Agora escolhe-se do catálogo (Configurações ›
+   Portais), e o endereço de lá vira o botão de acesso direto.
+   Estas funções substituem as versões antigas de propósito — este bloco
+   roda depois, então é o que vale.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Casa o que está gravado na empresa com o catálogo, ignorando caixa e
+   acento — cadastro antigo escrito "licitanet" continua achando o
+   "LICITANET" do catálogo em vez de virar item solto. */
+function _ptChave(s){
+  return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+}
+function ptDoCatalogo(nome){
+  var alvo=_ptChave(nome);
+  if(!alvo)return '';
+  var achado='';
+  ptLista().forEach(function(p){ if(!achado&&_ptChave(p)===alvo)achado=p; });
+  return achado;
+}
+function ptUrlDoPortal(nome){
+  var cat=ptDoCatalogo(nome);
+  return cat?ptUrl(cat):'';
+}
+
+function renderPortalCard(emp,p){
+  var t=emp.replace(/\s/g,'')+'-p'+p.id;
+  var nome=String(p.portal||'').trim();
+  var noCatalogo=ptDoCatalogo(nome);
+  var url=noCatalogo?ptUrl(noCatalogo):'';
+  var lista=ptLista().slice().sort(function(a,b){return a.localeCompare(b,'pt-BR');});
+
+  var opts='<option value="">— escolha o portal —</option>';
+  lista.forEach(function(x){
+    opts+='<option value="'+esc0(x).replace(/"/g,'&quot;')+'"'+(x===noCatalogo?' selected':'')+'>'+esc0(x)+'</option>';
+  });
+  /* Portal gravado que não existe mais no catálogo não pode sumir da
+     tela — fica listado e avisado, para você decidir o que fazer. */
+  if(nome&&!noCatalogo)
+    opts+='<option value="'+esc0(nome).replace(/"/g,'&quot;')+'" selected>'+esc0(nome)+' (fora do cat&aacute;logo)</option>';
+
+  var o='<div class="cert-card" id="portal-card-'+t+'" style="border-left-color:'+(url?'var(--nh)':'var(--b_)')+'">';
+
+  o+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">'
+    +'<select id="pp-nome-'+t+'" onchange="ptTrocouNoCard(\''+emp+'\','+p.id+')" '
+      +'style="flex:1;background:var(--s2);border:1px solid var(--b1);color:var(--t1);border-radius:8px;padding:7px 9px;font-size:13.5px;font-weight:700;font-family:Outfit,sans-serif;outline:none">'+opts+'</select>'
+    +'</div>';
+
+  o+='<div id="pp-acesso-'+t+'" style="margin-bottom:11px">'+_ptBotaoAcesso(emp,p,t)+'</div>';
+
+  o+='<div class="cert-card-fields">';
+  o+='<div class="cert-field"><div class="cert-field-lbl">Login / Usu&aacute;rio</div>'
+    +'<div style="display:flex;align-items:center;gap:6px">'
+    +'<input type="text" id="pp-login-'+t+'" value="'+String(p.login||'').replace(/"/g,'&quot;')+'" placeholder="Login ou e-mail" style="flex:1">'
+    +'<span onclick="ptCopiar(\'pp-login-'+t+'\',\'Login\')" title="Copiar login" style="color:var(--nh);cursor:pointer;font-size:12px;flex-shrink:0">&#128203;</span>'
+    +'</div></div>';
+  o+='<div class="cert-field"><div class="cert-field-lbl">Senha</div><div style="display:flex;align-items:center;gap:6px">'
+    +'<input type="password" id="pp-senha-'+t+'" value="'+String(p.senha||'').replace(/"/g,'&quot;')+'" placeholder="Senha" style="background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.1);color:var(--t1);font-family:JetBrains Mono,monospace;font-size:13px;flex:1;outline:none;padding:3px 0">'
+    +'<span onclick="toggleSenhaInput(\'pp-senha-'+t+'\')" style="color:var(--nh);cursor:pointer;font-size:11px;font-weight:600;flex-shrink:0">mostrar</span>'
+    +'<span onclick="ptCopiar(\'pp-senha-'+t+'\',\'Senha\')" title="Copiar senha" style="color:var(--nh);cursor:pointer;font-size:12px;flex-shrink:0">&#128203;</span>'
+    +'</div></div>';
+  o+='<div class="cert-field"><div class="cert-field-lbl">Vencimento do acesso</div><input type="date" id="pp-venc-'+t+'" value="'+isoDate(p.vencimento||'')+'"></div>';
+  o+='<div class="cert-field"><div class="cert-field-lbl">Observa&ccedil;&otilde;es</div><input type="text" id="pp-obs-'+t+'" value="'+String(p.obs||'').replace(/"/g,'&quot;')+'" placeholder="Observa&ccedil;&otilde;es"></div>';
+  o+='</div>';
+
+  o+='<div class="cert-card-actions">'
+    +'<button class="btn-cert-save" onclick="savePortalCard(\''+emp+'\','+p.id+')">&#128190; Salvar</button>'
+    +'<button class="btn-cert-del" onclick="deletePortal(\''+emp+'\','+p.id+')">&#10005;</button>'
+    +'</div>';
+  return o+'</div>';
+}
+
+/* O atalho só existe se o portal estiver no catálogo COM endereço. Nos
+   outros casos o card diz exatamente o que falta, em vez de mostrar um
+   botão que não leva a lugar nenhum. */
+function _ptBotaoAcesso(emp,p,t){
+  var nome=String(p.portal||'').trim();
+  var noCatalogo=ptDoCatalogo(nome);
+  var url=noCatalogo?ptUrl(noCatalogo):'';
+  if(url){
+    return '<button onclick="ptEntrarPortal(\''+emp+'\','+p.id+')" '
+      +'style="width:100%;background:linear-gradient(135deg,#ea580c,#f97316);border:none;color:#fff;padding:9px 12px;border-radius:9px;cursor:pointer;font-size:12.5px;font-weight:800;font-family:Outfit,sans-serif;display:flex;align-items:center;justify-content:center;gap:7px">'
+      +'&#128273; Acessar '+esc0(noCatalogo)+' &#8599;</button>'
+      +'<div style="font-size:10px;color:var(--t3);margin-top:5px;text-align:center">Abre o portal e copia o login</div>';
+  }
+  if(!nome)
+    return '<div style="font-size:11px;color:var(--t3);background:var(--s2);border:1px dashed var(--b1);border-radius:8px;padding:8px 10px">Escolha o portal acima para liberar o acesso direto.</div>';
+  if(!noCatalogo)
+    return '<div style="font-size:11px;color:#eab308;background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.3);border-radius:8px;padding:8px 10px">"'+esc0(nome)+'" n&atilde;o est&aacute; no cat&aacute;logo. Escolha um da lista, ou cadastre-o em <b>Configura&ccedil;&otilde;es &rsaquo; Portais</b>.</div>';
+  return '<div style="font-size:11px;color:#eab308;background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.3);border-radius:8px;padding:8px 10px">'
+    +'<b>'+esc0(noCatalogo)+'</b> ainda n&atilde;o tem endere&ccedil;o. Cadastre em <b>Configura&ccedil;&otilde;es &rsaquo; Portais</b> e o atalho aparece aqui.</div>';
+}
+
+/* Troca o portal no select: atualiza o bloco de acesso na hora, sem
+   redesenhar o card (redesenhar apagaria login e senha ainda não salvos). */
+function ptTrocouNoCard(emp,id){
+  var t=emp.replace(/\s/g,'')+'-p'+id;
+  var sel=document.getElementById('pp-nome-'+t);
+  if(!sel)return;
+  var box=document.getElementById('pp-acesso-'+t);
+  if(box)box.innerHTML=_ptBotaoAcesso(emp,{portal:sel.value,id:id},t);
+  var card=document.getElementById('portal-card-'+t);
+  if(card)card.style.borderLeftColor=ptUrlDoPortal(sel.value)?'var(--nh)':'var(--b_)';
+}
+
+function ptCopiar(inputId,rotulo){
+  var el=document.getElementById(inputId);
+  if(!el||!el.value){toast(rotulo+' está vazio','err');return;}
+  if(navigator.clipboard&&navigator.clipboard.writeText)
+    navigator.clipboard.writeText(el.value).then(function(){toast(rotulo+' copiado','ok');},
+      function(){toast('Não consegui copiar','err');});
+  else toast('Não consegui copiar','err');
+}
+
+/* Abre o portal já com o login na área de transferência: é sempre a
+   primeira coisa que se faz ao chegar na tela de entrada. */
+function ptEntrarPortal(emp,id){
+  var t=emp.replace(/\s/g,'')+'-p'+id;
+  var sel=document.getElementById('pp-nome-'+t);
+  var nome=sel?sel.value:'';
+  var url=ptUrlDoPortal(nome);
+  if(!url){toast('Esse portal ainda não tem endereço cadastrado','err');return;}
+  var login=(document.getElementById('pp-login-'+t)||{}).value||'';
+  var abrir=function(){ window.open(url,'_blank','noopener'); };
+  if(login&&navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(login).then(function(){
+      toast('Login copiado — abrindo '+nome,'ok');abrir();
+    },function(){abrir();});
+  }else abrir();
+}
+
+function savePortalCard(emp,id){
+  var t=emp.replace(/\s/g,'')+'-p'+id;
+  var lista=getPortais(emp);
+  var i=lista.findIndex(function(x){return x.id===id;});
+  if(-1===i)return;
+  var sel=document.getElementById('pp-nome-'+t);
+  var nome=sel?String(sel.value||'').trim():'';
+  if(!nome){toast('Escolha o portal antes de salvar','err');return;}
+  lista[i].portal=nome;
+  lista[i].login=(document.getElementById('pp-login-'+t)||{}).value||'';
+  lista[i].senha=(document.getElementById('pp-senha-'+t)||{}).value||'';
+  var v=(document.getElementById('pp-venc-'+t)||{}).value||'';
+  lista[i].vencimento=v?formatDateBR(v):'';
+  lista[i].obs=(document.getElementById('pp-obs-'+t)||{}).value||'';
+  savePortais(emp,lista);
+  var box=document.getElementById('pp-acesso-'+t);
+  if(box)box.innerHTML=_ptBotaoAcesso(emp,lista[i],t);
+  toast('Portal salvo','ok');
+}
+
+/* Portal novo entra em branco: escolher da lista é o primeiro passo. */
+async function addPortal(emp){
+  if(!_empCache[emp])await loadEmpData(emp);
+  try{ if(!Object.keys(PORTAL_URLS||{}).length)await ptCarregarUrls(); }catch(_e){}
+  var lista=getPortais(emp);
+  var novo={id:lista.reduce(function(m,x){return x.id>m?x.id:m;},0)+1,
+            portal:'',login:'',senha:'',vencimento:'',status:'',obs:''};
+  lista.push(novo);
+  savePortais(emp,lista);
+  var grid=document.getElementById('portais-grid-'+emp.replace(/\s/g,''));
+  if(grid){
+    var tmp=document.createElement('div');
+    tmp.innerHTML=renderPortalCard(emp,novo);
+    grid.appendChild(tmp.firstChild);
+    grid.lastElementChild.scrollIntoView({behavior:'smooth',block:'center'});
+    setTimeout(lfRenderAll,0);
+  }else buildEmpresa(emp);
+}
+
+/* Ao abrir a empresa, o catálogo precisa já estar em memória — senão o
+   primeiro desenho dos cards não acha endereço nenhum e some o atalho. */
+if('function'===typeof buildEmpresa){
+  var _origBuildEmpresa=buildEmpresa;
+  buildEmpresa=async function(emp){
+    try{ if(!Object.keys(PORTAL_URLS||{}).length)await ptCarregarUrls(); }catch(_e){}
+    return _origBuildEmpresa(emp);
+  };
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   CENTRAL DE CERTIDÕES
+   O navegador não consegue baixar certidão sozinho: os três órgãos
+   recusam chamada de outro domínio (CORS) e ainda exigem captcha —
+   testado da própria origem publicada, os três dão "Failed to fetch".
+   Então a máquina faz tudo, menos o captcha: abre o site certo com o
+   CNPJ na área de transferência e, quando o PDF baixado é solto aqui,
+   a IA lê a validade e atualiza o controle. Ninguém digita data.
+   ══════════════════════════════════════════════════════════════════ */
+var CERT_CATALOGO=[
+  {id:'federal',     nome:'CND Federal (Receita/PGFN)', orgao:'Receita Federal / PGFN',
+   url:'https://solucoes.receita.fazenda.gov.br/servicos/certidaointernet/pj/emitir', dias:180},
+  {id:'fgts',        nome:'CRF FGTS',                   orgao:'Caixa Econômica Federal',
+   url:'https://consulta-crf.caixa.gov.br/consultacrf/pages/consultaEmpregador.jsf',  dias:30},
+  {id:'trabalhista', nome:'CNDT Trabalhista',           orgao:'Tribunal Superior do Trabalho',
+   url:'https://cndt-certidao.tst.jus.br/inicio.faces',                               dias:180},
+  {id:'estadual',    nome:'Certidão Estadual',          orgao:'Secretaria da Fazenda do Estado', url:'', dias:0},
+  {id:'municipal',   nome:'Certidão Municipal',         orgao:'Prefeitura',                      url:'', dias:0},
+  {id:'falencia',    nome:'Falência e Concordata',      orgao:'Tribunal de Justiça',             url:'', dias:30}
+];
+function certDoCatalogo(id){
+  return CERT_CATALOGO.filter(function(c){return c.id===id;})[0]||null;
+}
+/* Descobre o tipo pelo nome escrito no cadastro. Comparar o nome inteiro
+   não servia: quem escreveu "Certidão Federal" não bate com "CND Federal
+   (Receita/PGFN)" do catálogo, e a leitura criaria uma segunda certidão
+   em vez de atualizar a que já existe.
+   A ordem importa: CNDT contém CND, e "Caixa Econômica Federal" contém
+   FEDERAL — por isso o mais específico é testado primeiro. */
+var _CERT_PALAVRAS=[
+  ['trabalhista',['CNDT','TRABALHISTA','TST']],
+  ['fgts',       ['FGTS','CRF','CAIXA']],
+  ['falencia',   ['FALENCIA','CONCORDATA','RECUPERACAOJUDICIAL','DISTRIBUIDOR']],
+  ['municipal',  ['MUNICIPAL','PREFEITURA','ISS','ISSQN']],
+  ['estadual',   ['ESTADUAL','SEFAZ','FAZENDAESTADUAL','ICMS']],
+  ['federal',    ['FEDERAL','RECEITA','PGFN','UNIAO','CNDCONJUNTA']]
+];
+function _certTipoPeloNome(nome){
+  var k=_ptChave(nome);
+  if(!k)return '';
+  for(var i=0;i<_CERT_PALAVRAS.length;i++){
+    var t=_CERT_PALAVRAS[i][0], ps=_CERT_PALAVRAS[i][1];
+    for(var j=0;j<ps.length;j++){ if(k.indexOf(ps[j])>=0)return t; }
+  }
+  return '';
+}
+
+/* Liga o PDF lido à certidão já cadastrada. O tipo gravado manda; sem
+   ele, decide pelo nome. */
+function _certCasa(cert,tipo,nomeArquivo){
+  if(!tipo||'desconhecido'===tipo)return false;
+  if(cert.tipo)return cert.tipo===tipo;
+  return _certTipoPeloNome(cert.item||'')===tipo;
+}
+
+var _ccEmp=null, _ccLidos=[];
+
+async function nhCertCentral(emp){
+  _ccEmp=emp; _ccLidos=[];
+  if(!_empCache[emp])await loadEmpData(emp);
+  var m=document.getElementById('cc-modal');
+  if(!m){
+    m=document.createElement('div');
+    m.id='cc-modal';
+    m.style.cssText='display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(6px);z-index:9400;align-items:center;justify-content:center;padding:16px';
+    m.innerHTML='<div style="background:var(--s1);border:1px solid var(--b1);border-radius:14px;max-width:840px;width:100%;max-height:92vh;display:flex;flex-direction:column;overflow:hidden">'
+      +'<div style="padding:14px 18px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:10px">'
+        +'<b style="color:var(--nh)">&#128203; Central de Certid&otilde;es</b>'
+        +'<span id="cc-sub" style="font-size:12px;color:var(--t3)"></span>'
+        +'<button onclick="nhCertFechar()" style="margin-left:auto;background:none;border:none;color:var(--t3);font-size:18px;cursor:pointer">&#10005;</button>'
+      +'</div>'
+      +'<div style="padding:16px 18px;overflow-y:auto;flex:1">'
+        +'<div id="cc-passo1"></div>'
+        +'<div id="cc-drop"></div>'
+        +'<div id="cc-lidos" style="margin-top:10px"></div>'
+        +'<div id="cc-quadro" style="margin-top:16px"></div>'
+      +'</div>'
+      +'<div style="padding:13px 18px;border-top:1px solid var(--b1);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">'
+        +'<button onclick="nhCertEnviarEmail()" id="cc-btn-email" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:9px 16px;border-radius:8px;cursor:pointer;font-size:12.5px;font-weight:700;font-family:Outfit,sans-serif">&#9993; Enviar por e-mail</button>'
+        +'<button onclick="nhCertFechar()" style="background:var(--nh);border:none;color:#fff;padding:9px 20px;border-radius:8px;cursor:pointer;font-size:12.5px;font-weight:800;font-family:Outfit,sans-serif">Concluir</button>'
+      +'</div></div>';
+    document.body.appendChild(m);
+    m.addEventListener('click',function(ev){if(ev.target===m)nhCertFechar();});
+  }
+  var cnpj=((EMP_DATA[emp]||{}).cnpj)||'';
+  document.getElementById('cc-sub').textContent=emp+(cnpj?' · CNPJ '+cnpj:' · sem CNPJ cadastrado');
+  _ccRenderEmitir(emp,cnpj);
+  _ccRenderDrop();
+  document.getElementById('cc-lidos').innerHTML='';
+  _ccRenderQuadro(emp);
+  m.style.display='flex';
+}
+function nhCertFechar(){
+  var m=document.getElementById('cc-modal');
+  if(m)m.style.display='none';
+  /* O painel da empresa mostra os mesmos dados — reabrir mantém tudo
+     coerente depois de a IA ter mexido nas validades. */
+  if(_ccEmp)try{buildEmpresa(_ccEmp);}catch(_e){}
+}
+
+function _ccRenderEmitir(emp,cnpj){
+  var box=document.getElementById('cc-passo1');
+  var certs=getCerts(emp);
+  var linhas=CERT_CATALOGO.map(function(c){
+    /* Link próprio da empresa vence o do catálogo: estadual e municipal
+       mudam conforme o estado e o município de cada uma. */
+    var doCad=certs.filter(function(x){return _certCasa(x,c.id,'');})[0];
+    var url=(doCad&&doCad.link)||c.url||'';
+    var st=_ccStatus(doCad);
+    return '<div style="display:flex;align-items:center;gap:9px;background:var(--s2);border:1px solid var(--b1);border-radius:9px;padding:8px 11px;margin-bottom:5px">'
+      +'<span style="flex:1;min-width:0"><span style="display:block;font-size:12.5px;font-weight:700;color:var(--t1)">'+esc0(c.nome)+'</span>'
+      +'<span style="display:block;font-size:10px;color:var(--t3)">'+esc0(c.orgao)+'</span></span>'
+      +'<span style="font-size:10.5px;font-weight:700;color:'+st.cor+';flex-shrink:0">'+st.txt+'</span>'
+      +(url
+        ?'<button onclick="nhCertEmitirUm(\''+c.id+'\')" style="background:var(--nha2);border:1px solid var(--nh);color:var(--nh);padding:5px 11px;border-radius:7px;cursor:pointer;font-size:11px;font-weight:700;font-family:Outfit,sans-serif;flex-shrink:0">Emitir &#8599;</button>'
+        :'<span style="font-size:10px;color:var(--t3);flex-shrink:0">sem link &mdash; cadastre no card</span>')
+      +'</div>';
+  }).join('');
+
+  box.innerHTML='<div style="font-size:12px;color:var(--t3);line-height:1.6;margin-bottom:10px">'
+    +'O site do &oacute;rg&atilde;o exige captcha, ent&atilde;o a emiss&atilde;o em si &eacute; sua. '
+    +'O bot&atilde;o abre a p&aacute;gina certa e <b>copia o CNPJ</b>; depois &eacute; s&oacute; soltar o PDF baixado aqui embaixo que a IA l&ecirc; a validade sozinha.</div>'
+    +(cnpj?'':'<div style="background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.3);color:#eab308;border-radius:8px;padding:8px 11px;font-size:11.5px;margin-bottom:10px">Esta empresa está sem CNPJ cadastrado — não vou conseguir copiar o CNPJ para você.</div>')
+    +'<div style="display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap">'
+      +'<button onclick="nhCertEmitirTodas()" style="background:linear-gradient(135deg,#ea580c,#f97316);border:none;color:#fff;padding:8px 15px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:800;font-family:Outfit,sans-serif">&#128273; Abrir todas as que t&ecirc;m link</button>'
+      +(cnpj?'<button onclick="nhCertCopiarCnpj()" style="background:var(--s2);border:1px solid var(--b1);color:var(--t2);padding:8px 13px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;font-family:Outfit,sans-serif">&#128203; Copiar CNPJ</button>':'')
+    +'</div>'
+    +linhas;
+}
+
+function _ccStatus(cert){
+  if(!cert)return {txt:'não cadastrada',cor:'var(--t3)'};
+  var d=calcDias(cert.validade);
+  if(null===d)return {txt:'sem data',cor:'var(--t3)'};
+  if(d<0)return {txt:'vencida há '+Math.abs(d)+'d',cor:'#ef4444'};
+  if(d<=30)return {txt:'vence em '+d+'d',cor:'#eab308'};
+  return {txt:'em dia · '+d+'d',cor:'#22c55e'};
+}
+
+function nhCertCopiarCnpj(){
+  var cnpj=((EMP_DATA[_ccEmp]||{}).cnpj)||'';
+  if(!cnpj){toast('Empresa sem CNPJ cadastrado','err');return;}
+  if(navigator.clipboard&&navigator.clipboard.writeText)
+    navigator.clipboard.writeText(cnpj).then(function(){toast('CNPJ copiado','ok');});
+}
+
+function nhCertEmitirUm(tipoId){
+  var c=certDoCatalogo(tipoId);
+  var doCad=getCerts(_ccEmp).filter(function(x){return _certCasa(x,tipoId,'');})[0];
+  var url=(doCad&&doCad.link)||(c&&c.url)||'';
+  if(!url){toast('Sem link cadastrado para essa certidão','err');return;}
+  var cnpj=((EMP_DATA[_ccEmp]||{}).cnpj)||'';
+  var abrir=function(){window.open(url,'_blank','noopener');};
+  if(cnpj&&navigator.clipboard&&navigator.clipboard.writeText)
+    navigator.clipboard.writeText(cnpj).then(function(){toast('CNPJ copiado — abrindo '+(c?c.nome:'site'),'ok');abrir();},abrir);
+  else abrir();
+}
+
+/* Abre uma aba por certidão. O navegador bloqueia várias aberturas
+   seguidas se vierem rápido demais, então vão espaçadas. */
+function nhCertEmitirTodas(){
+  var certs=getCerts(_ccEmp);
+  var comLink=CERT_CATALOGO.filter(function(c){
+    var doCad=certs.filter(function(x){return _certCasa(x,c.id,'');})[0];
+    return (doCad&&doCad.link)||c.url;
+  });
+  if(!comLink.length){toast('Nenhuma certidão com link cadastrado','err');return;}
+  nhCertCopiarCnpj();
+  comLink.forEach(function(c,i){
+    setTimeout(function(){
+      var doCad=certs.filter(function(x){return _certCasa(x,c.id,'');})[0];
+      window.open((doCad&&doCad.link)||c.url,'_blank','noopener');
+    },i*400);
+  });
+  toast('Abrindo '+comLink.length+' site(s) — se o navegador bloquear, libere as janelas','info');
+}
+
+function _ccRenderDrop(){
+  document.getElementById('cc-drop').innerHTML=
+    '<label id="cc-zona" style="display:block;margin-top:12px;border:2px dashed var(--b1);border-radius:12px;padding:18px;text-align:center;cursor:pointer;background:var(--s2)">'
+    +'<input type="file" accept=".pdf,image/*" multiple style="display:none" onchange="nhCertSoltar(this.files);this.value=\'\'">'
+    +'<div style="font-size:13px;font-weight:700;color:var(--t1)">&#128228; Solte aqui as certid&otilde;es baixadas</div>'
+    +'<div style="font-size:11px;color:var(--t3);margin-top:4px">PDF ou imagem &mdash; a IA l&ecirc; a validade e atualiza sozinha. Pode soltar v&aacute;rias de uma vez.</div>'
+    +'</label>';
+  var z=document.getElementById('cc-zona');
+  ['dragenter','dragover'].forEach(function(ev){
+    z.addEventListener(ev,function(e){e.preventDefault();z.style.borderColor='var(--nh)';z.style.background='var(--nha2)';});
+  });
+  ['dragleave','drop'].forEach(function(ev){
+    z.addEventListener(ev,function(e){e.preventDefault();z.style.borderColor='var(--b1)';z.style.background='var(--s2)';});
+  });
+  z.addEventListener('drop',function(e){
+    if(e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files.length)nhCertSoltar(e.dataTransfer.files);
+  });
+}
+
+function _ccLerArquivo(f){
+  return new Promise(function(ok,err){
+    var r=new FileReader();
+    r.onload=function(e){ok({nome:f.name,mime:f.type||'application/pdf',
+                            base64:String(e.target.result).split(',')[1],tamanho:f.size});};
+    r.onerror=function(){err(new Error('não consegui ler '+f.name));};
+    r.readAsDataURL(f);
+  });
+}
+
+var _CC_PROMPT='Você recebeu o arquivo de UMA certidão negativa brasileira usada em licitação. '
+ +'Leia e devolve SOMENTE um bloco JSON, sem markdown, sem texto antes ou depois:\n'
+ +'<CERT>{"tipo":"federal|fgts|trabalhista|estadual|municipal|falencia|desconhecido",'
+ +'"nome":"nome da certidão como consta no documento",'
+ +'"validade":"dd/mm/aaaa","emitidaEm":"dd/mm/aaaa","cnpj":"só dígitos","numero":"",'
+ +'"negativa":true|false,"confianca":"alta|media|baixa"}</CERT>\n\n'
+ +'REGRAS:\n'
+ +'- "validade" é a data ATÉ QUANDO a certidão vale. Se o documento só trouxer a data de emissão e o prazo (ex.: "válida por 180 dias"), CALCULE a data final e use-a.\n'
+ +'- Se não houver data de validade possível, deixe "".\n'
+ +'- "tipo": Receita Federal/PGFN = federal; FGTS/CRF/Caixa = fgts; TST/débitos trabalhistas = trabalhista; Secretaria da Fazenda estadual = estadual; Prefeitura/município = municipal; falência/concordata/recuperação judicial = falencia.\n'
+ +'- "negativa" é false se o documento acusar débito (certidão POSITIVA).\n'
+ +'- Se o arquivo não for uma certidão, use tipo "desconhecido" e confianca "baixa".';
+
+async function nhCertSoltar(fileList){
+  var arquivos=Array.prototype.slice.call(fileList||[]);
+  if(!arquivos.length)return;
+  var key=localStorage.getItem('nh_gemini_key');
+  if(!key){toast('Configure a API Key do Gemini para a leitura automática','err');return;}
+
+  var box=document.getElementById('cc-lidos');
+  var emp=_ccEmp;
+  for(var i=0;i<arquivos.length;i++){
+    var f=arquivos[i];
+    box.insertAdjacentHTML('beforeend','<div id="cc-item-'+i+'" style="display:flex;align-items:center;gap:8px;background:var(--s2);border:1px solid var(--b1);border-radius:9px;padding:9px 11px;margin-bottom:5px;font-size:12px">'
+      +'<div class="spin" style="width:14px;height:14px;flex-shrink:0"></div>'
+      +'<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc0(f.name)+'</span>'
+      +'<span style="color:var(--t3);flex-shrink:0">lendo...</span></div>');
+    var linha=document.getElementById('cc-item-'+i);
+    try{
+      var dados=await _ccLerArquivo(f);
+      var j=await chamarGemini(key,[{inline_data:{mime_type:dados.mime,data:dados.base64}},{text:_CC_PROMPT}],0.1,900);
+      var txt='';
+      try{ txt=j.candidates[0].content.parts.map(function(p){return p.text||'';}).join(''); }catch(_e){}
+      var mm=txt.match(/<CERT>([\s\S]*?)<\/CERT>/i);
+      var info=null;
+      if(mm){try{info=JSON.parse(mm[1].replace(/```json/gi,'').replace(/```/g,'').trim());}catch(_e){}}
+      if(!info)throw new Error('não consegui entender o documento');
+      /* Sem tipo reconhecido não dá para saber a qual certidão o arquivo
+         pertence. Antes eu criava uma entrada "?" no controle — um
+         contrato social solto por engano virava certidão. */
+      if(!info.tipo||'desconhecido'===info.tipo)
+        throw new Error('não parece ser uma certidão — nada foi alterado');
+      if(!info.validade)
+        throw new Error('não achei a data de validade neste documento');
+      var r=await _ccAplicar(emp,info,dados);
+      linha.innerHTML=_ccLinhaOk(f.name,info,r);
+    }catch(e){
+      linha.innerHTML='<span style="color:#ef4444;flex-shrink:0">&#10007;</span>'
+        +'<span style="flex:1;min-width:0">'+esc0(f.name)+'</span>'
+        +'<span style="color:#ef4444;font-size:11px">'+esc0(e.message||'falhou')+'</span>';
+    }
+  }
+  _ccRenderQuadro(emp);
+  _ccRenderEmitir(emp,((EMP_DATA[emp]||{}).cnpj)||'');
+}
+
+function _ccLinhaOk(nomeArq,info,r){
+  var c=certDoCatalogo(info.tipo);
+  var aviso='';
+  if(false===info.negativa)aviso='<div style="font-size:10.5px;color:#ef4444;margin-top:2px">Atenção: consta como certidão POSITIVA (com débito)</div>';
+  else if('baixa'===info.confianca)aviso='<div style="font-size:10.5px;color:#eab308;margin-top:2px">Leitura incerta — confira a data</div>';
+  if(r.cnpjDiferente)aviso+='<div style="font-size:10.5px;color:#eab308;margin-top:2px">O CNPJ do documento não bate com o da empresa</div>';
+  /* Sem o arquivo guardado a data entra no controle, mas o envio por
+     e-mail não tem o que anexar — melhor dizer agora do que na hora. */
+  if(!r.guardou)aviso+='<div style="font-size:10.5px;color:#eab308;margin-top:2px">Validade registrada, mas não consegui guardar o arquivo'
+    +(r.grande?' (maior que o limite de 700 KB)':'')+' — o envio por e-mail não vai anexar este.</div>';
+  return '<span style="color:#22c55e;flex-shrink:0">&#10003;</span>'
+    +'<span style="flex:1;min-width:0"><b>'+esc0(c?c.nome:(info.nome||nomeArq))+'</b>'
+    +(info.validade?' <span style="color:var(--t3)">— vale at&eacute; '+esc0(info.validade)+'</span>':' <span style="color:#eab308">— sem data de validade no documento</span>')
+    +aviso+'</span>'
+    +'<span style="font-size:10.5px;color:var(--t3);flex-shrink:0">'+(r.criou?'nova':'atualizada')+'</span>';
+}
+
+/* Grava a validade lida na certidão certa. Se ainda não existir uma
+   daquele tipo, cria — assim a primeira leitura já monta o controle. */
+async function _ccAplicar(emp,info,arquivo){
+  if(!_empCache[emp])await loadEmpData(emp);
+  var certs=getCerts(emp);
+  var i=-1;
+  for(var k=0;k<certs.length;k++){ if(_certCasa(certs[k],info.tipo,arquivo.nome)){i=k;break;} }
+  var criou=false;
+  if(-1===i){
+    var cat=certDoCatalogo(info.tipo);
+    certs.push({id:certs.reduce(function(m,x){return x.id>m?x.id:m;},0)+1,
+                item:(cat&&cat.nome)||info.nome||arquivo.nome,
+                validade:'',status:'',dias:null,link:(cat&&cat.url)||'',obs:''});
+    i=certs.length-1; criou=true;
+  }
+  if(info.tipo&&'desconhecido'!==info.tipo)certs[i].tipo=info.tipo;
+  if(info.validade)certs[i].validade=info.validade;
+  if(info.emitidaEm)certs[i].emitidaEm=info.emitidaEm;
+  if(info.numero)certs[i].numero=info.numero;
+  certs[i].negativa=(false!==info.negativa);
+  certs[i].arquivoNome=arquivo.nome;
+  certs[i].lidoEm=Date.now();
+  var d=calcDias(certs[i].validade);
+  certs[i].dias=d;
+  certs[i].status=(null===d?'':(d<0?'Vencida':(d<=30?'Próximo':'Em dia')));
+  saveCerts(emp,certs);
+
+  /* O PDF fica numa coleção à parte: documento do Firestore tem teto de
+     1 MB, e um anexo grande derrubaria o cadastro inteiro junto. */
+  var guardou=false, grande=!!(arquivo.base64&&arquivo.base64.length>=700000);
+  try{
+    if(arquivo.base64&&!grande){
+      await db.collection('cert_arquivos').doc(emp.replace(/\//g,'_')+'__'+certs[i].id)
+        .set({empresa:emp,certId:certs[i].id,nome:arquivo.nome,mime:arquivo.mime,
+              base64:arquivo.base64,em:Date.now()});
+      guardou=true;
+    }
+  }catch(e){console.error('cert_arquivos',e);}
+  certs[i].arquivoGuardado=guardou;
+  saveCerts(emp,certs);
+
+  var cnpjEmp=String((EMP_DATA[emp]||{}).cnpj||'').replace(/\D/g,'');
+  var cnpjDoc=String(info.cnpj||'').replace(/\D/g,'');
+  return {criou:criou,guardou:guardou,grande:grande,
+          cnpjDiferente:!!(cnpjEmp&&cnpjDoc&&cnpjEmp!==cnpjDoc)};
+}
+
+function _ccRenderQuadro(emp){
+  var box=document.getElementById('cc-quadro');
+  if(!box)return;
+  var certs=getCerts(emp).slice();
+  if(!certs.length){box.innerHTML='';return;}
+  var venc=0,perto=0,ok=0,sem=0;
+  certs.forEach(function(c){
+    var d=calcDias(c.validade);
+    if(null===d)sem++; else if(d<0)venc++; else if(d<=30)perto++; else ok++;
+  });
+  certs.sort(function(a,b){
+    var da=calcDias(a.validade), db_=calcDias(b.validade);
+    if(null===da)return 1; if(null===db_)return -1;
+    return da-db_;
+  });
+  var chip=function(n,lb,cor){
+    return '<div style="flex:1;min-width:82px;background:var(--s2);border:1px solid '+cor+'44;border-radius:9px;padding:8px 10px;text-align:center">'
+      +'<div style="font-size:18px;font-weight:800;color:'+cor+'">'+n+'</div>'
+      +'<div style="font-size:9.5px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em">'+lb+'</div></div>';
+  };
+  box.innerHTML='<div style="font-size:11px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Situa&ccedil;&atilde;o atual</div>'
+    +'<div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px">'
+      +chip(venc,'Vencidas','#ef4444')+chip(perto,'Vencendo','#eab308')
+      +chip(ok,'Em dia','#22c55e')+chip(sem,'Sem data','#6b7280')
+    +'</div>'
+    +certs.map(function(c){
+      var st=_ccStatus(c);
+      return '<div style="display:flex;align-items:center;gap:8px;background:var(--s2);border:1px solid var(--b1);border-left:3px solid '+st.cor+';border-radius:8px;padding:7px 11px;margin-bottom:4px">'
+        +'<span style="flex:1;min-width:0;font-size:12px;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc0(c.item||'(sem nome)')+'</span>'
+        +(c.arquivoGuardado?'<span title="Arquivo guardado" style="font-size:11px;flex-shrink:0">&#128206;</span>':'')
+        +(false===c.negativa?'<span style="font-size:9.5px;font-weight:800;color:#ef4444;flex-shrink:0">POSITIVA</span>':'')
+        +'<span style="font-size:11px;color:var(--t3);flex-shrink:0">'+(c.validade||'—')+'</span>'
+        +'<span style="font-size:10.5px;font-weight:700;color:'+st.cor+';flex-shrink:0;min-width:92px;text-align:right">'+st.txt+'</span>'
+        +'</div>';
+    }).join('');
+}
+
+/* ── Envio por e-mail ────────────────────────────────────────────
+   Um site estático não envia e-mail: quem envia é um Apps Script
+   publicado na conta Google da NH, que recebe os anexos e usa o
+   próprio Gmail. O endereço dele fica em config/integracoes, para
+   valer para a equipe toda e não só para este navegador. */
+var INTEGRACOES=null;
+async function nhIntegracoes(){
+  if(INTEGRACOES)return INTEGRACOES;
+  try{
+    var d=await db.collection('config').doc('integracoes').get();
+    INTEGRACOES=(d.exists&&d.data())||{};
+  }catch(e){INTEGRACOES={};}
+  return INTEGRACOES;
+}
+async function nhSalvarIntegracoes(obj){
+  INTEGRACOES=Object.assign(INTEGRACOES||{},obj);
+  await db.collection('config').doc('integracoes').set(INTEGRACOES,{merge:true});
+}
+
+async function nhCertEnviarEmail(){
+  var emp=_ccEmp;
+  if(!emp)return;
+  var cfg=await nhIntegracoes();
+  if(!cfg.certMailUrl){
+    var u=window.prompt('Cole aqui o endereço do Apps Script que envia os e-mails.\n\n'
+      +'(Ele fica salvo para toda a equipe. O passo a passo para publicar está no arquivo APPS-SCRIPT-CERTIDOES.md.)','');
+    if(!u)return;
+    try{ await nhSalvarIntegracoes({certMailUrl:String(u).trim()}); cfg=INTEGRACOES; }
+    catch(e){toast('Erro ao salvar: '+e.message,'err');return;}
+  }
+
+  if(!_empCache[emp])await loadEmpData(emp);
+  var dados=EMP_DATA[emp]||{};
+  var para=dados.emailContato||'';
+  para=window.prompt('Enviar as certidões de '+emp+' para qual e-mail?',para)||'';
+  para=para.trim();
+  if(!para)return;
+  if(para.indexOf('@')<1){toast('E-mail inválido','err');return;}
+  if(para!==dados.emailContato){
+    dados.emailContato=para;
+    try{ await saveEmpData(emp,'emailContato',para); }catch(_e){}
+  }
+
+  var certs=getCerts(emp);
+  var comArquivo=certs.filter(function(c){return c.arquivoGuardado;});
+  if(!comArquivo.length){
+    toast('Nenhuma certidão com arquivo guardado — solte os PDFs aqui primeiro','err');
+    return;
+  }
+
+  var btn=document.getElementById('cc-btn-email');
+  if(btn){btn.disabled=true;btn.textContent='Enviando...';}
+  try{
+    var anexos=[];
+    for(var i=0;i<comArquivo.length;i++){
+      var snap=await db.collection('cert_arquivos').doc(emp.replace(/\//g,'_')+'__'+comArquivo[i].id).get();
+      if(snap.exists){
+        var a=snap.data();
+        anexos.push({nome:a.nome,mime:a.mime,base64:a.base64});
+      }
+    }
+    if(!anexos.length)throw new Error('não encontrei os arquivos guardados');
+
+    var linhas=certs.map(function(c){
+      var d=calcDias(c.validade);
+      var sit=(null===d)?'sem data':(d<0?('VENCIDA há '+Math.abs(d)+' dias'):(d<=30?('vence em '+d+' dias'):('em dia, '+d+' dias')));
+      return '• '+(c.item||'')+' — validade '+(c.validade||'—')+' ('+sit+')';
+    }).join('\n');
+    var corpo='Olá!\n\nSeguem em anexo as certidões atualizadas da '+emp+'.\n\n'+linhas
+      +'\n\nQualquer certidão vencida ou próxima do vencimento já está sendo providenciada.\n\nAtenciosamente,\nNH Licitações';
+
+    var r=await fetch(cfg.certMailUrl,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({empresa:emp,para:para,
+        assunto:'Certidões atualizadas — '+emp,corpo:corpo,anexos:anexos})
+    });
+    var j=await r.json().catch(function(){return{};});
+    if(!r.ok||!j.ok)throw new Error(j.erro||('resposta '+r.status+' do Apps Script'));
+
+    await saveEmpData(emp,'certEnviadoEm',Date.now());
+    toast(anexos.length+' certidão(ões) enviada(s) para '+para,'ok');
+  }catch(e){
+    toast('Não consegui enviar: '+(e.message||e),'err');
+  }
+  if(btn){btn.disabled=false;btn.innerHTML='&#9993; Enviar por e-mail';}
+}
+
+/* Coloca a porta de entrada da central junto do título da seção de
+   certidões, sem mexer no buildEmpresa minificado. */
+if('function'===typeof buildEmpresa){
+  var _bldAntesCert=buildEmpresa;
+  buildEmpresa=async function(emp){
+    var r=await _bldAntesCert(emp);
+    try{
+      var alvo=null;
+      document.querySelectorAll('#emp-body button.btn-cert-add').forEach(function(b){
+        if(!alvo&&String(b.getAttribute('onclick')||'').indexOf('addCert(')>=0)alvo=b;
+      });
+      if(alvo&&!document.getElementById('cc-abrir')){
+        var b=document.createElement('button');
+        b.id='cc-abrir';
+        b.className='btn-cert-add';
+        b.style.cssText='background:linear-gradient(135deg,#ea580c,#f97316);border:none;color:#fff;margin-right:6px';
+        b.innerHTML='&#128203; Central de Certid&otilde;es';
+        b.onclick=function(){nhCertCentral(emp);};
+        alvo.parentNode.insertBefore(b,alvo);
+      }
+    }catch(_e){}
+    return r;
   };
 }
 </script>
