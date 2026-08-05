@@ -1562,6 +1562,8 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
 #tabela-proposta th .th-name:focus{color:#e5e5e5}
 #tabela-proposta th .btn-rm-col{background:none;border:none;color:#ef4444;cursor:pointer;font-size:11px;padding:0 2px;opacity:.5;flex-shrink:0;line-height:1}
 #tabela-proposta th .btn-rm-col:hover{opacity:1}
+#tabela-proposta th .btn-fx-col{background:none;border:none;color:var(--nh);cursor:pointer;font-size:11px;font-style:italic;font-weight:800;padding:0 2px;opacity:.65;flex-shrink:0;line-height:1}
+#tabela-proposta th .btn-fx-col:hover{opacity:1}
 #tabela-proposta td{border:1px solid #2a2a2a;padding:0;position:relative}
 #tabela-proposta td input,#tabela-proposta td textarea{background:transparent;border:none;color:#e5e5e5;font-family:Outfit,sans-serif;font-size:12px;padding:7px 9px;width:100%;outline:none;resize:none;overflow:hidden}
 #tabela-proposta td input:focus,#tabela-proposta td textarea:focus{background:rgba(249,115,22,.05);outline:1px solid rgba(249,115,22,.4)}
@@ -3465,6 +3467,7 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
     <div class="tbl-toolbar">
       <button class="btn btn-green btn-sm" onclick="addLinha()">+ Linha</button>
       <button class="btn btn-blue btn-sm" onclick="addColuna()">+ Coluna</button>
+      <button class="btn btn-sm" style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.3);color:var(--nh)" onclick="abrirColunas()">&#9881; Colunas (ordem e c&aacute;lculo)</button>
       <button class="btn btn-sm" style="background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);color:#a78bfa" onclick="resetColunas()">↺ Resetar Colunas</button>
       <span style="font-size:11px;color:#555;margin-left:4px">Tab = próxima célula · Enter = nova linha · Del = limpar</span>
     </div>
@@ -7370,7 +7373,7 @@ function closeWpp(){document.getElementById("mo-whatsapp").style.display="none"}
   var cores={green:"#22c55e",red:"#ef4444",yellow:"#eab308",orange:"#f97316",blue:"#3b82f6",dark:"#1e1e1e"};
   if(cores[cor]) el.style.borderLeftColor=cores[cor];
 }
-async function _processQueue(){if(!_saveRunning&&_saveQueue.length){_saveRunning=!0;var e=_saveQueue.shift(),a=e.k,t=e.ci,o=e.rowId,i=e.row,_fid=e.fbId;try{await fbSave(FB_COLS[a],parseInt(o),i,_fid),await syncEntreAbas(a,t,i),updateKcard(a,parseInt(o),i),"andamento"===a&&16===t&&"sim"===String(i[16]||"").toLowerCase().trim()&&(FIL.andamento=FIL.andamento.filter(function(e){return parseInt(e[0])!==parseInt(o)}),ALL.andamento=ALL.andamento.map(function(e){return parseInt(e[0])===parseInt(o)?i:e}),"andamento"===CUR&&renderTbl("andamento")),"resumo"===CUR&&buildResumo()}catch(e){toast("Erro ao salvar: "+e.message,"err")}_saveRunning=!1,_saveQueue.length?_processQueue():setSavingDot(!1)}else _saveQueue.length||setSavingDot(!1)}function renderPag(e,a){var t=Math.ceil(a/20);if(t<=1)document.getElementById("pag-"+e).innerHTML="";else{var o="",i=PG[e];i>1&&(o+='<div class="pb" onclick="goPg(\''+e+"',"+(i-1)+')">&#8249;</div>');for(var n=Math.max(1,i-2);n<=Math.min(t,i+2);n++)o+='<div class="pb'+(n===i?" on":"")+'" onclick="goPg(\''+e+"',"+n+')">'+n+"</div>";i<t&&(o+='<div class="pb" onclick="goPg(\''+e+"',"+(i+1)+')">&#8250;</div>'),document.getElementById("pag-"+e).innerHTML=o}}function goPg(e,a){PG[e]=a,renderTbl(e);var t=document.getElementById("tbl-"+e);t&&t.scrollIntoView({behavior:"smooth",block:"start"})}function openM(e){if(IS_READONLY)return;if(EROW[e]=null,clearF(e),"atestados"===e&&(atDocsClear(),atDocAdd("ART","")),"financeiro"===e){["f-data","f-emp","f-cat","f-desc","f-forn","f-valor","f-status","f-conta","f-obs"].forEach(function(e){var a=document.getElementById(e);a&&("SELECT"===a.tagName?a.selectedIndex=0:a.value="")});var a=document.getElementById("f-data");if(a){var t=new Date;a.value=t.toISOString().split("T")[0]}document.getElementById("mht-financeiro").textContent="Novo Lançamento Financeiro",populateFinEmpSelect()}var o={editais:"Novo Edital Capturado",andamento:"Nova Licitação em Andamento",ganhas:"Registrar Licitação Ganha",atestados:"Novo Atestado",valores:"Novo Valor Praticado"};"valores"===e&&populateValoresEmpSelect();o[e]&&(document.getElementById("mht-"+e).textContent=o[e]),"financeiro"===e&&(populateFinEmpSelect(),setv("f-data",isoDate(finGetData(t))),setv("f-emp",String(t[8]||"").trim()),setv("f-cat",String(t[1]||"").trim()),setv("f-desc",String(t[2]||"").trim()),setv("f-forn",String(t[3]||"").trim()),setv("f-valor",fmtValBR(t[4]||"")),setv("f-status",String(t[5]||"").trim()),setv("f-conta",String(t[6]||"").trim()),setv("f-obs",String(t[7]||"").trim())),_modalHook(e),document.getElementById("mo-"+e).classList.add("open"),setTimeout(lfRenderAll,0)}function closeM(e){var a=document.getElementById("mo-"+e);a&&(a.classList.contains("modal-overlay")?(a.style.display="none",a.classList.remove("open")):a.classList.remove("open"),void 0!==EROW&&EROW&&(EROW[e]=null))}function clearF(e){var a={editais:"e-",andamento:"a-",ganhas:"g-",atestados:"at-"}[e];document.querySelectorAll('[id^="'+a+'"]').forEach(function(e){"SELECT"===e.tagName?e.selectedIndex=0:e.value=""})}function sv(e){var a=document.getElementById(e);return a?a.value:""}function setv(e,a){var t=document.getElementById(e);t&&("date"===t.type&&a&&-1!==a.indexOf("/")?t.value=isoDate(String(a).split(" ")[0]):t.value=a||"")}function doEdit(e,a){var t=FIL[e][a];EROW[e]=a,document.getElementById("mht-"+e).textContent="Editar Registro","editais"===e?(setv("e-data",isoDate(String(t[1]||""))),setv("e-empresa",t[2]),setv("e-licit",t[3]),setv("e-objeto",t[4]),setv("e-local",t[5]),setv("e-mun",t[6]),setv("e-valor",fmtValBR(t[7])),setv("e-prior",t[8]),popularRespEdital(t[2],t[9]),setv("e-part",t[10]),setv("e-viab",t[11]),setv("e-just",t[12]),setv("e-link",t[13]),setv("e-pasta",t[14]),popularPortalEdital(t[15])):"andamento"===e?(setv("a-data",isoDate(String(t[1]||""))),setv("a-emp",t[2]),setv("a-licit",t[3]),setv("a-obj",t[4]),setv("a-local",t[5]),setv("a-mun",t[6]),setv("a-vest",fmtValBR(t[7])),setv("a-vfin",fmtValBR(t[8])),setv("a-portal",t[9]),setv("a-disp",isoDate(String(t[10]||""))),setv("a-class",t[11]),setv("a-status",t[12]),setv("a-reab",isoDate(String(t[13]||""))),setv("a-rec",t[14]),setv("a-resumo",t[15]),setv("a-adju",t[16]),setv("a-conc",t[17]),setv("a-vconc",fmtValBR(t[18])),setv("a-link",t[19])):"ganhas"===e?(setv("g-data",t[1]),setv("g-emp",t[2]),setv("g-licit",t[3]),setv("g-obj",t[4]),setv("g-local",t[5]),setv("g-mun",t[6]),setv("g-valor",fmtValBR(t[7])),setv("g-cont",t[8]),setv("g-stcont",t[9]),setv("g-vig",t[10]),setv("g-dtcont",isoDate(String(t[11]||""))),setv("g-venc",isoDate(String(t[12]||""))),setv("g-recomp",t[13]),setv("g-trecomp",t[14]),setv("g-strecomp",t[15]),setv("g-novadata",isoDate(String(t[16]||""))),setv("g-vigrecomp",t[17]),setv("g-vencrecomp",isoDate(String(t[18]||""))),setv("g-vfin",fmtValBR(t[19])),setv("g-recomp2",t[20]),setv("g-trecomp2",t[21]),setv("g-strecomp2",t[22]),setv("g-novadata2",isoDate(String(t[23]||""))),setv("g-vigrecomp2",t[24]),setv("g-vencrecomp2",isoDate(String(t[25]||""))),setv("g-vfin2",fmtValBR(t[26])),setv("g-recomp3",t[27]),setv("g-trecomp3",t[28]),setv("g-strecomp3",t[29]),setv("g-novadata3",isoDate(String(t[30]||""))),setv("g-vigrecomp3",t[31]),setv("g-vencrecomp3",isoDate(String(t[32]||""))),setv("g-vfin3",fmtValBR(t[33])),setv("g-recomp4",t[34]),setv("g-trecomp4",t[35]),setv("g-strecomp4",t[36]),setv("g-novadata4",isoDate(String(t[37]||""))),setv("g-vigrecomp4",t[38]),setv("g-vencrecomp4",isoDate(String(t[39]||""))),setv("g-vfin4",fmtValBR(t[40])),setv("g-obs",t[41]),setv("g-link",t[42]),setv("g-situacao",t[43]),setv("g-srp",t[44]),setv("g-atatotal",fmtValBR(t[45])),setv("g-atacons",fmtValBR(t[46])),setv("g-atacarona",fmtValBR(t[47])),setv("g-atavig",isoDate(t[48])),setv("g-proxacao",t[49]),calcAta()):"valores"===e?(populateValoresEmpSelect(),setv("v-data",isoDate(String(t[1]||""))),setv("v-emp",t[2]),setv("v-item",t[3]),setv("v-qtd",t[4]),setv("v-vunit",fmtValBR(t[5])),setv("v-vtotal",fmtValBR(t[6])),setv("v-conc",t[7]),setv("v-vconc",fmtValBR(t[8])),setv("v-origem",t[9]||"Manual"),setv("v-mun",t[10])):"atestados"===e&&(setv("at-data",isoDate(String(t[1]||""))),setv("at-emp",t[2]),setv("at-licit",t[3]),setv("at-obj",t[4]),setv("at-local",t[5]),setv("at-mun",t[6]),setv("at-cont",t[7]),setv("at-dtcont",isoDate(String(t[8]||""))),setv("at-vig",isoDate(String(t[9]||""))),setv("at-req",t[10]),setv("at-receb",t[11]),setv("at-dtreceb",isoDate(String(t[12]||""))),setv("at-emit",t[13]),setv("at-cat",t[14]),setv("at-catst",t[15]),setv("at-art",t[16]),setv("at-artst",t[17]),setv("at-status",t[18]),setv("at-obs",t[19]),setv("at-link",t[20]),atDocsLoad(t)),document.getElementById("mo-"+e).classList.add("open"),setTimeout(lfRenderAll,0)}async function doSave(e){var a=[];if(({editais:[{id:"e-data",lbl:"Data"},{id:"e-empresa",lbl:"Empresa"},{id:"e-licit",lbl:"Licitação"}],andamento:[{id:"a-data",lbl:"Data"},{id:"a-emp",lbl:"Empresa"},{id:"a-licit",lbl:"Licitação"}],ganhas:[{id:"g-data",lbl:"Data"},{id:"g-emp",lbl:"Empresa"},{id:"g-licit",lbl:"Licitação"}],atestados:[{id:"at-data",lbl:"Data"},{id:"at-emp",lbl:"Empresa"},{id:"at-licit",lbl:"Licitação"}],financeiro:[{id:"f-data",lbl:"Data"},{id:"f-cat",lbl:"Categoria"},{id:"f-desc",lbl:"Descrição"}],valores:[{id:"v-data",lbl:"Data"},{id:"v-emp",lbl:"Empresa"},{id:"v-item",lbl:"Item"}]}[e]||[]).forEach(function(e){var t=document.getElementById(e.id);(t?t.value.trim():"")?t&&(t.style.borderColor="",t.style.borderWidth=""):(a.push(e.lbl),t&&(t.style.borderColor="var(--r1)",t.style.borderWidth="2px"))}),a.length)toast("Campos obrigatórios: "+a.join(", "),"err");else{var t=document.getElementById("sb-"+e);t.disabled=!0,t.textContent="Salvando...";var o=[],i=null!==EROW[e],n=i?FIL[e][EROW[e]]:null;if("editais"===e){var r=n?n[0]:"",s=sv("e-data");s&&-1!==s.indexOf("-")&&(s=formatDateBR(s)),!s&&n&&(s=n[1]||"");var d=sv("e-valor");o=[r,s,sv("e-empresa"),sv("e-licit"),sv("e-objeto"),sv("e-local"),sv("e-mun"),d,sv("e-prior"),sv("e-resp"),sv("e-part"),sv("e-viab"),sv("e-just"),sv("e-link"),sv("e-pasta"),sv("e-portal")]}else if("andamento"===e){var l=n?n[0]:"",c=sv("a-data");function A(e){var a=sv(e);return a&&-1!==a.indexOf("-")?formatDateBR(a):a}c&&-1!==c.indexOf("-")&&(c=formatDateBR(c)),!c&&n&&(c=n[1]||"");var p=sv("a-vest"),u=sv("a-vfin"),m=sv("a-vconc");o=[l,c,sv("a-emp"),sv("a-licit"),sv("a-obj"),sv("a-local"),sv("a-mun"),fmtValBR(p)||p,fmtValBR(u)||u,sv("a-portal"),A("a-disp"),sv("a-class"),sv("a-status"),A("a-reab"),sv("a-rec"),sv("a-resumo"),sv("a-adju"),sv("a-conc"),fmtValBR(m)||m,sv("a-link")]}else if("ganhas"===e){var v=n?n[0]:"",f=sv("g-data");function g(e){var a=sv(e);return a&&-1!==a.indexOf("-")?formatDateBR(a):a}f&&-1!==f.indexOf("-")&&(f=formatDateBR(f)),!f&&n&&(f=n[1]||""),o=[v,f,sv("g-emp"),sv("g-licit"),sv("g-obj"),sv("g-local"),sv("g-mun"),parseMoeda(sv("g-valor"))?fmtValBR(sv("g-valor")):sv("g-valor"),sv("g-cont"),sv("g-stcont"),sv("g-vig"),g("g-dtcont"),g("g-venc"),sv("g-recomp"),sv("g-trecomp"),sv("g-strecomp"),g("g-novadata"),sv("g-vigrecomp"),g("g-vencrecomp"),sv("g-vfin"),sv("g-recomp2"),sv("g-trecomp2"),sv("g-strecomp2"),g("g-novadata2"),sv("g-vigrecomp2"),g("g-vencrecomp2"),sv("g-vfin2"),sv("g-recomp3"),sv("g-trecomp3"),sv("g-strecomp3"),g("g-novadata3"),sv("g-vigrecomp3"),g("g-vencrecomp3"),sv("g-vfin3"),sv("g-recomp4"),sv("g-trecomp4"),sv("g-strecomp4"),g("g-novadata4"),sv("g-vigrecomp4"),g("g-vencrecomp4"),sv("g-vfin4"),sv("g-obs"),sv("g-link"),sv("g-situacao"),sv("g-srp"),sv("g-atatotal"),sv("g-atacons"),sv("g-atacarona"),g("g-atavig"),sv("g-proxacao")]}else if("atestados"===e){var b=n?n[0]:"",h=sv("at-data"),_docs=atDocsRead();function y(e){var a=sv(e);return a&&-1!==a.indexOf("-")?formatDateBR(a):a}h&&-1!==h.indexOf("-")&&(h=formatDateBR(h)),!h&&n&&(h=n[1]||""),o=[b,h,sv("at-emp"),sv("at-licit"),sv("at-obj"),sv("at-local"),sv("at-mun"),sv("at-cont"),y("at-dtcont"),y("at-vig"),sv("at-req"),sv("at-receb"),y("at-dtreceb"),sv("at-emit"),_docFirst(_docs,"CAT"),(n&&n[15])||"",_docFirst(_docs,"ART"),(n&&n[17])||"",sv("at-status"),sv("at-obs"),sv("at-link"),(n&&n[21])||"",JSON.stringify(_docs)]}else if("financeiro"===e){var x=sv("f-data");x&&-1!==x.indexOf("-")&&(x=formatDateBR(x)),o=[x,sv("f-cat"),sv("f-desc"),sv("f-forn"),sv("f-valor"),sv("f-status"),sv("f-conta"),sv("f-obs"),sv("f-emp")]}else if("valores"===e){var ID=n?n[0]:"",vd=sv("v-data");vd&&-1!==vd.indexOf("-")&&(vd=formatDateBR(vd));!vd&&n&&(vd=n[1]||"");var vu=sv("v-vunit"),vt=sv("v-vtotal"),vc=sv("v-vconc");o=[ID,vd,sv("v-emp"),sv("v-item"),sv("v-qtd"),fmtValBR(vu)||vu,fmtValBR(vt)||vt,sv("v-conc"),fmtValBR(vc)||vc,sv("v-origem")||"Manual",sv("v-mun")]}var E=void 0!==i?i:null!==EROW[e],S=FB_COLS[e];try{var C;if(E?C="financeiro"===e?n._docId||parseInt(n[0])||1:parseInt(n?n[0]:FIL[e][EROW[e]]?FIL[e][EROW[e]][0]:0):(C=await fbGetNextId(S),"financeiro"!==e&&(o[0]=C)),await fbSave(S,C,o,(E&&n&&n._fbId)?n._fbId:null),"editais"===e)if("SIM"===String(o[10]||"").toUpperCase().trim()&&"NÃO"!==String(o[11]||"").toUpperCase().trim()&&"NEGATIVO"!==String(o[11]||"").toUpperCase().trim()&&"NAO"!==String(o[11]||"").toUpperCase().trim()){var T=String(o[3]||"").trim().toLowerCase();ALL.andamento.some(function(e){return String(e[3]||"").trim().toLowerCase()===T})?await syncEntreAbas("editais",2,o):await criarAndamentoDoEdital(o);}else if(("POSITIVO"===String(o[11]||"").toUpperCase().trim()||"SIM"===String(o[11]||"").toUpperCase().trim())&&"SIM"===String(o[10]||"").toUpperCase().trim()){var _T2=String(o[3]||"").trim().toLowerCase();ALL.andamento.some(function(e){return String(e[3]||"").trim().toLowerCase()===_T2})||await criarAndamentoDoEdital(o);}else E&&await syncEntreAbas("editais",10,o);if("andamento"===e){var V=String(o[16]||"").toLowerCase().trim(),P=String(o[11]||"").trim(),k="sim"===V&&is1Posicao(P);if("sim"===V&&await copiarParaFinalizados(o),k)await criarLicitacaoGanha(o);else{var I=String(o[3]||"").trim().toLowerCase(),w=String(o[2]||"").trim(),z=ALL.ganhas.findIndex(function(e){return String(e[3]||"").trim().toLowerCase()===I&&String(e[2]||"").trim()===w});if(-1!==z){var L=ALL.ganhas[z]._fbId||parseInt(ALL.ganhas[z][0]);await fbDelete("ganhas",L),ALL.ganhas.splice(z,1),applyFilters("ganhas");var M=document.getElementById("b-ganhas");M&&(M.textContent=ALL.ganhas.length),toast("Removido de Licitações Ganhas","info")}}}t.disabled=!1,t.textContent="Salvar",toast(E?"Atualizado!":"Salvo com sucesso!","ok"),closeM(e),await loadPage(e),"editais"===e&&await loadPage("andamento"),"editais"!==e||E||nhFilaViabilidade([C]),"financeiro"===e&&(buildFinResumo(),filtrarFinanceiroMes()),"resumo"===CUR&&buildResumo()}catch(q){t.disabled=!1,t.textContent="Salvar",toast("Erro: "+q.message,"err")}}}async function doDel(e,a){var t=FIL[e][a],o="financeiro"===e?t[2]:t[3];if(confirm('Excluir?\n"'+o+'"\n\nEsta ação não pode ser desfeita.')){var i=t._fbId?String(t._fbId):("financeiro"===e&&t._docId?String(t._docId):String(t[0]||"").trim());if(i)try{if(await fbDelete(FB_COLS[e],i),"editais"===e)for(var n=String(t[3]||"").trim().toLowerCase(),r=String(t[2]||"").trim(),s=["andamento","finalizados","ganhas"],d=0;d<s.length;d++){var l=s[d],c=ALL[l].findIndex(function(e){return String(e[3]||"").trim().toLowerCase()===n&&String(e[2]||"").trim()===r});if(-1!==c){var A=ALL[l][c]._fbId||parseInt(ALL[l][c][0]);A&&await fbDelete(FB_COLS[l],A),ALL[l].splice(c,1),FIL[l]=ALL[l].slice();var p=document.getElementById("b-"+l);p&&(p.textContent=ALL[l].length)}}toast("Excluído!","ok"),await loadPage(e),"resumo"===CUR&&buildResumo()}catch(e){toast("Erro ao excluir: "+e.message,"err")}else try{var u=await db.collection(FB_COLS[e]).where("_arr","array-contains",t[2]||"").limit(10).get(),m=!1,_cands=[];u.forEach(function(e){var a=e.data()._arr||[];String(a[2]||"")===String(t[2]||"")&&String(a[3]||"")===String(t[3]||"")&&_cands.push(e)}),_cands.length>1?(alert("Foram encontrados "+_cands.length+" registros idênticos (mesma empresa e licitação) e o card não possui ID.\n\nNenhum foi excluído, para evitar apagar o errado.\n\nUse o console: nhDiagnosticar(\""+e+"\")"),m=!1):_cands.length===1&&(await _cands[0].ref.delete(),m=!0),m?(toast("Excluído!","ok"),await loadPage(e)):(ALL[e]=ALL[e].filter(function(e,t){return t!==a}),FIL[e]=FIL[e].filter(function(e,t){return t!==a}),renderTbl(e),toast("Removido localmente","ok"))}catch(e){toast("Erro: "+e.message,"err")}}}function toast(e,a){a||(a="info");var t=document.getElementById("toasts"),o=document.createElement("div");o.className="toast "+("ok"===a?"tok":"err"===a?"terr":"tinfo");var i="ok"===a?'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>':"err"===a?'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>':'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>';o.innerHTML='<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">'+i+"</svg>"+e,t.appendChild(o),setTimeout(function(){o.remove()},4e3)}function noConf(){return'<div class="empty"><svg width="44" height="44" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg><p>Cole a URL do Apps Script na barra lateral para conectar com a planilha</p></div>'}function emptyEl(e){return'<div class="empty"><svg width="44" height="44" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg><p>'+e+"</p></div>"}var isDark="light"!==localStorage.getItem("nh_theme");function setTheme(e){isDark=e,document.documentElement.setAttribute("data-theme",e?"dark":"light"),localStorage.setItem("nh_theme",e?"dark":"light")}async function migrarFinanceiro(){var e=await db.collection("financeiro").get(),a=db.batch(),t=0;e.forEach(function(e){var o=e.data(),i=o._arr||[],n=String(i[0]||"");if(i.length>0&&-1===n.indexOf("/")){var r=o._createdAt||Date.now(),s=new Date(r),d=[("0"+s.getDate()).slice(-2)+"/"+("0"+(s.getMonth()+1)).slice(-2)+"/"+s.getFullYear(),i[1],i[2],i[3],i[4],i[5],i[6],i[7]];a.update(e.ref,{_arr:d,_updatedAt:Date.now()}),t++}}),t>0&&(await a.commit(),toast("✅ "+t+" registros financeiros atualizados com data","ok"),await _load("financeiro"))}async function importarDadosMarco(){var e="financeiro",a=await db.collection(e).get(),t=!1;if(a.forEach(function(e){var a=e.data()._arr||[];-1!==String(a[0]||"").indexOf("/03/2026")&&(t=!0)}),!t){var o=await db.collection(e).orderBy("_id","desc").limit(1).get(),i=o.empty?1:(o.docs[0].data()._id||0)+1,n=db.batch();[["05/03/2026","Portais","Portal Compras Públicas","Compras Públicas","R$ 165,00","Pago","Banco Inter","Pago acesso mensal pela empresa VISE."],["13/03/2026","Portais","BNC","BNC","R$ 121,77","Pago","Banco Inter","Pagamento em atraso do BNC pela empresa SAUTEC."],["16/03/2026","Informática","Aquisição de adaptador wireless","Kalunga SA","R$ 136,85","Pago","Banco Inter","Adaptador wireless para o computador de Charlayne."],["18/03/2026","Portais","Pagamento mensal portal Compras Públicas - SAUTEC","Portal Compras Públicas","R$ 165,00","Pago","Banco Inter","Pago pelo cartão de crédito, sem saldo em conta."],["24/03/2026","Portais","Pagamento portal BNC","BNC","R$ 118,00","Pago","Banco Inter","Boleto para participar do processo de licitação pela empresa VISE."],["10/03/2026","Telefonia","Plano Business","TIM","R$ 30,00","Pago","Banco Inter","Recarga plano pré-pago TIM — telefone do escritório."]].forEach(function(a){var t=db.collection(e).doc(String(i));n.set(t,{_id:i,_arr:a,_createdAt:Date.now(),_updatedAt:Date.now()}),i++}),await n.commit(),ALL.financeiro&&await _load("financeiro"),toast("✅ 6 lançamentos de março importados!","ok")}}async function restaurarSAUTEC(){
+async function _processQueue(){if(!_saveRunning&&_saveQueue.length){_saveRunning=!0;var e=_saveQueue.shift(),a=e.k,t=e.ci,o=e.rowId,i=e.row,_fid=e.fbId;try{await fbSave(FB_COLS[a],parseInt(o),i,_fid),await syncEntreAbas(a,t,i),updateKcard(a,parseInt(o),i),"andamento"===a&&16===t&&"sim"===String(i[16]||"").toLowerCase().trim()&&(FIL.andamento=FIL.andamento.filter(function(e){return parseInt(e[0])!==parseInt(o)}),ALL.andamento=ALL.andamento.map(function(e){return parseInt(e[0])===parseInt(o)?i:e}),"andamento"===CUR&&renderTbl("andamento")),"resumo"===CUR&&buildResumo()}catch(e){toast("Erro ao salvar: "+e.message,"err")}_saveRunning=!1,_saveQueue.length?_processQueue():setSavingDot(!1)}else _saveQueue.length||setSavingDot(!1)}function renderPag(e,a){var t=Math.ceil(a/20);if(t<=1)document.getElementById("pag-"+e).innerHTML="";else{var o="",i=PG[e];i>1&&(o+='<div class="pb" onclick="goPg(\''+e+"',"+(i-1)+')">&#8249;</div>');for(var n=Math.max(1,i-2);n<=Math.min(t,i+2);n++)o+='<div class="pb'+(n===i?" on":"")+'" onclick="goPg(\''+e+"',"+n+')">'+n+"</div>";i<t&&(o+='<div class="pb" onclick="goPg(\''+e+"',"+(i+1)+')">&#8250;</div>'),document.getElementById("pag-"+e).innerHTML=o}}function goPg(e,a){PG[e]=a,renderTbl(e);var t=document.getElementById("tbl-"+e);t&&t.scrollIntoView({behavior:"smooth",block:"start"})}function openM(e){if(IS_READONLY)return;if(EROW[e]=null,clearF(e),"atestados"===e&&(atDocsClear(),atDocAdd("ART","")),"financeiro"===e){["f-data","f-emp","f-cat","f-desc","f-forn","f-valor","f-status","f-conta","f-obs"].forEach(function(e){var a=document.getElementById(e);a&&("SELECT"===a.tagName?a.selectedIndex=0:a.value="")});var a=document.getElementById("f-data");if(a){var t=new Date;a.value=t.toISOString().split("T")[0]}document.getElementById("mht-financeiro").textContent="Novo Lançamento Financeiro",populateFinEmpSelect()}var o={editais:"Novo Edital Capturado",andamento:"Nova Licitação em Andamento",ganhas:"Registrar Licitação Ganha",atestados:"Novo Atestado",valores:"Novo Valor Praticado"};"valores"===e&&populateValoresEmpSelect();o[e]&&(document.getElementById("mht-"+e).textContent=o[e]),"financeiro"===e&&(populateFinEmpSelect(),setv("f-data",isoDate(finGetData(t))),setv("f-emp",String(t[8]||"").trim()),setv("f-cat",String(t[1]||"").trim()),setv("f-desc",String(t[2]||"").trim()),setv("f-forn",String(t[3]||"").trim()),setv("f-valor",fmtValBR(t[4]||"")),setv("f-status",String(t[5]||"").trim()),setv("f-conta",String(t[6]||"").trim()),setv("f-obs",String(t[7]||"").trim())),_modalHook(e),document.getElementById("mo-"+e).classList.add("open"),setTimeout(lfRenderAll,0)}function closeM(e){var a=document.getElementById("mo-"+e);a&&(a.classList.contains("modal-overlay")?(a.style.display="none",a.classList.remove("open")):a.classList.remove("open"),void 0!==EROW&&EROW&&(EROW[e]=null))}function clearF(e){var a={editais:"e-",andamento:"a-",ganhas:"g-",atestados:"at-"}[e];document.querySelectorAll('[id^="'+a+'"]').forEach(function(e){"SELECT"===e.tagName?e.selectedIndex=0:e.value=""})}function sv(e){var a=document.getElementById(e);return a?a.value:""}function setv(e,a){var t=document.getElementById(e);t&&("date"===t.type&&a&&-1!==a.indexOf("/")?t.value=isoDate(String(a).split(" ")[0]):t.value=a||"")}function doEdit(e,a){var t=FIL[e][a];EROW[e]=a,document.getElementById("mht-"+e).textContent="Editar Registro","editais"===e?(setv("e-data",isoDate(String(t[1]||""))),setv("e-empresa",t[2]),setv("e-licit",t[3]),setv("e-objeto",t[4]),setv("e-local",t[5]),setv("e-mun",t[6]),setv("e-valor",fmtValBR(t[7])),setv("e-prior",t[8]),popularRespEdital(t[2],t[9]),setv("e-part",t[10]),setv("e-viab",t[11]),setv("e-just",t[12]),setv("e-link",t[13]),setv("e-pasta",t[14]),popularPortalEdital(t[15])):"andamento"===e?(setv("a-data",isoDate(String(t[1]||""))),setv("a-emp",t[2]),setv("a-licit",t[3]),setv("a-obj",t[4]),setv("a-local",t[5]),setv("a-mun",t[6]),setv("a-vest",fmtValBR(t[7])),setv("a-vfin",fmtValBR(t[8])),setv("a-portal",t[9]),setv("a-disp",isoDate(String(t[10]||""))),setv("a-class",t[11]),setv("a-status",t[12]),setv("a-reab",isoDate(String(t[13]||""))),setv("a-rec",t[14]),setv("a-resumo",t[15]),setv("a-adju",t[16]),setv("a-conc",t[17]),setv("a-vconc",fmtValBR(t[18])),setv("a-link",t[19])):"ganhas"===e?(setv("g-data",t[1]),setv("g-emp",t[2]),setv("g-licit",t[3]),setv("g-obj",t[4]),setv("g-local",t[5]),setv("g-mun",t[6]),setv("g-valor",fmtValBR(t[7])),setv("g-cont",t[8]),setv("g-stcont",t[9]),setv("g-vig",t[10]),setv("g-dtcont",isoDate(String(t[11]||""))),setv("g-venc",isoDate(String(t[12]||""))),setv("g-recomp",t[13]),setv("g-trecomp",t[14]),setv("g-strecomp",t[15]),setv("g-novadata",isoDate(String(t[16]||""))),setv("g-vigrecomp",t[17]),setv("g-vencrecomp",isoDate(String(t[18]||""))),setv("g-vfin",fmtValBR(t[19])),setv("g-recomp2",t[20]),setv("g-trecomp2",t[21]),setv("g-strecomp2",t[22]),setv("g-novadata2",isoDate(String(t[23]||""))),setv("g-vigrecomp2",t[24]),setv("g-vencrecomp2",isoDate(String(t[25]||""))),setv("g-vfin2",fmtValBR(t[26])),setv("g-recomp3",t[27]),setv("g-trecomp3",t[28]),setv("g-strecomp3",t[29]),setv("g-novadata3",isoDate(String(t[30]||""))),setv("g-vigrecomp3",t[31]),setv("g-vencrecomp3",isoDate(String(t[32]||""))),setv("g-vfin3",fmtValBR(t[33])),setv("g-recomp4",t[34]),setv("g-trecomp4",t[35]),setv("g-strecomp4",t[36]),setv("g-novadata4",isoDate(String(t[37]||""))),setv("g-vigrecomp4",t[38]),setv("g-vencrecomp4",isoDate(String(t[39]||""))),setv("g-vfin4",fmtValBR(t[40])),setv("g-obs",t[41]),setv("g-link",t[42]),setv("g-situacao",t[43]),setv("g-srp",t[44]),setv("g-atatotal",fmtValBR(t[45])),setv("g-atacons",fmtValBR(t[46])),setv("g-atacarona",fmtValBR(t[47])),setv("g-atavig",isoDate(t[48])),setv("g-proxacao",t[49]),calcAta()):"valores"===e?(populateValoresEmpSelect(),setv("v-data",isoDate(String(t[1]||""))),setv("v-emp",t[2]),setv("v-item",t[3]),setv("v-qtd",t[4]),setv("v-vunit",fmtValBR(t[5])),setv("v-vtotal",fmtValBR(t[6])),setv("v-conc",t[7]),setv("v-vconc",fmtValBR(t[8])),setv("v-origem",t[9]||"Manual"),setv("v-mun",t[10])):"atestados"===e&&(setv("at-data",isoDate(String(t[1]||""))),setv("at-emp",t[2]),setv("at-licit",t[3]),setv("at-obj",t[4]),setv("at-local",t[5]),setv("at-mun",t[6]),setv("at-cont",t[7]),setv("at-dtcont",isoDate(String(t[8]||""))),setv("at-vig",isoDate(String(t[9]||""))),setv("at-req",t[10]),setv("at-receb",t[11]),setv("at-dtreceb",isoDate(String(t[12]||""))),setv("at-emit",t[13]),setv("at-cat",t[14]),setv("at-catst",t[15]),setv("at-art",t[16]),setv("at-artst",t[17]),setv("at-status",t[18]),setv("at-obs",t[19]),setv("at-link",t[20]),atDocsLoad(t)),document.getElementById("mo-"+e).classList.add("open"),setTimeout(lfRenderAll,0)}async function doSave(e){var a=[];if(({editais:[{id:"e-data",lbl:"Data"},{id:"e-empresa",lbl:"Empresa"},{id:"e-licit",lbl:"Licitação"}],andamento:[{id:"a-data",lbl:"Data"},{id:"a-emp",lbl:"Empresa"},{id:"a-licit",lbl:"Licitação"}],ganhas:[{id:"g-data",lbl:"Data"},{id:"g-emp",lbl:"Empresa"},{id:"g-licit",lbl:"Licitação"}],atestados:[{id:"at-data",lbl:"Data"},{id:"at-emp",lbl:"Empresa"},{id:"at-licit",lbl:"Licitação"}],financeiro:[{id:"f-data",lbl:"Data"},{id:"f-cat",lbl:"Categoria"},{id:"f-desc",lbl:"Descrição"}],valores:[{id:"v-data",lbl:"Data"},{id:"v-emp",lbl:"Empresa"},{id:"v-item",lbl:"Item"}]}[e]||[]).forEach(function(e){var t=document.getElementById(e.id);(t?t.value.trim():"")?t&&(t.style.borderColor="",t.style.borderWidth=""):(a.push(e.lbl),t&&(t.style.borderColor="var(--r1)",t.style.borderWidth="2px"))}),a.length)toast("Campos obrigatórios: "+a.join(", "),"err");else{var t=document.getElementById("sb-"+e);t.disabled=!0,t.textContent="Salvando...";var o=[],i=null!==EROW[e],n=i?FIL[e][EROW[e]]:null;if("editais"===e){var r=n?n[0]:"",s=sv("e-data");s&&-1!==s.indexOf("-")&&(s=formatDateBR(s)),!s&&n&&(s=n[1]||"");var d=sv("e-valor");o=[r,s,sv("e-empresa"),sv("e-licit"),sv("e-objeto"),sv("e-local"),sv("e-mun"),d,sv("e-prior"),sv("e-resp"),sv("e-part"),sv("e-viab"),sv("e-just"),sv("e-link"),sv("e-pasta"),sv("e-portal")]}else if("andamento"===e){var l=n?n[0]:"",c=sv("a-data");function A(e){var a=sv(e);return a&&-1!==a.indexOf("-")?formatDateBR(a):a}c&&-1!==c.indexOf("-")&&(c=formatDateBR(c)),!c&&n&&(c=n[1]||"");var p=sv("a-vest"),u=sv("a-vfin"),m=sv("a-vconc");o=[l,c,sv("a-emp"),sv("a-licit"),sv("a-obj"),sv("a-local"),sv("a-mun"),fmtValBR(p)||p,fmtValBR(u)||u,sv("a-portal"),A("a-disp"),sv("a-class"),sv("a-status"),A("a-reab"),sv("a-rec"),sv("a-resumo"),sv("a-adju"),sv("a-conc"),fmtValBR(m)||m,sv("a-link")]}else if("ganhas"===e){var v=n?n[0]:"",f=sv("g-data");function g(e){var a=sv(e);return a&&-1!==a.indexOf("-")?formatDateBR(a):a}f&&-1!==f.indexOf("-")&&(f=formatDateBR(f)),!f&&n&&(f=n[1]||""),o=[v,f,sv("g-emp"),sv("g-licit"),sv("g-obj"),sv("g-local"),sv("g-mun"),parseMoeda(sv("g-valor"))?fmtValBR(sv("g-valor")):sv("g-valor"),sv("g-cont"),sv("g-stcont"),sv("g-vig"),g("g-dtcont"),g("g-venc"),sv("g-recomp"),sv("g-trecomp"),sv("g-strecomp"),g("g-novadata"),sv("g-vigrecomp"),g("g-vencrecomp"),sv("g-vfin"),sv("g-recomp2"),sv("g-trecomp2"),sv("g-strecomp2"),g("g-novadata2"),sv("g-vigrecomp2"),g("g-vencrecomp2"),sv("g-vfin2"),sv("g-recomp3"),sv("g-trecomp3"),sv("g-strecomp3"),g("g-novadata3"),sv("g-vigrecomp3"),g("g-vencrecomp3"),sv("g-vfin3"),sv("g-recomp4"),sv("g-trecomp4"),sv("g-strecomp4"),g("g-novadata4"),sv("g-vigrecomp4"),g("g-vencrecomp4"),sv("g-vfin4"),sv("g-obs"),sv("g-link"),sv("g-situacao"),sv("g-srp"),sv("g-atatotal"),sv("g-atacons"),sv("g-atacarona"),g("g-atavig"),sv("g-proxacao")]}else if("atestados"===e){var b=n?n[0]:"",h=sv("at-data"),_docs=atDocsRead();function y(e){var a=sv(e);return a&&-1!==a.indexOf("-")?formatDateBR(a):a}h&&-1!==h.indexOf("-")&&(h=formatDateBR(h)),!h&&n&&(h=n[1]||""),o=[b,h,sv("at-emp"),sv("at-licit"),sv("at-obj"),sv("at-local"),sv("at-mun"),sv("at-cont"),y("at-dtcont"),y("at-vig"),sv("at-req"),sv("at-receb"),y("at-dtreceb"),sv("at-emit"),_docFirst(_docs,"CAT"),(n&&n[15])||"",_docFirst(_docs,"ART"),(n&&n[17])||"",sv("at-status"),sv("at-obs"),sv("at-link"),(n&&n[21])||"",JSON.stringify(_docs)]}else if("financeiro"===e){var x=sv("f-data");x&&-1!==x.indexOf("-")&&(x=formatDateBR(x)),o=[x,sv("f-cat"),sv("f-desc"),sv("f-forn"),sv("f-valor"),sv("f-status"),sv("f-conta"),sv("f-obs"),sv("f-emp")]}else if("valores"===e){var ID=n?n[0]:"",vd=sv("v-data");vd&&-1!==vd.indexOf("-")&&(vd=formatDateBR(vd));!vd&&n&&(vd=n[1]||"");var vu=sv("v-vunit"),vt=sv("v-vtotal"),vc=sv("v-vconc");o=[ID,vd,sv("v-emp"),sv("v-item"),sv("v-qtd"),fmtValBR(vu)||vu,fmtValBR(vt)||vt,sv("v-conc"),fmtValBR(vc)||vc,sv("v-origem")||"Manual",sv("v-mun")]}var E=void 0!==i?i:null!==EROW[e],S=FB_COLS[e];try{var C;if(E?C="financeiro"===e?n._docId||parseInt(n[0])||1:parseInt(n?n[0]:FIL[e][EROW[e]]?FIL[e][EROW[e]][0]:0):(C=await fbGetNextId(S),"financeiro"!==e&&(o[0]=C)),await fbSave(S,C,o,(E&&n&&n._fbId)?n._fbId:null),_vbPend=("editais"===e&&!E)?C:null,"editais"===e)if("SIM"===String(o[10]||"").toUpperCase().trim()&&"NÃO"!==String(o[11]||"").toUpperCase().trim()&&"NEGATIVO"!==String(o[11]||"").toUpperCase().trim()&&"NAO"!==String(o[11]||"").toUpperCase().trim()){var T=String(o[3]||"").trim().toLowerCase();ALL.andamento.some(function(e){return String(e[3]||"").trim().toLowerCase()===T})?await syncEntreAbas("editais",2,o):await criarAndamentoDoEdital(o);}else if(("POSITIVO"===String(o[11]||"").toUpperCase().trim()||"SIM"===String(o[11]||"").toUpperCase().trim())&&"SIM"===String(o[10]||"").toUpperCase().trim()){var _T2=String(o[3]||"").trim().toLowerCase();ALL.andamento.some(function(e){return String(e[3]||"").trim().toLowerCase()===_T2})||await criarAndamentoDoEdital(o);}else E&&await syncEntreAbas("editais",10,o);if("andamento"===e){var V=String(o[16]||"").toLowerCase().trim(),P=String(o[11]||"").trim(),k="sim"===V&&is1Posicao(P);if("sim"===V&&await copiarParaFinalizados(o),k)await criarLicitacaoGanha(o);else{var I=String(o[3]||"").trim().toLowerCase(),w=String(o[2]||"").trim(),z=ALL.ganhas.findIndex(function(e){return String(e[3]||"").trim().toLowerCase()===I&&String(e[2]||"").trim()===w});if(-1!==z){var L=ALL.ganhas[z]._fbId||parseInt(ALL.ganhas[z][0]);await fbDelete("ganhas",L),ALL.ganhas.splice(z,1),applyFilters("ganhas");var M=document.getElementById("b-ganhas");M&&(M.textContent=ALL.ganhas.length),toast("Removido de Licitações Ganhas","info")}}}t.disabled=!1,t.textContent="Salvar",toast(E?"Atualizado!":"Salvo com sucesso!","ok"),closeM(e),await loadPage(e),"editais"===e&&await loadPage("andamento"),_vbDisparar(),"financeiro"===e&&(buildFinResumo(),filtrarFinanceiroMes()),"resumo"===CUR&&buildResumo()}catch(q){t.disabled=!1,t.textContent="Salvar",toast("Erro: "+q.message,"err"),_vbDisparar()}}}async function doDel(e,a){var t=FIL[e][a],o="financeiro"===e?t[2]:t[3];if(confirm('Excluir?\n"'+o+'"\n\nEsta ação não pode ser desfeita.')){var i=t._fbId?String(t._fbId):("financeiro"===e&&t._docId?String(t._docId):String(t[0]||"").trim());if(i)try{if(await fbDelete(FB_COLS[e],i),"editais"===e)for(var n=String(t[3]||"").trim().toLowerCase(),r=String(t[2]||"").trim(),s=["andamento","finalizados","ganhas"],d=0;d<s.length;d++){var l=s[d],c=ALL[l].findIndex(function(e){return String(e[3]||"").trim().toLowerCase()===n&&String(e[2]||"").trim()===r});if(-1!==c){var A=ALL[l][c]._fbId||parseInt(ALL[l][c][0]);A&&await fbDelete(FB_COLS[l],A),ALL[l].splice(c,1),FIL[l]=ALL[l].slice();var p=document.getElementById("b-"+l);p&&(p.textContent=ALL[l].length)}}toast("Excluído!","ok"),await loadPage(e),"resumo"===CUR&&buildResumo()}catch(e){toast("Erro ao excluir: "+e.message,"err")}else try{var u=await db.collection(FB_COLS[e]).where("_arr","array-contains",t[2]||"").limit(10).get(),m=!1,_cands=[];u.forEach(function(e){var a=e.data()._arr||[];String(a[2]||"")===String(t[2]||"")&&String(a[3]||"")===String(t[3]||"")&&_cands.push(e)}),_cands.length>1?(alert("Foram encontrados "+_cands.length+" registros idênticos (mesma empresa e licitação) e o card não possui ID.\n\nNenhum foi excluído, para evitar apagar o errado.\n\nUse o console: nhDiagnosticar(\""+e+"\")"),m=!1):_cands.length===1&&(await _cands[0].ref.delete(),m=!0),m?(toast("Excluído!","ok"),await loadPage(e)):(ALL[e]=ALL[e].filter(function(e,t){return t!==a}),FIL[e]=FIL[e].filter(function(e,t){return t!==a}),renderTbl(e),toast("Removido localmente","ok"))}catch(e){toast("Erro: "+e.message,"err")}}}function toast(e,a){a||(a="info");var t=document.getElementById("toasts"),o=document.createElement("div");o.className="toast "+("ok"===a?"tok":"err"===a?"terr":"tinfo");var i="ok"===a?'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>':"err"===a?'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>':'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>';o.innerHTML='<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">'+i+"</svg>"+e,t.appendChild(o),setTimeout(function(){o.remove()},4e3)}function noConf(){return'<div class="empty"><svg width="44" height="44" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg><p>Cole a URL do Apps Script na barra lateral para conectar com a planilha</p></div>'}function emptyEl(e){return'<div class="empty"><svg width="44" height="44" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg><p>'+e+"</p></div>"}var isDark="light"!==localStorage.getItem("nh_theme");function setTheme(e){isDark=e,document.documentElement.setAttribute("data-theme",e?"dark":"light"),localStorage.setItem("nh_theme",e?"dark":"light")}async function migrarFinanceiro(){var e=await db.collection("financeiro").get(),a=db.batch(),t=0;e.forEach(function(e){var o=e.data(),i=o._arr||[],n=String(i[0]||"");if(i.length>0&&-1===n.indexOf("/")){var r=o._createdAt||Date.now(),s=new Date(r),d=[("0"+s.getDate()).slice(-2)+"/"+("0"+(s.getMonth()+1)).slice(-2)+"/"+s.getFullYear(),i[1],i[2],i[3],i[4],i[5],i[6],i[7]];a.update(e.ref,{_arr:d,_updatedAt:Date.now()}),t++}}),t>0&&(await a.commit(),toast("✅ "+t+" registros financeiros atualizados com data","ok"),await _load("financeiro"))}async function importarDadosMarco(){var e="financeiro",a=await db.collection(e).get(),t=!1;if(a.forEach(function(e){var a=e.data()._arr||[];-1!==String(a[0]||"").indexOf("/03/2026")&&(t=!0)}),!t){var o=await db.collection(e).orderBy("_id","desc").limit(1).get(),i=o.empty?1:(o.docs[0].data()._id||0)+1,n=db.batch();[["05/03/2026","Portais","Portal Compras Públicas","Compras Públicas","R$ 165,00","Pago","Banco Inter","Pago acesso mensal pela empresa VISE."],["13/03/2026","Portais","BNC","BNC","R$ 121,77","Pago","Banco Inter","Pagamento em atraso do BNC pela empresa SAUTEC."],["16/03/2026","Informática","Aquisição de adaptador wireless","Kalunga SA","R$ 136,85","Pago","Banco Inter","Adaptador wireless para o computador de Charlayne."],["18/03/2026","Portais","Pagamento mensal portal Compras Públicas - SAUTEC","Portal Compras Públicas","R$ 165,00","Pago","Banco Inter","Pago pelo cartão de crédito, sem saldo em conta."],["24/03/2026","Portais","Pagamento portal BNC","BNC","R$ 118,00","Pago","Banco Inter","Boleto para participar do processo de licitação pela empresa VISE."],["10/03/2026","Telefonia","Plano Business","TIM","R$ 30,00","Pago","Banco Inter","Recarga plano pré-pago TIM — telefone do escritório."]].forEach(function(a){var t=db.collection(e).doc(String(i));n.set(t,{_id:i,_arr:a,_createdAt:Date.now(),_updatedAt:Date.now()}),i++}),await n.commit(),ALL.financeiro&&await _load("financeiro"),toast("✅ 6 lançamentos de março importados!","ok")}}async function restaurarSAUTEC(){
   // Verifica se SAUTEC já existe
   if(EMPRESAS.find(function(e){return e.nome==="SAUTEC";})){
     toast("SAUTEC já está na lista","info");
@@ -8240,7 +8243,7 @@ var colunas=[
   {id:"unid",   nome:"Unid.",  tipo:"texto", width:60},
   {id:"qtd",    nome:"Qtd",    tipo:"num",   width:70},
   {id:"vunit",  nome:"Valor Unitário", tipo:"moeda", width:110},
-  {id:"vtotal", nome:"Valor Total", tipo:"formula",width:120}
+  {id:"vtotal", nome:"Valor Total", tipo:"formula",width:120,formula:["qtd","vunit"]}
 ];
 var linhas=[];
 var _nextRowId=1;
@@ -8271,19 +8274,23 @@ function addLinha(){
 }
 
 function addColuna(){
-  var nome=prompt("Nome da nova coluna:");
-  if(!nome)return;
   var id="col"+(_nextColId++);
-  var tipo=prompt("Tipo: texto | num | moeda","texto")||"texto";
-  colunas.splice(colunas.length-1,0,{id:id,nome:nome,tipo:tipo,width:100});
+  colunas.splice(colunas.length-1,0,{id:id,nome:"Nova coluna",tipo:"texto",width:100});
   linhas.forEach(function(r){r.cells[id]="";});
   renderTabela();
+  abrirColunas(id);
 }
 
 function removerColuna(colId){
   if(["item","desc","vtotal"].indexOf(colId)>=0){toast("Esta coluna não pode ser removida","err");return;}
   colunas=colunas.filter(function(c){return c.id!==colId;});
+  /* Some das contas que usavam essa coluna, senão o cálculo trava num
+     id que não existe mais. */
+  colunas.forEach(function(c){
+    if(c.formula)c.formula=c.formula.filter(function(x){return x!==colId;});
+  });
   renderTabela();
+  if(document.getElementById("mo-colunas"))_renderColunasModal();
 }
 
 function resetColunas(){
@@ -8294,20 +8301,54 @@ function resetColunas(){
     {id:"unid",   nome:"Unid.",  tipo:"texto", width:60},
     {id:"qtd",    nome:"Qtd",    tipo:"num",   width:70},
     {id:"vunit",  nome:"Valor Unitário", tipo:"moeda", width:110},
-    {id:"vtotal", nome:"Valor Total", tipo:"formula",width:120}
+    {id:"vtotal", nome:"Valor Total", tipo:"formula",width:120,formula:["qtd","vunit"]}
   ];
   linhas.forEach(function(r){r.formula=["qtd","vunit"];});
   renderTabela();
+  if(document.getElementById("mo-colunas"))_renderColunasModal();
 }
 
-function calcRowTotal(row){
-  var formula=row.formula||["qtd","vunit"];
+/* ── Colunas de cálculo ───────────────────────────────────────────
+   A conta passou a morar na COLUNA (c.formula = ids que se multiplicam),
+   não mais na linha. Antes ficava fixa em qtd × valor unitário dentro de
+   cada linha, então uma coluna nova nunca conseguia entrar no cálculo.
+   Rascunho antigo continua abrindo: se a coluna vier sem fórmula, ela
+   herda a que estava guardada na primeira linha. */
+function _normColunas(){
+  var padrao=["qtd","vunit"];
+  colunas.forEach(function(c){
+    if("formula"!==c.tipo){if(c.formula)delete c.formula;return;}
+    if(!Array.isArray(c.formula)||!c.formula.length){
+      var daLinha=(linhas[0]&&Array.isArray(linhas[0].formula)&&linhas[0].formula.length)?linhas[0].formula:null;
+      c.formula=("vtotal"===c.id&&daLinha)?daLinha.slice():padrao.slice();
+    }
+    /* Só entra na conta coluna que existe e que não é de cálculo — assim
+       nenhuma fórmula depende de outra e não há como girar em círculo. */
+    c.formula=c.formula.filter(function(id){
+      return colunas.some(function(x){return x.id===id&&"formula"!==x.tipo;});
+    });
+  });
+}
+
+function _colsCalculaveis(){
+  return colunas.filter(function(c){return "formula"!==c.tipo&&"desc"!==c.id;});
+}
+
+function calcCol(row,col){
+  var ids=(col&&col.formula&&col.formula.length)?col.formula:["qtd","vunit"];
   var total=null;
-  formula.forEach(function(colId){
+  ids.forEach(function(colId){
     var v=parseMoeda(row.cells[colId]);
     if(!isNaN(v)&&v>=0){total=total===null?v:total*v;}
   });
   return total===null?0:total;
+}
+
+function calcRowTotal(row){
+  var col=colunas.filter(function(c){return "vtotal"===c.id;})[0];
+  if(col)return calcCol(row,col);
+  var fb=colunas.filter(function(c){return "formula"===c.tipo;})[0];
+  return fb?calcCol(row,fb):0;
 }
 
 function calcGlobalTotal(){
@@ -8320,13 +8361,21 @@ function renderTabela(){
   var head=document.getElementById("tbl-head");
   var body=document.getElementById("tbl-body");
   if(!head||!body)return;
+  _normColunas();
 
   // Cabeçalho
   var thHtml='<tr><th class="col-num" style="width:36px"><div class="th-inner">#</div></th>';
   colunas.forEach(function(c){
     var canRemove=["item","desc","vtotal"].indexOf(c.id)<0;
-    thHtml+='<th style="width:'+c.width+'px"><div class="th-inner">'+
-      '<input class="th-name" value="'+c.nome+'" onchange="renomearColuna(\''+c.id+'\',this.value)">'+
+    var dica="";
+    if("formula"===c.tipo){
+      var nomes=(c.formula||[]).map(function(id){
+        var x=colunas.filter(function(y){return y.id===id;})[0];return x?x.nome:id;});
+      dica=nomes.length?(" — multiplica "+nomes.join(" × ")):" — sem colunas escolhidas";
+    }
+    thHtml+='<th style="width:'+c.width+'px" title="'+String(c.nome+dica).replace(/"/g,"&quot;")+'"><div class="th-inner">'+
+      '<input class="th-name" value="'+String(c.nome).replace(/"/g,"&quot;")+'" onchange="renomearColuna(\''+c.id+'\',this.value)">'+
+      ("formula"===c.tipo?'<button class="btn-fx-col" onclick="abrirColunas(\''+c.id+'\')" title="Escolher quais colunas se multiplicam">&fnof;x</button>':'')+
       (canRemove?'<button class="btn-rm-col" onclick="removerColuna(\''+c.id+'\')" title="Remover coluna">✕</button>':'')+
       '</div></th>';
   });
@@ -8347,9 +8396,9 @@ function renderTabela(){
       if(val===undefined)val="";
 
       if(c.tipo==="formula"||c.id==="vtotal"){
-        var t=calcRowTotal(row);
+        var t=calcCol(row,c);
         var fmt=t>0?fmtMoeda(t):"—";
-        tbHtml+='<td style="text-align:right;font-weight:700;color:var(--nh);padding:7px 9px;font-size:12px">'+fmt+'</td>';
+        tbHtml+='<td id="calc-'+c.id+'-'+row.id+'" style="text-align:right;font-weight:700;color:var(--nh);padding:7px 9px;font-size:12px">'+fmt+'</td>';
       } else if(c.tipo==="moeda"){
         tbHtml+='<td><input type="text" value="'+String(val).replace(/"/g,"&quot;")+'" '+
           'oninput="atualizarCelulaAoVivo(this,'+row.id+',\''+c.id+'\')" '+
@@ -8399,10 +8448,16 @@ function atualizarCelulaAoVivo(el,rowId,colId){
   var row=linhas.find(function(r){return r.id===rowId;});
   if(!row)return;
   row.cells[colId]=el.value; // valor "cru" (sem formatar ainda); onblur formata ao sair do campo
-  var t=calcRowTotal(row);
-  var fmt=t>0?fmtMoeda(t):"—";
-  var tdTotal=document.getElementById("vtotal-"+rowId);
-  if(tdTotal)tdTotal.textContent=fmt;
+  /* Atualiza TODAS as colunas de cálculo da linha. Antes procurava um
+     "vtotal-<id>" que o render nunca criava, então nada mudava enquanto
+     se digitava — só ao sair do campo. */
+  colunas.forEach(function(c){
+    if("formula"!==c.tipo)return;
+    var td=document.getElementById("calc-"+c.id+"-"+rowId);
+    if(!td)return;
+    var t=calcCol(row,c);
+    td.textContent=t>0?fmtMoeda(t):"—";
+  });
   var tg=document.getElementById("total-global");
   if(tg)tg.textContent=fmtMoeda(calcGlobalTotal());
 }
@@ -8429,7 +8484,137 @@ function removerLinha(rowId){
 
 function renomearColuna(colId,nome){
   var col=colunas.find(function(c){return c.id===colId;});
-  if(col)col.nome=nome;
+  if(col){col.nome=nome;if(document.getElementById("mo-colunas"))_renderColunasModal();}
+}
+
+/* ── Gerenciador de colunas ──────────────────────────────────────
+   O cabeçalho da tabela é estreito demais para caber seta de mover,
+   tipo e escolha de fórmula. Tudo isso mora aqui. */
+var _colDestaque=null;
+
+function abrirColunas(destacar){
+  _colDestaque=destacar||null;
+  var m=document.getElementById("mo-colunas");
+  if(!m){
+    m=document.createElement("div");
+    m.id="mo-colunas";
+    m.style.cssText="display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(6px);z-index:3400;align-items:center;justify-content:center;padding:16px";
+    m.innerHTML='<div style="background:var(--s1);border:1px solid var(--b1);border-radius:14px;max-width:600px;width:100%;max-height:90vh;display:flex;flex-direction:column;overflow:hidden">'
+      +'<div style="padding:14px 18px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:10px">'
+        +'<b style="color:var(--nh)">Colunas da tabela</b>'
+        +'<button onclick="fecharColunas()" style="margin-left:auto;background:none;border:none;color:var(--t3);font-size:18px;cursor:pointer">✕</button>'
+      +'</div>'
+      +'<div style="padding:14px 18px;overflow-y:auto;flex:1">'
+        +'<div style="font-size:11.5px;color:var(--t3);line-height:1.6;margin-bottom:12px">Use <b>▲ ▼</b> para mudar a ordem. Para uma coluna somar valores, escolha o tipo <b>Cálculo</b> e marque quais colunas se multiplicam.</div>'
+        +'<div id="mo-col-lista"></div>'
+      +'</div>'
+      +'<div style="padding:13px 18px;border-top:1px solid var(--b1);display:flex;gap:8px;justify-content:space-between">'
+        +'<button onclick="colAdicionar()" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;font-family:Outfit,sans-serif">+ Adicionar coluna</button>'
+        +'<button onclick="fecharColunas()" style="background:var(--nh);border:none;color:#fff;padding:8px 20px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:800;font-family:Outfit,sans-serif">Concluir</button>'
+      +'</div></div>';
+    document.body.appendChild(m);
+    m.addEventListener("click",function(ev){if(ev.target===m)fecharColunas();});
+  }
+  _renderColunasModal();
+  m.style.display="flex";
+}
+
+function fecharColunas(){
+  var m=document.getElementById("mo-colunas");
+  if(m)m.style.display="none";
+  _colDestaque=null;
+}
+
+function _renderColunasModal(){
+  var box=document.getElementById("mo-col-lista");
+  if(!box)return;
+  _normColunas();
+  var TIPOS=[["texto","Texto"],["num","Número"],["moeda","Moeda (R$)"],["formula","Cálculo (multiplica)"]];
+  var bt="background:var(--s1);border:1px solid var(--b1);color:var(--t2);width:26px;height:26px;border-radius:7px;cursor:pointer;font-size:11px;line-height:1;flex-shrink:0";
+  box.innerHTML=colunas.map(function(c,i){
+    var fixa=["item","desc","vtotal"].indexOf(c.id)>=0;
+    var destaque=(c.id===_colDestaque);
+    var h='<div style="background:var(--s2);border:1px solid '+(destaque?"var(--nh)":"var(--b1)")+';border-radius:10px;padding:9px 11px;margin-bottom:7px">'
+      +'<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">'
+        +'<button onclick="colMover(\''+c.id+'\',-1)" title="Subir (move para a esquerda na tabela)" style="'+bt+'"'+(0===i?" disabled":"")+'>▲</button>'
+        +'<button onclick="colMover(\''+c.id+'\',1)" title="Descer (move para a direita na tabela)" style="'+bt+'"'+(i===colunas.length-1?" disabled":"")+'>▼</button>'
+        +'<input value="'+String(c.nome).replace(/"/g,"&quot;")+'" onchange="colNome(\''+c.id+'\',this.value)" '
+          +'style="flex:1;min-width:120px;background:var(--s1);border:1px solid var(--b1);color:var(--t1);padding:6px 9px;border-radius:7px;font-family:Outfit,sans-serif;font-size:12px;outline:none">'
+        +'<select onchange="colTipo(\''+c.id+'\',this.value)" style="background:var(--s1);border:1px solid var(--b1);color:var(--t1);padding:6px 8px;border-radius:7px;font-family:Outfit,sans-serif;font-size:11.5px;outline:none">'
+          +TIPOS.map(function(t){return '<option value="'+t[0]+'"'+(c.tipo===t[0]?" selected":"")+'>'+t[1]+'</option>';}).join("")
+        +'</select>'
+        +(fixa
+          ?'<span style="font-size:10px;color:var(--t3);flex-shrink:0">fixa</span>'
+          :'<button onclick="removerColuna(\''+c.id+'\')" title="Remover coluna" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);color:#ef4444;width:26px;height:26px;border-radius:7px;cursor:pointer;font-size:12px;line-height:1;flex-shrink:0">✕</button>')
+      +'</div>';
+    if("formula"===c.tipo){
+      var opts=_colsCalculaveis();
+      h+='<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--b1)">'
+        +'<div style="font-size:10.5px;color:var(--t3);margin-bottom:5px">Multiplicar:</div>';
+      h+= opts.length
+        ? '<div style="display:flex;flex-wrap:wrap;gap:6px">'+opts.map(function(o){
+            var on=(c.formula||[]).indexOf(o.id)>=0;
+            return '<label style="display:flex;align-items:center;gap:5px;background:'+(on?"var(--nha2)":"var(--s1)")+';border:1px solid '+(on?"var(--nh)":"var(--b1)")+';border-radius:20px;padding:4px 10px;cursor:pointer;font-size:11px;color:var(--t1)">'
+              +'<input type="checkbox" '+(on?"checked":"")+' onchange="colFormula(\''+c.id+'\',\''+o.id+'\',this.checked)" style="width:13px;height:13px;accent-color:var(--nh);cursor:pointer">'
+              +String(o.nome)+'</label>';
+          }).join("")+'</div>'
+        : '<div style="font-size:11px;color:var(--t3)">Nenhuma coluna de número ou moeda para multiplicar.</div>';
+      var nomes=(c.formula||[]).map(function(id){
+        var x=colunas.filter(function(y){return y.id===id;})[0];return x?x.nome:id;});
+      h+='<div style="font-size:10.5px;color:'+(nomes.length?"var(--nh)":"#eab308")+';margin-top:6px">'
+        +(nomes.length?("= "+nomes.join(" × ")):"Marque ao menos uma coluna, senão esta coluna fica sempre zerada.")+'</div>';
+      h+='</div>';
+    }
+    return h+'</div>';
+  }).join("");
+}
+
+function colMover(colId,dir){
+  var i=colunas.findIndex(function(c){return c.id===colId;});
+  var j=i+dir;
+  if(i<0||j<0||j>=colunas.length)return;
+  var t=colunas[i];colunas[i]=colunas[j];colunas[j]=t;
+  renderTabela();_renderColunasModal();
+}
+
+function colNome(colId,nome){
+  var c=colunas.filter(function(x){return x.id===colId;})[0];
+  if(!c)return;
+  c.nome=String(nome||"").trim()||c.nome;
+  renderTabela();_renderColunasModal();
+}
+
+function colTipo(colId,tipo){
+  var c=colunas.filter(function(x){return x.id===colId;})[0];
+  if(!c)return;
+  if("vtotal"===c.id&&"formula"!==tipo){toast("A coluna Valor Total precisa ser de cálculo","err");_renderColunasModal();return;}
+  c.tipo=tipo;
+  if("formula"===tipo&&(!c.formula||!c.formula.length)){
+    /* Já começa com o que quase sempre se quer: quantidade × unitário. */
+    c.formula=_colsCalculaveis().filter(function(o){return "qtd"===o.id||"vunit"===o.id;}).map(function(o){return o.id;});
+  }
+  renderTabela();_renderColunasModal();
+}
+
+/* Marca/desmarca uma coluna dentro da conta. O estado é gravado a partir
+   do booleano recebido ANTES de redesenhar, senão o checkbox some no meio
+   do próprio evento e a marcação se perde. */
+function colFormula(colId,alvo,marcado){
+  var c=colunas.filter(function(x){return x.id===colId;})[0];
+  if(!c)return;
+  c.formula=c.formula||[];
+  var i=c.formula.indexOf(alvo);
+  if(marcado&&i<0)c.formula.push(alvo);
+  else if(!marcado&&i>=0)c.formula.splice(i,1);
+  renderTabela();_renderColunasModal();
+}
+
+function colAdicionar(){
+  var id="col"+(_nextColId++);
+  colunas.splice(colunas.length-1,0,{id:id,nome:"Nova coluna",tipo:"texto",width:100});
+  linhas.forEach(function(r){r.cells[id]="";});
+  _colDestaque=id;
+  renderTabela();_renderColunasModal();
 }
 
 function navTabela(e,ri,ci){
@@ -11206,27 +11391,44 @@ function _nhClaudeTexto(j){
   var blocos=(j&&j.content)||[];
   return blocos.filter(function(b){return b&&b.type==='text';}).map(function(b){return b.text||'';}).join('');
 }
+/* Erros que passam sozinhos: fila cheia na Anthropic (429), instabilidade
+   (5xx) ou sobrecarga (529). Sem isto, um soluço de segundos derrubava a
+   análise inteira e ela não era refeita. */
+function _claudeVaiPassar(status){
+  return 429===status||529===status||(status>=500&&status<600);
+}
+
 async function chamarClaude(key,parts,maxTok){
-  var r=await fetch("https://api.anthropic.com/v1/messages",{
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json",
-      "x-api-key":key,
-      "anthropic-version":"2023-06-01",
-      "anthropic-dangerous-direct-browser-access":"true"
-    },
-    body:JSON.stringify({
-      model:CLAUDE_MODEL,
-      max_tokens:maxTok||8000,
-      messages:[{role:"user",content:_nhClaudePartsToBlocks(parts)}]
-    })
-  });
-  var j=await r.json().catch(function(){return{};});
-  if(!r.ok){
-    var errMsg=j.error&&j.error.message||("Erro "+r.status);
-    throw new Error(errMsg);
+  var ultimo=null;
+  for(var tent=0;tent<3;tent++){
+    if(tent)await new Promise(function(r){setTimeout(r,1500*tent);});
+    var r;
+    try{
+      r=await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "x-api-key":key,
+          "anthropic-version":"2023-06-01",
+          "anthropic-dangerous-direct-browser-access":"true"
+        },
+        body:JSON.stringify({
+          model:CLAUDE_MODEL,
+          max_tokens:maxTok||8000,
+          messages:[{role:"user",content:_nhClaudePartsToBlocks(parts)}]
+        })
+      });
+    }catch(eRede){
+      /* Sem resposta nenhuma (queda de internet, DNS). Vale tentar de novo. */
+      ultimo=new Error("sem conexão com a IA ("+(eRede.message||"falha de rede")+")");
+      continue;
+    }
+    var j=await r.json().catch(function(){return{};});
+    if(r.ok)return j;
+    ultimo=new Error(j.error&&j.error.message||("Erro "+r.status));
+    if(!_claudeVaiPassar(r.status))throw ultimo;
   }
-  return j;
+  throw ultimo||new Error("falha ao chamar a IA");
 }
 async function _nhClaudeLongo(key,parts,onMsg){
   var j=await chamarClaude(key,parts,16000);
@@ -12314,14 +12516,26 @@ function nhAbrirModalViab(chave,emp,titulo){
    e, se falhar, o botão manual continua disponível como sempre. */
 var _viabFila=[],_viabRodando=false;
 
+/* O disparo fica marcado assim que o edital é gravado, e só é consumido
+   depois. Antes a chamada vinha lá no fim do salvamento, atrás de vários
+   passos (criar andamento, sincronizar abas, recarregar listas): se um
+   deles falhasse, a análise era pulada sem aviso. */
+var _vbPend=null;
+function _vbDisparar(){
+  var id=_vbPend;_vbPend=null;
+  if(id)try{nhFilaViabilidade([id]);}catch(e){console.error('viabilidade automática',e);}
+}
+
 async function nhAnalisarViabilidadeAuto(edId,forcar){
   var chave='e-'+String(edId||'').trim();
   if(!chave||'e-'===chave)return null;
   if(ANALISES_VIAB[chave]&&!forcar)return null;      /* já analisado */
   var key=localStorage.getItem('nh_claude_key');
-  if(!key)return null;                                /* sem chave, segue quieto */
+  /* Estes dois casos devolviam null em silêncio: a análise não acontecia e
+     ninguém ficava sabendo por quê. Agora sobem como erro e viram aviso. */
+  if(!key)throw new Error('a chave da IA (Claude) não está configurada');
   var dados=_nhContextoViabilidade(edId);
-  if(!dados)return null;
+  if(!dados)throw new Error('não achei o edital #'+edId+' na lista carregada');
   var dh=new Date();
   var hoje=('0'+dh.getDate()).slice(-2)+'/'+('0'+(dh.getMonth()+1)).slice(-2)+'/'+dh.getFullYear();
   var resp=await _nhClaudeLongo(key,[{text:_nhPromptViabilidade(dados,hoje)}],null);
@@ -12339,7 +12553,12 @@ async function nhAnalisarViabilidadeAuto(edId,forcar){
 /* Fila em série: em captura de lote seriam várias chamadas de uma vez,
    o que estoura limite da API. Uma de cada vez, com respiro entre elas. */
 function nhFilaViabilidade(ids){
-  if(!localStorage.getItem('nh_claude_key'))return;
+  if(!localStorage.getItem('nh_claude_key')){
+    /* Antes saía calado daqui — o edital salvava e a análise simplesmente
+       não vinha, sem nenhuma pista do motivo. */
+    toast('Edital salvo. A análise automática de viabilidade não rodou: falta configurar a chave da IA.','info');
+    return;
+  }
   (ids||[]).forEach(function(id){
     id=String(id||'').trim();
     if(id&&-1===_viabFila.indexOf(id)&&!ANALISES_VIAB['e-'+id])_viabFila.push(id);
@@ -12350,8 +12569,8 @@ function nhFilaViabilidade(ids){
 async function _viabProcessarFila(){
   if(_viabRodando||!_viabFila.length)return;
   _viabRodando=true;
-  var total=_viabFila.length,ok=0,erro=0;
-  if(total>1)toast('🤖 Analisando viabilidade de '+total+' edital(is)...','info');
+  var total=_viabFila.length,ok=0,erro=0,ultimoErro='';
+  toast(total>1?('🤖 Analisando viabilidade de '+total+' edital(is)...'):'🤖 Analisando a viabilidade...','info');
   while(_viabFila.length){
     var id=_viabFila.shift();
     try{
@@ -12363,11 +12582,17 @@ async function _viabProcessarFila(){
           toast('🤖 Viabilidade #'+id+': nota '+reg.nota.toFixed(1).replace('.',',')+' — risco '+lbl,'ok');
         }
       }
-    }catch(e){erro++;console.error('viabilidade automática #'+id,e);}
+    }catch(e){
+      erro++;ultimoErro=e.message||'erro desconhecido';
+      console.error('viabilidade automática #'+id,e);
+      /* Falha em análise única não mostrava aviso nenhum: era o motivo de
+         "funcionou uma vez e depois nunca mais" parecer inexplicável. */
+      if(1===total)toast('Não consegui analisar a viabilidade do #'+id+': '+ultimoErro+'. O edital foi salvo — dá para rodar a análise pelo card.','err');
+    }
     try{if('editais'===CUR)renderTbl('editais');}catch(_e){}
     if(_viabFila.length)await new Promise(function(r){setTimeout(r,1200);});
   }
-  if(total>1)toast(erro?('Viabilidade: '+ok+' analisado(s), '+erro+' falhou(aram)'):('🤖 '+ok+' análise(s) de viabilidade concluída(s)'),erro?'err':'ok');
+  if(total>1)toast(erro?('Viabilidade: '+ok+' analisado(s), '+erro+' falhou(aram) — '+ultimoErro):('🤖 '+ok+' análise(s) de viabilidade concluída(s)'),erro?'err':'ok');
   _viabRodando=false;
 }
 
@@ -13839,17 +14064,18 @@ async function nhAcCarregarPasta(){
     _acArquivos=files;
     _acRemovidos=[];
 
-    /* Todos entram por padrao, igual a aba Documentos. Voce tira do jogo
-       o que nao interessa pelo botao ✕ de cada linha. */
+    /* Todos ja vem marcados; voce desmarca o que nao interessa. O selo
+       "contrato" e so uma dica pelo nome do arquivo — nao decide nada. */
     files.forEach(function(f){
       f._sug=/contrato|termo.?de.?contrato|instrumento|aditivo|apostilamento/i.test(f.name);
+      f._on=true;
     });
     _acSincronizarSel();
 
     p1.innerHTML='<div style="font-size:11.5px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Documentos lidos da pasta</div>'
       +'<div style="font-size:11px;color:var(--t3);line-height:1.55">'+files.length+' arquivo(s) encontrado(s)'
       +(ignorados.length?' · '+ignorados.length+' ignorado(s) por formato':'')
-      +'<br><b>A IA vai ler todos os listados abaixo.</b> Remova pelo ✕ o que nao faz parte do contrato. Deixe o instrumento original e <b>cada termo aditivo</b> — sem eles o parecer sobre prazo e valor fica incompleto.</div>';
+      +'<br><b>A IA le exatamente o que estiver marcado abaixo.</b> Deixe marcado o instrumento original e <b>cada termo aditivo</b> — sem eles o parecer sobre prazo e valor fica incompleto.</div>';
 
     _acRenderLista();
 
@@ -13893,15 +14119,24 @@ function _acRenderLista(){
   var box=document.getElementById('ac-lista');
   if(!box)return;
   if(!_acArquivos.length){box.innerHTML='';return;}
-  /* Mesmo formato da aba Documentos: um arquivo por linha, com o tamanho e
-     o botao de remover. O que estiver nesta lista e exatamente o que a IA
-     vai ler — sem caixinha para marcar, sem duvida sobre o que entrou.
-     Antes eu redesenhava a lista dentro do onchange do proprio checkbox,
-     e como ele ficava dentro de um <label> o elemento sumia no meio do
-     evento e a marcacao se perdia. */
-  box.innerHTML=_acArquivos.map(function(f,idx){
+  /* Caixinha de marcar/desmarcar: o que estiver marcado e exatamente o que
+     a IA vai ler. O bug que fez abandonarem o checkbox antes era redesenhar
+     a lista inteira de dentro do onchange do proprio checkbox — o elemento
+     sumia no meio do evento e a marcacao se perdia. Aqui o onchange so mexe
+     no estado e no resumo; a lista nunca e redesenhada por ele. */
+  var bt='background:var(--s2);border:1px solid var(--b1);color:var(--t2);padding:4px 10px;border-radius:7px;cursor:pointer;font-size:10.5px;font-weight:700;font-family:Outfit,sans-serif';
+  var temSug=_acArquivos.some(function(f){return f._sug;});
+  var html='<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px">'
+    +'<span style="font-size:11px;color:var(--t3);flex:1;min-width:150px">'+_acArquivos.length+' arquivo(s) na pasta &mdash; marque os que a IA deve ler</span>'
+    +'<button type="button" onclick="nhAcMarcarTodos(true)" style="'+bt+'">Marcar todos</button>'
+    +'<button type="button" onclick="nhAcMarcarTodos(false)" style="'+bt+'">Desmarcar todos</button>'
+    +(temSug?'<button type="button" onclick="nhAcMarcarSugeridos()" title="Deixa marcado so o que o nome indica ser contrato ou aditivo" style="'+bt+'">So contrato e aditivos</button>':'')
+    +'</div>';
+  html+=_acArquivos.map(function(f,idx){
     var kb=f.sizeKB||(f.size?Math.round(f.size/1024):0);
-    return '<div style="display:flex;align-items:center;gap:8px;background:var(--s2);border:1px solid var(--b1);border-radius:8px;padding:8px 10px;margin-bottom:5px">'
+    var on=f._on!==false;
+    return '<label id="ac-lin-'+idx+'" style="display:flex;align-items:center;gap:9px;background:var(--s2);border:1px solid '+(on?'var(--nh)':'var(--b1)')+';border-radius:8px;padding:8px 10px;margin-bottom:5px;cursor:pointer;opacity:'+(on?'1':'.5')+'">'
+      +'<input type="checkbox" '+(on?'checked':'')+' onchange="nhAcMarcar('+idx+',this.checked)" style="width:16px;height:16px;accent-color:var(--nh);cursor:pointer;flex-shrink:0">'
       +'<svg width="15" height="15" fill="none" stroke="var(--nh)" viewBox="0 0 24 24" style="flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>'
       +'<span style="flex:1;min-width:0">'
         +'<span style="display:block;font-size:12px;color:var(--t1);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+f.name+'</span>'
@@ -13909,65 +14144,48 @@ function _acRenderLista(){
       +'</span>'
       +(f._sug?'<span style="font-size:9.5px;font-weight:800;color:var(--nh);background:var(--nha2);border:1px solid var(--nh);padding:2px 7px;border-radius:20px;flex-shrink:0">contrato</span>':'')
       +'<span style="font-size:10.5px;color:var(--t3);flex-shrink:0">'+(kb?kb+'KB':'')+'</span>'
-      +'<button type="button" onclick="nhAcRemover('+idx+')" title="Remover da analise" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);color:#ef4444;width:22px;height:22px;border-radius:6px;cursor:pointer;font-size:13px;line-height:1;flex-shrink:0">✕</button>'
-      +'</div>';
+      +'</label>';
   }).join('');
+  box.innerHTML=html;
 }
 
-/* Remover tira o arquivo da analise. Ele vai para _acRemovidos, entao da
-   para trazer de volta sem precisar reabrir a janela e perder o resto. */
-function nhAcRemover(idx){
+/* Só o estado e o resumo — redesenhar a lista aqui era o que quebrava. */
+function nhAcMarcar(idx,marcado){
   var f=_acArquivos[idx];
   if(!f)return;
-  _acRemovidos.push(f);
-  _acArquivos.splice(idx,1);
+  f._on=!!marcado;
+  var lin=document.getElementById('ac-lin-'+idx);
+  if(lin){lin.style.borderColor=marcado?'var(--nh)':'var(--b1)';lin.style.opacity=marcado?'1':'.5';}
   _acSincronizarSel();
-  _acRenderLista();
-  _acRenderRemovidos();
   _acAtualizarSel();
 }
 
-function nhAcRestaurar(idx){
-  var f=_acRemovidos[idx];
-  if(!f)return;
-  _acRemovidos.splice(idx,1);
-  _acArquivos.push(f);
-  _acSincronizarSel();
-  _acRenderLista();
-  _acRenderRemovidos();
-  _acAtualizarSel();
+/* Estes vêm de botão, não de dentro do checkbox — aqui redesenhar é seguro. */
+function nhAcMarcarTodos(on){
+  _acArquivos.forEach(function(f){f._on=!!on;});
+  _acSincronizarSel();_acRenderLista();_acAtualizarSel();
 }
 
-function nhAcRestaurarTodos(){
-  _acArquivos=_acArquivos.concat(_acRemovidos);
-  _acRemovidos=[];
-  _acSincronizarSel();
-  _acRenderLista();
-  _acRenderRemovidos();
-  _acAtualizarSel();
+function nhAcMarcarSugeridos(){
+  _acArquivos.forEach(function(f){f._on=!!f._sug;});
+  _acSincronizarSel();_acRenderLista();_acAtualizarSel();
 }
 
-function _acRenderRemovidos(){
-  var box=document.getElementById('ac-removidos');
-  if(!box)return;
-  if(!_acRemovidos.length){box.innerHTML='';return;}
-  box.innerHTML='<div style="margin-top:8px;font-size:11px;color:var(--t3);line-height:1.6">'
-    +'<b>Fora da analise ('+_acRemovidos.length+'):</b> '
-    +_acRemovidos.map(function(f,i){
-      return '<span onclick="nhAcRestaurar('+i+')" title="Trazer de volta" style="display:inline-block;background:var(--s2);border:1px solid var(--b1);border-radius:20px;padding:2px 9px;margin:2px 3px 0 0;cursor:pointer;color:var(--t2)">'+f.name+' ↩</span>';
-    }).join('')
-    +' <span onclick="nhAcRestaurarTodos()" style="cursor:pointer;text-decoration:underline;font-weight:700">restaurar todos</span></div>';
-}
-
-/* A selecao enviada a IA e sempre o espelho da lista visivel, mais o que
-   foi anexado do computador. */
+/* A selecao enviada a IA e sempre o espelho do que esta marcado, mais o
+   que foi anexado do computador. */
 function _acSincronizarSel(){
   var locais=_acSelecionados.filter(function(x){return 'local'===x.tipo;});
-  _acSelecionados=_acArquivos.map(function(f){return {tipo:'drive',file:f};}).concat(locais);
+  _acSelecionados=_acArquivos.filter(function(f){return f._on!==false;})
+    .map(function(f){return {tipo:'drive',file:f};}).concat(locais);
 }
 
-/* Mantida por compatibilidade — a lista agora e por remocao, nao por marcar. */
-function nhAcToggle(i,marcado){ if(!marcado)nhAcRemover(i); }
+/* Mantidas por compatibilidade: desmarcar substituiu remover, então não há
+   mais lista de "removidos" para restaurar. */
+function nhAcRemover(idx){ nhAcMarcar(idx,false); _acRenderLista(); }
+function nhAcRestaurar(idx){ nhAcMarcar(idx,true); _acRenderLista(); }
+function nhAcRestaurarTodos(){ nhAcMarcarTodos(true); }
+function _acRenderRemovidos(){ var b=document.getElementById('ac-removidos'); if(b)b.innerHTML=''; }
+function nhAcToggle(i,marcado){ nhAcMarcar(i,marcado); }
 
 /* Mostra NOMINALMENTE o que vai ser lido. Só a contagem não resolvia a
    dúvida de estar analisando o documento certo. */
@@ -13978,7 +14196,7 @@ function _acAtualizarSel(){
     /* A lista acima ja mostra nome por nome; aqui fica so a confirmacao
        do total, para nao repetir a mesma informacao duas vezes. */
     if(!n){
-      el.innerHTML='<span style="color:var(--t3)">Nenhum documento na analise — restaure algum acima ou anexe do computador.</span>';
+      el.innerHTML='<span style="color:var(--t3)">Nenhum documento marcado — marque ao menos um acima ou anexe do computador.</span>';
     }else{
       var locais=_acSelecionados.filter(function(x){return 'local'===x.tipo;}).length;
       /* Peso total na tela: o envio para a IA tem teto de ~38 MB, e o
@@ -13992,7 +14210,7 @@ function _acAtualizarSel(){
       el.innerHTML='<b style="color:var(--nh)">'+n+' documento(s)</b> entram na analise conjunta'
         +(kb?' <span style="color:'+(pesado?'#eab308':'var(--t3)')+'">— '+mb+' MB no total</span>':'')
         +(locais?' <span style="color:var(--t3)">('+locais+' anexado(s) do computador)</span>':'')
-        +(pesado?'<div style="color:#eab308;font-size:11px;margin-top:4px">Acima do limite de envio (~37 MB). Remova pelo ✕ os documentos que nao sao o contrato nem aditivos, ou analise em duas rodadas — a segunda soma a primeira.</div>':'')
+        +(pesado?'<div style="color:#eab308;font-size:11px;margin-top:4px">Acima do limite de envio (~37 MB). Desmarque os documentos que nao sao o contrato nem aditivos, ou analise em duas rodadas — a segunda soma a primeira.</div>':'')
         +(1===n&&!pesado?' <span style="color:var(--t3)">— se houver termos aditivos, eles precisam estar aqui</span>':'');
     }
   }
