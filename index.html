@@ -1565,6 +1565,41 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
 #tabela-proposta th .btn-fx-col{background:none;border:none;color:var(--nh);cursor:pointer;font-size:11px;font-style:italic;font-weight:800;padding:0 2px;opacity:.65;flex-shrink:0;line-height:1}
 #tabela-proposta th .btn-fx-col:hover{opacity:1}
 
+/* ── Barra de informação dos cards ──────────────────────────
+   Substitui os chips antigos de borda tracejada e emoji. Mesma
+   altura, mesmo raio, mesma escala tipográfica: o que é dado tem
+   fundo neutro, o que é ação reage ao passar o mouse. */
+.nh-bar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:10px}
+.nh-tag{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;
+  border-radius:7px;font-size:11px;font-weight:600;line-height:1;white-space:nowrap;
+  border:1px solid var(--b1);background:var(--s2);color:var(--t3)}
+.nh-tag b{font-weight:800;color:var(--t1);font-variant-numeric:tabular-nums}
+.nh-tag-sep{width:1px;height:11px;background:var(--b1);flex-shrink:0}
+.nh-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.nh-nota{font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--t1)}
+
+.nh-btn{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 11px;
+  border-radius:7px;font-size:11px;font-weight:700;line-height:1;white-space:nowrap;
+  font-family:'Outfit',sans-serif;cursor:pointer;transition:all .15s;
+  border:1px solid var(--b1);background:var(--s2);color:var(--t2)}
+.nh-btn:hover{border-color:var(--nh);color:var(--nh);background:var(--nha2)}
+.nh-btn svg{width:13px;height:13px;flex-shrink:0;stroke-width:2}
+.nh-btn-key{border-color:rgba(249,115,22,.42);color:var(--nh);background:var(--nha2)}
+.nh-btn-key:hover{background:var(--nh);color:#fff;border-color:var(--nh)}
+.nh-btn-key:hover svg{stroke:#fff}
+.nh-btn-ic{padding:0 8px}
+
+.nh-aviso{margin-top:10px;border-radius:8px;border:1px solid var(--b1);
+  border-left:3px solid var(--nh);background:var(--s2);padding:9px 12px;font-size:11.5px;line-height:1.55}
+.nh-aviso-tit{display:flex;align-items:center;gap:7px;font-weight:800;font-size:11.5px}
+.nh-aviso-itens{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.nh-aviso-item{background:var(--s1);border:1px solid var(--b1);border-radius:5px;
+  padding:2px 7px;font-size:10.5px;color:var(--t2)}
+.nh-aviso-pe{color:var(--t3);font-size:10px;margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.nh-link{cursor:pointer;font-weight:700;color:var(--nh)}
+.nh-link:hover{text-decoration:underline}
+@media(max-width:640px){.nh-btn,.nh-tag{height:24px;font-size:10.5px;padding:0 8px}}
+
 /* ── Tela da empresa: abas e lista de certidões ─────────────── */
 .emp-abas{display:flex;gap:4px;background:var(--s2);border:1px solid var(--b1);
   border-radius:11px;padding:4px;margin-bottom:16px;overflow-x:auto}
@@ -2565,11 +2600,11 @@ body.light-theme .badge-vence-hoje{
 .ac-lnk-sec{color:var(--t3);margin-left:6px}
 .ac-cta{
   display:inline-flex;align-items:baseline;gap:6px;
-  background:var(--nha2);border:1px dashed var(--nh);color:var(--nh);
+  background:var(--nha2);border:1px solid rgba(249,115,22,.42);color:var(--nh);
   border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;
-  transition:background .15s;
+  transition:all .15s;
 }
-.ac-cta:hover{background:var(--nha)}
+.ac-cta:hover{background:var(--nh);color:#fff;border-color:var(--nh)}
 .ac-cta i{font-style:normal;font-weight:500;font-size:10px;opacity:.75}
 
 /* Barra de ações do card: alinhamento e respiro consistentes entre
@@ -12239,7 +12274,7 @@ function _dsRender(d,editavel){
   if(icTxt)h+='<div style="margin-top:4px;font-size:11px;color:var(--t3)"><b>Índices:</b> '+icTxt+'</div>';
   if(_nhDossieEditando){
     h+='<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--b1);padding-top:10px">'+
-      '<button onclick="nhDossieAddDoc()" style="background:var(--s1);border:1px dashed var(--nh);color:var(--nh);padding:6px 12px;border-radius:7px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif">+ Adicionar documento</button>'+
+      '<button onclick="nhDossieAddDoc()" style="background:var(--nha2);border:1px solid rgba(249,115,22,.42);color:var(--nh);padding:6px 12px;border-radius:7px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif">+ Adicionar documento</button>'+
       '<button onclick="nhDossieSalvar()" style="margin-left:auto;background:linear-gradient(135deg,#059669,#22c55e);color:#fff;border:none;padding:7px 16px;border-radius:7px;font-weight:800;font-size:12px;cursor:pointer;font-family:Outfit,sans-serif">💾 Salvar correções</button>'+
       '<button onclick="nhDossieCancelar()" style="background:transparent;border:1px solid var(--b1);color:var(--t3);padding:7px 12px;border-radius:7px;font-size:11.5px;cursor:pointer;font-family:Outfit,sans-serif">Cancelar</button>'+
     '</div>';
@@ -12505,26 +12540,30 @@ if(typeof renderCard==='function'){
         var temPend=p&&((p.faltantes||[]).length||(p.vencidos||[]).length);
         var bloco='';
         if(temPend){
-          /* STATUS: PENDENTE — visível sempre (é a informação final) */
+          /* Pendência é o dado mais grave do card — continua sendo painel,
+             não etiqueta, mas agora sem emoji e com a mesma malha visual. */
           var cor=p.status==='NAO_APTA'?'#ef4444':'#eab308';
           var itens=(p.faltantes||[]).map(function(f){return f.doc}).concat((p.vencidos||[]).map(function(v){return v.doc+' (vencido)'}));
-          bloco='<div class="nh-pend" onclick="event.stopPropagation()" style="margin-top:8px;background:'+(p.status==='NAO_APTA'?'rgba(239,68,68,.08)':'rgba(234,179,8,.08)')+';border:1px solid '+cor+'55;border-left:3px solid '+cor+';border-radius:7px;padding:6px 9px;font-size:11px;line-height:1.5">'+
-            '<b style="color:'+cor+'">📋 Habilitação PENDENTE — '+(p.empresa||'')+' ('+itens.length+')</b> '+
-            '<span onclick="nhResolverPend(\''+chave+'\')" title="Documentação regularizada — marcar Habilitação OK" style="float:right;cursor:pointer;color:#22c55e;font-weight:800">✓ resolvido</span>'+
-            '<div style="color:var(--t2);margin-top:2px">'+itens.map(function(x){return '<span style="display:inline-block;background:var(--s2);border:1px solid var(--b1);border-radius:5px;padding:0 6px;margin:1px 2px 1px 0">'+x+'</span>'}).join('')+'</div>'+
-            '<div style="color:var(--t3);font-size:10px;margin-top:2px">análise IA em '+(p.data||'')+
-              (e==='editais'?' · <span class="nh-ana-chip" onclick="nhAbrirAnaliseCard(\''+chave+'\',\''+empCard+'\',\''+titCard.substring(0,60)+'\')" style="cursor:pointer;color:var(--nh);font-weight:700">🤖 reanalisar</span>':'')+
+          bloco='<div class="nh-pend nh-aviso" onclick="event.stopPropagation()" style="border-left-color:'+cor+';background:'+cor+'0f">'+
+            '<div class="nh-aviso-tit" style="color:'+cor+'">'+
+              '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'+
+              'Habilita&ccedil;&atilde;o pendente &mdash; '+(p.empresa||'')+' ('+itens.length+')'+
+            '</div>'+
+            '<div class="nh-aviso-itens">'+itens.map(function(x){return '<span class="nh-aviso-item">'+x+'</span>';}).join('')+'</div>'+
+            '<div class="nh-aviso-pe"><span>an&aacute;lise em '+(p.data||'')+'</span>'+
+              (e==='editais'?'<span class="nh-link" onclick="nhAbrirAnaliseCard(\''+chave+'\',\''+empCard+'\',\''+titCard.substring(0,60)+'\')">reanalisar</span>':'')+
+              '<span class="nh-link" style="color:#22c55e" onclick="nhResolverPend(\''+chave+'\')" title="Documentação regularizada">marcar como resolvido</span>'+
             '</div>'+
           '</div>';
         } else if(p){
-          /* STATUS: HABILITAÇÃO OK — visível sempre */
-          bloco='<div onclick="event.stopPropagation()" style="margin-top:8px;display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.4);border-radius:7px;padding:3px 9px;font-size:11px;font-weight:700;color:#22c55e">✅ Habilitação OK — '+(p.empresa||'')+
-            '<span style="font-weight:500;color:var(--t3);font-size:10px">'+(p.resolvidoEm?'resolvido '+p.resolvidoEm:(p.data||''))+'</span>'+
-            '<span onclick="nhLimparPend(\''+chave+'\')" title="Remover este status do card" style="cursor:pointer;color:var(--t3);font-weight:800">✕</span>'+
+          bloco='<div class="nh-bar" onclick="event.stopPropagation()">'+
+            '<span class="nh-tag" style="border-color:rgba(34,197,94,.4);color:#22c55e">'+
+              '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'+
+              'Habilita&ccedil;&atilde;o OK<span class="nh-tag-sep"></span>'+
+              '<span style="color:var(--t3);font-weight:600">'+(p.empresa||'')+'</span></span>'+
+            '<span class="nh-tag" style="color:var(--t3)">'+(p.resolvidoEm?('resolvido '+p.resolvidoEm):(p.data||''))+'</span>'+
+            '<span class="nh-btn nh-btn-ic" title="Remover este status do card" onclick="nhLimparPend(\''+chave+'\')">&#10005;</span>'+
           '</div>';
-        } else if(e==='editais' && empCard){
-          /* Sem análise ainda: chip só nos EDITAIS e só com card aberto */
-          bloco='<div class="nh-ana-chip" onclick="event.stopPropagation();nhAbrirAnaliseCard(\''+chave+'\',\''+empCard+'\',\''+titCard.substring(0,60)+'\')" title="Analisar com IA se a documentação da empresa atende ao edital" style="margin-top:8px;display:inline-flex;align-items:center;gap:5px;background:var(--nha2);border:1px dashed var(--nh);color:var(--nh);border-radius:7px;padding:3px 9px;font-size:10.5px;font-weight:700;cursor:pointer">🤖 Analisar habilitação</div>';
         }
         if(bloco){
           var pos=html.lastIndexOf('</div>');
@@ -12776,15 +12815,52 @@ if(typeof renderCard==='function'){
         var emp=String(a[2]||'').trim();
         var tit=String(a[3]||'').trim().replace(/'/g,'').replace(/"/g,'');
         var an=ANALISES_VIAB[chave];
-        var riscoLbl={baixo:'🟢 Risco Baixo',medio:'🟡 Risco Médio',alto:'🔴 Risco Alto'}[an&&an.risco]||'⚪ Sem análise';
-        var riscoCor=(an&&an.risco==='baixo')?'#22c55e':(an&&an.risco==='alto')?'#ef4444':(an&&an.risco==='medio')?'#eab308':'#888';
-        var capagTxt=(an&&an.capag&&an.capag.nota)?an.capag.nota:'—';
-        var notaTxt=(an&&typeof an.nota==='number')?(' · Nota '+an.nota.toFixed(1).replace('.',',')):'';
-        var bloco='<div class="nh-viab-badges" onclick="event.stopPropagation()" style="margin-top:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">'+
-          '<span style="display:inline-flex;align-items:center;gap:4px;background:'+riscoCor+'22;border:1px solid '+riscoCor+'55;color:'+riscoCor+';border-radius:7px;padding:3px 9px;font-size:11px;font-weight:700">'+riscoLbl+notaTxt+'</span>'+
-          '<span style="display:inline-flex;align-items:center;gap:4px;background:var(--s2);border:1px solid var(--b1);color:var(--t2);border-radius:7px;padding:3px 9px;font-size:11px;font-weight:700">💰 CAPAG: '+capagTxt+'</span>'+
-          '<span class="nh-ana-chip" onclick="event.stopPropagation();nhAbrirModalViab(\''+chave+'\',\''+emp+'\',\''+tit.substring(0,60)+'\')" style="display:inline-flex;align-items:center;gap:5px;background:var(--nha2);border:1px dashed var(--nh);color:var(--nh);border-radius:7px;padding:3px 9px;font-size:10.5px;font-weight:700;cursor:pointer">🤖 '+(an?'Reanalisar':'Analisar Viabilidade')+'</span>'+
-        '</div>';
+        var temPendA=PENDENCIAS[chave];
+        var riscoCor=(an&&an.risco==='baixo')?'#22c55e':(an&&an.risco==='alto')?'#ef4444':(an&&an.risco==='medio')?'#eab308':'#6b7280';
+        var riscoLbl={baixo:'Risco baixo',medio:'Risco médio',alto:'Risco alto'}[an&&an.risco]||'Sem análise';
+        var capag=(an&&an.capag&&an.capag.nota)?an.capag.nota:'';
+        /* CAPAG A/B = bom pagador, C/D = risco fiscal. A cor diz isso sem
+           precisar de legenda. */
+        var capagCor=/^A/i.test(capag)?'#22c55e':/^B/i.test(capag)?'#84cc16':/^C/i.test(capag)?'#eab308':/^D/i.test(capag)?'#ef4444':'var(--t3)';
+
+        var itens='';
+        itens+='<span class="nh-tag" title="Nota de viabilidade calculada pela IA">'
+          +'<span class="nh-dot" style="background:'+riscoCor+'"></span>'+riscoLbl
+          +((an&&typeof an.nota==='number')?('<span class="nh-tag-sep"></span><span class="nh-nota">'+an.nota.toFixed(1).replace('.',',')+'</span>'):'')
+          +'</span>';
+        itens+='<span class="nh-tag" title="Capacidade de pagamento do município (Tesouro Nacional)">CAPAG'
+          +'<span class="nh-tag-sep"></span><b style="color:'+capagCor+'">'+(capag||'—')+'</b></span>';
+
+        /* Atalho para o portal onde a proposta vai ser enviada. Só aparece
+           quando o edital tem portal e o portal tem endereço cadastrado —
+           botão que não leva a lugar nenhum é pior que botão nenhum. */
+        var portalNome=String(a[15]||'').trim();
+        var portalCat=portalNome?ptDoCatalogo(portalNome):'';
+        var portalUrl=portalCat?ptUrl(portalCat):'';
+        if(portalUrl){
+          var pj=portalCat.replace(/'/g,"\\'"), ej=emp.replace(/'/g,"\\'");
+          itens+='<button class="nh-btn nh-btn-key" title="Abre '+esc0(portalCat)+' e copia o login de '+esc0(emp)+'" '
+            +'onclick="event.stopPropagation();nhAbrirPortalEdital(\''+pj+'\',\''+ej+'\')">'
+            +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>'
+            +esc0(portalCat)+'</button>';
+          itens+='<button class="nh-btn nh-btn-ic" title="Copiar a senha de '+esc0(emp)+' neste portal" '
+            +'onclick="event.stopPropagation();nhCopiarSenhaPortal(\''+pj+'\',\''+ej+'\')">'
+            +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3"/></svg>'
+            +'</button>';
+        }else if(portalNome){
+          itens+='<span class="nh-tag" title="Cadastre o endereço em Configurações › Portais para liberar o acesso direto">'
+            +esc0(portalNome)+'<span class="nh-tag-sep"></span><span style="color:#eab308">sem endere&ccedil;o</span></span>';
+        }
+
+        var iaSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3m0 12v3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1M3 12h3m12 0h3M5.6 18.4l2.1-2.1m8.6-8.6 2.1-2.1"/><circle cx="12" cy="12" r="3.2"/></svg>';
+        if(!temPendA&&emp)
+          itens+='<button class="nh-btn" title="A IA confere se a documentação da empresa atende ao edital" '
+            +'onclick="event.stopPropagation();nhAbrirAnaliseCard(\''+chave+'\',\''+emp.replace(/'/g,"\\'")+'\',\''+tit.substring(0,60)+'\')">'
+            +iaSvg+'Habilita&ccedil;&atilde;o</button>';
+        itens+='<button class="nh-btn" onclick="event.stopPropagation();nhAbrirModalViab(\''+chave+'\',\''+emp.replace(/'/g,"\\'")+'\',\''+tit.substring(0,60)+'\')">'
+          +iaSvg+(an?'Reavaliar':'Viabilidade')+'</button>';
+
+        var bloco='<div class="nh-viab-badges nh-bar" onclick="event.stopPropagation()">'+itens+'</div>';
         var pos=html.lastIndexOf('</div>');
         if(pos>0)html=html.substring(0,pos)+bloco+html.substring(pos);
       }
@@ -15448,6 +15524,68 @@ async function nhCertEnviarEmail(){
     toast('Não consegui enviar: '+(e.message||e),'err');
   }
   if(btn){btn.disabled=false;btn.innerHTML='&#9993; Enviar por e-mail';}
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   ACESSO AO PORTAL A PARTIR DO EDITAL
+   O edital já diz em que portal o pregão acontece e para qual empresa
+   é a proposta; o login daquela empresa naquele portal já está
+   cadastrado. Faltava só ligar as duas pontas.
+   Preencher o formulário do portal por nós é impossível (é outro
+   domínio), então o mais perto disso é abrir e deixar o login na área
+   de transferência, com a senha a um clique.
+   ══════════════════════════════════════════════════════════════════ */
+async function _nhCredPortal(portalCat,emp){
+  try{
+    if(!emp)return null;
+    if(!_empCache[emp])await loadEmpData(emp);
+    return getPortais(emp).filter(function(x){
+      return ptDoCatalogo(x.portal)===portalCat;
+    })[0]||null;
+  }catch(e){return null;}
+}
+
+async function nhAbrirPortalEdital(portalCat,emp){
+  var url=ptUrl(portalCat);
+  if(!url){toast('"'+portalCat+'" não tem endereço em Configurações › Portais','err');return;}
+  var cred=await _nhCredPortal(portalCat,emp);
+  var abrir=function(){window.open(url,'_blank','noopener');};
+  if(cred&&cred.login&&navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(cred.login).then(function(){
+      toast('Login de '+emp+' copiado — abrindo '+portalCat,'ok');abrir();
+    },abrir);
+  }else{
+    toast(cred?('Abrindo '+portalCat+' — '+emp+' está sem login cadastrado nesse portal')
+              :('Abrindo '+portalCat+' — '+emp+' não tem esse portal cadastrado'),'info');
+    abrir();
+  }
+}
+
+async function nhCopiarSenhaPortal(portalCat,emp){
+  var cred=await _nhCredPortal(portalCat,emp);
+  if(!cred||!cred.senha){
+    toast('Sem senha cadastrada para '+emp+' em '+portalCat+' — cadastre no card da empresa','err');
+    return;
+  }
+  if(navigator.clipboard&&navigator.clipboard.writeText)
+    navigator.clipboard.writeText(cred.senha).then(function(){toast('Senha de '+emp+' copiada','ok');},
+      function(){toast('Não consegui copiar','err');});
+}
+
+/* Os cards de Editais são desenhados antes de o catálogo de portais
+   estar em memória; sem isto o atalho só apareceria ao trocar de aba. */
+if('function'===typeof loadAll){
+  var _loadAllPortais=loadAll;
+  loadAll=async function(){
+    var r=await _loadAllPortais.apply(this,arguments);
+    try{
+      if(!Object.keys(PORTAL_URLS||{}).length){
+        await ptCarregarUrls();
+        if('editais'===CUR)renderTbl('editais');
+      }
+    }catch(_e){}
+    return r;
+  };
 }
 
 /* Depois de mexer nas certidões pela Central, a lista da aba precisa
