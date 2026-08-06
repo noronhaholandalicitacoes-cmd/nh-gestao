@@ -12891,13 +12891,82 @@ function nhCapagChave(municipioUf,ufSep){
   return propNorm(mun)+'-'+String(uf||'').trim().toLowerCase();
 }
 
-async function nhLoadCapagCache(){
+/* ══════════════════════════════════════════════════════════════════
+   CAPAG — como era e por que mudou
+   A planilha do Tesouro tem 5.570 municípios, e cada um virava um
+   documento. O carregamento lia a coleção inteira a cada abertura do
+   sistema: 5.570 leituras por F5, com a cota diária do Firebase em
+   50.000 — sete aberturas zeravam tudo, e quem ficava sem dado era o
+   dashboard, que divide o mesmo projeto.
+   Duas defesas agora:
+   1) o resultado fica no navegador (localStorage) por 60 dias, porque
+      o Tesouro publica essa planilha 2 a 4 vezes por ano;
+   2) a leitura busca "capag_lotes" — uns 7 documentos com ~800
+      municípios cada — em vez dos 5.570 avulsos.
+   Sem os lotes (antes de reimportar), cai no formato antigo uma única
+   vez e guarda no navegador.
+   ══════════════════════════════════════════════════════════════════ */
+var CAPAG_LS='nh_capag_cache_v1';
+var CAPAG_TTL=60*24*60*60*1000;   /* 60 dias */
+var CAPAG_POR_LOTE=800;
+
+function _capagDoNavegador(){
   try{
-    var snap=await db.collection('capag_municipios').get();
-    CAPAG_CACHE={};
-    snap.forEach(function(d){CAPAG_CACHE[d.id]=d.data();});
-  }catch(e){console.error('capag_municipios load',e);}
+    var cru=localStorage.getItem(CAPAG_LS);
+    if(!cru)return null;
+    var o=JSON.parse(cru);
+    if(!o||!o.em||!o.dados)return null;
+    if((Date.now()-o.em)>CAPAG_TTL)return null;
+    return o;
+  }catch(e){return null;}
 }
+
+function _capagGuardarNoNavegador(dados){
+  try{
+    localStorage.setItem(CAPAG_LS,JSON.stringify({em:Date.now(),dados:dados}));
+  }catch(e){
+    /* localStorage cheio: não é motivo para quebrar nada, só perde o
+       atalho e volta a ler do Firestore na próxima abertura. */
+    console.warn('CAPAG não coube no navegador:',e.message);
+  }
+}
+
+function nhCapagLimparCache(){
+  try{localStorage.removeItem(CAPAG_LS);}catch(e){}
+}
+
+async function nhLoadCapagCache(forcar){
+  if(!forcar){
+    var local=_capagDoNavegador();
+    if(local){ CAPAG_CACHE=local.dados; return; }
+  }
+  try{
+    /* Formato novo: poucos documentos, cada um com um bloco de municípios. */
+    var lotes=await db.collection('capag_lotes').get();
+    if(!lotes.empty){
+      var mapa={};
+      lotes.forEach(function(d){
+        var reg=(d.data()||{}).registros||{};
+        Object.keys(reg).forEach(function(k){mapa[k]=reg[k];});
+      });
+      CAPAG_CACHE=mapa;
+      _capagGuardarNoNavegador(mapa);
+      return;
+    }
+    /* Formato antigo (um doc por município). Custa caro, então roda no
+       máximo uma vez a cada 60 dias graças ao cache do navegador. */
+    var snap=await db.collection('capag_municipios').get();
+    var antigo={};
+    snap.forEach(function(d){antigo[d.id]=d.data();});
+    CAPAG_CACHE=antigo;
+    if(Object.keys(antigo).length){
+      _capagGuardarNoNavegador(antigo);
+      console.warn('[CAPAG] Lidos '+Object.keys(antigo).length+' documentos avulsos. '+
+        'Reimporte a planilha em Configurações › Viabilidade para passar ao formato em lotes (7 leituras em vez de 5.570).');
+    }
+  }catch(e){console.error('capag load',e);}
+}
+
 if(typeof loadAll==='function'){
   var _nhLoadAllCapag=loadAll;
   loadAll=async function(){
@@ -12962,25 +13031,43 @@ function nhCapagArquivoSelecionado(input){
 
 async function nhCapagImportar(){
   if(!_capagParsed.length){toast('Selecione e leia o arquivo primeiro','err');return;}
-  if(!confirm('Gravar '+_capagParsed.length+' registros de CAPAG no Firestore (coleção capag_municipios)? Isso sobrescreve os dados atuais dessa coleção.'))return;
+  var total=_capagParsed.length;
+  var nLotes=Math.ceil(total/CAPAG_POR_LOTE);
+  if(!confirm('Gravar '+total+' municípios em '+nLotes+' documento(s) na coleção capag_lotes?\n\n'+
+    'Formato novo: o sistema passa a ler '+nLotes+' documentos em vez de '+total+' — é o que impedia a cota diária do Firebase de durar o dia inteiro.'))return;
   var btn=document.getElementById('capag-import-btn');
   btn.disabled=true;
   var st=document.getElementById('capag-import-status');
-  var total=_capagParsed.length,feitos=0;
+  var feitos=0;
   try{
-    for(var i=0;i<_capagParsed.length;i+=400){
-      var lote=_capagParsed.slice(i,i+400);
-      var batch=db.batch();
-      lote.forEach(function(o){
-        var chave=nhCapagChave(o.municipio,o.uf);
-        batch.set(db.collection('capag_municipios').doc(chave),o);
+    /* Agrupa os municípios em blocos. Um documento do Firestore aguenta
+       1 MB; com 800 registros de ~150 bytes fica em torno de 120 KB. */
+    for(var i=0;i<nLotes;i++){
+      var fatia=_capagParsed.slice(i*CAPAG_POR_LOTE,(i+1)*CAPAG_POR_LOTE);
+      var registros={};
+      fatia.forEach(function(o){ registros[nhCapagChave(o.municipio,o.uf)]=o; });
+      await db.collection('capag_lotes').doc('lote_'+i).set({
+        registros:registros, total:fatia.length, em:Date.now(), parte:i, de:nLotes
       });
-      await batch.commit();
-      feitos+=lote.length;
-      st.innerHTML='<span style="color:var(--nh)">Gravando... '+feitos+' / '+total+'</span>';
+      feitos+=fatia.length;
+      st.innerHTML='<span style="color:var(--nh)">Gravando... '+feitos+' / '+total+' ('+(i+1)+'/'+nLotes+' lotes)</span>';
     }
-    await nhLoadCapagCache();
-    st.innerHTML='<span style="color:#22c55e;font-weight:700">✓ Importação concluída — '+feitos+' município(s) gravados. Os badges de CAPAG já refletem os dados a partir da próxima análise de viabilidade.</span>';
+    /* Importação anterior pode ter tido mais lotes; os que sobraram
+       precisam sair, senão município removido continuaria aparecendo. */
+    var antigos=await db.collection('capag_lotes').get();
+    var sobra=[];
+    antigos.forEach(function(d){
+      var m=String(d.id).match(/^lote_(\d+)$/);
+      if(m&&parseInt(m[1],10)>=nLotes)sobra.push(d.id);
+    });
+    for(var k=0;k<sobra.length;k++)await db.collection('capag_lotes').doc(sobra[k]).delete();
+
+    nhCapagLimparCache();
+    await nhLoadCapagCache(true);
+    st.innerHTML='<span style="color:#22c55e;font-weight:700">✓ Importação concluída — '+feitos+' município(s) em '+nLotes+' documento(s).</span>'
+      +'<div style="font-size:11px;color:var(--t2);margin-top:5px">A partir de agora o sistema lê <b>'+nLotes+'</b> documentos por carga, no lugar de '+feitos+'. '
+      +'Os badges de CAPAG já refletem os dados na próxima análise de viabilidade.</div>'
+      +'<div style="font-size:11px;color:var(--t3);margin-top:4px">A coleção antiga <code>capag_municipios</code> continua no Firestore sem ser lida — pode apagá-la pelo console quando quiser.</div>';
   }catch(e){
     st.innerHTML+='<div style="color:#ef4444;margin-top:6px">❌ Erro ao gravar: '+e.message+'</div>';
   }finally{
