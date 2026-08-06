@@ -795,244 +795,6 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
   .ac-a3{animation-duration:8s!important}
 }
 
-/* ══════════════════════════════════════════════════════════════
-   GESTÃO DE CONTRATO — Faturamento e Notificações
-   Tudo aqui é do card reestruturado: a faixa de saúde no cabeçalho,
-   as abas do corpo e os dois módulos novos. Usa os mesmos tokens de
-   cor do resto do portal (--nh, --g1, --r1, --y1, --b_), então o
-   tema claro/escuro continua funcionando sem regra extra.
-   ══════════════════════════════════════════════════════════════ */
-
-/* A área de KPIs passou a ter mais de um bloco (contagem de contratos +
-   execução/faturamento). Como .stats é grid de colunas de 160px, dois
-   blocos irmãos ficariam lado a lado e espremidos — aqui ela volta a
-   empilhar e cada .kpi-grid interno cuida das próprias colunas. */
-#stats-area{display:block}
-/* Valor em dinheiro no KPI: "R$ 295.000,00" tem 13 caracteres contra 1
-   ou 2 de uma contagem. Na fonte monoespaçada de 32px do .kpi-num ele
-   quebrava no meio ("R$" numa linha, o número na outra). Aqui usa a
-   fonte proporcional, corpo menor e proibição de quebra — e o grid
-   destes cartões pede colunas mais largas para o número caber inteiro. */
-.kpi-num.dinheiro{
-  font-family:'DM Sans',sans-serif;font-variant-numeric:tabular-nums;
-  font-size:20px;letter-spacing:-.4px;line-height:1.2;white-space:nowrap;
-}
-.kpi-grid.grid-dinheiro{grid-template-columns:repeat(auto-fit,minmax(196px,1fr))}
-@media(max-width:720px){
-  .kpi-num.dinheiro{font-size:17px}
-  .kpi-grid.grid-dinheiro{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
-}
-
-/* Com badges demais o título do contrato era espremido até quebrar
-   palavra por palavra numa coluna de 90px. O bloco de badges agora
-   cede espaço e o título tem um piso — em telas estreitas os badges
-   descem para a linha de baixo em vez de esmagar o texto. */
-.ccard-header>div:first-child{min-width:190px}
-.ccard-badges{flex-shrink:1;justify-content:flex-end;max-width:58%}
-@media(max-width:640px){
-  .ccard-header{flex-wrap:wrap}
-  .ccard-badges{max-width:100%;justify-content:flex-start}
-}
-
-/* ── Faixa de saúde do contrato (cabeçalho do card) ── */
-.ccard-saude{
-  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
-  padding:10px 22px 12px;margin-top:-6px;
-  border-top:1px dashed var(--b1);
-}
-.saude-barra{
-  flex:1;min-width:150px;height:7px;border-radius:99px;
-  background:var(--s3);overflow:hidden;position:relative;
-}
-.saude-fill{height:100%;border-radius:99px;transition:width .4s ease}
-.saude-fill.ok{background:linear-gradient(90deg,#22c55e,#16a34a)}
-.saude-fill.meio{background:linear-gradient(90deg,#eab308,#f97316)}
-.saude-fill.baixo{background:linear-gradient(90deg,#f97316,#dc2626)}
-/* Marca do "ideal" — onde o faturamento deveria estar considerando o
-   tempo de vigência já decorrido. É a leitura que diferencia um
-   contrato adiantado de um atrasado no faturamento. */
-.saude-marca{
-  position:absolute;top:-3px;width:2px;height:13px;background:var(--t1);
-  opacity:.55;border-radius:1px;
-}
-.saude-chip{
-  display:inline-flex;align-items:center;gap:5px;white-space:nowrap;
-  font-size:11px;font-weight:700;color:var(--t2);
-  background:var(--s2);border:1px solid var(--b1);
-  padding:4px 9px;border-radius:6px;
-}
-.saude-chip b{color:var(--t1);font-variant-numeric:tabular-nums}
-.saude-chip.alerta{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.08);color:var(--r1)}
-.saude-chip.alerta b{color:var(--r1)}
-.saude-chip.aviso{border-color:rgba(234,179,8,.35);background:rgba(234,179,8,.08);color:var(--y1)}
-.saude-chip.aviso b{color:var(--y1)}
-.saude-chip.bom{border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.07);color:var(--g1)}
-.saude-chip.bom b{color:var(--g1)}
-
-/* ── Abas do corpo do card ── */
-.ct-tabs{
-  display:flex;gap:4px;flex-wrap:wrap;
-  border-bottom:1px solid var(--b1);margin-bottom:16px;padding-bottom:0;
-}
-.ct-tab{
-  position:relative;background:none;border:none;cursor:pointer;
-  font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:600;
-  color:var(--t3);padding:9px 14px;border-radius:8px 8px 0 0;
-  display:inline-flex;align-items:center;gap:7px;transition:color .15s,background .15s;
-}
-.ct-tab:hover{color:var(--t2);background:var(--s2)}
-.ct-tab.on{color:var(--nh);background:var(--nha)}
-.ct-tab.on::after{
-  content:'';position:absolute;left:10px;right:10px;bottom:-1px;
-  height:2px;background:var(--nh);border-radius:2px;
-}
-.ct-tab-n{
-  font-size:10px;font-weight:800;min-width:17px;height:17px;padding:0 5px;
-  border-radius:9px;display:inline-flex;align-items:center;justify-content:center;
-  background:var(--s3);color:var(--t2);font-variant-numeric:tabular-nums;
-}
-.ct-tab.on .ct-tab-n{background:var(--nh);color:#000}
-.ct-tab-n.perigo{background:var(--r1);color:#fff}
-.ct-pane{display:none}
-.ct-pane.on{display:block;animation:ccardOpen .2s ease}
-
-/* ── Mini-KPIs dentro do card ── */
-.mk-grid{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));
-  gap:10px;margin-bottom:14px;
-}
-.mk{
-  background:var(--s2);border:1px solid var(--b1);border-left:3px solid var(--mkc,var(--b2));
-  border-radius:9px;padding:11px 13px;min-width:0;
-}
-.mk-lbl{font-size:9.5px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
-.mk-val{font-size:16px;font-weight:800;color:var(--mkc,var(--t1));font-family:'DM Sans',sans-serif;
-  letter-spacing:-.02em;line-height:1.15;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
-.mk-sub{font-size:10.5px;color:var(--t3);margin-top:3px}
-
-/* ── Barra de ferramentas dos módulos ── */
-.mod-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-.mod-add{
-  background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.32);color:var(--g1);
-  padding:6px 12px;border-radius:8px;font-family:'DM Sans',sans-serif;
-  font-size:12px;font-weight:700;cursor:pointer;transition:background .15s;
-  display:inline-flex;align-items:center;gap:5px;
-}
-.mod-add:hover{background:rgba(34,197,94,.22)}
-.mod-add.laranja{background:rgba(249,115,22,.12);border-color:rgba(249,115,22,.32);color:var(--nh)}
-.mod-add.laranja:hover{background:rgba(249,115,22,.22)}
-.mod-add.vermelho{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:var(--r1)}
-.mod-add.vermelho:hover{background:rgba(239,68,68,.2)}
-.mod-sep{flex:1}
-.mod-filtro{
-  background:var(--s2);border:1px solid var(--b1);color:var(--t2);
-  padding:5px 11px;border-radius:99px;font-size:11px;font-weight:600;
-  cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;
-}
-.mod-filtro:hover{border-color:var(--b2);color:var(--t1)}
-.mod-filtro.on{border-color:var(--nh);color:var(--nh);background:var(--nha)}
-
-/* ── Linhas de documento fiscal / notificação ── */
-.doc-lista{display:flex;flex-direction:column;gap:8px}
-.doc-linha{
-  display:grid;grid-template-columns:74px minmax(0,1.5fr) repeat(3,minmax(0,1fr)) auto;
-  gap:12px;align-items:center;
-  background:var(--s2);border:1px solid var(--b1);border-left:3px solid var(--dlc,var(--b2));
-  border-radius:9px;padding:11px 14px;transition:border-color .15s,transform .15s;
-}
-.doc-linha:hover{border-color:var(--b2);transform:translateX(2px)}
-.doc-linha.cancelado{opacity:.45}
-.doc-tipo{
-  font-size:10px;font-weight:800;letter-spacing:.05em;text-align:center;
-  color:var(--dlc);background:color-mix(in srgb,var(--dlc) 13%,transparent);
-  border:1px solid color-mix(in srgb,var(--dlc) 30%,transparent);
-  border-radius:5px;padding:4px 0;
-}
-.doc-num{font-size:13px;font-weight:700;color:var(--t1);overflow-wrap:anywhere}
-.doc-sub{font-size:10.5px;color:var(--t3);margin-top:2px;overflow-wrap:anywhere}
-.doc-campo-lbl{font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em}
-.doc-campo-val{font-size:12.5px;color:var(--t1);font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px}
-.doc-campo-val.dinheiro{color:var(--g1);font-weight:800}
-.doc-acoes{display:flex;gap:5px;align-items:center}
-.doc-btn{
-  width:27px;height:27px;border-radius:7px;cursor:pointer;flex-shrink:0;
-  display:inline-flex;align-items:center;justify-content:center;font-size:12px;
-  background:var(--s3);border:1px solid var(--b1);color:var(--t2);transition:all .15s;
-  text-decoration:none;   /* o botão de anexo é um <a> */
-}
-.doc-btn:hover{border-color:var(--nh);color:var(--nh)}
-.doc-btn.perigo:hover{border-color:var(--r1);color:var(--r1)}
-.doc-vazio{
-  text-align:center;padding:26px 16px;color:var(--t3);font-size:12.5px;line-height:1.7;
-  background:var(--s2);border:1px dashed var(--b1);border-radius:10px;
-}
-.doc-vazio b{display:block;color:var(--t2);font-size:13.5px;margin-bottom:4px;font-weight:700}
-
-/* Chips de status dos módulos */
-.st-chip{
-  display:inline-flex;align-items:center;gap:4px;white-space:nowrap;
-  font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:6px;
-  background:color-mix(in srgb,var(--sc) 13%,transparent);color:var(--sc);
-  border:1px solid color-mix(in srgb,var(--sc) 28%,transparent);
-}
-.prazo-chip{
-  display:inline-flex;align-items:center;gap:4px;white-space:nowrap;
-  font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:6px;
-  font-variant-numeric:tabular-nums;
-}
-.prazo-chip.estourado{background:rgba(239,68,68,.15);color:var(--r1);animation:pulseUrg 1.8s ease-in-out infinite}
-.prazo-chip.apertado{background:rgba(249,115,22,.15);color:var(--nh)}
-.prazo-chip.folgado{background:rgba(34,197,94,.12);color:var(--g1)}
-
-/* ── Notificação: cartão expandido ── */
-.ntf-card{
-  background:var(--s2);border:1px solid var(--b1);border-left:3px solid var(--nfc,var(--r1));
-  border-radius:10px;padding:13px 15px;
-}
-.ntf-topo{display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:8px}
-.ntf-tit{font-size:13.5px;font-weight:700;color:var(--t1);flex:1;min-width:140px;line-height:1.4}
-.ntf-meta{display:flex;gap:14px;flex-wrap:wrap;margin:9px 0}
-.ntf-desc{
-  font-size:12.5px;color:var(--t2);line-height:1.65;
-  background:var(--bg);border:1px solid var(--b1);border-radius:8px;
-  padding:9px 12px;margin:9px 0;white-space:pre-wrap;overflow-wrap:anywhere;
-}
-.ntf-grav{
-  font-size:9.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
-  padding:3px 8px;border-radius:5px;
-}
-.grav-leve{background:rgba(59,130,246,.14);color:var(--b_)}
-.grav-media{background:rgba(234,179,8,.16);color:var(--y1)}
-.grav-grave{background:rgba(239,68,68,.16);color:var(--r1)}
-
-/* ── Alerta topo do módulo ── */
-.mod-alerta{
-  display:flex;align-items:flex-start;gap:9px;
-  background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.28);
-  border-radius:9px;padding:10px 13px;margin-bottom:12px;
-  font-size:12px;color:var(--r1);font-weight:600;line-height:1.55;
-}
-.mod-alerta.ok{background:rgba(34,197,94,.07);border-color:rgba(34,197,94,.25);color:var(--g1)}
-.mod-alerta.aviso{background:rgba(234,179,8,.07);border-color:rgba(234,179,8,.28);color:var(--y1)}
-.mod-alerta.info{background:rgba(59,130,246,.07);border-color:rgba(59,130,246,.25);color:var(--b_)}
-
-/* ── Responsivo dos módulos ── */
-@media(max-width:820px){
-  /* Em tela média a linha quebra em duas. `align-items:start` é o que
-     impede os botões de ação de ficarem centralizados numa célula alta
-     e deixarem o chip de prazo órfão embaixo deles. */
-  .doc-linha{grid-template-columns:64px minmax(0,1fr) auto;gap:9px 12px;align-items:start}
-  .doc-linha .doc-col-opc{display:none}
-  .ccard-saude{padding:10px 16px 12px}
-}
-@media(max-width:560px){
-  .doc-linha{grid-template-columns:1fr;gap:8px}
-  .doc-linha .doc-col-opc{display:block}
-  .doc-tipo{width:64px}
-  .doc-acoes{justify-content:flex-end}
-  .ct-tab{padding:8px 10px;font-size:11.5px}
-}
-
 </style>
 </head>
 <body>
@@ -1398,16 +1160,6 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
           <span style="font-size:13px;color:var(--nh);font-weight:600">Recomposições / Aditivos</span>
           <span style="font-size:11px;color:var(--t3);margin-left:auto">Todas as 4 recomposições</span>
         </label>
-        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 12px;background:var(--s2);border:1px solid rgba(34,197,94,.28);border-radius:8px">
-          <input type="checkbox" id="popt-faturamento" checked style="width:15px;height:15px;accent-color:#22c55e;cursor:pointer">
-          <span style="font-size:13px;color:var(--g1);font-weight:600">Faturamento</span>
-          <span style="font-size:11px;color:var(--t3);margin-left:auto">OS, OC, medições e notas fiscais</span>
-        </label>
-        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 12px;background:var(--s2);border:1px solid rgba(239,68,68,.28);border-radius:8px">
-          <input type="checkbox" id="popt-notificacoes" checked style="width:15px;height:15px;accent-color:#ef4444;cursor:pointer">
-          <span style="font-size:13px;color:var(--r1);font-weight:600">Notificações recebidas</span>
-          <span style="font-size:11px;color:var(--t3);margin-left:auto">com prazo, defesa e desfecho</span>
-        </label>
         <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 12px;background:var(--s2);border:1px solid var(--b1);border-radius:8px">
           <input type="checkbox" id="popt-link" style="width:15px;height:15px;accent-color:var(--nh);cursor:pointer">
           <span style="font-size:13px;color:var(--t1);font-weight:600">Link da pasta</span>
@@ -1446,235 +1198,6 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
           <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
           Imprimir
         </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══ MODAL LANÇAMENTO DE FATURAMENTO (OS / OC / NF / Medição / Recibo) ══ -->
-<div id="modal-fat" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:650;align-items:center;justify-content:center;padding:16px;overflow-y:auto">
-  <div style="background:var(--s1);border:1px solid var(--b2);border-radius:16px;width:100%;max-width:660px;max-height:92vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.9)">
-    <div style="position:sticky;top:0;background:var(--s1);padding:20px 24px 16px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;z-index:1">
-      <div>
-        <div id="fat-titulo" style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--t1)">Novo Lançamento</div>
-        <div id="fat-contrato-lbl" style="font-size:11px;color:var(--t3);margin-top:2px"></div>
-      </div>
-      <button onclick="fecharModalFat()" style="background:rgba(255,255,255,.06);border:1px solid var(--b2);color:var(--t2);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px">✕</button>
-    </div>
-
-    <div style="padding:20px 24px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <div class="mc-field">
-        <label class="mc-label">Tipo de documento *</label>
-        <select id="fat-tipo" class="mc-input" onchange="fatAoTrocarTipo()">
-          <option value="OS">OS — Ordem de Serviço</option>
-          <option value="OC">OC — Ordem de Compra</option>
-          <option value="MEDICAO">Medição / Boletim</option>
-          <option value="NF">NF — Nota Fiscal</option>
-          <option value="RECIBO">Recibo / Outro</option>
-        </select>
-      </div>
-      <div class="mc-field">
-        <label class="mc-label">Número do documento *</label>
-        <input type="text" id="fat-numero" class="mc-input" placeholder="Ex: 000123">
-      </div>
-
-      <div class="mc-field">
-        <label class="mc-label">Competência (mês de referência)</label>
-        <input type="month" id="fat-comp" class="mc-input">
-      </div>
-      <div class="mc-field">
-        <label class="mc-label">Data de emissão *</label>
-        <input type="date" id="fat-emissao" class="mc-input">
-      </div>
-
-      <div class="mc-field">
-        <label class="mc-label">Valor do documento *</label>
-        <input type="text" id="fat-valor" class="mc-input" placeholder="R$ 0,00" oninput="mcMascara(this);fatCalcSaldo()">
-      </div>
-      <div class="mc-field">
-        <label class="mc-label">Vencimento / prazo de pagamento</label>
-        <input type="date" id="fat-venc" class="mc-input">
-      </div>
-
-      <div class="mc-field">
-        <label class="mc-label">Situação *</label>
-        <select id="fat-status" class="mc-input" onchange="fatAoTrocarStatus()">
-          <option value="EMITIDO">Emitido</option>
-          <option value="ENVIADO">Enviado ao órgão</option>
-          <option value="ATESTADO">Atestado / liquidado</option>
-          <option value="PAGO">Pago</option>
-          <option value="GLOSADO">Glosado (parcial ou total)</option>
-          <option value="CANCELADO">Cancelado</option>
-        </select>
-      </div>
-      <div class="mc-field" id="fat-wrap-vinculo">
-        <label class="mc-label">Vincular a uma OS / OC / Medição</label>
-        <select id="fat-vinculo" class="mc-input"><option value="">— sem vínculo —</option></select>
-      </div>
-
-      <div class="mc-field" id="fat-wrap-pagto" style="display:none">
-        <label class="mc-label">Data do pagamento</label>
-        <input type="date" id="fat-dtpagto" class="mc-input">
-      </div>
-      <div class="mc-field" id="fat-wrap-vpago" style="display:none">
-        <label class="mc-label">Valor efetivamente recebido</label>
-        <input type="text" id="fat-vpago" class="mc-input" placeholder="R$ 0,00" oninput="mcMascara(this);fatCalcSaldo()">
-      </div>
-
-      <div class="mc-field" id="fat-wrap-glosa" style="display:none;grid-column:1/-1">
-        <label class="mc-label">Valor glosado e motivo</label>
-        <div style="display:grid;grid-template-columns:180px 1fr;gap:10px">
-          <input type="text" id="fat-glosa" class="mc-input" placeholder="R$ 0,00" oninput="mcMascara(this);fatCalcSaldo()">
-          <input type="text" id="fat-glosa-motivo" class="mc-input" placeholder="Motivo da glosa informado pelo órgão">
-        </div>
-      </div>
-
-      <div class="mc-field" style="grid-column:1/-1">
-        <div id="fat-saldo" class="mc-ata-calc" style="display:none"></div>
-      </div>
-
-      <div class="mc-field" style="grid-column:1/-1">
-        <label class="mc-label">Descrição / serviço executado</label>
-        <textarea id="fat-desc" class="mc-input" rows="2" placeholder="O que este documento cobre..." style="resize:vertical"></textarea>
-      </div>
-      <div class="mc-field" style="grid-column:1/-1">
-        <label class="mc-label">Link do arquivo (Drive, PDF da NF...)</label>
-        <input type="url" id="fat-link" class="mc-input" placeholder="https://drive.google.com/...">
-      </div>
-      <div class="mc-field" style="grid-column:1/-1">
-        <label class="mc-label">Responsável pelo lançamento <span style="color:#ef4444">*</span></label>
-        <input type="text" id="fat-autor" class="mc-input" placeholder="Seu nome completo">
-      </div>
-    </div>
-
-    <div style="padding:16px 24px;border-top:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--bg);border-radius:0 0 16px 16px">
-      <div id="fat-erro" style="font-size:12px;color:var(--r1);display:none"></div>
-      <div style="display:flex;gap:10px;margin-left:auto">
-        <button onclick="fecharModalFat()" style="background:var(--s2);border:1px solid var(--b1);color:var(--t2);padding:9px 18px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer">Cancelar</button>
-        <button id="fat-salvar-btn" onclick="salvarFat()" style="background:linear-gradient(90deg,#f97316,#dc2626);color:#fff;border:none;padding:9px 22px;border-radius:8px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer">💾 Salvar Lançamento</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══ MODAL NOTIFICAÇÃO RECEBIDA ══ -->
-<div id="modal-ntf" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:650;align-items:center;justify-content:center;padding:16px;overflow-y:auto">
-  <div style="background:var(--s1);border:1px solid rgba(239,68,68,.3);border-radius:16px;width:100%;max-width:660px;max-height:92vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.9)">
-    <div style="position:sticky;top:0;background:var(--s1);padding:20px 24px 16px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;z-index:1">
-      <div>
-        <div id="ntf-titulo" style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--t1)">Registrar Notificação Recebida</div>
-        <div id="ntf-contrato-lbl" style="font-size:11px;color:var(--t3);margin-top:2px"></div>
-      </div>
-      <button onclick="fecharModalNtf()" style="background:rgba(255,255,255,.06);border:1px solid var(--b2);color:var(--t2);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px">✕</button>
-    </div>
-
-    <div style="padding:20px 24px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <div class="mc-field">
-        <label class="mc-label">Tipo *</label>
-        <select id="ntf-tipo" class="mc-input" onchange="ntfAoTrocarTipo()">
-          <option value="NOTIFICACAO">Notificação</option>
-          <option value="ADVERTENCIA">Advertência</option>
-          <option value="MULTA">Multa</option>
-          <option value="GLOSA">Glosa de medição</option>
-          <option value="INTIMACAO">Intimação / defesa prévia</option>
-          <option value="RESCISAO">Abertura de rescisão</option>
-        </select>
-      </div>
-      <div class="mc-field">
-        <label class="mc-label">Gravidade *</label>
-        <select id="ntf-gravidade" class="mc-input">
-          <option value="LEVE">Leve</option>
-          <option value="MEDIA" selected>Média</option>
-          <option value="GRAVE">Grave</option>
-        </select>
-      </div>
-
-      <div class="mc-field">
-        <label class="mc-label">Nº do ofício / protocolo</label>
-        <input type="text" id="ntf-numero" class="mc-input" placeholder="Ex: Ofício 45/2026-SEMSA">
-      </div>
-      <div class="mc-field">
-        <label class="mc-label">Órgão / setor que notificou</label>
-        <input type="text" id="ntf-orgao" class="mc-input" placeholder="Ex: Secretaria Municipal de Saúde">
-      </div>
-
-      <div class="mc-field">
-        <label class="mc-label">Data de recebimento *</label>
-        <input type="date" id="ntf-recebimento" class="mc-input" onchange="ntfCalcPrazo()">
-      </div>
-      <div class="mc-field">
-        <label class="mc-label">Prazo para responder</label>
-        <div style="display:grid;grid-template-columns:1fr 92px;gap:8px">
-          <input type="date" id="ntf-prazo" class="mc-input">
-          <input type="number" id="ntf-prazo-dias" class="mc-input" placeholder="dias" min="1" oninput="ntfCalcPrazo()" title="Digite os dias úteis/corridos e a data é calculada">
-        </div>
-      </div>
-
-      <div class="mc-field" style="grid-column:1/-1">
-        <label class="mc-label">Motivo alegado pelo órgão *</label>
-        <select id="ntf-motivo" class="mc-input">
-          <option value="">Selecione...</option>
-          <option>Atraso na execução do serviço</option>
-          <option>Qualidade do serviço prestado</option>
-          <option>Falta de efetivo / pessoal</option>
-          <option>Ausência de material ou equipamento</option>
-          <option>Descumprimento de cláusula contratual</option>
-          <option>Documentação / regularidade fiscal pendente</option>
-          <option>Atraso na entrega de produtos</option>
-          <option>Falha no atendimento / prazo de resposta</option>
-          <option>Outros</option>
-        </select>
-      </div>
-
-      <div class="mc-field" style="grid-column:1/-1">
-        <label class="mc-label">Descrição do que foi apontado</label>
-        <textarea id="ntf-desc" class="mc-input" rows="3" placeholder="Transcreva o que o órgão apontou..." style="resize:vertical"></textarea>
-      </div>
-
-      <div class="mc-field">
-        <label class="mc-label">Situação *</label>
-        <select id="ntf-status" class="mc-input" onchange="ntfAoTrocarStatus()">
-          <option value="ABERTA">Aberta — sem resposta</option>
-          <option value="EM_DEFESA">Em defesa / elaborando resposta</option>
-          <option value="RESPONDIDA">Respondida — aguardando decisão</option>
-          <option value="ACATADA">Defesa acatada — arquivada</option>
-          <option value="SANCAO">Sanção aplicada</option>
-          <option value="ARQUIVADA">Arquivada / sem consequência</option>
-        </select>
-      </div>
-      <div class="mc-field">
-        <label class="mc-label">Responsável pela defesa</label>
-        <input type="text" id="ntf-responsavel" class="mc-input" placeholder="Quem está tratando">
-      </div>
-
-      <div class="mc-field" id="ntf-wrap-resposta" style="display:none">
-        <label class="mc-label">Data da resposta enviada</label>
-        <input type="date" id="ntf-dtresposta" class="mc-input">
-      </div>
-      <div class="mc-field" id="ntf-wrap-multa" style="display:none">
-        <label class="mc-label">Valor da multa / sanção</label>
-        <input type="text" id="ntf-valor" class="mc-input" placeholder="R$ 0,00" oninput="mcMascara(this)">
-      </div>
-
-      <div class="mc-field" style="grid-column:1/-1">
-        <label class="mc-label">Providência adotada</label>
-        <textarea id="ntf-providencia" class="mc-input" rows="2" placeholder="O que a empresa fez para corrigir..." style="resize:vertical"></textarea>
-      </div>
-      <div class="mc-field" style="grid-column:1/-1">
-        <label class="mc-label">Link do ofício / defesa</label>
-        <input type="url" id="ntf-link" class="mc-input" placeholder="https://drive.google.com/...">
-      </div>
-      <div class="mc-field" style="grid-column:1/-1">
-        <label class="mc-label">Responsável pelo registro <span style="color:#ef4444">*</span></label>
-        <input type="text" id="ntf-autor" class="mc-input" placeholder="Seu nome completo">
-      </div>
-    </div>
-
-    <div style="padding:16px 24px;border-top:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--bg);border-radius:0 0 16px 16px">
-      <div id="ntf-erro" style="font-size:12px;color:var(--r1);display:none"></div>
-      <div style="display:flex;gap:10px;margin-left:auto">
-        <button onclick="fecharModalNtf()" style="background:var(--s2);border:1px solid var(--b1);color:var(--t2);padding:9px 18px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer">Cancelar</button>
-        <button id="ntf-salvar-btn" onclick="salvarNtf()" style="background:linear-gradient(90deg,#f97316,#dc2626);color:#fff;border:none;padding:9px 22px;border-radius:8px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer">💾 Salvar Registro</button>
       </div>
     </div>
   </div>
@@ -2999,72 +2522,6 @@ function renderAvisos(){
 
   const grupos = [];
 
-  /* 0) Execução do contrato — vem primeiro de propósito. Prazo de
-     defesa vencido e nota fiscal parada são as duas coisas que custam
-     dinheiro e contrato; vencimento de vigência dá para planejar. */
-  const _rc = resumoCarteira();
-  const _tituloContrato = (e)=> pEsc(e.arr[IDX.LICITACAO]||'Sem identificação');
-  const _subContrato = (e)=> pEsc([e.arr[IDX.EMPRESA], e.arr[IDX.CONTRATO]].filter(Boolean).join(' · '));
-
-  if(_rc.ntfPrazoEstourado.length){
-    grupos.push({
-      icone:'🚨', cor:'#ef4444', titulo:'Prazo de resposta VENCIDO',
-      sub:'Notificação do órgão sem resposta dentro do prazo',
-      itens:_rc.ntfPrazoEstourado.map(({e,n,dias})=>({
-        principal:(NTF_TIPOS[n.tipo]||{}).nome+': '+pEsc(n.motivo||''),
-        secundario:_tituloContrato(e)+' — '+_subContrato(e),
-        extra:'Prazo venceu há '+Math.abs(dias)+' dia(s) ('+pEsc(n.prazoResposta)+')',
-        link:String(n.link||'').trim()
-      }))
-    });
-  }
-  if(_rc.ntfPrazoCurto.length){
-    grupos.push({
-      icone:'⏳', cor:'#f97316', titulo:'Defesa a vencer em até 5 dias',
-      sub:'Responder antes que vire sanção',
-      itens:_rc.ntfPrazoCurto.map(({e,n,dias})=>({
-        principal:(NTF_TIPOS[n.tipo]||{}).nome+': '+pEsc(n.motivo||''),
-        secundario:_tituloContrato(e)+' — '+_subContrato(e),
-        extra:'Responder em '+dias+' dia(s) — até '+pEsc(n.prazoResposta),
-        link:String(n.link||'').trim()
-      }))
-    });
-  }
-  if(_rc.docsAtrasados.length){
-    grupos.push({
-      icone:'💰', cor:'#ef4444', titulo:'Faturas vencidas sem pagamento',
-      sub:'Documento venceu e o órgão não pagou',
-      itens:_rc.docsAtrasados.map(({e,d,dias})=>({
-        principal:(FAT_TIPOS[d.tipo]||{}).sigla+' '+pEsc(d.numero||'')+' — '+(fmtMoedaP(d.valor)||''),
-        secundario:_tituloContrato(e)+' — '+_subContrato(e),
-        extra:'Vencida há '+Math.abs(dias)+' dia(s) ('+pEsc(d.dataVenc)+')',
-        link:String(d.link||'').trim()
-      }))
-    });
-  }
-  if(_rc.atrasoFaturamento.length){
-    grupos.push({
-      icone:'📉', cor:'#eab308', titulo:'Faturamento atrás da vigência',
-      sub:'Contrato andou mais que o faturamento — verificar medições',
-      itens:_rc.atrasoFaturamento.map(({e,f})=>({
-        principal:_tituloContrato(e),
-        secundario:_subContrato(e),
-        extra:Math.round(f.pctIdeal)+'% da vigência corrida · '+Math.round(f.pctFaturado)+'% faturado ('+fmtMoedaP(f.faturado)+')'
-      }))
-    });
-  }
-  if(_rc.semFaturamento.length){
-    grupos.push({
-      icone:'📄', cor:'#3b82f6', titulo:'Contratos sem faturamento lançado',
-      sub:'Nenhuma OS, medição ou NF registrada até agora',
-      itens:_rc.semFaturamento.map((e)=>({
-        principal:_tituloContrato(e),
-        secundario:_subContrato(e),
-        extra:'Valor do contrato: '+(fmtMoedaP(calcValorGanhas(e.arr))||'não informado')
-      }))
-    });
-  }
-
   // 1) Possíveis contratos (1ª posição, em andamento)
   const possiveis = dadosAndamento.filter(({arr})=>{
     const classif = String(arr[11]||'').trim().toLowerCase();
@@ -3131,7 +2588,7 @@ function renderAvisos(){
     box.innerHTML = '<div class="avisos-wrap">'
       + '<div class="avisos-head"><span class="avisos-titulo">\ud83d\udd14 Quadro de Avisos</span>'
       + '<span class="avisos-badge avisos-badge-ok">Tudo em dia</span></div>'
-      + '<div class="avisos-vazio">\u2713 Nenhum aviso no momento. Nenhum contrato vencendo nos pr\u00f3ximos 60 dias, nenhuma notifica\u00e7\u00e3o em aberto, nenhuma fatura vencida e nenhum processo em 1\u00aa posi\u00e7\u00e3o aguardando defini\u00e7\u00e3o.</div>'
+      + '<div class="avisos-vazio">\u2713 Nenhum aviso no momento. Nenhum contrato vencendo nos pr\u00f3ximos 60 dias e nenhum processo em 1\u00aa posi\u00e7\u00e3o aguardando defini\u00e7\u00e3o.</div>'
       + '</div>';
     return;
   }
@@ -3161,12 +2618,57 @@ function renderAvisos(){
     + '</div></div>';
 }
 
+/* ── Uma leitura só de "ganhas" ────────────────────────────────────
+   Antes esta tela fazia .get() da coleção inteira E, logo depois,
+   abria um onSnapshot na mesma coleção. O Firestore cobra a coleção
+   toda também na primeira resposta do listener — e essa resposta era
+   descartada, porque o listener só tratava 'modified'. Resultado: cada
+   abertura do portal pagava DUAS vezes pela mesma leitura.
+   Agora a carga inicial vem do próprio listener, e cada resposta dele
+   guarda os documentos para eventuais recargas — que passam a custar
+   zero. ────────────────────────────────────────────────────────────── */
+function _portalGanhasDocs(){
+  return new Promise(function(resolve, reject){
+    /* Listener já ativo: o que está em memória está em dia por conta
+       dele. Reler aqui seria uma coleção inteira à toa. */
+    if(window._portalListener){ resolve(window._portalSnapDocs || []); return; }
+
+    var primeira = true;
+    window._portalListener = db.collection('ganhas').onSnapshot(function(snap){
+      window._portalSnapDocs = snap.docs;
+      if(primeira){ primeira = false; resolve(snap.docs); return; }
+
+      var houve = false;
+      snap.docChanges().forEach(function(change){
+        if(change.type !== 'modified') return;
+        var d = change.doc.data();
+        var arr = d._arr || [];
+        var idx = dadosGanhas.findIndex(function(e){ return e.id === change.doc.id; });
+        if(idx < 0) return;
+        var antigaObs = dadosGanhas[idx].arr[IDX.OBS] || '';
+        var novaObs = arr[IDX.OBS] || '';
+        var editor = d._portalUltimaEdicao || '';
+        if(isAdmin && editor && editor.indexOf('GROWTH') === -1 && novaObs !== antigaObs){
+          portalToast('📢 ' + editor.split(' em ')[0] + ' atualizou um contrato', 'ok');
+        }
+        dadosGanhas[idx].arr = arr;
+        dadosGanhas[idx]._portalUltimaEdicao = editor;
+        houve = true;
+      });
+      if(houve){ renderContratos(); renderStats(); gerarDashboard(); }
+    }, function(err){
+      if(primeira){ primeira = false; reject(err); }
+      else console.warn('Listener:', err.message);
+    });
+  });
+}
+
 async function carregarContratos(){
   document.getElementById('contratos-area').innerHTML = '<div class="spin"></div>';
   try{
-    const snap = await db.collection('ganhas').get();
+    const docs = await _portalGanhasDocs();
     const todos = [];
-    snap.forEach(doc => {
+    docs.forEach(doc => {
       const d = doc.data();
       const arr = d._arr || [];
       const emp = String(arr[IDX.EMPRESA]||'').trim().toUpperCase();
@@ -3182,7 +2684,6 @@ async function carregarContratos(){
     });
     dadosGanhas = todos;
     await carregarAndamento();
-    await carregarModulosContrato();
     renderContratos();
     renderStats();
     renderAvisos();
@@ -3199,60 +2700,8 @@ async function carregarContratos(){
       if(btnXls) btnXls.style.display = '';
     }
 
-    // ── Listener em tempo real — atualiza automaticamente quando empresa edita ──
-    if(!window._portalListener){
-      window._portalListener = db.collection('ganhas').onSnapshot(function(snap){
-        var houve = false;
-        snap.docChanges().forEach(function(change){
-          if(change.type === 'modified'){
-            var d = change.doc.data();
-            var arr = d._arr || [];
-            var docId = change.doc.id;
-            var idx = dadosGanhas.findIndex(function(e){ return e.id === docId; });
-            if(idx >= 0){
-              var antigaObs = dadosGanhas[idx].arr[IDX.OBS] || '';
-              var novaObs = arr[IDX.OBS] || '';
-              var editor = d._portalUltimaEdicao || '';
-              // Notifica GROWTH quando empresa (não GROWTH) edita
-              if(isAdmin && editor && editor.indexOf('GROWTH') === -1 && novaObs !== antigaObs){
-                portalToast('📢 ' + editor.split(' em ')[0] + ' atualizou um contrato', 'ok');
-              }
-              dadosGanhas[idx].arr = arr;
-              dadosGanhas[idx]._portalUltimaEdicao = editor;
-              houve = true;
-            }
-          }
-        });
-        if(houve){ renderContratos(); renderStats(); gerarDashboard(); }
-      }, function(err){ console.warn('Listener:', err.message); });
-    }
-
-    /* Faturamento e notificações também são acompanhados ao vivo: quando
-       a empresa lança uma NF e a GROWTH está com a tela aberta (ou o
-       contrário), os números mudam sozinhos. Só as abas dos cards já
-       abertos são redesenhadas — renderContratos() inteiro fecharia
-       tudo no meio do trabalho de quem está digitando. */
-    if(!window._modListener){
-      window._modListener = true;
-      var _recarregando = false;
-      var _aoMudarModulo = function(){
-        if(_recarregando) return;
-        _recarregando = true;
-        setTimeout(async function(){
-          try{
-            await carregarModulosContrato();
-            dadosGanhas.forEach(function(e){
-              if(document.getElementById('pane-fat-'+e.id)) atualizarModulos(e.id);
-            });
-          }catch(_e){}
-          _recarregando = false;
-        }, 400);   // agrupa rajadas de escrita numa recarga só
-      };
-      try{
-        db.collection(COL_FAT).onSnapshot(_aoMudarModulo, function(err){ console.warn('Listener faturamento:', err.message); });
-        db.collection(COL_NTF).onSnapshot(_aoMudarModulo, function(err){ console.warn('Listener notificações:', err.message); });
-      }catch(_e){ console.warn('Listeners dos módulos indisponíveis:', _e.message); }
-    }
+    /* O listener em tempo real já foi ligado em _portalGanhasDocs(), junto
+       com a carga inicial — não há segundo bloco aqui de propósito. */
     // Filtros por empresa para GROWTH
     if(isAdmin){
       const fe = document.getElementById('filtros-empresa-area');
@@ -3311,35 +2760,6 @@ function renderStats(){
   if(suspenso>0)  html += sc('Suspenso',suspenso,'#eab308','');
   if(rescindido>0)html += sc('Rescindido',rescindido,'#ef4444','');
   html += '</div>';
-
-  /* Segunda faixa: dinheiro e conformidade. Fica separada da contagem
-     de contratos porque responde outra pergunta — a primeira diz
-     quantos contratos existem, esta diz como eles estão sendo
-     executados e cobrados. Só aparece quando há algo lançado. */
-  const _rc = resumoCarteira();
-  if(_rc.faturado > 0 || _rc.ntfAbertas.length > 0){
-    const fc = function(lbl,val,cor,sub,contagem){
-      return '<div class="kpi-card" style="--kc:'+cor+'">'+
-        '<div class="kpi-lbl">'+lbl+'</div>'+
-        '<div class="kpi-num'+(contagem?'':' dinheiro')+'">'+val+'</div>'+
-        (sub?'<div class="kpi-sub">'+sub+'</div>':'')+
-      '</div>';
-    };
-    html += '<div class="section-title" style="margin:22px 0 12px;font-size:14px">Execução e Faturamento</div>';
-    html += '<div class="kpi-grid grid-dinheiro">';
-    html += fc('Faturado', fmtMoedaP(_rc.faturado)||'R$ 0,00', '#f97316',
-               valTotal>0 ? ((_rc.faturado/valTotal*100).toFixed(0)+'% da carteira') : '');
-    html += fc('Recebido', fmtMoedaP(_rc.recebido)||'R$ 0,00', '#22c55e', '');
-    html += fc('A receber', fmtMoedaP(_rc.aReceber)||'R$ 0,00', '#3b82f6', '');
-    if(_rc.atrasado>0)   html += fc('Em atraso', fmtMoedaP(_rc.atrasado), '#ef4444', _rc.docsAtrasados.length+' documento(s) vencido(s)');
-    if(_rc.glosado>0)    html += fc('Glosado', fmtMoedaP(_rc.glosado), '#ef4444', 'recusado pelo órgão');
-    html += fc('Notificações em aberto', String(_rc.ntfAbertas.length), _rc.ntfAbertas.length>0?'#ef4444':'#22c55e',
-               _rc.ntfPrazoEstourado.length>0 ? (_rc.ntfPrazoEstourado.length+' com prazo vencido')
-               : (_rc.ntfPrazoCurto.length>0 ? (_rc.ntfPrazoCurto.length+' com prazo curto') : 'nenhuma pendência'), true);
-    if(_rc.valorMultas>0) html += fc('Multas aplicadas', fmtMoedaP(_rc.valorMultas), '#ef4444', 'sanções já aplicadas');
-    html += '</div>';
-  }
-
   el.innerHTML = html;
   renderStatusPills();
 }
@@ -3532,16 +2952,6 @@ function renderContratos(){
 
     const statusBadge = `<span class="badge ${cor==='verde'?'b-green':cor==='azul'?'b-blue':cor==='vermelho'?'b-red':'b-yellow'}">${status}</span>`;
 
-    /* Marcador de execução no cabeçalho: só o contador de notificações em
-       aberto, e bem curto de propósito. O detalhe (valor atrasado, prazo
-       de defesa, % faturado) fica na faixa de saúde logo abaixo, que
-       aparece com o card fechado do mesmo jeito — colocar tudo aqui
-       espremia o título do contrato até ele quebrar palavra por palavra. */
-    const _nr = ntfResumo(id);
-    const notifBadge = _nr.emAberto > 0
-      ? `<span class="badge b-red${_nr.prazoEstourado>0?' urgente':''}" title="${_nr.emAberto} notificação(ões) do órgão ainda sem solução">⚠ ${_nr.emAberto}</span>`
-      : '';
-
     return `
     <div class="ccard ${cor}" id="ccard-${id}">
       <div class="ccard-header" onclick="toggleCard('${id}')">
@@ -3554,7 +2964,7 @@ function renderContratos(){
           ${isAdmin && arr[IDX.EMPRESA] ? `<div style="font-size:11px;color:${CORES[arr[IDX.EMPRESA].trim().toUpperCase()]||'#888'};font-weight:700;margin-top:3px">${arr[IDX.EMPRESA].trim().toUpperCase()}</div>` : ''}
         </div>
         <div class="ccard-badges">
-          ${notifBadge}${statusBadge}${situacaoBadge}${vencBadge}${recomp}
+          ${statusBadge}${situacaoBadge}${vencBadge}${recomp}
           <button onclick="event.stopPropagation();imprimirContrato('${id}')" title="Imprimir PDF" style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2);color:var(--nh);width:30px;height:30px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;transition:all .15s" onmouseover="this.style.background='rgba(249,115,22,.25)'" onmouseout="this.style.background='rgba(249,115,22,.1)'">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></svg>
           </button>
@@ -3563,7 +2973,6 @@ function renderContratos(){
           <span class="ccard-arrow" id="arrow-${id}">›</span>
         </div>
       </div>
-      ${renderSaude(id, arr)}
       <div class="ccard-body" id="body-${id}">
         ${renderBody(id, arr, entry)}
       </div>
@@ -3708,12 +3117,7 @@ function renderBody(id, arr, entry){
   const obs = arr[IDX.OBS]||'';
   const ultimaEdicao = entry._portalUltimaEdicao || '';
 
-  /* Aba "Visão Geral": é exatamente o conteúdo que o card já tinha —
-     metadados, objeto, pasta, recomposições e o formulário de
-     atualização. Nada aqui mudou de comportamento; só passou a viver
-     dentro de uma aba para abrir espaço para Faturamento e
-     Notificações sem transformar o card num rolo interminável. */
-  const geralHTML =
+  return vencAlert + recompBanner +
     '<div class="ccard-meta">' +
     (arr[IDX.LOCAL]?'<div class="cmeta wide"><span class="cmeta-lbl">Local</span><span class="cmeta-val">'+arr[IDX.LOCAL]+'</span></div>':'') +
     (arr[IDX.MUNICIPIO]?'<div class="cmeta"><span class="cmeta-lbl">Munic\xedpio</span><span class="cmeta-val">'+arr[IDX.MUNICIPIO]+'</span></div>':'') +
@@ -3759,33 +3163,8 @@ function renderBody(id, arr, entry){
     '<button class="save-btn" id="save-btn-'+id+'" onclick="salvarAlteracoes(\''+id+'\')">\ud83d\udcbe Salvar Altera\xe7\xf5es</button>'+
     '<div class="last-edit" id="last-edit-'+id+'">'+(ultimaEdicao?'\u270e \xdaltima edi\xe7\xe3o: '+ultimaEdicao:'')+'</div>'+
     '</div>' +
+    histHTML +
     '</div>';
-
-  // \u2500\u2500 Abas \u2500\u2500
-  const fr = fatResumo(id, arr);
-  const nr = ntfResumo(id);
-  const aba = _abaCard[id] || 'geral';
-  const tab = function(k, rotulo, icone, n, perigo){
-    return '<button class="ct-tab'+(aba===k?' on':'')+'" id="tab-'+k+'-'+id+'" '
-      + 'onclick="event.stopPropagation();mostrarAba(\''+id+'\',\''+k+'\')">'
-      + '<span>'+icone+'</span>'+rotulo
-      + (n!==null ? '<span class="ct-tab-n'+(perigo?' perigo':'')+'" id="tabn-'+k+'-'+id+'">'+n+'</span>' : '')
-      + '</button>';
-  };
-
-  return vencAlert + recompBanner
-    + '<div class="ct-tabs">'
-    +   tab('geral','Vis\u00e3o Geral','\ud83d\udcc4',null,false)
-    +   tab('fat','Faturamento','\ud83d\udcb0',fr.nDocs,false)
-    +   tab('ntf','Notifica\u00e7\u00f5es','\u26a0\ufe0f',nr.total,nr.emAberto>0)
-    +   tab('hist','Hist\u00f3rico','\ud83d\udd52',(entry._portalLog||[]).length,false)
-    + '</div>'
-    + '<div class="ct-pane'+(aba==='geral'?' on':'')+'" id="pane-geral-'+id+'">'+geralHTML+'</div>'
-    + '<div class="ct-pane'+(aba==='fat'?' on':'')+'" id="pane-fat-'+id+'">'+renderPaneFat(id, arr)+'</div>'
-    + '<div class="ct-pane'+(aba==='ntf'?' on':'')+'" id="pane-ntf-'+id+'">'+renderPaneNtf(id, arr)+'</div>'
-    + '<div class="ct-pane'+(aba==='hist'?' on':'')+'" id="pane-hist-'+id+'">'
-    +   (histHTML || '<div class="doc-vazio"><b>Sem hist\u00f3rico</b>As altera\u00e7\u00f5es feitas por este portal aparecem aqui, com autor e data.</div>')
-    + '</div>';
 }
 let abertos = {};
 
@@ -4117,100 +3496,6 @@ function rpCriterios(){
     + '</ul></div>';
 }
 
-/* ── Blocos de Faturamento e Notificações no relatório impresso ──
-   Escritos em tons claros de propósito: o relatório é gerado numa
-   janela própria, fora do tema do portal, e precisa sair legível no
-   papel e em PDF preto-e-branco. */
-function rpFaturamento(id, arr){
-  var lista = (dadosFat[id]||[]);
-  if(!lista.length) return '';
-  var f = fatResumo(id, arr);
-
-  var linhas = lista.map(function(d){
-    var T = FAT_TIPOS[d.tipo]||FAT_TIPOS.RECIBO;
-    var S = FAT_STATUS[d.status]||FAT_STATUS.EMITIDO;
-    var cancelado = d.status==='CANCELADO';
-    // Marca o atraso na própria coluna de vencimento: no papel não dá
-    // para passar o mouse em cima de um chip para descobrir isso.
-    var diasV = (!cancelado && d.status!=='PAGO') ? _pDias(d.dataVenc) : null;
-    var vencCel = pEsc(d.dataVenc||'—')
-      + (diasV!==null && diasV<0 ? '<br><strong style="color:#dc2626">vencida há '+Math.abs(diasV)+'d</strong>' : '');
-    return '<tr style="border-bottom:1px solid #f3f4f6'+(cancelado?';opacity:.5':'')+'">'
-      + '<td style="padding:5px 8px;font-size:9px;font-weight:800;color:'+T.cor+'">'+T.sigla+'</td>'
-      + '<td style="padding:5px 8px;font-size:10px;color:#374151;font-weight:600">'+pEsc(d.numero||'—')+'</td>'
-      + '<td style="padding:5px 8px;font-size:9px;color:#6b7280">'+(d.competencia?_compParaBR(d.competencia):'—')+'</td>'
-      + '<td style="padding:5px 8px;font-size:9px;color:#6b7280">'+pEsc(d.dataEmissao||'—')+'</td>'
-      + '<td style="padding:5px 8px;font-size:9px;color:#6b7280">'+vencCel+'</td>'
-      + '<td style="padding:5px 8px;font-size:10px;font-weight:700;color:#15803d;text-align:right;white-space:nowrap">'+(fmtMoedaP(d.valor)||'—')+'</td>'
-      + '<td style="padding:5px 8px;font-size:9px;font-weight:700;color:'+S.cor+'">'+S.nome+'</td>'
-      + '</tr>';
-  }).join('');
-
-  var kpis = [
-    ['Faturado', fmtMoedaP(f.faturado)||'R$ 0,00', '#ea580c'],
-    ['Recebido', fmtMoedaP(f.recebido)||'R$ 0,00', '#15803d'],
-    ['A receber', fmtMoedaP(f.aReceber)||'R$ 0,00', '#1d4ed8']
-  ];
-  if(f.atrasado>0) kpis.push(['Em atraso', fmtMoedaP(f.atrasado), '#dc2626']);
-  if(f.glosado>0)  kpis.push(['Glosado', fmtMoedaP(f.glosado), '#dc2626']);
-  if(f.saldo>0)    kpis.push(['Saldo a executar', fmtMoedaP(f.saldo), '#0e7490']);
-
-  return '<div style="margin-top:10px;page-break-inside:avoid">'
-    + '<div style="font-size:9px;font-weight:700;color:#ea580c;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">Faturamento do contrato</div>'
-    + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">'
-    +   kpis.map(function(k){
-          return '<div style="border:1px solid #e5e7eb;border-radius:5px;padding:5px 9px;background:#f9fafb">'
-            + '<div style="font-size:7.5px;color:#9ca3af;font-weight:700;text-transform:uppercase;letter-spacing:.06em">'+k[0]+'</div>'
-            + '<div style="font-size:11px;font-weight:800;color:'+k[2]+'">'+k[1]+'</div></div>';
-        }).join('')
-    + '</div>'
-    + '<table style="width:100%;border-collapse:collapse;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden">'
-    + '<thead><tr style="background:#f3f4f6">'
-    +   ['Tipo','Número','Compet.','Emissão','Vencim.','Valor','Situação'].map(function(h,i){
-          return '<th style="padding:5px 8px;font-size:8px;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;font-weight:700;text-align:'+(i===5?'right':'left')+'">'+h+'</th>';
-        }).join('')
-    + '</tr></thead><tbody>'+linhas+'</tbody></table>'
-    + '</div>';
-}
-
-function rpNotificacoes(id){
-  var lista = (dadosNtf[id]||[]);
-  if(!lista.length) return '';
-  var r = ntfResumo(id);
-
-  var blocos = lista.map(function(n){
-    var T = NTF_TIPOS[n.tipo]||NTF_TIPOS.NOTIFICACAO;
-    var S = NTF_STATUS[n.status]||NTF_STATUS.ABERTA;
-    var aberta = NTF_ABERTAS.indexOf(n.status||'ABERTA')!==-1;
-    var dias = aberta ? _pDias(n.prazoResposta) : null;
-    var prazoTxt = dias===null ? '' : (dias<0 ? ' · PRAZO VENCIDO há '+Math.abs(dias)+' dia(s)' : ' · responder em '+dias+' dia(s)');
-    return '<div style="border:1px solid #e5e7eb;border-left:3px solid '+T.cor+';border-radius:6px;padding:8px 10px;margin-bottom:6px;background:#fffdfa;page-break-inside:avoid">'
-      + '<div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:4px">'
-      +   '<div style="font-size:10px;font-weight:800;color:#374151">'+T.nome+' — '+pEsc(n.motivo||'sem motivo informado')+'</div>'
-      +   '<div style="font-size:9px;font-weight:700;color:'+S.cor+';white-space:nowrap">'+S.nome+'</div>'
-      + '</div>'
-      + '<div style="font-size:9px;color:#6b7280;line-height:1.6">'
-      +   [ n.numero?pEsc(n.numero):'', n.orgao?pEsc(n.orgao):'',
-            n.dataRecebimento?('recebida em '+pEsc(n.dataRecebimento)):'',
-            n.prazoResposta?('prazo '+pEsc(n.prazoResposta)):'',
-            n.dataResposta?('respondida em '+pEsc(n.dataResposta)):'',
-            n.responsavel?('resp. '+pEsc(n.responsavel)):'',
-            'gravidade '+(n.gravidade==='MEDIA'?'média':String(n.gravidade||'média').toLowerCase()),
-            Number(n.valorMulta)>0?('multa '+fmtMoedaP(n.valorMulta)):''
-          ].filter(Boolean).join(' · ')
-      +   (prazoTxt?'<strong style="color:'+(dias<0?'#dc2626':'#ea580c')+'">'+prazoTxt+'</strong>':'')
-      + '</div>'
-      + (n.descricao?'<div style="font-size:9px;color:#374151;margin-top:5px;padding:5px 7px;background:#f9fafb;border-radius:4px;line-height:1.55">'+pEsc(n.descricao)+'</div>':'')
-      + (n.providencia?'<div style="font-size:9px;color:#15803d;margin-top:4px;line-height:1.55"><strong>Providência:</strong> '+pEsc(n.providencia)+'</div>':'')
-      + '</div>';
-  }).join('');
-
-  return '<div style="margin-top:10px;page-break-inside:avoid">'
-    + '<div style="font-size:9px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">'
-    +   'Notificações recebidas ('+r.total+(r.emAberto>0?' · '+r.emAberto+' em aberto':'')+')</div>'
-    + blocos + '</div>';
-}
-
 function gerarHTMLImpressao(entries, opts){
   // Defaults: tudo ativo se opts não for passado
   if(!opts) opts = {basico:true,objeto:true,obs:true,recomp:true,link:false,log:false,executivo:true};
@@ -4308,7 +3593,7 @@ function gerarHTMLImpressao(entries, opts){
   }
 
   const hoje2 = new Date(); hoje2.setHours(0,0,0,0);
-  _lista.forEach(({id, arr, _portalUltimaEdicao})=>{
+  _lista.forEach(({arr, _portalUltimaEdicao})=>{
     const status = String(arr[IDX.STATUS]||'').trim() || 'EM EXECUÇÃO';
     const statusUp = status.toUpperCase();
     const badgeCls = statusUp==='FINALIZADO'?'b-fin':statusUp==='RESCINDIDO'||statusUp==='SUSPENSO'?'b-sus':statusUp.includes('VENCID')?'b-venc':'b-exec';
@@ -4374,8 +3659,6 @@ function gerarHTMLImpressao(entries, opts){
         }).filter(Boolean).join('');
         return rHtml ? `<div style="margin-top:8px"><div style="font-size:9px;font-weight:700;color:#f97316;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">Recomposições / Aditivos</div>${rHtml}</div>` : '';
       })() : ''}
-      ${opts.faturamento ? rpFaturamento(id, arr) : ''}
-      ${opts.notificacoes ? rpNotificacoes(id) : ''}
       ${opts.obs && obs ? `<div class="c-obs"><div class="c-obs-lbl">Observações</div>${obs}</div>` : ''}
       ${opts.log && _portalUltimaEdicao ? `<div class="log-edit">✎ Última edição: ${_portalUltimaEdicao}</div>` : ''}
     </div>`;
@@ -4502,23 +3785,17 @@ function exportarExcelPortal(){
   const cols = ['#','Data','Empresa','Licitação','Objeto','Local','Município','Valor','Contrato',
     'Status Contrato','Vigência (m)','Dt Assinatura','Vencimento','Recomposição',
     'Tipo Recomp.','Status Recomp.','Nova Data Venc.','Vig. Recomp.','Venc. Recomp.','Valor Final',
-    'Observações','Link Pasta',
-    // Resumo dos módulos de execução, para conferir contrato a contrato
-    'Faturado','Recebido','A Receber','Em Atraso','Glosado','% Faturado','Notif. em Aberto'];
+    'Observações','Link Pasta'];
 
   const rows = [cols];
-  lista.forEach(({id, arr})=>{
-    const f = fatResumo(id, arr);
-    const n = ntfResumo(id);
+  lista.forEach(({arr})=>{
     rows.push([
       s(arr[IDX.ID]),s(arr[IDX.DATA]),s(arr[IDX.EMPRESA]),s(arr[IDX.LICITACAO]),s(arr[IDX.OBJETO]),s(arr[IDX.LOCAL]),s(arr[IDX.MUNICIPIO]),
       parseMoedaV(arr[IDX.VALOR])||s(arr[IDX.VALOR]),
       s(arr[IDX.CONTRATO]),s(arr[IDX.STATUS]),s(arr[IDX.VIGENCIA]),s(arr[IDX.DT_ASSINATURA]),s(arr[IDX.VENCIMENTO]),s(arr[RECOMP_IDX[0][0]]),
       s(arr[RECOMP_IDX[0][1]]),s(arr[RECOMP_IDX[0][2]]),s(arr[RECOMP_IDX[0][3]]),s(arr[RECOMP_IDX[0][4]]),s(arr[RECOMP_IDX[0][5]]),
       parseMoedaV(arr[RECOMP_IDX[0][6]])||s(arr[RECOMP_IDX[0][6]]),
-      s(arr[IDX.OBS]),s(arr[IDX.LINK]),
-      f.faturado, f.recebido, f.aReceber, f.atrasado, f.glosado,
-      Number(f.pctFaturado.toFixed(1)), n.emAberto
+      s(arr[IDX.OBS]),s(arr[IDX.LINK])
     ]);
   });
 
@@ -4526,54 +3803,6 @@ function exportarExcelPortal(){
   const ws = XLSX.utils.aoa_to_sheet(rows);
   ws['!cols'] = cols.map((_,i)=>({wch:Math.min(50,Math.max(10,rows.reduce((mx,r)=>Math.max(mx,String(r[i]||'').length),0)))}));
   XLSX.utils.book_append_sheet(wb, ws, 'Contratos');
-
-  /* Abas dos módulos de execução: uma linha por documento e por
-     notificação, com a licitação repetida para permitir tabela
-     dinâmica no Excel sem precisar cruzar com a aba Contratos. */
-  const colsFat =['Empresa','Licitação','Nº Contrato','Tipo','Número','Competência','Emissão',
-    'Vencimento','Valor','Situação','Data Pagto','Valor Recebido','Glosa','Motivo Glosa','Descrição','Link','Lançado por'];
-  const rowsFat = [colsFat];
-  lista.forEach(({id, arr})=>{
-    (dadosFat[id]||[]).forEach(function(d){
-      rowsFat.push([
-        s(arr[IDX.EMPRESA]), s(arr[IDX.LICITACAO]), s(arr[IDX.CONTRATO]),
-        (FAT_TIPOS[d.tipo]||{}).nome||s(d.tipo), s(d.numero), _compParaBR(d.competencia),
-        s(d.dataEmissao), s(d.dataVenc), Number(d.valor)||0,
-        (FAT_STATUS[d.status]||{}).nome||s(d.status),
-        s(d.dataPagto), Number(d.valorPago)||0, Number(d.glosa)||0, s(d.glosaMotivo),
-        s(d.descricao), s(d.link), s(d.criadoPor||d.atualizadoPor)
-      ]);
-    });
-  });
-  if(rowsFat.length > 1){
-    const wsF = XLSX.utils.aoa_to_sheet(rowsFat);
-    wsF['!cols'] = colsFat.map((_,i)=>({wch:Math.min(50,Math.max(10,rowsFat.reduce((mx,r)=>Math.max(mx,String(r[i]||'').length),0)))}));
-    XLSX.utils.book_append_sheet(wb, wsF, 'Faturamento');
-  }
-
-  const colsNtf = ['Empresa','Licitação','Nº Contrato','Tipo','Gravidade','Ofício','Órgão',
-    'Recebida em','Prazo','Dias p/ Prazo','Motivo','Situação','Respondida em','Responsável','Multa','Providência','Descrição','Link'];
-  const rowsNtf = [colsNtf];
-  lista.forEach(({id, arr})=>{
-    (dadosNtf[id]||[]).forEach(function(n){
-      const aberta = NTF_ABERTAS.indexOf(n.status||'ABERTA')!==-1;
-      const dias = aberta ? _pDias(n.prazoResposta) : null;
-      rowsNtf.push([
-        s(arr[IDX.EMPRESA]), s(arr[IDX.LICITACAO]), s(arr[IDX.CONTRATO]),
-        (NTF_TIPOS[n.tipo]||{}).nome||s(n.tipo), s(n.gravidade), s(n.numero), s(n.orgao),
-        s(n.dataRecebimento), s(n.prazoResposta), dias===null?'':dias,
-        s(n.motivo), (NTF_STATUS[n.status]||{}).nome||s(n.status),
-        s(n.dataResposta), s(n.responsavel), Number(n.valorMulta)||0,
-        s(n.providencia), s(n.descricao), s(n.link)
-      ]);
-    });
-  });
-  if(rowsNtf.length > 1){
-    const wsN = XLSX.utils.aoa_to_sheet(rowsNtf);
-    wsN['!cols'] = colsNtf.map((_,i)=>({wch:Math.min(50,Math.max(10,rowsNtf.reduce((mx,r)=>Math.max(mx,String(r[i]||'').length),0)))}));
-    XLSX.utils.book_append_sheet(wb, wsN, 'Notificações');
-  }
-
   const data = new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
   XLSX.writeFile(wb, `NH_Contratos_${empAtual||'GROWTH'}_${data}.xlsx`);
 }
@@ -4612,8 +3841,6 @@ function confirmarImpressao(){
     recomp:  document.getElementById('popt-recomp').checked,
     link:    document.getElementById('popt-link').checked,
     log:     document.getElementById('popt-log').checked,
-    faturamento:  document.getElementById('popt-faturamento').checked,
-    notificacoes: document.getElementById('popt-notificacoes').checked,
   };
   // Fecha modal e limpa DEPOIS de capturar lista e opts
   fecharModalPrint();
@@ -4793,935 +4020,6 @@ async function salvarAlteracoes(id){
     }, 3000);
     alert('Erro ao salvar: ' + e.message);
   }
-}
-
-/* ══════════════════════════════════════════════════════════════════
-   GESTÃO DE EXECUÇÃO DO CONTRATO — Faturamento e Notificações
-   ──────────────────────────────────────────────────────────────────
-   Dois módulos novos, cada um em sua própria coleção com CAMPOS
-   NOMEADOS. Não estendem o array posicional de `ganhas`: aquele array
-   é compartilhado byte a byte com o Sistema NH (index.html) e já vai
-   até o índice 49 — crescer ali quebraria o outro arquivo em silêncio.
-   Mesma decisão já tomada em `analise_viabilidade` e `capag_municipios`.
-
-     • contrato_faturamento  — OS, OC, Medição, NF, Recibo
-     • contrato_notificacoes — notificações recebidas do órgão
-
-   O vínculo com o contrato é o campo `contratoId`, que guarda o id do
-   documento em `ganhas` (o mesmo usado por toggleCard, imprimirContrato
-   e salvarAlteracoes). `empresa` é replicado no documento para permitir
-   filtrar sem precisar carregar `ganhas` antes.
-
-   ⚠️ As duas coleções PRECISAM estar liberadas no firestore.rules.
-      Sem isso toda gravação volta "permission-denied" — as regras
-      atuais negam por padrão qualquer coleção não listada.
-   ══════════════════════════════════════════════════════════════════ */
-
-const COL_FAT = 'contrato_faturamento';
-const COL_NTF = 'contrato_notificacoes';
-
-const FAT_TIPOS = {
-  OS:      {sigla:'OS',  nome:'Ordem de Serviço', cor:'#3b82f6'},
-  OC:      {sigla:'OC',  nome:'Ordem de Compra',  cor:'#8b5cf6'},
-  MEDICAO: {sigla:'MED', nome:'Medição',          cor:'#06b6d4'},
-  NF:      {sigla:'NF',  nome:'Nota Fiscal',      cor:'#22c55e'},
-  RECIBO:  {sigla:'REC', nome:'Recibo / Outro',   cor:'#8b95a1'}
-};
-const FAT_STATUS = {
-  EMITIDO:   {nome:'Emitido',    cor:'#8b95a1'},
-  ENVIADO:   {nome:'Enviado',    cor:'#3b82f6'},
-  ATESTADO:  {nome:'Atestado',   cor:'#eab308'},
-  PAGO:      {nome:'Pago',       cor:'#22c55e'},
-  GLOSADO:   {nome:'Glosado',    cor:'#f97316'},
-  CANCELADO: {nome:'Cancelado',  cor:'#6b7280'}
-};
-/* Documentos que representam COBRANÇA (entram no faturado).
-   OS e OC são autorizações do órgão, não cobrança — por isso ficam de
-   fora do total faturado e viram o indicador "autorizado". */
-const FAT_COBRANCA = ['NF','RECIBO','MEDICAO'];
-
-const NTF_TIPOS = {
-  NOTIFICACAO: {nome:'Notificação',        cor:'#eab308'},
-  ADVERTENCIA: {nome:'Advertência',        cor:'#f97316'},
-  MULTA:       {nome:'Multa',              cor:'#ef4444'},
-  GLOSA:       {nome:'Glosa de medição',   cor:'#f97316'},
-  INTIMACAO:   {nome:'Intimação',          cor:'#8b5cf6'},
-  RESCISAO:    {nome:'Abertura de rescisão',cor:'#ef4444'}
-};
-const NTF_STATUS = {
-  ABERTA:     {nome:'Aberta',            cor:'#ef4444'},
-  EM_DEFESA:  {nome:'Em defesa',         cor:'#f97316'},
-  RESPONDIDA: {nome:'Respondida',        cor:'#3b82f6'},
-  ACATADA:    {nome:'Defesa acatada',    cor:'#22c55e'},
-  SANCAO:     {nome:'Sanção aplicada',   cor:'#ef4444'},
-  ARQUIVADA:  {nome:'Arquivada',         cor:'#6b7280'}
-};
-/* Situações que ainda exigem ação da empresa — são estas que contam
-   como "notificação em aberto" nos badges e no Quadro de Avisos. */
-const NTF_ABERTAS = ['ABERTA','EM_DEFESA'];
-
-// contratoId → lista de documentos
-let dadosFat = {};
-let dadosNtf = {};
-// id do card → aba visível ('geral' | 'fat' | 'ntf' | 'hist')
-let _abaCard = {};
-// filtro de tipo dentro da aba Faturamento, por card
-let _fatFiltro = {};
-
-// ─── Conversões de data/competência ──────────────────────────────
-/* O sistema inteiro guarda data como DD/MM/AAAA. Os <input type=date>
-   trabalham em ISO, então a conversão acontece só na borda. */
-function _isoParaBR(v){
-  var s=String(v||'').trim(); if(!s) return '';
-  var p=s.split('-'); return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0] : s;
-}
-function _brParaISO(v){
-  var s=String(v||'').trim().split(' ')[0]; if(!s) return '';
-  var p=s.split('/'); return p.length===3 ? p[2]+'-'+p[1]+'-'+p[0] : '';
-}
-// Competência: "2026-08" (input month) ⇄ "08/2026" (exibição)
-function _compParaBR(v){
-  var s=String(v||'').trim(); if(!s) return '';
-  var p=s.split('-'); return p.length===2 ? p[1]+'/'+p[0] : s;
-}
-function _compParaISO(v){
-  var s=String(v||'').trim(); if(!s) return '';
-  var p=s.split('/'); return p.length===2 ? p[1]+'-'+p[0] : '';
-}
-
-// ─── Carregamento ────────────────────────────────────────────────
-/* Carrega as duas coleções e indexa por contratoId. O recorte por
-   empresa é o mesmo de carregarContratos: só entra o que pertence a um
-   contrato que a pessoa já pode ver — assim o escopo nunca vaza, mesmo
-   que um documento tenha o campo `empresa` errado. */
-async function carregarModulosContrato(){
-  var idsVisiveis = {};
-  dadosGanhas.forEach(function(e){ idsVisiveis[e.id] = true; });
-
-  dadosFat = {}; dadosNtf = {};
-
-  try{
-    var sf = await db.collection(COL_FAT).get();
-    sf.forEach(function(doc){
-      var d = doc.data() || {};
-      if(!idsVisiveis[d.contratoId]) return;
-      (dadosFat[d.contratoId] = dadosFat[d.contratoId] || []).push(Object.assign({_id:doc.id}, d));
-    });
-  }catch(e){
-    console.warn('[Portal] Faturamento não carregado:', e.message);
-  }
-
-  try{
-    var sn = await db.collection(COL_NTF).get();
-    sn.forEach(function(doc){
-      var d = doc.data() || {};
-      if(!idsVisiveis[d.contratoId]) return;
-      (dadosNtf[d.contratoId] = dadosNtf[d.contratoId] || []).push(Object.assign({_id:doc.id}, d));
-    });
-  }catch(e){
-    console.warn('[Portal] Notificações não carregadas:', e.message);
-  }
-
-  // Mais recente primeiro, dentro de cada contrato
-  Object.keys(dadosFat).forEach(function(k){
-    dadosFat[k].sort(function(a,b){
-      var da=parseDateBR(a.dataEmissao), dbb=parseDateBR(b.dataEmissao);
-      return (dbb||0)-(da||0) || (b.criadoEm||0)-(a.criadoEm||0);
-    });
-  });
-  Object.keys(dadosNtf).forEach(function(k){
-    dadosNtf[k].sort(function(a,b){
-      var da=parseDateBR(a.dataRecebimento), dbb=parseDateBR(b.dataRecebimento);
-      return (dbb||0)-(da||0) || (b.criadoEm||0)-(a.criadoEm||0);
-    });
-  });
-}
-
-// ─── Resumo financeiro de um contrato ────────────────────────────
-/* Regra contra dupla contagem: uma Medição só entra no faturado se
-   NÃO existir uma NF/Recibo apontando para ela pelo campo `vinculo`.
-   Quando a NF é emitida em cima da medição, quem vale é a NF. */
-function fatResumo(contratoId, arr){
-  var todos = dadosFat[contratoId] || [];
-  var vivos = todos.filter(function(d){ return d.status !== 'CANCELADO'; });
-
-  var medicaoComNF = {};
-  vivos.forEach(function(d){
-    if((d.tipo==='NF'||d.tipo==='RECIBO') && d.vinculo) medicaoComNF[d.vinculo] = true;
-  });
-
-  var r = {
-    valorContrato: calcValorGanhas(arr),
-    autorizado:0, faturado:0, recebido:0, glosado:0,
-    aReceber:0, atrasado:0, nAtrasados:0,
-    nDocs: todos.length, nCobrancas:0, nPagas:0,
-    ultimaCompetencia:'', saldo:0, pctFaturado:0, pctIdeal:0
-  };
-
-  vivos.forEach(function(d){
-    var v = Number(d.valor)||0;
-    if(d.tipo==='OS' || d.tipo==='OC'){ r.autorizado += v; return; }
-    if(d.tipo==='MEDICAO' && medicaoComNF[d._id]) return;  // já coberta pela NF
-
-    r.nCobrancas++;
-    r.faturado += v;
-    var pago  = Number(d.valorPago)||0;
-    var glosa = Number(d.glosa)||0;
-    if(d.status==='PAGO' && !pago) pago = v - glosa;       // pago sem valor detalhado
-    r.recebido += pago;
-    r.glosado  += glosa;
-    if(d.status==='PAGO') r.nPagas++;
-
-    // Em atraso: venceu, não foi pago e não foi cancelado
-    if(d.status!=='PAGO'){
-      var dias = _pDias(d.dataVenc);
-      if(dias !== null && dias < 0){ r.atrasado += (v - pago - glosa); r.nAtrasados++; }
-    }
-    if(d.competencia && d.competencia > r.ultimaCompetencia) r.ultimaCompetencia = d.competencia;
-  });
-
-  r.aReceber = Math.max(0, r.faturado - r.recebido - r.glosado);
-  r.saldo    = Math.max(0, r.valorContrato - r.faturado);
-  r.pctFaturado = r.valorContrato > 0 ? Math.min(100, (r.faturado / r.valorContrato) * 100) : 0;
-
-  /* Faturamento "ideal" para hoje: quanto do contrato já deveria estar
-     faturado considerando só o tempo de vigência decorrido. É a régua
-     que mostra se o contrato está atrasado no faturamento — sem ela,
-     "60% faturado" não diz nada sozinho. */
-  var ini = parseDateBR(arr[IDX.DT_ASSINATURA]) || parseDateBR(arr[IDX.DATA]);
-  var fim = parseDateBR(vencVigente(arr).valor);
-  if(ini && fim && fim > ini){
-    var hoje = new Date(); hoje.setHours(0,0,0,0);
-    r.pctIdeal = Math.max(0, Math.min(100, ((hoje - ini) / (fim - ini)) * 100));
-  }
-  return r;
-}
-
-// ─── Resumo de notificações de um contrato ───────────────────────
-function ntfResumo(contratoId){
-  var lista = dadosNtf[contratoId] || [];
-  var r = {total:lista.length, abertas:0, emDefesa:0, resolvidas:0,
-           sancoes:0, valorMultas:0, prazoEstourado:0, prazoCurto:0, piorPrazo:null};
-  lista.forEach(function(n){
-    var st = n.status||'ABERTA';
-    if(st==='ABERTA') r.abertas++;
-    else if(st==='EM_DEFESA') r.emDefesa++;
-    else if(st==='ACATADA'||st==='ARQUIVADA') r.resolvidas++;
-    if(st==='SANCAO'||n.tipo==='MULTA'){ r.sancoes++; r.valorMultas += Number(n.valorMulta)||0; }
-    if(NTF_ABERTAS.indexOf(st)!==-1){
-      var d = _pDias(n.prazoResposta);
-      if(d !== null){
-        if(d < 0) r.prazoEstourado++;
-        else if(d <= 5) r.prazoCurto++;
-        if(r.piorPrazo === null || d < r.piorPrazo) r.piorPrazo = d;
-      }
-    }
-  });
-  r.emAberto = r.abertas + r.emDefesa;
-  return r;
-}
-
-// ─── Faixa de saúde do cabeçalho do card ─────────────────────────
-function renderSaude(id, arr){
-  var f = fatResumo(id, arr);
-  var n = ntfResumo(id);
-  var chips = '';
-
-  if(f.valorContrato > 0){
-    var atraso = f.pctIdeal - f.pctFaturado;
-    var classe = atraso > 25 ? 'baixo' : atraso > 10 ? 'meio' : 'ok';
-    var marca = f.pctIdeal > 1 && f.pctIdeal < 99
-      ? '<span class="saude-marca" style="left:calc('+f.pctIdeal.toFixed(1)+'% - 1px)" title="Onde o faturamento deveria estar hoje pela vigência decorrida ('+Math.round(f.pctIdeal)+'%)"></span>'
-      : '';
-    chips += '<span class="saude-chip" title="Faturado sobre o valor do contrato">'
-      + '<b>'+f.pctFaturado.toFixed(0)+'%</b> faturado</span>'
-      + '<span class="saude-barra" title="'+fmtMoedaP(f.faturado)+' de '+fmtMoedaP(f.valorContrato)+'">'
-      + '<span class="saude-fill '+classe+'" style="width:'+f.pctFaturado.toFixed(1)+'%"></span>'+marca+'</span>';
-  } else {
-    chips += '<span class="saude-chip">Contrato sem valor informado</span>';
-  }
-
-  if(f.aReceber > 0)  chips += '<span class="saude-chip'+(f.atrasado>0?' aviso':'')+'">A receber <b>'+fmtMoedaP(f.aReceber)+'</b></span>';
-  if(f.atrasado > 0)  chips += '<span class="saude-chip alerta" title="'+f.nAtrasados+' documento(s) vencido(s) sem pagamento">⏱ Atrasado <b>'+fmtMoedaP(f.atrasado)+'</b></span>';
-  if(f.nDocs === 0)   chips += '<span class="saude-chip">Sem faturamento lançado</span>';
-
-  if(n.emAberto > 0){
-    var crit = n.prazoEstourado > 0;
-    chips += '<span class="saude-chip '+(crit?'alerta':'aviso')+'" title="Notificações recebidas ainda sem solução">'
-      + '⚠ <b>'+n.emAberto+'</b> notifica'+(n.emAberto===1?'ção':'ções')+' em aberto'
-      + (crit ? ' · prazo vencido' : (n.piorPrazo !== null && n.piorPrazo <= 5 ? ' · '+n.piorPrazo+'d p/ responder' : ''))
-      + '</span>';
-  } else if(n.total > 0){
-    chips += '<span class="saude-chip bom">✓ '+n.total+' notifica'+(n.total===1?'ção resolvida':'ções resolvidas')+'</span>';
-  }
-
-  return '<div class="ccard-saude">'+chips+'</div>';
-}
-
-// ─── Abas ────────────────────────────────────────────────────────
-function mostrarAba(id, aba){
-  _abaCard[id] = aba;
-  ['geral','fat','ntf','hist'].forEach(function(a){
-    var pane = document.getElementById('pane-'+a+'-'+id);
-    var tab  = document.getElementById('tab-'+a+'-'+id);
-    if(pane) pane.classList.toggle('on', a===aba);
-    if(tab)  tab.classList.toggle('on', a===aba);
-  });
-}
-
-/* Redesenha só as abas de um card, mantendo-o aberto na aba em que a
-   pessoa está. Evita o renderContratos() inteiro, que fecharia o card
-   toda vez que um lançamento fosse salvo. */
-function atualizarModulos(contratoId){
-  var entry = dadosGanhas.find(function(e){ return e.id === contratoId; });
-  if(!entry) return;
-  var pf = document.getElementById('pane-fat-'+contratoId);
-  var pn = document.getElementById('pane-ntf-'+contratoId);
-  if(pf) pf.innerHTML = renderPaneFat(contratoId, entry.arr);
-  if(pn) pn.innerHTML = renderPaneNtf(contratoId, entry.arr);
-
-  var f = fatResumo(contratoId, entry.arr), n = ntfResumo(contratoId);
-  var bf = document.getElementById('tabn-fat-'+contratoId);
-  var bn = document.getElementById('tabn-ntf-'+contratoId);
-  if(bf) bf.textContent = f.nDocs;
-  if(bn){ bn.textContent = n.total; bn.classList.toggle('perigo', n.emAberto > 0); }
-
-  var card = document.getElementById('ccard-'+contratoId);
-  var saude = card ? card.querySelector('.ccard-saude') : null;
-  if(saude) saude.outerHTML = renderSaude(contratoId, entry.arr);
-
-  renderStats(); renderAvisos();
-}
-
-// ══════════════════════════════════════════════════════════════════
-//  ABA FATURAMENTO
-// ══════════════════════════════════════════════════════════════════
-function renderPaneFat(id, arr){
-  var f = fatResumo(id, arr);
-  var lista = (dadosFat[id] || []).slice();
-  var filtro = _fatFiltro[id] || '';
-  if(filtro) lista = lista.filter(function(d){ return d.tipo === filtro; });
-
-  var html = '';
-
-  // Alerta de topo — só quando há algo que exige ação
-  if(f.nAtrasados > 0){
-    html += '<div class="mod-alerta">🚨 <div>'+f.nAtrasados+' documento(s) vencido(s) sem pagamento, somando '
-      + '<b>'+fmtMoedaP(f.atrasado)+'</b>. Cobrar o empenho/pagamento junto ao órgão.</div></div>';
-  } else if(f.valorContrato > 0 && f.pctIdeal - f.pctFaturado > 25 && f.nDocs > 0){
-    html += '<div class="mod-alerta aviso">⏳ <div>O contrato já percorreu <b>'+Math.round(f.pctIdeal)+'%</b> da vigência, '
-      + 'mas só <b>'+Math.round(f.pctFaturado)+'%</b> foi faturado. Verifique medições pendentes de emissão.</div></div>';
-  } else if(f.nDocs > 0 && f.aReceber === 0 && f.faturado > 0){
-    html += '<div class="mod-alerta ok">✓ <div>Nenhum valor pendente de recebimento neste contrato.</div></div>';
-  }
-
-  // Mini-KPIs
-  html += '<div class="mk-grid">'
-    + mkCard('Valor do contrato', fmtMoedaP(f.valorContrato)||'—', '#8b95a1', f.ultimaCompetencia?('última competência '+_compParaBR(f.ultimaCompetencia)):'')
-    + mkCard('Faturado', fmtMoedaP(f.faturado)||'R$ 0,00', '#f97316', f.valorContrato>0?(f.pctFaturado.toFixed(0)+'% do contrato'):'')
-    + mkCard('Recebido', fmtMoedaP(f.recebido)||'R$ 0,00', '#22c55e', f.nPagas+' documento(s) pago(s)')
-    + mkCard('A receber', fmtMoedaP(f.aReceber)||'R$ 0,00', f.atrasado>0?'#ef4444':'#3b82f6', f.atrasado>0?(fmtMoedaP(f.atrasado)+' em atraso'):'')
-    + (f.glosado>0 ? mkCard('Glosado', fmtMoedaP(f.glosado), '#ef4444', 'valor recusado pelo órgão') : '')
-    + (f.autorizado>0 ? mkCard('Autorizado (OS/OC)', fmtMoedaP(f.autorizado), '#8b5cf6', 'ordens emitidas pelo órgão') : '')
-    + (f.saldo>0 ? mkCard('Saldo a executar', fmtMoedaP(f.saldo), '#06b6d4', 'do valor total do contrato') : '')
-    + '</div>';
-
-  // Barra de ações
-  html += '<div class="mod-bar">'
-    + '<button class="mod-add" onclick="abrirModalFat(\''+id+'\',null,\'OS\')">+ Ordem de Serviço</button>'
-    + '<button class="mod-add" onclick="abrirModalFat(\''+id+'\',null,\'OC\')">+ Ordem de Compra</button>'
-    + '<button class="mod-add laranja" onclick="abrirModalFat(\''+id+'\',null,\'MEDICAO\')">+ Medição</button>'
-    + '<button class="mod-add laranja" onclick="abrirModalFat(\''+id+'\',null,\'NF\')">+ Nota Fiscal</button>'
-    + '<span class="mod-sep"></span>';
-  var tiposPresentes = {};
-  (dadosFat[id]||[]).forEach(function(d){ tiposPresentes[d.tipo]=true; });
-  if(Object.keys(tiposPresentes).length > 1){
-    html += '<button class="mod-filtro'+(filtro===''?' on':'')+'" onclick="fatFiltrar(\''+id+'\',\'\')">Todos</button>';
-    Object.keys(FAT_TIPOS).forEach(function(t){
-      if(!tiposPresentes[t]) return;
-      html += '<button class="mod-filtro'+(filtro===t?' on':'')+'" onclick="fatFiltrar(\''+id+'\',\''+t+'\')">'+FAT_TIPOS[t].sigla+'</button>';
-    });
-  }
-  html += '</div>';
-
-  if(!lista.length){
-    html += '<div class="doc-vazio"><b>Nenhum documento lançado'+(filtro?' neste filtro':'')+'</b>'
-      + 'Registre aqui as ordens de serviço, ordens de compra, medições e notas fiscais deste contrato '
-      + 'para acompanhar quanto já foi faturado e quanto o órgão já pagou.</div>';
-    return html;
-  }
-
-  // Índice para exibir a que documento uma NF está vinculada
-  var porId = {};
-  (dadosFat[id]||[]).forEach(function(d){ porId[d._id]=d; });
-
-  html += '<div class="doc-lista">';
-  lista.forEach(function(d){
-    var T = FAT_TIPOS[d.tipo] || FAT_TIPOS.RECIBO;
-    var S = FAT_STATUS[d.status] || FAT_STATUS.EMITIDO;
-    var cancelado = d.status === 'CANCELADO';
-    var pai = d.vinculo && porId[d.vinculo] ? porId[d.vinculo] : null;
-
-    // Prazo de recebimento
-    var prazoHTML = '';
-    if(d.dataVenc && d.status !== 'PAGO' && !cancelado){
-      var dias = _pDias(d.dataVenc);
-      if(dias !== null){
-        var cls = dias < 0 ? 'estourado' : dias <= 7 ? 'apertado' : 'folgado';
-        var txt = dias < 0 ? ('vencido há '+Math.abs(dias)+'d') : ('vence em '+dias+'d');
-        prazoHTML = '<span class="prazo-chip '+cls+'">'+txt+'</span>';
-      }
-    }
-
-    var sub = [];
-    if(d.competencia) sub.push('Comp. '+_compParaBR(d.competencia));
-    if(pai) sub.push('vinculada à '+(FAT_TIPOS[pai.tipo]||{}).sigla+' '+pEsc(pai.numero||''));
-    if(d.descricao) sub.push(pEsc(String(d.descricao).substring(0,70)));
-
-    html += '<div class="doc-linha'+(cancelado?' cancelado':'')+'" style="--dlc:'+T.cor+'">'
-      + '<div class="doc-tipo" title="'+T.nome+'">'+T.sigla+'</div>'
-      + '<div><div class="doc-num">'+(pEsc(d.numero)||'sem número')+'</div>'
-      +   (sub.length?'<div class="doc-sub">'+sub.join(' · ')+'</div>':'')
-      + '</div>'
-      + '<div class="doc-col-opc"><div class="doc-campo-lbl">Emissão</div><div class="doc-campo-val">'+(pEsc(d.dataEmissao)||'—')+'</div></div>'
-      + '<div><div class="doc-campo-lbl">Valor</div><div class="doc-campo-val dinheiro">'+(fmtMoedaP(d.valor)||'—')+'</div>'
-      +   (Number(d.glosa)>0?'<div class="doc-sub" style="color:var(--r1)">glosa '+fmtMoedaP(d.glosa)+'</div>':'')
-      + '</div>'
-      + '<div><div class="doc-campo-lbl">Situação</div>'
-      +   '<div style="margin-top:3px;display:flex;gap:5px;flex-wrap:wrap;align-items:center">'
-      +   '<span class="st-chip" style="--sc:'+S.cor+'">'+S.nome+'</span>'+prazoHTML+'</div>'
-      +   (d.status==='PAGO'&&d.dataPagto?'<div class="doc-sub">pago em '+pEsc(d.dataPagto)+'</div>':'')
-      + '</div>'
-      + '<div class="doc-acoes">'
-      +   (d.link?'<a class="doc-btn" href="'+pEsc(d.link)+'" target="_blank" rel="noopener" title="Abrir arquivo">📎</a>':'')
-      +   '<button class="doc-btn" onclick="abrirModalFat(\''+id+'\',\''+d._id+'\')" title="Editar lançamento">✏</button>'
-      +   (isAdmin
-            ? '<button class="doc-btn perigo" onclick="excluirFat(\''+id+'\',\''+d._id+'\')" title="Excluir lançamento (conta mestra)">🗑</button>'
-            : (cancelado ? '' : '<button class="doc-btn perigo" onclick="cancelarFat(\''+id+'\',\''+d._id+'\')" title="Cancelar lançamento">⊘</button>'))
-      + '</div>'
-      + '</div>';
-  });
-  html += '</div>';
-  return html;
-}
-
-function mkCard(lbl, val, cor, sub){
-  return '<div class="mk" style="--mkc:'+cor+'">'
-    + '<div class="mk-lbl">'+lbl+'</div>'
-    + '<div class="mk-val">'+val+'</div>'
-    + (sub?'<div class="mk-sub">'+sub+'</div>':'')
-    + '</div>';
-}
-
-function fatFiltrar(id, tipo){
-  _fatFiltro[id] = (_fatFiltro[id]===tipo) ? '' : tipo;
-  var pane = document.getElementById('pane-fat-'+id);
-  var entry = dadosGanhas.find(function(e){ return e.id===id; });
-  if(pane && entry) pane.innerHTML = renderPaneFat(id, entry.arr);
-}
-
-// ─── Modal de faturamento ────────────────────────────────────────
-var _fatCtxContrato = null;   // contrato em edição
-var _fatEditId = null;        // null = novo lançamento
-
-function abrirModalFat(contratoId, docId, tipoPadrao){
-  var entry = dadosGanhas.find(function(e){ return e.id===contratoId; });
-  if(!entry){ portalToast('Contrato não encontrado.','err'); return; }
-  _fatCtxContrato = contratoId;
-  _fatEditId = docId || null;
-
-  var d = docId ? (dadosFat[contratoId]||[]).find(function(x){ return x._id===docId; }) : null;
-
-  document.getElementById('fat-titulo').textContent = d ? 'Editar Lançamento' : 'Novo Lançamento de Faturamento';
-  document.getElementById('fat-contrato-lbl').textContent =
-    (entry.arr[IDX.CONTRATO] ? 'Contrato '+entry.arr[IDX.CONTRATO]+' · ' : '') + String(entry.arr[IDX.LICITACAO]||'').substring(0,70);
-  document.getElementById('fat-erro').style.display='none';
-
-  // Opções de vínculo: OS/OC/Medição já lançadas neste contrato
-  var sel = document.getElementById('fat-vinculo');
-  var opts = '<option value="">— sem vínculo —</option>';
-  (dadosFat[contratoId]||[]).forEach(function(x){
-    if(['OS','OC','MEDICAO'].indexOf(x.tipo)===-1) return;
-    if(docId && x._id===docId) return;
-    opts += '<option value="'+x._id+'">'+(FAT_TIPOS[x.tipo]||{}).sigla+' '+pEsc(x.numero||'')
-         +  (x.competencia?' — '+_compParaBR(x.competencia):'')+' — '+(fmtMoedaP(x.valor)||'')+'</option>';
-  });
-  sel.innerHTML = opts;
-
-  document.getElementById('fat-tipo').value      = d ? d.tipo : (tipoPadrao||'NF');
-  document.getElementById('fat-numero').value    = d ? (d.numero||'') : '';
-  document.getElementById('fat-comp').value      = d ? (d.competencia||'') : _compAtual();
-  document.getElementById('fat-emissao').value   = d ? _brParaISO(d.dataEmissao) : new Date().toISOString().split('T')[0];
-  document.getElementById('fat-venc').value      = d ? _brParaISO(d.dataVenc) : '';
-  document.getElementById('fat-valor').value     = d && d.valor ? fmtMoedaP(d.valor) : '';
-  document.getElementById('fat-status').value    = d ? (d.status||'EMITIDO') : 'EMITIDO';
-  document.getElementById('fat-vinculo').value   = d ? (d.vinculo||'') : '';
-  document.getElementById('fat-dtpagto').value   = d ? _brParaISO(d.dataPagto) : '';
-  document.getElementById('fat-vpago').value     = d && d.valorPago ? fmtMoedaP(d.valorPago) : '';
-  document.getElementById('fat-glosa').value     = d && d.glosa ? fmtMoedaP(d.glosa) : '';
-  document.getElementById('fat-glosa-motivo').value = d ? (d.glosaMotivo||'') : '';
-  document.getElementById('fat-desc').value      = d ? (d.descricao||'') : '';
-  document.getElementById('fat-link').value      = d ? (d.link||'') : '';
-  document.getElementById('fat-autor').value     = localStorage.getItem('nh_portal_autor')||'';
-
-  fatAoTrocarTipo(); fatAoTrocarStatus(); fatCalcSaldo();
-
-  var m = document.getElementById('modal-fat');
-  m.style.display='flex';
-  m.onclick = function(e){ if(e.target===m) fecharModalFat(); };
-}
-
-function _compAtual(){
-  var d=new Date();
-  return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2);
-}
-
-function fecharModalFat(){
-  document.getElementById('modal-fat').style.display='none';
-  _fatCtxContrato = null; _fatEditId = null;
-}
-
-/* O vínculo só faz sentido para documentos de cobrança emitidos em cima
-   de uma autorização (NF sobre OS, por exemplo) — some no resto. */
-function fatAoTrocarTipo(){
-  var t = document.getElementById('fat-tipo').value;
-  var mostra = (t==='NF' || t==='RECIBO');
-  document.getElementById('fat-wrap-vinculo').style.display = mostra ? '' : 'none';
-}
-
-function fatAoTrocarStatus(){
-  var s = document.getElementById('fat-status').value;
-  var pago = (s==='PAGO');
-  var glosa = (s==='GLOSADO');
-  document.getElementById('fat-wrap-pagto').style.display = pago ? '' : 'none';
-  document.getElementById('fat-wrap-vpago').style.display = (pago||glosa) ? '' : 'none';
-  document.getElementById('fat-wrap-glosa').style.display = glosa ? '' : 'none';
-  if(pago && !document.getElementById('fat-dtpagto').value){
-    document.getElementById('fat-dtpagto').value = new Date().toISOString().split('T')[0];
-  }
-  fatCalcSaldo();
-}
-
-function fatCalcSaldo(){
-  var el = document.getElementById('fat-saldo');
-  if(!el) return;
-  var v = parseMoedaV(document.getElementById('fat-valor').value);
-  var p = parseMoedaV(document.getElementById('fat-vpago').value);
-  var g = parseMoedaV(document.getElementById('fat-glosa').value);
-  var s = document.getElementById('fat-status').value;
-  if(!v || (s!=='PAGO' && s!=='GLOSADO')){ el.style.display='none'; return; }
-  var pend = v - p - g;
-  el.style.display='block';
-  el.innerHTML = 'Documento '+fmtMoedaP(v)
-    + (p?' · recebido '+fmtMoedaP(p):'')
-    + (g?' · glosado '+fmtMoedaP(g):'')
-    + ' → <b style="color:'+(pend>0.009?'var(--r1)':'var(--g1)')+'">'
-    + (pend>0.009 ? ('pendente '+fmtMoedaP(pend)) : 'quitado')+'</b>';
-}
-
-async function salvarFat(){
-  var btn = document.getElementById('fat-salvar-btn');
-  var erro = document.getElementById('fat-erro');
-  erro.style.display='none';
-
-  var contratoId = _fatCtxContrato;
-  var entry = dadosGanhas.find(function(e){ return e.id===contratoId; });
-  if(!entry){ portalToast('Contrato não encontrado.','err'); return; }
-
-  var tipo   = document.getElementById('fat-tipo').value;
-  var numero = document.getElementById('fat-numero').value.trim();
-  var emissao= document.getElementById('fat-emissao').value;
-  var valor  = parseMoedaV(document.getElementById('fat-valor').value);
-  var autor  = document.getElementById('fat-autor').value.trim();
-
-  if(!numero || !emissao || !valor){
-    erro.textContent = 'Preencha tipo, número, data de emissão e valor.';
-    erro.style.display='block'; return;
-  }
-  if(autor.length < 3){
-    erro.textContent = 'Informe o nome do responsável pelo lançamento.';
-    erro.style.display='block';
-    document.getElementById('fat-autor').focus(); return;
-  }
-  localStorage.setItem('nh_portal_autor', autor);
-
-  btn.disabled = true; btn.textContent = 'Salvando...';
-  var agora = new Date().toLocaleString('pt-BR');
-
-  var dados = {
-    contratoId: contratoId,
-    contratoNum: String(entry.arr[IDX.CONTRATO]||''),
-    licitacao:  String(entry.arr[IDX.LICITACAO]||''),
-    empresa:    String(entry.arr[IDX.EMPRESA]||empAtual||'').trim().toUpperCase(),
-    tipo:        tipo,
-    numero:      numero,
-    competencia: document.getElementById('fat-comp').value || '',
-    dataEmissao: _isoParaBR(emissao),
-    dataVenc:    _isoParaBR(document.getElementById('fat-venc').value),
-    valor:       valor,
-    status:      document.getElementById('fat-status').value,
-    vinculo:     (tipo==='NF'||tipo==='RECIBO') ? (document.getElementById('fat-vinculo').value||'') : '',
-    dataPagto:   _isoParaBR(document.getElementById('fat-dtpagto').value),
-    valorPago:   parseMoedaV(document.getElementById('fat-vpago').value),
-    glosa:       parseMoedaV(document.getElementById('fat-glosa').value),
-    glosaMotivo: document.getElementById('fat-glosa-motivo').value.trim(),
-    descricao:   document.getElementById('fat-desc').value.trim(),
-    link:        document.getElementById('fat-link').value.trim(),
-    atualizadoPor: autor,
-    atualizadoEm:  agora,
-    _ts: Date.now()
-  };
-
-  try{
-    if(_fatEditId){
-      await db.collection(COL_FAT).doc(_fatEditId).update(dados);
-    } else {
-      dados.criadoPor = autor;
-      dados.criadoEm  = Date.now();
-      var ref = await db.collection(COL_FAT).add(dados);
-      _fatEditId = ref.id;
-    }
-
-    /* Rastro no histórico do próprio contrato: quem olha o card vê o
-       lançamento sem precisar abrir a aba de faturamento. */
-    await db.collection('ganhas').doc(contratoId).update({
-      _portalLog: firebase.firestore.FieldValue.arrayUnion({
-        autor: autor, empresa: empAtual, data: agora,
-        acao: (FAT_TIPOS[tipo]||{}).sigla+' '+numero+' — '+(FAT_STATUS[dados.status]||{}).nome+' — '+fmtMoedaP(valor)
-      })
-    }).catch(function(){ /* histórico é acessório: não bloqueia o lançamento */ });
-
-    await carregarModulosContrato();
-    fecharModalFat();
-    atualizarModulos(contratoId);
-    portalToast('✅ Lançamento salvo!', 'ok');
-  }catch(e){
-    erro.textContent = 'Erro ao salvar: '+e.message+(String(e.message).indexOf('permission')!==-1?' — a coleção contrato_faturamento precisa ser liberada no firestore.rules.':'');
-    erro.style.display='block';
-  }finally{
-    btn.disabled=false; btn.textContent='💾 Salvar Lançamento';
-  }
-}
-
-/* Cancelar em vez de apagar: documento fiscal não some do histórico.
-   Quem não é conta mestra só tem esta opção. */
-async function cancelarFat(contratoId, docId){
-  if(!confirm('Cancelar este lançamento?\n\nEle continua no histórico, marcado como cancelado, e deixa de contar no faturamento.')) return;
-  try{
-    await db.collection(COL_FAT).doc(docId).update({
-      status:'CANCELADO',
-      atualizadoPor: localStorage.getItem('nh_portal_autor')||empAtual,
-      atualizadoEm: new Date().toLocaleString('pt-BR')
-    });
-    await carregarModulosContrato();
-    atualizarModulos(contratoId);
-    portalToast('Lançamento cancelado.','info');
-  }catch(e){ portalToast('Erro: '+e.message,'err'); }
-}
-
-async function excluirFat(contratoId, docId){
-  if(!confirm('Excluir definitivamente este lançamento?\n\nEsta ação não pode ser desfeita. Para manter o rastro, prefira cancelar.')) return;
-  try{
-    await db.collection(COL_FAT).doc(docId).delete();
-    await carregarModulosContrato();
-    atualizarModulos(contratoId);
-    portalToast('Lançamento excluído.','ok');
-  }catch(e){ portalToast('Erro: '+e.message,'err'); }
-}
-
-// ══════════════════════════════════════════════════════════════════
-//  ABA NOTIFICAÇÕES RECEBIDAS
-// ══════════════════════════════════════════════════════════════════
-function renderPaneNtf(id, arr){
-  var lista = (dadosNtf[id] || []).slice();
-  var r = ntfResumo(id);
-  var html = '';
-
-  if(r.prazoEstourado > 0){
-    html += '<div class="mod-alerta">🚨 <div><b>'+r.prazoEstourado+'</b> notificação(ões) com prazo de resposta VENCIDO. '
-      + 'A falta de resposta no prazo é o que costuma transformar notificação em sanção.</div></div>';
-  } else if(r.prazoCurto > 0){
-    html += '<div class="mod-alerta aviso">⏰ <div><b>'+r.prazoCurto+'</b> notificação(ões) com prazo apertado (até 5 dias). Priorizar a defesa.</div></div>';
-  } else if(r.emAberto > 0){
-    html += '<div class="mod-alerta info">📋 <div><b>'+r.emAberto+'</b> notificação(ões) em aberto neste contrato.</div></div>';
-  } else if(r.total > 0){
-    html += '<div class="mod-alerta ok">✓ <div>Nenhuma notificação pendente. Todas as '+r.total+' já foram tratadas.</div></div>';
-  }
-
-  html += '<div class="mk-grid">'
-    + mkCard('Em aberto', String(r.emAberto), r.emAberto>0?'#ef4444':'#22c55e', r.emDefesa>0?(r.emDefesa+' em defesa'):'')
-    + mkCard('Total recebidas', String(r.total), '#8b95a1', r.resolvidas>0?(r.resolvidas+' resolvida(s)'):'')
-    + (r.sancoes>0 ? mkCard('Sanções aplicadas', String(r.sancoes), '#ef4444', r.valorMultas>0?fmtMoedaP(r.valorMultas):'') : '')
-    + (r.valorMultas>0 ? mkCard('Multas', fmtMoedaP(r.valorMultas), '#ef4444', 'valor aplicado pelo órgão') : '')
-    + '</div>';
-
-  html += '<div class="mod-bar">'
-    + '<button class="mod-add vermelho" onclick="abrirModalNtf(\''+id+'\',null)">+ Registrar notificação recebida</button>'
-    + '</div>';
-
-  if(!lista.length){
-    html += '<div class="doc-vazio"><b>Nenhuma notificação registrada</b>'
-      + 'Registre aqui toda notificação, advertência ou multa que o órgão enviar por descumprimento do contrato — '
-      + 'com o prazo de resposta, a defesa apresentada e o desfecho.</div>';
-    return html;
-  }
-
-  html += '<div class="doc-lista">';
-  lista.forEach(function(n){
-    var T = NTF_TIPOS[n.tipo] || NTF_TIPOS.NOTIFICACAO;
-    var S = NTF_STATUS[n.status] || NTF_STATUS.ABERTA;
-    var aberta = NTF_ABERTAS.indexOf(n.status||'ABERTA') !== -1;
-    var gravCls = n.gravidade==='GRAVE'?'grav-grave':n.gravidade==='LEVE'?'grav-leve':'grav-media';
-
-    var prazoHTML = '';
-    if(aberta && n.prazoResposta){
-      var dias = _pDias(n.prazoResposta);
-      if(dias !== null){
-        var cls = dias<0?'estourado':dias<=5?'apertado':'folgado';
-        var txt = dias<0 ? ('prazo vencido há '+Math.abs(dias)+'d') : ('responder em '+dias+'d');
-        prazoHTML = '<span class="prazo-chip '+cls+'" title="Prazo: '+pEsc(n.prazoResposta)+'">⏳ '+txt+'</span>';
-      }
-    }
-
-    html += '<div class="ntf-card" style="--nfc:'+T.cor+'">'
-      + '<div class="ntf-topo">'
-      +   '<span class="st-chip" style="--sc:'+T.cor+'">'+T.nome+'</span>'
-      +   '<span class="ntf-grav '+gravCls+'">'+(n.gravidade==='MEDIA'?'MÉDIA':(n.gravidade||'MÉDIA'))+'</span>'
-      +   '<div class="ntf-tit">'+(pEsc(n.motivo)||'Sem motivo informado')+'</div>'
-      +   '<span class="st-chip" style="--sc:'+S.cor+'">'+S.nome+'</span>'
-      +   prazoHTML
-      + '</div>'
-      + '<div class="ntf-meta">'
-      +   (n.numero?'<div><div class="doc-campo-lbl">Ofício</div><div class="doc-campo-val">'+pEsc(n.numero)+'</div></div>':'')
-      +   (n.orgao?'<div><div class="doc-campo-lbl">Órgão</div><div class="doc-campo-val">'+pEsc(n.orgao)+'</div></div>':'')
-      +   (n.dataRecebimento?'<div><div class="doc-campo-lbl">Recebida em</div><div class="doc-campo-val">'+pEsc(n.dataRecebimento)+'</div></div>':'')
-      +   (n.prazoResposta?'<div><div class="doc-campo-lbl">Prazo</div><div class="doc-campo-val">'+pEsc(n.prazoResposta)+'</div></div>':'')
-      +   (n.dataResposta?'<div><div class="doc-campo-lbl">Respondida em</div><div class="doc-campo-val">'+pEsc(n.dataResposta)+'</div></div>':'')
-      +   (n.responsavel?'<div><div class="doc-campo-lbl">Responsável</div><div class="doc-campo-val">'+pEsc(n.responsavel)+'</div></div>':'')
-      +   (Number(n.valorMulta)>0?'<div><div class="doc-campo-lbl">Multa</div><div class="doc-campo-val" style="color:var(--r1)">'+fmtMoedaP(n.valorMulta)+'</div></div>':'')
-      + '</div>'
-      + (n.descricao?'<div class="ntf-desc">'+pEsc(n.descricao)+'</div>':'')
-      + (n.providencia?'<div class="ntf-desc" style="border-color:rgba(34,197,94,.25);color:var(--g1)"><b>Providência:</b> '+pEsc(n.providencia)+'</div>':'')
-      + '<div class="doc-acoes" style="justify-content:flex-end;margin-top:4px">'
-      +   (n.link?'<a class="doc-btn" href="'+pEsc(n.link)+'" target="_blank" rel="noopener" title="Abrir ofício/defesa">📎</a>':'')
-      +   '<button class="doc-btn" onclick="abrirModalNtf(\''+id+'\',\''+n._id+'\')" title="Editar registro">✏</button>'
-      +   (isAdmin?'<button class="doc-btn perigo" onclick="excluirNtf(\''+id+'\',\''+n._id+'\')" title="Excluir registro (conta mestra)">🗑</button>':'')
-      + '</div>'
-      + '</div>';
-  });
-  html += '</div>';
-  return html;
-}
-
-// ─── Modal de notificação ────────────────────────────────────────
-var _ntfCtxContrato = null;
-var _ntfEditId = null;
-
-function abrirModalNtf(contratoId, docId){
-  var entry = dadosGanhas.find(function(e){ return e.id===contratoId; });
-  if(!entry){ portalToast('Contrato não encontrado.','err'); return; }
-  _ntfCtxContrato = contratoId;
-  _ntfEditId = docId || null;
-
-  var n = docId ? (dadosNtf[contratoId]||[]).find(function(x){ return x._id===docId; }) : null;
-
-  document.getElementById('ntf-titulo').textContent = n ? 'Editar Notificação' : 'Registrar Notificação Recebida';
-  document.getElementById('ntf-contrato-lbl').textContent =
-    (entry.arr[IDX.CONTRATO] ? 'Contrato '+entry.arr[IDX.CONTRATO]+' · ' : '') + String(entry.arr[IDX.LICITACAO]||'').substring(0,70);
-  document.getElementById('ntf-erro').style.display='none';
-
-  document.getElementById('ntf-tipo').value        = n ? (n.tipo||'NOTIFICACAO') : 'NOTIFICACAO';
-  document.getElementById('ntf-gravidade').value   = n ? (n.gravidade||'MEDIA') : 'MEDIA';
-  document.getElementById('ntf-numero').value      = n ? (n.numero||'') : '';
-  document.getElementById('ntf-orgao').value       = n ? (n.orgao||'') : String(entry.arr[IDX.LOCAL]||'');
-  document.getElementById('ntf-recebimento').value = n ? _brParaISO(n.dataRecebimento) : new Date().toISOString().split('T')[0];
-  document.getElementById('ntf-prazo').value       = n ? _brParaISO(n.prazoResposta) : '';
-  document.getElementById('ntf-prazo-dias').value  = n ? (n.prazoDias||'') : '';
-  document.getElementById('ntf-motivo').value      = n ? (n.motivo||'') : '';
-  document.getElementById('ntf-desc').value        = n ? (n.descricao||'') : '';
-  document.getElementById('ntf-status').value      = n ? (n.status||'ABERTA') : 'ABERTA';
-  document.getElementById('ntf-responsavel').value = n ? (n.responsavel||'') : '';
-  document.getElementById('ntf-dtresposta').value  = n ? _brParaISO(n.dataResposta) : '';
-  document.getElementById('ntf-valor').value       = n && n.valorMulta ? fmtMoedaP(n.valorMulta) : '';
-  document.getElementById('ntf-providencia').value = n ? (n.providencia||'') : '';
-  document.getElementById('ntf-link').value        = n ? (n.link||'') : '';
-  document.getElementById('ntf-autor').value       = localStorage.getItem('nh_portal_autor')||'';
-
-  ntfAoTrocarTipo(); ntfAoTrocarStatus();
-
-  var m = document.getElementById('modal-ntf');
-  m.style.display='flex';
-  m.onclick = function(e){ if(e.target===m) fecharModalNtf(); };
-}
-
-function fecharModalNtf(){
-  document.getElementById('modal-ntf').style.display='none';
-  _ntfCtxContrato = null; _ntfEditId = null;
-}
-
-function ntfAoTrocarTipo(){
-  var t = document.getElementById('ntf-tipo').value;
-  // Multa e rescisão já entram como graves por padrão — dá para mudar
-  if((t==='MULTA'||t==='RESCISAO') && document.getElementById('ntf-gravidade').value==='MEDIA'){
-    document.getElementById('ntf-gravidade').value = 'GRAVE';
-  }
-  ntfAoTrocarStatus();
-}
-
-function ntfAoTrocarStatus(){
-  var s = document.getElementById('ntf-status').value;
-  var t = document.getElementById('ntf-tipo').value;
-  var respondida = (s==='RESPONDIDA'||s==='ACATADA'||s==='SANCAO'||s==='ARQUIVADA');
-  document.getElementById('ntf-wrap-resposta').style.display = respondida ? '' : 'none';
-  document.getElementById('ntf-wrap-multa').style.display = (s==='SANCAO'||t==='MULTA'||t==='GLOSA') ? '' : 'none';
-}
-
-/* Digitar os dias do prazo calcula a data limite a partir do
-   recebimento — é assim que o ofício costuma vir escrito ("5 dias
-   úteis a contar do recebimento"). Conta dias corridos; se o prazo for
-   em dias úteis, a data pode ser ajustada à mão depois. */
-function ntfCalcPrazo(){
-  var rec  = document.getElementById('ntf-recebimento').value;
-  var dias = parseInt(document.getElementById('ntf-prazo-dias').value,10);
-  if(!rec || !dias || dias<1) return;
-  var d = new Date(rec+'T00:00:00');
-  d.setDate(d.getDate()+dias);
-  document.getElementById('ntf-prazo').value = d.toISOString().split('T')[0];
-}
-
-async function salvarNtf(){
-  var btn = document.getElementById('ntf-salvar-btn');
-  var erro = document.getElementById('ntf-erro');
-  erro.style.display='none';
-
-  var contratoId = _ntfCtxContrato;
-  var entry = dadosGanhas.find(function(e){ return e.id===contratoId; });
-  if(!entry){ portalToast('Contrato não encontrado.','err'); return; }
-
-  var recebimento = document.getElementById('ntf-recebimento').value;
-  var motivo = document.getElementById('ntf-motivo').value;
-  var autor  = document.getElementById('ntf-autor').value.trim();
-
-  if(!recebimento || !motivo){
-    erro.textContent = 'Informe a data de recebimento e o motivo alegado pelo órgão.';
-    erro.style.display='block'; return;
-  }
-  if(autor.length < 3){
-    erro.textContent = 'Informe o nome do responsável pelo registro.';
-    erro.style.display='block';
-    document.getElementById('ntf-autor').focus(); return;
-  }
-  localStorage.setItem('nh_portal_autor', autor);
-
-  btn.disabled=true; btn.textContent='Salvando...';
-  var agora = new Date().toLocaleString('pt-BR');
-
-  var dados = {
-    contratoId: contratoId,
-    contratoNum: String(entry.arr[IDX.CONTRATO]||''),
-    licitacao:  String(entry.arr[IDX.LICITACAO]||''),
-    empresa:    String(entry.arr[IDX.EMPRESA]||empAtual||'').trim().toUpperCase(),
-    tipo:        document.getElementById('ntf-tipo').value,
-    gravidade:   document.getElementById('ntf-gravidade').value,
-    numero:      document.getElementById('ntf-numero').value.trim(),
-    orgao:       document.getElementById('ntf-orgao').value.trim(),
-    dataRecebimento: _isoParaBR(recebimento),
-    prazoResposta:   _isoParaBR(document.getElementById('ntf-prazo').value),
-    prazoDias:   parseInt(document.getElementById('ntf-prazo-dias').value,10)||'',
-    motivo:      motivo,
-    descricao:   document.getElementById('ntf-desc').value.trim(),
-    status:      document.getElementById('ntf-status').value,
-    responsavel: document.getElementById('ntf-responsavel').value.trim(),
-    dataResposta:_isoParaBR(document.getElementById('ntf-dtresposta').value),
-    valorMulta:  parseMoedaV(document.getElementById('ntf-valor').value),
-    providencia: document.getElementById('ntf-providencia').value.trim(),
-    link:        document.getElementById('ntf-link').value.trim(),
-    atualizadoPor: autor,
-    atualizadoEm:  agora,
-    _ts: Date.now()
-  };
-
-  try{
-    if(_ntfEditId){
-      await db.collection(COL_NTF).doc(_ntfEditId).update(dados);
-    } else {
-      dados.criadoPor = autor;
-      dados.criadoEm  = Date.now();
-      await db.collection(COL_NTF).add(dados);
-    }
-
-    await db.collection('ganhas').doc(contratoId).update({
-      _portalLog: firebase.firestore.FieldValue.arrayUnion({
-        autor: autor, empresa: empAtual, data: agora,
-        acao: (NTF_TIPOS[dados.tipo]||{}).nome+' — '+motivo+' — '+(NTF_STATUS[dados.status]||{}).nome
-      })
-    }).catch(function(){});
-
-    await carregarModulosContrato();
-    fecharModalNtf();
-    atualizarModulos(contratoId);
-    portalToast('✅ Notificação registrada!', 'ok');
-  }catch(e){
-    erro.textContent = 'Erro ao salvar: '+e.message+(String(e.message).indexOf('permission')!==-1?' — a coleção contrato_notificacoes precisa ser liberada no firestore.rules.':'');
-    erro.style.display='block';
-  }finally{
-    btn.disabled=false; btn.textContent='💾 Salvar Registro';
-  }
-}
-
-async function excluirNtf(contratoId, docId){
-  if(!confirm('Excluir este registro de notificação?\n\nEsta ação não pode ser desfeita.')) return;
-  try{
-    await db.collection(COL_NTF).doc(docId).delete();
-    await carregarModulosContrato();
-    atualizarModulos(contratoId);
-    portalToast('Registro excluído.','ok');
-  }catch(e){ portalToast('Erro: '+e.message,'err'); }
-}
-
-// ══════════════════════════════════════════════════════════════════
-//  TOTAIS DA CARTEIRA — usados nos KPIs do topo e no Quadro de Avisos
-// ══════════════════════════════════════════════════════════════════
-function resumoCarteira(){
-  var r = {faturado:0, recebido:0, aReceber:0, atrasado:0, glosado:0,
-           docsAtrasados:[], semFaturamento:[], atrasoFaturamento:[],
-           ntfAbertas:[], ntfPrazoEstourado:[], ntfPrazoCurto:[], valorMultas:0};
-
-  dadosGanhas.forEach(function(e){
-    var st = String(e.arr[IDX.STATUS]||'').trim().toUpperCase();
-    var encerrado = (st==='FINALIZADO'||st==='RESCINDIDO'||st==='CANCELADO');
-    var f = fatResumo(e.id, e.arr);
-
-    r.faturado += f.faturado; r.recebido += f.recebido;
-    r.aReceber += f.aReceber; r.atrasado += f.atrasado; r.glosado += f.glosado;
-
-    if(!encerrado){
-      if(f.nDocs === 0 && f.valorContrato > 0) r.semFaturamento.push(e);
-      else if(f.valorContrato > 0 && f.pctIdeal - f.pctFaturado > 25) r.atrasoFaturamento.push({e:e, f:f});
-    }
-
-    (dadosFat[e.id]||[]).forEach(function(d){
-      if(d.status==='PAGO'||d.status==='CANCELADO') return;
-      if(FAT_COBRANCA.indexOf(d.tipo)===-1) return;
-      var dias = _pDias(d.dataVenc);
-      if(dias !== null && dias < 0) r.docsAtrasados.push({e:e, d:d, dias:dias});
-    });
-
-    (dadosNtf[e.id]||[]).forEach(function(n){
-      if(Number(n.valorMulta)>0 && (n.status==='SANCAO')) r.valorMultas += Number(n.valorMulta);
-      if(NTF_ABERTAS.indexOf(n.status||'ABERTA')===-1) return;
-      r.ntfAbertas.push({e:e, n:n});
-      var dias = _pDias(n.prazoResposta);
-      if(dias === null) return;
-      if(dias < 0) r.ntfPrazoEstourado.push({e:e, n:n, dias:dias});
-      else if(dias <= 5) r.ntfPrazoCurto.push({e:e, n:n, dias:dias});
-    });
-  });
-
-  r.docsAtrasados.sort(function(a,b){ return a.dias-b.dias; });
-  r.ntfPrazoEstourado.sort(function(a,b){ return a.dias-b.dias; });
-  r.ntfPrazoCurto.sort(function(a,b){ return a.dias-b.dias; });
-  return r;
 }
 
 // ─── INIT ────────────────────────────────────────────────────────
