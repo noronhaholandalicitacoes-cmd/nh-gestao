@@ -4277,12 +4277,19 @@ function loginEmailSenha(){var e=document.getElementById("login-email").value.tr
    empresas, e assim editar a empresa nunca apaga o vínculo.
 
      config/responsaveis  {lista:{"5583...":{nome, despedida,
-                           acessos:{viabilidade,portal}, empresas:[],
-                           todas, contaMestra, validade, ativo,
-                           hash, salt, authMigrado}}}
+                           acessos:{viabilidade,portal,dashboard},
+                           empresas:[], todas, contaMestra, validade,
+                           ativo, temSenha, authVersao, authMigrado}}}
 
-   A senha existe só como hash com salt — nunca em texto legível.
-   Esqueceu? O admin redefine e o sistema gera uma nova.
+   A senha NÃO fica aqui, em forma nenhuma — nem em texto, nem em
+   hash. Ela vive só no Firebase Auth, que é quem confere o login.
+   Este registro guarda apenas `temSenha`, para o cadastro saber que
+   já existe uma. Esqueceu? O admin redefine e o sistema gera uma nova.
+
+   Por que isso importa: este documento é legível por QUALQUER pessoa
+   logada — inclusive por um acesso de empresa cliente. Guardar aqui o
+   hash da senha da equipe era entregar material de ataque offline sem
+   ganhar nada, já que nada mais lia esse campo.
    ══════════════════════════════════════════════════════════════════ */
 var RESPONSAVEIS={};
 
@@ -4309,6 +4316,21 @@ async function carregarResponsaveis(){
     RESPONSAVEIS=(d.exists&&d.data()&&d.data().lista)||{};}catch(e){RESPONSAVEIS={};}
   return RESPONSAVEIS;}
 async function salvarResponsaveis(){
+  /* Tira o hash e o salt de TODOS os registros antes de gravar.
+     Eles eram escritos aqui desde a época em que o login era conferido
+     no navegador. Hoje quem confere a senha é o Firebase Auth — nada
+     mais lê estes campos —, mas eles continuavam nesta lista, e
+     `config/responsaveis` é legível por qualquer pessoa logada,
+     inclusive por um acesso de empresa cliente. Ou seja: guardávamos o
+     hash da senha de toda a equipe num lugar que os clientes leem, sem
+     ganhar nada com isso.
+     Como tudo mora num documento só, uma gravação limpa todos. */
+  Object.keys(RESPONSAVEIS).forEach(function(k){
+    var r=RESPONSAVEIS[k];
+    if(!r||typeof r!=='object')return;
+    if(r.hash!==undefined||r.salt!==undefined)r.temSenha=true;
+    delete r.hash; delete r.salt;
+  });
   await db.collection("config").doc("responsaveis").set({lista:RESPONSAVEIS});}
 
 
@@ -4355,13 +4377,16 @@ function respsDaEmpresa(emp) {
        contaMestra:bool,                          admin do Portal
        validade:'AAAA-MM-DD'|'',                  vazio = nunca vence
        ativo:bool,                                desativar sem apagar
-       hash, salt, authMigrado, criadoEm, atualizadoEm }
+       temSenha:bool,                             já tem senha definida
+       authVersao, authMigrado, criadoEm, atualizadoEm }
 
-   A senha NUNCA fica guardada legível. Se a pessoa esquecer, o admin
-   redefine e o sistema gera uma nova — como faz qualquer sistema
-   sério. (Antes havia uma cópia em texto puro em senhas_admin; era
-   isso que quebrava o cadastro depois que as regras do Firestore
-   fecharam aquela coleção.)
+   A senha não fica guardada AQUI de forma nenhuma — nem legível, nem
+   em hash. Ela vive só no Firebase Auth. Se a pessoa esquecer, o admin
+   redefine e o sistema gera uma nova.
+
+   Duas coisas já foram tiradas daqui, pela mesma razão: a cópia em
+   texto puro em senhas_admin, e depois o hash+salt — que ninguém mais
+   lia, mas ficava exposto a qualquer pessoa logada, cliente inclusive.
    ══════════════════════════════════════════════════════════════════ */
 var _acEdit=null, _acFiltro='todos', _acCred=null;
 
@@ -4607,15 +4632,18 @@ async function acSalvar(){
     if(novo)reg.criadoEm=Date.now();
     reg.atualizadoEm=Date.now();
 
-    /* Senha: gera uma se for cadastro novo e o campo estiver vazio. */
+    /* Senha: gera uma se for cadastro novo e o campo estiver vazio.
+       Não guardamos mais hash nenhum aqui — a senha vive só no Firebase
+       Auth. Este registro só precisa saber SE já existe uma, para não
+       criar acesso sem senha; o `hash` antigo é aceito na leitura
+       enquanto os cadastros velhos não passam por uma gravação. */
     var senhaGerada='';
     if(novo&&!senha)senha=nhSenhaSugerida();
     if(senha){
-      reg.salt=nhNovoSalt();
-      reg.hash=await nhHashSenha(senha,reg.salt);
+      reg.temSenha=true;
       senhaGerada=senha;
     }
-    if(!reg.hash){
+    if(!reg.temSenha&&!reg.hash){
       acErro('Esta pessoa ainda n&atilde;o tem senha. Preencha o campo <b>Senha</b> para definir uma.');
       btn.disabled=false;btn.textContent=_acEdit?'Salvar alterações':'Criar acesso';
       return;
@@ -4650,8 +4678,7 @@ async function acRedefinir(num){
   if(!confirm('Gerar uma senha nova para "'+(r.nome||num)+'"?'))return;
   try{
     var nova=nhSenhaSugerida();
-    r.salt=nhNovoSalt();
-    r.hash=await nhHashSenha(nova,r.salt);
+    r.temSenha=true;
     r.atualizadoEm=Date.now();
     var ra=await criarContaAuthResp(num,nova,(r.authVersao||0)+1);
     var authAviso=null;
