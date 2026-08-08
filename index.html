@@ -3109,6 +3109,13 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
               <div class="ac-sis-desc">Acompanhar contratos, vig&ecirc;ncias e recomposi&ccedil;&otilde;es</div>
             </div>
           </label>
+          <label class="ac-sis" id="ac-sis-dash">
+            <input type="checkbox" id="ac-dash" onchange="acAtualizarForm()">
+            <div>
+              <div class="ac-sis-nome">&#128202; Portal de Licita&ccedil;&otilde;es (site)</div>
+              <div class="ac-sis-desc">Dashboard, certames do dia, agenda e not&iacute;cias &mdash; s&oacute; das empresas marcadas abaixo</div>
+            </div>
+          </label>
         </div>
       </div>
 
@@ -4363,7 +4370,11 @@ var _acEdit=null, _acFiltro='todos', _acCred=null;
    abria os dois sistemas, então continua abrindo os dois. */
 function acNormaliza(r){
   r=r||{};
-  if(!r.acessos)r.acessos={viabilidade:true,portal:true};
+  /* Cadastro antigo, sem o campo, herda os dois sistemas internos — mas
+     NUNCA o Portal de Licitações: aquilo é liberação comercial para o
+     cliente, tem de ser marcada de propósito, uma a uma. */
+  if(!r.acessos)r.acessos={viabilidade:true,portal:true,dashboard:false};
+  if(r.acessos.dashboard===undefined)r.acessos.dashboard=false;
   if(r.ativo===undefined)r.ativo=true;
   if(r.validade===undefined)r.validade='';
   return r;
@@ -4439,6 +4450,7 @@ function acRender(){
     else if(st==='expirado')tags+='<span class="ac-tag" style="background:rgba(234,179,8,.15);color:#eab308;border:1px solid rgba(234,179,8,.4)">EXPIROU '+acDataBR(r.validade)+'</span>';
     if(r.acessos.viabilidade)tags+='<span class="ac-tag" style="background:rgba(59,130,246,.14);color:#3b82f6;border:1px solid rgba(59,130,246,.35)">&#128202; Viabilidade</span>';
     if(r.acessos.portal)tags+='<span class="ac-tag" style="background:rgba(34,197,94,.14);color:#22c55e;border:1px solid rgba(34,197,94,.35)">&#128188; Contratos</span>';
+    if(r.acessos.dashboard)tags+='<span class="ac-tag" style="background:rgba(168,85,247,.14);color:#a855f7;border:1px solid rgba(168,85,247,.35)">&#128202; Portal do site</span>';
     if(r.contaMestra)tags+='<span class="ac-tag" style="background:rgba(249,115,22,.15);color:var(--nh);border:1px solid rgba(249,115,22,.4)">&#128081; Conta mestra</span>';
 
     var emps=r.todas?'<b>Todas as empresas</b>':((r.empresas||[]).length?
@@ -4501,6 +4513,7 @@ function acAbrir(num){
     '&Eacute; com ele que a pessoa entra nos sistemas.';
   document.getElementById('ac-viab').checked=!!r.acessos.viabilidade;
   document.getElementById('ac-portal').checked=!!r.acessos.portal;
+  document.getElementById('ac-dash').checked=!!r.acessos.dashboard;
   document.getElementById('ac-todas').checked=!!r.todas;
   document.getElementById('ac-mestra').checked=!!r.contaMestra;
   document.getElementById('ac-validade').value=r.validade||'';
@@ -4547,6 +4560,7 @@ async function acSalvar(){
   var num=_acEdit||nhNumeroWpp(document.getElementById('ac-wpp').value);
   var viab=document.getElementById('ac-viab').checked;
   var portal=document.getElementById('ac-portal').checked;
+  var dash=document.getElementById('ac-dash').checked;
   var todas=document.getElementById('ac-todas').checked;
   var mestra=document.getElementById('ac-mestra').checked;
   var validade=document.getElementById('ac-validade').value;
@@ -4559,7 +4573,7 @@ async function acSalvar(){
   var faltas=[];
   if(!nome)faltas.push('o <b>nome</b>');
   if(!_acEdit&&num.length<12)faltas.push('um <b>WhatsApp</b> completo (DDD + n&uacute;mero)');
-  if(!viab&&!portal)faltas.push('marcar <b>ao menos um sistema</b> que a pessoa vai abrir');
+  if(!viab&&!portal&&!dash)faltas.push('marcar <b>ao menos um sistema</b> que a pessoa vai abrir');
   if(!todas&&!emps.length)faltas.push('marcar <b>ao menos uma empresa</b> (ou "Todas as empresas")');
   if(validade){
     var dv=new Date(validade+'T23:59:59');
@@ -4584,7 +4598,7 @@ async function acSalvar(){
     var novo=!RESPONSAVEIS[num];
     var reg=acNormaliza(Object.assign({},RESPONSAVEIS[num]||{}));
     reg.nome=nome;
-    reg.acessos={viabilidade:viab,portal:portal};
+    reg.acessos={viabilidade:viab,portal:portal,dashboard:dash};
     reg.empresas=todas?[]:emps;
     reg.todas=todas;
     reg.contaMestra=portal&&mestra;
@@ -4759,6 +4773,8 @@ function _acTexto(){
     t+='\nAnalise de Viabilidade:\nhttps://noronhaholandalicitacoes-cmd.github.io/nh-gestao/viabilidade.html?r='+_acCred.num+'\n';
   if(r.acessos.portal)
     t+='\nPortal de Contratos:\nhttps://noronhaholandalicitacoes-cmd.github.io/nh-gestao/portal-empresa.html?r='+_acCred.num+'\n';
+  if(r.acessos.dashboard)
+    t+='\nPortal de Licitacoes:\nhttps://nhlicitacoes.noronhaholanda.com.br/\n(entre com este WhatsApp e a senha abaixo)\n';
   t+='\nSenha: '+_acCred.senha;
   if(r.validade)t+='\n\nSeu acesso vale ate '+acDataBR(r.validade)+'.';
   return t;
