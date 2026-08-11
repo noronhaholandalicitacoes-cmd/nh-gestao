@@ -1000,6 +1000,27 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
         <input id="inp-busca" placeholder="Buscar contrato, objeto, município..." oninput="renderContratos()"
           style="background:none;border:none;color:var(--t1);font-family:'DM Sans',sans-serif;font-size:13px;flex:1;outline:none">
       </div>
+      <!-- Filtro de período. Duas escolhas, porque "contratos de 2026"
+           é ambíguo: assinados, vencendo ou lançados em 2026 são três
+           listas diferentes. Antes não havia filtro de data nenhum e a
+           pergunta só era respondida gerando relatório no outro sistema. -->
+      <select id="sel-campo-data" onchange="pAoTrocarCampoData()" title="Sobre qual data filtrar"
+        style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:8px 12px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:12px;outline:none;cursor:pointer">
+        <option value="assinatura">Assinatura</option>
+        <option value="vencimento">Vencimento</option>
+        <option value="lancamento">Lançamento</option>
+      </select>
+      <select id="sel-periodo" onchange="pAoTrocarPeriodo()"
+        style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:8px 12px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:12px;outline:none;cursor:pointer">
+        <option value="todos">Todo o período</option>
+      </select>
+      <span id="periodo-custom" style="display:none;align-items:center;gap:6px">
+        <input type="date" id="inp-de" onchange="renderContratos()" title="De"
+          style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:7px 9px;border-radius:9px;font-family:inherit;font-size:12px;outline:none">
+        <span style="color:var(--t3);font-size:12px">até</span>
+        <input type="date" id="inp-ate" onchange="renderContratos()" title="Até"
+          style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:7px 9px;border-radius:9px;font-family:inherit;font-size:12px;outline:none">
+      </span>
       <select id="sel-ordem" onchange="renderContratos()"
         style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:8px 12px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:12px;outline:none;cursor:pointer">
         <option value="recente">Mais recente</option>
@@ -3104,6 +3125,9 @@ async function carregarContratos(){
        pessoa: o listener filtra por empresa, e antes disto `empAtual`
        ainda está vazio. */
     execIniciar();
+    /* Os anos do filtro saem dos dados, então só dá para montar a
+       lista depois de carregá-los. */
+    pPopularPeriodos();
     await carregarAndamento();
     renderContratos();
     renderStats();
@@ -3282,6 +3306,13 @@ function renderContratos(){
   const hoje = new Date(); hoje.setHours(0,0,0,0);
   let lista = [...dadosGanhas];
 
+  /* ⚠️ Esta função filtra por conta própria, e `getListaFiltrada()`
+     — usada por impressão e Excel — repete a mesma seleção com um
+     código diferente. É duplicação que já existia; enquanto ela
+     existir, todo filtro novo precisa ser aplicado NOS DOIS lugares,
+     senão a tela mostra uma coisa e o relatório sai com outra. */
+  lista = lista.filter(({arr}) => pNoPeriodo(arr));
+
   // Filtro por status (idêntico ao sistema NH)
   if(filtroStatus){
     // Mesmo classificador das contagens: o filtro devolve exatamente o número da pill.
@@ -3341,7 +3372,18 @@ function renderContratos(){
   }
 
   const contEl = document.getElementById('contratos-contagem');
-  if(contEl) contEl.textContent = lista.length + ' contrato' + (lista.length !== 1 ? 's' : '');
+  if(contEl){
+    /* A contagem passa a dizer TAMBÉM o recorte e quantos ficaram de
+       fora por não terem a data. Um filtro que só encolhe a lista sem
+       explicar por quê é o que faz alguém achar que sumiu contrato. */
+    const _rec = pResumoPeriodo();
+    const _sem = pSemDataNoRecorte();
+    contEl.innerHTML = lista.length + ' contrato' + (lista.length !== 1 ? 's' : '')
+      + (_rec ? ' <span style="color:var(--nh)">· ' + pEsc(_rec) + '</span>' : '')
+      + (_sem ? ' <span style="color:var(--t3)" title="Não têm a data escolhida preenchida, então não dá para afirmar que estão no período">· '
+                + _sem + ' sem a data</span>' : '')
+      + (_rec ? ' <button onclick="pLimparPeriodo()" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:11.5px;text-decoration:underline;font-family:inherit;padding:0 0 0 4px">limpar</button>' : '');
+  }
 
   // Total filtrado (igual ao sistema)
   const totalFiltrado = lista.reduce((s,{arr})=>s+calcValorGanhas(arr),0);
@@ -5295,9 +5337,137 @@ function confirmarImpressao(){
 var _printLista = null;
 
 // Retorna a lista com todos os filtros ativos aplicados (igual ao renderContratos)
+/* ── Filtro por período ───────────────────────────────────────────
+   "Contratos de 2026" é uma pergunta ambígua: assinados, vencendo ou
+   lançados em 2026 são três listas diferentes. Por isso o filtro tem
+   duas escolhas — sobre QUAL data e QUAL intervalo. */
+function pDataDoContrato(arr, campo){
+  if(campo === 'vencimento') return parseDateBR(vencVigente(arr).valor);
+  if(campo === 'lancamento') return parseDateBR(arr[IDX.DATA]);
+  /* Sem substituto quando a assinatura falta. Cair na data de
+     lançamento faria um contrato sem assinatura aparecer em
+     "assinados em 2025" — inventando uma data que ninguém informou, e
+     é assim que relatório sai errado. Quem não tem a data fica fora do
+     recorte e é contado à parte, para não sumir calado. */
+  return parseDateBR(arr[IDX.DT_ASSINATURA]);
+}
+
+/** Quantos ficaram de fora por não terem a data escolhida. */
+function pSemDataNoRecorte(){
+  var sel = document.getElementById('sel-periodo');
+  if(!sel || !sel.value || sel.value === 'todos') return 0;
+  var campo = pCampoData();
+  return (dadosGanhas || []).filter(function(e){ return !pDataDoContrato(e.arr, campo); }).length;
+}
+
+function pCampoData(){
+  var el = document.getElementById('sel-campo-data');
+  return el ? el.value : 'assinatura';
+}
+
+/** Os anos vêm dos próprios dados: lista fixa mostraria ano vazio e
+    esconderia ano que existe. */
+function pPopularPeriodos(){
+  var sel = document.getElementById('sel-periodo');
+  if(!sel) return;
+  var campo = pCampoData();
+  var anos = {};
+  (dadosGanhas || []).forEach(function(e){
+    var d = pDataDoContrato(e.arr, campo);
+    if(d) anos[d.getFullYear()] = (anos[d.getFullYear()] || 0) + 1;
+  });
+  var listaAnos = Object.keys(anos).map(Number).sort(function(a,b){ return b - a; });
+  var anoAtual = new Date().getFullYear();
+  var anterior = sel.value;
+
+  var html = '<option value="todos">Todo o período</option>';
+  if(listaAnos.length){
+    html += '<option value="12m">Últimos 12 meses</option>';
+    html += '<optgroup label="Ano">';
+    listaAnos.forEach(function(a){
+      html += '<option value="ano:'+a+'">'+a+(a===anoAtual?' (este ano)':'')+' — '+anos[a]+'</option>';
+    });
+    html += '</optgroup>';
+  }
+  html += '<option value="custom">Período personalizado…</option>';
+  sel.innerHTML = html;
+  /* Mantém a escolha ao trocar o campo de data, se ela ainda existir. */
+  if(anterior && sel.querySelector('option[value="'+anterior.replace(/"/g,'')+'"]')) sel.value = anterior;
+}
+
+function pAoTrocarCampoData(){ pPopularPeriodos(); renderContratos(); }
+
+function pLimparPeriodo(){
+  var sel = document.getElementById('sel-periodo');
+  if(sel) sel.value = 'todos';
+  var de = document.getElementById('inp-de'), ate = document.getElementById('inp-ate');
+  if(de) de.value = ''; if(ate) ate.value = '';
+  var box = document.getElementById('periodo-custom');
+  if(box) box.style.display = 'none';
+  renderContratos();
+}
+
+function pAoTrocarPeriodo(){
+  var sel = document.getElementById('sel-periodo');
+  var box = document.getElementById('periodo-custom');
+  if(box) box.style.display = (sel && sel.value === 'custom') ? 'inline-flex' : 'none';
+  renderContratos();
+}
+
+/** true = o contrato entra na lista. */
+function pNoPeriodo(arr){
+  var sel = document.getElementById('sel-periodo');
+  var v = sel ? sel.value : 'todos';
+  if(!v || v === 'todos') return true;
+
+  var d = pDataDoContrato(arr, pCampoData());
+  /* Sem a data, não dá para afirmar que está no intervalo — e mostrar
+     seria mentir sobre o recorte pedido. */
+  if(!d) return false;
+
+  if(v === '12m'){
+    var limite = new Date(); limite.setHours(0,0,0,0);
+    limite.setFullYear(limite.getFullYear() - 1);
+    return d >= limite;
+  }
+  if(v.indexOf('ano:') === 0) return d.getFullYear() === parseInt(v.slice(4), 10);
+  if(v === 'custom'){
+    var de = document.getElementById('inp-de');
+    var ate = document.getElementById('inp-ate');
+    var dDe = de && de.value ? new Date(de.value + 'T00:00:00') : null;
+    var dAte = ate && ate.value ? new Date(ate.value + 'T23:59:59') : null;
+    if(dDe && d < dDe) return false;
+    if(dAte && d > dAte) return false;
+    return true;
+  }
+  return true;
+}
+
+/** Texto do recorte ativo — para a tela dizer o que está mostrando. */
+function pResumoPeriodo(){
+  var sel = document.getElementById('sel-periodo');
+  var v = sel ? sel.value : 'todos';
+  if(!v || v === 'todos') return '';
+  var rotulos = {assinatura:'assinados', vencimento:'vencendo', lancamento:'lançados'};
+  var qual = rotulos[pCampoData()] || '';
+  if(v === '12m') return qual + ' nos últimos 12 meses';
+  if(v.indexOf('ano:') === 0) return qual + ' em ' + v.slice(4);
+  if(v === 'custom'){
+    var de = document.getElementById('inp-de'), ate = document.getElementById('inp-ate');
+    var f = function(x){ if(!x || !x.value) return ''; var p = x.value.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; };
+    var a = f(de), b = f(ate);
+    if(a && b) return qual + ' entre ' + a + ' e ' + b;
+    if(a) return qual + ' a partir de ' + a;
+    if(b) return qual + ' até ' + b;
+  }
+  return '';
+}
+
 function getListaFiltrada(){
   const hoje = new Date(); hoje.setHours(0,0,0,0);
   let lista = [...dadosGanhas];
+
+  lista = lista.filter(({arr}) => pNoPeriodo(arr));
 
   if(filtroStatus){
     lista = lista.filter(({arr})=>{
