@@ -503,6 +503,26 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
       <button class="f-btn on" id="fe-todos" onclick="setFiltroEmp('todos',this)">Todas</button>
     </div>
   </div>
+  <!-- Período: o edital tem uma data só (lançamento), então aqui não
+       faz sentido perguntar "sobre qual data" como no Portal de
+       Contratos — só o intervalo. -->
+  <div id="linha-periodo">
+    <div class="filtro-label">Período</div>
+    <div class="filtros-row" id="filtros-periodo" style="align-items:center">
+      <select id="v-periodo" onchange="vPeriodoMudou()"
+        style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:6px 10px;border-radius:8px;font-family:inherit;font-size:12.5px;outline:none;cursor:pointer">
+        <option value="todos">Todo o período</option>
+      </select>
+      <span id="v-periodo-box" style="display:none;align-items:center;gap:6px">
+        <input type="date" id="v-de" onchange="vPeriodoMudou()"
+          style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:5px 8px;border-radius:8px;font-family:inherit;font-size:12.5px;outline:none">
+        <span style="color:var(--t3);font-size:12px">até</span>
+        <input type="date" id="v-ate" onchange="vPeriodoMudou()"
+          style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:5px 8px;border-radius:8px;font-family:inherit;font-size:12.5px;outline:none">
+      </span>
+      <span id="v-periodo-res" style="font-size:12px;color:var(--t2)"></span>
+    </div>
+  </div>
 </div>
 
 <div id="main-content">
@@ -893,6 +913,8 @@ async function carregar(){
     _canon=null;
     buildFiltrosEmpresas();
     buildFiltrosResp();
+    /* Os anos saem dos editais carregados. */
+    vPopularPeriodos();
     setFiltroStatus(FILTRO_STATUS);
   }catch(e){
     document.getElementById('main-content').innerHTML='<div class="empty"><div class="empty-ico">⚠️</div>Erro ao carregar: '+esc(e.message)+'</div>';
@@ -970,8 +992,110 @@ function setFiltroEmp(f,btn){
   renderizar();
 }
 
+/* ── Filtro por período ───────────────────────────────────────────
+   O sistema filtrava por status, responsável e empresa — nunca por
+   data. "Quais editais de 2026 recusamos?" não tinha resposta sem
+   rolar a lista inteira. */
+var V_PERIODO = {periodo:'todos', de:'', ate:''};
+
+function vDataDoEdital(arr){
+  var s = String(arr[1]||'').trim().split(' ')[0];
+  var p = s.split('/');
+  if(p.length !== 3) return null;
+  var d = new Date(parseInt(p[2]), parseInt(p[1])-1, parseInt(p[0]));
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function vNoPeriodo(arr){
+  var f = V_PERIODO;
+  if(!f.periodo || f.periodo === 'todos') return true;
+  var d = vDataDoEdital(arr);
+  /* Sem data não dá para afirmar que está no intervalo. */
+  if(!d) return false;
+  if(f.periodo === '12m'){
+    var lim = new Date(); lim.setHours(0,0,0,0);
+    lim.setFullYear(lim.getFullYear()-1);
+    return d >= lim;
+  }
+  if(f.periodo.indexOf('ano:') === 0) return d.getFullYear() === parseInt(f.periodo.slice(4),10);
+  if(f.periodo === 'custom'){
+    var de = f.de ? new Date(f.de+'T00:00:00') : null;
+    var ate = f.ate ? new Date(f.ate+'T23:59:59') : null;
+    if(de && d < de) return false;
+    if(ate && d > ate) return false;
+  }
+  return true;
+}
+
+function vPopularPeriodos(){
+  var sel = document.getElementById('v-periodo');
+  if(!sel) return;
+  var anos = {};
+  (TODOS||[]).forEach(function(d){
+    var dt = vDataDoEdital(d.arr);
+    if(dt) anos[dt.getFullYear()] = (anos[dt.getFullYear()]||0)+1;
+  });
+  var lista = Object.keys(anos).map(Number).sort(function(a,b){ return b-a; });
+  var atual = new Date().getFullYear();
+  var html = '<option value="todos">Todo o período</option>';
+  if(lista.length){
+    html += '<option value="12m">Últimos 12 meses</option><optgroup label="Ano">';
+    lista.forEach(function(a){
+      html += '<option value="ano:'+a+'">'+a+(a===atual?' (este ano)':'')+' — '+anos[a]+'</option>';
+    });
+    html += '</optgroup>';
+  }
+  html += '<option value="custom">Período personalizado…</option>';
+  sel.innerHTML = html;
+  sel.value = V_PERIODO.periodo || 'todos';
+}
+
+function vPeriodoMudou(){
+  var sel = document.getElementById('v-periodo');
+  V_PERIODO.periodo = sel ? sel.value : 'todos';
+  var de = document.getElementById('v-de'), ate = document.getElementById('v-ate');
+  V_PERIODO.de = de ? de.value : '';
+  V_PERIODO.ate = ate ? ate.value : '';
+  var box = document.getElementById('v-periodo-box');
+  if(box) box.style.display = (V_PERIODO.periodo === 'custom') ? 'inline-flex' : 'none';
+  vPintarResumo();
+  renderizar();
+}
+
+function vLimparPeriodo(){
+  V_PERIODO = {periodo:'todos', de:'', ate:''};
+  var sel=document.getElementById('v-periodo'); if(sel) sel.value='todos';
+  var de=document.getElementById('v-de'), ate=document.getElementById('v-ate');
+  if(de) de.value=''; if(ate) ate.value='';
+  var box=document.getElementById('v-periodo-box'); if(box) box.style.display='none';
+  vPintarResumo();
+  renderizar();
+}
+
+function vPintarResumo(){
+  var el = document.getElementById('v-periodo-res');
+  if(!el) return;
+  var f = V_PERIODO, txt = '';
+  if(f.periodo === '12m') txt = 'últimos 12 meses';
+  else if(f.periodo.indexOf('ano:') === 0) txt = 'de ' + f.periodo.slice(4);
+  else if(f.periodo === 'custom'){
+    var br = function(x){ if(!x) return ''; var p=x.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; };
+    if(f.de && f.ate) txt = 'entre ' + br(f.de) + ' e ' + br(f.ate);
+    else if(f.de) txt = 'a partir de ' + br(f.de);
+    else if(f.ate) txt = 'até ' + br(f.ate);
+  }
+  if(!txt){ el.innerHTML=''; return; }
+  /* Quantos ficaram de fora por não terem data — some sem avisar seria
+     o mesmo que esconder edital. */
+  var sem = (TODOS||[]).filter(function(d){ return !vDataDoEdital(d.arr); }).length;
+  el.innerHTML = '<span style="color:var(--nh)">'+txt+'</span>'
+    + (sem ? ' <span style="color:var(--t3)">· '+sem+' sem data</span>' : '')
+    + ' <button onclick="vLimparPeriodo()" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:11.5px;text-decoration:underline;font-family:inherit">limpar</button>';
+}
+
 function getFiltrados(){
   return TODOS.filter(function(d){
+    if(!vNoPeriodo(d.arr)) return false;
     var part=String(d.arr[10]||'').toUpperCase().trim();
     var resp=String(d.arr[9]||'').toUpperCase().trim();
     var emp=String(d.arr[2]||'').trim();
