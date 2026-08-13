@@ -193,6 +193,43 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;min-he
 
 /* ─── TOOLBAR ────────────────────────────── */
 .toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+
+/* ── Filtro de período ─────────────────────────────────────────────
+   Um botão só, do tamanho dos outros da barra. A primeira versão
+   deixava dois selects e dois campos de data sempre visíveis: pesava
+   mais que o próprio conteúdo e chamava atenção para um filtro que,
+   na maior parte do tempo, está desligado. */
+.per-wrap{position:relative;display:inline-flex}
+/* Mesma altura e peso dos outros botões da barra: um controle que
+   destoa de tamanho chama atenção sozinho, que é o oposto do pedido. */
+.per-btn{display:inline-flex;align-items:center;gap:6px;background:var(--s2);
+  border:1px solid var(--b1);color:var(--t2);padding:8px 13px;border-radius:8px;
+  font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;
+  line-height:1.15;transition:border-color .15s,color .15s,background .15s}
+.per-btn:hover{border-color:var(--b2);color:var(--t1)}
+/* Ligado: laranja discreto, sem gritar. É o único estado que precisa
+   se destacar, porque muda o que a lista mostra. */
+.per-btn.on{background:rgba(249,115,22,.1);border-color:rgba(249,115,22,.35);color:var(--nh)}
+.per-btn .per-x{opacity:.55;font-size:14px;line-height:1;padding-left:2px}
+.per-btn .per-x:hover{opacity:1}
+
+.per-pop{position:absolute;top:calc(100% + 6px);left:0;z-index:120;min-width:230px;
+  background:var(--s1);border:1px solid var(--b2);border-radius:12px;padding:10px;
+  box-shadow:0 18px 50px rgba(0,0,0,.55);display:none}
+.per-pop.open{display:block}
+.per-lbl{font-size:9.5px;font-weight:800;color:var(--t3);text-transform:uppercase;
+  letter-spacing:.07em;margin:2px 0 6px}
+.per-sel{width:100%;background:var(--s2);border:1px solid var(--b1);color:var(--t1);
+  padding:7px 9px;border-radius:8px;font-family:inherit;font-size:12.5px;outline:none;cursor:pointer}
+.per-sel:focus{border-color:var(--nh)}
+.per-datas{display:none;gap:6px;align-items:center;margin-top:8px}
+.per-datas.on{display:flex}
+.per-datas input{flex:1;min-width:0;background:var(--s2);border:1px solid var(--b1);
+  color:var(--t1);padding:6px 8px;border-radius:8px;font-family:inherit;font-size:12px;outline:none}
+.per-nota{font-size:10.5px;color:var(--t3);margin-top:8px;line-height:1.5}
+.per-limpar{background:none;border:none;color:var(--t3);cursor:pointer;font-size:11.5px;
+  text-decoration:underline;font-family:inherit;padding:6px 0 0}
+.per-limpar:hover{color:var(--t1)}
 .search{
   display:flex;align-items:center;gap:8px;
   background:var(--s2);border:1px solid var(--b1);
@@ -2747,11 +2784,17 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
       <span class="sb-badge" id="b-valores">—</span>
     </div>
 
-    <div class="sb-item" id="nav-financeiro" onclick="go('financeiro',this)">
+    <!-- O Financeiro saiu daqui em 08/08/2026: virou sistema próprio
+         (financeiro.html), onde entram também os honorários recebidos,
+         as retenções e a nota fiscal. Manter as duas telas seria ter
+         duas verdades sobre o mesmo dinheiro.
+         A coleção `financeiro` continua a mesma — o sistema novo lê
+         dela, então nenhuma despesa lançada aqui se perdeu. -->
+    <a class="sb-item" href="financeiro.html" target="_blank" style="text-decoration:none;color:inherit">
       <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
       <span>Financeiro</span>
-      <span class="sb-badge" id="b-financeiro">—</span>
-    </div>
+      <span class="sb-badge" style="font-size:9px">abrir ↗</span>
+    </a>
     <div class="sb-item" id="nav-calendario" onclick="go('calendario',this)">
       <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
       <span>Calendário</span>
@@ -3831,41 +3874,9 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
 </div>
 </div>
 
-<div class="page" id="page-financeiro">
-      <!-- Filtro de empresa no financeiro -->
-      <div id="fin-emp-pills" style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap"></div>
-      <!-- Seletor de mês + configuração de recarga -->
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-        <button onclick="finMes(-1)" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:5px 12px;border-radius:7px;cursor:pointer;font-size:16px">‹</button>
-        <span id="fin-mes-label" style="font-size:14px;font-weight:700;color:var(--t1);min-width:140px;text-align:center"></span>
-        <button onclick="finMes(1)" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:5px 12px;border-radius:7px;cursor:pointer;font-size:16px">›</button>
-        <button onclick="finMesHoje()" style="background:var(--s2);border:1px solid var(--b1);color:var(--t3);padding:5px 12px;border-radius:7px;cursor:pointer;font-size:12px">Mês Atual</button>
-        <div style="flex:1"></div>
-        <div style="display:flex;align-items:center;gap:6px">
-          <button onclick="gerarRelatorioFinanceiro()" style="background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.3);color:var(--nh);padding:6px 14px;border-radius:7px;font-size:12px;cursor:pointer;font-family:Outfit,sans-serif;font-weight:600;display:flex;align-items:center;gap:5px">🖨 Relatório</button>
-        <span style="font-size:12px;color:var(--t3)">Recarga mensal:</span>
-          <input type="text" id="fin-recarga-val" style="width:120px;background:var(--s2);border:1px solid var(--b1);color:var(--nh);padding:5px 9px;border-radius:7px;font-size:13px;font-weight:700;text-align:right;font-family:Outfit,sans-serif" placeholder="R$ 1.500,00" oninput="mascaraMoeda(this)" onchange="salvarRecarga()">
-        </div>
-      </div>
-      <div id="fin-resumo" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:0"></div>
-      <!-- Por empresa -->
-      <div id="fin-por-empresa" style="margin-bottom:0"></div>
-      <div class="stats" id="st-financeiro" style="margin-bottom:0"></div>
-      <div class="toolbar">
-        <button class="btn btn-nh" onclick="openM('financeiro')">
-          <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-          Novo Lançamento
-        </button>
-        <button onclick="abrirModalImpressao('financeiro')" title="Imprimir / PDF" style="background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.25);color:var(--nh);padding:6px 12px;border-radius:7px;cursor:pointer;font-family:Outfit,sans-serif;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>Imprimir</button>
-        <button onclick="exportarExcel('financeiro')" title="Exportar Excel" style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);color:#22c55e;padding:6px 12px;border-radius:7px;cursor:pointer;font-family:Outfit,sans-serif;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Excel</button>
-        <div class="search"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><input placeholder="Buscar..." id="q-financeiro" oninput="doQ('financeiro')"></div>
-      </div>
-      <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
-        <button class="btn-toggle-all" id="tga-financeiro" onclick="toggleAllCards('financeiro')">&#8964; Expandir tudo</button>
-      </div>
-      <div id="tbl-financeiro" class="tbl-wrap"><div class="load"><div class="spin"></div>Carregando...</div></div>
-      <div class="pag" id="pag-financeiro"></div>
-    </div>
+    <!-- A página do Financeiro foi removida em 08/08/2026: virou o
+         sistema financeiro.html. A coleção `financeiro` segue a mesma,
+         lida por ele — nenhuma despesa lançada aqui se perdeu. -->
 
     <!-- EMPRESA -->
     <!-- AFAZERES -->
@@ -4207,7 +4218,13 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
 <div id="toasts"></div>
 
 <!-- ══════ JS ════════════════════════════════ -->
-<script>const SHEETS={editais:"EDITAIS CAPTURADOS",andamento:"EM ANDAMENTO",finalizados:"FINALIZADOS",ganhas:"LICITAÇÕES GANHAS",atestados:"ATESTADOS",financeiro:"FINANCEIRO",valores:"BANCO DE DADOS"},PS=20;var CUSTOM_OPTS={};async function carregarOptsCustom(){try{var e=await db.collection("config").doc("custom_opts").get();e.exists&&e.data()&&(CUSTOM_OPTS=e.data())}catch(e){}}async function salvarOptsCustom(){await db.collection("config").doc("custom_opts").set(CUSTOM_OPTS)}function getOptsCustom(e,a){return CUSTOM_OPTS[e+"_"+a]||[]}async function adicionarOpcaoCustom(e,a,t){var o=e+"_"+a;CUSTOM_OPTS[o]||(CUSTOM_OPTS[o]=[]),-1===CUSTOM_OPTS[o].indexOf(t)&&(CUSTOM_OPTS[o].push(t),await salvarOptsCustom())}const EMAILS_AUTORIZADOS=["noronhaholandalicitacoes@gmail.com","noronhaholanda@gmail.com"],firebaseConfig={apiKey:"AIzaSyBhcpJP9dRM0SEJsGfcNUXYb1rTMdEDw6M",authDomain:"nh-licitacoes.firebaseapp.com",projectId:"nh-licitacoes",storageBucket:"nh-licitacoes.firebasestorage.app",messagingSenderId:"1081646053691",appId:"1:1081646053691:web:a8abcb5792d026ade71f1e"};(function(){try{if(!localStorage.getItem("nh_idb_limpo_v1")){var _dbs=["firestore/[DEFAULT]/nh-licitacoes/main","firebaseLocalStorageDb"];if(window.indexedDB&&indexedDB.databases){indexedDB.databases().then(function(list){(list||[]).forEach(function(d){if(d&&d.name&&d.name.indexOf("firestore")!==-1){try{indexedDB.deleteDatabase(d.name);}catch(e){}}});});}else{_dbs.forEach(function(n){try{indexedDB.deleteDatabase(n);}catch(e){}});}localStorage.setItem("nh_idb_limpo_v1","1");}}catch(e){}})();firebase.initializeApp(firebaseConfig);const db=firebase.firestore();db.settings({experimentalAutoDetectLongPolling:!0,merge:!0});const auth=firebase.auth();
+<script>/* `financeiro` saiu daqui em 08/08/2026 junto com a página: o Sistema
+   NH não carrega mais essa coleção, quem cuida dela é o financeiro.html.
+   Tirar da lista, e não só esconder a tela, resolve duas coisas — o
+   applyFilters parava de estourar ao tentar desenhar numa página que
+   não existe mais, e a carga inicial deixou de gastar leituras de uma
+   coleção que ninguém aqui usa. Os dados continuam intactos no banco. */
+const SHEETS={editais:"EDITAIS CAPTURADOS",andamento:"EM ANDAMENTO",finalizados:"FINALIZADOS",ganhas:"LICITAÇÕES GANHAS",atestados:"ATESTADOS",valores:"BANCO DE DADOS"},PS=20;var CUSTOM_OPTS={};async function carregarOptsCustom(){try{var e=await db.collection("config").doc("custom_opts").get();e.exists&&e.data()&&(CUSTOM_OPTS=e.data())}catch(e){}}async function salvarOptsCustom(){await db.collection("config").doc("custom_opts").set(CUSTOM_OPTS)}function getOptsCustom(e,a){return CUSTOM_OPTS[e+"_"+a]||[]}async function adicionarOpcaoCustom(e,a,t){var o=e+"_"+a;CUSTOM_OPTS[o]||(CUSTOM_OPTS[o]=[]),-1===CUSTOM_OPTS[o].indexOf(t)&&(CUSTOM_OPTS[o].push(t),await salvarOptsCustom())}const EMAILS_AUTORIZADOS=["noronhaholandalicitacoes@gmail.com","noronhaholanda@gmail.com"],firebaseConfig={apiKey:"AIzaSyBhcpJP9dRM0SEJsGfcNUXYb1rTMdEDw6M",authDomain:"nh-licitacoes.firebaseapp.com",projectId:"nh-licitacoes",storageBucket:"nh-licitacoes.firebasestorage.app",messagingSenderId:"1081646053691",appId:"1:1081646053691:web:a8abcb5792d026ade71f1e"};(function(){try{if(!localStorage.getItem("nh_idb_limpo_v1")){var _dbs=["firestore/[DEFAULT]/nh-licitacoes/main","firebaseLocalStorageDb"];if(window.indexedDB&&indexedDB.databases){indexedDB.databases().then(function(list){(list||[]).forEach(function(d){if(d&&d.name&&d.name.indexOf("firestore")!==-1){try{indexedDB.deleteDatabase(d.name);}catch(e){}}});});}else{_dbs.forEach(function(n){try{indexedDB.deleteDatabase(n);}catch(e){}});}localStorage.setItem("nh_idb_limpo_v1","1");}}catch(e){}})();firebase.initializeApp(firebaseConfig);const db=firebase.firestore();db.settings({experimentalAutoDetectLongPolling:!0,merge:!0});const auth=firebase.auth();
 
 /* ── Conta de autenticação real para responsáveis ────────────────────
    Uma segunda instância do Firebase, só para criar conta — criar
@@ -5210,7 +5227,7 @@ function nhResumoPeriodo(tab){
   if(!f || !f.periodo || f.periodo === 'todos') return '';
   var campos = DATE_CAMPOS[tab] || [];
   var achado = campos.filter(function(c){ return String(c.k) === String(f.campo); })[0];
-  var qual = achado ? achado.r.toLowerCase() : 'data';
+  var qual = achado ? (achado.f || achado.r.toLowerCase()) : 'registros';
   if(f.periodo === '12m') return qual + ' nos últimos 12 meses';
   if(f.periodo.indexOf('ano:') === 0) return qual + ' em ' + f.periodo.slice(4);
   if(f.periodo === 'custom'){
@@ -5258,7 +5275,7 @@ function nhPeriodoMudou(tab){
   if(de) f.de = de.value;
   if(ate) f.ate = ate.value;
   var box = document.getElementById('perbox-'+tab);
-  if(box) box.style.display = (f.periodo === 'custom') ? 'inline-flex' : 'none';
+  if(box) box.classList.toggle('on', f.periodo === 'custom');
   /* Trocar o campo muda os anos que existem. */
   if(trocouCampo) nhPopularAnos(tab);
   applyFilters(tab);
@@ -5273,31 +5290,46 @@ function nhLimparPeriodo(tab){
   if(sp) sp.value = 'todos';
   if(de) de.value = ''; if(ate) ate.value = '';
   var box=document.getElementById('perbox-'+tab);
-  if(box) box.style.display='none';
+  if(box) box.classList.remove('on');
   nhPopularAnos(tab);
   applyFilters(tab);
   nhPintarResumoPeriodo(tab);
+  var pop=document.getElementById('perpop-'+tab);
+  if(pop) pop.classList.remove('open');
 }
 
 /** Diz o recorte e quantos ficaram sem a data — um filtro que só
     encolhe a lista sem explicar faz achar que sumiu registro. */
 function nhPintarResumoPeriodo(tab){
-  var el = document.getElementById('perres-'+tab);
-  if(!el) return;
   var res = nhResumoPeriodo(tab);
-  if(!res){ el.innerHTML = ''; return; }
   var sem = nhSemDataNoPeriodo(tab);
-  el.innerHTML = '<span style="color:var(--nh)">'+res+'</span>'
-    + (sem ? ' <span style="color:var(--t3)" title="Não têm a data escolhida preenchida, então não dá para afirmar que estão no período">· '+sem+' sem a data</span>' : '')
-    + ' <button onclick="nhLimparPeriodo(\''+tab+'\')" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:11px;text-decoration:underline;font-family:inherit;padding:0 0 0 4px">limpar</button>';
+
+  /* O botão vira o indicador: fechado, ele já diz o recorte ativo.
+     Assim o filtro some da tela quando está desligado e fica óbvio
+     quando está ligado — que é quando importa. */
+  var btn = document.getElementById('perbtn-'+tab);
+  var lbl = document.getElementById('perlbl-'+tab);
+  if(btn && lbl){
+    btn.classList.toggle('on', !!res);
+    lbl.textContent = res || 'Período';
+    btn.title = res ? 'Filtrando: ' + res : 'Filtrar por data';
+  }
+
+  /* Dentro do painel fica só a nota do que ficou de fora. */
+  var el = document.getElementById('perres-'+tab);
+  if(el){
+    el.innerHTML = (res && sem)
+      ? sem + ' registro(s) sem a data escolhida ficaram de fora — não dá para afirmar que estão no período.'
+      : '';
+  }
 }
 
 /* Monta o controle dentro da toolbar de cada aba. Feito por JS de
    propósito: são seis abas, e um HTML copiado seis vezes divergiria
    no primeiro ajuste. */
+/* Monta o botão de período na toolbar de cada aba. Um botão só: as
+   opções moram num painel que aparece ao clicar. */
 function nhMontarFiltrosPeriodo(){
-  var est = 'background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:6px 9px;'
-          + 'border-radius:8px;font-family:inherit;font-size:12px;outline:none;cursor:pointer';
   Object.keys(DATE_CAMPOS).forEach(function(tab){
     var tb = document.querySelector('#page-'+tab+' .toolbar');
     if(!tb || document.getElementById('per-'+tab)) return;
@@ -5305,24 +5337,55 @@ function nhMontarFiltrosPeriodo(){
     DATE_FILTER[tab] = DATE_FILTER[tab] || {campo:campos[0].k, periodo:'todos', de:'', ate:''};
 
     var wrap = document.createElement('div');
-    wrap.style.cssText = 'display:flex;align-items:center;gap:6px;flex-wrap:wrap';
+    wrap.className = 'per-wrap';
     wrap.innerHTML =
-      (campos.length > 1
-        ? '<select id="perc-'+tab+'" onchange="nhPeriodoMudou(\''+tab+'\')" title="Sobre qual data filtrar" style="'+est+'">'
-          + campos.map(function(c){ return '<option value="'+c.k+'">'+c.r+'</option>'; }).join('')
-          + '</select>'
-        : '<input type="hidden" id="perc-'+tab+'" value="'+campos[0].k+'">')
-      + '<select id="per-'+tab+'" onchange="nhPeriodoMudou(\''+tab+'\')" style="'+est+'">'
-      + '<option value="todos">Todo o período</option></select>'
-      + '<span id="perbox-'+tab+'" style="display:none;align-items:center;gap:5px">'
-      +   '<input type="date" id="perd-'+tab+'" onchange="nhPeriodoMudou(\''+tab+'\')" style="'+est+'">'
-      +   '<span style="color:var(--t3);font-size:11px">até</span>'
-      +   '<input type="date" id="pera-'+tab+'" onchange="nhPeriodoMudou(\''+tab+'\')" style="'+est+'">'
-      + '</span>'
-      + '<span id="perres-'+tab+'" style="font-size:11.5px;color:var(--t2)"></span>';
+      '<button class="per-btn" id="perbtn-'+tab+'" onclick="nhTogglePop(event,\''+tab+'\')" title="Filtrar por data">'
+      +   '<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">'
+      +     '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" '
+      +     'd="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>'
+      +   '<span id="perlbl-'+tab+'">Período</span>'
+      + '</button>'
+      + '<div class="per-pop" id="perpop-'+tab+'" onclick="event.stopPropagation()">'
+      +   (campos.length > 1
+          ? '<div class="per-lbl">Sobre qual data</div>'
+            + '<select class="per-sel" id="perc-'+tab+'" onchange="nhPeriodoMudou(\''+tab+'\')">'
+            + campos.map(function(c){ return '<option value="'+c.k+'">'+c.r+'</option>'; }).join('')
+            + '</select><div style="height:9px"></div>'
+          : '<input type="hidden" id="perc-'+tab+'" value="'+campos[0].k+'">')
+      +   '<div class="per-lbl">Intervalo</div>'
+      +   '<select class="per-sel" id="per-'+tab+'" onchange="nhPeriodoMudou(\''+tab+'\')">'
+      +     '<option value="todos">Todo o período</option></select>'
+      +   '<div class="per-datas" id="perbox-'+tab+'">'
+      +     '<input type="date" id="perd-'+tab+'" onchange="nhPeriodoMudou(\''+tab+'\')">'
+      +     '<span style="color:var(--t3);font-size:11px">até</span>'
+      +     '<input type="date" id="pera-'+tab+'" onchange="nhPeriodoMudou(\''+tab+'\')">'
+      +   '</div>'
+      +   '<div class="per-nota" id="perres-'+tab+'"></div>'
+      +   '<button class="per-limpar" onclick="nhLimparPeriodo(\''+tab+'\')">Limpar filtro</button>'
+      + '</div>';
     tb.appendChild(wrap);
     nhPopularAnos(tab);
   });
+
+  /* Um clique fora fecha qualquer painel aberto. */
+  if(!window._perFechaLigado){
+    window._perFechaLigado = true;
+    document.addEventListener('click', function(){
+      document.querySelectorAll('.per-pop.open').forEach(function(p){ p.classList.remove('open'); });
+    });
+    document.addEventListener('keydown', function(ev){
+      if(ev.key === 'Escape')
+        document.querySelectorAll('.per-pop.open').forEach(function(p){ p.classList.remove('open'); });
+    });
+  }
+}
+
+function nhTogglePop(ev, tab){
+  ev.stopPropagation();
+  var pop = document.getElementById('perpop-'+tab);
+  var aberto = pop && pop.classList.contains('open');
+  document.querySelectorAll('.per-pop.open').forEach(function(p){ p.classList.remove('open'); });
+  if(pop && !aberto) pop.classList.add('open');
 }
 
 function applyFilters(e){if("andamento"===e&&PRAHOJE_ACTIVE){PRAHOJE_ACTIVE=!1;var a=document.getElementById("btn-prahoje");a&&(a.style.background="rgba(249,115,22,.15)",a.style.color="var(--nh)",a.innerHTML="📅 Pra Hoje")}var t=EMP_FILTER[e]||null,o=STATUS_FILTER[e]||null,i=(document.getElementById("q-"+e)||{}).value,n=i?i.toLowerCase():"";FIL[e]=ALL[e].filter(function(a){if(!nhNoPeriodo(e,a))return!1;if("andamento"===e&&"sim"===String(a[16]||"").toLowerCase().trim())return!1;if("financeiro"===e){var i=finGetData(a).split("/");if(3!==i.length)return!1;if(parseInt(i[1])-1!==_finMes||parseInt(i[2])!==_finAno)return!1;if(_finEmpSel&&String(a[8]||"").trim()!==_finEmpSel)return!1}if(t&&String(a[2]||"").trim()!==t)return!1;if(n&&!a.some(function(e){return-1!==String(e||"").toLowerCase().indexOf(n)}))return!1;if("editais"===e&&VENCENDO_FILTRO_ATIVO){if(!_editalAlerta24h(a))return!1;}if(o)if("editais"===e){var r=String(a[10]||"").toUpperCase().trim();if("green"===o&&"SIM"!==r)return!1;if("red"===o&&"NÃO"!==r&&"NAO"!==r)return!1;if("analise"===o&&!_ehAnalise(r))return!1;if("dark"===o&&("SIM"===r||"NÃO"===r||"NAO"===r||_ehAnalise(r)))return!1;}else if("andamento"===e||"finalizados"===e){if("finalizados"===e){var s=String(a[16]||"").toLowerCase().trim(),d=String(a[11]||"").trim(),l=String(a[14]||"").toLowerCase().trim();if("green"===o&&("sim"!==s||!is1Posicao(d)))return!1;if("red"===o&&("sim"!==s||is1Posicao(d)))return!1;if("yellow"===o&&"sim"!==l)return!1;if("dark"===o&&("sim"===s||"sim"===l))return!1}else if("andamento"===e){var c=String(a[12]||"").toLowerCase().trim(),A=String(a[14]||"").toLowerCase().trim();if("yellow"===o&&"em andamento"!==c&&"em disputa"!==c&&"recurso"!==c)return!1;if("aguard"===o&&"aguardando"!==c)return!1;if("recurso"===o&&"sim"!==A)return!1;if("dark"===o&&("em andamento"===c||"em disputa"===c||"aguardando"===c||"recurso"===c||"sim"===A))return!1}else if(getAndamentoCor(a)!==o)return!1}else if("ganhas"===e){var _cat=_relCategoria(a),_dias=_relDias(a),_stc=String(a[9]||"").toUpperCase().trim(),_temRecomp=("SIM"===String(a[13]||"").toUpperCase().trim()||"SIM"===String(a[20]||"").toUpperCase().trim()||"SIM"===String(a[27]||"").toUpperCase().trim()||"SIM"===String(a[34]||"").toUpperCase().trim());
