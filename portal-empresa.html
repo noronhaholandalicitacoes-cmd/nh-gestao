@@ -543,6 +543,35 @@ textarea.mc-input{resize:vertical;min-height:64px}
 .graf-title{font-size:12px;color:var(--t1);letter-spacing:0;font-weight:700;margin-bottom:12px;
   text-transform:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
+/* ── Filtro de período: um botão, opções em painel ─────────────────
+   A primeira versão deixava dois selects e dois campos de data soltos
+   na barra. Pesava mais que o conteúdo, para um filtro que na maior
+   parte do tempo está desligado. */
+.per-wrap{position:relative;display:inline-flex}
+.per-btn{display:inline-flex;align-items:center;gap:6px;background:var(--s2);
+  border:1px solid var(--b1);color:var(--t2);padding:8px 13px;border-radius:9px;
+  font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;
+  white-space:nowrap;line-height:1.15;transition:border-color .15s,color .15s,background .15s}
+.per-btn:hover{border-color:var(--b2);color:var(--t1)}
+.per-btn.on{background:rgba(255,107,0,.1);border-color:rgba(255,107,0,.35);color:var(--nh)}
+.per-pop{position:absolute;top:calc(100% + 6px);left:0;z-index:120;min-width:236px;
+  background:var(--s1);border:1px solid var(--b2);border-radius:12px;padding:10px;
+  box-shadow:0 18px 50px rgba(0,0,0,.5);display:none}
+.per-pop.open{display:block}
+.per-lbl-cx{font-size:9.5px;font-weight:800;color:var(--t3);text-transform:uppercase;
+  letter-spacing:.07em;margin:2px 0 6px}
+.per-sel{width:100%;background:var(--s2);border:1px solid var(--b1);color:var(--t1);
+  padding:7px 9px;border-radius:8px;font-family:inherit;font-size:12.5px;outline:none;cursor:pointer}
+.per-sel:focus{border-color:var(--nh)}
+.per-datas{display:none;gap:6px;align-items:center;margin-top:8px}
+.per-datas.on{display:flex}
+.per-datas input{flex:1;min-width:0;background:var(--s2);border:1px solid var(--b1);
+  color:var(--t1);padding:6px 8px;border-radius:8px;font-family:inherit;font-size:12px;outline:none}
+.per-nota{font-size:10.5px;color:var(--t3);margin-top:8px;line-height:1.5}
+.per-limpar{background:none;border:none;color:var(--t3);cursor:pointer;font-size:11.5px;
+  text-decoration:underline;font-family:inherit;padding:6px 0 0}
+.per-limpar:hover{color:var(--t1)}
+
 /* ── Dashboard das empresas, no padrão do Portal de Licitações ── */
 .emp-card{background:var(--s1);border:1px solid var(--b1);border-radius:16px;padding:18px;
   position:relative;transition:border-color .22s ease}
@@ -1000,27 +1029,38 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
         <input id="inp-busca" placeholder="Buscar contrato, objeto, município..." oninput="renderContratos()"
           style="background:none;border:none;color:var(--t1);font-family:'DM Sans',sans-serif;font-size:13px;flex:1;outline:none">
       </div>
-      <!-- Filtro de período. Duas escolhas, porque "contratos de 2026"
-           é ambíguo: assinados, vencendo ou lançados em 2026 são três
-           listas diferentes. Antes não havia filtro de data nenhum e a
-           pergunta só era respondida gerando relatório no outro sistema. -->
-      <select id="sel-campo-data" onchange="pAoTrocarCampoData()" title="Sobre qual data filtrar"
-        style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:8px 12px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:12px;outline:none;cursor:pointer">
-        <option value="assinatura">Assinatura</option>
-        <option value="vencimento">Vencimento</option>
-        <option value="lancamento">Lançamento</option>
-      </select>
-      <select id="sel-periodo" onchange="pAoTrocarPeriodo()"
-        style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:8px 12px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:12px;outline:none;cursor:pointer">
-        <option value="todos">Todo o período</option>
-      </select>
-      <span id="periodo-custom" style="display:none;align-items:center;gap:6px">
-        <input type="date" id="inp-de" onchange="renderContratos()" title="De"
-          style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:7px 9px;border-radius:9px;font-family:inherit;font-size:12px;outline:none">
-        <span style="color:var(--t3);font-size:12px">até</span>
-        <input type="date" id="inp-ate" onchange="renderContratos()" title="Até"
-          style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:7px 9px;border-radius:9px;font-family:inherit;font-size:12px;outline:none">
-      </span>
+      <!-- Filtro de período num botão só. As opções moram no painel:
+           deixar dois selects e dois campos de data sempre visíveis
+           pesava mais que o conteúdo, para um filtro que na maior
+           parte do tempo está desligado.
+           São duas escolhas porque "contratos de 2026" é ambíguo —
+           assinados, vencendo e lançados são três listas diferentes. -->
+      <div class="per-wrap">
+        <button class="per-btn" id="per-btn" onclick="pTogglePop(event)" title="Filtrar por data">
+          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          <span id="per-lbl">Período</span>
+        </button>
+        <div class="per-pop" id="per-pop" onclick="event.stopPropagation()">
+          <div class="per-lbl-cx">Sobre qual data</div>
+          <select class="per-sel" id="sel-campo-data" onchange="pAoTrocarCampoData()">
+            <option value="assinatura">Assinatura</option>
+            <option value="vencimento">Vencimento</option>
+            <option value="lancamento">Lançamento</option>
+          </select>
+          <div style="height:9px"></div>
+          <div class="per-lbl-cx">Intervalo</div>
+          <select class="per-sel" id="sel-periodo" onchange="pAoTrocarPeriodo()">
+            <option value="todos">Todo o período</option>
+          </select>
+          <div class="per-datas" id="periodo-custom">
+            <input type="date" id="inp-de" onchange="renderContratos()" title="De">
+            <span style="color:var(--t3);font-size:11px">até</span>
+            <input type="date" id="inp-ate" onchange="renderContratos()" title="Até">
+          </div>
+          <div class="per-nota" id="per-nota"></div>
+          <button class="per-limpar" onclick="pLimparPeriodo()">Limpar filtro</button>
+        </div>
+      </div>
       <select id="sel-ordem" onchange="renderContratos()"
         style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:8px 12px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:12px;outline:none;cursor:pointer">
         <option value="recente">Mais recente</option>
@@ -3372,18 +3412,11 @@ function renderContratos(){
   }
 
   const contEl = document.getElementById('contratos-contagem');
-  if(contEl){
-    /* A contagem passa a dizer TAMBÉM o recorte e quantos ficaram de
-       fora por não terem a data. Um filtro que só encolhe a lista sem
-       explicar por quê é o que faz alguém achar que sumiu contrato. */
-    const _rec = pResumoPeriodo();
-    const _sem = pSemDataNoRecorte();
-    contEl.innerHTML = lista.length + ' contrato' + (lista.length !== 1 ? 's' : '')
-      + (_rec ? ' <span style="color:var(--nh)">· ' + pEsc(_rec) + '</span>' : '')
-      + (_sem ? ' <span style="color:var(--t3)" title="Não têm a data escolhida preenchida, então não dá para afirmar que estão no período">· '
-                + _sem + ' sem a data</span>' : '')
-      + (_rec ? ' <button onclick="pLimparPeriodo()" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:11.5px;text-decoration:underline;font-family:inherit;padding:0 0 0 4px">limpar</button>' : '');
-  }
+  /* Só a contagem. O recorte ativo e o aviso de quem ficou de fora
+     vivem no próprio botão de período e no painel dele — repetir aqui
+     era o que deixava a tela poluída. */
+  if(contEl) contEl.textContent = lista.length + ' contrato' + (lista.length !== 1 ? 's' : '');
+  pPintarBotaoPeriodo();
 
   // Total filtrado (igual ao sistema)
   const totalFiltrado = lista.reduce((s,{arr})=>s+calcValorGanhas(arr),0);
@@ -3543,6 +3576,12 @@ var FAT = {};   /* contratoId -> [documentos fiscais] */
 var NOT = {};   /* contratoId -> [notificações]      */
 
 var FAT_TIPOS = {
+  /* Empenho é compromisso de verba do órgão, não cobrança — por isso
+     entra como autorização, ao lado de OS e OC, e não no faturado.
+     Ele existe aqui porque é dele que sai o honorário da NH quando o
+     acordo é "% descontado a cada empenho": registrar num lugar só
+     evita a mesma informação ser digitada duas vezes. */
+  EMPENHO: {rotulo:'Empenho',          curto:'Empenho', cor:'#06b6d4', autoriza:true},
   OS:      {rotulo:'Ordem de Serviço', curto:'OS',      cor:'#a855f7', autoriza:true},
   OC:      {rotulo:'Ordem de Compra',  curto:'OC',      cor:'#8b5cf6', autoriza:true},
   MEDICAO: {rotulo:'Medição',          curto:'Medição', cor:'#3b82f6', autoriza:false},
@@ -5403,16 +5442,53 @@ function pLimparPeriodo(){
   var de = document.getElementById('inp-de'), ate = document.getElementById('inp-ate');
   if(de) de.value = ''; if(ate) ate.value = '';
   var box = document.getElementById('periodo-custom');
-  if(box) box.style.display = 'none';
+  if(box) box.classList.remove('on');
+  var pop = document.getElementById('per-pop');
+  if(pop) pop.classList.remove('open');
   renderContratos();
 }
 
 function pAoTrocarPeriodo(){
   var sel = document.getElementById('sel-periodo');
   var box = document.getElementById('periodo-custom');
-  if(box) box.style.display = (sel && sel.value === 'custom') ? 'inline-flex' : 'none';
+  if(box) box.classList.toggle('on', !!(sel && sel.value === 'custom'));
   renderContratos();
 }
+
+function pTogglePop(ev){
+  ev.stopPropagation();
+  var pop = document.getElementById('per-pop');
+  if(pop) pop.classList.toggle('open');
+}
+
+/* O botão é o indicador: fechado, já diz o recorte ativo. */
+function pPintarBotaoPeriodo(){
+  var btn = document.getElementById('per-btn'), lbl = document.getElementById('per-lbl');
+  var res = pResumoPeriodo();
+  if(btn && lbl){
+    btn.classList.toggle('on', !!res);
+    lbl.textContent = res || 'Período';
+    btn.title = res ? 'Filtrando: ' + res : 'Filtrar por data';
+  }
+  var nota = document.getElementById('per-nota');
+  if(nota){
+    var sem = pSemDataNoRecorte();
+    nota.innerHTML = (res && sem)
+      ? sem + ' contrato(s) sem a data escolhida ficaram de fora — não dá para afirmar que estão no período.'
+      : '';
+  }
+}
+
+/* Fecha o painel ao clicar fora ou apertar Esc. */
+document.addEventListener('click', function(){
+  var pop = document.getElementById('per-pop');
+  if(pop) pop.classList.remove('open');
+});
+document.addEventListener('keydown', function(ev){
+  if(ev.key !== 'Escape') return;
+  var pop = document.getElementById('per-pop');
+  if(pop) pop.classList.remove('open');
+});
 
 /** true = o contrato entra na lista. */
 function pNoPeriodo(arr){
