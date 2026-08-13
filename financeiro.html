@@ -93,13 +93,65 @@ textarea{resize:vertical;min-height:60px}
 .erro{grid-column:1/-1;display:none;font-size:12.5px;color:#f87171;background:rgba(239,68,68,.1);
   border:1px solid rgba(239,68,68,.3);border-radius:9px;padding:10px 13px}
 
-.acesso{position:fixed;inset:0;background:var(--bg);z-index:900;display:flex;
-  align-items:center;justify-content:center;padding:20px}
-.cx-acesso{width:100%;max-width:380px;text-align:center}
-.cx-acesso h1{font-size:28px;font-weight:900;margin:16px 0 6px}
-.cx-acesso p{font-size:13px;color:var(--t2);margin-bottom:22px}
-.cx-acesso .campo{text-align:left;margin-bottom:12px}
-.msg-erro{font-size:12.5px;color:#f87171;margin-top:10px;display:none}
+/* ── Tela de acesso — a mesma dos outros sistemas ──────────────────
+   A primeira versão era uma caixinha de 380px com <img src="logo-nh.jpg">.
+   Dois erros: o arquivo não existe em nenhum sistema (a marca é o
+   texto "NH" desenhado em CSS, por isso a imagem quebrou), e a tela
+   ficava miúda perto das outras. Aqui está o padrão de verdade —
+   esferas de luz à deriva, anéis girando em volta da marca. */
+.acesso{position:fixed;inset:0;z-index:900;display:flex;
+  align-items:center;justify-content:center;padding:24px;
+  background:var(--bg);overflow:hidden}
+.ac-bg{position:absolute;inset:0;pointer-events:none}
+.ac-orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.34}
+body.light .ac-orb{opacity:.16}
+.ac-o1{width:500px;height:500px;background:radial-gradient(circle,#7c3aed,transparent);
+  top:-150px;left:-150px;animation:acF1 10s ease-in-out infinite}
+.ac-o2{width:400px;height:400px;background:radial-gradient(circle,var(--nh),transparent);
+  bottom:-100px;right:-100px;animation:acF2 12s ease-in-out infinite}
+.ac-o3{width:300px;height:300px;background:radial-gradient(circle,#3b82f6,transparent);
+  top:50%;left:50%;animation:acF3 8s ease-in-out infinite}
+@keyframes acF1{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,30px)}}
+@keyframes acF2{0%,100%{transform:translate(0,0)}50%{transform:translate(-30px,-40px)}}
+@keyframes acF3{0%,100%{transform:translate(-50%,-50%)}50%{transform:translate(-45%,-55%)}}
+
+.cx-acesso{position:relative;z-index:1;width:100%;max-width:430px;
+  display:flex;flex-direction:column;align-items:center;animation:acSobe .5s ease}
+@keyframes acSobe{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+.ac-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.04);
+  border:1px solid var(--b1);backdrop-filter:blur(12px);padding:6px 14px;border-radius:20px;
+  font-size:11px;font-weight:600;color:var(--t3);letter-spacing:.08em;margin-bottom:28px}
+.ac-dot{width:7px;height:7px;border-radius:50%;background:var(--g1);
+  box-shadow:0 0 8px var(--g1);animation:acPulso 2s infinite}
+@keyframes acPulso{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.7;transform:scale(1.3)}}
+
+.ac-logo{position:relative;width:100px;height:100px;display:flex;
+  align-items:center;justify-content:center;margin-bottom:24px}
+.ac-anel{position:absolute;border-radius:50%;border:2px solid transparent;animation:acGira 6s linear infinite}
+.ac-a1{width:100%;height:100%;border-top-color:rgba(249,115,22,.6);border-right-color:rgba(249,115,22,.2);animation-duration:4s}
+.ac-a2{width:80%;height:80%;border-top-color:rgba(124,58,237,.6);border-left-color:rgba(124,58,237,.2);animation-direction:reverse;animation-duration:6s}
+.ac-a3{width:60%;height:60%;border-bottom-color:rgba(59,130,246,.6);border-right-color:rgba(59,130,246,.2);animation-duration:8s}
+@keyframes acGira{to{transform:rotate(360deg)}}
+.ac-marca{position:relative;z-index:2;width:52px;height:52px;border-radius:16px;
+  display:flex;align-items:center;justify-content:center;background:var(--s2);
+  font-size:17px;font-weight:800;letter-spacing:-.02em;color:var(--nh);
+  animation:acBrilho 3s ease-in-out infinite}
+@keyframes acBrilho{0%,100%{box-shadow:0 0 20px rgba(249,115,22,.4)}50%{box-shadow:0 0 40px rgba(249,115,22,.7)}}
+
+.ac-tit{font-size:40px;font-weight:800;text-align:center;line-height:1.1;
+  margin-bottom:9px;letter-spacing:-.03em;color:var(--t1)}
+.ac-sub{font-size:13.5px;color:var(--t3);margin-bottom:30px;text-align:center;line-height:1.6}
+.ac-form{width:100%;background:rgba(255,255,255,.035);border:1px solid var(--b1);
+  backdrop-filter:blur(20px);border-radius:20px;padding:30px;
+  box-shadow:0 24px 70px rgba(0,0,0,.5)}
+body.light .ac-form{background:rgba(255,255,255,.75)}
+.ac-form .campo{margin-bottom:15px;text-align:left}
+.ac-form input{padding:12px 14px;font-size:14px}
+.msg-erro{font-size:12.5px;color:#f87171;margin-top:12px;display:none;
+  background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);
+  border-radius:9px;padding:10px 13px;line-height:1.55}
+@media(max-width:480px){.ac-tit{font-size:31px}.ac-form{padding:22px}}
+@media(prefers-reduced-motion:reduce){.ac-orb{animation-duration:34s}}
 @media(max-width:640px){.mb{grid-template-columns:1fr}.wrap{padding:14px}}
 </style>
 </head>
@@ -110,14 +162,32 @@ textarea{resize:vertical;min-height:60px}
      de cada cliente — uma empresa cliente logada não pode ver isso, e
      a regra do Firestore garante o mesmo do lado do banco. -->
 <div class="acesso" id="tela-acesso">
+  <div class="ac-bg" aria-hidden="true">
+    <div class="ac-orb ac-o1"></div><div class="ac-orb ac-o2"></div><div class="ac-orb ac-o3"></div>
+  </div>
   <div class="cx-acesso">
-    <img src="logo-nh.jpg" alt="" style="width:64px;height:64px;border-radius:18px;object-fit:cover">
-    <h1>NH <span class="grad">Financeiro</span></h1>
-    <p>Honorários recebidos e despesas do escritório</p>
-    <div class="campo"><label>E-mail</label><input type="email" id="ac-email" placeholder="seu@email.com"></div>
-    <div class="campo"><label>Senha</label><input type="password" id="ac-senha" placeholder="••••••••"></div>
-    <button class="btn btn-nh" id="ac-btn" style="width:100%;justify-content:center;padding:11px" onclick="entrar()">Entrar</button>
-    <div class="msg-erro" id="ac-msg"></div>
+    <div class="ac-badge"><span class="ac-dot"></span>SISTEMA ONLINE</div>
+    <div class="ac-logo">
+      <div class="ac-anel ac-a1"></div><div class="ac-anel ac-a2"></div><div class="ac-anel ac-a3"></div>
+      <div class="ac-marca">NH</div>
+    </div>
+    <div class="ac-tit">NH <span class="grad">Financeiro</span></div>
+    <div class="ac-sub">Honorários recebidos e despesas do escritório</div>
+    <div class="ac-form">
+      <div class="campo"><label>E-mail</label>
+        <input type="email" id="ac-email" placeholder="seu@email.com" autocomplete="username"></div>
+      <div class="campo"><label>Senha</label>
+        <input type="password" id="ac-senha" placeholder="••••••••" autocomplete="current-password"></div>
+      <button class="btn btn-nh" id="ac-btn" style="width:100%;justify-content:center;padding:12px;font-size:14px" onclick="entrar()">Entrar</button>
+      <div class="msg-erro" id="ac-msg"></div>
+      <!-- Dito na entrada, não só no erro: este é o único sistema em
+           que o login por WhatsApp não vale, e sem avisar a pessoa
+           tenta o número e leva "senha incorreta" sem entender. -->
+      <div style="font-size:11.5px;color:var(--t3);text-align:center;margin-top:16px;line-height:1.6">
+        Acesso da <b style="color:var(--t2)">equipe NH</b>, pelo e-mail cadastrado no Sistema NH.<br>
+        Acesso de empresa (por WhatsApp) não entra aqui.
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1159,13 +1229,30 @@ async function entrar(){
   var email=gv('ac-email'), senha=document.getElementById('ac-senha').value;
   var msg=document.getElementById('ac-msg'), btn=document.getElementById('ac-btn');
   if(!email||!senha){ msg.style.display='block'; msg.textContent='Preencha e-mail e senha.'; return; }
+
+  /* Digitar o número do WhatsApp aqui é o engano natural — é assim que
+     se entra nos outros três sistemas. Dizer "senha incorreta" nesse
+     caso manda a pessoa procurar erro onde não está. */
+  if(email.indexOf('@') < 0){
+    msg.style.display='block';
+    msg.innerHTML = /\d/.test(email) && email.replace(/\D/g,'').length >= 8
+      ? 'Aqui o acesso é <b>pelo e-mail</b>, não pelo WhatsApp — este sistema é da equipe NH. '
+        + 'Use o mesmo e-mail com que você entra no Sistema NH.'
+      : 'Informe um e-mail válido.';
+    return;
+  }
   msg.style.display='none';
   btn.disabled=true; btn.textContent='Entrando…';
   try{
     await auth.signInWithEmailAndPassword(email, senha);
   }catch(e){
+    var c=String(e&&e.code||'');
     msg.style.display='block';
-    msg.textContent='E-mail ou senha incorretos.';
+    msg.innerHTML = (c.indexOf('user-not-found')>=0)
+      ? 'Não existe conta com este e-mail. Ele precisa estar cadastrado em <b>Configurações › Usuários</b> do Sistema NH.'
+      : (c.indexOf('too-many-requests')>=0)
+      ? 'Muitas tentativas seguidas. Aguarde alguns minutos e tente de novo.'
+      : 'E-mail ou senha incorretos.';
     btn.disabled=false; btn.textContent='Entrar';
   }
 }
