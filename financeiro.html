@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0e1a">
+<title>NH — Financeiro</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  /* Mesma paleta dos outros sistemas — os quatro usam a mesma. */
+  --bg:#0a0e1a; --s1:#111725; --s2:#161d2e; --s3:#1c2438;
+  --b1:#252d40; --b2:#303a52;
+  --nh:#f97316; --g1:#22c55e; --r1:#ef4444; --y1:#eab308; --b_:#3b82f6; --p1:#a855f7;
+  --t1:#f5f5f5; --t2:#a3a3a3; --t3:#8b95a1;
+}
+body{background:var(--bg);color:var(--t1);font-family:Outfit,sans-serif;min-height:100vh}
+body.light{--bg:#f2f5fc;--s1:#ffffff;--s2:#eef2fb;--s3:#e2e9f8;--b1:#d9e1f2;--b2:#b6c4e6;
+  --t1:#0b1220;--t2:#475569;--t3:#64748b}
+
+.topo{position:sticky;top:0;z-index:50;background:rgba(10,14,26,.9);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--b1);padding:12px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+body.light .topo{background:rgba(242,245,252,.9)}
+.marca{display:flex;align-items:center;gap:10px;font-weight:800;font-size:15px}
+.marca img{width:30px;height:30px;border-radius:9px;object-fit:cover}
+.grad{background:linear-gradient(90deg,#f97316,#a855f7);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.wrap{max-width:1240px;margin:0 auto;padding:20px}
+
+.btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--b1);background:var(--s2);
+  color:var(--t2);padding:8px 14px;border-radius:9px;font-family:inherit;font-size:13px;
+  font-weight:700;cursor:pointer;transition:all .16s;white-space:nowrap}
+.btn:hover{border-color:var(--b2);color:var(--t1)}
+.btn-nh{background:var(--nh);border-color:var(--nh);color:#0a0e1a}
+.btn-nh:hover{background:#fb923c;color:#0a0e1a}
+
+.mes{display:flex;align-items:center;gap:8px}
+.mes-lbl{font-size:15px;font-weight:800;min-width:150px;text-align:center}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px;margin-bottom:20px}
+.kpi{background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:14px 16px;position:relative;overflow:hidden}
+.kpi-fio{position:absolute;top:0;left:0;right:0;height:3px}
+.kpi-l{font-size:10px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin:4px 0 6px}
+.kpi-v{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+.kpi-s{font-size:11px;color:var(--t3);margin-top:4px}
+
+.abas{display:flex;gap:4px;border-bottom:1px solid var(--b1);margin-bottom:18px;flex-wrap:wrap}
+.aba{background:none;border:none;border-bottom:2px solid transparent;color:var(--t3);
+  font-family:inherit;font-size:13.5px;font-weight:700;padding:9px 14px;cursor:pointer}
+.aba:hover{color:var(--t1)}
+.aba.on{color:var(--nh);border-bottom-color:var(--nh)}
+
+.tabela-wrap{border:1px solid var(--b1);border-radius:13px;overflow-x:auto;background:var(--s1)}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:760px}
+th{text-align:left;padding:11px 13px;font-size:10px;font-weight:800;color:var(--t3);
+  text-transform:uppercase;letter-spacing:.06em;background:var(--s2);border-bottom:1px solid var(--b1);white-space:nowrap}
+td{padding:11px 13px;border-bottom:1px solid var(--b1);color:var(--t2);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(255,255,255,.02)}
+body.light tbody tr:hover{background:rgba(0,0,0,.02)}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td b{color:var(--t1)}
+.sub{font-size:10.5px;color:var(--t3);margin-top:2px}
+.cancelada td{opacity:.45;text-decoration:line-through}
+.cancelada td:last-child{text-decoration:none}
+.atrasada{background:rgba(239,68,68,.05)}
+.badge{display:inline-block;font-size:10px;font-weight:800;padding:2px 9px;border-radius:20px;white-space:nowrap}
+.acoes{white-space:nowrap;text-align:right}
+.acoes button{background:none;border:none;cursor:pointer;font-size:13px;padding:2px 4px;opacity:.6}
+.acoes button:hover{opacity:1}
+.vazio{padding:30px 18px;text-align:center;color:var(--t2);font-size:13.5px;line-height:1.7;
+  border:1px dashed var(--b2);border-radius:13px}
+
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:600;
+  align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.ov.on{display:flex}
+.modal{background:var(--s1);border:1px solid var(--b2);border-radius:16px;width:100%;
+  max-width:620px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.85)}
+.mh{position:sticky;top:0;background:var(--s1);padding:18px 22px 14px;border-bottom:1px solid var(--b1);
+  display:flex;align-items:flex-start;justify-content:space-between;gap:12px;z-index:2}
+.mh h3{font-size:17px;font-weight:800}
+.mh p{font-size:11.5px;color:var(--t3);margin-top:2px}
+.mb{padding:18px 22px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mf{position:sticky;bottom:0;background:var(--s1);padding:14px 22px;border-top:1px solid var(--b1);
+  display:flex;gap:10px;justify-content:flex-end}
+.campo{display:flex;flex-direction:column;gap:5px}
+.campo.full{grid-column:1/-1}
+label{font-size:10px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.07em}
+input,select,textarea{background:var(--s2);border:1px solid var(--b1);color:var(--t1);
+  padding:9px 11px;border-radius:9px;font-family:inherit;font-size:13px;outline:none;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--nh)}
+textarea{resize:vertical;min-height:60px}
+.erro{grid-column:1/-1;display:none;font-size:12.5px;color:#f87171;background:rgba(239,68,68,.1);
+  border:1px solid rgba(239,68,68,.3);border-radius:9px;padding:10px 13px}
+
+.acesso{position:fixed;inset:0;background:var(--bg);z-index:900;display:flex;
+  align-items:center;justify-content:center;padding:20px}
+.cx-acesso{width:100%;max-width:380px;text-align:center}
+.cx-acesso h1{font-size:28px;font-weight:900;margin:16px 0 6px}
+.cx-acesso p{font-size:13px;color:var(--t2);margin-bottom:22px}
+.cx-acesso .campo{text-align:left;margin-bottom:12px}
+.msg-erro{font-size:12.5px;color:#f87171;margin-top:10px;display:none}
+@media(max-width:640px){.mb{grid-template-columns:1fr}.wrap{padding:14px}}
+</style>
+</head>
+<body>
+
+<!-- ── ACESSO ──────────────────────────────────────────────────────
+     Só a equipe NH entra aqui. Este sistema mostra quanto a NH cobra
+     de cada cliente — uma empresa cliente logada não pode ver isso, e
+     a regra do Firestore garante o mesmo do lado do banco. -->
+<div class="acesso" id="tela-acesso">
+  <div class="cx-acesso">
+    <img src="logo-nh.jpg" alt="" style="width:64px;height:64px;border-radius:18px;object-fit:cover">
+    <h1>NH <span class="grad">Financeiro</span></h1>
+    <p>Honorários recebidos e despesas do escritório</p>
+    <div class="campo"><label>E-mail</label><input type="email" id="ac-email" placeholder="seu@email.com"></div>
+    <div class="campo"><label>Senha</label><input type="password" id="ac-senha" placeholder="••••••••"></div>
+    <button class="btn btn-nh" id="ac-btn" style="width:100%;justify-content:center;padding:11px" onclick="entrar()">Entrar</button>
+    <div class="msg-erro" id="ac-msg"></div>
+  </div>
+</div>
+
+<div class="topo" id="topo" style="display:none">
+  <div class="marca"><img src="logo-nh.jpg" alt=""><span>NH <span class="grad">Financeiro</span></span></div>
+  <div class="mes">
+    <button class="btn" onclick="mudarMes(-1)">‹</button>
+    <span class="mes-lbl" id="mes-lbl"></span>
+    <button class="btn" onclick="mudarMes(1)">›</button>
+    <button class="btn" onclick="mesHoje()">Hoje</button>
+  </div>
+  <div style="flex:1"></div>
+  <button class="btn" onclick="trocarTema()" id="btn-tema">◐</button>
+  <button class="btn" onclick="sair()">Sair</button>
+</div>
+
+<div class="wrap" id="app" style="display:none">
+  <div class="kpis" id="kpis"></div>
+  <div class="abas">
+    <button class="aba on" data-a="visao" onclick="trocarAba('visao',this)">Visão Geral</button>
+    <button class="aba" data-a="receber" onclick="trocarAba('receber',this)">A Receber</button>
+    <button class="aba" data-a="exitos" onclick="trocarAba('exitos',this)">Êxitos a Cobrar <span id="selo-exitos"></span></button>
+    <button class="aba" data-a="contratos" onclick="trocarAba('contratos',this)">Contratos de Honorários</button>
+  </div>
+  <div id="painel"></div>
+</div>
+
+<!-- MODAL CONTRATO DE HONORÁRIOS -->
+<div class="ov" id="ov-contrato">
+  <div class="modal">
+    <div class="mh">
+      <div><h3 id="ct-titulo">Novo contrato de honorários</h3>
+        <p>O acordo com a empresa. É daqui que nascem as cobranças mensais.</p></div>
+      <button class="btn" onclick="fecharModal('ov-contrato')" style="padding:5px 10px">×</button>
+    </div>
+    <div class="mb">
+      <div class="campo full"><label>Empresa *</label>
+        <select id="ct-empresa" onchange="ctAoTrocarEmpresa()"></select></div>
+      <div class="campo"><label>CNPJ</label><input type="text" id="ct-cnpj" readonly style="opacity:.7"></div>
+      <div class="campo full"><label>Como a NH cobra desta empresa *</label>
+        <select id="ct-tipo" onchange="ctAoTrocarTipo()">
+          <option value="MENSAL">Mensalidade fixa</option>
+          <option value="PERCENTUAL">Percentual sobre o contrato ganho</option>
+          <option value="MISTO">Mensalidade + percentual</option>
+          <option value="PONTUAL">Serviços pontuais (por demanda)</option>
+          <option value="EXCLUSIVO">Dedicação exclusiva</option>
+        </select></div>
+      <div class="campo" id="cx-mensal"><label>Valor mensal</label>
+        <input type="text" id="ct-valor" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
+      <div class="campo" id="cx-exito" style="display:none"><label>% sobre o contrato</label>
+        <input type="number" id="ct-perc" placeholder="5" step="0.01" min="0" max="100"></div>
+
+      <!-- A pergunta que muda tudo no percentual: 5% de um contrato de
+           R$ 2 milhões cobrados de uma vez na assinatura é uma coisa;
+           descontados a cada empenho, ao longo de dois anos, é outra
+           bem diferente de fluxo de caixa. -->
+      <div class="campo full" id="cx-base" style="display:none">
+        <label>Quando o êxito é cobrado *</label>
+        <select id="ct-base" onchange="ctAoTrocarBase()">
+          <option value="HOMOLOGACAO">No ato da homologação — uma vez, sobre o valor homologado</option>
+          <option value="EMPENHO">Parcelado conforme empenho — desconta a cada empenho do órgão</option>
+          <option value="MEDICAO">A cada medição/NF emitida pela empresa</option>
+        </select>
+        <div style="font-size:10.5px;color:var(--t3);line-height:1.5" id="ct-base-nota"></div>
+      </div>
+
+      <div class="campo full" id="cx-pontual" style="display:none">
+        <label>Serviços e valores</label>
+        <textarea id="ct-servicos" placeholder="Um por linha, no formato: Serviço = valor&#10;Ex:&#10;Análise de edital = 800&#10;Impugnação = 1500&#10;Recurso administrativo = 2500"></textarea>
+        <div style="font-size:10.5px;color:var(--t3);line-height:1.5">
+          Vira a lista de escolha ao lançar uma cobrança pontual — sem redigitar valor toda vez.
+        </div>
+      </div>
+
+      <div class="campo full" id="cx-exclusivo" style="display:none">
+        <label>Escopo da exclusividade</label>
+        <textarea id="ct-escopo" placeholder="O que está incluído: nº de certames/mês, equipe dedicada, prazo de resposta…"></textarea>
+      </div>
+      <div class="campo"><label>Dia do vencimento</label>
+        <input type="number" id="ct-dia" min="1" max="28" value="10" placeholder="10"></div>
+      <div class="campo"><label>Início *</label><input type="date" id="ct-inicio"></div>
+      <div class="campo"><label>Fim (vazio = sem prazo)</label><input type="date" id="ct-fim"></div>
+      <div class="campo full"><label>Situação</label>
+        <select id="ct-status">
+          <option value="ATIVO">Ativo</option>
+          <option value="SUSPENSO">Suspenso</option>
+          <option value="ENCERRADO">Encerrado</option>
+        </select></div>
+      <div class="campo full"><label>Observações</label><textarea id="ct-obs"></textarea></div>
+      <div class="erro" id="ct-erro"></div>
+    </div>
+    <div class="mf">
+      <button class="btn" onclick="fecharModal('ov-contrato')">Cancelar</button>
+      <button class="btn btn-nh" id="ct-salvar" onclick="salvarContrato()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RECEITA -->
+<div class="ov" id="ov-receita">
+  <div class="modal">
+    <div class="mh">
+      <div><h3 id="rc-titulo">Nova cobrança</h3><p id="rc-sub"></p></div>
+      <button class="btn" onclick="fecharModal('ov-receita')" style="padding:5px 10px">×</button>
+    </div>
+    <div class="mb">
+      <div class="campo full"><label>Empresa *</label><select id="rc-empresa"></select></div>
+      <div class="campo"><label>Tipo *</label>
+        <select id="rc-tipo">
+          <option value="MENSALIDADE">Mensalidade</option>
+          <option value="EXITO">Êxito</option>
+          <option value="AVULSO">Avulso</option>
+        </select></div>
+      <div class="campo"><label>Competência</label><input type="month" id="rc-competencia"></div>
+      <div class="campo full"><label>Descrição</label><input type="text" id="rc-descricao" placeholder="Ex: Honorários de março"></div>
+      <div class="campo"><label>Valor *</label><input type="text" id="rc-valor" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
+      <div class="campo"><label>Vencimento *</label><input type="date" id="rc-venc"></div>
+      <div class="campo full"><label>Situação *</label>
+        <select id="rc-status" onchange="rcAoTrocarStatus()">
+          <option value="PREVISTA">Prevista</option>
+          <option value="EMITIDA">Emitida / cobrada</option>
+          <option value="RECEBIDA">Recebida</option>
+          <option value="CANCELADA">Cancelada</option>
+        </select></div>
+      <div class="campo" id="cx-recdata" style="display:none"><label>Recebida em</label><input type="date" id="rc-dtreceb"></div>
+      <div class="campo" id="cx-recvalor" style="display:none"><label>Valor recebido</label>
+        <input type="text" id="rc-vlreceb" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
+      <div class="campo"><label>Nota fiscal</label><input type="text" id="rc-nf" placeholder="Nº"></div>
+      <div class="campo"><label>Link</label><input type="text" id="rc-link" placeholder="https://…"></div>
+      <div class="erro" id="rc-erro"></div>
+    </div>
+    <div class="mf">
+      <button class="btn" onclick="fecharModal('ov-receita')">Cancelar</button>
+      <button class="btn btn-nh" id="rc-salvar" onclick="salvarReceita()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-auth-compat.js"></script>
+<script>
+const firebaseConfig={apiKey:"AIzaSyBhcpJP9dRM0SEJsGfcNUXYb1rTMdEDw6M",authDomain:"nh-licitacoes.firebaseapp.com",
+  projectId:"nh-licitacoes",storageBucket:"nh-licitacoes.firebasestorage.app",
+  messagingSenderId:"1234567890",appId:"1:1234567890:web:abc"};
+
+/* Instância nomeada, isolada da padrão: sem isso o login aqui derruba a
+   sessão do Sistema NH quando os dois ficam abertos em abas — mesmo
+   problema já documentado no viabilidade e no portal. */
+var _finApp=(firebase.apps||[]).filter(function(a){return a.name==='nh-financeiro';})[0]
+  || firebase.initializeApp(firebaseConfig,'nh-financeiro');
+const db=_finApp.firestore();
+const auth=_finApp.auth();
+db.settings({experimentalAutoDetectLongPolling:true,merge:true});
+
+/* ── Estado ────────────────────────────────────────────────────── */
+var EMPRESAS=[];        /* {nome, cnpj} de config/empresas   */
+var CONTRATOS=[];       /* nh_contratos_honorarios           */
+var RECEITAS=[];        /* nh_receitas                       */
+var DESPESAS=[];        /* coleção `financeiro`, que já existe */
+var GANHAS=[];          /* licitações ganhas, do Sistema NH  */
+var EMPENHOS=[];        /* empenhos, do Portal de Contratos  */
+
+/* Índices do array de `ganhas` — mesmo mapa do Sistema NH e do Portal.
+   Repetido aqui de propósito: o financeiro roda sozinho, e importar o
+   sistema inteiro só por causa de um mapa seria acoplar por nada. */
+var G={ID:0, DATA:1, EMPRESA:2, LICITACAO:3, OBJETO:4, VALOR:7, CONTRATO:8,
+       STATUS:9, DT_ASSINATURA:11, VENCIMENTO:12};
+var ABA='visao';
+var MES=new Date().getMonth(), ANO=new Date().getFullYear();
+var _ctEdit=null, _rcEdit=null;
+var MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+/* ── Utilidades ────────────────────────────────────────────────── */
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function num(v){
+  if(typeof v==='number') return isNaN(v)?0:v;
+  var a=String(v||'').replace(/R\$\s*/g,'').replace(/\s/g,'').trim();
+  if(!a) return 0;
+  if(a.indexOf(',')!==-1) a=a.replace(/\./g,'').replace(',','.');
+  else a=a.replace(/[^\d.]/g,'');
+  var n=parseFloat(a);
+  return isNaN(n)||n<0?0:n;
+}
+function brl(v){ if(!v||isNaN(v)) return 'R$ 0,00';
+  return 'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function mascaraMoeda(el){
+  var a=el.value.replace(/\D/g,'');
+  el.value = a ? 'R$ '+(parseInt(a,10)/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : '';
+}
+function dBR(iso){ if(!iso) return ''; var p=String(iso).split('-'); return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:iso; }
+function dISO(br){ if(!br) return ''; var p=String(br).split('/'); return p.length===3?p[2]+'-'+p[1]+'-'+p[0]:br; }
+function hoje0(){ var d=new Date(); d.setHours(0,0,0,0); return d; }
+function dData(br){ var p=String(br||'').split('/'); if(p.length!==3) return null;
+  var d=new Date(+p[2],+p[1]-1,+p[0]); return isNaN(d.getTime())?null:d; }
+function gv(id){ var e=document.getElementById(id); return e?String(e.value||'').trim():''; }
+function sv(id,v){ var e=document.getElementById(id); if(e) e.value=v==null?'':v; }
+function erro(id,msg){ var e=document.getElementById(id); if(!e) return;
+  e.style.display=msg?'block':'none'; e.textContent=msg||''; }
+function competenciaAtual(){ return ANO+'-'+String(MES+1).padStart(2,'0'); }
+
+/* ════════════════════════════════════════════════════════════════
+   MOTOR FISCAL — retenções e nota fiscal
+
+   DECISÃO DE PROJETO, e ela é deliberada: as alíquotas são
+   CONFIGURÁVEIS, não estão cravadas no código.
+
+   Retenção de PIS/COFINS/CSLL e IRRF depende do regime da NH
+   (Simples Nacional × Lucro Presumido), do tipo de serviço, de
+   limites de dispensa que mudam por norma, e o ISS depende do
+   município. Cravar isso no código seria transformar uma regra que
+   muda em bug que só aparece na fiscalização.
+
+   O sistema calcula com precisão o que for configurado. Os valores
+   que vêm de fábrica são os usuais de serviços profissionais e
+   PRECISAM ser confirmados com a contabilidade antes do uso — a tela
+   diz isso, não fica escondido aqui no comentário.
+   ════════════════════════════════════════════════════════════════ */
+
+var FISCAL_PADRAO = {
+  regime: 'SIMPLES',        /* SIMPLES | PRESUMIDO */
+  issRetido: false,         /* o tomador retém o ISS? */
+  issAliq: 5,               /* % — varia por município */
+  /* Retenções federais: no Simples Nacional normalmente NÃO se
+     aplicam; no Lucro Presumido, sim. Por isso vêm desligadas junto
+     com o regime padrão. */
+  irrfAtivo: false, irrfAliq: 1.5,
+  pisAtivo: false,  pisAliq: 0.65,
+  cofinsAtivo: false, cofinsAliq: 3,
+  csllAtivo: false, csllAliq: 1,
+  /* Abaixo deste valor não se retém PIS/COFINS/CSLL. Configurável
+     porque o limite já mudou algumas vezes. */
+  limiteDispensaFederal: 0,
+  observacao: ''
+};
+var FISCAL = Object.assign({}, FISCAL_PADRAO);
+
+/**
+ * Retenções de uma nota. Devolve tudo detalhado — quem confere uma NF
+ * precisa ver linha a linha, não só o líquido.
+ */
+function calcularNF(bruto, cfg){
+  var c = Object.assign({}, FISCAL_PADRAO, cfg || FISCAL);
+  var b = num(bruto);
+  var pct = function(a){ return Math.round(b * (num(a)/100) * 100) / 100; };
+
+  var iss = c.issRetido ? pct(c.issAliq) : 0;
+  var irrf = c.irrfAtivo ? pct(c.irrfAliq) : 0;
+
+  /* PIS, COFINS e CSLL andam juntos: ou os três são retidos, ou
+     nenhum. E há um piso de dispensa. */
+  var acimaDoPiso = !(num(c.limiteDispensaFederal) > 0 && b <= num(c.limiteDispensaFederal));
+  var pis    = (c.pisAtivo    && acimaDoPiso) ? pct(c.pisAliq)    : 0;
+  var cofins = (c.cofinsAtivo && acimaDoPiso) ? pct(c.cofinsAliq) : 0;
+  var csll   = (c.csllAtivo   && acimaDoPiso) ? pct(c.csllAliq)   : 0;
+
+  var total = Math.round((iss+irrf+pis+cofins+csll)*100)/100;
+  return {
+    bruto: b, iss: iss, irrf: irrf, pis: pis, cofins: cofins, csll: csll,
+    totalRetido: total, liquido: Math.round((b-total)*100)/100,
+    dispensouFederal: !acimaDoPiso
+  };
+}
+
+/**
+ * O caminho inverso, que é o que se pergunta na prática: "preciso
+ * receber R$ X limpos — emito a nota de quanto?"
+ * As retenções são todas percentuais sobre o bruto, então o bruto sai
+ * direto, sem tentativa e erro.
+ */
+function brutoParaLiquido(liquidoDesejado, cfg){
+  var c = Object.assign({}, FISCAL_PADRAO, cfg || FISCAL);
+  var soma = 0;
+  if(c.issRetido)   soma += num(c.issAliq);
+  if(c.irrfAtivo)   soma += num(c.irrfAliq);
+  if(c.pisAtivo)    soma += num(c.pisAliq);
+  if(c.cofinsAtivo) soma += num(c.cofinsAliq);
+  if(c.csllAtivo)   soma += num(c.csllAliq);
+  if(soma >= 100) return 0;   /* configuração impossível */
+  var alvo = num(liquidoDesejado);
+  if(alvo <= 0) return 0;
+
+  var bruto = Math.ceil((alvo / (1 - soma/100)) * 100) / 100;
+
+  /* A fórmula sozinha erra por centavos, e erra sempre para baixo:
+     cada retenção é arredondada individualmente, então a soma delas
+     fica um pouco ACIMA do percentual exato e o líquido cai abaixo do
+     pedido. Conferimos com o mesmo cálculo da nota e subimos de
+     centavo em centavo até fechar — poucas voltas, e o resultado passa
+     a ser verdade, não aproximação. */
+  for(var i = 0; i < 20; i++){
+    if(calcularNF(bruto, c).liquido >= alvo) break;
+    bruto = Math.round((bruto + 0.01) * 100) / 100;
+  }
+  return bruto;
+}
+
+/* ── Regras de negócio ─────────────────────────────────────────────
+   Concentradas aqui para KPI, tabela e futuros relatórios lerem a
+   mesma conta. */
+
+/** Cancelada não existe para efeito de soma. */
+function valida(r){ return r && String(r.status||'').toUpperCase()!=='CANCELADA'; }
+
+/** Saldo em aberto da cobrança. */
+function saldo(r){ return Math.max(0, num(r.valor) - num(r.valorRecebido)); }
+
+/** Atraso é DERIVADO, não digitado: vencimento passado com saldo em
+    aberto. Status digitado envelhece sozinho — a data não. */
+function atrasada(r){
+  if(!valida(r)) return false;
+  if(saldo(r)<=0.005) return false;
+  var v=dData(r.dataVencimento);
+  return !!(v && v<hoje0());
+}
+
+/** Rótulo mostrado: o atraso vence o status guardado. */
+function statusDe(r){
+  var st=String(r.status||'PREVISTA').toUpperCase();
+  if(st==='CANCELADA') return {k:'CANCELADA', r:'Cancelada', c:'#6b7280'};
+  if(saldo(r)<=0.005 && num(r.valor)>0) return {k:'RECEBIDA', r:'Recebida', c:'#22c55e'};
+  if(atrasada(r)) return {k:'ATRASADA', r:'Atrasada', c:'#ef4444'};
+  if(st==='EMITIDA') return {k:'EMITIDA', r:'Emitida', c:'#3b82f6'};
+  return {k:'PREVISTA', r:'Prevista', c:'#8b95a1'};
+}
+
+/** Resumo do mês: o que a NH tem para receber, recebeu, e o resultado. */
+function resumoDoMes(){
+  var comp=competenciaAtual();
+  var doMes=RECEITAS.filter(function(r){
+    if(r.competencia) return r.competencia===comp;
+    var v=dData(r.dataVencimento);
+    return !!(v && v.getMonth()===MES && v.getFullYear()===ANO);
+  });
+  var v=doMes.filter(valida);
+  var previsto=v.reduce(function(s,r){ return s+num(r.valor); },0);
+  var recebido=v.reduce(function(s,r){ return s+num(r.valorRecebido); },0);
+  var aReceber=v.reduce(function(s,r){ return s+saldo(r); },0);
+  var emAtraso=v.filter(atrasada).reduce(function(s,r){ return s+saldo(r); },0);
+
+  /* Despesas vêm da coleção que o Sistema NH já usa: [0]=data
+     DD/MM/AAAA, [4]=valor. Não se reconstrói o que existe. */
+  var despesas=DESPESAS.filter(function(a){
+    var d=dData(a[0]);
+    return !!(d && d.getMonth()===MES && d.getFullYear()===ANO);
+  }).reduce(function(s,a){ return s+num(a[4]); },0);
+
+  return {previsto:previsto, recebido:recebido, aReceber:aReceber, emAtraso:emAtraso,
+          despesas:despesas, resultado:recebido-despesas, qtd:doMes.length, doMes:doMes};
+}
+
+/* ── Carga ─────────────────────────────────────────────────────── */
+async function carregarTudo(){
+  /* `ganhas` e `contrato_faturamento` vêm do Sistema NH e do Portal.
+     São leitura apenas — o financeiro nunca escreve neles. É assim que
+     "interligado, mas independente" se sustenta: se essas coleções não
+     existirem, o resto continua funcionando e só some a sugestão. */
+  var [emp, ct, rc, dp, gn, fat] = await Promise.all([
+    db.collection('config').doc('empresas').get(),
+    db.collection('nh_contratos_honorarios').get(),
+    db.collection('nh_receitas').get(),
+    db.collection('financeiro').get(),
+    db.collection('ganhas').get().catch(function(){ return {docs:[]}; }),
+    db.collection('contrato_faturamento').get().catch(function(){ return {docs:[]}; })
+  ]);
+  GANHAS=(gn.docs||[]).map(function(d){
+    return {id:d.id, arr:(d.data()||{})._arr||[]};
+  }).filter(function(g){ return (g.arr||[]).length; });
+  EMPENHOS=(fat.docs||[]).map(function(d){ return Object.assign({id:d.id}, d.data()); })
+    .filter(function(f){ return String(f.tipo||'').toUpperCase()==='EMPENHO'
+      && String(f.status||'').toUpperCase()!=='CANCELADO'; });
+  EMPRESAS=((emp.exists?(emp.data().lista||[]):[])||[]).map(function(e){
+    return {nome:String(e.nome||'').trim(), cnpj:String(e.cnpj||'').replace(/\D/g,'')};
+  }).filter(function(e){ return e.nome; });
+  CONTRATOS=ct.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+  RECEITAS=rc.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+  DESPESAS=dp.docs.map(function(d){ return (d.data()||{})._arr||[]; });
+  pintar();
+}
+
+/* ── Tela ──────────────────────────────────────────────────────── */
+function pintar(){
+  document.getElementById('mes-lbl').textContent=MESES[MES]+' '+ANO;
+  var r=resumoDoMes();
+  var kpi=function(l,v,c,s){
+    return '<div class="kpi"><div class="kpi-fio" style="background:'+c+'"></div>'+
+      '<div class="kpi-l">'+l+'</div><div class="kpi-v" style="color:'+c+'">'+v+'</div>'+
+      (s?'<div class="kpi-s">'+s+'</div>':'')+'</div>';
+  };
+  document.getElementById('kpis').innerHTML =
+    kpi('Previsto no mês', brl(r.previsto), 'var(--t1)', r.qtd+' cobrança(s)') +
+    kpi('Recebido', brl(r.recebido), '#22c55e', '') +
+    kpi('A receber', brl(r.aReceber), '#3b82f6', '') +
+    (r.emAtraso>0 ? kpi('Em atraso', brl(r.emAtraso), '#ef4444', 'vencidas sem pagamento') : '') +
+    kpi('Despesas', brl(r.despesas), '#f59e0b', 'lançadas no Sistema NH') +
+    kpi('Resultado', brl(r.resultado), r.resultado>=0?'#22c55e':'#ef4444', 'recebido − despesas');
+
+  /* O selo na aba: quantos êxitos já podem ser cobrados e ninguém
+     cobrou. É o dinheiro que costuma ficar para trás. */
+  var pend=[];
+  try{ pend=exitosPendentes(); }catch(e){ console.warn('êxitos:', e.message); }
+  var selo=document.getElementById('selo-exitos');
+  if(selo) selo.innerHTML = pend.length
+    ? '<span style="background:rgba(249,115,22,.2);color:var(--nh);font-size:10px;font-weight:800;padding:1px 7px;border-radius:9px;margin-left:5px">'+pend.length+'</span>'
+    : '';
+
+  document.getElementById('painel').innerHTML =
+    ABA==='visao'   ? painelVisao(r, pend) :
+    ABA==='receber' ? painelReceber(r) :
+    ABA==='exitos'  ? painelExitos(pend) : painelContratos();
+}
+
+/* ── Aging: a idade da dívida ──────────────────────────────────────
+   É o retrato padrão de contas a receber em qualquer sistema
+   financeiro sério, e não existia aqui. "R$ 40 mil a receber" não diz
+   nada; "R$ 32 mil vencidos há mais de 60 dias" diz tudo — a chance de
+   receber cai com o tempo, e é isso que a faixa mostra. */
+function aging(){
+  var h=hoje0();
+  var f={aVencer:0, d30:0, d60:0, d90:0, mais90:0, total:0};
+  RECEITAS.filter(valida).forEach(function(r){
+    var s=saldo(r);
+    if(s<=0.005) return;
+    f.total+=s;
+    var v=dData(r.dataVencimento);
+    if(!v || v>=h){ f.aVencer+=s; return; }
+    var dias=Math.round((h-v)/86400000);
+    if(dias<=30) f.d30+=s;
+    else if(dias<=60) f.d60+=s;
+    else if(dias<=90) f.d90+=s;
+    else f.mais90+=s;
+  });
+  f.vencido=f.d30+f.d60+f.d90+f.mais90;
+  /* Inadimplência: quanto do que está em aberto já venceu. */
+  f.pctVencido = f.total>0 ? (f.vencido/f.total)*100 : 0;
+  return f;
+}
+
+/** Quem deve, do maior para o menor — a fila de cobrança. */
+function porCliente(){
+  var m={};
+  RECEITAS.filter(valida).forEach(function(r){
+    var s=saldo(r);
+    if(s<=0.005) return;
+    var k=String(r.empresa||'—');
+    if(!m[k]) m[k]={empresa:k, aberto:0, vencido:0, qtd:0};
+    m[k].aberto+=s; m[k].qtd+=1;
+    if(atrasada(r)) m[k].vencido+=s;
+  });
+  return Object.keys(m).map(function(k){ return m[k]; })
+    .sort(function(a,b){ return b.aberto-a.aberto; });
+}
+
+function painelVisao(r, pend){
+  var a=aging(), cli=porCliente();
+
+  var faixa=function(rot, val, cor, sub){
+    var pct = a.total>0 ? (val/a.total)*100 : 0;
+    return '<div style="margin-bottom:11px">'+
+      '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:4px">'+
+        '<span style="font-size:12px;color:var(--t2)">'+rot+(sub?' <span style="color:var(--t3);font-size:10.5px">'+sub+'</span>':'')+'</span>'+
+        '<span style="font-size:13px;font-weight:800;color:'+cor+';font-variant-numeric:tabular-nums">'+brl(val)+'</span>'+
+      '</div>'+
+      '<div style="height:7px;border-radius:5px;background:var(--s3);overflow:hidden">'+
+        '<div style="height:100%;width:'+pct.toFixed(1)+'%;background:'+cor+';border-radius:5px;transition:width .6s ease"></div>'+
+      '</div></div>';
+  };
+
+  var cartaoAging='<div class="kpi" style="padding:18px">'+
+    '<div class="kpi-l" style="margin-top:0">Idade do que está em aberto</div>'+
+    (a.total<=0
+      ? '<div style="font-size:13px;color:var(--t2);padding:8px 0">Nada em aberto — todas as cobranças estão quitadas.</div>'
+      : '')+
+    (a.total>0
+      ? faixa('A vencer', a.aVencer, '#22c55e')+
+        faixa('Vencido', a.d30, '#eab308', 'até 30 dias')+
+        faixa('Vencido', a.d60, '#f59e0b', '31 a 60 dias')+
+        faixa('Vencido', a.d90, '#f97316', '61 a 90 dias')+
+        faixa('Vencido', a.mais90, '#ef4444', 'mais de 90 dias')+
+        '<div style="font-size:11.5px;color:var(--t3);border-top:1px solid var(--b1);padding-top:9px;margin-top:4px">'+
+          '<b style="color:'+(a.pctVencido>30?'#ef4444':a.pctVencido>10?'#f59e0b':'#22c55e')+'">'+
+          a.pctVencido.toFixed(0)+'%</b> do que está em aberto já venceu'+
+          (a.mais90>0?' · <b style="color:#ef4444">'+brl(a.mais90)+'</b> há mais de 90 dias, com risco real de não entrar':'')+
+        '</div>'
+      : '')+
+    '</div>';
+
+  var linhasCli = cli.length
+    ? cli.slice(0,8).map(function(c){
+        return '<tr><td><b>'+esc(c.empresa)+'</b><div class="sub">'+c.qtd+' cobrança(s)</div></td>'+
+          '<td class="num"><b>'+brl(c.aberto)+'</b></td>'+
+          '<td class="num">'+(c.vencido>0?'<span style="color:#ef4444">'+brl(c.vencido)+'</span>':'—')+'</td></tr>';
+      }).join('')
+    : '<tr><td colspan="3" style="text-align:center;color:var(--t3);padding:18px">Nada em aberto.</td></tr>';
+
+  var avisoExito = (pend && pend.length)
+    ? '<div class="kpi" style="padding:16px;border-color:rgba(249,115,22,.35)">'+
+        '<div class="kpi-fio" style="background:var(--nh)"></div>'+
+        '<div class="kpi-l" style="margin-top:4px">Honorários de êxito ainda não cobrados</div>'+
+        '<div class="kpi-v" style="color:var(--nh)">'+brl(pend.reduce(function(s,x){return s+x.valor;},0))+'</div>'+
+        '<div class="kpi-s">'+pend.length+' pendente(s) — vindos das licitações ganhas e dos empenhos. '+
+          '<button class="btn" style="padding:3px 9px;font-size:11px;margin-left:4px" '+
+          'onclick="trocarAba(\'exitos\', document.querySelector(\'.aba[data-a=exitos]\'))">ver</button></div>'+
+      '</div>'
+    : '';
+
+  return '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;align-items:start">'+
+      cartaoAging+
+      '<div style="display:flex;flex-direction:column;gap:14px">'+
+        avisoExito+
+        '<div class="kpi" style="padding:0;overflow:hidden">'+
+          '<div class="kpi-l" style="padding:16px 16px 10px;margin:0">Quem tem valores em aberto</div>'+
+          '<div style="overflow-x:auto"><table style="min-width:0">'+
+            '<thead><tr><th>Empresa</th><th class="num">Em aberto</th><th class="num">Vencido</th></tr></thead>'+
+            '<tbody>'+linhasCli+'</tbody></table></div>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+}
+
+function painelExitos(pend){
+  if(!pend.length){
+    return '<div class="vazio">Nenhum êxito pendente de cobrança.<br>'+
+      '<span style="color:var(--t3);font-size:12px">Aparecem aqui as licitações homologadas e os empenhos das empresas '+
+      'com honorário por percentual — cruzados com o Sistema NH e o Portal de Contratos.</span></div>';
+  }
+  var total=pend.reduce(function(s,x){ return s+x.valor; },0);
+  var topo='<div style="display:flex;gap:12px;align-items:center;margin-bottom:14px;flex-wrap:wrap">'+
+    '<button class="btn btn-nh" onclick="gerarExitosSelecionados()">Gerar as cobranças marcadas</button>'+
+    '<span style="font-size:12.5px;color:var(--t2)">'+pend.length+' pendente(s) · '+
+      '<b style="color:var(--nh)">'+brl(total)+'</b> em honorários a cobrar</span>'+
+    '</div>';
+
+  var linhas=pend.map(function(x,i){
+    return '<tr>'+
+      '<td><input type="checkbox" class="chk-exito" data-i="'+i+'" checked style="width:16px;height:16px;accent-color:var(--nh);cursor:pointer"></td>'+
+      '<td><b>'+esc(x.empresa)+'</b><div class="sub">'+esc(x.referencia||'—')+'</div></td>'+
+      '<td>'+esc(x.motivo)+(x.quando?'<div class="sub">'+esc(x.quando)+'</div>':'')+'</td>'+
+      '<td class="num">'+brl(x.baseValor)+'</td>'+
+      '<td class="num">'+x.percentual.toLocaleString('pt-BR')+'%</td>'+
+      '<td class="num"><b style="color:var(--nh)">'+brl(x.valor)+'</b></td>'+
+    '</tr>';
+  }).join('');
+
+  window._exitosPend=pend;
+  return topo+'<div class="tabela-wrap"><table><thead><tr>'+
+    '<th style="width:34px"></th><th>Empresa / referência</th><th>Origem</th>'+
+    '<th class="num">Base</th><th class="num">%</th><th class="num">Honorário</th>'+
+    '</tr></thead><tbody>'+linhas+'</tbody></table></div>'+
+    '<div style="font-size:11px;color:var(--t3);margin-top:10px;line-height:1.6">'+
+    'Nada é cobrado sozinho: o sistema mostra o que já pode ser cobrado e a decisão é sua. '+
+    'Depois de gerada, a cobrança não volta a aparecer aqui.</div>';
+}
+
+async function gerarExitosSelecionados(){
+  var marcados=Array.prototype.filter.call(document.querySelectorAll('.chk-exito'), function(c){ return c.checked; })
+    .map(function(c){ return (window._exitosPend||[])[parseInt(c.getAttribute('data-i'),10)]; })
+    .filter(Boolean);
+  if(!marcados.length){ alert('Marque ao menos uma cobrança.'); return; }
+  var total=marcados.reduce(function(s,x){ return s+x.valor; },0);
+  if(!confirm('Gerar '+marcados.length+' cobrança(s) de êxito, somando '+brl(total)+'?')) return;
+  try{ await gerarExitos(marcados); }
+  catch(e){ alert(msgErro(e)); }
+}
+
+function trocarAba(a, btn){
+  ABA=a;
+  document.querySelectorAll('.aba').forEach(function(b){ b.classList.remove('on'); });
+  if(btn) btn.classList.add('on');
+  pintar();
+}
+
+function painelReceber(r){
+  var topo='<div style="display:flex;gap:9px;margin-bottom:14px;flex-wrap:wrap">'+
+    '<button class="btn btn-nh" onclick="abrirReceita()">+ Nova cobrança</button>'+
+    '<button class="btn" onclick="gerarMensalidades()" title="Cria as mensalidades deste mês para os contratos ativos que ainda não têm">Gerar mensalidades do mês</button>'+
+    '</div>';
+
+  if(!r.doMes.length){
+    return topo+'<div class="vazio">Nenhuma cobrança em '+MESES[MES]+' de '+ANO+'.<br>'+
+      '<span style="color:var(--t3);font-size:12px">Use “Gerar mensalidades do mês” para criar as dos contratos ativos de uma vez.</span></div>';
+  }
+
+  var linhas=r.doMes.slice().sort(function(a,b){
+    return String(a.dataVencimento||'').split('/').reverse().join('')
+         .localeCompare(String(b.dataVencimento||'').split('/').reverse().join(''));
+  }).map(function(x){
+    var st=statusDe(x), s=saldo(x), canc=st.k==='CANCELADA';
+    return '<tr class="'+(canc?'cancelada':(st.k==='ATRASADA'?'atrasada':''))+'">'+
+      '<td><b>'+esc(x.empresa||'—')+'</b>'+(x.descricao?'<div class="sub">'+esc(x.descricao)+'</div>':'')+'</td>'+
+      '<td>'+esc({MENSALIDADE:'Mensalidade',EXITO:'Êxito',AVULSO:'Avulso'}[String(x.tipo||'').toUpperCase()]||x.tipo||'—')+'</td>'+
+      '<td>'+esc(x.dataVencimento||'—')+'</td>'+
+      '<td class="num"><b>'+brl(num(x.valor))+'</b></td>'+
+      '<td class="num">'+(num(x.valorRecebido)>0?'<span style="color:#22c55e">'+brl(num(x.valorRecebido))+'</span>':'—')+'</td>'+
+      '<td class="num">'+(canc?'<span style="color:var(--t3)">cancelada</span>'
+        : s>0.005?'<span style="color:#3b82f6">'+brl(s)+'</span>':'<span style="color:var(--t3)">quitada</span>')+'</td>'+
+      '<td><span class="badge" style="background:'+st.c+'1f;color:'+st.c+'">'+st.r+'</span></td>'+
+      '<td class="acoes">'+
+        (x.link?'<a href="'+esc(x.link)+'" target="_blank" style="text-decoration:none">📎</a>':'')+
+        '<button onclick="abrirReceita(\''+x.id+'\')" title="Editar">✏️</button>'+
+        (canc?'':'<button onclick="cancelarReceita(\''+x.id+'\')" title="Cancelar">🚫</button>')+
+      '</td></tr>';
+  }).join('');
+
+  return topo+'<div class="tabela-wrap"><table><thead><tr>'+
+    '<th>Empresa</th><th>Tipo</th><th>Vencimento</th><th class="num">Valor</th>'+
+    '<th class="num">Recebido</th><th class="num">Saldo</th><th>Situação</th><th></th>'+
+    '</tr></thead><tbody>'+linhas+'</tbody></table></div>';
+}
+
+function painelContratos(){
+  var topo='<div style="margin-bottom:14px"><button class="btn btn-nh" onclick="abrirContrato()">+ Novo contrato</button></div>';
+  if(!CONTRATOS.length){
+    return topo+'<div class="vazio">Nenhum contrato de honorários cadastrado.<br>'+
+      '<span style="color:var(--t3);font-size:12px">É o acordo com cada empresa — é dele que saem as mensalidades.</span></div>';
+  }
+  var linhas=CONTRATOS.slice().sort(function(a,b){
+    return String(a.empresa||'').localeCompare(String(b.empresa||''));
+  }).map(function(c){
+    var cores={ATIVO:'#22c55e',SUSPENSO:'#eab308',ENCERRADO:'#6b7280'};
+    var st=String(c.status||'ATIVO').toUpperCase();
+    var t=String(c.tipo||'').toUpperCase();
+    var tipo={MENSAL:'Mensalidade', EXITO:'Percentual', PERCENTUAL:'Percentual',
+              MISTO:'Mensal + percentual', PONTUAL:'Serviços pontuais',
+              EXCLUSIVO:'Dedicação exclusiva'}[t]||c.tipo;
+    /* A base de cobrança vai junto do tipo: "5%" sozinho não diz se é
+       na assinatura ou a cada empenho, e a diferença é de meses. */
+    var base={EMPENHO:'a cada empenho', ASSINATURA:'na assinatura',
+              MEDICAO:'a cada medição'}[String(c.baseCobranca||'').toUpperCase()]||'';
+    var qtdServ=(c.servicos||[]).length;
+    return '<tr>'+
+      '<td><b>'+esc(c.empresa||'—')+'</b>'+(c.cnpj?'<div class="sub">'+esc(fmtCnpj(c.cnpj))+'</div>':'')+'</td>'+
+      '<td>'+esc(tipo||'—')+
+        (base?'<div class="sub">'+esc(base)+'</div>':'')+
+        (qtdServ?'<div class="sub">'+qtdServ+' serviço(s) na tabela</div>':'')+'</td>'+
+      '<td class="num">'+(num(c.valorMensal)>0?brl(num(c.valorMensal)):'—')+'</td>'+
+      '<td class="num">'+(num(c.percentualExito)>0?num(c.percentualExito).toLocaleString('pt-BR')+'%':'—')+'</td>'+
+      '<td>'+(c.diaVencimento?'dia '+esc(c.diaVencimento):'—')+'</td>'+
+      '<td>'+esc(c.inicio||'—')+(c.fim?' → '+esc(c.fim):'')+'</td>'+
+      '<td><span class="badge" style="background:'+(cores[st]||'#6b7280')+'1f;color:'+(cores[st]||'#6b7280')+'">'+
+        ({ATIVO:'Ativo',SUSPENSO:'Suspenso',ENCERRADO:'Encerrado'}[st]||st)+'</span></td>'+
+      '<td class="acoes"><button onclick="abrirContrato(\''+c.id+'\')" title="Editar">✏️</button></td>'+
+    '</tr>';
+  }).join('');
+  return topo+'<div class="tabela-wrap"><table><thead><tr>'+
+    '<th>Empresa</th><th>Tipo</th><th class="num">Mensal</th><th class="num">% Êxito</th>'+
+    '<th>Vencimento</th><th>Vigência</th><th>Situação</th><th></th>'+
+    '</tr></thead><tbody>'+linhas+'</tbody></table></div>';
+}
+
+function fmtCnpj(c){
+  var d=String(c||'').replace(/\D/g,'');
+  return d.length===14 ? d.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,'$1.$2.$3/$4-$5') : d;
+}
+
+function mudarMes(n){
+  MES+=n;
+  if(MES<0){MES=11;ANO--;} if(MES>11){MES=0;ANO++;}
+  pintar();
+}
+function mesHoje(){ var d=new Date(); MES=d.getMonth(); ANO=d.getFullYear(); pintar(); }
+function fecharModal(id){ document.getElementById(id).classList.remove('on'); }
+function trocarTema(){
+  document.body.classList.toggle('light');
+  try{ localStorage.setItem('nh_fin_tema', document.body.classList.contains('light')?'claro':'escuro'); }catch(e){}
+}
+
+/* ── Contrato de honorários ────────────────────────────────────── */
+function opcoesEmpresa(sel, atual){
+  var el=document.getElementById(sel);
+  if(!el) return;
+  el.innerHTML='<option value="">— escolha —</option>'+EMPRESAS.map(function(e){
+    return '<option value="'+esc(e.nome)+'" data-cnpj="'+esc(e.cnpj)+'"'+
+      (String(atual||'').toUpperCase()===e.nome.toUpperCase()?' selected':'')+'>'+esc(e.nome)+'</option>';
+  }).join('');
+}
+function ctAoTrocarEmpresa(){
+  var el=document.getElementById('ct-empresa');
+  var op=el.options[el.selectedIndex];
+  sv('ct-cnpj', op?fmtCnpj(op.getAttribute('data-cnpj')||''):'');
+}
+/* Cada modelo de cobrança pede campos diferentes. Mostrar todos de uma
+   vez, como estava, convidava a preencher o que não se aplica. */
+var CT_REGRAS = {
+  MENSAL:     {mensal:true,  perc:false, base:false, pontual:false, exclusivo:false},
+  PERCENTUAL: {mensal:false, perc:true,  base:true,  pontual:false, exclusivo:false},
+  MISTO:      {mensal:true,  perc:true,  base:true,  pontual:false, exclusivo:false},
+  PONTUAL:    {mensal:false, perc:false, base:false, pontual:true,  exclusivo:false},
+  EXCLUSIVO:  {mensal:true,  perc:false, base:false, pontual:false, exclusivo:true}
+};
+function ctAoTrocarTipo(){
+  var r = CT_REGRAS[gv('ct-tipo')] || CT_REGRAS.MENSAL;
+  document.getElementById('cx-mensal').style.display    = r.mensal?'':'none';
+  document.getElementById('cx-exito').style.display     = r.perc?'':'none';
+  document.getElementById('cx-base').style.display      = r.base?'':'none';
+  document.getElementById('cx-pontual').style.display   = r.pontual?'':'none';
+  document.getElementById('cx-exclusivo').style.display = r.exclusivo?'':'none';
+  ctAoTrocarBase();
+}
+function ctAoTrocarBase(){
+  var el=document.getElementById('ct-base-nota');
+  if(!el) return;
+  var notas = {
+    HOMOLOGACAO: 'Uma cobrança só, na homologação, sobre o valor homologado. A NH recebe cedo, mas a empresa paga antes de receber do órgão.',
+    EMPENHO:     'A cobrança acompanha o caixa da empresa: a cada empenho do órgão, desconta o percentual. Demora mais a entrar, e é o que menos pesa para o cliente.',
+    MEDICAO:     'A cobrança acompanha o que a empresa mede e fatura — sobe e desce com a execução.'
+  };
+  el.textContent = notas[gv('ct-base')] || '';
+}
+
+/** "Serviço = valor" por linha vira lista utilizável. */
+function lerServicos(txt){
+  return String(txt||'').split('\n').map(function(l){
+    var p=l.split('=');
+    if(p.length<2) return null;
+    var nome=p[0].trim(), v=num(p.slice(1).join('='));
+    return (nome && v>0) ? {nome:nome, valor:v} : null;
+  }).filter(Boolean);
+}
+function escreverServicos(lista){
+  return (lista||[]).map(function(s){
+    return s.nome+' = '+Number(s.valor).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  }).join('\n');
+}
+function abrirContrato(id){
+  _ctEdit=id||null;
+  var c=id?CONTRATOS.filter(function(x){return x.id===id;})[0]:null;
+  document.getElementById('ct-titulo').textContent=c?'Editar contrato de honorários':'Novo contrato de honorários';
+  opcoesEmpresa('ct-empresa', c?c.empresa:'');
+  ctAoTrocarEmpresa();
+  /* `EXITO` era o nome do tipo na primeira versão. Contratos gravados
+     antes continuam abrindo certo — o nome mudou, o acordo não. */
+  var tipo = c ? String(c.tipo||'MENSAL').toUpperCase() : 'MENSAL';
+  if(tipo === 'EXITO') tipo = 'PERCENTUAL';
+  sv('ct-tipo', tipo);
+  sv('ct-base', c?(c.baseCobranca||'EMPENHO'):'EMPENHO');
+  ctAoTrocarTipo();
+  sv('ct-valor', c&&num(c.valorMensal)>0?brl(num(c.valorMensal)):'');
+  sv('ct-perc', c&&num(c.percentualExito)>0?c.percentualExito:'');
+  sv('ct-servicos', c?escreverServicos(c.servicos):'');
+  sv('ct-escopo', c?(c.escopo||''):'');
+  sv('ct-dia', c?(c.diaVencimento||10):10);
+  sv('ct-inicio', c?dISO(c.inicio):'');
+  sv('ct-fim', c?dISO(c.fim):'');
+  sv('ct-status', c?(c.status||'ATIVO'):'ATIVO');
+  sv('ct-obs', c?(c.observacoes||''):'');
+  erro('ct-erro','');
+  document.getElementById('ov-contrato').classList.add('on');
+}
+async function salvarContrato(){
+  var empresa=gv('ct-empresa'), tipo=gv('ct-tipo'), inicio=gv('ct-inicio');
+  if(!empresa) return erro('ct-erro','Escolha a empresa.');
+  if(!inicio) return erro('ct-erro','Informe a data de início.');
+  var mensal=num(gv('ct-valor')), perc=parseFloat(gv('ct-perc'))||0;
+  var regra=CT_REGRAS[tipo]||CT_REGRAS.MENSAL;
+  var servicos=lerServicos(gv('ct-servicos'));
+
+  if(regra.mensal && !(mensal>0))
+    return erro('ct-erro','Informe o valor mensal — é ele que gera as cobranças.');
+  if(regra.perc && !(perc>0))
+    return erro('ct-erro','Informe o percentual cobrado sobre o contrato.');
+  if(regra.pontual && !servicos.length)
+    return erro('ct-erro','Liste ao menos um serviço, no formato <b>Serviço = valor</b> (um por linha).');
+  erro('ct-erro','');
+
+  var emp=EMPRESAS.filter(function(e){ return e.nome.toUpperCase()===empresa.toUpperCase(); })[0];
+  var dados={
+    cnpj: emp?emp.cnpj:'', empresa: empresa, tipo: tipo,
+    valorMensal: regra.mensal?mensal:0,
+    percentualExito: regra.perc?perc:0,
+    baseCobranca: regra.base?gv('ct-base'):'',
+    servicos: regra.pontual?servicos:[],
+    escopo: regra.exclusivo?gv('ct-escopo'):'',
+    diaVencimento: parseInt(gv('ct-dia'),10)||10,
+    inicio: dBR(inicio), fim: dBR(gv('ct-fim')),
+    status: gv('ct-status'), observacoes: gv('ct-obs'),
+    atualizadoPor: (auth.currentUser&&auth.currentUser.email)||'', atualizadoEm: new Date().toLocaleString('pt-BR')
+  };
+  var btn=document.getElementById('ct-salvar');
+  btn.disabled=true; btn.textContent='Salvando…';
+  try{
+    if(_ctEdit) await db.collection('nh_contratos_honorarios').doc(_ctEdit).update(dados);
+    else { dados.criadoPor=dados.atualizadoPor; dados.criadoEm=dados.atualizadoEm;
+           await db.collection('nh_contratos_honorarios').add(dados); }
+    fecharModal('ov-contrato');
+    await carregarTudo();
+  }catch(e){ erro('ct-erro', msgErro(e)); }
+  finally{ btn.disabled=false; btn.textContent='Salvar'; }
+}
+
+/* ── Cobranças ─────────────────────────────────────────────────── */
+function rcAoTrocarStatus(){
+  var st=gv('rc-status');
+  var mostra=(st==='RECEBIDA');
+  document.getElementById('cx-recdata').style.display=mostra?'':'none';
+  document.getElementById('cx-recvalor').style.display=mostra?'':'none';
+}
+function abrirReceita(id){
+  _rcEdit=id||null;
+  var r=id?RECEITAS.filter(function(x){return x.id===id;})[0]:null;
+  document.getElementById('rc-titulo').textContent=r?'Editar cobrança':'Nova cobrança';
+  document.getElementById('rc-sub').textContent=MESES[MES]+' de '+ANO;
+  opcoesEmpresa('rc-empresa', r?r.empresa:'');
+  sv('rc-tipo', r?(r.tipo||'MENSALIDADE'):'MENSALIDADE');
+  sv('rc-competencia', r?(r.competencia||competenciaAtual()):competenciaAtual());
+  sv('rc-descricao', r?(r.descricao||''):'');
+  sv('rc-valor', r&&num(r.valor)>0?brl(num(r.valor)):'');
+  sv('rc-venc', r?dISO(r.dataVencimento):'');
+  sv('rc-status', r?(r.status||'PREVISTA'):'PREVISTA');
+  sv('rc-dtreceb', r?dISO(r.dataRecebimento):'');
+  sv('rc-vlreceb', r&&num(r.valorRecebido)>0?brl(num(r.valorRecebido)):'');
+  sv('rc-nf', r?(r.notaFiscal||''):'');
+  sv('rc-link', r?(r.link||''):'');
+  rcAoTrocarStatus();
+  erro('rc-erro','');
+  document.getElementById('ov-receita').classList.add('on');
+}
+async function salvarReceita(){
+  var empresa=gv('rc-empresa'), valor=num(gv('rc-valor')), venc=gv('rc-venc');
+  if(!empresa) return erro('rc-erro','Escolha a empresa.');
+  if(!(valor>0)) return erro('rc-erro','Informe um valor maior que zero.');
+  if(!venc) return erro('rc-erro','Informe o vencimento — é dele que sai o atraso.');
+  erro('rc-erro','');
+
+  var st=gv('rc-status');
+  var recebido=(st==='RECEBIDA')?num(gv('rc-vlreceb')):0;
+  /* Marcou recebida e não disse quanto: o valor cheio é a leitura
+     certa; deixar zero faria a cobrança parecer em aberto. */
+  if(st==='RECEBIDA' && !(recebido>0)) recebido=valor;
+
+  var emp=EMPRESAS.filter(function(e){ return e.nome.toUpperCase()===empresa.toUpperCase(); })[0];
+  var dados={
+    cnpj: emp?emp.cnpj:'', empresa: empresa, tipo: gv('rc-tipo'),
+    competencia: gv('rc-competencia'), descricao: gv('rc-descricao'),
+    valor: valor, dataVencimento: dBR(venc),
+    dataRecebimento: (st==='RECEBIDA')?dBR(gv('rc-dtreceb')):'',
+    valorRecebido: recebido, status: st,
+    notaFiscal: gv('rc-nf'), link: gv('rc-link'),
+    atualizadoPor: (auth.currentUser&&auth.currentUser.email)||'', atualizadoEm: new Date().toLocaleString('pt-BR')
+  };
+  var btn=document.getElementById('rc-salvar');
+  btn.disabled=true; btn.textContent='Salvando…';
+  try{
+    if(_rcEdit) await db.collection('nh_receitas').doc(_rcEdit).update(dados);
+    else { dados.criadoPor=dados.atualizadoPor; dados.criadoEm=dados.atualizadoEm;
+           await db.collection('nh_receitas').add(dados); }
+    fecharModal('ov-receita');
+    await carregarTudo();
+  }catch(e){ erro('rc-erro', msgErro(e)); }
+  finally{ btn.disabled=false; btn.textContent='Salvar'; }
+}
+async function cancelarReceita(id){
+  if(!confirm('Cancelar esta cobrança? Ela continua na lista, riscada, e sai das somas.')) return;
+  try{
+    await db.collection('nh_receitas').doc(id).update({
+      status:'CANCELADA', atualizadoPor:(auth.currentUser&&auth.currentUser.email)||'',
+      atualizadoEm:new Date().toLocaleString('pt-BR')});
+    await carregarTudo();
+  }catch(e){ alert(msgErro(e)); }
+}
+
+/** Cria as mensalidades do mês para os contratos ativos que ainda não
+    têm. Nunca duplica: um contrato só ganha uma mensalidade por
+    competência. */
+function mensalidadesFaltando(){
+  var comp=competenciaAtual();
+  var refMes=new Date(ANO, MES, 1);
+  return CONTRATOS.filter(function(c){
+    if(String(c.status||'').toUpperCase()!=='ATIVO') return false;
+    /* Quem tem mensalidade: MENSAL, MISTO e EXCLUSIVO. Percentual puro
+       nasce do empenho/assinatura, e pontual nasce da demanda — nenhum
+       dos dois tem cobrança automática todo mês. */
+    var t=String(c.tipo||'').toUpperCase();
+    var regra=CT_REGRAS[t==='EXITO'?'PERCENTUAL':t];
+    if(!regra || !regra.mensal) return false;
+    if(!(num(c.valorMensal)>0)) return false;
+    var ini=dData(c.inicio);
+    if(ini && new Date(ini.getFullYear(), ini.getMonth(), 1) > refMes) return false;
+    var fim=dData(c.fim);
+    if(fim && new Date(fim.getFullYear(), fim.getMonth(), 1) < refMes) return false;
+    var jaTem=RECEITAS.some(function(r){
+      return r.contratoId===c.id && r.competencia===comp
+        && String(r.tipo||'').toUpperCase()==='MENSALIDADE';
+    });
+    return !jaTem;
+  });
+}
+async function gerarMensalidades(){
+  var faltam=mensalidadesFaltando();
+  if(!faltam.length){ alert('Todas as mensalidades de '+MESES[MES]+' já estão lançadas.'); return; }
+  if(!confirm('Gerar '+faltam.length+' mensalidade(s) de '+MESES[MES]+' de '+ANO+'?')) return;
+  var quem=(auth.currentUser&&auth.currentUser.email)||'';
+  var agora=new Date().toLocaleString('pt-BR');
+  try{
+    var lote=db.batch();
+    faltam.forEach(function(c){
+      var dia=Math.min(parseInt(c.diaVencimento,10)||10, 28);
+      var ref=db.collection('nh_receitas').doc();
+      lote.set(ref, {
+        cnpj:c.cnpj||'', empresa:c.empresa, contratoId:c.id,
+        competencia:competenciaAtual(), tipo:'MENSALIDADE',
+        descricao:'Honorários de '+MESES[MES]+'/'+ANO,
+        valor:num(c.valorMensal),
+        dataVencimento:String(dia).padStart(2,'0')+'/'+String(MES+1).padStart(2,'0')+'/'+ANO,
+        dataRecebimento:'', valorRecebido:0, status:'PREVISTA',
+        notaFiscal:'', link:'', criadoPor:quem, criadoEm:agora, atualizadoPor:quem, atualizadoEm:agora
+      });
+    });
+    await lote.commit();
+    await carregarTudo();
+  }catch(e){ alert(msgErro(e)); }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   HONORÁRIO DE ÊXITO — o que já pode ser cobrado e ainda não foi
+
+   O elo com o Sistema NH. Cada contrato de honorário do tipo
+   percentual gera cobrança a partir de um fato que acontece LÁ:
+
+     HOMOLOGAÇÃO → a licitação ganha entrou em `ganhas`
+     EMPENHO     → o órgão empenhou (lançado no Portal de Contratos)
+
+   Nada é criado sozinho. O sistema mostra o que está pendente e
+   quem decide é a pessoa — cobrança gerada escondido é cobrança
+   errada esperando para acontecer.
+   ════════════════════════════════════════════════════════════════ */
+
+function contratoDaEmpresa(nomeEmpresa, cnpj){
+  var alvoCnpj=String(cnpj||'').replace(/\D/g,'');
+  var alvoNome=String(nomeEmpresa||'').trim().toUpperCase();
+  return CONTRATOS.filter(function(c){
+    if(String(c.status||'').toUpperCase()!=='ATIVO') return false;
+    /* CNPJ primeiro — nome varia entre razão social e apelido. */
+    var ccnpj=String(c.cnpj||'').replace(/\D/g,'');
+    if(alvoCnpj && ccnpj) return ccnpj===alvoCnpj;
+    return String(c.empresa||'').trim().toUpperCase()===alvoNome;
+  })[0] || null;
+}
+
+/** Já existe cobrança de êxito para esta origem? */
+function jaCobrado(origemTipo, origemId){
+  return RECEITAS.some(function(r){
+    return String(r.tipo||'').toUpperCase()==='EXITO'
+      && r.origemTipo===origemTipo && r.origemId===origemId
+      && String(r.status||'').toUpperCase()!=='CANCELADA';
+  });
+}
+
+/**
+ * Lista o que está pendente de cobrança de êxito, com o cálculo
+ * pronto. Não grava nada.
+ */
+function exitosPendentes(){
+  var out=[];
+
+  /* 1) Por HOMOLOGAÇÃO — uma cobrança por licitação ganha. */
+  GANHAS.forEach(function(g){
+    var emp=String(g.arr[G.EMPRESA]||'').trim();
+    var c=contratoDaEmpresa(emp, '');
+    if(!c) return;
+    if(String(c.baseCobranca||'').toUpperCase()!=='HOMOLOGACAO') return;
+    if(!(num(c.percentualExito)>0)) return;
+    if(jaCobrado('GANHA', g.id)) return;
+    var base=num(g.arr[G.VALOR]);
+    if(!(base>0)) return;
+    out.push({
+      origemTipo:'GANHA', origemId:g.id, empresa:emp, cnpj:c.cnpj||'', contratoId:c.id,
+      referencia:String(g.arr[G.LICITACAO]||''), quando:String(g.arr[G.DT_ASSINATURA]||g.arr[G.DATA]||''),
+      baseValor:base, percentual:num(c.percentualExito),
+      valor:Math.round(base*num(c.percentualExito))/100,
+      motivo:'Homologação'
+    });
+  });
+
+  /* 2) Por EMPENHO — uma cobrança por empenho registrado. */
+  EMPENHOS.forEach(function(e){
+    var emp=String(e.empresa||'').trim();
+    var c=contratoDaEmpresa(emp, '');
+    if(!c) return;
+    if(String(c.baseCobranca||'').toUpperCase()!=='EMPENHO') return;
+    if(!(num(c.percentualExito)>0)) return;
+    if(jaCobrado('EMPENHO', e.id)) return;
+    var base=num(e.valor);
+    if(!(base>0)) return;
+    out.push({
+      origemTipo:'EMPENHO', origemId:e.id, empresa:emp, cnpj:c.cnpj||'', contratoId:c.id,
+      referencia:(e.licitacao||'')+(e.numero?' · Empenho '+e.numero:''),
+      quando:e.dataEmissao||'',
+      baseValor:base, percentual:num(c.percentualExito),
+      valor:Math.round(base*num(c.percentualExito))/100,
+      motivo:'Empenho'
+    });
+  });
+
+  return out;
+}
+
+/** Cria as cobranças escolhidas. O prazo sai do dia de vencimento do
+    contrato, contado a partir de hoje. */
+async function gerarExitos(escolhidos){
+  var quem=(auth.currentUser&&auth.currentUser.email)||'';
+  var agora=new Date().toLocaleString('pt-BR');
+  var lote=db.batch();
+  escolhidos.forEach(function(x){
+    var c=CONTRATOS.filter(function(k){ return k.id===x.contratoId; })[0]||{};
+    var venc=new Date();
+    venc.setDate(venc.getDate()+15);
+    var dia=parseInt(c.diaVencimento,10);
+    if(dia>0 && dia<=28){ venc.setMonth(venc.getMonth()+ (venc.getDate()>dia?1:0)); venc.setDate(dia); }
+    var ref=db.collection('nh_receitas').doc();
+    lote.set(ref,{
+      cnpj:x.cnpj, empresa:x.empresa, contratoId:x.contratoId,
+      competencia:venc.getFullYear()+'-'+String(venc.getMonth()+1).padStart(2,'0'),
+      tipo:'EXITO',
+      descricao:x.motivo+' · '+x.referencia+' ('+x.percentual.toLocaleString('pt-BR')+'% de '+brl(x.baseValor)+')',
+      valor:x.valor,
+      dataVencimento:String(venc.getDate()).padStart(2,'0')+'/'+String(venc.getMonth()+1).padStart(2,'0')+'/'+venc.getFullYear(),
+      dataRecebimento:'', valorRecebido:0, status:'PREVISTA',
+      /* A origem é o que impede cobrar o mesmo êxito duas vezes. */
+      origemTipo:x.origemTipo, origemId:x.origemId, licitacaoRef:x.referencia,
+      baseCalculo:x.baseValor, percentualAplicado:x.percentual,
+      notaFiscal:'', link:'', criadoPor:quem, criadoEm:agora, atualizadoPor:quem, atualizadoEm:agora
+    });
+  });
+  await lote.commit();
+  await carregarTudo();
+}
+
+function msgErro(e){
+  if(String(e&&e.code)==='permission-denied')
+    return 'O Firestore recusou. As regras das coleções nh_* precisam estar publicadas, '
+         + 'e este sistema é restrito ao administrador.';
+  return 'Não consegui salvar: '+((e&&e.message)||e);
+}
+
+/* ── Acesso ────────────────────────────────────────────────────── */
+async function entrar(){
+  var email=gv('ac-email'), senha=document.getElementById('ac-senha').value;
+  var msg=document.getElementById('ac-msg'), btn=document.getElementById('ac-btn');
+  if(!email||!senha){ msg.style.display='block'; msg.textContent='Preencha e-mail e senha.'; return; }
+  msg.style.display='none';
+  btn.disabled=true; btn.textContent='Entrando…';
+  try{
+    await auth.signInWithEmailAndPassword(email, senha);
+  }catch(e){
+    msg.style.display='block';
+    msg.textContent='E-mail ou senha incorretos.';
+    btn.disabled=false; btn.textContent='Entrar';
+  }
+}
+function sair(){ auth.signOut(); }
+
+auth.onAuthStateChanged(async function(u){
+  var acesso=document.getElementById('tela-acesso');
+  var btn=document.getElementById('ac-btn');
+  if(!u){
+    acesso.style.display='flex';
+    document.getElementById('topo').style.display='none';
+    document.getElementById('app').style.display='none';
+    btn.disabled=false; btn.textContent='Entrar';
+    return;
+  }
+  /* Empresa cliente entra por numero@nh.interno. Este sistema é do
+     escritório — ela não passa daqui, e a regra do Firestore diz o
+     mesmo do lado do banco. */
+  if(/@nh\.interno$/i.test(u.email||'')){
+    document.getElementById('ac-msg').style.display='block';
+    document.getElementById('ac-msg').textContent='Este acesso não é do financeiro da NH.';
+    await auth.signOut();
+    return;
+  }
+  acesso.style.display='none';
+  document.getElementById('topo').style.display='flex';
+  document.getElementById('app').style.display='block';
+  try{ await carregarTudo(); }
+  catch(e){
+    document.getElementById('painel').innerHTML='<div class="vazio">'+esc(msgErro(e))+'</div>';
+  }
+});
+
+(function(){
+  try{ if(localStorage.getItem('nh_fin_tema')==='claro') document.body.classList.add('light'); }catch(e){}
+  document.addEventListener('keydown', function(ev){
+    if(ev.key==='Escape') document.querySelectorAll('.ov.on').forEach(function(o){ o.classList.remove('on'); });
+    if(ev.key==='Enter' && document.getElementById('tela-acesso').style.display!=='none'
+       && document.activeElement && document.activeElement.id==='ac-senha') entrar();
+  });
+})();
+</script>
+</body>
+</html>
