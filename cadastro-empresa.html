@@ -395,7 +395,7 @@ function pubTrocarTema(){pubAplicarTema(!document.body.classList.contains('light
 (function(){try{pubAplicarTema('claro'===localStorage.getItem('nh_tema'));}catch(e){}})();
 
 /* ── firebase ─────────────────────────────────────────────────────── */
-var firebaseConfig={apiKey:"AIzaSyBw-JsGfcNUXYb1rTMdEDw6M",authDomain:"nh-licitacoes.firebaseapp.com",
+var firebaseConfig={apiKey:"AIzaSyBhcpJP9dRM0SEJsGfcNUXYb1rTMdEDw6M",authDomain:"nh-licitacoes.firebaseapp.com",
   projectId:"nh-licitacoes",storageBucket:"nh-licitacoes.firebasestorage.app",
   messagingSenderId:"1081646053691",appId:"1:1081646053691:web:a8abcb5792d026ade71f1e"};
 firebase.initializeApp(firebaseConfig);
@@ -541,15 +541,31 @@ async function pubEnviar(){
 
   btn.textContent='Salvando...';
   try{
-    var docId=r.dados.cnpj;
-    var ref=db.collection('cadastros_pendentes').doc(docId);
-    var atual=await ref.get();
-    var payload=Object.assign({},r.dados,{atualizadoEm:Date.now()});
-    if(salvos.length)payload.arquivos=firebase.firestore.FieldValue.arrayUnion.apply(null,salvos);
+    /* Este formulário é PÚBLICO — roda sem ninguém logado.
+
+       Havia um `ref.get()` aqui, para saber se o CNPJ já tinha se
+       cadastrado. Só que a regra do Firestore (corretamente) deixa
+       apenas a NH LER os cadastros enviados: sem isso, um concorrente
+       leria a ficha do outro. Resultado: a leitura estourava
+       "Missing or insufficient permissions" ANTES de tentar salvar —
+       em todo cadastro, novo ou não.
+
+       O id também deixou de ser o CNPJ. Com id fixo, reenviar o
+       cadastro vira UPDATE, que também é só da NH. Agora cada envio é
+       um documento novo (create, a única operação que o público pode
+       fazer aqui). Dois envios do mesmo CNPJ aparecem os dois para a
+       NH resolver — melhor do que o segundo dar erro na cara de quem
+       está tentando se cadastrar. */
+    var ref=db.collection('cadastros_pendentes').doc();
+    var payload=Object.assign({},r.dados,{
+      status:'novo', criadoEm:Date.now(), atualizadoEm:Date.now()
+    });
+    /* arrayUnion era para mesclar com o que já existia; em documento
+       novo, a lista vai direto. */
+    if(salvos.length)payload.arquivos=salvos;
     if(pastaUrl)payload.pastaDriveUrl=pastaUrl;
-    var eraNovo=!atual.exists;
-    if(eraNovo){payload.status='novo';payload.criadoEm=Date.now();}
-    await ref.set(payload,{merge:true});
+    var eraNovo=true;   /* todo envio é um cadastro novo — avisa a NH */
+    await ref.set(payload);
 
     /* Avisa a NH por e-mail só quando é empresa de verdade nova — um
        reenvio de documentos complementares não deve gerar um segundo
