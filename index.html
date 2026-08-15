@@ -4351,7 +4351,61 @@ function acAplicarTema(claro){
 function acTrocarTema(){acAplicarTema(!document.body.classList.contains('light-theme'));}
 (function(){try{acAplicarTema('claro'===localStorage.getItem('nh_tema'));}catch(e){}})();
 
-function loginEmailSenha(){var e=document.getElementById("login-email").value.trim(),a=document.getElementById("login-senha").value,t=document.getElementById("btn-login"),o=document.getElementById("login-err");if(!e||!a)return o.style.display="block",void(o.textContent="Preencha email e senha");t&&(t.textContent="Entrando..."),o.style.display="none",auth.signInWithEmailAndPassword(e,a).catch(function(e){t&&(t.textContent="Entrar"),o.style.display="block","auth/wrong-password"===e.code||"auth/user-not-found"===e.code||"auth/invalid-credential"===e.code?o.textContent="Email ou senha incorretos":o.textContent="Erro: "+e.message})}function logoutGoogle(){auth.signOut()}var ADMIN_EMAIL="noronhaholandalicitacoes@gmail.com",USUARIOS=null,USER_EMAIL="",IS_ADMIN=false,USER_SOS=true,IS_READONLY=false;async function carregarUsuarios(){if(USUARIOS!==null)return USUARIOS;USUARIOS={};try{if(db){var d=await db.collection("config").doc("usuarios").get();if(d.exists){var x=d.data();if(x&&x.lista)USUARIOS=x.lista;}}}catch(e){}return USUARIOS;}async function resolveAcesso(em){if(em===ADMIN_EMAIL)return{ok:true,admin:true,sos:true,readonly:false};var U=await carregarUsuarios();var u=U[em];if(u)return{ok:true,admin:"admin"===u.role,sos:"admin"===u.role||!!u.sos,readonly:"admin"!==u.role};if(EMAILS_AUTORIZADOS.indexOf(em)>-1)return{ok:true,admin:true,sos:true,readonly:false};return{ok:false};}function aplicarPermissoes(){try{document.body.classList.toggle("ro-mode",!!IS_READONLY);document.body.classList.toggle("no-sos",!USER_SOS);if(!USER_SOS)MOSTRAR_SOS=false;var bu=document.getElementById("btn-usuarios");bu&&(bu.style.display=IS_ADMIN?"inline-block":"none");}catch(e){}}function abrirUsuarios(){if(!IS_ADMIN)return;carregarUsuarios().then(function(){var w=document.getElementById("usuarios-ovwrap");if(!w){w=document.createElement("div");w.id="usuarios-ovwrap";document.body.appendChild(w);}w.innerHTML='<div class="uov" onclick="if(event.target===this)fecharUsuarios()"><div class="upanel"><div class="uhead"><div class="uhc"><div class="uicon">👥</div><h3>Usuários do sistema</h3></div><button class="uclose" onclick="fecharUsuarios()">&times;</button></div><div class="uhint">O admin vê e edita tudo. Os demais entram em <b>somente leitura</b>. Ative <b>vê Externo</b> só para quem pode ver os processos externos.</div><div class="uform"><input id="nu-email" type="email" placeholder="email@exemplo.com" class="uinput"><select id="nu-role" class="uinput usel"><option value="leitura">Somente leitura</option><option value="admin">Admin</option></select><label class="uswlbl"><span>vê Externo</span><span class="usw"><input id="nu-sos" type="checkbox"><span></span></span></label><button class="ubtn-add" onclick="addUsuario()">Adicionar</button></div><div id="usuarios-lista"></div></div></div>';renderListaUsuarios();});}function fecharUsuarios(){var w=document.getElementById("usuarios-ovwrap");if(w)w.innerHTML="";}function renderListaUsuarios(){var box=document.getElementById("usuarios-lista");if(!box)return;var html='<div class="urow uadmin"><div class="uinfo"><b>'+ADMIN_EMAIL+'</b><div class="umeta"><span class="ubadge badm">Admin</span><span class="ubadge bext">vê Externo</span></div></div><span class="ufix">fixo</span></div>';var ks=Object.keys(USUARIOS||{});if(!ks.length)html+='<div class="uempty">Nenhum usuário adicional cadastrado.</div>';ks.forEach(function(em,n){var u=USUARIOS[em]||{};var adm="admin"===u.role;var vs=adm||u.sos;html+='<div class="urow"><div class="uinfo"><b>'+em+'</b><div class="umeta"><span class="ubadge '+(adm?"badm":"ble")+'">'+(adm?"Admin":"Leitura")+'</span>'+(vs?'<span class="ubadge bext">vê Externo</span>':'')+'</div></div><div class="uacts">'+(adm?"":'<button class="upill '+(u.sos?"on":"")+'" onclick="toggleSosIdx('+n+')">'+(u.sos?"vê Externo":"sem Externo")+'</button>')+'<button class="utrash" onclick="removerIdx('+n+')" title="Remover">🗑</button></div></div>';});box.innerHTML=html;}function salvarUsuarios(){if(typeof db!=="undefined"&&db){db.collection("config").doc("usuarios").set({lista:USUARIOS||{}},{merge:true}).catch(function(){toast&&toast("Erro ao salvar usuários","err");});}}function addUsuario(){var em=(document.getElementById("nu-email").value||"").trim().toLowerCase();if(!em||em.indexOf("@")<1){toast&&toast("E-mail inválido","err");return;}if(em===ADMIN_EMAIL){toast&&toast("Esse já é o admin","err");return;}var role=document.getElementById("nu-role").value;var sos=document.getElementById("nu-sos").checked;USUARIOS=USUARIOS||{};USUARIOS[em]={role:role,sos:!!sos};salvarUsuarios();document.getElementById("nu-email").value="";document.getElementById("nu-sos").checked=false;renderListaUsuarios();toast&&toast("Usuário adicionado","ok");}function removerIdx(n){var em=Object.keys(USUARIOS||{})[n];if(em){delete USUARIOS[em];salvarUsuarios();renderListaUsuarios();toast&&toast("Usuário removido","ok");}}function toggleSosIdx(n){var em=Object.keys(USUARIOS||{})[n];if(em){USUARIOS[em].sos=!USUARIOS[em].sos;salvarUsuarios();renderListaUsuarios();}}auth.onAuthStateChanged(function(e){var a=document.getElementById("login-screen"),t=document.getElementById("sb"),o=document.querySelector(".topbar"),i=document.querySelector(".main");if(e){resolveAcesso(e.email).then(function(acc){if(!acc.ok){auth.signOut();var n=document.getElementById("login-err");return void(n&&(n.style.display="block",n.textContent="Email não autorizado: "+e.email))}IS_ADMIN=acc.admin,USER_SOS=acc.sos,IS_READONLY=acc.readonly,USER_EMAIL=e.email;a&&(a.style.display="none"),t&&(t.style.display=""),o&&(o.style.display=""),i&&(i.style.display="");var r=document.getElementById("user-info"),s=document.getElementById("user-name");r&&(r.style.display="flex"),s&&(s.textContent=e.email),aplicarPermissoes(),window._appInited||(window._appInited=!0,initApp())})}else{a&&(a.style.display="flex"),t&&(t.style.display="none"),o&&(o.style.display="none"),i&&(i.style.display="none"),(r=document.getElementById("user-info"))&&(r.style.display="none")}});const FB_COLS={editais:"editais",andamento:"andamento",finalizados:"finalizados",ganhas:"ganhas",atestados:"atestados",financeiro:"financeiro",valores:"valores",config:"config"};var EMPRESAS=[{nome:"VISE",cor:"#eab308"},{nome:"SAUTEC",cor:"#3b82f6"},{nome:"SOS",cor:"#22c55e"},{nome:"SOS FILIAL",cor:"#ef4444"},{nome:"ONLAV",cor:"#06b6d4"},{nome:"ENGEMED",cor:"#ec4899"}];async function carregarEmpresas(){try{var e=await db.collection("config").doc("empresas").get();e.exists&&e.data().lista&&(EMPRESAS=e.data().lista)}catch(e){}EMPRESAS.forEach(function(e){EMP_DATA[e.nome]||(EMP_DATA[e.nome]={cnpj:e.cnpj||"",portais:[],docs:[]}),TOPS["emp-"+e.nome]||(TOPS["emp-"+e.nome]=["Empresa — "+e.nome,"Portais, certidões e documentação"+(e.cnpj?" · CNPJ "+e.cnpj:"")])}),atualizarSelectsEmpresas(),Promise.all(EMPRESAS.map(function(e){return loadEmpData(e.nome)})).then(function(){atualizarSelectsEmpresas()}).catch(function(e){})}async function salvarEmpresas(){await db.collection("config").doc("empresas").set({lista:EMPRESAS})}
+function loginEmailSenha(){var e=document.getElementById("login-email").value.trim(),a=document.getElementById("login-senha").value,t=document.getElementById("btn-login"),o=document.getElementById("login-err");if(!e||!a)return o.style.display="block",void(o.textContent="Preencha email e senha");t&&(t.textContent="Entrando..."),o.style.display="none",auth.signInWithEmailAndPassword(e,a).catch(function(e){t&&(t.textContent="Entrar"),o.style.display="block","auth/wrong-password"===e.code||"auth/user-not-found"===e.code||"auth/invalid-credential"===e.code?o.textContent="Email ou senha incorretos":o.textContent="Erro: "+e.message})}function logoutGoogle(){auth.signOut()}var ADMIN_EMAIL="noronhaholandalicitacoes@gmail.com",USUARIOS=null,USER_EMAIL="",IS_ADMIN=false,USER_SOS=true,IS_READONLY=false;async function carregarUsuarios(){if(USUARIOS!==null)return USUARIOS;USUARIOS={};try{if(db){var d=await db.collection("config").doc("usuarios").get();if(d.exists){var x=d.data();if(x&&x.lista)USUARIOS=x.lista;}}}catch(e){}return USUARIOS;}async function resolveAcesso(em){if(em===ADMIN_EMAIL)return{ok:true,admin:true,sos:true,readonly:false};var U=await carregarUsuarios();var u=U[em];if(u)return{ok:true,admin:"admin"===u.role,sos:"admin"===u.role||!!u.sos,readonly:"admin"!==u.role};if(EMAILS_AUTORIZADOS.indexOf(em)>-1)return{ok:true,admin:true,sos:true,readonly:false};return{ok:false};}function aplicarPermissoes(){try{document.body.classList.toggle("ro-mode",!!IS_READONLY);document.body.classList.toggle("no-sos",!USER_SOS);if(!USER_SOS)MOSTRAR_SOS=false;var bu=document.getElementById("btn-usuarios");bu&&(bu.style.display=IS_ADMIN?"inline-block":"none");if(typeof cfgAplicarPermissoes==="function")cfgAplicarPermissoes();}catch(e){}}function abrirUsuarios(){if(!IS_ADMIN)return;carregarUsuarios().then(function(){var w=document.getElementById("usuarios-ovwrap");if(!w){w=document.createElement("div");w.id="usuarios-ovwrap";document.body.appendChild(w);}w.innerHTML='<div class="uov" onclick="if(event.target===this)fecharUsuarios()"><div class="upanel"><div class="uhead"><div class="uhc"><div class="uicon">👥</div><h3>Usuários do sistema</h3></div><button class="uclose" onclick="fecharUsuarios()">&times;</button></div><div class="uhint">O admin vê e edita tudo. Os demais entram em <b>somente leitura</b>. Ative <b>vê Externo</b> só para quem pode ver os processos externos.</div><div class="uform"><input id="nu-email" type="email" placeholder="email@exemplo.com" class="uinput"><select id="nu-role" class="uinput usel"><option value="leitura">Somente leitura</option><option value="admin">Admin</option></select><label class="uswlbl"><span>vê Externo</span><span class="usw"><input id="nu-sos" type="checkbox"><span></span></span></label><button class="ubtn-add" onclick="addUsuario()">Adicionar</button></div><div id="usuarios-lista"></div></div></div>';renderListaUsuarios();});}function fecharUsuarios(){var w=document.getElementById("usuarios-ovwrap");if(w)w.innerHTML="";}/* Define se um e-mail de config/usuarios é EQUIPE (vê tudo) ou EMPRESA
+   (vê só as dela). Até 15/08/2026 não havia essa distinção: qualquer
+   e-mail cadastrado aqui entrava no Portal de Licitações com `todas:
+   true` e enxergava o grupo inteiro. A correção está no servidor
+   (sessao.ts); esta tela é onde a marcação é feita.
+
+   O padrão continua EQUIPE, para ninguém da NH perder acesso. Marcar
+   como empresa é uma decisão consciente, e a lista de empresas é
+   obrigatória — empresa sem vínculo não entra. */
+function usuarioVincular(n){
+  var em=Object.keys(USUARIOS||{})[n];
+  if(!em)return;
+  var u=USUARIOS[em]||{};
+  var ehEmp=String(u.tipo||'').toLowerCase()==='empresa';
+
+  var resp=prompt(
+    'Acesso de "'+em+'"\n\n'+
+    'Digite EQUIPE  — vê os dados de todas as empresas (uso interno da NH)\n'+
+    'ou as empresas separadas por vírgula — vê só essas\n\n'+
+    'Empresas cadastradas: '+EMPRESAS.map(function(e){return e.nome;}).join(', '),
+    ehEmp?(u.empresas||[]).map(function(v){return acNomeEmpresa(v);}).join(', '):'EQUIPE');
+  if(resp===null)return;
+  resp=String(resp).trim();
+
+  if(!resp||resp.toUpperCase()==='EQUIPE'){
+    delete u.tipo; delete u.empresas;
+    USUARIOS[em]=u; salvarUsuarios(); renderListaUsuarios();
+    toast('"'+em+'" agora é equipe da NH e vê todas as empresas.','ok');
+    return;
+  }
+
+  /* Casa o que foi digitado com o cadastro e guarda o CNPJ quando
+     existe — nome muda, CNPJ não. Nome que não existe é recusado, em
+     vez de virar um vínculo que nunca vai casar com nada. */
+  var pedidas=resp.split(',').map(function(x){return x.trim();}).filter(Boolean);
+  var vinc=[], naoAchou=[];
+  pedidas.forEach(function(nome){
+    var e=EMPRESAS.filter(function(x){
+      return String(x.nome||'').trim().toUpperCase()===nome.toUpperCase();})[0];
+    if(!e){ naoAchou.push(nome); return; }
+    var cnpj=String(e.cnpj||'').replace(/\D/g,'');
+    vinc.push(cnpj||e.nome);
+  });
+  if(naoAchou.length){
+    alert('Não encontrei no cadastro: '+naoAchou.join(', ')+
+      '\n\nUse exatamente o nome como está em Configurações › Empresas.');
+    return;
+  }
+  if(!vinc.length){ alert('Informe ao menos uma empresa.'); return; }
+
+  u.tipo='empresa'; u.empresas=vinc; u.role='leitura';
+  USUARIOS[em]=u; salvarUsuarios(); renderListaUsuarios();
+  toast('"'+em+'" agora vê só: '+pedidas.join(', '),'ok');
+}
+function renderListaUsuarios(){var box=document.getElementById("usuarios-lista");if(!box)return;var html='<div class="urow uadmin"><div class="uinfo"><b>'+ADMIN_EMAIL+'</b><div class="umeta"><span class="ubadge badm">Admin</span><span class="ubadge bext">vê Externo</span></div></div><span class="ufix">fixo</span></div>';var ks=Object.keys(USUARIOS||{});if(!ks.length)html+='<div class="uempty">Nenhum usuário adicional cadastrado.</div>';ks.forEach(function(em,n){var u=USUARIOS[em]||{};var adm="admin"===u.role;var vs=adm||u.sos;html+='<div class="urow"><div class="uinfo"><b>'+em+'</b><div class="umeta"><span class="ubadge '+(adm?"badm":"ble")+'">'+(u.tipo==="empresa"?"Empresa":(adm?"Admin":"Leitura"))+'</span>'+(u.tipo==="empresa"?'<span class="ubadge" style="background:rgba(59,130,246,.15);color:#3b82f6">'+((u.empresas||[]).map(function(v){return acNomeEmpresa(v);}).join(", ")||"sem empresa")+'</span>':"")+(vs?'<span class="ubadge bext">vê Externo</span>':'')+'</div></div><div class="uacts">'+(adm?"":'<button class="upill '+(u.sos?"on":"")+'" onclick="toggleSosIdx('+n+')">'+(u.sos?"vê Externo":"sem Externo")+'</button>')+'<button class="upill" onclick="usuarioVincular('+n+')" title="Definir se e empresa e quais ela ve">empresas</button><button class="utrash" onclick="removerIdx('+n+')" title="Remover">🗑</button></div></div>';});box.innerHTML=html;}function salvarUsuarios(){if(typeof db!=="undefined"&&db){db.collection("config").doc("usuarios").set({lista:USUARIOS||{}},{merge:true}).catch(function(){toast&&toast("Erro ao salvar usuários","err");});}}function addUsuario(){var em=(document.getElementById("nu-email").value||"").trim().toLowerCase();if(!em||em.indexOf("@")<1){toast&&toast("E-mail inválido","err");return;}if(em===ADMIN_EMAIL){toast&&toast("Esse já é o admin","err");return;}var role=document.getElementById("nu-role").value;var sos=document.getElementById("nu-sos").checked;USUARIOS=USUARIOS||{};USUARIOS[em]={role:role,sos:!!sos};salvarUsuarios();document.getElementById("nu-email").value="";document.getElementById("nu-sos").checked=false;renderListaUsuarios();toast&&toast("Usuário adicionado","ok");}function removerIdx(n){var em=Object.keys(USUARIOS||{})[n];if(em){delete USUARIOS[em];salvarUsuarios();renderListaUsuarios();toast&&toast("Usuário removido","ok");}}function toggleSosIdx(n){var em=Object.keys(USUARIOS||{})[n];if(em){USUARIOS[em].sos=!USUARIOS[em].sos;salvarUsuarios();renderListaUsuarios();}}auth.onAuthStateChanged(function(e){var a=document.getElementById("login-screen"),t=document.getElementById("sb"),o=document.querySelector(".topbar"),i=document.querySelector(".main");if(e){resolveAcesso(e.email).then(function(acc){if(!acc.ok){auth.signOut();var n=document.getElementById("login-err");return void(n&&(n.style.display="block",n.textContent="Email não autorizado: "+e.email))}IS_ADMIN=acc.admin,USER_SOS=acc.sos,IS_READONLY=acc.readonly,USER_EMAIL=e.email;a&&(a.style.display="none"),t&&(t.style.display=""),o&&(o.style.display=""),i&&(i.style.display="");var r=document.getElementById("user-info"),s=document.getElementById("user-name");r&&(r.style.display="flex"),s&&(s.textContent=e.email),aplicarPermissoes(),window._appInited||(window._appInited=!0,initApp())})}else{a&&(a.style.display="flex"),t&&(t.style.display="none"),o&&(o.style.display="none"),i&&(i.style.display="none"),(r=document.getElementById("user-info"))&&(r.style.display="none")}});const FB_COLS={editais:"editais",andamento:"andamento",finalizados:"finalizados",ganhas:"ganhas",atestados:"atestados",financeiro:"financeiro",valores:"valores",config:"config"};var EMPRESAS=[{nome:"VISE",cor:"#eab308"},{nome:"SAUTEC",cor:"#3b82f6"},{nome:"SOS",cor:"#22c55e"},{nome:"SOS FILIAL",cor:"#ef4444"},{nome:"ONLAV",cor:"#06b6d4"},{nome:"ENGEMED",cor:"#ec4899"}];async function carregarEmpresas(){try{var e=await db.collection("config").doc("empresas").get();e.exists&&e.data().lista&&(EMPRESAS=e.data().lista)}catch(e){}EMPRESAS.forEach(function(e){EMP_DATA[e.nome]||(EMP_DATA[e.nome]={cnpj:e.cnpj||"",portais:[],docs:[]}),TOPS["emp-"+e.nome]||(TOPS["emp-"+e.nome]=["Empresa — "+e.nome,"Portais, certidões e documentação"+(e.cnpj?" · CNPJ "+e.cnpj:"")])}),atualizarSelectsEmpresas(),Promise.all(EMPRESAS.map(function(e){return loadEmpData(e.nome)})).then(function(){atualizarSelectsEmpresas()}).catch(function(e){})}async function salvarEmpresas(){await db.collection("config").doc("empresas").set({lista:EMPRESAS})}
 /* ══════════════════════════════════════════════════════════════════
    ACESSOS DAS PESSOAS
    Registro próprio, com chave = número do WhatsApp (só dígitos).
@@ -7152,7 +7206,90 @@ function novaEmpresaForm(){
    janela solta no menu e o portal numa página à parte. */
 var _cfgAba='empresas';
 
+/* Abas de Configurações que são só dos sócios.
+
+   `acessos`  — quem entra em quê. Quem consegue mexer aqui consegue se
+                dar acesso a tudo, ou tirar o acesso de alguém.
+   `portais`  — login e senha dos portais de licitação, em texto puro.
+   `cadastros`— as fichas enviadas pelo formulário público.
+
+   Isto é o QUE APARECE na tela. Quem impede de valer é o firestore.rules:
+   `config/*` e `emp_data` só aceitam escrita de admin(), e emp_data nem
+   leitura permite. Esconder aqui evita a pessoa abrir uma tela que vai
+   dar erro — não é a tranca, e nunca deve ser confundido com uma. */
+var CFG_ABAS_SOCIO={acessos:1, portais:1, cadastros:1};
+
+/* Chamado depois de resolver quem entrou: some com as abas que a pessoa
+   não pode usar, para ninguém esbarrar numa tela que não é sua. */
+function cfgAplicarPermissoes(){
+  Object.keys(CFG_ABAS_SOCIO).forEach(function(n){
+    var b=document.getElementById('cfg-ab-'+n);
+    if(b)b.style.display=IS_ADMIN?'':'none';
+  });
+  /* Se a pessoa estava numa aba que acabou de sumir, volta para Empresas
+     em vez de ficar num painel órfão. */
+  if(!IS_ADMIN && CFG_ABAS_SOCIO[_cfgAba]) cfgAba('empresas');
+}
+
+/* ── Confirmação de senha para abrir Acessos ──────────────────────
+   O cliente pediu uma senha na frente desta aba, que só ele tenha.
+   Eu disse que uma senha guardada e conferida em JavaScript é teatro:
+   quem abre o console lê a senha no código ou pula a checagem. Ele
+   reafirmou o pedido, e ele está certo no objetivo — o que muda é
+   COMO se faz.
+
+   Em vez de inventar uma senha nova e guardá-la em algum lugar, o
+   sistema pede a senha DA CONTA e manda o próprio Firebase conferir
+   (reauthenticateWithCredential). Isso dá exatamente o que foi pedido
+   — ninguém entra sem digitar uma senha que só o dono tem — sem criar
+   um segredo novo para vazar, e a conferência acontece no servidor da
+   Google, não aqui.
+
+   Vale por 10 minutos, para não pedir a cada clique. Continua não
+   sendo a tranca do banco: quem contornar isto pelo console esbarra no
+   firestore.rules, que só aceita escrita em config/* de admin(). */
+var _acLiberadoAte = 0;
+var AC_VALIDADE_MS = 10*60*1000;
+
+function acPrecisaSenha(){ return Date.now() > _acLiberadoAte; }
+
+async function acConfirmarSenha(){
+  var u = (typeof auth!=='undefined' && auth.currentUser) || null;
+  if(!u || !u.email){ toast('Sessão expirada. Entre de novo.','err'); return false; }
+
+  var senha = prompt('Confirme sua senha para abrir os Acessos:');
+  if(senha===null) return false;           /* cancelou, sem drama */
+  if(!senha){ toast('Senha vazia.','err'); return false; }
+
+  try{
+    var cred = firebase.auth.EmailAuthProvider.credential(u.email, senha);
+    await u.reauthenticateWithCredential(cred);
+    _acLiberadoAte = Date.now() + AC_VALIDADE_MS;
+    return true;
+  }catch(e){
+    var c = String(e&&e.code||'');
+    toast(c.indexOf('too-many-requests')>=0
+      ? 'Muitas tentativas. Aguarde alguns minutos.'
+      : 'Senha incorreta.','err');
+    return false;
+  }
+}
+
 function cfgAba(nome){
+  /* Trava também aqui: sem isto, cfgAba('acessos') digitado no console
+     abriria a tela. Continua não sendo a tranca — é para a tela não
+     mentir sobre o que a pessoa pode fazer. */
+  if(CFG_ABAS_SOCIO[nome] && !IS_ADMIN){
+    toast('Esta parte é restrita aos sócios.','err');
+    nome='empresas';
+  }
+  /* Acessos pede a senha da conta, mesmo sendo sócio: é a aba onde se
+     dá e se tira acesso de todo mundo, e o computador pode estar
+     destravado com alguém por perto. */
+  if(nome==='acessos' && IS_ADMIN && acPrecisaSenha()){
+    acConfirmarSenha().then(function(ok){ if(ok) cfgAba('acessos'); });
+    return;
+  }
   _cfgAba=nome;
   ['empresas','acessos','portal','viab','portais','cadastros'].forEach(function(n){
     var b=document.getElementById('cfg-ab-'+n),p=document.getElementById('cfg-p-'+n);
