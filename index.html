@@ -2854,24 +2854,20 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
       <span>Documentos</span>
     </div>
 
-    <!-- CRM — atalho, não aba. Ele é sistema próprio (crm.html), como o
-         Financeiro: funil de venda não é operação de licitação, e
-         misturar as duas telas seria ter duas verdades sobre o que a
-         equipe está fazendo.
+    <!-- O CRM NÃO tem atalho aqui, e é decisão de 15/08/2026, tomada
+         logo depois de o atalho existir por algumas horas.
 
-         Diferente do Financeiro, o atalho FICA aqui: o CRM é ferramenta
-         de trabalho de quem vende, usada o dia inteiro. Quem vê o
-         atalho é decidido por pessoa em Configurações › Usuários — a
-         lista de quem a NH está prospectando, e por quanto, não é
-         assunto de todo colaborador. `nav-crm` só aparece para quem
-         tem a marca; a regra do Firestore confere de novo no banco. -->
-    <div class="sb-divider" id="sb-div-crm" style="display:none"></div>
-    <div class="sb-section" id="sb-sec-crm" style="display:none">Comercial</div>
-    <div class="sb-item" id="nav-crm" style="display:none" onclick="abrirCRM()">
-      <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h4v12H3V6zm7 0h4v8h-4V6zm7 0h4v15h-4V6z"/></svg>
-      <span>CRM de Vendas</span>
-      <span class="sb-badge" style="background:rgba(34,197,94,.16);color:#22c55e">↗</span>
-    </div>
+         Mesmo caminho do Financeiro: sistema próprio (crm.html), com
+         porta própria. Funil de venda não é operação de licitação, e
+         quem entra num não é quem entra no outro. Um atalho aqui
+         convida quem opera licitação a bater numa porta que vai recusá-
+         lo — e a lista de quem a NH prospecta, com a proposta de
+         honorários de cada um, não é assunto dessa pessoa.
+
+         Quem tem direito entra pelo Portal, que só mostra o cartão para
+         quem tem a marca. O que continua aqui é a ADMINISTRAÇÃO do
+         acesso: o botão de ligar/desligar em Configurações › Usuários,
+         que é onde essa decisão é tomada. -->
 
     <div class="sb-divider"></div>
     <div class="sb-item" id="nav-config" onclick="go('config',this)">
@@ -4371,20 +4367,11 @@ function acAplicarTema(claro){
 function acTrocarTema(){acAplicarTema(!document.body.classList.contains('light-theme'));}
 (function(){try{acAplicarTema('claro'===localStorage.getItem('nh_tema'));}catch(e){}})();
 
-function loginEmailSenha(){var e=document.getElementById("login-email").value.trim(),a=document.getElementById("login-senha").value,t=document.getElementById("btn-login"),o=document.getElementById("login-err");if(!e||!a)return o.style.display="block",void(o.textContent="Preencha email e senha");t&&(t.textContent="Entrando..."),o.style.display="none",auth.signInWithEmailAndPassword(e,a).catch(function(e){t&&(t.textContent="Entrar"),o.style.display="block","auth/wrong-password"===e.code||"auth/user-not-found"===e.code||"auth/invalid-credential"===e.code?o.textContent="Email ou senha incorretos":o.textContent="Erro: "+e.message})}function logoutGoogle(){auth.signOut()}var ADMIN_EMAIL="noronhaholandalicitacoes@gmail.com",USUARIOS=null,USER_EMAIL="",IS_ADMIN=false,USER_SOS=true,IS_READONLY=false,USER_CRM=false;
-/* Endereço do CRM. Sistema próprio, como o Financeiro — abre em aba
-   nova e tem login próprio (o mesmo e-mail e senha daqui). */
-var CRM_URL="https://noronhaholandalicitacoes-cmd.github.io/nh-gestao/crm.html";
-function abrirCRM(){ window.open(CRM_URL,'_blank','noopener'); }async function carregarUsuarios(){if(USUARIOS!==null)return USUARIOS;USUARIOS={};try{if(db){var d=await db.collection("config").doc("usuarios").get();if(d.exists){var x=d.data();if(x&&x.lista)USUARIOS=x.lista;}}}catch(e){}return USUARIOS;}/* `crm` é permissão à parte, e não vem por tabela: a lista de quem a NH
-   está prospectando — e por quanto — não é assunto de todo colaborador
-   que opera licitação. Admin sempre tem; os demais só com a marca
-   ligada em Configurações › Usuários. Padrão desligado de propósito:
-   acesso que aparece sozinho é acesso que ninguém decidiu dar. */
-async function resolveAcesso(em){if(em===ADMIN_EMAIL)return{ok:true,admin:true,sos:true,readonly:false,crm:true};var U=await carregarUsuarios();var u=U[em];if(u)return{ok:true,admin:"admin"===u.role,sos:"admin"===u.role||!!u.sos,readonly:"admin"!==u.role,crm:"admin"===u.role||!!u.crm};if(EMAILS_AUTORIZADOS.indexOf(em)>-1)return{ok:true,admin:true,sos:true,readonly:false,crm:true};return{ok:false};}function aplicarPermissoes(){try{document.body.classList.toggle("ro-mode",!!IS_READONLY);document.body.classList.toggle("no-sos",!USER_SOS);if(!USER_SOS)MOSTRAR_SOS=false;var bu=document.getElementById("btn-usuarios");bu&&(bu.style.display=IS_ADMIN?"inline-block":"none");
-/* Os três elementos do CRM aparecem juntos ou somem juntos: item sem
-   título, ou divisor sozinho, deixam um buraco na barra que parece
-   defeito. */
-["nav-crm","sb-sec-crm","sb-div-crm"].forEach(function(id){var el=document.getElementById(id);if(el)el.style.display=USER_CRM?"":"none";});
+function loginEmailSenha(){var e=document.getElementById("login-email").value.trim(),a=document.getElementById("login-senha").value,t=document.getElementById("btn-login"),o=document.getElementById("login-err");if(!e||!a)return o.style.display="block",void(o.textContent="Preencha email e senha");t&&(t.textContent="Entrando..."),o.style.display="none",auth.signInWithEmailAndPassword(e,a).catch(function(e){t&&(t.textContent="Entrar"),o.style.display="block","auth/wrong-password"===e.code||"auth/user-not-found"===e.code||"auth/invalid-credential"===e.code?o.textContent="Email ou senha incorretos":o.textContent="Erro: "+e.message})}function logoutGoogle(){auth.signOut()}var ADMIN_EMAIL="noronhaholandalicitacoes@gmail.com",USUARIOS=null,USER_EMAIL="",IS_ADMIN=false,USER_SOS=true,IS_READONLY=false;async function carregarUsuarios(){if(USUARIOS!==null)return USUARIOS;USUARIOS={};try{if(db){var d=await db.collection("config").doc("usuarios").get();if(d.exists){var x=d.data();if(x&&x.lista)USUARIOS=x.lista;}}}catch(e){}return USUARIOS;}/* `crm` NÃO entra aqui: este sistema não abre o CRM. A marca existe em
+   config/usuarios e é lida por quem precisa dela — o servidor do Portal
+   (para mostrar o cartão) e a regra do Firestore (que é quem protege).
+   Aqui só se ADMINISTRA a marca, em Configurações › Usuários. */
+async function resolveAcesso(em){if(em===ADMIN_EMAIL)return{ok:true,admin:true,sos:true,readonly:false};var U=await carregarUsuarios();var u=U[em];if(u)return{ok:true,admin:"admin"===u.role,sos:"admin"===u.role||!!u.sos,readonly:"admin"!==u.role};if(EMAILS_AUTORIZADOS.indexOf(em)>-1)return{ok:true,admin:true,sos:true,readonly:false};return{ok:false};}function aplicarPermissoes(){try{document.body.classList.toggle("ro-mode",!!IS_READONLY);document.body.classList.toggle("no-sos",!USER_SOS);if(!USER_SOS)MOSTRAR_SOS=false;var bu=document.getElementById("btn-usuarios");bu&&(bu.style.display=IS_ADMIN?"inline-block":"none");
 if(typeof cfgAplicarPermissoes==="function")cfgAplicarPermissoes();}catch(e){}}function abrirUsuarios(){if(!IS_ADMIN)return;carregarUsuarios().then(function(){var w=document.getElementById("usuarios-ovwrap");if(!w){w=document.createElement("div");w.id="usuarios-ovwrap";document.body.appendChild(w);}w.innerHTML='<div class="uov" onclick="if(event.target===this)fecharUsuarios()"><div class="upanel"><div class="uhead"><div class="uhc"><div class="uicon">👥</div><h3>Usuários do sistema</h3></div><button class="uclose" onclick="fecharUsuarios()">&times;</button></div><div class="uhint">O admin vê e edita tudo. Os demais entram em <b>somente leitura</b>. Ative <b>vê Externo</b> só para quem pode ver os processos externos.</div><div class="uform"><input id="nu-email" type="email" placeholder="email@exemplo.com" class="uinput"><select id="nu-role" class="uinput usel"><option value="leitura">Somente leitura</option><option value="admin">Admin</option></select><label class="uswlbl"><span>vê Externo</span><span class="usw"><input id="nu-sos" type="checkbox"><span></span></span></label><button class="ubtn-add" onclick="addUsuario()">Adicionar</button></div><div id="usuarios-lista"></div></div></div>';renderListaUsuarios();});}function fecharUsuarios(){var w=document.getElementById("usuarios-ovwrap");if(w)w.innerHTML="";}/* Define se um e-mail de config/usuarios é EQUIPE (vê tudo) ou EMPRESA
    (vê só as dela). Até 15/08/2026 não havia essa distinção: qualquer
    e-mail cadastrado aqui entrava no Portal de Licitações com `todas:
@@ -4446,7 +4433,7 @@ function renderListaUsuarios(){var box=document.getElementById("usuarios-lista")
 function toggleCrmIdx(n){var em=Object.keys(USUARIOS||{})[n];if(!em)return;var u=USUARIOS[em]||{};
   if(String(u.tipo||'').toLowerCase()==='empresa'){toast&&toast('Acesso de empresa não entra no CRM','err');return;}
   u.crm=!u.crm;USUARIOS[em]=u;salvarUsuarios();renderListaUsuarios();
-  toast&&toast(u.crm?('"'+em+'" agora vê o CRM'):('"'+em+'" não vê mais o CRM'),'ok');}auth.onAuthStateChanged(function(e){var a=document.getElementById("login-screen"),t=document.getElementById("sb"),o=document.querySelector(".topbar"),i=document.querySelector(".main");if(e){resolveAcesso(e.email).then(function(acc){if(!acc.ok){auth.signOut();var n=document.getElementById("login-err");return void(n&&(n.style.display="block",n.textContent="Email não autorizado: "+e.email))}IS_ADMIN=acc.admin,USER_SOS=acc.sos,IS_READONLY=acc.readonly,USER_CRM=!!acc.crm,USER_EMAIL=e.email;a&&(a.style.display="none"),t&&(t.style.display=""),o&&(o.style.display=""),i&&(i.style.display="");var r=document.getElementById("user-info"),s=document.getElementById("user-name");r&&(r.style.display="flex"),s&&(s.textContent=e.email),aplicarPermissoes(),window._appInited||(window._appInited=!0,initApp())})}else{a&&(a.style.display="flex"),t&&(t.style.display="none"),o&&(o.style.display="none"),i&&(i.style.display="none"),(r=document.getElementById("user-info"))&&(r.style.display="none")}});const FB_COLS={editais:"editais",andamento:"andamento",finalizados:"finalizados",ganhas:"ganhas",atestados:"atestados",financeiro:"financeiro",valores:"valores",config:"config"};var EMPRESAS=[{nome:"VISE",cor:"#eab308"},{nome:"SAUTEC",cor:"#3b82f6"},{nome:"SOS",cor:"#22c55e"},{nome:"SOS FILIAL",cor:"#ef4444"},{nome:"ONLAV",cor:"#06b6d4"},{nome:"ENGEMED",cor:"#ec4899"}];async function carregarEmpresas(){try{var e=await db.collection("config").doc("empresas").get();e.exists&&e.data().lista&&(EMPRESAS=e.data().lista)}catch(e){}EMPRESAS.forEach(function(e){EMP_DATA[e.nome]||(EMP_DATA[e.nome]={cnpj:e.cnpj||"",portais:[],docs:[]}),TOPS["emp-"+e.nome]||(TOPS["emp-"+e.nome]=["Empresa — "+e.nome,"Portais, certidões e documentação"+(e.cnpj?" · CNPJ "+e.cnpj:"")])}),atualizarSelectsEmpresas(),Promise.all(EMPRESAS.map(function(e){return loadEmpData(e.nome)})).then(function(){atualizarSelectsEmpresas()}).catch(function(e){})}async function salvarEmpresas(){await db.collection("config").doc("empresas").set({lista:EMPRESAS})}
+  toast&&toast(u.crm?('"'+em+'" agora vê o CRM'):('"'+em+'" não vê mais o CRM'),'ok');}auth.onAuthStateChanged(function(e){var a=document.getElementById("login-screen"),t=document.getElementById("sb"),o=document.querySelector(".topbar"),i=document.querySelector(".main");if(e){resolveAcesso(e.email).then(function(acc){if(!acc.ok){auth.signOut();var n=document.getElementById("login-err");return void(n&&(n.style.display="block",n.textContent="Email não autorizado: "+e.email))}IS_ADMIN=acc.admin,USER_SOS=acc.sos,IS_READONLY=acc.readonly,USER_EMAIL=e.email;a&&(a.style.display="none"),t&&(t.style.display=""),o&&(o.style.display=""),i&&(i.style.display="");var r=document.getElementById("user-info"),s=document.getElementById("user-name");r&&(r.style.display="flex"),s&&(s.textContent=e.email),aplicarPermissoes(),window._appInited||(window._appInited=!0,initApp())})}else{a&&(a.style.display="flex"),t&&(t.style.display="none"),o&&(o.style.display="none"),i&&(i.style.display="none"),(r=document.getElementById("user-info"))&&(r.style.display="none")}});const FB_COLS={editais:"editais",andamento:"andamento",finalizados:"finalizados",ganhas:"ganhas",atestados:"atestados",financeiro:"financeiro",valores:"valores",config:"config"};var EMPRESAS=[{nome:"VISE",cor:"#eab308"},{nome:"SAUTEC",cor:"#3b82f6"},{nome:"SOS",cor:"#22c55e"},{nome:"SOS FILIAL",cor:"#ef4444"},{nome:"ONLAV",cor:"#06b6d4"},{nome:"ENGEMED",cor:"#ec4899"}];async function carregarEmpresas(){try{var e=await db.collection("config").doc("empresas").get();e.exists&&e.data().lista&&(EMPRESAS=e.data().lista)}catch(e){}EMPRESAS.forEach(function(e){EMP_DATA[e.nome]||(EMP_DATA[e.nome]={cnpj:e.cnpj||"",portais:[],docs:[]}),TOPS["emp-"+e.nome]||(TOPS["emp-"+e.nome]=["Empresa — "+e.nome,"Portais, certidões e documentação"+(e.cnpj?" · CNPJ "+e.cnpj:"")])}),atualizarSelectsEmpresas(),Promise.all(EMPRESAS.map(function(e){return loadEmpData(e.nome)})).then(function(){atualizarSelectsEmpresas()}).catch(function(e){})}async function salvarEmpresas(){await db.collection("config").doc("empresas").set({lista:EMPRESAS})}
 /* ══════════════════════════════════════════════════════════════════
    ACESSOS DAS PESSOAS
    Registro próprio, com chave = número do WhatsApp (só dígitos).
