@@ -158,27 +158,70 @@ td b{color:var(--t1)}
 .vazio{padding:30px 18px;text-align:center;color:var(--t2);font-size:13.5px;line-height:1.7;
   border:1px dashed var(--b2);border-radius:13px}
 
-.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:600;
-  align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+/* ── Modais e formulário ──────────────────────────────────────────
+   REFEITO EM 15/08/2026. O que havia antes era ilegível, e a causa era
+   uma só linha: `.mb` era um grid de duas colunas, e a `.ficha` — que
+   já é um grid de duas colunas — caía DENTRO de uma célula dele. As
+   duas colunas da ficha ficavam com 224px e 180px num modal de 920px.
+   Some a isso rótulo de 10px em CAIXA ALTA com letter-spacing, que
+   ocupa o dobro do espaço e lê-se pela metade.
+
+   Agora: `.mb` empilha (quem quer grade pede `.grade`), a ficha ocupa
+   a largura inteira, rótulo em caixa normal e campo com altura de
+   dedo. */
+.ov{display:none;position:fixed;inset:0;background:rgba(4,6,12,.78);z-index:600;
+  align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;
+  backdrop-filter:blur(6px)}
 .ov.on{display:flex}
-.modal{background:var(--s1);border:1px solid var(--b2);border-radius:16px;width:100%;
-  max-width:620px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.85)}
-.mh{position:sticky;top:0;background:var(--s1);padding:18px 22px 14px;border-bottom:1px solid var(--b1);
-  display:flex;align-items:flex-start;justify-content:space-between;gap:12px;z-index:2}
-.mh h3{font-size:17px;font-weight:800}
-.mh p{font-size:11.5px;color:var(--t3);margin-top:2px}
-.mb{padding:18px 22px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.mf{position:sticky;bottom:0;background:var(--s1);padding:14px 22px;border-top:1px solid var(--b1);
-  display:flex;gap:10px;justify-content:flex-end}
-.campo{display:flex;flex-direction:column;gap:5px}
+.modal{background:var(--s1);border:1px solid var(--b2);border-radius:20px;width:100%;
+  max-width:640px;max-height:calc(100vh - 48px);display:flex;flex-direction:column;
+  box-shadow:0 30px 90px rgba(0,0,0,.7);animation:sobe .22s cubic-bezier(.2,.9,.3,1)}
+@keyframes sobe{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.modal{animation:none}}
+.modal.largo{max-width:1080px}
+.mh{background:linear-gradient(180deg,var(--s2),var(--s1));padding:20px 26px 17px;
+  border-bottom:1px solid var(--b1);display:flex;align-items:flex-start;
+  justify-content:space-between;gap:12px;border-radius:20px 20px 0 0;flex-shrink:0}
+.mh h3{font-size:19px;font-weight:800;letter-spacing:-.3px}
+.mh p{font-size:12.5px;color:var(--t3);margin-top:3px}
+.mb{padding:22px 26px;overflow-y:auto;flex:1}
+/* Grade só onde faz sentido — e nunca envolvendo a ficha. */
+.mb .grade{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+/* No celular a grade vira uma coluna. Sem isto, "CNPJ" e "Segmento"
+   dividiam os 285px do bloco e sobravam 117px por campo — que é
+   exatamente o erro que esta refação veio corrigir, só que na largura
+   do telefone. Duas colunas dentro de uma coluna é uma coluna e meia. */
+@media(max-width:680px){.mb .grade{grid-template-columns:1fr}}
+.mf{background:var(--s1);padding:16px 26px;border-top:1px solid var(--b1);
+  display:flex;gap:10px;justify-content:flex-end;border-radius:0 0 20px 20px;flex-shrink:0}
+
+.campo{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.grade .campo{margin-bottom:0}
 .campo.full{grid-column:1/-1}
-label{font-size:10px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.07em}
+/* Caixa normal, não CAIXA ALTA: o rótulo é para ser lido de relance,
+   e maiúscula com espaçamento é mais lenta de ler e ocupa mais. */
+label{font-size:12px;font-weight:600;color:var(--t2);letter-spacing:0}
+label .obr{color:var(--nh)}
+/* min-height, e não só padding: o campo de data e o select medem a
+   caixa de outro jeito, e ficavam 5px mais baixos que os de texto. 42px
+   é o mínimo em que o dedo acerta de primeira no celular. */
 input,select,textarea{background:var(--s2);border:1px solid var(--b1);color:var(--t1);
-  padding:9px 11px;border-radius:9px;font-family:inherit;font-size:13px;outline:none;width:100%}
-input:focus,select:focus,textarea:focus{border-color:var(--nh)}
-textarea{resize:vertical;min-height:60px}
-.erro{grid-column:1/-1;display:none;font-size:12.5px;color:#f87171;background:rgba(239,68,68,.1);
-  border:1px solid rgba(239,68,68,.3);border-radius:9px;padding:10px 13px}
+  padding:11px 13px;min-height:42px;border-radius:10px;font-family:inherit;font-size:14px;
+  outline:none;width:100%;transition:border-color .15s,box-shadow .15s,background .15s}
+input[type=checkbox]{min-height:0;padding:0;width:auto}
+input::placeholder,textarea::placeholder{color:var(--t3);opacity:.65}
+input:hover,select:hover,textarea:hover{border-color:var(--b2)}
+input:focus,select:focus,textarea:focus{border-color:var(--nh);background:var(--s1);
+  box-shadow:0 0 0 3px rgba(249,115,22,.12)}
+select{appearance:none;-webkit-appearance:none;cursor:pointer;padding-right:34px;
+  background-image:linear-gradient(45deg,transparent 50%,var(--t3) 50%),
+                   linear-gradient(135deg,var(--t3) 50%,transparent 50%);
+  background-position:calc(100% - 17px) 51%,calc(100% - 12px) 51%;
+  background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+textarea{resize:vertical;min-height:82px;line-height:1.55}
+.dica{font-size:11.5px;color:var(--t3);line-height:1.5;margin-top:-4px}
+.erro{display:none;font-size:13px;color:#fca5a5;background:rgba(239,68,68,.1);
+  border:1px solid rgba(239,68,68,.32);border-radius:10px;padding:12px 15px;margin-top:4px}
 
 /* ── Tela de acesso — a mesma dos outros sistemas ──────────────────
    A primeira versão era uma caixinha de 380px com <img src="logo-nh.jpg">.
@@ -327,33 +370,53 @@ body.light .ac-form{background:rgba(255,255,255,.75)}
 
 /* ── Funil ────────────────────────────────────────────────────────
    Rolagem horizontal com colunas de largura fixa. Kanban que encolhe
-   coluna conforme o número de etapas vira ilegível com seis. */
-.funil{display:flex;gap:12px;overflow-x:auto;padding:2px 2px 14px;align-items:flex-start}
-.col{flex:0 0 272px;background:var(--s1);border:1px solid var(--b1);border-radius:14px;
-  display:flex;flex-direction:column;max-height:calc(100vh - 260px)}
-.col-tp{padding:12px 14px;border-bottom:1px solid var(--b1);position:sticky;top:0;
-  background:var(--s1);border-radius:14px 14px 0 0;z-index:2}
-.col-nome{font-size:12px;font-weight:800;display:flex;align-items:center;gap:7px}
-.col-pt{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.col-num{margin-left:auto;font-size:11px;color:var(--t3);font-variant-numeric:tabular-nums}
-.col-val{font-size:11px;color:var(--t3);margin-top:3px;font-variant-numeric:tabular-nums}
-.col-cx{padding:10px;display:flex;flex-direction:column;gap:9px;overflow-y:auto;flex:1;min-height:70px}
+   coluna conforme o número de etapas vira ilegível com sete.
+
+   A barra de rolagem do sistema, cinza e grossa, cortava a tela ao
+   meio no escuro. Aqui ela é discreta, e há um degradê nas bordas
+   dizendo que existe mais coisa para o lado. */
+.funil-cx{position:relative}
+.funil-cx::after{content:'';position:absolute;top:0;bottom:14px;right:0;width:52px;
+  pointer-events:none;background:linear-gradient(90deg,transparent,var(--bg));
+  opacity:var(--fade,1);transition:opacity .2s}
+.funil{display:flex;gap:12px;overflow-x:auto;padding:2px 2px 16px;align-items:flex-start;
+  scrollbar-width:thin;scrollbar-color:var(--b2) transparent}
+.funil::-webkit-scrollbar{height:9px}
+.funil::-webkit-scrollbar-track{background:transparent}
+.funil::-webkit-scrollbar-thumb{background:var(--b2);border-radius:9px}
+.funil::-webkit-scrollbar-thumb:hover{background:var(--t3)}
+.col{flex:0 0 258px;background:var(--s1);border:1px solid var(--b1);border-radius:16px;
+  display:flex;flex-direction:column;max-height:calc(100vh - 300px);
+  transition:border-color .15s,box-shadow .15s}
+.col-tp{padding:13px 15px 12px;border-bottom:1px solid var(--b1);position:sticky;top:0;
+  background:linear-gradient(180deg,var(--s2),var(--s1));border-radius:16px 16px 0 0;z-index:2}
+.col-nome{font-size:12.5px;font-weight:800;display:flex;align-items:center;gap:8px;letter-spacing:-.1px}
+.col-pt{width:8px;height:8px;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 3px var(--pt-halo,transparent)}
+.col-num{margin-left:auto;font-size:11px;font-weight:800;color:var(--t2);
+  background:var(--s3);border-radius:20px;padding:1px 8px;font-variant-numeric:tabular-nums}
+.col-val{font-size:11.5px;color:var(--t3);margin-top:5px;font-variant-numeric:tabular-nums;font-weight:600}
+.col-cx{padding:11px;display:flex;flex-direction:column;gap:9px;overflow-y:auto;flex:1;min-height:78px;
+  scrollbar-width:thin;scrollbar-color:var(--b2) transparent}
+.col-cx::-webkit-scrollbar{width:7px}
+.col-cx::-webkit-scrollbar-thumb{background:var(--b2);border-radius:7px}
 /* Alvo de solta: só aparece quando há um cartão sendo arrastado. */
-.col.alvo{border-color:var(--nh);box-shadow:0 0 0 2px rgba(249,115,22,.18)}
+.col.alvo{border-color:var(--nh);box-shadow:0 0 0 3px rgba(249,115,22,.15)}
 .col.alvo .col-cx{background:rgba(249,115,22,.05)}
 
 /* ── Cartão do lead ─────────────────────────────────────────────── */
-.lc{background:var(--s2);border:1px solid var(--b1);border-left:3px solid var(--cc,var(--b2));
-  border-radius:10px;padding:11px 12px;cursor:grab;position:relative;
+.lc{background:var(--s2);border:1px solid var(--b1);border-radius:12px;
+  padding:12px 13px 12px 15px;cursor:grab;position:relative;overflow:hidden;
   transition:transform .14s ease,box-shadow .14s ease,border-color .14s ease}
-.lc:hover{transform:translateY(-2px);box-shadow:0 8px 20px -10px rgba(0,0,0,.6);border-color:var(--b2)}
+.lc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--cc,var(--b2))}
+.lc:hover{transform:translateY(-2px);box-shadow:0 10px 24px -12px rgba(0,0,0,.7);border-color:var(--b2)}
 .lc:active{cursor:grabbing}
-.lc.arrastando{opacity:.45}
-.lc-emp{font-size:12.5px;font-weight:800;line-height:1.3;margin-bottom:3px}
-.lc-sub{font-size:11px;color:var(--t3);line-height:1.45}
-.lc-val{font-size:12.5px;font-weight:800;color:var(--g1);margin-top:6px;font-variant-numeric:tabular-nums}
-.lc-pe{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
-.tag{font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:9px;letter-spacing:.03em}
+.lc.arrastando{opacity:.4}
+@media(prefers-reduced-motion:reduce){.lc:hover{transform:none}}
+.lc-emp{font-size:13px;font-weight:800;line-height:1.3;margin-bottom:3px;letter-spacing:-.15px}
+.lc-sub{font-size:11.5px;color:var(--t3);line-height:1.45}
+.lc-val{font-size:12.5px;font-weight:800;color:var(--g1);margin-top:7px;font-variant-numeric:tabular-nums}
+.lc-pe{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.tag{font-size:9.5px;font-weight:800;padding:3px 8px;border-radius:20px;letter-spacing:.02em}
 /* Prazo: a cor é o aviso. Vermelho é hoje ou passou. */
 .tag-prz{background:rgba(59,130,246,.15);color:var(--b_)}
 .tag-prz.perto{background:rgba(234,179,8,.16);color:var(--y1)}
@@ -362,15 +425,20 @@ body.light .ac-form{background:rgba(255,255,255,.75)}
 .tag-ori{background:rgba(168,85,247,.14);color:var(--p1)}
 
 /* ── Ficha ────────────────────────────────────────────────────────
-   Duas colunas no desktop: dados à esquerda, linha do tempo à direita.
-   Registrar atividade sem perder o contexto do lead é o movimento mais
-   repetido do dia. */
-.ficha{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}
-@media(max-width:860px){.ficha{grid-template-columns:1fr}.funil{padding-bottom:8px}}
-.bloco{background:var(--s2);border:1px solid var(--b1);border-radius:12px;padding:15px 16px;margin-bottom:12px}
-.bloco-t{font-size:10px;font-weight:800;color:var(--t3);text-transform:uppercase;
-  letter-spacing:.09em;margin-bottom:11px;display:flex;align-items:center;gap:8px}
-.bloco-t .btn{margin-left:auto;padding:3px 9px;font-size:11px}
+   Duas colunas no desktop: dados à esquerda, diagnóstico e linha do
+   tempo à direita. Registrar atividade sem perder o contexto do lead é
+   o movimento mais repetido do dia. */
+.ficha{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:20px;align-items:start}
+@media(max-width:900px){.ficha{grid-template-columns:1fr}.funil{padding-bottom:8px}}
+.bloco{background:var(--s2);border:1px solid var(--b1);border-radius:15px;
+  padding:18px 20px 6px;margin-bottom:16px}
+.bloco:last-child{margin-bottom:0}
+.bloco-t{font-size:13px;font-weight:800;color:var(--t1);letter-spacing:-.2px;
+  margin:-2px 0 15px;padding-bottom:11px;border-bottom:1px solid var(--b1);
+  display:flex;align-items:center;gap:9px}
+.bloco-t::before{content:'';width:3px;height:14px;border-radius:2px;
+  background:var(--bc,var(--nh));flex-shrink:0}
+.bloco-t .btn{margin-left:auto;padding:4px 11px;font-size:11.5px}
 
 /* Linha do tempo das atividades */
 .tl{position:relative;padding-left:20px}
@@ -383,14 +451,38 @@ body.light .ac-form{background:rgba(255,255,255,.75)}
 .tl-tx{font-size:12.5px;color:var(--t1);line-height:1.55;margin:2px 0 3px;white-space:pre-wrap}
 .tl-me{font-size:10.5px;color:var(--t3)}
 
-/* Diagnóstico de aptidão */
-.ck{display:flex;align-items:flex-start;gap:9px;padding:7px 0;border-bottom:1px solid var(--b1);cursor:pointer}
-.ck:last-child{border-bottom:none}
-.ck input{width:15px;height:15px;accent-color:var(--g1);cursor:pointer;margin-top:1px;flex-shrink:0}
-.ck-tx{font-size:12.5px;line-height:1.45}
-.ck.ok .ck-tx{color:var(--t3);text-decoration:line-through}
-.ck-barra{height:6px;border-radius:4px;background:var(--s3);overflow:hidden;margin:9px 0 4px}
-.ck-barra i{display:block;height:100%;background:var(--g1);border-radius:4px;transition:width .45s ease}
+/* ── Diagnóstico de aptidão ───────────────────────────────────────
+   Era uma lista vertical de dez linhas com caixinha de 15px, texto em
+   CAIXA ALTA quebrando em duas linhas e um "×" de remover colado no
+   canto. Ocupava a coluna inteira e não se lia.
+
+   Agora são fichas em duas colunas: a ficha inteira é o alvo do
+   clique, o estado se lê pela cor antes de pela caixa, e o remover só
+   aparece quando o ponteiro está em cima. */
+.cks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+@media(max-width:1000px){.cks{grid-template-columns:1fr}}
+.ck{display:flex;align-items:center;gap:10px;padding:10px 11px;cursor:pointer;
+  background:var(--s1);border:1px solid var(--b1);border-radius:10px;
+  transition:border-color .14s,background .14s;position:relative}
+.ck:hover{border-color:var(--b2)}
+.ck input{width:17px;height:17px;accent-color:var(--g1);cursor:pointer;flex-shrink:0;margin:0}
+.ck-tx{font-size:12.5px;line-height:1.35;font-weight:600;color:var(--t2)}
+.ck.ok{background:rgba(34,197,94,.07);border-color:rgba(34,197,94,.3)}
+.ck.ok .ck-tx{color:var(--g1);text-decoration:none}
+.ck-x{margin-left:auto;color:var(--t3);cursor:pointer;font-size:15px;line-height:1;
+  padding:0 2px;opacity:0;transition:opacity .14s}
+.ck:hover .ck-x{opacity:.7}
+.ck-x:hover{opacity:1!important;color:var(--r1)}
+.ck-barra{height:7px;border-radius:5px;background:var(--s1);overflow:hidden;
+  margin:0 0 8px;border:1px solid var(--b1)}
+.ck-barra i{display:block;height:100%;border-radius:5px;transition:width .45s ease;
+  background:linear-gradient(90deg,var(--g1),#4ade80)}
+.ck-topo{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px}
+.ck-n{font-size:22px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.ck-n small{font-size:13px;font-weight:700;color:var(--t3)}
+.ck-r{font-size:11.5px;color:var(--t3);text-align:right;line-height:1.4;max-width:180px}
+.ck-add{display:flex;gap:8px}
+.ck-add input{font-size:13px;padding:9px 12px}
 
 /* Painel de prazos */
 .przs{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:11px;margin-bottom:16px}
@@ -401,7 +493,97 @@ body.light .ac-form{background:rgba(255,255,255,.75)}
 .prz-e{font-size:13px;font-weight:800;margin:3px 0 2px;line-height:1.3}
 .prz-d{font-size:11.5px;color:var(--t3)}
 
-.vazio-col{font-size:11px;color:var(--t3);text-align:center;padding:14px 6px;line-height:1.5}
+.vazio-col{font-size:11.5px;color:var(--t3);text-align:center;padding:18px 8px;line-height:1.55;
+  border:1px dashed var(--b1);border-radius:11px;margin:2px}
+
+/* ══════════════════════════════════════════════════════════════════
+   PAINEL
+
+   A tela abria em quatro quadradinhos de igual peso e um kanban. Isso
+   não é painel: é um índice. Painel responde três perguntas antes de
+   qualquer clique — quanto tem em jogo, onde a venda trava, e o que
+   fazer hoje. É o que está aqui.
+   ══════════════════════════════════════════════════════════════════ */
+.pn{display:grid;gap:14px}
+.pn-2{display:grid;grid-template-columns:1.35fr 1fr;gap:14px}
+.pn-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:980px){.pn-2,.pn-3{grid-template-columns:1fr}}
+
+.cx{background:var(--s1);border:1px solid var(--b1);border-radius:18px;padding:20px 22px;
+  position:relative;overflow:hidden}
+.cx-t{font-size:13.5px;font-weight:800;letter-spacing:-.2px;display:flex;align-items:center;gap:9px;
+  margin-bottom:4px}
+.cx-t span{margin-left:auto;font-size:11.5px;font-weight:600;color:var(--t3)}
+.cx-sub{font-size:11.5px;color:var(--t3);line-height:1.5;margin-bottom:16px}
+
+/* ── Funil em barras ──────────────────────────────────────────────
+   O kanban mostra os cartões; isto mostra a FORMA do funil. Barra que
+   encolhe de cima para baixo é onde a venda vaza, e a taxa entre duas
+   etapas diz em qual conversa a equipe está perdendo o negócio. */
+.fn-l{display:flex;align-items:center;gap:13px;padding:9px 0;cursor:pointer;
+  border-radius:10px;transition:background .14s}
+.fn-l:hover{background:rgba(255,255,255,.025)}
+body.light .fn-l:hover{background:rgba(0,0,0,.02)}
+.fn-nome{font-size:12.5px;font-weight:700;width:104px;flex-shrink:0;display:flex;align-items:center;gap:8px}
+.fn-nome i{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.fn-trilho{flex:1;height:26px;background:var(--s2);border-radius:8px;overflow:hidden;position:relative;min-width:0}
+.fn-barra{height:100%;border-radius:8px;transition:width .55s cubic-bezier(.2,.9,.3,1);
+  min-width:3px;position:relative;overflow:hidden}
+.fn-barra::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,rgba(255,255,255,.14),transparent 60%)}
+@media(prefers-reduced-motion:reduce){.fn-barra{transition:none}}
+.fn-qtd{position:absolute;left:11px;top:50%;transform:translateY(-50%);
+  font-size:11.5px;font-weight:800;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.5);z-index:2}
+.fn-val{width:158px;text-align:right;font-size:11.5px;font-weight:700;flex-shrink:0;
+  font-variant-numeric:tabular-nums;color:var(--t2)}
+/* A taxa entre uma etapa e a seguinte, na calha entre as duas linhas. */
+.fn-taxa{display:flex;align-items:center;gap:7px;padding:0 0 0 117px;height:16px;
+  font-size:10.5px;font-weight:700;color:var(--t3)}
+.fn-taxa b{font-variant-numeric:tabular-nums}
+.fn-taxa.ruim b{color:var(--r1)}
+.fn-taxa.bom b{color:var(--g1)}
+
+/* ── Barras verticais (evolução, origem) ─────────────────────────── */
+.bv{display:flex;align-items:flex-end;gap:7px;height:126px;padding-top:8px}
+.bv-c{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;
+  gap:6px;min-width:0;cursor:default}
+.bv-h{width:100%;max-width:40px;border-radius:6px 6px 0 0;min-height:3px;position:relative;
+  background:linear-gradient(180deg,var(--bc,var(--nh)),color-mix(in srgb,var(--bc,var(--nh)) 45%,transparent));
+  transition:filter .15s,height .5s ease}
+.bv-c:hover .bv-h{filter:brightness(1.3)}
+.bv-n{position:absolute;top:-19px;left:50%;transform:translateX(-50%);font-size:10.5px;
+  font-weight:800;font-variant-numeric:tabular-nums;color:var(--t2);white-space:nowrap}
+.bv-r{font-size:10px;font-weight:700;color:var(--t3);white-space:nowrap}
+.bv-c.atual .bv-r{color:var(--nh)}
+
+/* ── Lista de origem, com barra proporcional ─────────────────────── */
+.lin{display:flex;align-items:center;gap:11px;padding:8px 0}
+.lin+.lin{border-top:1px solid var(--b1)}
+.lin-n{font-size:12.5px;font-weight:700;width:118px;flex-shrink:0}
+.lin-t{flex:1;height:8px;background:var(--s2);border-radius:5px;overflow:hidden;min-width:0}
+.lin-b{height:100%;border-radius:5px;transition:width .5s ease}
+.lin-v{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;width:60px;text-align:right;flex-shrink:0}
+.lin-v small{font-size:10.5px;font-weight:600;color:var(--t3)}
+
+/* ── Agenda de hoje ──────────────────────────────────────────────── */
+.ag{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:11px;
+  cursor:pointer;transition:background .14s;background:var(--s2);margin-bottom:8px;
+  border-left:3px solid var(--ac,var(--b2))}
+.ag:hover{background:var(--s3)}
+.ag-d{width:42px;flex-shrink:0;text-align:center}
+.ag-dn{font-size:16px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.ag-dm{font-size:9.5px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+.ag-c{min-width:0;flex:1}
+.ag-e{font-size:12.5px;font-weight:800;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ag-q{font-size:11.5px;color:var(--t3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ag-s{font-size:10px;font-weight:800;padding:3px 9px;border-radius:20px;flex-shrink:0;
+  background:var(--ab,var(--s3));color:var(--ac,var(--t2))}
+
+/* Vazio que ensina, em vez de espaço em branco. */
+.nada{text-align:center;padding:26px 16px}
+.nada-i{font-size:30px;line-height:1;margin-bottom:10px;opacity:.55}
+.nada-t{font-size:13.5px;font-weight:800;margin-bottom:5px}
+.nada-s{font-size:12px;color:var(--t3);line-height:1.6;max-width:330px;margin:0 auto}
 </style>
 
 <div class="topo" id="topo" style="display:none">
@@ -420,9 +602,13 @@ body.light .ac-form{background:rgba(255,255,255,.75)}
 
 <div class="wrap" id="app" style="display:none">
   <div id="prazos"></div>
+  <!-- Uma resposta antes de qualquer clique: quanto entra por mês se o
+       que está aberto fechar. O resto é apoio. -->
+  <div id="hero"></div>
   <div class="kpis" id="kpis"></div>
   <div class="abas">
-    <button class="aba on" data-a="funil" onclick="trocarAba('funil',this)">Funil</button>
+    <button class="aba on" data-a="painel" onclick="trocarAba('painel',this)">Painel</button>
+    <button class="aba" data-a="funil" onclick="trocarAba('funil',this)">Funil</button>
     <button class="aba" data-a="prazos" onclick="trocarAba('prazos',this)">Prazos <span id="selo-prazos"></span></button>
     <button class="aba" data-a="result" onclick="trocarAba('result',this)">Resultados</button>
   </div>
@@ -431,81 +617,94 @@ body.light .ac-form{background:rgba(255,255,255,.75)}
 
 <!-- MODAL LEAD -->
 <div class="ov" id="ov-lead">
-  <div class="modal" style="max-width:920px">
+  <div class="modal largo">
     <div class="mh">
-      <div><h3 id="ld-titulo">Novo lead</h3><p id="ld-sub">Quem é, em que etapa está e o que vem depois.</p></div>
-      <button class="btn" onclick="fecharModal('ov-lead')" style="padding:5px 10px">×</button>
+      <div><h3 id="ld-titulo">Novo lead</h3><p id="ld-sub">A empresa que pode virar cliente, e em que pé está a conversa.</p></div>
+      <button class="btn" onclick="fecharModal('ov-lead')" style="padding:6px 11px;font-size:16px;line-height:1">×</button>
     </div>
     <div class="mb">
       <div class="ficha">
-        <!-- ── Coluna 1: identificação e negócio ── -->
+        <!-- ── Coluna 1: quem é, com quem se fala, por quanto ── -->
         <div>
-          <div class="bloco">
+          <div class="bloco" style="--bc:#3b82f6">
             <div class="bloco-t">Empresa</div>
-            <div class="campo full"><label>Razão social *</label>
+            <div class="campo"><label>Razão social <span class="obr">*</span></label>
               <input type="text" id="ld-org" placeholder="A empresa que pode virar cliente da NH"></div>
-            <div class="campo"><label>CNPJ</label>
-              <input type="text" id="ld-cnpj" placeholder="00.000.000/0001-00"></div>
-            <div class="campo"><label>Segmento</label>
-              <input type="text" id="ld-seg" placeholder="Ex: limpeza, saúde, engenharia"></div>
-            <div class="campo"><label>Porte</label>
-              <select id="ld-porte">
-                <option value="">—</option>
-                <option>MEI</option><option>Microempresa</option>
-                <option>Pequeno porte</option><option>Médio</option><option>Grande</option>
-              </select></div>
-            <div class="campo"><label>Cidade / UF</label>
-              <input type="text" id="ld-cidade" placeholder="Recife - PE"></div>
+            <div class="grade" style="margin-bottom:14px">
+              <div class="campo"><label>CNPJ</label>
+                <input type="text" id="ld-cnpj" placeholder="00.000.000/0001-00"></div>
+              <div class="campo"><label>Segmento</label>
+                <input type="text" id="ld-seg" placeholder="Limpeza, saúde, engenharia…"></div>
+              <div class="campo"><label>Porte</label>
+                <select id="ld-porte">
+                  <option value="">Não sei ainda</option>
+                  <option>MEI</option><option>Microempresa</option>
+                  <option>Pequeno porte</option><option>Médio</option><option>Grande</option>
+                </select></div>
+              <div class="campo"><label>Cidade / UF</label>
+                <input type="text" id="ld-cidade" placeholder="Recife - PE"></div>
+            </div>
             <!-- A pergunta que mais qualifica: quem já licita quer
                  melhorar resultado; quem nunca licitou precisa de
                  estruturação, que é outro trabalho e outro preço. -->
-            <div class="campo full"><label>Já participa de licitação?</label>
+            <div class="campo"><label>Já participa de licitação?</label>
               <select id="ld-jalicita">
                 <option value="NAO">Não, nunca participou</option>
                 <option value="AS_VEZES">Já participou, sem constância</option>
                 <option value="SIM">Sim, participa com frequência</option>
-              </select></div>
+              </select>
+              <div class="dica">Quem nunca licitou precisa de estruturação — outro trabalho e outro preço.</div>
+            </div>
           </div>
 
-          <div class="bloco">
+          <div class="bloco" style="--bc:#a855f7">
             <div class="bloco-t">Pessoa de contato</div>
-            <div class="campo"><label>Nome</label><input type="text" id="ld-nome"></div>
-            <div class="campo"><label>Cargo</label><input type="text" id="ld-cargo"></div>
-            <div class="campo"><label>Telefone / WhatsApp</label><input type="text" id="ld-fone"></div>
-            <div class="campo"><label>E-mail</label><input type="email" id="ld-email"></div>
+            <div class="grade">
+              <div class="campo"><label>Nome</label><input type="text" id="ld-nome" placeholder="Com quem se fala"></div>
+              <div class="campo"><label>Cargo</label><input type="text" id="ld-cargo" placeholder="Sócio, diretor…"></div>
+              <div class="campo"><label>Telefone / WhatsApp</label><input type="text" id="ld-fone" placeholder="(81) 9 9999-0000"></div>
+              <div class="campo"><label>E-mail</label><input type="email" id="ld-email" placeholder="contato@empresa.com.br"></div>
+            </div>
           </div>
 
-          <div class="bloco">
+          <div class="bloco" style="--bc:#22c55e">
             <div class="bloco-t">Proposta de honorários</div>
-            <div class="campo"><label>Etapa *</label><select id="ld-etapa"></select></div>
             <!-- Os mesmos modelos do Financeiro. Ao ganhar o lead, o
                  contrato nasce sem ninguém traduzir nada. -->
-            <div class="campo"><label>Modelo</label>
-              <select id="ld-modelo" onchange="ldAlternarModelo()"></select></div>
-            <div class="campo" id="cx-mensalidade"><label>Mensalidade</label>
-              <input type="text" id="ld-mensal" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
-            <div class="campo" id="cx-percentual"><label>% sobre o êxito</label>
-              <input type="number" id="ld-perc" placeholder="5" step="0.01" min="0" max="100"></div>
-            <div class="campo"><label>Taxa de adesão</label>
-              <input type="text" id="ld-adesao" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
-            <div class="campo full" id="ld-modelo-nota"
-              style="font-size:11.5px;color:var(--t3);line-height:1.5;margin-top:-4px"></div>
-            <div class="campo"><label>Responsável</label><input type="text" id="ld-resp" placeholder="Quem cuida"></div>
-            <div class="campo"><label>Previsão de fechamento</label><input type="date" id="ld-prev"></div>
-            <div class="campo"><label>Origem</label>
-              <select id="ld-origem">
-                <option value="TRAFEGO">Tráfego pago</option>
-                <option value="VENDEDOR">Vendedor externo</option>
-                <option value="INDICACAO">Indicação</option>
-                <option value="SITE">Site</option>
-                <option value="PROSPECCAO">Prospecção ativa</option>
-                <option value="OUTRO">Outro</option>
-              </select></div>
+            <div class="grade" style="margin-bottom:14px">
+              <div class="campo"><label>Modelo</label>
+                <select id="ld-modelo" onchange="ldAlternarModelo()"></select></div>
+              <div class="campo" id="cx-mensalidade"><label>Mensalidade</label>
+                <input type="text" id="ld-mensal" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
+              <div class="campo" id="cx-percentual"><label>% sobre o êxito</label>
+                <input type="number" id="ld-perc" placeholder="5" step="0.01" min="0" max="100"></div>
+              <div class="campo"><label>Taxa de adesão</label>
+                <input type="text" id="ld-adesao" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
+            </div>
+            <div class="dica" id="ld-modelo-nota" style="margin-bottom:14px"></div>
+          </div>
+
+          <div class="bloco" style="--bc:#f97316">
+            <div class="bloco-t">Andamento</div>
+            <div class="grade" style="margin-bottom:14px">
+              <div class="campo"><label>Etapa <span class="obr">*</span></label><select id="ld-etapa"></select></div>
+              <div class="campo"><label>Responsável</label><input type="text" id="ld-resp" placeholder="Quem cuida"></div>
+              <div class="campo"><label>Origem</label>
+                <select id="ld-origem">
+                  <option value="TRAFEGO">Tráfego pago</option>
+                  <option value="VENDEDOR">Vendedor externo</option>
+                  <option value="INDICACAO">Indicação</option>
+                  <option value="SITE">Site</option>
+                  <option value="PROSPECCAO">Prospecção ativa</option>
+                  <option value="OUTRO">Outro</option>
+                </select></div>
+              <div class="campo"><label>Previsão de fechamento</label><input type="date" id="ld-prev"></div>
+            </div>
             <div class="campo"><label>Campanha / anúncio</label>
               <input type="text" id="ld-campanha" placeholder="Preenchido sozinho quando vem de anúncio"></div>
             <!-- Perder sem motivo é perder duas vezes: o cliente e a lição. -->
-            <div class="campo full" id="cx-perda" style="display:none">
-              <label>Por que foi perdido *</label>
+            <div class="campo" id="cx-perda" style="display:none">
+              <label>Por que foi perdido <span class="obr">*</span></label>
               <select id="ld-motivo">
                 <option value="">— escolha —</option>
                 <option>Preço</option><option>Prazo</option>
@@ -513,26 +712,31 @@ body.light .ac-form{background:rgba(255,255,255,.75)}
                 <option>Sem resposta</option><option>Fora do perfil</option>
                 <option>Documentação / habilitação</option><option>Outro</option>
               </select></div>
-            <div class="campo full"><label>Próxima ação</label>
-              <input type="text" id="ld-proxima" placeholder="O que fazer a seguir"></div>
-            <div class="campo"><label>Quando</label><input type="date" id="ld-proxdata"></div>
+            <div class="grade">
+              <div class="campo"><label>Próxima ação</label>
+                <input type="text" id="ld-proxima" placeholder="O que fazer a seguir"></div>
+              <div class="campo"><label>Quando</label><input type="date" id="ld-proxdata"></div>
+            </div>
           </div>
         </div>
 
-        <!-- ── Coluna 2: edital, checklist e histórico ── -->
+        <!-- ── Coluna 2: diagnóstico, edital-gancho e histórico ── -->
         <div>
           <!-- Diagnóstico de aptidão: o que qualifica o lead e vira
                argumento de venda. Empresa sem certidão em dia não
                licita — e é a NH que resolve isso. -->
-          <div class="bloco">
+          <div class="bloco" style="--bc:#06b6d4">
             <div class="bloco-t">O que a empresa já tem</div>
+            <div class="ck-topo">
+              <div class="ck-n" id="ck-n">0<small id="ck-de"> de 0</small></div>
+              <div class="ck-r" id="ck-resumo"></div>
+            </div>
             <div class="ck-barra"><i id="ck-pct" style="width:0%"></i></div>
-            <div style="font-size:11px;color:var(--t3);margin-bottom:8px" id="ck-resumo"></div>
-            <div id="ck-lista"></div>
-            <div style="display:flex;gap:6px;margin-top:8px">
-              <input type="text" id="ck-novo" placeholder="Acrescentar item"
-                style="flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();ckAdicionar();}">
-              <button class="btn" onclick="ckAdicionar()" style="padding:6px 12px">+</button>
+            <div class="cks" id="ck-lista"></div>
+            <div class="ck-add" style="margin-bottom:16px">
+              <input type="text" id="ck-novo" placeholder="Acrescentar item ao diagnóstico"
+                onkeydown="if(event.key==='Enter'){event.preventDefault();ckAdicionar();}">
+              <button class="btn" onclick="ckAdicionar()" style="padding:9px 15px">+</button>
             </div>
           </div>
 
@@ -540,41 +744,43 @@ body.light .ac-form{background:rgba(255,255,255,.75)}
                dia 20, vocês se habilitariam?" — é a urgência mais
                concreta que existe nesta conversa, e por isso o prazo
                dele entra no painel de prazos. -->
-          <div class="bloco">
+          <div class="bloco" style="--bc:#eab308">
             <div class="bloco-t">Edital em pauta
-              <label style="margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11px;
-                text-transform:none;letter-spacing:0;color:var(--t2);cursor:pointer">
+              <label style="margin-left:auto;display:flex;align-items:center;gap:7px;font-size:12px;
+                font-weight:600;color:var(--t2);cursor:pointer">
                 <input type="checkbox" id="ld-tem-edital" onchange="ldAlternarEdital()"
-                  style="width:15px;height:15px;accent-color:var(--nh);cursor:pointer">
+                  style="width:17px;height:17px;accent-color:var(--nh);cursor:pointer;margin:0">
                 há um edital na conversa
               </label>
             </div>
             <div id="cx-edital" style="display:none">
-              <div class="campo full"><label>Órgão</label>
+              <div class="campo"><label>Órgão</label>
                 <input type="text" id="ed-orgao" placeholder="Prefeitura, hospital, secretaria…"></div>
-              <div class="campo"><label>Nº do processo</label><input type="text" id="ed-num"></div>
-              <div class="campo"><label>Modalidade</label>
-                <select id="ed-mod">
-                  <option>Pregão eletrônico</option><option>Pregão presencial</option>
-                  <option>Concorrência</option><option>Dispensa</option>
-                  <option>Inexigibilidade</option><option>Credenciamento</option>
-                  <option>Adesão a ata</option>
-                </select></div>
-              <div class="campo"><label>Fecha em</label><input type="date" id="ed-prazo"></div>
-              <div class="campo"><label>Valor estimado do edital</label>
-                <input type="text" id="ed-valor" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
+              <div class="grade" style="margin-bottom:16px">
+                <div class="campo"><label>Nº do processo</label><input type="text" id="ed-num" placeholder="PE 045/2026"></div>
+                <div class="campo"><label>Modalidade</label>
+                  <select id="ed-mod">
+                    <option>Pregão eletrônico</option><option>Pregão presencial</option>
+                    <option>Concorrência</option><option>Dispensa</option>
+                    <option>Inexigibilidade</option><option>Credenciamento</option>
+                    <option>Adesão a ata</option>
+                  </select></div>
+                <div class="campo"><label>Fecha em</label><input type="date" id="ed-prazo"></div>
+                <div class="campo"><label>Valor estimado</label>
+                  <input type="text" id="ed-valor" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
+              </div>
             </div>
-            <div id="cx-sem-edital" style="font-size:12px;color:var(--t3);line-height:1.6">
+            <div id="cx-sem-edital" class="dica" style="margin:0 0 16px">
               Marque quando a conversa girar em torno de um edital específico. O prazo dele passa a
               aparecer no painel de prazos — é o relógio da venda.
             </div>
           </div>
 
-          <div class="bloco">
+          <div class="bloco" style="--bc:#8b95a1">
             <div class="bloco-t">Histórico
               <button class="btn" onclick="abrirAtividade()">+ Registrar</button>
             </div>
-            <div id="ld-historico"></div>
+            <div id="ld-historico" style="padding-bottom:14px"></div>
           </div>
         </div>
       </div>
@@ -590,29 +796,33 @@ body.light .ac-form{background:rgba(255,255,255,.75)}
 
 <!-- MODAL ATIVIDADE -->
 <div class="ov" id="ov-atividade">
-  <div class="modal" style="max-width:460px">
+  <div class="modal" style="max-width:520px">
     <div class="mh">
       <div><h3>Registrar atividade</h3><p>O que aconteceu, e o que fica combinado.</p></div>
-      <button class="btn" onclick="fecharModal('ov-atividade')" style="padding:5px 10px">×</button>
+      <button class="btn" onclick="fecharModal('ov-atividade')" style="padding:6px 11px;font-size:16px;line-height:1">×</button>
     </div>
     <div class="mb">
-      <div class="campo"><label>Tipo</label>
-        <select id="at-tipo">
-          <option value="LIGACAO">Ligação</option>
-          <option value="WHATSAPP">WhatsApp</option>
-          <option value="EMAIL">E-mail</option>
-          <option value="REUNIAO">Reunião</option>
-          <option value="VISITA">Visita</option>
-          <option value="NOTA">Anotação</option>
-        </select></div>
-      <div class="campo"><label>Quando</label><input type="date" id="at-data"></div>
-      <div class="campo full"><label>O que aconteceu *</label>
+      <div class="grade" style="margin-bottom:14px">
+        <div class="campo"><label>Tipo</label>
+          <select id="at-tipo">
+            <option value="LIGACAO">Ligação</option>
+            <option value="WHATSAPP">WhatsApp</option>
+            <option value="EMAIL">E-mail</option>
+            <option value="REUNIAO">Reunião</option>
+            <option value="VISITA">Visita</option>
+            <option value="NOTA">Anotação</option>
+          </select></div>
+        <div class="campo"><label>Quando</label><input type="date" id="at-data"></div>
+      </div>
+      <div class="campo"><label>O que aconteceu <span class="obr">*</span></label>
         <textarea id="at-desc" placeholder="Resumo da conversa, o que ficou combinado"></textarea></div>
       <!-- Toda atividade termina numa pergunta: e agora? Sem isso, o
            lead esfria sem ninguém perceber. -->
-      <div class="campo full"><label>Próxima ação</label>
-        <input type="text" id="at-proxima" placeholder="Deixe vazio para manter a atual"></div>
-      <div class="campo"><label>Quando</label><input type="date" id="at-proxdata"></div>
+      <div class="grade">
+        <div class="campo"><label>Próxima ação</label>
+          <input type="text" id="at-proxima" placeholder="Deixe vazio para manter a atual"></div>
+        <div class="campo"><label>Quando</label><input type="date" id="at-proxdata"></div>
+      </div>
       <div class="erro" id="at-erro"></div>
     </div>
     <div class="mf">
@@ -676,7 +886,10 @@ var ADMINS=['noronhaholandalicitacoes@gmail.com','noronhaholanda@gmail.com'];
 /* ── Estado ────────────────────────────────────────────────────── */
 var LEADS=[];          /* crm_leads      */
 var ATIVIDADES=[];     /* crm_atividades */
-var ABA='funil';
+/* Abre no Painel, não no funil. O funil responde "quais leads existem";
+   o painel responde "onde a venda trava e o que fazer hoje" — e é essa
+   a primeira pergunta de quem abre o CRM de manhã. */
+var ABA='painel';
 var _ldEdit=null;      /* id do lead aberto, ou null se for novo */
 var _ckDocs=[];        /* checklist em edição, antes de salvar   */
 
@@ -848,18 +1061,48 @@ function pintar(){
   var prz=prazosAbertos();
   var urgentes=prz.filter(function(p){ return p.dias<=3; });
 
-  var kpi=function(l,v,c,s){
-    return '<div class="kpi"><div class="kpi-fio" style="background:linear-gradient(90deg,'+c+',transparent)"></div>'+
+  /* ── Faixa de abertura ──────────────────────────────────────────
+     A tela abria em quatro quadradinhos de igual peso e o olho não
+     sabia onde cair. O número que responde tudo é um só: quanto entra
+     por mês se o que está aberto fechar. Os outros são apoio. */
+  var ticket=abertos.length?emAberto/abertos.length:0;
+  var mini=function(r,v,c){
+    return '<div><div class="fin-mini-l">'+r+'</div>'+
+      '<div class="fin-mini-v"'+(c?' style="color:'+c+'"':'')+'>'+v+'</div></div>';
+  };
+  document.getElementById('hero').innerHTML=
+    '<div class="fin-hero">'+
+      '<div>'+
+        '<div class="fin-hero-olho">Receita recorrente em jogo</div>'+
+        '<div class="fin-hero-num">'+brl(emAberto)+'<span style="font-size:.42em;color:var(--t3);font-weight:700">/mês</span></div>'+
+        '<div class="fin-hero-sub">'+
+          (abertos.length
+            ? '<b>'+abertos.length+'</b> '+(abertos.length===1?'empresa':'empresas')+' em negociação'+
+              (ticket>0?', ticket médio de <b>'+brl(ticket)+'</b>/mês':'')+
+              '. Só a mensalidade entra nesta conta — percentual de êxito é aposta.'
+            : 'Nenhuma empresa em negociação. Use <b>+ Novo lead</b> para começar o funil.')+
+        '</div>'+
+      '</div>'+
+      '<div class="fin-hero-lado">'+
+        mini('Fechado','+ '+brl(ganho)+'/mês','var(--g1)')+
+        mini('Conversão',conv+'%',conv>=50?'var(--g1)':conv>=25?'var(--y1)':(fechados?'var(--r1)':'var(--t3)'))+
+        mini('Prazo hoje',String(urgentes.length),urgentes.length?'var(--r1)':'var(--t3)')+
+      '</div>'+
+    '</div>';
+
+  var kpi=function(l,v,c,s,aba){
+    return '<div class="kpi'+(aba?' vai':'')+'"'+(aba?' onclick="irPara(\''+aba+'\')"':'')+'>'+
+      '<div class="kpi-fio" style="background:linear-gradient(90deg,'+c+',transparent)"></div>'+
       '<div class="kpi-l">'+l+'</div><div class="kpi-v" style="color:'+c+'">'+v+'</div>'+
       (s?'<div class="kpi-s">'+s+'</div>':'')+'</div>';
   };
   document.getElementById('kpis').innerHTML =
-    kpi('No funil', String(abertos.length), 'var(--t1)', brl(emAberto)+'/mês em jogo') +
-    kpi('Ganhos', String(ganhos.length), 'var(--g1)', brl(ganho)+'/mês fechado') +
+    kpi('No funil', String(abertos.length), 'var(--t1)', brl(emAberto)+'/mês em jogo', 'funil') +
+    kpi('Ganhos', String(ganhos.length), 'var(--g1)', brl(ganho)+'/mês fechado', 'result') +
     kpi('Conversão', conv+'%', conv>=50?'var(--g1)':conv>=25?'var(--y1)':'var(--r1)',
-        fechados?(ganhos.length+' de '+fechados+' fechados'):'nada fechado ainda') +
-    (urgentes.length ? kpi('Prazo urgente', String(urgentes.length), 'var(--r1)', 'vence em até 3 dias') : '') +
-    kpi('Perdidos', String(perdidos.length), 'var(--t3)', '');
+        fechados?(ganhos.length+' de '+fechados+' fechados'):'nada fechado ainda', 'result') +
+    (urgentes.length ? kpi('Prazo urgente', String(urgentes.length), 'var(--r1)', 'vence em até 3 dias', 'prazos') : '') +
+    kpi('Perdidos', String(perdidos.length), 'var(--t3)', perdidos.length?'com motivo registrado':'', 'result');
 
   var selo=document.getElementById('selo-prazos');
   if(selo) selo.innerHTML = urgentes.length
@@ -871,14 +1114,225 @@ function pintar(){
   document.getElementById('prazos').innerHTML = urgentes.length ? painelPrazos(urgentes, true) : '';
 
   document.getElementById('painel').innerHTML =
+    ABA==='painel' ? painelInicio(prz) :
     ABA==='funil'  ? painelFunil() :
     ABA==='prazos' ? painelPrazos(prz, false) : painelResultados();
 
   if(ABA==='funil') ligarArrasto();
 }
 
+/** Leva o clique do KPI até a aba que detalha aquele número. Sem isso o
+    KPI é um beco: mostra "5 no funil" e não leva a lugar nenhum. */
+function irPara(aba){
+  var b=document.querySelector('.aba[data-a="'+aba+'"]');
+  if(b) trocarAba(aba,b);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   PAINEL
+
+   Três perguntas, nesta ordem, porque é a ordem em que elas importam:
+
+   1. ONDE A VENDA TRAVA — o funil em barras. O kanban mostra os
+      cartões; isto mostra a forma. Barra que despenca de uma etapa
+      para a outra é a conversa em que a equipe está perdendo o
+      negócio, e nenhuma lista de cartões conta isso.
+   2. O QUE FAZER HOJE — a agenda. Prazo e follow-up de todos os leads
+      numa lista só, ordenada por data.
+   3. DE ONDE VEM E COMO VAI — origem e evolução por mês. É o que diz
+      onde gastar no mês que vem.
+   ══════════════════════════════════════════════════════════════════ */
+function painelInicio(prz){
+  if(!LEADS.length){
+    return '<div class="cx"><div class="nada">'+
+      '<div class="nada-i">🎯</div>'+
+      '<div class="nada-t">O funil está vazio</div>'+
+      '<div class="nada-s">Cadastre a primeira empresa que pode virar cliente da NH em '+
+        '<b>+ Novo lead</b>. A partir daí este painel mostra onde a venda trava, '+
+        'o que fazer hoje e de onde vêm os melhores negócios.</div>'+
+    '</div></div>';
+  }
+  return '<div class="pn">'+
+    cxFunil()+
+    '<div class="pn-2">'+cxAgenda(prz)+cxOrigem()+'</div>'+
+    '<div class="pn-2">'+cxEvolucao()+cxResponsaveis()+'</div>'+
+  '</div>';
+}
+
+/** O funil em barras.
+ *
+ * A barra é ACUMULADA — quantas empresas chegaram até aquela etapa,
+ * contando as que já passaram dela. É o que faz um funil ter forma de
+ * funil e sempre encolher para baixo.
+ *
+ * A primeira versão contava só quem estava PARADO em cada etapa, e a
+ * taxa dava coisas como "200% seguem para Contato". Lead não se
+ * multiplica: aquilo era só o efeito de os leads entrarem em etapas
+ * diferentes. Taxa acima de 100% num funil é sinal de conta errada, e
+ * mostrar isso ao vendedor destrói a confiança no painel inteiro.
+ */
+function cxFunil(){
+  var etapas=ETAPAS.filter(function(e){ return e.k!=='PERDIDO'; });
+  var aqui=etapas.map(function(e){
+    var meus=LEADS.filter(function(l){ return (l.etapa||'PROSPECCAO')===e.k; });
+    return {e:e, n:meus.length, v:meus.reduce(function(s,l){ return s+mrrDo(l); },0)};
+  });
+  /* Chegaram até a etapa i = quem está nela + todos que já passaram. */
+  var chegou=aqui.map(function(_,i){
+    return aqui.slice(i).reduce(function(s,x){ return s+x.n; },0);
+  });
+  var topo=chegou[0]||1;
+
+  var linhas=aqui.map(function(x,i){
+    var larg=chegou[i]?Math.max(3,(chegou[i]/topo)*100):0;
+    var html='<div class="fn-l" onclick="irPara(\'funil\')" title="Ver no funil">'+
+      '<div class="fn-nome"><i style="background:'+x.e.c+'"></i>'+esc(x.e.r)+'</div>'+
+      '<div class="fn-trilho">'+(chegou[i]?'<div class="fn-barra" style="width:'+larg.toFixed(1)+'%;'+
+        'background:linear-gradient(90deg,'+x.e.c+',color-mix(in srgb,'+x.e.c+' 55%,transparent))">'+
+        '<span class="fn-qtd">'+chegou[i]+'</span></div>':'')+'</div>'+
+      '<div class="fn-val">'+(x.n?x.n+' aqui'+(x.v>0?' · '+brl(x.v):''):'—')+'</div>'+
+    '</div>';
+    /* A taxa entre esta etapa e a próxima: onde a venda vaza. Com a
+       conta acumulada ela nunca passa de 100%. */
+    var prox=chegou[i+1];
+    if(prox!==undefined && chegou[i]>0){
+      var taxa=Math.round((prox/chegou[i])*100);
+      var cls=taxa>=60?'bom':taxa<30?'ruim':'';
+      html+='<div class="fn-taxa '+cls+'">↓ <b>'+taxa+'%</b> avançaram para '+esc(aqui[i+1].e.r)+'</div>';
+    }
+    return html;
+  }).join('');
+
+  var perdidos=LEADS.filter(function(l){ return l.etapa==='PERDIDO'; }).length;
+  return '<div class="cx">'+
+    '<div class="cx-t">Onde a venda trava'+
+      (perdidos?'<span>'+perdidos+' '+(perdidos===1?'perdido':'perdidos')+', fora desta conta</span>':'')+'</div>'+
+    '<div class="cx-sub">A barra é quantas empresas <b>chegaram</b> até a etapa, incluindo as que já passaram — '+
+      'por isso ela sempre encolhe. À direita, quantas estão paradas ali agora e a mensalidade em jogo. '+
+      'A queda entre duas linhas é a conversa em que a venda está sendo perdida.</div>'+
+    linhas+
+  '</div>';
+}
+
+/** O que fazer hoje: prazos e follow-ups, os mais próximos primeiro. */
+function cxAgenda(prz){
+  var MES=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  var lista=prz.slice(0,6);
+  var corpo=lista.length ? lista.map(function(p){
+    var cor=p.dias<=0?'#ef4444':p.dias<=3?'#eab308':p.cor;
+    var d=dData(p.data);
+    return '<div class="ag" style="--ac:'+cor+';--ab:color-mix(in srgb,'+cor+' 15%,transparent)" '+
+        'onclick="abrirLead(\''+esc(p.lead.id)+'\')">'+
+      '<div class="ag-d"><div class="ag-dn" style="color:'+cor+'">'+(d?d.getDate():'—')+'</div>'+
+        '<div class="ag-dm">'+(d?MES[d.getMonth()]:'')+'</div></div>'+
+      '<div class="ag-c"><div class="ag-e">'+esc(p.lead.empresa||'(sem nome)')+'</div>'+
+        '<div class="ag-q">'+esc(p.campo)+'</div></div>'+
+      '<div class="ag-s">'+esc(textoPrazo(p.dias))+'</div>'+
+    '</div>';
+  }).join('') : '<div class="nada"><div class="nada-i">☕</div>'+
+      '<div class="nada-t">Nada marcado</div>'+
+      '<div class="nada-s">Nenhum lead tem próxima ação com data nem edital com prazo. '+
+        'Lead sem data marcada esfria sem ninguém perceber.</div></div>';
+  return '<div class="cx">'+
+    '<div class="cx-t">O que fazer agora'+(prz.length>6?'<span>+'+(prz.length-6)+' na aba Prazos</span>':'')+'</div>'+
+    '<div class="cx-sub">Prazo de edital e follow-up combinado, dos dois relógios, o mais próximo primeiro.</div>'+
+    corpo+
+  '</div>';
+}
+
+/** De onde vêm os leads, e quanto cada origem já fechou. */
+function cxOrigem(){
+  var por={};
+  LEADS.forEach(function(l){
+    var k=l.origem||'OUTRO';
+    if(!por[k]) por[k]={n:0,g:0};
+    por[k].n++; if(l.etapa==='GANHO') por[k].g++;
+  });
+  var chaves=Object.keys(por).sort(function(a,b){ return por[b].n-por[a].n; });
+  var maior=Math.max.apply(null,chaves.map(function(k){return por[k].n;}).concat([1]));
+  var CORES={TRAFEGO:'#a855f7',VENDEDOR:'#f97316',INDICACAO:'#22c55e',
+             SITE:'#3b82f6',PROSPECCAO:'#06b6d4',OUTRO:'#8b95a1'};
+  return '<div class="cx">'+
+    '<div class="cx-t">De onde vêm</div>'+
+    '<div class="cx-sub">Quantas empresas por origem, e quantas delas viraram cliente. É o que diz onde gastar no mês que vem.</div>'+
+    chaves.map(function(k){
+      var o=por[k], cor=CORES[k]||'#8b95a1';
+      return '<div class="lin">'+
+        '<div class="lin-n">'+esc(ORIGENS[k]||k)+'</div>'+
+        '<div class="lin-t"><div class="lin-b" style="width:'+((o.n/maior)*100).toFixed(1)+'%;background:'+cor+'"></div></div>'+
+        '<div class="lin-v">'+o.n+(o.g?' <small>('+o.g+'✓)</small>':'')+'</div>'+
+      '</div>';
+    }).join('')+
+  '</div>';
+}
+
+/** Leads que entraram por mês, nos últimos 6. Diz se a prospecção está
+    acelerando ou parando — e é a única leitura de ritmo que existe. */
+function cxEvolucao(){
+  var hoje=new Date(), meses=[];
+  for(var i=5;i>=0;i--){
+    var d=new Date(hoje.getFullYear(),hoje.getMonth()-i,1);
+    meses.push({ano:d.getFullYear(),mes:d.getMonth(),n:0,g:0});
+  }
+  LEADS.forEach(function(l){
+    if(!l.criadoEm) return;
+    var d=new Date(l.criadoEm);
+    if(isNaN(d.getTime())) return;
+    for(var i=0;i<meses.length;i++){
+      if(meses[i].ano===d.getFullYear() && meses[i].mes===d.getMonth()){
+        meses[i].n++; if(l.etapa==='GANHO') meses[i].g++;
+      }
+    }
+  });
+  var maior=Math.max.apply(null,meses.map(function(m){return m.n;}).concat([1]));
+  var R=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  var total=meses.reduce(function(s,m){ return s+m.n; },0);
+  return '<div class="cx">'+
+    '<div class="cx-t">Ritmo de entrada<span>'+total+' em 6 meses</span></div>'+
+    '<div class="cx-sub">Empresas que entraram no funil por mês. Diz se a prospecção está acelerando ou parando.</div>'+
+    '<div class="bv">'+meses.map(function(m,i){
+      var alt=m.n?Math.max(8,(m.n/maior)*104):3;
+      return '<div class="bv-c'+(i===meses.length-1?' atual':'')+'" style="--bc:'+(m.g?'#22c55e':'#f97316')+'">'+
+        '<div class="bv-h" style="height:'+alt+'px">'+(m.n?'<span class="bv-n">'+m.n+'</span>':'')+'</div>'+
+        '<div class="bv-r">'+R[m.mes]+'</div>'+
+      '</div>';
+    }).join('')+'</div>'+
+    (total===0?'<div class="dica" style="margin-top:10px">Nenhum lead tem data de criação ainda — '+
+      'os cadastrados a partir de agora aparecem aqui.</div>':'')+
+  '</div>';
+}
+
+/** Quem está com o quê. Sem isto, "o funil" é de todo mundo e de
+    ninguém — e lead sem dono é lead que ninguém liga. */
+function cxResponsaveis(){
+  var por={};
+  LEADS.filter(function(l){ return l.etapa!=='GANHO'&&l.etapa!=='PERDIDO'; }).forEach(function(l){
+    var k=String(l.responsavel||'').trim()||'(sem dono)';
+    if(!por[k]) por[k]={n:0,v:0};
+    por[k].n++; por[k].v+=mrrDo(l);
+  });
+  var chaves=Object.keys(por).sort(function(a,b){ return por[b].v-por[a].v || por[b].n-por[a].n; });
+  var maior=Math.max.apply(null,chaves.map(function(k){return por[k].v;}).concat([1]));
+  var semDono=por['(sem dono)'];
+  return '<div class="cx">'+
+    '<div class="cx-t">Quem está com o quê</div>'+
+    '<div class="cx-sub">Só o que está aberto. '+
+      (semDono?'<b style="color:var(--y1)">'+semDono.n+'</b> sem responsável — lead sem dono é lead que ninguém liga.'
+              :'Todo lead aberto tem responsável.')+'</div>'+
+    (chaves.length ? chaves.map(function(k){
+      var o=por[k], sem=k==='(sem dono)';
+      return '<div class="lin">'+
+        '<div class="lin-n"'+(sem?' style="color:var(--y1)"':'')+'>'+esc(k)+'</div>'+
+        '<div class="lin-t"><div class="lin-b" style="width:'+((o.v/maior)*100).toFixed(1)+'%;'+
+          'background:'+(sem?'var(--y1)':'var(--nh)')+'"></div></div>'+
+        '<div class="lin-v">'+o.n+' <small>'+(o.v>0?brl(o.v):'')+'</small></div>'+
+      '</div>';
+    }).join('') : '<div class="dica">Nada aberto no funil.</div>')+
+  '</div>';
+}
+
 function painelFunil(){
-  return '<div class="funil">'+ETAPAS.map(function(e){
+  return '<div class="funil-cx"><div class="funil">'+ETAPAS.map(function(e){
     var meus=LEADS.filter(function(l){ return (l.etapa||'PROSPECCAO')===e.k; })
       .sort(function(a,b){
         /* Quem tem próxima ação mais próxima sobe. O topo da coluna é
@@ -890,17 +1344,17 @@ function painelFunil(){
         return da-dbb;
       });
     var soma=meus.reduce(function(s,l){ return s+mrrDo(l); },0);
-    return '<div class="col" data-etapa="'+e.k+'">'+
+    return '<div class="col" data-etapa="'+e.k+'" style="--pt-halo:color-mix(in srgb,'+e.c+' 22%,transparent)">'+
       '<div class="col-tp">'+
         '<div class="col-nome"><span class="col-pt" style="background:'+e.c+'"></span>'+e.r+
           '<span class="col-num">'+meus.length+'</span></div>'+
-        (soma>0?'<div class="col-val">'+brl(soma)+'</div>':'')+
+        '<div class="col-val">'+(soma>0?brl(soma)+'/mês':'—')+'</div>'+
       '</div>'+
       '<div class="col-cx">'+
         (meus.length?meus.map(function(l){ return cartaoLead(l,e.c); }).join('')
                     :'<div class="vazio-col">Arraste um lead para cá</div>')+
       '</div></div>';
-  }).join('')+'</div>';
+  }).join('')+'</div></div>';
 }
 
 function cartaoLead(l, cor){
@@ -1189,21 +1643,24 @@ function ckRender(){
     return '<label class="ck'+(d.ok?' ok':'')+'">'+
       '<input type="checkbox" '+(d.ok?'checked':'')+' onchange="ckMarcar('+i+',this.checked)">'+
       '<span class="ck-tx">'+esc(d.nome)+'</span>'+
-      '<span style="margin-left:auto;color:var(--t3);cursor:pointer;font-size:14px" '+
-        'onclick="event.preventDefault();ckRemover('+i+')" title="Remover">×</span>'+
+      '<span class="ck-x" onclick="event.preventDefault();event.stopPropagation();ckRemover('+i+')" '+
+        'title="Tirar da lista">&times;</span>'+
     '</label>';
-  }).join('')||'<div style="font-size:11.5px;color:var(--t3)">Nenhum item na lista.</div>';
+  }).join('')||'<div class="dica" style="grid-column:1/-1">Nenhum item na lista.</div>';
 
   var ok=_ckDocs.filter(function(d){ return d.ok; }).length;
   var falta=_ckDocs.length-ok;
   var pct=_ckDocs.length?(ok/_ckDocs.length)*100:0;
   document.getElementById('ck-pct').style.width=pct.toFixed(1)+'%';
+  document.getElementById('ck-n').innerHTML=ok+'<small> de '+_ckDocs.length+'</small>';
+  document.getElementById('ck-n').style.color=
+    !_ckDocs.length ? 'var(--t3)' : pct===100 ? 'var(--g1)' : 'var(--t1)';
   /* O que falta é o argumento de venda: é exatamente isso que a NH
      entrega antes de a empresa conseguir licitar. */
   document.getElementById('ck-resumo').innerHTML=_ckDocs.length
-    ? '<b style="color:'+(pct===100?'var(--g1)':'var(--t2)')+'">'+ok+' de '+_ckDocs.length+'</b> em ordem'+
-      (falta>0?' — <b>'+falta+'</b> a resolver, e é o que a NH faz'
-             :' — empresa pronta para licitar')
+    ? (falta>0
+        ? '<b style="color:var(--nh)">'+falta+'</b> a resolver — e é exatamente o que a NH faz'
+        : '<b style="color:var(--g1)">Empresa pronta</b> para licitar')
     : '';
 }
 function ckMarcar(i,v){ if(_ckDocs[i]){ _ckDocs[i].ok=!!v; ckRender(); } }
