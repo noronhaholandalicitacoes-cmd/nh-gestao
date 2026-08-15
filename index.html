@@ -770,6 +770,40 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 .ac-a2{width:80%;height:80%;border-top-color:rgba(124,58,237,.6);border-left-color:rgba(124,58,237,.2);animation-direction:reverse;animation-duration:6s}
 .ac-a3{width:60%;height:60%;border-bottom-color:rgba(59,130,246,.6);border-right-color:rgba(59,130,246,.2);animation-duration:8s}
 @keyframes acGira{to{transform:rotate(360deg)}}
+/* ── Selo NH ───────────────────────────────────────────────────────
+   A marca do cabeçalho, igual nos quatro sistemas: mesma logo, mesmos
+   42px, mesmo canto, e os três anéis girando em volta — os mesmos da
+   tela de acesso, em escala menor.
+
+   Antes cada sistema tinha o seu: 46px redondo no Sistema NH, 40px no
+   Viabilidade, 38px no Portal e uma <img> de 30px apontando para um
+   arquivo inexistente no Financeiro. Quatro tamanhos, quatro formatos
+   e um quebrado. Agora é um só, e mexer aqui muda em todos. */
+.nh-selo{position:relative;width:54px;height:54px;display:inline-flex;
+  align-items:center;justify-content:center;flex-shrink:0}
+.nh-selo-anel{position:absolute;border-radius:50%;border:2px solid transparent;
+  animation:acGira 6s linear infinite}
+.nh-selo-anel.a1{width:100%;height:100%;border-top-color:rgba(249,115,22,.6);
+  border-right-color:rgba(249,115,22,.2);animation-duration:4s}
+.nh-selo-anel.a2{width:82%;height:82%;border-top-color:rgba(124,58,237,.6);
+  border-left-color:rgba(124,58,237,.2);animation-direction:reverse;animation-duration:6s}
+.nh-selo-anel.a3{width:64%;height:64%;border-bottom-color:rgba(59,130,246,.6);
+  border-right-color:rgba(59,130,246,.2);animation-duration:8s}
+/* O !important vence os tamanhos antigos que cada sistema declarava
+   para a sua própria marca — assim não preciso caçar cada um deles. */
+.nh-selo .logo-mark,.nh-selo .sb-logomark,.nh-selo .nh-marca,.nh-selo .marca-img{
+  position:relative;z-index:2;
+  width:38px!important;height:38px!important;border-radius:12px!important;
+  margin:0!important;overflow:hidden;flex-shrink:0;
+  box-shadow:0 4px 14px rgba(249,115,22,.35);
+}
+/* Os anéis do selo giram sempre, como os da tela de acesso. */
+@media (prefers-reduced-motion:reduce){
+  .nh-selo-anel{animation:acGira 6s linear infinite!important}
+  .nh-selo-anel.a1{animation-duration:4s!important}
+  .nh-selo-anel.a2{animation-duration:6s!important;animation-direction:reverse!important}
+  .nh-selo-anel.a3{animation-duration:8s!important}
+}
 .ac-marca{position:relative;z-index:2;width:52px;height:52px;border-radius:16px;
   display:flex;align-items:center;justify-content:center;
   font-size:17px;font-weight:800;letter-spacing:-.02em;
@@ -1473,6 +1507,10 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 .ac-linha-desc{font-size:10.5px;color:var(--t3);margin-top:4px;line-height:1.5}
 .ac-linha-alerta:has(input:checked){border-color:#eab308;background:rgba(234,179,8,.07)}
 
+.ac-escopo{margin-top:12px}
+.ac-escopo-tit{font-size:11px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:9px}
+.ac-escopo .ac-linha{margin-bottom:8px}
+.ac-escopo .ac-linha input{border-radius:50%}
 .ac-emps{display:flex;gap:7px;flex-wrap:wrap;background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:12px 13px}
 .ac-emps.off{opacity:.4;pointer-events:none}
 .ac-emp{
@@ -2725,7 +2763,10 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
 <!-- ══════ SIDEBAR ══════════════════════════ -->
 <aside id="sb" style="display:none">
   <div class="sb-top">
-    <div class="sb-logomark"></div>
+    <span class="nh-selo">
+      <span class="nh-selo-anel a1"></span><span class="nh-selo-anel a2"></span><span class="nh-selo-anel a3"></span>
+      <span class="sb-logomark"></span>
+    </span>
     <div class="sb-brand">
       <div class="sb-brand-name"><span>NH</span> Licitações</div>
       <div class="sb-brand-sub">Sistema de Gestão</div>
@@ -2789,12 +2830,14 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
          as retenções e a nota fiscal. Manter as duas telas seria ter
          duas verdades sobre o mesmo dinheiro.
          A coleção `financeiro` continua a mesma — o sistema novo lê
-         dela, então nenhuma despesa lançada aqui se perdeu. -->
-    <a class="sb-item" href="financeiro.html" target="_blank" style="text-decoration:none;color:inherit">
-      <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-      <span>Financeiro</span>
-      <span class="sb-badge" style="font-size:9px">abrir ↗</span>
-    </a>
+         dela, então nenhuma despesa lançada aqui se perdeu.
+
+         Em 15/08/2026 o ATALHO também saiu daqui. Todo colaborador com
+         acesso ao Sistema NH via o link, e o Financeiro é dos sócios:
+         o que a NH recebe e o que paga não é assunto de quem opera
+         licitação. Quem tem direito entra pelo Portal, que confere a
+         permissão antes de mostrar o cartão. O endereço direto continua
+         existindo, mas o financeiro.html tem login próprio. -->
     <div class="sb-item" id="nav-calendario" onclick="go('calendario',this)">
       <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
       <span>Calendário</span>
@@ -3173,6 +3216,28 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
           </div>
         </label>
         <div id="ac-empresas" class="ac-emps"></div>
+
+        <!-- Quanto a pessoa enxerga DENTRO das empresas marcadas.
+             Antes isso era uma regra escondida no c&oacute;digo: o sistema
+             comparava o nome da pessoa com o respons&aacute;vel do edital, e
+             quem era novo n&atilde;o batia com nada e via a tela vazia. -->
+        <div class="ac-escopo" id="ac-secao-escopo">
+          <div class="ac-escopo-tit">Dentro dessas empresas, o que a pessoa v&ecirc;</div>
+          <label class="ac-linha">
+            <input type="radio" name="ac-escopo" value="empresa" id="ac-esc-empresa" checked>
+            <div>
+              <div class="ac-linha-nome">Tudo das empresas marcadas</div>
+              <div class="ac-linha-desc">Todos os processos, esteja no nome de quem estiver. &Eacute; o normal para quem est&aacute; entrando agora.</div>
+            </div>
+          </label>
+          <label class="ac-linha">
+            <input type="radio" name="ac-escopo" value="meus" id="ac-esc-meus">
+            <div>
+              <div class="ac-linha-nome">S&oacute; os processos no nome dela</div>
+              <div class="ac-linha-desc">Esconde os processos lan&ccedil;ados no nome de outro respons&aacute;vel. Use quando duas pessoas dividem a mesma empresa e cada uma cuida dos seus.</div>
+            </div>
+          </label>
+        </div>
       </div>
 
       <!-- 4. permissão extra do portal -->
@@ -4419,6 +4484,13 @@ function acNormaliza(r){
   if(r.acessos.dashboard===undefined)r.acessos.dashboard=false;
   if(r.ativo===undefined)r.ativo=true;
   if(r.validade===undefined)r.validade='';
+  /* Escopo dentro das empresas marcadas. O padrão é 'empresa' — mostrar
+     o que foi marcado no formulário. O padrão anterior era o oposto e
+     não estava escrito em lugar nenhum: o Viabilidade cruzava o nome da
+     pessoa com o responsável do edital, então quem entrava novo via a
+     tela zerada mesmo com as empresas certas selecionadas. Quem quiser
+     a separação por responsável agora marca isso de propósito. */
+  if(r.escopoViab!=='meus')r.escopoViab='empresa';
   return r;
 }
 function acExpirado(r){
@@ -4494,6 +4566,10 @@ function acRender(){
     if(r.acessos.portal)tags+='<span class="ac-tag" style="background:rgba(34,197,94,.14);color:#22c55e;border:1px solid rgba(34,197,94,.35)">&#128188; Contratos</span>';
     if(r.acessos.dashboard)tags+='<span class="ac-tag" style="background:rgba(168,85,247,.14);color:#a855f7;border:1px solid rgba(168,85,247,.35)">&#128202; Portal do site</span>';
     if(r.contaMestra)tags+='<span class="ac-tag" style="background:rgba(249,115,22,.15);color:var(--nh);border:1px solid rgba(249,115,22,.4)">&#128081; Conta mestra</span>';
+    /* Escopo restrito é o que mais confunde na hora de conferir "por que
+       fulano não está vendo nada" — então aparece no cartão. */
+    if(r.acessos.viabilidade&&r.escopoViab==='meus')
+      tags+='<span class="ac-tag" style="background:rgba(234,179,8,.13);color:#eab308;border:1px solid rgba(234,179,8,.35)" title="No Viabilidade, v&ecirc; s&oacute; os processos lan&ccedil;ados no nome dela">&#128274; S&oacute; no nome dela</span>';
 
     var emps=r.todas?'<b>Todas as empresas</b>':((r.empresas||[]).length?
         ('<b>'+(r.empresas||[]).map(function(v){return acNomeEmpresa(v);}).join('</b>, <b>')+'</b>'):
@@ -4557,6 +4633,8 @@ function acAbrir(num){
   document.getElementById('ac-portal').checked=!!r.acessos.portal;
   document.getElementById('ac-dash').checked=!!r.acessos.dashboard;
   document.getElementById('ac-todas').checked=!!r.todas;
+  document.getElementById('ac-esc-meus').checked=(r.escopoViab==='meus');
+  document.getElementById('ac-esc-empresa').checked=(r.escopoViab!=='meus');
   document.getElementById('ac-mestra').checked=!!r.contaMestra;
   document.getElementById('ac-validade').value=r.validade||'';
   document.getElementById('ac-senha').value='';
@@ -4593,6 +4671,10 @@ function acAtualizarForm(){
   document.getElementById('ac-secao-mestra').style.display=portal?'':'none';
   if(!portal)document.getElementById('ac-mestra').checked=false;
   document.getElementById('ac-empresas').classList.toggle('off',todas);
+  /* O escopo só existe dentro do Viabilidade — some quando o sistema
+     não está marcado, para não virar campo sem sentido. */
+  document.getElementById('ac-secao-escopo').style.display=
+    document.getElementById('ac-viab').checked?'':'none';
   document.getElementById('ac-num-val').textContent=portal?'5':'4';
 }
 
@@ -4604,6 +4686,7 @@ async function acSalvar(){
   var portal=document.getElementById('ac-portal').checked;
   var dash=document.getElementById('ac-dash').checked;
   var todas=document.getElementById('ac-todas').checked;
+  var escopo=document.getElementById('ac-esc-meus').checked?'meus':'empresa';
   var mestra=document.getElementById('ac-mestra').checked;
   var validade=document.getElementById('ac-validade').value;
   var senha=document.getElementById('ac-senha').value.trim();
@@ -4643,6 +4726,7 @@ async function acSalvar(){
     reg.acessos={viabilidade:viab,portal:portal,dashboard:dash};
     reg.empresas=todas?[]:emps;
     reg.todas=todas;
+    reg.escopoViab=escopo;
     reg.contaMestra=portal&&mestra;
     reg.validade=validade||'';
     if(reg.ativo===undefined)reg.ativo=true;
