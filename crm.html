@@ -292,7 +292,7 @@ body.light .ac-form{background:rgba(255,255,255,.75)}
       <div class="ac-anel ac-a1"></div><div class="ac-anel ac-a2"></div><div class="ac-anel ac-a3"></div>
       <div class="ac-marca">NH</div>
     </div>
-    <div class="ac-tit">NH <span class="grad">Financeiro</span></div>
+    <div class="ac-tit">NH <span class="grad">CRM</span></div>
     <div class="ac-sub">Captação de clientes e funil de vendas</div>
     <div class="ac-form">
       <div class="campo"><label>E-mail</label>
@@ -301,13 +301,12 @@ body.light .ac-form{background:rgba(255,255,255,.75)}
         <input type="password" id="ac-senha" placeholder="••••••••" autocomplete="current-password"></div>
       <button class="btn btn-nh" id="ac-btn" style="width:100%;justify-content:center;padding:12px;font-size:14px" onclick="entrar()">Entrar</button>
       <div class="msg-erro" id="ac-msg"></div>
-      <!-- O texto antigo dizia "acesso da equipe NH, pelo e-mail
-           cadastrado no Sistema NH". Estava errado e convidava ao erro:
-           o sistema é restrito aos SÓCIOS, e qualquer colaborador da
-           equipe que tentasse levaria uma recusa depois de digitar a
-           senha, sem entender por quê. Agora a porta diz de quem é. -->
+      <!-- A porta diz de quem é. O CRM não pede senha nova: é o mesmo
+           e-mail e a mesma senha do Sistema NH. Quem entra é decidido
+           por pessoa, em Configurações › Usuários. -->
       <div style="font-size:11.5px;color:var(--t3);text-align:center;margin-top:16px;line-height:1.6">
-        Acesso da <b style="color:var(--t2)">equipe NH</b>, com o e-mail cadastrado em Configura&ccedil;&otilde;es &rsaquo; Usu&aacute;rios.
+        Mesmo e-mail e senha do <b style="color:var(--t2)">Sistema NH</b>.<br>
+        O acesso ao CRM &eacute; liberado por pessoa em Configura&ccedil;&otilde;es &rsaquo; Usu&aacute;rios.
       </div>
     </div>
   </div>
@@ -667,6 +666,12 @@ function gv(id){ var e=document.getElementById(id); return e?String(e.value||'')
 function sv(id,v){ var e=document.getElementById(id); if(e) e.value=v==null?'':v; }
 function erro(id,msg){ var e=document.getElementById(id); if(!e) return;
   e.style.display=msg?'block':'none'; e.textContent=msg||''; }
+
+/* Os dois e-mails que o sistema trata como admin — os mesmos de
+   EMAILS_AUTORIZADOS no index.html e de admin() nas regras. Eles entram
+   no CRM sem depender de marca nenhuma; se dependessem, um erro no
+   cadastro trancaria os donos fora do próprio sistema. */
+var ADMINS=['noronhaholandalicitacoes@gmail.com','noronhaholanda@gmail.com'];
 
 /* ── Estado ────────────────────────────────────────────────────── */
 var LEADS=[];          /* crm_leads      */
@@ -1364,6 +1369,42 @@ auth.onAuthStateChanged(async function(u){
     await auth.signOut();
     return;
   }
+
+  /* Entrar no Firebase não é ter acesso ao CRM. Estar em
+     config/usuarios também não: a marca `crm` é ligada por pessoa em
+     Configurações › Usuários.
+
+     Esta conferência é de CORTESIA, não de segurança — quem protege é a
+     regra do Firestore, que confere a mesma marca no banco. O que ela
+     evita é o pior tipo de recusa: a tela abrir vazia e a pessoa não
+     saber se está quebrado, se não tem dado ainda, ou se não pode
+     entrar. Sem isto, o Firestore devolveria "permissões insuficientes"
+     em cima de um funil zerado. */
+  var podeCrm=false, motivo='';
+  try{
+    var d=await db.collection('config').doc('usuarios').get();
+    var lista=(d.exists && d.data() && d.data().lista) || {};
+    var reg=lista[String(u.email||'').toLowerCase()];
+    if(ADMINS.indexOf(String(u.email||'').toLowerCase())>=0) podeCrm=true;
+    else if(!reg) motivo='Este e-mail não está cadastrado em Configurações › Usuários do Sistema NH.';
+    else if(String(reg.role||'')==='admin') podeCrm=true;
+    else if(reg.crm===true) podeCrm=true;
+    else motivo='O seu acesso existe, mas o CRM ainda não foi liberado para ele. '+
+                'Peça a um sócio para ligar a marca <b>CRM</b> em Configurações › Usuários.';
+  }catch(e){
+    /* Não conseguir ler o cadastro não é o mesmo que não ter acesso.
+       Deixa passar e o Firestore decide — errar para o lado de barrar
+       aqui trancaria a equipe fora por uma falha de rede. */
+    podeCrm=true;
+  }
+  if(!podeCrm){
+    var m2=document.getElementById('ac-msg');
+    m2.style.display='block';
+    m2.innerHTML=motivo+'<br><br><span style="opacity:.75">Entrou como '+esc(u.email||'')+'.</span>';
+    await auth.signOut();
+    return;
+  }
+
   acesso.style.display='none';
   document.getElementById('topo').style.display='flex';
   document.getElementById('app').style.display='block';
