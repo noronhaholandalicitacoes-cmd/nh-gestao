@@ -3301,25 +3301,53 @@ function _portalGanhasDocs(){
   });
 }
 
+/* Nome de empresa aparece escrito de jeitos diferentes: o cadastro diz
+   "ONLAV", o contrato foi lançado como "Onlav Serviços", outro veio com
+   espaço duplo ou acento. A comparação era `===` puro — bastava um
+   caractere de diferença para a empresa ver o portal inteiro zerado,
+   sem uma linha de explicação. Foi o que aconteceu.
+
+   Aqui a comparação normaliza os dois lados; e quando um contém o
+   outro ("ONLAV" dentro de "ONLAV SERVIÇOS") também vale, porque é
+   sempre razão social contra apelido. Curto demais não entra na regra
+   de conter, senão "SOS" casaria com qualquer coisa. */
+function _normEmp(s){
+  return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toUpperCase().replace(/\s+/g,' ').trim();
+}
+function mesmaEmpresa(a, b){
+  var x=_normEmp(a), y=_normEmp(b);
+  if(!x || !y) return false;
+  if(x===y) return true;
+  if(x.length<4 || y.length<4) return false;
+  return x.indexOf(y)===0 || y.indexOf(x)===0;
+}
+
 async function carregarContratos(){
   document.getElementById('contratos-area').innerHTML = '<div class="spin"></div>';
   try{
     const docs = await _portalGanhasDocs();
     const todos = [];
+    /* Guarda de quem são os contratos que ficaram de fora — é o que
+       permite explicar a tela vazia em vez de mostrar zero e calar. */
+    const _outras = {};
+    let _semEmpresa = 0;
     docs.forEach(doc => {
       const d = doc.data();
       const arr = d._arr || [];
-      const emp = String(arr[IDX.EMPRESA]||'').trim().toUpperCase();
+      const emp = String(arr[IDX.EMPRESA]||'').trim();
       // GROWTH vê todos; outras empresas veem só os seus
-      if(isAdmin || emp === empAtual){
+      if(isAdmin || mesmaEmpresa(emp, empAtual)){
         todos.push({
           id: doc.id,
           arr,
           _portalUltimaEdicao: d._portalUltimaEdicao || '',
           _portalLog: d._portalLog || []
         });
-      }
+      }else if(!emp){ _semEmpresa++; }
+      else { _outras[emp] = (_outras[emp]||0) + 1; }
     });
+    window._portalDescartados = {outras:_outras, semEmpresa:_semEmpresa, total:docs.length};
     dadosGanhas = todos;
     /* Liga as duas coleções de execução só depois de saber quem é a
        pessoa: o listener filtra por empresa, e antes disto `empAtual`
@@ -3502,8 +3530,52 @@ function filtrarEmpresa(emp, btn){
 function parseDateBR(s){if(!s)return null;const t=String(s).trim().split(' ')[0];const p=t.split('/');if(p.length!==3)return null;const dt=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));return isNaN(dt.getTime())?null:dt;}
 function parseMoedaPortal(s){return parseFloat(String(s||'').replace(/[^0-9,]/g,'').replace(',','.'))||0;}
 
+/* Portal vazio que se explica.
+
+   A empresa entrou, o acesso é válido, e não há um contrato na tela.
+   Antes isso era um zero mudo — e zero mudo é indistinguível de sistema
+   quebrado. Agora diz se é porque não há contrato nenhum, se os que
+   existem são de outras empresas, ou se o nome da empresa está escrito
+   diferente no contrato (que é a causa mais comum e a mais invisível). */
+function portalExplicarVazio(){
+  var d=window._portalDescartados||{outras:{},semEmpresa:0,total:0};
+  var outras=Object.keys(d.outras||{}).sort();
+  var tit, txt, dica='';
+
+  if(!d.total){
+    tit='Nenhum contrato cadastrado ainda';
+    txt='O portal está funcionando e seu acesso está certo — a NH ainda não lançou contrato nenhum.';
+  }else if(!outras.length && !d.semEmpresa){
+    tit='Nenhum contrato para esta empresa';
+    txt='Há '+d.total+' contrato(s) no sistema, mas nenhum é de <b>'+pEsc(empAtual)+'</b>.';
+  }else{
+    tit='Nenhum contrato de '+pEsc(empAtual);
+    txt='Há <b>'+d.total+'</b> contrato(s) no sistema. Os que existem estão em nome de: <b>'+
+        pEsc(outras.slice(0,8).join(', '))+'</b>'+(outras.length>8?' e outras':'')+
+        (d.semEmpresa?', e '+d.semEmpresa+' sem empresa preenchida':'')+'.';
+    dica='Se algum desses deveria ser seu, o nome da empresa provavelmente está <b>escrito diferente</b> '+
+         'no contrato e no cadastro. Avise a NH — é um ajuste de um campo.';
+  }
+
+  return '<div class="empty"><div class="empty-icon">🔍</div>'+
+    '<div style="font-size:15px;font-weight:800;color:var(--t1);margin-bottom:8px">'+tit+'</div>'+
+    '<div style="max-width:520px;margin:0 auto;line-height:1.65;color:var(--t2);font-size:13px">'+txt+
+    (dica?'<div style="margin-top:14px;padding:12px 14px;background:var(--s2);border:1px solid var(--b1);'+
+          'border-radius:10px;text-align:left">'+dica+'</div>':'')+
+    '</div></div>';
+}
+
 function renderContratos(){
   const hoje = new Date(); hoje.setHours(0,0,0,0);
+
+  /* Sem NADA para esta empresa é diferente de "os filtros não acharam".
+     O segundo caso a lista já resolve; o primeiro precisa de explicação
+     e não pode ser confundido com filtro mal marcado. */
+  if(!dadosGanhas.length && !isAdmin){
+    document.getElementById('contratos-area').innerHTML = portalExplicarVazio();
+    return;
+  }
+
   let lista = [...dadosGanhas];
 
   /* ⚠️ Esta função filtra por conta própria, e `getListaFiltrada()`
