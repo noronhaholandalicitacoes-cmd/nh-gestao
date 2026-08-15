@@ -327,6 +327,7 @@ body.light .ac-form{background:rgba(255,255,255,.75)}
     <button class="btn" onclick="mesHoje()">Hoje</button>
   </div>
   <div style="flex:1"></div>
+  <button class="btn" onclick="imprimirRelatorio()" title="Relatório do mês — imprimir ou salvar em PDF">🖨️ Relatório</button>
   <button class="btn" onclick="trocarTema()" id="btn-tema">◐</button>
   <button class="btn" onclick="sair()">Sair</button>
 </div>
@@ -467,11 +468,24 @@ body.light .ac-form{background:rgba(255,255,255,.75)}
       <button class="btn" onclick="fecharModal('ov-receita')" style="padding:5px 10px">×</button>
     </div>
     <div class="mb">
-      <div class="campo full"><label>Empresa *</label><select id="rc-empresa"></select></div>
+      <div class="campo full"><label>Empresa *</label>
+        <select id="rc-empresa" onchange="rcAoTrocarEmpresa()"></select></div>
+
+      <!-- Escolhida a empresa, aparecem os processos que ELA ganhou,
+           vindos do Sistema NH e do Portal. Escolher um preenche a
+           base, aplica o percentual do contrato e amarra a cobrança
+           àquele processo — que é o que impede cobrar duas vezes. -->
+      <div class="campo full" id="cx-processo">
+        <label>Processo ganho <span style="font-weight:500;color:var(--t3)">(opcional)</span></label>
+        <select id="rc-processo" onchange="rcAoTrocarProcesso()"></select>
+        <div style="font-size:11px;line-height:1.55;margin-top:5px" id="rc-processo-nota"></div>
+      </div>
+
       <div class="campo"><label>Tipo *</label>
         <select id="rc-tipo">
           <option value="MENSALIDADE">Mensalidade</option>
           <option value="EXITO">Êxito</option>
+          <option value="ADESAO">Adesão</option>
           <option value="AVULSO">Avulso</option>
         </select></div>
       <div class="campo"><label>Competência</label><input type="month" id="rc-competencia"></div>
@@ -978,11 +992,85 @@ function graficoAno(){
     '</div></div>';
 }
 
+/* Por que um processo ganho NÃO virou cobrança.
+
+   A ligação entre "ganhei a licitação" e "cobrar o percentual" é
+   automática: o sistema cruza `ganhas` (Sistema NH) e os empenhos
+   (Portal de Contratos) com o contrato de honorários da empresa, e
+   calcula sozinho. Mas quando o cruzamento não acha nada, a tela ficava
+   vazia com uma frase genérica — e não havia como saber se o problema
+   era falta de contrato, contrato do tipo errado, percentual zerado ou
+   se já estava tudo cobrado. Mesmo erro do Viabilidade: zero silencioso.
+
+   Aqui cada processo descartado é contado JUNTO COM O MOTIVO, e a tela
+   diz o que fazer para ele aparecer. */
+function exitosDiagnostico(){
+  var d={ganhas:GANHAS.length, empenhos:EMPENHOS.length,
+         semContrato:{}, naoPercentual:{}, baseOutra:{}, semPerc:{},
+         jaCobrados:0, semValor:0};
+
+  function analisar(emp, tipo, id, base){
+    var nome=String(emp||'(sem empresa)').trim()||'(sem empresa)';
+    var c=contratoDaEmpresa(nome, '');
+    if(!c){ d.semContrato[nome]=(d.semContrato[nome]||0)+1; return; }
+    if(!(num(c.percentualExito)>0)){
+      var t=String(c.tipo||'').toUpperCase();
+      if(t==='MENSAL'||t==='PONTUAL'||t==='EXCLUSIVO') d.naoPercentual[nome]=(d.naoPercentual[nome]||0)+1;
+      else d.semPerc[nome]=(d.semPerc[nome]||0)+1;
+      return;
+    }
+    var bc=String(c.baseCobranca||'').toUpperCase();
+    var esperada=(tipo==='GANHA')?'HOMOLOGACAO':'EMPENHO';
+    if(bc!==esperada){ d.baseOutra[nome]=(d.baseOutra[nome]||0)+1; return; }
+    if(jaCobrado(tipo, id)){ d.jaCobrados++; return; }
+    if(!(base>0)){ d.semValor++; return; }
+  }
+
+  GANHAS.forEach(function(g){ analisar(g.arr[G.EMPRESA], 'GANHA', g.id, num(g.arr[G.VALOR])); });
+  EMPENHOS.forEach(function(e){ analisar(e.empresa, 'EMPENHO', e.id, num(e.valor)); });
+  return d;
+}
+
+function _listaEmp(obj){
+  var k=Object.keys(obj);
+  if(!k.length) return '';
+  return k.sort().map(function(n){ return '<b>'+esc(n)+'</b> ('+obj[n]+')'; }).join(', ');
+}
+
 function painelExitos(pend){
   if(!pend.length){
-    return '<div class="vazio">Nenhum êxito pendente de cobrança.<br>'+
-      '<span style="color:var(--t3);font-size:12px">Aparecem aqui as licitações homologadas e os empenhos das empresas '+
-      'com honorário por percentual — cruzados com o Sistema NH e o Portal de Contratos.</span></div>';
+    var d=exitosDiagnostico();
+    var itens=[];
+
+    if(!d.ganhas && !d.empenhos)
+      itens.push('Ainda não há licitação ganha nem empenho lançado. Assim que houver, o processo aparece aqui sozinho.');
+    if(Object.keys(d.semContrato).length)
+      itens.push('<b>Falta o contrato de honorários</b> de: '+_listaEmp(d.semContrato)+
+        '. Cadastre em <b>Contratos de Honorários</b> — sem ele o sistema não sabe quantos por cento cobrar.');
+    if(Object.keys(d.naoPercentual).length)
+      itens.push('O contrato de '+_listaEmp(d.naoPercentual)+
+        ' não cobra percentual (é mensalidade, pontual ou exclusividade). Se houver êxito a cobrar, mude o tipo para <b>Percentual sobre o êxito</b> ou <b>Mensalidade + percentual</b>.');
+    if(Object.keys(d.semPerc).length)
+      itens.push('O contrato de '+_listaEmp(d.semPerc)+' é percentual, mas está com <b>0%</b>. Preencha o percentual.');
+    if(Object.keys(d.baseOutra).length)
+      itens.push('O contrato de '+_listaEmp(d.baseOutra)+' cobra numa base diferente da do processo — '+
+        'ex.: está marcado <b>por empenho</b> e o que existe é homologação (ou o contrário). Ajuste em <b>Quando o êxito é cobrado</b>.');
+    if(d.semValor)
+      itens.push(d.semValor+' processo(s) estão <b>sem valor</b> preenchido. Sem base, não há percentual a calcular.');
+    if(d.jaCobrados)
+      itens.push('<b>'+d.jaCobrados+' já foram cobrados</b> — estão em <b>A Receber</b>, não somem, só não voltam para cá.');
+
+    return '<div class="kpi" style="padding:22px">'+
+      '<div class="kpi-l" style="margin-top:0">Nenhum êxito pendente de cobrança</div>'+
+      '<div style="font-size:12.5px;color:var(--t2);line-height:1.65;margin-bottom:'+(itens.length?'12px':'0')+'">'+
+        'O sistema cruza sozinho as <b>'+d.ganhas+'</b> licitação(ões) ganha(s) e <b>'+d.empenhos+'</b> empenho(s) '+
+        'com o contrato de honorários de cada empresa, e calcula o percentual. Situação agora:'+
+      '</div>'+
+      (itens.length
+        ? '<ul style="margin:0;padding-left:18px;font-size:12.5px;color:var(--t2);line-height:1.75">'+
+          itens.map(function(t){ return '<li style="margin-bottom:7px">'+t+'</li>'; }).join('')+'</ul>'
+        : '<div style="font-size:12.5px;color:var(--t2)">Tudo o que podia ser cobrado já foi.</div>')+
+    '</div>';
   }
   var total=pend.reduce(function(s,x){ return s+x.valor; },0);
   var topo='<div style="display:flex;gap:12px;align-items:center;margin-bottom:14px;flex-wrap:wrap">'+
@@ -1080,6 +1168,9 @@ function painelReceber(r){
       '<td class="acoes">'+
         (x.link?'<a href="'+esc(x.link)+'" target="_blank" style="text-decoration:none">📎</a>':'')+
         '<button onclick="abrirReceita(\''+x.id+'\')" title="Editar">✏️</button>'+
+        /* Recibo só faz sentido depois que entrou dinheiro — emitir
+           recibo de valor não recebido é documento falso. */
+        (num(x.valorRecebido)>0?'<button onclick="imprimirRecibo(\''+x.id+'\')" title="Emitir recibo">🧾</button>':'')+
         (canc?'':'<button onclick="cancelarReceita(\''+x.id+'\')" title="Cancelar">🚫</button>')+
       '</td></tr>';
   }).join('');
@@ -1295,10 +1386,131 @@ function abrirReceita(id){
   sv('rc-vlreceb', r&&num(r.valorRecebido)>0?brl(num(r.valorRecebido)):'');
   sv('rc-nf', r?(r.notaFiscal||''):'');
   sv('rc-link', r?(r.link||''):'');
+  /* Monta a lista de processos da empresa e, se a cobrança já estava
+     amarrada a um, deixa-o marcado — senão editar o vencimento faria a
+     amarra desaparecer sem ninguém pedir. */
+  rcAoTrocarEmpresa();
+  if(r && r.origemId){
+    var idx=-1;
+    _rcProcessos.forEach(function(p,i){ if(p.origemId===r.origemId && p.origemTipo===r.origemTipo) idx=i; });
+    if(idx>=0){
+      sv('rc-processo', String(idx));
+      nota('rc-processo-nota','Cobrança amarrada a este processo.','var(--t3)');
+    }else{
+      /* O processo saiu do sistema principal mas a cobrança continua. */
+      nota('rc-processo-nota','Esta cobrança veio do processo <b>'+esc(r.licitacaoRef||r.origemId)+
+        '</b>, que não está mais na lista. O vínculo foi mantido.','var(--y1)');
+    }
+  }
   rcAoTrocarStatus();
   erro('rc-erro','');
   document.getElementById('ov-receita').classList.add('on');
 }
+/* ── Cobrar em cima de um processo ganho ─────────────────────────
+   A aba "Êxitos a Cobrar" é o caminho de mão única: o sistema empurra
+   tudo que está pendente, de todas as empresas, e você marca o que
+   gerar. Serve para a rotina, não serve para quando você quer atacar
+   um processo específico — e era só isso que existia.
+
+   Aqui é o caminho inverso, que é como se pensa na prática: escolho a
+   empresa, vejo o que ela ganhou, escolho o processo e trabalho em
+   cima dele. O percentual do contrato é aplicado sozinho, mas o valor
+   continua editável: acordo pontual, desconto e valor cheio de um
+   processo atípico existem, e um sistema que trava o campo obriga a
+   pessoa a mentir no cadastro para conseguir cobrar certo. */
+function processosDaEmpresa(nomeEmpresa){
+  var alvo=String(nomeEmpresa||'').trim().toUpperCase();
+  if(!alvo) return [];
+  var out=[];
+  GANHAS.forEach(function(g){
+    if(String(g.arr[G.EMPRESA]||'').trim().toUpperCase()!==alvo) return;
+    var base=num(g.arr[G.VALOR]);
+    out.push({origemTipo:'GANHA', origemId:g.id,
+      rotulo:'Homologação · '+(String(g.arr[G.LICITACAO]||'sem número'))+
+             (base>0?' · '+brl(base):' · sem valor'),
+      referencia:String(g.arr[G.LICITACAO]||''), base:base,
+      quando:String(g.arr[G.DT_ASSINATURA]||g.arr[G.DATA]||''),
+      motivo:'Homologação', jaCobrado:jaCobrado('GANHA', g.id)});
+  });
+  EMPENHOS.forEach(function(e){
+    if(String(e.empresa||'').trim().toUpperCase()!==alvo) return;
+    var base=num(e.valor);
+    out.push({origemTipo:'EMPENHO', origemId:e.id,
+      rotulo:'Empenho '+(e.numero||'s/nº')+' · '+(e.licitacao||'')+
+             (base>0?' · '+brl(base):' · sem valor'),
+      referencia:(e.licitacao||'')+(e.numero?' · Empenho '+e.numero:''), base:base,
+      quando:e.dataEmissao||'', motivo:'Empenho', jaCobrado:jaCobrado('EMPENHO', e.id)});
+  });
+  /* Já cobrados vão para o fim, não somem: você pode querer lançar uma
+     segunda cobrança sobre o mesmo processo (aditivo, saldo). Some da
+     lista automática, não daqui — mas avisado. */
+  return out.sort(function(a,b){ return (a.jaCobrado?1:0)-(b.jaCobrado?1:0); });
+}
+
+var _rcProcessos=[];
+
+function rcAoTrocarEmpresa(){
+  var emp=gv('rc-empresa');
+  _rcProcessos=processosDaEmpresa(emp);
+  var sel=document.getElementById('rc-processo');
+  sel.innerHTML='<option value="">— nenhum (cobrança avulsa) —</option>'+
+    _rcProcessos.map(function(p,i){
+      return '<option value="'+i+'">'+esc(p.rotulo)+(p.jaCobrado?'  ✓ já cobrado':'')+'</option>';
+    }).join('');
+  var box=document.getElementById('cx-processo');
+  /* Sem processo nenhum o campo some — select vazio é convite a achar
+     que o sistema está quebrado. */
+  box.style.display=_rcProcessos.length?'':'none';
+  nota('rc-processo-nota', !emp
+    ? ''
+    : (_rcProcessos.length
+        ? _rcProcessos.length+' processo(s) desta empresa vindos do Sistema NH e do Portal.'
+        : ''), 'var(--t3)');
+}
+
+function nota(id, txt, cor){
+  var e=document.getElementById(id); if(!e) return;
+  e.innerHTML=txt||''; e.style.color=cor||'var(--t3)';
+}
+
+function rcAoTrocarProcesso(){
+  var i=gv('rc-processo');
+  if(i===''){ nota('rc-processo-nota','',''); return; }
+  var p=_rcProcessos[parseInt(i,10)];
+  if(!p) return;
+
+  var c=contratoDaEmpresa(gv('rc-empresa'), '');
+  var perc=c?num(c.percentualExito):0;
+
+  sv('rc-tipo','EXITO');
+  sv('rc-descricao', p.motivo+' · '+p.referencia);
+  if(p.quando){
+    var d=dData(p.quando);
+    if(d) sv('rc-competencia', d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'));
+  }
+  if(!gv('rc-venc')){
+    var venc=new Date(); venc.setDate(venc.getDate()+15);
+    sv('rc-venc', venc.toISOString().slice(0,10));
+  }
+
+  if(perc>0 && p.base>0){
+    var valor=Math.round(p.base*perc)/100;
+    sv('rc-valor', brl(valor));
+    nota('rc-processo-nota',
+      '<b>'+perc.toLocaleString('pt-BR')+'%</b> de '+brl(p.base)+' = <b style="color:var(--nh)">'+brl(valor)+'</b>'+
+      ' — percentual do contrato de honorários. Você pode alterar o valor.'+
+      (p.jaCobrado?'<br><b style="color:var(--y1)">Atenção:</b> este processo já tem uma cobrança de êxito lançada.':''),
+      'var(--t2)');
+  }else{
+    nota('rc-processo-nota',
+      (p.base>0?'Base do processo: <b>'+brl(p.base)+'</b>. ':'Este processo está <b>sem valor</b> no sistema. ')+
+      (!c ? 'Esta empresa não tem contrato de honorários — informe o valor à mão.'
+          : perc>0 ? '' : 'O contrato desta empresa não tem percentual de êxito — informe o valor à mão.')+
+      (p.jaCobrado?'<br><b style="color:var(--y1)">Atenção:</b> este processo já tem uma cobrança de êxito lançada.':''),
+      'var(--y1)');
+  }
+}
+
 async function salvarReceita(){
   var empresa=gv('rc-empresa'), valor=num(gv('rc-valor')), venc=gv('rc-venc');
   if(!empresa) return erro('rc-erro','Escolha a empresa.');
@@ -1322,6 +1534,30 @@ async function salvarReceita(){
     notaFiscal: gv('rc-nf'), link: gv('rc-link'),
     atualizadoPor: (auth.currentUser&&auth.currentUser.email)||'', atualizadoEm: new Date().toLocaleString('pt-BR')
   };
+
+  /* Amarra a cobrança ao processo escolhido. É essa amarra que faz o
+     processo sumir da lista automática de êxitos — sem ela, a mesma
+     homologação seria oferecida de novo amanhã e acabaria cobrada
+     duas vezes. Guardo também a base e o percentual usados: daqui a um
+     ano, "R$ 25.000" sozinho não explica de onde veio. */
+  var ip=gv('rc-processo');
+  if(ip!==''){
+    var p=_rcProcessos[parseInt(ip,10)];
+    if(p){
+      var ct=contratoDaEmpresa(empresa,'');
+      dados.origemTipo=p.origemTipo; dados.origemId=p.origemId;
+      dados.licitacaoRef=p.referencia;
+      dados.baseCalculo=p.base;
+      dados.percentualAplicado=(p.base>0)?Math.round((valor/p.base)*10000)/100:0;
+      if(ct) dados.contratoId=ct.id;
+    }
+  }else if(_rcEdit){
+    /* Tirou o processo de uma cobrança que tinha: solta a amarra, em
+       vez de deixar um vínculo órfão apontando para nada. */
+    dados.origemTipo=''; dados.origemId=''; dados.licitacaoRef='';
+    dados.baseCalculo=0; dados.percentualAplicado=0;
+  }
+
   var btn=document.getElementById('rc-salvar');
   btn.disabled=true; btn.textContent='Salvando…';
   try{
@@ -1393,6 +1629,224 @@ async function gerarMensalidades(){
     await lote.commit();
     await carregarTudo();
   }catch(e){ alert(msgErro(e)); }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   IMPRESSÃO — relatório do mês e recibo
+
+   Mesma técnica dos outros sistemas: monta um HTML limpo numa janela
+   nova e manda imprimir. Sem dependência, sem servidor, e o PDF sai
+   pelo "Salvar como PDF" do próprio navegador.
+   ════════════════════════════════════════════════════════════════ */
+
+/* Valor por extenso. Um recibo sem isso não serve para nada: é
+   justamente o extenso que impede alguém de mexer no algarismo depois
+   de assinado. */
+var _EXT_U=['','um','dois','três','quatro','cinco','seis','sete','oito','nove','dez',
+  'onze','doze','treze','quatorze','quinze','dezesseis','dezessete','dezoito','dezenove'];
+var _EXT_D=['','','vinte','trinta','quarenta','cinquenta','sessenta','setenta','oitenta','noventa'];
+var _EXT_C=['','cento','duzentos','trezentos','quatrocentos','quinhentos','seiscentos','setecentos','oitocentos','novecentos'];
+
+function _ext3(n){
+  if(n===0) return '';
+  if(n===100) return 'cem';
+  var c=Math.floor(n/100), d=Math.floor((n%100)/10), u=n%10, p=[];
+  if(c) p.push(_EXT_C[c]);
+  if(d===1) p.push(_EXT_U[10+u]);
+  else{ if(d) p.push(_EXT_D[d]); if(u) p.push(_EXT_U[u]); }
+  return p.join(' e ');
+}
+function extenso(v){
+  v=Math.round(num(v)*100)/100;
+  var inteiro=Math.floor(v), cent=Math.round((v-inteiro)*100);
+  function grupos(n){
+    if(n===0) return 'zero';
+    var mi=Math.floor(n/1000000), mil=Math.floor((n%1000000)/1000), un=n%1000, p=[];
+    if(mi) p.push(_ext3(mi)+(mi===1?' milhão':' milhões'));
+    if(mil) p.push(mil===1?'mil':_ext3(mil)+' mil');
+    if(un) p.push(_ext3(un));
+    /* Ligação entre a última parcela e a anterior:
+         "e"      quando a última é menor que cem ou é centena redonda
+                  — "mil e duzentos", "dois mil e quinze";
+         espaço   quando não é — "mil duzentos e cinquenta";
+       a vírgula fica só entre os grupos anteriores, quando há três ou
+       mais ("um milhão, duzentos mil e trinta"). */
+    if(p.length>1){
+      var ult=p.pop();
+      /* Sem unidades, a última parcela é o grupo dos milhares e a
+         ligação é sempre "e" — "um milhão e duzentos mil". Com
+         unidades, decide o tamanho delas. */
+      var lig=(un===0 || un<100 || un%100===0) ? ' e ' : ' ';
+      return p.join(', ')+lig+ult;
+    }
+    return p[0]||'zero';
+  }
+  /* "um milhão DE reais", mas "mil reais". A preposição entra só quando
+     o número termina em milhão/milhões cheios. */
+  var cheioMilhao = inteiro>=1000000 && inteiro%1000000===0;
+  var t=grupos(inteiro)+(cheioMilhao?' de reais':(inteiro===1?' real':' reais'));
+  if(cent>0) t+=' e '+grupos(cent)+(cent===1?' centavo':' centavos');
+  return t;
+}
+
+function _rpCabeca(titulo, sub){
+  return '<style>'+
+    '@page{size:A4;margin:14mm}'+
+    'body{font-family:system-ui,Segoe UI,Arial,sans-serif;color:#111;margin:0}'+
+    'h1{font-size:19px;margin:0 0 3px}h2{font-size:13px;margin:22px 0 7px;color:#f97316;'+
+      'border-bottom:2px solid #f97316;padding-bottom:4px;text-transform:uppercase;letter-spacing:.05em}'+
+    '.meta{font-size:11px;color:#777;margin-bottom:16px}'+
+    '.cards{display:flex;gap:9px;flex-wrap:wrap;margin:14px 0}'+
+    '.card{flex:1;min-width:104px;border:1px solid #e4e4e4;border-radius:7px;padding:11px;text-align:center}'+
+    '.card .lbl{font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.05em}'+
+    '.card .num{font-size:17px;font-weight:800;margin-top:3px}'+
+    'table{width:100%;border-collapse:collapse;font-size:11px}'+
+    'th{text-align:left;padding:6px 8px;border-bottom:2px solid #f97316;color:#888;font-size:9px;'+
+      'text-transform:uppercase;letter-spacing:.05em}'+
+    'td{padding:6px 8px;border-bottom:1px solid #eee;vertical-align:top}'+
+    'tr:nth-child(even) td{background:#fafafa}'+
+    '.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}'+
+    '.tot td{border-top:2px solid #333;font-weight:800;background:#fff!important}'+
+    '.vazio{color:#999;text-align:center;padding:20px;font-size:12px}'+
+    '@media print{tr:nth-child(even) td{background:#f6f6f6!important;-webkit-print-color-adjust:exact}}'+
+    '</style>'+
+    '<h1>'+titulo+'</h1><div class="meta">'+sub+' &middot; gerado em '+new Date().toLocaleString('pt-BR')+'</div>';
+}
+
+function _rpAbrir(html){
+  var w=window.open('','_blank');
+  if(!w){ alert('Permita pop-ups neste site para gerar a impressão.'); return; }
+  w.document.write('<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>NH Financeiro</title></head><body>'+html+'</body></html>');
+  w.document.close();
+  setTimeout(function(){ w.print(); }, 400);
+}
+
+/** Relatório do mês: o que entrou, o que saiu, o que ficou. */
+function imprimirRelatorio(){
+  var r=resumoDoMes(), a=aging(), cli=porCliente(), dm=despesasDoMes();
+  var h=_rpCabeca('Relatório Financeiro — '+MESES[MES]+' de '+ANO, 'NH Licitações');
+
+  h+='<div class="cards">'+
+    '<div class="card"><div class="lbl">Previsto</div><div class="num">'+brl(r.previsto)+'</div></div>'+
+    '<div class="card"><div class="lbl">Recebido</div><div class="num" style="color:#16a34a">'+brl(r.recebido)+'</div></div>'+
+    '<div class="card"><div class="lbl">A receber</div><div class="num" style="color:#2563eb">'+brl(r.aReceber)+'</div></div>'+
+    (r.emAtraso>0?'<div class="card"><div class="lbl">Em atraso</div><div class="num" style="color:#dc2626">'+brl(r.emAtraso)+'</div></div>':'')+
+    '<div class="card"><div class="lbl">Despesas</div><div class="num" style="color:#ca8a04">'+brl(r.despesas)+'</div></div>'+
+    '<div class="card"><div class="lbl">Resultado</div><div class="num" style="color:'+(r.resultado>=0?'#16a34a':'#dc2626')+'">'+brl(r.resultado)+'</div></div>'+
+  '</div>';
+
+  h+='<h2>Cobranças do mês ('+r.doMes.length+')</h2>';
+  if(r.doMes.length){
+    h+='<table><tr><th>Empresa</th><th>Descrição</th><th>Tipo</th><th>Vencimento</th>'+
+       '<th class="num">Valor</th><th class="num">Recebido</th><th class="num">Saldo</th><th>Situação</th></tr>';
+    r.doMes.slice().sort(function(x,y){
+      return String(x.dataVencimento||'').split('/').reverse().join('')
+        .localeCompare(String(y.dataVencimento||'').split('/').reverse().join(''));
+    }).forEach(function(x){
+      var st=statusDe(x);
+      h+='<tr><td>'+esc(x.empresa||'—')+'</td><td>'+esc(x.descricao||'—')+'</td>'+
+         '<td>'+esc(x.tipo||'—')+'</td><td>'+esc(x.dataVencimento||'—')+'</td>'+
+         '<td class="num">'+brl(num(x.valor))+'</td>'+
+         '<td class="num">'+brl(num(x.valorRecebido))+'</td>'+
+         '<td class="num">'+brl(saldo(x))+'</td><td>'+esc(st.r)+'</td></tr>';
+    });
+    h+='<tr class="tot"><td colspan="4">Total</td>'+
+       '<td class="num">'+brl(r.previsto)+'</td><td class="num">'+brl(r.recebido)+'</td>'+
+       '<td class="num">'+brl(r.aReceber)+'</td><td></td></tr></table>';
+  } else h+='<div class="vazio">Nenhuma cobrança com competência neste mês.</div>';
+
+  h+='<h2>Despesas do mês ('+dm.length+')</h2>';
+  if(dm.length){
+    h+='<table><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Fornecedor</th><th>Situação</th><th class="num">Valor</th></tr>';
+    dm.forEach(function(x){
+      h+='<tr><td>'+esc(x[0]||'—')+'</td><td>'+esc(x[2]||'—')+'</td><td>'+esc(x[1]||'—')+'</td>'+
+         '<td>'+esc(x[3]||'—')+'</td><td>'+esc(x[5]||'—')+'</td>'+
+         '<td class="num">'+brl(num(x[4]))+'</td></tr>';
+    });
+    h+='<tr class="tot"><td colspan="5">Total</td><td class="num">'+brl(r.despesas)+'</td></tr></table>';
+  } else h+='<div class="vazio">Nenhuma despesa lançada neste mês.</div>';
+
+  if(a.total>0){
+    h+='<h2>Idade do que está em aberto</h2><table>'+
+      '<tr><th>Faixa</th><th class="num">Valor</th><th class="num">% do aberto</th></tr>';
+    [['A vencer',a.aVencer],['Vencido até 30 dias',a.d30],['Vencido 31 a 60 dias',a.d60],
+     ['Vencido 61 a 90 dias',a.d90],['Vencido há mais de 90 dias',a.mais90]].forEach(function(f){
+      h+='<tr><td>'+f[0]+'</td><td class="num">'+brl(f[1])+'</td>'+
+         '<td class="num">'+(a.total>0?((f[1]/a.total)*100).toFixed(0):0)+'%</td></tr>';
+    });
+    h+='<tr class="tot"><td>Total em aberto</td><td class="num">'+brl(a.total)+'</td><td class="num">100%</td></tr></table>';
+  }
+
+  if(cli.length){
+    h+='<h2>Quem tem valores em aberto</h2><table>'+
+      '<tr><th>Empresa</th><th class="num">Cobranças</th><th class="num">Em aberto</th><th class="num">Vencido</th></tr>';
+    cli.forEach(function(c){
+      h+='<tr><td>'+esc(c.empresa)+'</td><td class="num">'+c.qtd+'</td>'+
+         '<td class="num">'+brl(c.aberto)+'</td>'+
+         '<td class="num">'+(c.vencido>0?brl(c.vencido):'—')+'</td></tr>';
+    });
+    h+='</table>';
+  }
+  _rpAbrir(h);
+}
+
+/** Recibo de um pagamento recebido. */
+function imprimirRecibo(id){
+  var x=RECEITAS.filter(function(r){ return r.id===id; })[0];
+  if(!x) return;
+  var v=num(x.valorRecebido);
+  if(!(v>0)){ alert('Esta cobrança ainda não teve pagamento registrado — não há recibo a emitir.'); return; }
+
+  var emp=EMPRESAS.filter(function(e){ return e.nome.toUpperCase()===String(x.empresa||'').toUpperCase(); })[0];
+  var cnpj=(x.cnpj||(emp&&emp.cnpj)||'').replace(/\D/g,'');
+  var cnpjFmt=cnpj.length===14
+    ? cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,'$1.$2.$3/$4-$5') : (cnpj||'—');
+  var saldoRest=saldo(x);
+  var quitado=saldoRest<=0.005;
+
+  var h='<style>@page{size:A4;margin:16mm}'+
+    'body{font-family:system-ui,Segoe UI,Arial,sans-serif;color:#111;margin:0}'+
+    '.rec{border:2px solid #f97316;border-radius:10px;padding:26px 28px;max-width:660px;margin:0 auto}'+
+    '.tp{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:20px}'+
+    '.marca{font-size:19px;font-weight:800}.marca span{color:#f97316}'+
+    '.nrec{text-align:right;font-size:11px;color:#777}'+
+    '.valor{font-size:29px;font-weight:800;color:#f97316;font-variant-numeric:tabular-nums;margin:4px 0 2px}'+
+    '.ext{font-size:12px;color:#444;font-style:italic;text-transform:lowercase}'+
+    '.corpo{font-size:13px;line-height:1.85;margin:22px 0}'+
+    '.corpo b{border-bottom:1px solid #ccc;padding:0 3px}'+
+    '.linhas{margin-top:34px;display:flex;gap:30px}'+
+    '.assin{flex:1;border-top:1px solid #333;padding-top:5px;font-size:10.5px;color:#555;text-align:center}'+
+    '.obs{margin-top:22px;font-size:10px;color:#888;line-height:1.6;border-top:1px dashed #ddd;padding-top:10px}'+
+    '</style>'+
+  '<div class="rec">'+
+    '<div class="tp">'+
+      '<div><div class="marca">NH <span>Licitações</span></div>'+
+        '<div style="font-size:10.5px;color:#777;margin-top:2px">Assessoria em licitações</div></div>'+
+      '<div class="nrec">RECIBO<br>nº '+esc(String(id).slice(-8).toUpperCase())+'</div>'+
+    '</div>'+
+    '<div class="valor">'+brl(v)+'</div>'+
+    '<div class="ext">('+extenso(v)+')</div>'+
+    '<div class="corpo">'+
+      'Recebemos de <b>'+esc(x.empresa||'—')+'</b>, inscrita no CNPJ sob o nº <b>'+esc(cnpjFmt)+'</b>, '+
+      'a importância de <b>'+brl(v)+'</b>, referente a <b>'+esc(x.descricao||x.tipo||'honorários')+'</b>'+
+      (x.licitacaoRef?', relativo ao processo <b>'+esc(x.licitacaoRef)+'</b>':'')+
+      (x.competencia?', competência <b>'+esc(x.competencia)+'</b>':'')+'.'+
+      (quitado
+        ? ' Damos plena e geral quitação do valor ora recebido.'
+        : ' Trata-se de <b>pagamento parcial</b>; permanece em aberto o saldo de <b>'+brl(saldoRest)+'</b>.')+
+    '</div>'+
+    '<div style="font-size:12px;margin-top:26px">'+
+      (x.dataRecebimento?esc(x.dataRecebimento):new Date().toLocaleDateString('pt-BR'))+'</div>'+
+    '<div class="linhas">'+
+      '<div class="assin">NH Licitações &mdash; assinatura</div>'+
+      '<div class="assin">'+esc(x.empresa||'')+' &mdash; ciente</div>'+
+    '</div>'+
+    '<div class="obs">'+
+      'Documento gerado eletronicamente pelo sistema financeiro da NH Licitações em '+new Date().toLocaleString('pt-BR')+'.'+
+      (x.notaFiscal?' Nota fiscal nº '+esc(x.notaFiscal)+'.':' Este recibo não substitui a nota fiscal.')+
+    '</div>'+
+  '</div>';
+  _rpAbrir(h);
 }
 
 /* ════════════════════════════════════════════════════════════════
