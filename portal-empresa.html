@@ -505,6 +505,49 @@ textarea.mc-input{resize:vertical;min-height:64px}
 
 /* ===== Quadro de Avisos ===== */
 .avisos-wrap{background:var(--s1);border:1px solid var(--b1);border-radius:16px;padding:18px 20px}
+
+/* ── Recolher o quadro ────────────────────────────────────────────
+   O cabeçalho vira o botão inteiro: alvo grande, sem precisar mirar
+   num ícone de 16px. A seta só indica o estado. */
+.avisos-wrap .avisos-head{cursor:pointer;user-select:none;align-items:center}
+.avisos-seta{
+  margin-left:auto;font-size:15px;line-height:1;color:var(--t3);
+  transition:transform .22s ease,color .15s;flex-shrink:0;padding-left:10px;
+}
+.avisos-head:hover .avisos-seta{color:var(--nh)}
+.avisos-wrap.recolhido .avisos-seta{transform:rotate(-90deg)}
+/* `display:none` de propósito, e não uma animação de altura: a grade
+   usa auto-fill com colunas de largura variável, e animar altura ali
+   brigaria com o próprio layout. O conteúdo continua no DOM — recolher
+   é esconder, não descarregar. */
+.avisos-wrap.recolhido .avisos-grid{display:none}
+.avisos-wrap.recolhido .avisos-head{margin-bottom:0}
+.avisos-wrap.recolhido{padding-bottom:14px}
+
+/* ── Item que leva ao processo ────────────────────────────────── */
+.aviso-vai{cursor:pointer;border-radius:8px;transition:background .15s,transform .12s}
+.aviso-vai:hover{background:rgba(255,255,255,.045);transform:translateX(2px)}
+body.light .aviso-vai:hover{background:rgba(15,23,42,.04)}
+.aviso-ir{
+  margin-left:6px;font-size:15px;line-height:1;color:var(--ac,var(--nh));
+  opacity:0;transform:translateX(-3px);display:inline-block;
+  transition:opacity .15s,transform .15s;
+}
+.aviso-vai:hover .aviso-ir{opacity:1;transform:translateX(0)}
+.aviso-mais{cursor:pointer}
+.aviso-mais:hover{color:var(--nh)}
+
+/* Destaque de chegada: sem isto a pessoa cai na lista e não sabe qual
+   card era o do aviso. Dois pulsos e some — marca sem atrapalhar. */
+@keyframes ctAlvo{
+  0%,100%{box-shadow:0 0 0 0 rgba(249,115,22,0)}
+  15%,65%{box-shadow:0 0 0 3px rgba(249,115,22,.55)}
+}
+.ct-alvo{animation:ctAlvo 1.3s ease 2;border-radius:12px}
+@media(prefers-reduced-motion:reduce){
+  /* Sem piscar: fica a borda parada, que cumpre o mesmo papel. */
+  .ct-alvo{animation:none;box-shadow:0 0 0 3px rgba(249,115,22,.55)}
+}
 .avisos-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
 .avisos-titulo{font-size:15px;font-weight:800;color:var(--t1);letter-spacing:-.2px}
 .avisos-badge{margin-left:auto;background:rgba(249,115,22,.14);color:#fb923c;border:1px solid rgba(249,115,22,.3);font-size:11px;font-weight:800;padding:4px 11px;border-radius:20px;letter-spacing:.02em}
@@ -3098,12 +3141,15 @@ function renderAvisos(){
   });
 
   function grupoContratos(filtro, icone, cor, titulo, sub, rotulo){
-    const itens = ativos.filter(filtro).map(({arr})=>{
+    const itens = ativos.filter(filtro).map(({id: _cid, arr})=>{
       const vv = vencVigente(arr);
       return {
         principal: pEsc(arr[IDX.LICITACAO]||'Sem identifica\u00e7\u00e3o'),
         secundario: pEsc([arr[IDX.EMPRESA], arr[IDX.CONTRATO]].filter(Boolean).join(' \u00b7 ')),
         extra: rotulo(vv.valor, _pDias(vv.valor)),
+        /* O id do contrato viaja junto com o aviso \u2014 \u00e9 ele que faz o
+           clique levar ao processo em vez de o aviso ser s\u00f3 um texto. */
+        ct: _cid,
         _d: _pDias(vv.valor)
       };
     }).sort((a,b)=> (a._d??9e9) - (b._d??9e9));
@@ -3157,7 +3203,7 @@ function renderAvisos(){
         if(d >= 0) return;
         itens.push({
           principal: pEsc(e.arr[IDX.LICITACAO]||'Sem identifica\u00e7\u00e3o'),
-          secundario: _idContrato(e),
+          secundario: _idContrato(e), ct: e.id, ct: e.id,
           extra: (NOT_TIPOS[String(n.tipo||'').toUpperCase()]||{rotulo:'Notifica\u00e7\u00e3o'}).rotulo
                  + (n.numero?' '+pEsc(n.numero):'') + ' \u2014 vencido h\u00e1 ' + Math.abs(d) + ' dia(s)'
         });
@@ -3176,7 +3222,7 @@ function renderAvisos(){
         if(d < 0 || d > 5) return;
         itens.push({
           principal: pEsc(e.arr[IDX.LICITACAO]||'Sem identifica\u00e7\u00e3o'),
-          secundario: _idContrato(e),
+          secundario: _idContrato(e), ct: e.id, ct: e.id,
           extra: (NOT_TIPOS[String(n.tipo||'').toUpperCase()]||{rotulo:'Notifica\u00e7\u00e3o'}).rotulo
                  + ' \u2014 ' + (d===0?'vence hoje':'faltam '+d+' dia(s)')
         });
@@ -3190,7 +3236,7 @@ function renderAvisos(){
       if(!r.qtdAtrasadas) return;
       itens.push({
         principal: pEsc(e.arr[IDX.LICITACAO]||'Sem identifica\u00e7\u00e3o'),
-        secundario: _idContrato(e),
+        secundario: _idContrato(e), ct: e.id,
         extra: r.qtdAtrasadas + ' documento(s) \u2014 ' + fmtMoedaP(r.atrasado) + ' em atraso'
       });
     });
@@ -3202,7 +3248,7 @@ function renderAvisos(){
       if(!r.qtd || !r.atrasadoNoRitmo) return;
       itens.push({
         principal: pEsc(e.arr[IDX.LICITACAO]||'Sem identifica\u00e7\u00e3o'),
-        secundario: _idContrato(e),
+        secundario: _idContrato(e), ct: e.id,
         extra: 'Faturado ' + r.pctFaturado.toFixed(0) + '% \u2014 esperado ' + r.pctIdeal.toFixed(0) + '%'
       });
     });
@@ -3215,7 +3261,7 @@ function renderAvisos(){
       if(!rpExec(e.arr)) return;
       itens.push({
         principal: pEsc(e.arr[IDX.LICITACAO]||'Sem identifica\u00e7\u00e3o'),
-        secundario: _idContrato(e),
+        secundario: _idContrato(e), ct: e.id,
         extra: 'Valor do contrato: ' + (fmtMoedaP(calcValorGanhas(e.arr)) || '\u2014')
       });
     });
@@ -3223,37 +3269,132 @@ function renderAvisos(){
   const total = grupos.reduce((s,g)=>s+g.itens.length,0);
 
   if(!total){
+    /* Sem aviso n\u00e3o h\u00e1 o que recolher \u2014 cabe\u00e7alho sem seta e sem clique. */
     box.innerHTML = '<div class="avisos-wrap">'
-      + '<div class="avisos-head"><span class="avisos-titulo">\ud83d\udd14 Quadro de Avisos</span>'
-      + '<span class="avisos-badge avisos-badge-ok">Tudo em dia</span></div>'
+      + '<div class="avisos-head">'
+      +   '<span class="avisos-titulo">\ud83d\udd14 Quadro de Avisos</span>'
+      +   '<span class="avisos-badge avisos-badge-ok">Tudo em dia</span>'
+      + '</div>'
       + '<div class="avisos-vazio">\u2713 Nenhum aviso no momento. Nenhum contrato vencendo nos pr\u00f3ximos 60 dias e nenhum processo em 1\u00aa posi\u00e7\u00e3o aguardando defini\u00e7\u00e3o.</div>'
       + '</div>';
     return;
   }
 
-  box.innerHTML = '<div class="avisos-wrap">'
-    + '<div class="avisos-head"><span class="avisos-titulo">\ud83d\udd14 Quadro de Avisos</span>'
-    + '<span class="avisos-badge">'+total+' '+(total===1?'aviso':'avisos')+'</span></div>'
+  box.innerHTML = '<div class="avisos-wrap'+(avisosRecolhido()?' recolhido':'')+'" id="avisos-wrap">'
+    + '<div class="avisos-head" onclick="avisosAlternar()" title="Clique para recolher ou abrir">'
+    +   '<span class="avisos-titulo">\ud83d\udd14 Quadro de Avisos</span>'
+    +   '<span class="avisos-badge">'+total+' '+(total===1?'aviso':'avisos')+'</span>'
+    +   '<span class="avisos-seta">&#9662;</span>'
+    + '</div>'
     + '<div class="avisos-grid">'
-    + grupos.map(g =>
+    + grupos.map((g, gi) =>
         '<div class="aviso-card" style="--ac:'+g.cor+'">'
         + '<div class="aviso-card-head">'
         +   '<span class="aviso-ic">'+g.icone+'</span>'
         +   '<div><div class="aviso-t">'+g.titulo+'</div><div class="aviso-s">'+g.sub+'</div></div>'
         +   '<span class="aviso-n">'+g.itens.length+'</span>'
         + '</div>'
-        + '<ul class="aviso-list">'
-        + g.itens.slice(0,6).map(i =>
-            '<li><div class="aviso-p">'+i.principal+'</div>'
-            + (i.secundario?'<div class="aviso-sec">'+i.secundario+'</div>':'')
-            + (i.extra?'<div class="aviso-ex">'+i.extra+'</div>':'')
-            + (i.link?'<a class="aviso-link" href="'+pEsc(i.link)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">📁 Abrir pasta do processo</a>':'')
-            + '</li>').join('')
+        + '<ul class="aviso-list" id="aviso-list-'+gi+'">'
+        + g.itens.slice(0,6).map(i => _avisoItem(i)).join('')
         + '</ul>'
-        + (g.itens.length>6 ? '<div class="aviso-mais">+ '+(g.itens.length-6)+' outro(s)</div>' : '')
+        + (g.itens.length>6
+            ? '<div class="aviso-mais" onclick="avisosVerTodos('+gi+',this)">+ '+(g.itens.length-6)+' outro(s) &mdash; ver todos</div>'
+            : '')
         + '</div>'
       ).join('')
     + '</div></div>';
+
+  /* Guarda para o "ver todos" abrir o grupo inteiro sem recalcular. */
+  window._avisosGrupos = grupos;
+}
+
+/* Um item da lista. Quando o aviso sabe de qual contrato veio, ele
+   deixa de ser texto e vira caminho: clicar leva ao processo. */
+function _avisoItem(i){
+  var clicavel = !!i.ct;
+  return '<li'+(clicavel
+      ? ' class="aviso-vai" onclick="irParaContrato(\'' + pEsc(String(i.ct)) + '\')" title="Ir para este processo"'
+      : '')+'>'
+    + '<div class="aviso-p">'+i.principal+(clicavel?'<span class="aviso-ir">&rsaquo;</span>':'')+'</div>'
+    + (i.secundario?'<div class="aviso-sec">'+i.secundario+'</div>':'')
+    + (i.extra?'<div class="aviso-ex">'+i.extra+'</div>':'')
+    + (i.link?'<a class="aviso-link" href="'+pEsc(i.link)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">\ud83d\udcc1 Abrir pasta do processo</a>':'')
+    + '</li>';
+}
+
+/* ── Recolher o quadro ────────────────────────────────────────────
+   O quadro é a primeira coisa da tela e, num dia cheio, empurra os
+   contratos para baixo da dobra. A escolha fica guardada no navegador:
+   quem recolheu quer encontrar recolhido amanhã, não a cada carga. */
+function avisosRecolhido(){
+  try{ return localStorage.getItem('nh_avisos_recolhido')==='1'; }catch(e){ return false; }
+}
+function avisosAlternar(){
+  var w=document.getElementById('avisos-wrap');
+  if(!w) return;
+  var vai = !w.classList.contains('recolhido');
+  w.classList.toggle('recolhido', vai);
+  try{ localStorage.setItem('nh_avisos_recolhido', vai?'1':'0'); }catch(e){}
+}
+
+/* Mostra o grupo inteiro, sem o corte dos 6 primeiros. */
+function avisosVerTodos(gi, botao){
+  var g=(window._avisosGrupos||[])[gi];
+  var ul=document.getElementById('aviso-list-'+gi);
+  if(!g||!ul) return;
+  ul.innerHTML = g.itens.map(function(i){ return _avisoItem(i); }).join('');
+  if(botao) botao.remove();
+}
+
+/* Leva ao processo do aviso: tira os filtros que poderiam estar
+   escondendo justamente aquele, rola até o card e o destaca por um
+   instante — sem o destaque, a pessoa chega na lista e não sabe qual
+   dos cards era o do aviso. */
+function irParaContrato(id){
+  if(!id) return;
+  /* O card da tela já nasce com id `ccard-<id>` — reaproveitado aqui em
+     vez de marcar o elemento com mais um atributo só para isto. */
+  var achar = function(){ return document.getElementById('ccard-'+id); };
+  var alvo = achar();
+
+  /* Não está na tela: quase sempre é filtro de status ou de período
+     ativo. Limpa, redesenha e procura de novo. */
+  if(!alvo){
+    try{
+      if(typeof filtroStatus!=='undefined') filtroStatus='';
+      if(typeof pLimparPeriodo==='function') pLimparPeriodo();
+      renderContratos();
+    }catch(e){}
+    alvo = achar();
+  }
+  if(!alvo){
+    if(typeof portalToast==='function')
+      portalToast('Não encontrei este processo na lista. Ele pode ter sido finalizado ou removido.','err');
+    return;
+  }
+
+  /* Chegar no card fechado seria chegar pela metade: o aviso fala de
+     um vencimento ou de uma fatura, e o dado está lá dentro.
+
+     A pergunta é feita ao DOM, não ao mapa `abertos`. Quando a lista é
+     redesenhada — e ela é, sempre que este caminho limpa um filtro —
+     o mapa diz "aberto" e o elemento novo nasce fechado. Confiar no
+     mapa fazia o card chegar fechado justamente no caso mais comum. */
+  try{
+    var corpo = document.getElementById('body-'+id);
+    if(corpo && !corpo.classList.contains('open') && typeof toggleCard==='function'){
+      if(typeof abertos==='object') abertos[id] = false;
+      toggleCard(id);
+    }
+  }catch(e){}
+
+  alvo.scrollIntoView({behavior:'smooth', block:'center'});
+  alvo.classList.remove('ct-alvo');
+  /* Reinicia a animação: sem isto, clicar duas vezes no mesmo aviso não
+     pisca de novo, e parece que o clique não funcionou. */
+  void alvo.offsetWidth;
+  alvo.classList.add('ct-alvo');
+  setTimeout(function(){ alvo.classList.remove('ct-alvo'); }, 2600);
 }
 
 /* ── Uma leitura só de "ganhas" ────────────────────────────────────
