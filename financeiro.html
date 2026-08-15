@@ -338,9 +338,47 @@ body.light .ac-form{background:rgba(255,255,255,.75)}
     <button class="aba on" data-a="visao" onclick="trocarAba('visao',this)">Visão Geral</button>
     <button class="aba" data-a="receber" onclick="trocarAba('receber',this)">A Receber</button>
     <button class="aba" data-a="exitos" onclick="trocarAba('exitos',this)">Êxitos a Cobrar <span id="selo-exitos"></span></button>
+    <button class="aba" data-a="despesas" onclick="trocarAba('despesas',this)">Despesas</button>
     <button class="aba" data-a="contratos" onclick="trocarAba('contratos',this)">Contratos de Honorários</button>
   </div>
   <div id="painel"></div>
+</div>
+
+<!-- MODAL DESPESA -->
+<div class="ov" id="ov-despesa">
+  <div class="modal">
+    <div class="mh">
+      <div><h3 id="dp-titulo">Nova despesa</h3>
+        <p>As contas do dia a dia do escritório. Entram no resultado do mês.</p></div>
+      <button class="btn" onclick="fecharModal('ov-despesa')" style="padding:5px 10px">×</button>
+    </div>
+    <div class="mb">
+      <div class="campo"><label>Data *</label><input type="date" id="dp-data"></div>
+      <div class="campo"><label>Valor *</label>
+        <input type="text" id="dp-valor" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
+      <div class="campo full"><label>Descrição *</label>
+        <input type="text" id="dp-desc" placeholder="Ex: Energia — conta de agosto"></div>
+      <div class="campo"><label>Categoria</label><select id="dp-cat"></select></div>
+      <div class="campo"><label>Situação</label><select id="dp-status"></select></div>
+      <div class="campo"><label>Fornecedor</label>
+        <input type="text" id="dp-forn" placeholder="Quem recebeu"></div>
+      <div class="campo"><label>Conta / forma</label>
+        <input type="text" id="dp-conta" placeholder="Ex: Itaú PJ, PIX, cartão"></div>
+      <!-- Despesa quase sempre é da NH. Vincular a uma empresa serve
+           para o custo que existe por causa de um cliente específico —
+           certificado digital, cadastro num portal. -->
+      <div class="campo full"><label>Vincular a uma empresa</label>
+        <select id="dp-empresa"></select>
+        <div style="font-size:10.5px;color:var(--t3);line-height:1.5">Deixe em &ldquo;despesa da NH&rdquo; para custo do escritório. Vincule só quando o gasto existe por causa de um cliente.</div></div>
+      <div class="campo full"><label>Observações</label>
+        <textarea id="dp-obs" placeholder="O que mais precisa ficar registrado"></textarea></div>
+      <div class="erro" id="dp-erro"></div>
+    </div>
+    <div class="mf">
+      <button class="btn" onclick="fecharModal('ov-despesa')">Cancelar</button>
+      <button class="btn btn-nh" id="dp-salvar" onclick="salvarDespesa()">Salvar</button>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL CONTRATO DE HONORÁRIOS -->
@@ -363,6 +401,13 @@ body.light .ac-form{background:rgba(255,255,255,.75)}
           <option value="PONTUAL">Serviços pontuais (por demanda)</option>
           <option value="EXCLUSIVO">Dedicação exclusiva</option>
         </select></div>
+      <!-- Adesão existe em qualquer modelo: é o que se cobra para
+           montar a operação (cadastro em portais, certidões, primeira
+           análise). Cobra-se UMA vez, no início — por isso fica fora do
+           bloco que liga e desliga por tipo de contrato. -->
+      <div class="campo" id="cx-adesao"><label>Taxa de adesão (uma vez)</label>
+        <input type="text" id="ct-adesao" placeholder="R$ 0,00" oninput="mascaraMoeda(this)">
+        <div style="font-size:10.5px;color:var(--t3);line-height:1.5">Vazio = sem adesão. Vira uma cobrança única na data de início.</div></div>
       <div class="campo" id="cx-mensal"><label>Valor mensal</label>
         <input type="text" id="ct-valor" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
       <div class="campo" id="cx-exito" style="display:none"><label>% sobre o contrato</label>
@@ -714,7 +759,14 @@ async function carregarTudo(){
   }).filter(function(e){ return e.nome; });
   CONTRATOS=ct.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
   RECEITAS=rc.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
-  DESPESAS=dp.docs.map(function(d){ return (d.data()||{})._arr||[]; });
+  /* O id vinha sendo jogado fora, e sem ele não dá para editar nem
+     apagar uma despesa — só listar. Guardo o array (formato do Sistema
+     NH, que continua valendo) e penduro o id nele. */
+  DESPESAS=dp.docs.map(function(d){
+    var a=(d.data()||{})._arr||[];
+    a._id=d.id;
+    return a;
+  });
   pintar();
 }
 
@@ -769,9 +821,10 @@ function pintar(){
     : '';
 
   document.getElementById('painel').innerHTML =
-    ABA==='visao'   ? painelVisao(r, pend) :
-    ABA==='receber' ? painelReceber(r) :
-    ABA==='exitos'  ? painelExitos(pend) : painelContratos();
+    ABA==='visao'    ? painelVisao(r, pend) :
+    ABA==='receber'  ? painelReceber(r) :
+    ABA==='exitos'   ? painelExitos(pend) :
+    ABA==='despesas' ? painelDespesas() : painelContratos();
 }
 
 /* ── Aging: a idade da dívida ──────────────────────────────────────
@@ -997,6 +1050,12 @@ function painelReceber(r){
   var topo='<div style="display:flex;gap:9px;margin-bottom:14px;flex-wrap:wrap">'+
     '<button class="btn btn-nh" onclick="abrirReceita()">+ Nova cobrança</button>'+
     '<button class="btn" onclick="gerarMensalidades()" title="Cria as mensalidades deste mês para os contratos ativos que ainda não têm">Gerar mensalidades do mês</button>'+
+    /* Só aparece quando há adesão pendente. Botão que na maioria dos
+       dias não faz nada vira ruído e ninguém mais lê. */
+    (adesoesFaltando().length
+      ? '<button class="btn" onclick="gerarAdesoes()" style="border-color:rgba(249,115,22,.4);color:var(--nh)" '+
+        'title="Lança a taxa de adesão dos contratos que ainda não foram cobrados">Lançar '+adesoesFaltando().length+' adesão(ões)</button>'
+      : '')+
     '</div>';
 
   if(!r.doMes.length){
@@ -1158,6 +1217,7 @@ function abrirContrato(id){
   sv('ct-tipo', tipo);
   sv('ct-base', c?(c.baseCobranca||'EMPENHO'):'EMPENHO');
   ctAoTrocarTipo();
+  sv('ct-adesao', c&&num(c.valorAdesao)>0?brl(num(c.valorAdesao)):'');
   sv('ct-valor', c&&num(c.valorMensal)>0?brl(num(c.valorMensal)):'');
   sv('ct-perc', c&&num(c.percentualExito)>0?c.percentualExito:'');
   sv('ct-servicos', c?escreverServicos(c.servicos):'');
@@ -1189,6 +1249,7 @@ async function salvarContrato(){
   var emp=EMPRESAS.filter(function(e){ return e.nome.toUpperCase()===empresa.toUpperCase(); })[0];
   var dados={
     cnpj: emp?emp.cnpj:'', empresa: empresa, tipo: tipo,
+    valorAdesao: num(gv('ct-adesao')),
     valorMensal: regra.mensal?mensal:0,
     percentualExito: regra.perc?perc:0,
     baseCobranca: regra.base?gv('ct-base'):'',
@@ -1326,6 +1387,222 @@ async function gerarMensalidades(){
         valor:num(c.valorMensal),
         dataVencimento:String(dia).padStart(2,'0')+'/'+String(MES+1).padStart(2,'0')+'/'+ANO,
         dataRecebimento:'', valorRecebido:0, status:'PREVISTA',
+        notaFiscal:'', link:'', criadoPor:quem, criadoEm:agora, atualizadoPor:quem, atualizadoEm:agora
+      });
+    });
+    await lote.commit();
+    await carregarTudo();
+  }catch(e){ alert(msgErro(e)); }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   DESPESAS — o que a NH paga
+
+   A coleção `financeiro` é a mesma que o Sistema NH usava, no mesmo
+   formato de array posicional. Não reinventei o schema: nenhuma
+   despesa lançada lá se perdeu, e um relatório antigo continua lendo.
+
+     [0] data DD/MM/AAAA   [1] categoria   [2] descrição
+     [3] fornecedor        [4] valor       [5] status
+     [6] conta             [7] observações [8] empresa
+
+   Até hoje o Financeiro só LIA daqui — dava para ver a despesa no
+   resultado do mês e não havia por onde lançar uma. Era pedir para a
+   pessoa abrir outro sistema (que eu mesmo tinha acabado de tirar do
+   ar) só para digitar uma conta de luz.
+   ════════════════════════════════════════════════════════════════ */
+var DESP_CATEGORIAS=['Aluguel','Água / Luz / Internet','Telefonia','Software e assinaturas',
+  'Salários e pró-labore','Impostos e taxas','Contabilidade','Certificado digital',
+  'Portais de licitação','Cartório e correios','Deslocamento','Marketing','Material de escritório','Outros'];
+var DESP_STATUS=['PAGA','A PAGAR'];
+var _dpEdit=null;
+
+function despesasDoMes(){
+  return DESPESAS.filter(function(a){
+    var d=dData(a[0]);
+    return !!(d && d.getMonth()===MES && d.getFullYear()===ANO);
+  }).sort(function(x,y){
+    var dx=dData(x[0]), dy=dData(y[0]);
+    return (dy?dy.getTime():0)-(dx?dx.getTime():0);
+  });
+}
+
+function painelDespesas(){
+  var lista=despesasDoMes();
+  var total=lista.reduce(function(s,a){ return s+num(a[4]); },0);
+  var aPagar=lista.filter(function(a){ return String(a[5]||'').toUpperCase()!=='PAGA'; })
+                  .reduce(function(s,a){ return s+num(a[4]); },0);
+
+  /* Por categoria, da maior para a menor: é o corte que responde
+     "para onde está indo o dinheiro" sem precisar ler linha a linha. */
+  var porCat={};
+  lista.forEach(function(a){
+    var k=String(a[1]||'Sem categoria').trim()||'Sem categoria';
+    porCat[k]=(porCat[k]||0)+num(a[4]);
+  });
+  var cats=Object.keys(porCat).map(function(k){ return {cat:k, v:porCat[k]}; })
+    .sort(function(a,b){ return b.v-a.v; });
+
+  var topo='<div style="display:flex;gap:9px;margin-bottom:14px;flex-wrap:wrap;align-items:center">'+
+    '<button class="btn btn-nh" onclick="abrirDespesa()">+ Nova despesa</button>'+
+    '<div style="margin-left:auto;font-size:12px;color:var(--t2)">'+
+      lista.length+' lançamento'+(1===lista.length?'':'s')+' em '+MESES[MES]+' · '+
+      '<b style="color:var(--y1)">'+brl(total)+'</b>'+
+      (aPagar>0?' · <b style="color:var(--r1)">'+brl(aPagar)+'</b> ainda a pagar':'')+
+    '</div></div>';
+
+  if(!lista.length)
+    return topo+'<div class="kpi" style="padding:26px;text-align:center">'+
+      '<div style="font-size:13px;color:var(--t2)">Nenhuma despesa lançada em '+MESES[MES]+' de '+ANO+'.</div>'+
+      '<div style="font-size:11.5px;color:var(--t3);margin-top:6px">Use <b>+ Nova despesa</b> para as contas do dia a dia — aluguel, luz, software, impostos.</div>'+
+      '</div>';
+
+  var barras=cats.map(function(c){
+    var pct=total>0?(c.v/total)*100:0;
+    return '<div style="margin-bottom:9px">'+
+      '<div style="display:flex;justify-content:space-between;gap:10px;font-size:12px;margin-bottom:3px">'+
+        '<span style="color:var(--t2)">'+esc(c.cat)+'</span>'+
+        '<span style="font-weight:800;font-variant-numeric:tabular-nums">'+brl(c.v)+
+          ' <span style="color:var(--t3);font-weight:600">'+pct.toFixed(0)+'%</span></span>'+
+      '</div>'+
+      '<div style="height:6px;border-radius:4px;background:var(--s3);overflow:hidden">'+
+        '<div style="height:100%;width:'+pct.toFixed(1)+'%;background:var(--y1);border-radius:4px;transition:width .5s ease"></div>'+
+      '</div></div>';
+  }).join('');
+
+  var linhas=lista.map(function(a){
+    var paga=String(a[5]||'').toUpperCase()==='PAGA';
+    return '<tr>'+
+      '<td style="white-space:nowrap">'+esc(a[0]||'—')+'</td>'+
+      '<td><b>'+esc(a[2]||'(sem descrição)')+'</b>'+
+        '<div class="sub">'+esc(a[1]||'sem categoria')+(a[3]?' · '+esc(a[3]):'')+(a[8]?' · '+esc(a[8]):'')+'</div></td>'+
+      '<td class="num" style="white-space:nowrap"><b>'+brl(num(a[4]))+'</b></td>'+
+      '<td style="white-space:nowrap"><span style="font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:9px;'+
+        (paga?'background:rgba(34,197,94,.15);color:var(--g1)':'background:rgba(239,68,68,.15);color:var(--r1)')+'">'+
+        (paga?'PAGA':'A PAGAR')+'</span></td>'+
+      '<td style="white-space:nowrap">'+
+        '<button class="btn" style="padding:3px 9px;font-size:11px" onclick="abrirDespesa(\''+a._id+'\')">editar</button> '+
+        '<button class="btn" style="padding:3px 9px;font-size:11px" onclick="excluirDespesa(\''+a._id+'\')">excluir</button>'+
+      '</td></tr>';
+  }).join('');
+
+  return topo+
+    '<div class="fin-duplo" style="align-items:start">'+
+      '<div class="kpi" style="padding:18px">'+
+        '<div class="kpi-l" style="margin-top:0">Para onde foi o dinheiro</div>'+barras+
+      '</div>'+
+      '<div class="kpi" style="padding:0;overflow:hidden">'+
+        '<div class="kpi-l" style="padding:16px 16px 10px;margin:0">Lançamentos de '+MESES[MES]+'</div>'+
+        '<div style="overflow-x:auto"><table style="min-width:0">'+
+          '<thead><tr><th>Data</th><th>Descrição</th><th class="num">Valor</th><th>Situação</th><th></th></tr></thead>'+
+          '<tbody>'+linhas+'</tbody></table></div>'+
+      '</div>'+
+    '</div>';
+}
+
+function abrirDespesa(id){
+  _dpEdit=id||null;
+  var a=id?DESPESAS.filter(function(x){ return x._id===id; })[0]:null;
+  document.getElementById('dp-titulo').textContent=id?'Editar despesa':'Nova despesa';
+  /* Data padrão: hoje, mas dentro do mês que está aberto na tela — se
+     a pessoa navegou até maio, lançar com data de hoje seria lançar num
+     mês que ela não está vendo, e a despesa "sumiria" ao salvar. */
+  var hj=new Date();
+  var padrao=(hj.getMonth()===MES&&hj.getFullYear()===ANO)?hj:new Date(ANO,MES,1);
+  sv('dp-data', a?dISO(a[0]):padrao.toISOString().slice(0,10));
+  sv('dp-desc', a?(a[2]||''):'');
+  sv('dp-valor', a&&num(a[4])>0?brl(num(a[4])):'');
+  sv('dp-forn', a?(a[3]||''):'');
+  sv('dp-conta', a?(a[6]||''):'');
+  sv('dp-obs', a?(a[7]||''):'');
+  var sc=document.getElementById('dp-cat');
+  sc.innerHTML=DESP_CATEGORIAS.map(function(c){ return '<option value="'+esc(c)+'">'+esc(c)+'</option>'; }).join('');
+  sc.value=(a&&a[1])||'Outros';
+  var ss=document.getElementById('dp-status');
+  ss.innerHTML=DESP_STATUS.map(function(s){ return '<option value="'+s+'">'+(s==='PAGA'?'Paga':'A pagar')+'</option>'; }).join('');
+  ss.value=(a&&String(a[5]||'').toUpperCase()==='PAGA')?'PAGA':(a?'A PAGAR':'PAGA');
+  var se=document.getElementById('dp-empresa');
+  se.innerHTML='<option value="">— despesa da NH —</option>'+
+    EMPRESAS.map(function(e){ return '<option value="'+esc(e.nome)+'">'+esc(e.nome)+'</option>'; }).join('');
+  se.value=(a&&a[8])||'';
+  erro('dp-erro','');
+  document.getElementById('ov-despesa').classList.add('on');
+}
+
+async function salvarDespesa(){
+  var data=gv('dp-data'), desc=gv('dp-desc').trim(), valor=num(gv('dp-valor'));
+  if(!data)  return erro('dp-erro','Informe a data da despesa.');
+  if(!desc)  return erro('dp-erro','Descreva a despesa — é por ela que você reconhece o lançamento depois.');
+  if(!(valor>0)) return erro('dp-erro','Informe um valor maior que zero.');
+  erro('dp-erro','');
+
+  /* Mesma ordem de sempre. Escrever fora dela quebraria o relatório e
+     a soma do resultado do mês, que leem por posição. */
+  var arr=[];
+  arr[0]=dBR(data);          arr[1]=gv('dp-cat');
+  arr[2]=desc;               arr[3]=gv('dp-forn').trim();
+  arr[4]=valor;              arr[5]=gv('dp-status');
+  arr[6]=gv('dp-conta').trim(); arr[7]=gv('dp-obs').trim();
+  arr[8]=gv('dp-empresa');
+
+  var btn=document.getElementById('dp-salvar');
+  btn.disabled=true; btn.textContent='Salvando…';
+  try{
+    var quem=(auth.currentUser&&auth.currentUser.email)||'';
+    var agora=new Date().toLocaleString('pt-BR');
+    if(_dpEdit) await db.collection('financeiro').doc(_dpEdit).update({_arr:arr, atualizadoPor:quem, atualizadoEm:agora});
+    else await db.collection('financeiro').add({_arr:arr, _createdAt:Date.now(), criadoPor:quem, criadoEm:agora, atualizadoPor:quem, atualizadoEm:agora});
+    fecharModal('ov-despesa');
+    await carregarTudo();
+  }catch(e){ erro('dp-erro', msgErro(e)); }
+  finally{ btn.disabled=false; btn.textContent='Salvar'; }
+}
+
+async function excluirDespesa(id){
+  var a=DESPESAS.filter(function(x){ return x._id===id; })[0];
+  if(!a) return;
+  if(!confirm('Excluir a despesa "'+(a[2]||'sem descrição')+'" de '+brl(num(a[4]))+'?\n\nIsso não volta.')) return;
+  try{ await db.collection('financeiro').doc(id).delete(); await carregarTudo(); }
+  catch(e){ alert(msgErro(e)); }
+}
+
+/* Adesão pendente: contrato ativo, com adesão contratada, cuja
+   cobrança de adesão ainda não foi lançada. É uma só na vida do
+   contrato — a checagem não olha competência, olha se já existe. */
+function adesoesFaltando(){
+  return CONTRATOS.filter(function(c){
+    if(String(c.status||'').toUpperCase()!=='ATIVO') return false;
+    if(!(num(c.valorAdesao)>0)) return false;
+    return !RECEITAS.some(function(r){
+      return r.contratoId===c.id && String(r.tipo||'').toUpperCase()==='ADESAO';
+    });
+  });
+}
+
+async function gerarAdesoes(){
+  var faltam=adesoesFaltando();
+  if(!faltam.length){ alert('Nenhuma adesão pendente — todos os contratos com adesão já foram cobrados.'); return; }
+  var soma=faltam.reduce(function(a,c){ return a+num(c.valorAdesao); },0);
+  if(!confirm('Lançar '+faltam.length+' adesão(ões), somando '+brl(soma)+'?\n\n'+
+              faltam.map(function(c){ return '• '+c.empresa+' — '+brl(num(c.valorAdesao)); }).join('\n'))) return;
+  var quem=(auth.currentUser&&auth.currentUser.email)||'';
+  var agora=new Date().toLocaleString('pt-BR');
+  try{
+    var lote=db.batch();
+    faltam.forEach(function(c){
+      /* Vence na data de início do contrato. Se o contrato começou no
+         mês passado, a adesão nasce vencida — e tem de nascer assim,
+         senão some do "em atraso" e ninguém cobra. */
+      var ini=dData(c.inicio)||new Date();
+      var ref=db.collection('nh_receitas').doc();
+      lote.set(ref, {
+        cnpj:c.cnpj||'', empresa:c.empresa, contratoId:c.id,
+        competencia:ini.getFullYear()+'-'+String(ini.getMonth()+1).padStart(2,'0'),
+        tipo:'ADESAO', descricao:'Taxa de adesão — início do contrato',
+        valor:num(c.valorAdesao),
+        dataVencimento:String(ini.getDate()).padStart(2,'0')+'/'+String(ini.getMonth()+1).padStart(2,'0')+'/'+ini.getFullYear(),
+        dataRecebimento:'', valorRecebido:0, status:'PREVISTA',
+        origemTipo:'ADESAO', origemId:c.id,
         notaFiscal:'', link:'', criadoPor:quem, criadoEm:agora, atualizadoPor:quem, atualizadoEm:agora
       });
     });
