@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0e1a">
+<title>NH — CRM de Vendas</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--nh-logo:url("data:image/jpeg;base64,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")}
+/* ── Marca NH ──────────────────────────────────────────────────────
+   A mesma logo dos outros três sistemas, entrando como fundo dos
+   elementos que já existiam. Faltava só aqui: por isso o Financeiro
+   mostrava a palavra "NH" onde os outros mostram a marca, e o topo
+   apontava para um logo-nh.jpg que não existe na pasta. */
+.nh-marca,.sb-logomark,.logo-mark,.ac-marca,.loading-logo{
+  background:var(--nh-logo) center/cover no-repeat!important;
+  font-size:0!important;color:transparent!important;
+}
+:root{
+  /* Mesma paleta dos outros sistemas — os quatro usam a mesma. */
+  --bg:#0a0e1a; --s1:#111725; --s2:#161d2e; --s3:#1c2438;
+  --b1:#252d40; --b2:#303a52;
+  --nh:#f97316; --g1:#22c55e; --r1:#ef4444; --y1:#eab308; --b_:#3b82f6; --p1:#a855f7;
+  --t1:#f5f5f5; --t2:#a3a3a3; --t3:#8b95a1;
+}
+body{background:var(--bg);color:var(--t1);font-family:Outfit,sans-serif;min-height:100vh}
+body.light{--bg:#f2f5fc;--s1:#ffffff;--s2:#eef2fb;--s3:#e2e9f8;--b1:#d9e1f2;--b2:#b6c4e6;
+  --t1:#0b1220;--t2:#475569;--t3:#64748b}
+
+.topo{position:sticky;top:0;z-index:50;background:rgba(10,14,26,.9);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--b1);padding:12px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+body.light .topo{background:rgba(242,245,252,.9)}
+.marca{display:flex;align-items:center;gap:10px;font-weight:800;font-size:15px}
+.marca img{width:30px;height:30px;border-radius:9px;object-fit:cover}
+.grad{background:linear-gradient(90deg,#f97316,#a855f7);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.wrap{max-width:1240px;margin:0 auto;padding:20px}
+
+.btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--b1);background:var(--s2);
+  color:var(--t2);padding:8px 14px;border-radius:9px;font-family:inherit;font-size:13px;
+  font-weight:700;cursor:pointer;transition:all .16s;white-space:nowrap}
+.btn:hover{border-color:var(--b2);color:var(--t1)}
+.btn-nh{background:var(--nh);border-color:var(--nh);color:#0a0e1a}
+.btn-nh:hover{background:#fb923c;color:#0a0e1a}
+
+.mes{display:flex;align-items:center;gap:8px}
+.mes-lbl{font-size:15px;font-weight:800;min-width:150px;text-align:center}
+
+/* ── Faixa de abertura ────────────────────────────────────────────
+   O mesmo desenho do topo do Buscador e do início do Portal: brilho
+   laranja no canto, fio de luz na borda de cima, número grande em
+   mono. Serve para o mês ter uma resposta única e imediata — antes a
+   tela abria em seis quadradinhos de igual peso e não dizia o que
+   olhar primeiro. */
+.fin-hero{
+  position:relative;overflow:hidden;
+  background:
+    radial-gradient(900px 300px at 12% -40%,rgba(249,115,22,.16),transparent 70%),
+    linear-gradient(180deg,var(--s2),var(--s1));
+  border:1px solid var(--b1);border-radius:18px;
+  padding:22px 26px;margin-bottom:16px;
+  box-shadow:0 1px 2px rgba(0,0,0,.4),0 20px 44px -22px rgba(0,0,0,.7);
+  display:flex;align-items:flex-end;gap:26px;flex-wrap:wrap;
+}
+body.light .fin-hero{box-shadow:0 1px 2px rgba(15,23,42,.06),0 18px 40px -24px rgba(15,23,42,.28)}
+.fin-hero::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--nh),rgba(249,115,22,.25) 35%,transparent 70%);
+}
+.fin-hero-olho{font-size:10.5px;font-weight:800;color:var(--nh);text-transform:uppercase;letter-spacing:.11em;margin-bottom:7px}
+.fin-hero-num{font-size:clamp(27px,7vw,40px);font-weight:800;line-height:1;letter-spacing:-1.4px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.fin-hero-sub{font-size:12.5px;color:var(--t2);margin-top:8px;line-height:1.5;max-width:440px}
+.fin-hero-lado{display:flex;gap:22px;margin-left:auto;flex-wrap:wrap}
+.fin-mini-l{font-size:9.5px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.09em}
+.fin-mini-v{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:3px}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:13px;margin-bottom:20px}
+.kpi{
+  background:var(--s2);border:1px solid var(--b1);
+  border-left:4px solid var(--b2);
+  border-radius:12px;padding:17px 18px;position:relative;overflow:hidden;
+  transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease;
+}
+.kpi:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.35)}
+body.light .kpi:hover{box-shadow:0 8px 24px rgba(15,23,42,.12)}
+/* Clicável leva para a aba que detalha aquele número. Sem isso o KPI
+   é um beco: mostra "R$ 32 mil a receber" e não leva a lugar nenhum. */
+.kpi.vai{cursor:pointer}
+.kpi.vai:hover{border-color:var(--nh)}
+.kpi.vai::after{
+  content:'›';position:absolute;right:14px;top:13px;
+  font-size:19px;line-height:1;color:var(--t3);opacity:0;transform:translateX(-4px);
+  transition:opacity .15s,transform .15s;
+}
+.kpi.vai:hover::after{opacity:1;transform:translateX(0)}
+.kpi-fio{position:absolute;top:0;left:0;right:0;height:2px;opacity:.55}
+.kpi-l{font-size:10px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin:5px 0 8px}
+/* `clamp` porque "R$ 148.320,00" e "R$ 0,00" moram na mesma caixa: com
+   tamanho fixo o valor grande quebrava o "R$" para uma linha e os
+   centavos para outra em tela estreita. Aqui ele encolhe até caber. */
+.kpi-v{font-size:clamp(19px,4.4vw,27px);font-weight:800;font-variant-numeric:tabular-nums;
+  line-height:1;letter-spacing:-.8px;white-space:nowrap}
+.kpi-s{font-size:11px;color:var(--t3);margin-top:5px}
+
+/* ── Ano em barras ────────────────────────────────────────────────
+   Doze meses lado a lado: barra cheia é o recebido, o contorno é o
+   que estava previsto. Dá para ver o ano inteiro sem trocar de mês,
+   e clicar numa barra leva até ela. */
+.fin-graf{display:flex;align-items:flex-end;gap:5px;height:132px;padding:6px 2px 0}
+.fin-col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px;cursor:pointer;min-width:0}
+.fin-col .haste{
+  width:100%;max-width:34px;border-radius:5px 5px 0 0;position:relative;
+  background:var(--s3);border:1px dashed var(--b2);border-bottom:none;
+  transition:filter .15s;
+}
+.fin-col .cheio{
+  position:absolute;left:-1px;right:-1px;bottom:0;border-radius:4px 4px 0 0;
+  background:linear-gradient(180deg,var(--g1),rgba(34,197,94,.55));
+  transition:height .5s ease;
+}
+.fin-col .rot{font-size:9.5px;font-weight:700;color:var(--t3);white-space:nowrap}
+.fin-col.atual .rot{color:var(--nh)}
+.fin-col.atual .haste{border-color:var(--nh)}
+.fin-col:hover .haste{filter:brightness(1.25)}
+.fin-col:hover .rot{color:var(--t1)}
+.fin-legenda{display:flex;gap:16px;font-size:10.5px;color:var(--t3);margin-top:10px;flex-wrap:wrap}
+.fin-legenda i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+/* Duas colunas nas telas largas, empilhado no celular. */
+.fin-duplo{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+@media(max-width:900px){.fin-duplo{grid-template-columns:1fr}.fin-hero-lado{margin-left:0}}
+
+.abas{display:flex;gap:4px;border-bottom:1px solid var(--b1);margin-bottom:18px;flex-wrap:wrap}
+.aba{background:none;border:none;border-bottom:2px solid transparent;color:var(--t3);
+  font-family:inherit;font-size:13.5px;font-weight:700;padding:9px 14px;cursor:pointer}
+.aba:hover{color:var(--t1)}
+.aba.on{color:var(--nh);border-bottom-color:var(--nh)}
+
+.tabela-wrap{border:1px solid var(--b1);border-radius:13px;overflow-x:auto;background:var(--s1)}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:760px}
+th{text-align:left;padding:11px 13px;font-size:10px;font-weight:800;color:var(--t3);
+  text-transform:uppercase;letter-spacing:.06em;background:var(--s2);border-bottom:1px solid var(--b1);white-space:nowrap}
+td{padding:11px 13px;border-bottom:1px solid var(--b1);color:var(--t2);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(255,255,255,.02)}
+body.light tbody tr:hover{background:rgba(0,0,0,.02)}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td b{color:var(--t1)}
+.sub{font-size:10.5px;color:var(--t3);margin-top:2px}
+.cancelada td{opacity:.45;text-decoration:line-through}
+.cancelada td:last-child{text-decoration:none}
+.atrasada{background:rgba(239,68,68,.05)}
+.badge{display:inline-block;font-size:10px;font-weight:800;padding:2px 9px;border-radius:20px;white-space:nowrap}
+.acoes{white-space:nowrap;text-align:right}
+.acoes button{background:none;border:none;cursor:pointer;font-size:13px;padding:2px 4px;opacity:.6}
+.acoes button:hover{opacity:1}
+.vazio{padding:30px 18px;text-align:center;color:var(--t2);font-size:13.5px;line-height:1.7;
+  border:1px dashed var(--b2);border-radius:13px}
+
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:600;
+  align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.ov.on{display:flex}
+.modal{background:var(--s1);border:1px solid var(--b2);border-radius:16px;width:100%;
+  max-width:620px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.85)}
+.mh{position:sticky;top:0;background:var(--s1);padding:18px 22px 14px;border-bottom:1px solid var(--b1);
+  display:flex;align-items:flex-start;justify-content:space-between;gap:12px;z-index:2}
+.mh h3{font-size:17px;font-weight:800}
+.mh p{font-size:11.5px;color:var(--t3);margin-top:2px}
+.mb{padding:18px 22px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mf{position:sticky;bottom:0;background:var(--s1);padding:14px 22px;border-top:1px solid var(--b1);
+  display:flex;gap:10px;justify-content:flex-end}
+.campo{display:flex;flex-direction:column;gap:5px}
+.campo.full{grid-column:1/-1}
+label{font-size:10px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.07em}
+input,select,textarea{background:var(--s2);border:1px solid var(--b1);color:var(--t1);
+  padding:9px 11px;border-radius:9px;font-family:inherit;font-size:13px;outline:none;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--nh)}
+textarea{resize:vertical;min-height:60px}
+.erro{grid-column:1/-1;display:none;font-size:12.5px;color:#f87171;background:rgba(239,68,68,.1);
+  border:1px solid rgba(239,68,68,.3);border-radius:9px;padding:10px 13px}
+
+/* ── Tela de acesso — a mesma dos outros sistemas ──────────────────
+   A primeira versão era uma caixinha de 380px com <img src="logo-nh.jpg">.
+   Dois erros: o arquivo não existe em nenhum sistema (a marca é o
+   texto "NH" desenhado em CSS, por isso a imagem quebrou), e a tela
+   ficava miúda perto das outras. Aqui está o padrão de verdade —
+   esferas de luz à deriva, anéis girando em volta da marca. */
+.acesso{position:fixed;inset:0;z-index:900;display:flex;
+  align-items:center;justify-content:center;padding:24px;
+  background:var(--bg);overflow:hidden}
+.ac-bg{position:absolute;inset:0;pointer-events:none}
+.ac-orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.34}
+body.light .ac-orb{opacity:.16}
+.ac-o1{width:500px;height:500px;background:radial-gradient(circle,#7c3aed,transparent);
+  top:-150px;left:-150px;animation:acF1 10s ease-in-out infinite}
+.ac-o2{width:400px;height:400px;background:radial-gradient(circle,var(--nh),transparent);
+  bottom:-100px;right:-100px;animation:acF2 12s ease-in-out infinite}
+.ac-o3{width:300px;height:300px;background:radial-gradient(circle,#3b82f6,transparent);
+  top:50%;left:50%;animation:acF3 8s ease-in-out infinite}
+@keyframes acF1{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,30px)}}
+@keyframes acF2{0%,100%{transform:translate(0,0)}50%{transform:translate(-30px,-40px)}}
+@keyframes acF3{0%,100%{transform:translate(-50%,-50%)}50%{transform:translate(-45%,-55%)}}
+
+.cx-acesso{position:relative;z-index:1;width:100%;max-width:430px;
+  display:flex;flex-direction:column;align-items:center;animation:acSobe .5s ease}
+@keyframes acSobe{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+.ac-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.04);
+  border:1px solid var(--b1);backdrop-filter:blur(12px);padding:6px 14px;border-radius:20px;
+  font-size:11px;font-weight:600;color:var(--t3);letter-spacing:.08em;margin-bottom:28px}
+.ac-dot{width:7px;height:7px;border-radius:50%;background:var(--g1);
+  box-shadow:0 0 8px var(--g1);animation:acPulso 2s infinite}
+@keyframes acPulso{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.7;transform:scale(1.3)}}
+
+.ac-logo{position:relative;width:100px;height:100px;display:flex;
+  align-items:center;justify-content:center;margin-bottom:24px}
+.ac-anel{position:absolute;border-radius:50%;border:2px solid transparent;animation:acGira 6s linear infinite}
+.ac-a1{width:100%;height:100%;border-top-color:rgba(249,115,22,.6);border-right-color:rgba(249,115,22,.2);animation-duration:4s}
+.ac-a2{width:80%;height:80%;border-top-color:rgba(124,58,237,.6);border-left-color:rgba(124,58,237,.2);animation-direction:reverse;animation-duration:6s}
+.ac-a3{width:60%;height:60%;border-bottom-color:rgba(59,130,246,.6);border-right-color:rgba(59,130,246,.2);animation-duration:8s}
+@keyframes acGira{to{transform:rotate(360deg)}}
+/* ── Selo NH ───────────────────────────────────────────────────────
+   A marca do cabeçalho, igual nos quatro sistemas: mesma logo, mesmos
+   42px, mesmo canto, e os três anéis girando em volta — os mesmos da
+   tela de acesso, em escala menor.
+
+   Antes cada sistema tinha o seu: 46px redondo no Sistema NH, 40px no
+   Viabilidade, 38px no Portal e uma <img> de 30px apontando para um
+   arquivo inexistente no Financeiro. Quatro tamanhos, quatro formatos
+   e um quebrado. Agora é um só, e mexer aqui muda em todos. */
+.nh-selo{position:relative;width:54px;height:54px;display:inline-flex;
+  align-items:center;justify-content:center;flex-shrink:0}
+.nh-selo-anel{position:absolute;border-radius:50%;border:2px solid transparent;
+  animation:acGira 6s linear infinite}
+.nh-selo-anel.a1{width:100%;height:100%;border-top-color:rgba(249,115,22,.6);
+  border-right-color:rgba(249,115,22,.2);animation-duration:4s}
+.nh-selo-anel.a2{width:82%;height:82%;border-top-color:rgba(124,58,237,.6);
+  border-left-color:rgba(124,58,237,.2);animation-direction:reverse;animation-duration:6s}
+.nh-selo-anel.a3{width:64%;height:64%;border-bottom-color:rgba(59,130,246,.6);
+  border-right-color:rgba(59,130,246,.2);animation-duration:8s}
+/* O !important vence os tamanhos antigos que cada sistema declarava
+   para a sua própria marca — assim não preciso caçar cada um deles. */
+.nh-selo .logo-mark,.nh-selo .sb-logomark,.nh-selo .nh-marca,.nh-selo .marca-img{
+  position:relative;z-index:2;
+  width:38px!important;height:38px!important;border-radius:12px!important;
+  margin:0!important;overflow:hidden;flex-shrink:0;
+  box-shadow:0 4px 14px rgba(249,115,22,.35);
+}
+/* Os anéis do selo giram sempre, como os da tela de acesso. */
+@media (prefers-reduced-motion:reduce){
+  .nh-selo-anel{animation:acGira 6s linear infinite!important}
+  .nh-selo-anel.a1{animation-duration:4s!important}
+  .nh-selo-anel.a2{animation-duration:6s!important;animation-direction:reverse!important}
+  .nh-selo-anel.a3{animation-duration:8s!important}
+}
+.ac-marca{position:relative;z-index:2;width:52px;height:52px;border-radius:16px;
+  display:flex;align-items:center;justify-content:center;background:var(--s2);
+  font-size:17px;font-weight:800;letter-spacing:-.02em;color:var(--nh);
+  animation:acBrilho 3s ease-in-out infinite}
+@keyframes acBrilho{0%,100%{box-shadow:0 0 20px rgba(249,115,22,.4)}50%{box-shadow:0 0 40px rgba(249,115,22,.7)}}
+
+.ac-tit{font-size:40px;font-weight:800;text-align:center;line-height:1.1;
+  margin-bottom:9px;letter-spacing:-.03em;color:var(--t1)}
+.ac-sub{font-size:13.5px;color:var(--t3);margin-bottom:30px;text-align:center;line-height:1.6}
+.ac-form{width:100%;background:rgba(255,255,255,.035);border:1px solid var(--b1);
+  backdrop-filter:blur(20px);border-radius:20px;padding:30px;
+  box-shadow:0 24px 70px rgba(0,0,0,.5)}
+body.light .ac-form{background:rgba(255,255,255,.75)}
+.ac-form .campo{margin-bottom:15px;text-align:left}
+.ac-form input{padding:12px 14px;font-size:14px}
+.msg-erro{font-size:12.5px;color:#f87171;margin-top:12px;display:none;
+  background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);
+  border-radius:9px;padding:10px 13px;line-height:1.55}
+@media(max-width:480px){.ac-tit{font-size:31px}.ac-form{padding:22px}}
+@media(prefers-reduced-motion:reduce){.ac-orb{animation-duration:34s}}
+@media(max-width:640px){.mb{grid-template-columns:1fr}.wrap{padding:14px}}
+</style>
+</head>
+<body>
+
+<!-- ── ACESSO ──────────────────────────────────────────────────────
+     Só a equipe NH entra aqui. Este sistema mostra quanto a NH cobra
+     de cada cliente — uma empresa cliente logada não pode ver isso, e
+     a regra do Firestore garante o mesmo do lado do banco. -->
+<div class="acesso" id="tela-acesso">
+  <div class="ac-bg" aria-hidden="true">
+    <div class="ac-orb ac-o1"></div><div class="ac-orb ac-o2"></div><div class="ac-orb ac-o3"></div>
+  </div>
+  <div class="cx-acesso">
+    <div class="ac-badge"><span class="ac-dot"></span>SISTEMA ONLINE</div>
+    <div class="ac-logo">
+      <div class="ac-anel ac-a1"></div><div class="ac-anel ac-a2"></div><div class="ac-anel ac-a3"></div>
+      <div class="ac-marca">NH</div>
+    </div>
+    <div class="ac-tit">NH <span class="grad">Financeiro</span></div>
+    <div class="ac-sub">Captação de clientes e funil de vendas</div>
+    <div class="ac-form">
+      <div class="campo"><label>E-mail</label>
+        <input type="email" id="ac-email" placeholder="seu@email.com" autocomplete="username"></div>
+      <div class="campo"><label>Senha</label>
+        <input type="password" id="ac-senha" placeholder="••••••••" autocomplete="current-password"></div>
+      <button class="btn btn-nh" id="ac-btn" style="width:100%;justify-content:center;padding:12px;font-size:14px" onclick="entrar()">Entrar</button>
+      <div class="msg-erro" id="ac-msg"></div>
+      <!-- O texto antigo dizia "acesso da equipe NH, pelo e-mail
+           cadastrado no Sistema NH". Estava errado e convidava ao erro:
+           o sistema é restrito aos SÓCIOS, e qualquer colaborador da
+           equipe que tentasse levaria uma recusa depois de digitar a
+           senha, sem entender por quê. Agora a porta diz de quem é. -->
+      <div style="font-size:11.5px;color:var(--t3);text-align:center;margin-top:16px;line-height:1.6">
+        Acesso da <b style="color:var(--t2)">equipe NH</b>, com o e-mail cadastrado em Configura&ccedil;&otilde;es &rsaquo; Usu&aacute;rios.
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   CRM — funil, ficha do lead, atividades e a camada de licitação
+
+   O lead é a EMPRESA que pode virar cliente da NH. O que diferencia
+   este CRM de um genérico são duas coisas que Pipedrive e PipeRun não
+   têm: o diagnóstico de aptidão (o que falta para a empresa conseguir
+   licitar — que é justamente o que a NH vende) e o edital-gancho, o
+   pregão concreto que dá urgência à conversa. É por eles que a venda
+   de assessoria fecha, e o vendedor precisa ver sem sair da tela.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Funil ────────────────────────────────────────────────────────
+   Rolagem horizontal com colunas de largura fixa. Kanban que encolhe
+   coluna conforme o número de etapas vira ilegível com seis. */
+.funil{display:flex;gap:12px;overflow-x:auto;padding:2px 2px 14px;align-items:flex-start}
+.col{flex:0 0 272px;background:var(--s1);border:1px solid var(--b1);border-radius:14px;
+  display:flex;flex-direction:column;max-height:calc(100vh - 260px)}
+.col-tp{padding:12px 14px;border-bottom:1px solid var(--b1);position:sticky;top:0;
+  background:var(--s1);border-radius:14px 14px 0 0;z-index:2}
+.col-nome{font-size:12px;font-weight:800;display:flex;align-items:center;gap:7px}
+.col-pt{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.col-num{margin-left:auto;font-size:11px;color:var(--t3);font-variant-numeric:tabular-nums}
+.col-val{font-size:11px;color:var(--t3);margin-top:3px;font-variant-numeric:tabular-nums}
+.col-cx{padding:10px;display:flex;flex-direction:column;gap:9px;overflow-y:auto;flex:1;min-height:70px}
+/* Alvo de solta: só aparece quando há um cartão sendo arrastado. */
+.col.alvo{border-color:var(--nh);box-shadow:0 0 0 2px rgba(249,115,22,.18)}
+.col.alvo .col-cx{background:rgba(249,115,22,.05)}
+
+/* ── Cartão do lead ─────────────────────────────────────────────── */
+.lc{background:var(--s2);border:1px solid var(--b1);border-left:3px solid var(--cc,var(--b2));
+  border-radius:10px;padding:11px 12px;cursor:grab;position:relative;
+  transition:transform .14s ease,box-shadow .14s ease,border-color .14s ease}
+.lc:hover{transform:translateY(-2px);box-shadow:0 8px 20px -10px rgba(0,0,0,.6);border-color:var(--b2)}
+.lc:active{cursor:grabbing}
+.lc.arrastando{opacity:.45}
+.lc-emp{font-size:12.5px;font-weight:800;line-height:1.3;margin-bottom:3px}
+.lc-sub{font-size:11px;color:var(--t3);line-height:1.45}
+.lc-val{font-size:12.5px;font-weight:800;color:var(--g1);margin-top:6px;font-variant-numeric:tabular-nums}
+.lc-pe{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.tag{font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:9px;letter-spacing:.03em}
+/* Prazo: a cor é o aviso. Vermelho é hoje ou passou. */
+.tag-prz{background:rgba(59,130,246,.15);color:var(--b_)}
+.tag-prz.perto{background:rgba(234,179,8,.16);color:var(--y1)}
+.tag-prz.hoje{background:rgba(239,68,68,.16);color:var(--r1)}
+.tag-org{background:var(--s3);color:var(--t2)}
+.tag-ori{background:rgba(168,85,247,.14);color:var(--p1)}
+
+/* ── Ficha ────────────────────────────────────────────────────────
+   Duas colunas no desktop: dados à esquerda, linha do tempo à direita.
+   Registrar atividade sem perder o contexto do lead é o movimento mais
+   repetido do dia. */
+.ficha{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}
+@media(max-width:860px){.ficha{grid-template-columns:1fr}.funil{padding-bottom:8px}}
+.bloco{background:var(--s2);border:1px solid var(--b1);border-radius:12px;padding:15px 16px;margin-bottom:12px}
+.bloco-t{font-size:10px;font-weight:800;color:var(--t3);text-transform:uppercase;
+  letter-spacing:.09em;margin-bottom:11px;display:flex;align-items:center;gap:8px}
+.bloco-t .btn{margin-left:auto;padding:3px 9px;font-size:11px}
+
+/* Linha do tempo das atividades */
+.tl{position:relative;padding-left:20px}
+.tl::before{content:'';position:absolute;left:5px;top:4px;bottom:4px;width:1px;background:var(--b1)}
+.tl-i{position:relative;padding-bottom:14px}
+.tl-i:last-child{padding-bottom:0}
+.tl-i::before{content:'';position:absolute;left:-19px;top:3px;width:11px;height:11px;
+  border-radius:50%;background:var(--s2);border:2px solid var(--tc,var(--b2))}
+.tl-tp{font-size:11px;font-weight:800;color:var(--tc,var(--t2))}
+.tl-tx{font-size:12.5px;color:var(--t1);line-height:1.55;margin:2px 0 3px;white-space:pre-wrap}
+.tl-me{font-size:10.5px;color:var(--t3)}
+
+/* Diagnóstico de aptidão */
+.ck{display:flex;align-items:flex-start;gap:9px;padding:7px 0;border-bottom:1px solid var(--b1);cursor:pointer}
+.ck:last-child{border-bottom:none}
+.ck input{width:15px;height:15px;accent-color:var(--g1);cursor:pointer;margin-top:1px;flex-shrink:0}
+.ck-tx{font-size:12.5px;line-height:1.45}
+.ck.ok .ck-tx{color:var(--t3);text-decoration:line-through}
+.ck-barra{height:6px;border-radius:4px;background:var(--s3);overflow:hidden;margin:9px 0 4px}
+.ck-barra i{display:block;height:100%;background:var(--g1);border-radius:4px;transition:width .45s ease}
+
+/* Painel de prazos */
+.przs{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:11px;margin-bottom:16px}
+.prz{background:var(--s2);border:1px solid var(--b1);border-left:3px solid var(--pc);
+  border-radius:11px;padding:12px 14px;cursor:pointer;transition:transform .14s ease}
+.prz:hover{transform:translateY(-2px)}
+.prz-q{font-size:10px;font-weight:800;color:var(--pc);text-transform:uppercase;letter-spacing:.07em}
+.prz-e{font-size:13px;font-weight:800;margin:3px 0 2px;line-height:1.3}
+.prz-d{font-size:11.5px;color:var(--t3)}
+
+.vazio-col{font-size:11px;color:var(--t3);text-align:center;padding:14px 6px;line-height:1.5}
+</style>
+
+<div class="topo" id="topo" style="display:none">
+  <div class="marca">
+    <span class="nh-selo">
+      <span class="nh-selo-anel a1"></span><span class="nh-selo-anel a2"></span><span class="nh-selo-anel a3"></span>
+      <span class="logo-mark"></span>
+    </span>
+    <span>NH <span class="grad">CRM</span></span>
+  </div>
+  <div style="flex:1"></div>
+  <button class="btn btn-nh" onclick="abrirLead()">+ Novo lead</button>
+  <button class="btn" onclick="trocarTema()" id="btn-tema">◐</button>
+  <button class="btn" onclick="sair()">Sair</button>
+</div>
+
+<div class="wrap" id="app" style="display:none">
+  <div id="prazos"></div>
+  <div class="kpis" id="kpis"></div>
+  <div class="abas">
+    <button class="aba on" data-a="funil" onclick="trocarAba('funil',this)">Funil</button>
+    <button class="aba" data-a="prazos" onclick="trocarAba('prazos',this)">Prazos <span id="selo-prazos"></span></button>
+    <button class="aba" data-a="result" onclick="trocarAba('result',this)">Resultados</button>
+  </div>
+  <div id="painel"></div>
+</div>
+
+<!-- MODAL LEAD -->
+<div class="ov" id="ov-lead">
+  <div class="modal" style="max-width:920px">
+    <div class="mh">
+      <div><h3 id="ld-titulo">Novo lead</h3><p id="ld-sub">Quem é, em que etapa está e o que vem depois.</p></div>
+      <button class="btn" onclick="fecharModal('ov-lead')" style="padding:5px 10px">×</button>
+    </div>
+    <div class="mb">
+      <div class="ficha">
+        <!-- ── Coluna 1: identificação e negócio ── -->
+        <div>
+          <div class="bloco">
+            <div class="bloco-t">Empresa</div>
+            <div class="campo full"><label>Razão social *</label>
+              <input type="text" id="ld-org" placeholder="A empresa que pode virar cliente da NH"></div>
+            <div class="campo"><label>CNPJ</label>
+              <input type="text" id="ld-cnpj" placeholder="00.000.000/0001-00"></div>
+            <div class="campo"><label>Segmento</label>
+              <input type="text" id="ld-seg" placeholder="Ex: limpeza, saúde, engenharia"></div>
+            <div class="campo"><label>Porte</label>
+              <select id="ld-porte">
+                <option value="">—</option>
+                <option>MEI</option><option>Microempresa</option>
+                <option>Pequeno porte</option><option>Médio</option><option>Grande</option>
+              </select></div>
+            <div class="campo"><label>Cidade / UF</label>
+              <input type="text" id="ld-cidade" placeholder="Recife - PE"></div>
+            <!-- A pergunta que mais qualifica: quem já licita quer
+                 melhorar resultado; quem nunca licitou precisa de
+                 estruturação, que é outro trabalho e outro preço. -->
+            <div class="campo full"><label>Já participa de licitação?</label>
+              <select id="ld-jalicita">
+                <option value="NAO">Não, nunca participou</option>
+                <option value="AS_VEZES">Já participou, sem constância</option>
+                <option value="SIM">Sim, participa com frequência</option>
+              </select></div>
+          </div>
+
+          <div class="bloco">
+            <div class="bloco-t">Pessoa de contato</div>
+            <div class="campo"><label>Nome</label><input type="text" id="ld-nome"></div>
+            <div class="campo"><label>Cargo</label><input type="text" id="ld-cargo"></div>
+            <div class="campo"><label>Telefone / WhatsApp</label><input type="text" id="ld-fone"></div>
+            <div class="campo"><label>E-mail</label><input type="email" id="ld-email"></div>
+          </div>
+
+          <div class="bloco">
+            <div class="bloco-t">Proposta de honorários</div>
+            <div class="campo"><label>Etapa *</label><select id="ld-etapa"></select></div>
+            <!-- Os mesmos modelos do Financeiro. Ao ganhar o lead, o
+                 contrato nasce sem ninguém traduzir nada. -->
+            <div class="campo"><label>Modelo</label>
+              <select id="ld-modelo" onchange="ldAlternarModelo()"></select></div>
+            <div class="campo" id="cx-mensalidade"><label>Mensalidade</label>
+              <input type="text" id="ld-mensal" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
+            <div class="campo" id="cx-percentual"><label>% sobre o êxito</label>
+              <input type="number" id="ld-perc" placeholder="5" step="0.01" min="0" max="100"></div>
+            <div class="campo"><label>Taxa de adesão</label>
+              <input type="text" id="ld-adesao" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
+            <div class="campo full" id="ld-modelo-nota"
+              style="font-size:11.5px;color:var(--t3);line-height:1.5;margin-top:-4px"></div>
+            <div class="campo"><label>Responsável</label><input type="text" id="ld-resp" placeholder="Quem cuida"></div>
+            <div class="campo"><label>Previsão de fechamento</label><input type="date" id="ld-prev"></div>
+            <div class="campo"><label>Origem</label>
+              <select id="ld-origem">
+                <option value="TRAFEGO">Tráfego pago</option>
+                <option value="VENDEDOR">Vendedor externo</option>
+                <option value="INDICACAO">Indicação</option>
+                <option value="SITE">Site</option>
+                <option value="PROSPECCAO">Prospecção ativa</option>
+                <option value="OUTRO">Outro</option>
+              </select></div>
+            <div class="campo"><label>Campanha / anúncio</label>
+              <input type="text" id="ld-campanha" placeholder="Preenchido sozinho quando vem de anúncio"></div>
+            <!-- Perder sem motivo é perder duas vezes: o cliente e a lição. -->
+            <div class="campo full" id="cx-perda" style="display:none">
+              <label>Por que foi perdido *</label>
+              <select id="ld-motivo">
+                <option value="">— escolha —</option>
+                <option>Preço</option><option>Prazo</option>
+                <option>Concorrente</option><option>Sem verba</option>
+                <option>Sem resposta</option><option>Fora do perfil</option>
+                <option>Documentação / habilitação</option><option>Outro</option>
+              </select></div>
+            <div class="campo full"><label>Próxima ação</label>
+              <input type="text" id="ld-proxima" placeholder="O que fazer a seguir"></div>
+            <div class="campo"><label>Quando</label><input type="date" id="ld-proxdata"></div>
+          </div>
+        </div>
+
+        <!-- ── Coluna 2: edital, checklist e histórico ── -->
+        <div>
+          <!-- Diagnóstico de aptidão: o que qualifica o lead e vira
+               argumento de venda. Empresa sem certidão em dia não
+               licita — e é a NH que resolve isso. -->
+          <div class="bloco">
+            <div class="bloco-t">O que a empresa já tem</div>
+            <div class="ck-barra"><i id="ck-pct" style="width:0%"></i></div>
+            <div style="font-size:11px;color:var(--t3);margin-bottom:8px" id="ck-resumo"></div>
+            <div id="ck-lista"></div>
+            <div style="display:flex;gap:6px;margin-top:8px">
+              <input type="text" id="ck-novo" placeholder="Acrescentar item"
+                style="flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();ckAdicionar();}">
+              <button class="btn" onclick="ckAdicionar()" style="padding:6px 12px">+</button>
+            </div>
+          </div>
+
+          <!-- O edital não é o negócio: é o gancho. "Esse pregão fecha
+               dia 20, vocês se habilitariam?" — é a urgência mais
+               concreta que existe nesta conversa, e por isso o prazo
+               dele entra no painel de prazos. -->
+          <div class="bloco">
+            <div class="bloco-t">Edital em pauta
+              <label style="margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11px;
+                text-transform:none;letter-spacing:0;color:var(--t2);cursor:pointer">
+                <input type="checkbox" id="ld-tem-edital" onchange="ldAlternarEdital()"
+                  style="width:15px;height:15px;accent-color:var(--nh);cursor:pointer">
+                há um edital na conversa
+              </label>
+            </div>
+            <div id="cx-edital" style="display:none">
+              <div class="campo full"><label>Órgão</label>
+                <input type="text" id="ed-orgao" placeholder="Prefeitura, hospital, secretaria…"></div>
+              <div class="campo"><label>Nº do processo</label><input type="text" id="ed-num"></div>
+              <div class="campo"><label>Modalidade</label>
+                <select id="ed-mod">
+                  <option>Pregão eletrônico</option><option>Pregão presencial</option>
+                  <option>Concorrência</option><option>Dispensa</option>
+                  <option>Inexigibilidade</option><option>Credenciamento</option>
+                  <option>Adesão a ata</option>
+                </select></div>
+              <div class="campo"><label>Fecha em</label><input type="date" id="ed-prazo"></div>
+              <div class="campo"><label>Valor estimado do edital</label>
+                <input type="text" id="ed-valor" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
+            </div>
+            <div id="cx-sem-edital" style="font-size:12px;color:var(--t3);line-height:1.6">
+              Marque quando a conversa girar em torno de um edital específico. O prazo dele passa a
+              aparecer no painel de prazos — é o relógio da venda.
+            </div>
+          </div>
+
+          <div class="bloco">
+            <div class="bloco-t">Histórico
+              <button class="btn" onclick="abrirAtividade()">+ Registrar</button>
+            </div>
+            <div id="ld-historico"></div>
+          </div>
+        </div>
+      </div>
+      <div class="erro" id="ld-erro"></div>
+    </div>
+    <div class="mf">
+      <button class="btn" id="ld-excluir" onclick="excluirLead()" style="margin-right:auto;display:none">Excluir</button>
+      <button class="btn" onclick="fecharModal('ov-lead')">Cancelar</button>
+      <button class="btn btn-nh" id="ld-salvar" onclick="salvarLead()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ATIVIDADE -->
+<div class="ov" id="ov-atividade">
+  <div class="modal" style="max-width:460px">
+    <div class="mh">
+      <div><h3>Registrar atividade</h3><p>O que aconteceu, e o que fica combinado.</p></div>
+      <button class="btn" onclick="fecharModal('ov-atividade')" style="padding:5px 10px">×</button>
+    </div>
+    <div class="mb">
+      <div class="campo"><label>Tipo</label>
+        <select id="at-tipo">
+          <option value="LIGACAO">Ligação</option>
+          <option value="WHATSAPP">WhatsApp</option>
+          <option value="EMAIL">E-mail</option>
+          <option value="REUNIAO">Reunião</option>
+          <option value="VISITA">Visita</option>
+          <option value="NOTA">Anotação</option>
+        </select></div>
+      <div class="campo"><label>Quando</label><input type="date" id="at-data"></div>
+      <div class="campo full"><label>O que aconteceu *</label>
+        <textarea id="at-desc" placeholder="Resumo da conversa, o que ficou combinado"></textarea></div>
+      <!-- Toda atividade termina numa pergunta: e agora? Sem isso, o
+           lead esfria sem ninguém perceber. -->
+      <div class="campo full"><label>Próxima ação</label>
+        <input type="text" id="at-proxima" placeholder="Deixe vazio para manter a atual"></div>
+      <div class="campo"><label>Quando</label><input type="date" id="at-proxdata"></div>
+      <div class="erro" id="at-erro"></div>
+    </div>
+    <div class="mf">
+      <button class="btn" onclick="fecharModal('ov-atividade')">Cancelar</button>
+      <button class="btn btn-nh" id="at-salvar" onclick="salvarAtividade()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-auth-compat.js"></script>
+<script>
+const firebaseConfig={apiKey:"AIzaSyBhcpJP9dRM0SEJsGfcNUXYb1rTMdEDw6M",authDomain:"nh-licitacoes.firebaseapp.com",
+  projectId:"nh-licitacoes",storageBucket:"nh-licitacoes.firebasestorage.app",
+  messagingSenderId:"1234567890",appId:"1:1234567890:web:abc"};
+
+/* Instância nomeada, isolada da padrão: sem isso o login aqui derruba a
+   sessão do Sistema NH quando os dois ficam abertos em abas — mesmo
+   problema já documentado no viabilidade e no portal. */
+var _crmApp=(firebase.apps||[]).filter(function(a){return a.name==='nh-crm';})[0]
+  || firebase.initializeApp(firebaseConfig,'nh-crm');
+const db=_crmApp.firestore();
+const auth=_crmApp.auth();
+db.settings({experimentalAutoDetectLongPolling:true,merge:true});
+
+/* ── Utilidades ────────────────────────────────────────────────── */
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function num(v){
+  if(typeof v==='number') return isNaN(v)?0:v;
+  var a=String(v||'').replace(/R\$\s*/g,'').replace(/\s/g,'').trim();
+  if(!a) return 0;
+  if(a.indexOf(',')!==-1) a=a.replace(/\./g,'').replace(',','.');
+  else a=a.replace(/[^\d.]/g,'');
+  var n=parseFloat(a);
+  return isNaN(n)||n<0?0:n;
+}
+function brl(v){ if(!v||isNaN(v)) return 'R$ 0,00';
+  return 'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function mascaraMoeda(el){
+  var a=el.value.replace(/\D/g,'');
+  el.value = a ? 'R$ '+(parseInt(a,10)/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : '';
+}
+function dBR(iso){ if(!iso) return ''; var p=String(iso).split('-'); return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:iso; }
+function dISO(br){ if(!br) return ''; var p=String(br).split('/'); return p.length===3?p[2]+'-'+p[1]+'-'+p[0]:br; }
+function hoje0(){ var d=new Date(); d.setHours(0,0,0,0); return d; }
+function dData(br){ var p=String(br||'').split('/'); if(p.length!==3) return null;
+  var d=new Date(+p[2],+p[1]-1,+p[0]); return isNaN(d.getTime())?null:d; }
+function gv(id){ var e=document.getElementById(id); return e?String(e.value||'').trim():''; }
+function sv(id,v){ var e=document.getElementById(id); if(e) e.value=v==null?'':v; }
+function erro(id,msg){ var e=document.getElementById(id); if(!e) return;
+  e.style.display=msg?'block':'none'; e.textContent=msg||''; }
+
+/* ── Estado ────────────────────────────────────────────────────── */
+var LEADS=[];          /* crm_leads      */
+var ATIVIDADES=[];     /* crm_atividades */
+var ABA='funil';
+var _ldEdit=null;      /* id do lead aberto, ou null se for novo */
+var _ckDocs=[];        /* checklist em edição, antes de salvar   */
+
+/* ══════════════════════════════════════════════════════════════════
+   QUEM É O LEAD
+
+   A NH não vende para órgão público — vende assessoria para EMPRESAS
+   que querem licitar. Quem vende para órgão é a cliente (a VISE), não
+   a NH. A primeira versão deste arquivo modelou o contrário, e o
+   campo principal saiu com uma barra no meio: "razão social / órgão".
+   Barra no meio de um campo é pergunta não respondida virando dado.
+
+   Corrigido: o lead é a EMPRESA. O edital, quando aparece, é o gancho
+   da conversa ("esse pregão fecha dia 20, vocês se habilitariam?") —
+   contexto da venda, não o negócio.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Funil de venda consultiva. Não tem Habilitação nem Pregão: aquelas
+   são etapas da licitação DA CLIENTE, não da venda da NH. */
+var ETAPAS=[
+  {k:'PROSPECCAO', r:'Prospecção', c:'#8b95a1'},
+  {k:'CONTATO',    r:'Contato',    c:'#3b82f6'},
+  {k:'DIAGNOSTICO',r:'Diagnóstico',c:'#06b6d4'},
+  {k:'PROPOSTA',   r:'Proposta',   c:'#a855f7'},
+  {k:'NEGOCIACAO', r:'Negociação', c:'#f97316'},
+  {k:'GANHO',      r:'Ganho',      c:'#22c55e'},
+  {k:'PERDIDO',    r:'Perdido',    c:'#ef4444'}
+];
+
+/* Os mesmos modelos do Financeiro (CT_REGRAS). Iguais de propósito:
+   quando o lead vira ganho, o contrato de honorários nasce sem
+   ninguém traduzir nada. */
+var MODELOS={
+  MENSAL:     {r:'Mensalidade fixa',        mensal:true,  perc:false,
+               nota:'Receita previsível. Entra inteira na conta de receita recorrente.'},
+  PERCENTUAL: {r:'Percentual sobre o êxito',mensal:false, perc:true ,
+               nota:'Só entra quando a empresa ganha. Não conta como receita recorrente.'},
+  MISTO:      {r:'Mensalidade + percentual',mensal:true,  perc:true ,
+               nota:'O mais comum na NH: um piso todo mês e um prêmio no êxito.'},
+  PONTUAL:    {r:'Serviços pontuais',       mensal:false, perc:false,
+               nota:'Cobrança por serviço prestado. Sem recorrência.'},
+  EXCLUSIVO:  {r:'Dedicação exclusiva',     mensal:true,  perc:false,
+               nota:'Equipe dedicada à empresa. Mensalidade maior, sem percentual.'}
+};
+
+/* Diagnóstico de aptidão: o que a empresa precisa ter para licitar.
+   Não é a habilitação de um edital — é a pergunta que qualifica o
+   lead. Empresa sem certidão em dia não licita, e saber quanto falta
+   é o que diz se a proposta é de R$ 1.500 ou de R$ 4.000. */
+var APTIDAO=['CNPJ ativo há mais de 1 ano','Certidão federal','Certidão estadual',
+  'Certidão municipal','FGTS','Trabalhista (CNDT)','Balanço registrado',
+  'Certificado digital','Cadastro no Compras.gov','Atestado de capacidade técnica'];
+function etapaDe(k){ return ETAPAS.filter(function(e){return e.k===k;})[0]||ETAPAS[0]; }
+
+var ATIV_TIPOS={
+  LIGACAO :{r:'Ligação',  c:'#3b82f6'},
+  WHATSAPP:{r:'WhatsApp', c:'#22c55e'},
+  EMAIL   :{r:'E-mail',   c:'#a855f7'},
+  REUNIAO :{r:'Reunião',  c:'#f97316'},
+  VISITA  :{r:'Visita',   c:'#eab308'},
+  NOTA    :{r:'Anotação', c:'#8b95a1'}
+};
+var ORIGENS={
+  TRAFEGO:'Tráfego pago', VENDEDOR:'Vendedor externo', INDICACAO:'Indicação',
+  SITE:'Site', PROSPECCAO:'Prospecção', OUTRO:'Outro'
+};
+
+/** O que a NH ganha por mês se este lead fechar. É o número que move
+ *  o funil: percentual de êxito é aposta, mensalidade é receita. */
+function mrrDo(l){
+  var p=l.proposta||{};
+  var m=MODELOS[p.tipo||'MENSAL']||MODELOS.MENSAL;
+  return m.mensal?num(p.mensalidade):0;
+}
+/** Resumo legível da proposta, para o cartão e a lista. */
+function propostaTexto(l){
+  var p=l.proposta||{}; var t=p.tipo||'MENSAL';
+  var m=MODELOS[t]||MODELOS.MENSAL; var partes=[];
+  if(m.mensal && num(p.mensalidade)>0) partes.push(brl(num(p.mensalidade))+'/mês');
+  if(m.perc  && num(p.percentual)>0)   partes.push(num(p.percentual).toLocaleString('pt-BR')+'% no êxito');
+  if(num(p.adesao)>0) partes.push('adesão '+brl(num(p.adesao)));
+  return partes.join(' · ');
+}
+
+/* ── Datas ─────────────────────────────────────────────────────── */
+/** Dias até a data (negativo = já passou). null se não houver data. */
+function diasAte(br){
+  var d=dData(br); if(!d) return null;
+  return Math.round((d-hoje0())/86400000);
+}
+function classePrazo(dias){
+  if(dias===null) return '';
+  if(dias<=0) return 'hoje';
+  if(dias<=3) return 'perto';
+  return '';
+}
+function textoPrazo(dias){
+  if(dias===null) return '';
+  if(dias<0)  return Math.abs(dias)+'d atrás';
+  if(dias===0) return 'hoje';
+  if(dias===1) return 'amanhã';
+  return dias+'d';
+}
+
+/* ── Carga ─────────────────────────────────────────────────────── */
+async function carregarTudo(){
+  var [ld, at] = await Promise.all([
+    db.collection('crm_leads').get(),
+    db.collection('crm_atividades').get()
+  ]);
+  LEADS=ld.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+  ATIVIDADES=at.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+  pintar();
+}
+
+function atividadesDo(leadId){
+  return ATIVIDADES.filter(function(a){ return a.leadId===leadId; })
+    .sort(function(x,y){
+      var a=dData(x.data)||new Date(0), b=dData(y.data)||new Date(0);
+      return b-a;
+    });
+}
+
+/* ── Prazos: o que vence, de todos os leads ───────────────────────
+   Um lead pode ter dois relógios ao mesmo tempo — o edital-gancho e o
+   follow-up combinado — e o que importa é o mais próximo. Achatar tudo
+   numa lista só ordenada por data é o que transforma "está tudo lá
+   dentro" em "isto vence terça". */
+function prazosAbertos(){
+  var out=[];
+  LEADS.forEach(function(l){
+    if(l.etapa==='GANHO'||l.etapa==='PERDIDO') return;
+
+    /* O edital em pauta é o relógio da venda: se o pregão fecha dia 20
+       e a empresa ainda não assinou, ou fecha antes ou perdeu a janela.
+       É a urgência mais concreta que existe nesta conversa. */
+    if(l.editalGancho && l.editalGancho.prazo){
+      var de=diasAte(l.editalGancho.prazo);
+      if(de!==null && de>=-7)
+        out.push({lead:l, campo:'Edital em pauta', cor:'#f97316',
+                  data:l.editalGancho.prazo, dias:de});
+    }
+
+    /* Follow-up combinado. Sem isto o lead esfria e ninguém percebe. */
+    if(l.dataProximaAcao){
+      var dp=diasAte(l.dataProximaAcao);
+      if(dp!==null && dp>=-7)
+        out.push({lead:l, campo:l.proximaAcao||'Próxima ação', cor:'#3b82f6',
+                  data:l.dataProximaAcao, dias:dp});
+    }
+  });
+  return out.sort(function(a,b){ return a.dias-b.dias; });
+}
+
+/* ── Tela ──────────────────────────────────────────────────────── */
+function pintar(){
+  var abertos=LEADS.filter(function(l){ return l.etapa!=='GANHO'&&l.etapa!=='PERDIDO'; });
+  var ganhos=LEADS.filter(function(l){ return l.etapa==='GANHO'; });
+  var perdidos=LEADS.filter(function(l){ return l.etapa==='PERDIDO'; });
+  /* Mensalidade, não "valor". Percentual de êxito é aposta — pode
+     render muito ou zero, e depende de a cliente ganhar licitação. A
+     mensalidade é o que entra todo mês independentemente disso, e é
+     por ela que se mede um funil de assessoria. */
+  var emAberto=abertos.reduce(function(s,l){ return s+mrrDo(l); },0);
+  var ganho=ganhos.reduce(function(s,l){ return s+mrrDo(l); },0);
+  var fechados=ganhos.length+perdidos.length;
+  var conv=fechados?Math.round(ganhos.length/fechados*100):0;
+
+  var prz=prazosAbertos();
+  var urgentes=prz.filter(function(p){ return p.dias<=3; });
+
+  var kpi=function(l,v,c,s){
+    return '<div class="kpi"><div class="kpi-fio" style="background:linear-gradient(90deg,'+c+',transparent)"></div>'+
+      '<div class="kpi-l">'+l+'</div><div class="kpi-v" style="color:'+c+'">'+v+'</div>'+
+      (s?'<div class="kpi-s">'+s+'</div>':'')+'</div>';
+  };
+  document.getElementById('kpis').innerHTML =
+    kpi('No funil', String(abertos.length), 'var(--t1)', brl(emAberto)+'/mês em jogo') +
+    kpi('Ganhos', String(ganhos.length), 'var(--g1)', brl(ganho)+'/mês fechado') +
+    kpi('Conversão', conv+'%', conv>=50?'var(--g1)':conv>=25?'var(--y1)':'var(--r1)',
+        fechados?(ganhos.length+' de '+fechados+' fechados'):'nada fechado ainda') +
+    (urgentes.length ? kpi('Prazo urgente', String(urgentes.length), 'var(--r1)', 'vence em até 3 dias') : '') +
+    kpi('Perdidos', String(perdidos.length), 'var(--t3)', '');
+
+  var selo=document.getElementById('selo-prazos');
+  if(selo) selo.innerHTML = urgentes.length
+    ? '<span style="background:rgba(239,68,68,.2);color:var(--r1);font-size:10px;font-weight:800;'+
+      'padding:1px 7px;border-radius:9px;margin-left:5px">'+urgentes.length+'</span>' : '';
+
+  /* Os prazos urgentes ficam acima de tudo, em qualquer aba: prazo
+     perdido em licitação não tem recurso. */
+  document.getElementById('prazos').innerHTML = urgentes.length ? painelPrazos(urgentes, true) : '';
+
+  document.getElementById('painel').innerHTML =
+    ABA==='funil'  ? painelFunil() :
+    ABA==='prazos' ? painelPrazos(prz, false) : painelResultados();
+
+  if(ABA==='funil') ligarArrasto();
+}
+
+function painelFunil(){
+  return '<div class="funil">'+ETAPAS.map(function(e){
+    var meus=LEADS.filter(function(l){ return (l.etapa||'PROSPECCAO')===e.k; })
+      .sort(function(a,b){
+        /* Quem tem próxima ação mais próxima sobe. O topo da coluna é
+           onde o olho cai primeiro; ali fica o que é para hoje. */
+        var da=diasAte(a.dataProximaAcao), dbb=diasAte(b.dataProximaAcao);
+        if(da===null&&dbb===null) return mrrDo(b)-mrrDo(a);
+        if(da===null) return 1;
+        if(dbb===null) return -1;
+        return da-dbb;
+      });
+    var soma=meus.reduce(function(s,l){ return s+mrrDo(l); },0);
+    return '<div class="col" data-etapa="'+e.k+'">'+
+      '<div class="col-tp">'+
+        '<div class="col-nome"><span class="col-pt" style="background:'+e.c+'"></span>'+e.r+
+          '<span class="col-num">'+meus.length+'</span></div>'+
+        (soma>0?'<div class="col-val">'+brl(soma)+'</div>':'')+
+      '</div>'+
+      '<div class="col-cx">'+
+        (meus.length?meus.map(function(l){ return cartaoLead(l,e.c); }).join('')
+                    :'<div class="vazio-col">Arraste um lead para cá</div>')+
+      '</div></div>';
+  }).join('')+'</div>';
+}
+
+function cartaoLead(l, cor){
+  var prox=diasAte(l.dataProximaAcao);
+  var gancho=l.editalGancho||null;
+  var przEd=(gancho&&gancho.prazo)?diasAte(gancho.prazo):null;
+  var prop=propostaTexto(l);
+  /* Quanto falta para a empresa estar apta a licitar. É o argumento de
+     venda mais direto que existe: "faltam 4 documentos, a gente
+     resolve". Só aparece depois que alguém preencheu o diagnóstico. */
+  var docs=Array.isArray(l.documentos)?l.documentos:[];
+  var faltam=docs.filter(function(d){ return !d.ok; }).length;
+
+  return '<div class="lc" draggable="true" data-id="'+esc(l.id)+'" style="--cc:'+cor+'" '+
+      'onclick="abrirLead(\''+esc(l.id)+'\')">'+
+    '<div class="lc-emp">'+esc(l.empresa||'(sem nome)')+'</div>'+
+    (l.contatoNome?'<div class="lc-sub">'+esc(l.contatoNome)+(l.contatoCargo?' · '+esc(l.contatoCargo):'')+'</div>':'')+
+    (prop?'<div class="lc-val">'+esc(prop)+'</div>':'')+
+    '<div class="lc-pe">'+
+      (l.segmento?'<span class="tag tag-org">'+esc(l.segmento)+'</span>':'')+
+      (docs.length&&faltam?'<span class="tag tag-prz perto">faltam '+faltam+' doc</span>':'')+
+      (docs.length&&!faltam?'<span class="tag" style="background:rgba(34,197,94,.15);color:var(--g1)">apta</span>':'')+
+      (przEd!==null?'<span class="tag tag-prz '+classePrazo(przEd)+'">edital '+textoPrazo(przEd)+'</span>':'')+
+      (prox!==null?'<span class="tag tag-prz '+classePrazo(prox)+'">'+
+        (l.proximaAcao?esc(String(l.proximaAcao).substring(0,20)):'ação')+' '+textoPrazo(prox)+'</span>':'')+
+      (l.origem==='TRAFEGO'?'<span class="tag tag-ori">anúncio</span>':'')+
+    '</div></div>';
+}
+
+function painelPrazos(lista, compacto){
+  if(!lista.length){
+    return compacto?'':'<div class="kpi" style="padding:22px">'+
+      '<div class="kpi-l" style="margin-top:0">Nenhum prazo em aberto</div>'+
+      '<div style="font-size:12.5px;color:var(--t2);line-height:1.6">Nenhuma próxima ação marcada e nenhum '+
+      'edital-gancho com data. Preencha <b>Quando</b> na próxima ação, ou marque <b>há um edital na conversa</b> '+
+      'na ficha — os dois relógios da venda aparecem aqui.</div></div>';
+  }
+  /* `compacto` só muda o vazio: na faixa do topo, nada a mostrar é
+     não mostrar nada; na aba, é uma explicação. A grade é a mesma. */
+  return '<div class="przs">'+lista.map(function(p){
+    var cor = p.dias<=0?'#ef4444' : p.dias<=3?'#eab308' : p.cor;
+    return '<div class="prz" style="--pc:'+cor+'" onclick="abrirLead(\''+esc(p.lead.id)+'\')">'+
+      '<div class="prz-q">'+esc(p.campo)+' · '+textoPrazo(p.dias)+'</div>'+
+      '<div class="prz-e">'+esc(p.lead.empresa||'(sem nome)')+'</div>'+
+      '<div class="prz-d">'+esc(p.data)+
+        (p.lead.editalGancho&&p.lead.editalGancho.numero?' · '+esc(p.lead.editalGancho.numero):'')+'</div>'+
+      '</div>';
+  }).join('')+'</div>';
+}
+
+function painelResultados(){
+  var fechados=LEADS.filter(function(l){ return l.etapa==='GANHO'||l.etapa==='PERDIDO'; });
+  if(!fechados.length)
+    return '<div class="kpi" style="padding:22px"><div class="kpi-l" style="margin-top:0">Nada fechado ainda</div>'+
+      '<div style="font-size:12.5px;color:var(--t2)">Quando os primeiros leads forem para Ganho ou Perdido, '+
+      'aqui aparece a conversão por origem e os motivos de perda.</div></div>';
+
+  /* Conversão por origem: onde vale a pena gastar. */
+  var porOri={};
+  fechados.forEach(function(l){
+    var k=l.origem||'OUTRO';
+    if(!porOri[k]) porOri[k]={g:0,p:0,valor:0};
+    /* Só a mensalidade entra na conta: percentual de êxito é aposta,
+       não receita contratada. */
+    if(l.etapa==='GANHO'){ porOri[k].g++; porOri[k].valor+=mrrDo(l); } else porOri[k].p++;
+  });
+  var linhasOri=Object.keys(porOri).sort().map(function(k){
+    var o=porOri[k], t=o.g+o.p, pct=t?Math.round(o.g/t*100):0;
+    return '<tr><td><b>'+esc(ORIGENS[k]||k)+'</b></td>'+
+      '<td class="num">'+t+'</td><td class="num">'+o.g+'</td>'+
+      '<td class="num"><b style="color:'+(pct>=50?'var(--g1)':pct>=25?'var(--y1)':'var(--r1)')+'">'+pct+'%</b></td>'+
+      '<td class="num">'+brl(o.valor)+'</td></tr>';
+  }).join('');
+
+  /* Motivo de perda: o que dá para mudar no mês que vem. */
+  var porMot={};
+  fechados.filter(function(l){return l.etapa==='PERDIDO';}).forEach(function(l){
+    var m=l.motivoPerda||'(não informado)';
+    porMot[m]=(porMot[m]||0)+1;
+  });
+  var mots=Object.keys(porMot).sort(function(a,b){ return porMot[b]-porMot[a]; });
+  var totalP=mots.reduce(function(s,m){ return s+porMot[m]; },0);
+  var linhasMot=mots.map(function(m){
+    var pct=totalP?(porMot[m]/totalP)*100:0;
+    return '<div style="margin-bottom:9px">'+
+      '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">'+
+        '<span style="color:var(--t2)">'+esc(m)+'</span>'+
+        '<span style="font-weight:800">'+porMot[m]+'</span></div>'+
+      '<div style="height:6px;border-radius:4px;background:var(--s3);overflow:hidden">'+
+        '<div style="height:100%;width:'+pct.toFixed(1)+'%;background:var(--r1);border-radius:4px"></div>'+
+      '</div></div>';
+  }).join('');
+
+  return '<div class="fin-duplo" style="align-items:start">'+
+    '<div class="kpi" style="padding:0;overflow:hidden">'+
+      '<div class="kpi-l" style="padding:16px 16px 10px;margin:0">Conversão por origem</div>'+
+      '<div style="overflow-x:auto"><table style="min-width:0">'+
+        '<thead><tr><th>Origem</th><th class="num">Fechados</th><th class="num">Ganhos</th>'+
+        '<th class="num">Taxa</th><th class="num">Mensalidade</th></tr></thead>'+
+        '<tbody>'+linhasOri+'</tbody></table></div></div>'+
+    '<div class="kpi" style="padding:18px">'+
+      '<div class="kpi-l" style="margin-top:0">Por que perdemos</div>'+
+      (linhasMot||'<div style="font-size:12.5px;color:var(--t2)">Nenhuma perda registrada.</div>')+
+    '</div></div>';
+}
+
+/* ── Arrastar entre etapas ─────────────────────────────────────────
+   HTML5 drag and drop nativo: sem biblioteca, e funciona no toque
+   longo do celular na maioria dos navegadores. O que move o lead é a
+   coluna onde ele foi solto, não a posição dentro dela — ordem dentro
+   da coluna é calculada, não arrastada. */
+var _arrastando=null;
+function ligarArrasto(){
+  document.querySelectorAll('.lc').forEach(function(el){
+    el.addEventListener('dragstart', function(e){
+      _arrastando=el.getAttribute('data-id');
+      el.classList.add('arrastando');
+      try{ e.dataTransfer.setData('text/plain', _arrastando); e.dataTransfer.effectAllowed='move'; }catch(x){}
+    });
+    el.addEventListener('dragend', function(){
+      el.classList.remove('arrastando'); _arrastando=null;
+      document.querySelectorAll('.col').forEach(function(c){ c.classList.remove('alvo'); });
+    });
+  });
+  document.querySelectorAll('.col').forEach(function(col){
+    col.addEventListener('dragover', function(e){ e.preventDefault(); col.classList.add('alvo'); });
+    col.addEventListener('dragleave', function(){ col.classList.remove('alvo'); });
+    col.addEventListener('drop', function(e){
+      e.preventDefault(); col.classList.remove('alvo');
+      var id=_arrastando||(e.dataTransfer&&e.dataTransfer.getData('text/plain'));
+      if(id) moverLead(id, col.getAttribute('data-etapa'));
+    });
+  });
+}
+
+async function moverLead(id, etapa){
+  var l=LEADS.filter(function(x){ return x.id===id; })[0];
+  if(!l || l.etapa===etapa) return;
+  var antes=l.etapa;
+
+  /* Perder sem motivo é perder duas vezes: o cliente e a lição. Aqui a
+     ficha abre em vez de a gravação acontecer pela metade. */
+  if(etapa==='PERDIDO' && !l.motivoPerda){
+    abrirLead(id);
+    sv('ld-etapa','PERDIDO'); ldAlternarEtapa();
+    erro('ld-erro','Escolha o motivo da perda para concluir.');
+    return;
+  }
+
+  l.etapa=etapa;                 /* otimista: a tela responde na hora */
+  pintar();
+  try{
+    await db.collection('crm_leads').doc(id).update({
+      etapa:etapa, atualizadoPor:quemSou(), atualizadoEm:new Date().toLocaleString('pt-BR')
+    });
+    /* A mudança de etapa vira histórico sozinha — é o movimento mais
+       importante do funil e o que ninguém lembra de anotar. */
+    await db.collection('crm_atividades').add({
+      leadId:id, tipo:'NOTA',
+      descricao:'Movido de '+etapaDe(antes).r+' para '+etapaDe(etapa).r,
+      data:dBR(new Date().toISOString().slice(0,10)),
+      autor:quemSou(), criadoEm:Date.now(), automatico:true
+    });
+    await carregarTudo();
+  }catch(e){
+    l.etapa=antes; pintar();     /* desfaz o otimismo se o banco recusou */
+    alert(msgErro(e));
+  }
+}
+
+function quemSou(){ return (auth.currentUser&&auth.currentUser.email)||''; }
+function msgErro(e){
+  if(String(e&&e.code)==='permission-denied')
+    return 'O Firestore recusou. As regras das coleções crm_* precisam estar publicadas, '
+         + 'e este sistema é da equipe NH.';
+  return 'Não consegui salvar: '+((e&&e.message)||e);
+}
+
+function trocarAba(a, btn){
+  ABA=a;
+  document.querySelectorAll('.aba').forEach(function(b){ b.classList.remove('on'); });
+  if(btn) btn.classList.add('on');
+  pintar();
+}
+
+/* ── Ficha do lead ─────────────────────────────────────────────── */
+function abrirLead(id){
+  _ldEdit=id||null;
+  var l=id?LEADS.filter(function(x){ return x.id===id; })[0]:null;
+
+  document.getElementById('ld-titulo').textContent=l?'Lead':'Novo lead';
+  document.getElementById('ld-sub').textContent=l
+    ? (l.empresa||'') + ' · ' + etapaDe(l.etapa).r
+    : 'A empresa que pode virar cliente, e em que pé está a conversa.';
+  document.getElementById('ld-excluir').style.display=l?'':'none';
+
+  var sel=document.getElementById('ld-etapa');
+  sel.innerHTML=ETAPAS.map(function(e){ return '<option value="'+e.k+'">'+e.r+'</option>'; }).join('');
+  sel.value=(l&&l.etapa)||'PROSPECCAO';
+  sel.onchange=ldAlternarEtapa;
+
+  var mod=document.getElementById('ld-modelo');
+  mod.innerHTML=Object.keys(MODELOS).map(function(k){
+    return '<option value="'+k+'">'+MODELOS[k].r+'</option>'; }).join('');
+  var p=(l&&l.proposta)||{};
+  mod.value=p.tipo||'MENSAL';
+
+  sv('ld-org',   l?(l.empresa||''):'');
+  sv('ld-cnpj',  l?(l.cnpj||''):'');
+  sv('ld-seg',   l?(l.segmento||''):'');
+  sv('ld-porte', l?(l.porte||''):'');
+  sv('ld-cidade',l?(l.cidade||''):'');
+  sv('ld-jalicita', l?(l.jaLicita||'NAO'):'NAO');
+  sv('ld-nome',  l?(l.contatoNome||''):'');
+  sv('ld-cargo', l?(l.contatoCargo||''):'');
+  sv('ld-fone',  l?(l.contatoTelefone||''):'');
+  sv('ld-email', l?(l.contatoEmail||''):'');
+  sv('ld-mensal',num(p.mensalidade)>0?brl(num(p.mensalidade)):'');
+  sv('ld-perc',  num(p.percentual)>0?p.percentual:'');
+  sv('ld-adesao',num(p.adesao)>0?brl(num(p.adesao)):'');
+  sv('ld-resp',  l?(l.responsavel||quemSou()):quemSou());
+  sv('ld-prev',  l?dISO(l.previsaoFechamento):'');
+  sv('ld-origem',l?(l.origem||'PROSPECCAO'):'PROSPECCAO');
+  sv('ld-campanha', l?(l.campanha||''):'');
+  sv('ld-motivo',l?(l.motivoPerda||''):'');
+  sv('ld-proxima', l?(l.proximaAcao||''):'');
+  sv('ld-proxdata', l?dISO(l.dataProximaAcao):'');
+
+  var ed=(l&&l.editalGancho)||null;
+  document.getElementById('ld-tem-edital').checked=!!ed;
+  sv('ed-orgao', ed?(ed.orgao||''):'');
+  sv('ed-num',   ed?(ed.numero||''):'');
+  sv('ed-mod',   ed?(ed.modalidade||'Pregão eletrônico'):'Pregão eletrônico');
+  sv('ed-prazo', ed?dISO(ed.prazo):'');
+  sv('ed-valor', ed&&num(ed.valor)>0?brl(num(ed.valor)):'');
+
+  /* Lead novo nasce com a lista padrão de aptidão; lead existente
+     mantém a dele, que já foi ajustada durante o diagnóstico. */
+  _ckDocs=(l&&Array.isArray(l.documentos)&&l.documentos.length)
+    ? l.documentos.map(function(d){ return {nome:d.nome, ok:!!d.ok}; })
+    : APTIDAO.map(function(n){ return {nome:n, ok:false}; });
+
+  ldAlternarEdital(); ldAlternarEtapa(); ldAlternarModelo(); ckRender();
+  document.getElementById('ld-historico').innerHTML=l?historicoHtml(l.id):
+    '<div style="font-size:12px;color:var(--t3);line-height:1.6">O histórico começa depois que o lead for salvo.</div>';
+  erro('ld-erro','');
+  document.getElementById('ov-lead').classList.add('on');
+}
+
+function ldAlternarEdital(){
+  var on=document.getElementById('ld-tem-edital').checked;
+  document.getElementById('cx-edital').style.display=on?'':'none';
+  document.getElementById('cx-sem-edital').style.display=on?'none':'';
+}
+function ldAlternarEtapa(){
+  document.getElementById('cx-perda').style.display=(gv('ld-etapa')==='PERDIDO')?'':'none';
+}
+/* Cada modelo de honorário usa campos diferentes. Mostrar os três
+   sempre convida a preencher o que não vale para aquele contrato — e
+   depois ninguém sabe se aquele 5% é para valer. */
+function ldAlternarModelo(){
+  var m=MODELOS[gv('ld-modelo')]||MODELOS.MENSAL;
+  document.getElementById('cx-mensalidade').style.display=m.mensal?'':'none';
+  document.getElementById('cx-percentual').style.display=m.perc?'':'none';
+  document.getElementById('ld-modelo-nota').textContent=m.nota||'';
+}
+
+function historicoHtml(leadId){
+  var lista=atividadesDo(leadId);
+  if(!lista.length) return '<div style="font-size:12px;color:var(--t3);line-height:1.6">'+
+    'Nada registrado ainda. Use <b>+ Registrar</b> a cada ligação, visita ou conversa.</div>';
+  return '<div class="tl">'+lista.map(function(a){
+    var t=ATIV_TIPOS[String(a.tipo||'NOTA').toUpperCase()]||ATIV_TIPOS.NOTA;
+    return '<div class="tl-i" style="--tc:'+t.c+'">'+
+      '<div class="tl-tp">'+t.r+(a.automatico?' · automático':'')+'</div>'+
+      '<div class="tl-tx">'+esc(a.descricao||'')+'</div>'+
+      '<div class="tl-me">'+esc(a.data||'')+(a.autor?' · '+esc(a.autor):'')+'</div>'+
+    '</div>';
+  }).join('')+'</div>';
+}
+
+/* ── Diagnóstico de aptidão ────────────────────────────────────── */
+function ckRender(){
+  var box=document.getElementById('ck-lista');
+  box.innerHTML=_ckDocs.map(function(d,i){
+    return '<label class="ck'+(d.ok?' ok':'')+'">'+
+      '<input type="checkbox" '+(d.ok?'checked':'')+' onchange="ckMarcar('+i+',this.checked)">'+
+      '<span class="ck-tx">'+esc(d.nome)+'</span>'+
+      '<span style="margin-left:auto;color:var(--t3);cursor:pointer;font-size:14px" '+
+        'onclick="event.preventDefault();ckRemover('+i+')" title="Remover">×</span>'+
+    '</label>';
+  }).join('')||'<div style="font-size:11.5px;color:var(--t3)">Nenhum item na lista.</div>';
+
+  var ok=_ckDocs.filter(function(d){ return d.ok; }).length;
+  var falta=_ckDocs.length-ok;
+  var pct=_ckDocs.length?(ok/_ckDocs.length)*100:0;
+  document.getElementById('ck-pct').style.width=pct.toFixed(1)+'%';
+  /* O que falta é o argumento de venda: é exatamente isso que a NH
+     entrega antes de a empresa conseguir licitar. */
+  document.getElementById('ck-resumo').innerHTML=_ckDocs.length
+    ? '<b style="color:'+(pct===100?'var(--g1)':'var(--t2)')+'">'+ok+' de '+_ckDocs.length+'</b> em ordem'+
+      (falta>0?' — <b>'+falta+'</b> a resolver, e é o que a NH faz'
+             :' — empresa pronta para licitar')
+    : '';
+}
+function ckMarcar(i,v){ if(_ckDocs[i]){ _ckDocs[i].ok=!!v; ckRender(); } }
+function ckRemover(i){ _ckDocs.splice(i,1); ckRender(); }
+function ckAdicionar(){
+  var n=gv('ck-novo'); if(!n) return;
+  _ckDocs.push({nome:n, ok:false}); sv('ck-novo',''); ckRender();
+  document.getElementById('ck-novo').focus();
+}
+
+/* ── Gravar ────────────────────────────────────────────────────── */
+async function salvarLead(){
+  var org=gv('ld-org'), etapa=gv('ld-etapa');
+  if(!org) return erro('ld-erro','Informe a razão social da empresa — é por ela que o lead é reconhecido.');
+  if(etapa==='PERDIDO' && !gv('ld-motivo'))
+    return erro('ld-erro','Escolha o motivo da perda. Sem ele não há o que aprender no fim do mês.');
+  erro('ld-erro','');
+
+  var tipo=gv('ld-modelo')||'MENSAL';
+  var m=MODELOS[tipo]||MODELOS.MENSAL;
+
+  var dados={
+    empresa:org, cnpj:gv('ld-cnpj').replace(/\D/g,''), segmento:gv('ld-seg'),
+    porte:gv('ld-porte'), cidade:gv('ld-cidade'), jaLicita:gv('ld-jalicita')||'NAO',
+    contatoNome:gv('ld-nome'), contatoCargo:gv('ld-cargo'),
+    contatoTelefone:gv('ld-fone'), contatoEmail:gv('ld-email'),
+    etapa:etapa,
+    /* Guardar só o que o modelo usa. Mensalidade num contrato de
+       percentual puro é número órfão que ninguém sabe interpretar
+       depois — e viraria receita recorrente fantasma no painel. */
+    proposta:{
+      tipo:tipo,
+      mensalidade:m.mensal?num(gv('ld-mensal')):0,
+      percentual :m.perc ?num(gv('ld-perc')) :0,
+      adesao     :num(gv('ld-adesao'))
+    },
+    /* O diagnóstico é da empresa, não do edital: continua valendo
+       mesmo que o edital-gancho mude no meio da conversa. */
+    documentos:_ckDocs.map(function(d){ return {nome:d.nome, ok:!!d.ok}; }),
+    responsavel:gv('ld-resp'), previsaoFechamento:dBR(gv('ld-prev')),
+    origem:gv('ld-origem'), campanha:gv('ld-campanha'),
+    motivoPerda:(etapa==='PERDIDO')?gv('ld-motivo'):'',
+    proximaAcao:gv('ld-proxima'), dataProximaAcao:dBR(gv('ld-proxdata')),
+    atualizadoPor:quemSou(), atualizadoEm:new Date().toLocaleString('pt-BR')
+  };
+
+  dados.editalGancho = document.getElementById('ld-tem-edital').checked ? {
+    orgao:gv('ed-orgao'), numero:gv('ed-num'), modalidade:gv('ed-mod'),
+    prazo:dBR(gv('ed-prazo')), valor:num(gv('ed-valor'))
+  } : null;
+
+  var btn=document.getElementById('ld-salvar');
+  btn.disabled=true; btn.textContent='Salvando…';
+  try{
+    if(_ldEdit) await db.collection('crm_leads').doc(_ldEdit).update(dados);
+    else{
+      dados.criadoPor=dados.atualizadoPor; dados.criadoEm=Date.now();
+      await db.collection('crm_leads').add(dados);
+    }
+    fecharModal('ov-lead');
+    await carregarTudo();
+  }catch(e){ erro('ld-erro', msgErro(e)); }
+  finally{ btn.disabled=false; btn.textContent='Salvar'; }
+}
+
+async function excluirLead(){
+  if(!_ldEdit) return;
+  var l=LEADS.filter(function(x){ return x.id===_ldEdit; })[0]||{};
+  if(!confirm('Excluir o lead "'+(l.empresa||'')+'"?\n\nO histórico de atividades vai junto. Isso não volta.')) return;
+  try{
+    var lote=db.batch();
+    lote.delete(db.collection('crm_leads').doc(_ldEdit));
+    atividadesDo(_ldEdit).forEach(function(a){ lote.delete(db.collection('crm_atividades').doc(a.id)); });
+    await lote.commit();
+    fecharModal('ov-lead');
+    await carregarTudo();
+  }catch(e){ erro('ld-erro', msgErro(e)); }
+}
+
+/* ── Atividade ─────────────────────────────────────────────────── */
+function abrirAtividade(){
+  if(!_ldEdit){ erro('ld-erro','Salve o lead antes de registrar atividade.'); return; }
+  sv('at-tipo','LIGACAO');
+  sv('at-data', new Date().toISOString().slice(0,10));
+  sv('at-desc',''); sv('at-proxima',''); sv('at-proxdata','');
+  erro('at-erro','');
+  document.getElementById('ov-atividade').classList.add('on');
+}
+
+async function salvarAtividade(){
+  var desc=gv('at-desc');
+  if(!desc) return erro('at-erro','Descreva o que aconteceu — é isso que serve de histórico.');
+  erro('at-erro','');
+  var btn=document.getElementById('at-salvar');
+  btn.disabled=true; btn.textContent='Salvando…';
+  try{
+    await db.collection('crm_atividades').add({
+      leadId:_ldEdit, tipo:gv('at-tipo'), descricao:desc,
+      data:dBR(gv('at-data'))||dBR(new Date().toISOString().slice(0,10)),
+      autor:quemSou(), criadoEm:Date.now()
+    });
+    /* Se a atividade define a próxima ação, ela substitui a do lead —
+       senão a ficha fica dizendo para ligar para quem já foi ligado. */
+    var prox=gv('at-proxima');
+    if(prox){
+      await db.collection('crm_leads').doc(_ldEdit).update({
+        proximaAcao:prox, dataProximaAcao:dBR(gv('at-proxdata')),
+        atualizadoPor:quemSou(), atualizadoEm:new Date().toLocaleString('pt-BR')
+      });
+    }
+    fecharModal('ov-atividade');
+    await carregarTudo();
+    /* Volta para a ficha com o histórico já atualizado. */
+    abrirLead(_ldEdit);
+  }catch(e){ erro('at-erro', msgErro(e)); }
+  finally{ btn.disabled=false; btn.textContent='Salvar'; }
+}
+
+function fecharModal(id){ document.getElementById(id).classList.remove('on'); }
+
+/* ── Acesso ────────────────────────────────────────────────────────
+   O CRM é da equipe NH: e-mail real, cadastrado em Configurações ›
+   Usuários do Sistema NH. Empresa cliente entra por WhatsApp nos outros
+   sistemas e não tem o que fazer aqui — a lista de prospecção é da NH.
+   ══════════════════════════════════════════════════════════════════ */
+async function entrar(){
+  var email=gv('ac-email'), senha=document.getElementById('ac-senha').value;
+  var msg=document.getElementById('ac-msg'), btn=document.getElementById('ac-btn');
+  if(!email||!senha){ msg.style.display='block'; msg.textContent='Preencha e-mail e senha.'; return; }
+  if(email.indexOf('@')<0){
+    msg.style.display='block';
+    msg.innerHTML='Aqui o acesso é <b>pelo e-mail</b>, não pelo WhatsApp — este sistema é da equipe NH.';
+    return;
+  }
+  msg.style.display='none';
+  btn.disabled=true; btn.textContent='Entrando…';
+  try{ await auth.signInWithEmailAndPassword(email, senha); }
+  catch(e){
+    var c=String(e&&e.code||'');
+    msg.style.display='block';
+    msg.innerHTML=(c.indexOf('too-many-requests')>=0)
+      ? 'Muitas tentativas seguidas. Aguarde alguns minutos.'
+      : 'E-mail ou senha incorretos.';
+    btn.disabled=false; btn.textContent='Entrar';
+  }
+}
+function sair(){ auth.signOut(); }
+
+auth.onAuthStateChanged(async function(u){
+  var acesso=document.getElementById('tela-acesso');
+  var btn=document.getElementById('ac-btn');
+  if(!u){
+    acesso.style.display='flex';
+    document.getElementById('topo').style.display='none';
+    document.getElementById('app').style.display='none';
+    btn.disabled=false; btn.textContent='Entrar';
+    return;
+  }
+  if(/@nh\.interno$/i.test(u.email||'')){
+    var m=document.getElementById('ac-msg');
+    m.style.display='block';
+    m.innerHTML='Este acesso &eacute; de empresa cliente e n&atilde;o abre o CRM.';
+    await auth.signOut();
+    return;
+  }
+  acesso.style.display='none';
+  document.getElementById('topo').style.display='flex';
+  document.getElementById('app').style.display='block';
+  try{ await carregarTudo(); }
+  catch(e){
+    document.getElementById('painel').innerHTML='<div class="kpi" style="padding:22px">'+
+      '<div style="font-size:13px;color:var(--t2)">'+esc(msgErro(e))+'</div></div>';
+  }
+});
+
+/* Esc fecha o modal de cima. */
+document.addEventListener('keydown', function(e){
+  if(e.key!=='Escape') return;
+  var abertos=document.querySelectorAll('.ov.on');
+  if(abertos.length) abertos[abertos.length-1].classList.remove('on');
+});
+
+</script>
+</body>
+</html>
+
