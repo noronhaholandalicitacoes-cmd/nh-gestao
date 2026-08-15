@@ -2659,9 +2659,20 @@ function gerarDashboard(){
   const _arrsPorEmp = {};
   empresasParaMostrar.forEach(e => { _arrsPorEmp[e] = []; });
   const _semEmpresa = [];
+  /* ⚠️ Este casamento era `===` exato, e foi o que sobrou do conserto
+     de 15/08: eu corrigi `carregarContratos()` e esqueci daqui.
+     Resultado: os contratos carregavam, a lista aparecia, e o DASHBOARD
+     — que é o topo da tela — vinha zerado, porque um contrato lançado
+     como "Onlav Serviços" não achava a chave "ONLAV" e caía no balde
+     de descartados. O usuário via "tudo zerado" e a explicação que eu
+     tinha escrito nem aparecia, porque a lista abaixo estava cheia.
+
+     Agora usa `mesmaEmpresa()`, o mesmo critério da lista. Um lugar só
+     decidindo o que é a mesma empresa. */
   dadosGanhas.forEach(({arr}) => {
-    const emp = String(arr[IDX.EMPRESA]||'').trim().toUpperCase();
-    if(_arrsPorEmp[emp]) _arrsPorEmp[emp].push(arr);
+    const emp = String(arr[IDX.EMPRESA]||'').trim();
+    const chave = empresasParaMostrar.find(e => mesmaEmpresa(e, emp));
+    if(chave) _arrsPorEmp[chave].push(arr);
     else _semEmpresa.push(arr);
   });
   if(_semEmpresa.length){
@@ -3050,12 +3061,35 @@ const cols = isAdmin ? 'repeat(auto-fill,minmax(300px,1fr))' : '1fr';  // grade 
     ? 'Carteira, execução e vencimentos de cada empresa do Grupo.'
     : 'Sua carteira de contratos: o que está ativo, o que vence e o que foi recomposto.';
   dash.style.display = 'block';
+  /* Contrato que ficou de fora do dashboard costumava ir só para o
+     console — invisível para quem usa. Era assim que "tudo zerado"
+     acontecia sem uma linha de explicação. Agora aparece na tela, com
+     o nome de como o contrato foi lançado, que é o dado necessário
+     para corrigir o cadastro. */
+  var _aviso = '';
+  if(_semEmpresa.length){
+    var _nomes = {};
+    _semEmpresa.forEach(function(a){
+      var n=String(a[IDX.EMPRESA]||'').trim() || '(sem empresa preenchida)';
+      _nomes[n]=(_nomes[n]||0)+1;
+    });
+    _aviso =
+      '<div style="background:rgba(234,179,8,.09);border:1px solid rgba(234,179,8,.35);'+
+      'border-left:3px solid #eab308;border-radius:10px;padding:13px 15px;margin-bottom:16px;font-size:12.5px;line-height:1.6;color:var(--t2)">'+
+      '<b style="color:#eab308">'+_semEmpresa.length+' contrato(s) fora deste painel.</b> '+
+      'A empresa deles está escrita de um jeito que não bate com o cadastro: '+
+      Object.keys(_nomes).sort().map(function(n){
+        return '<b>'+pEsc(n)+'</b> ('+_nomes[n]+')'; }).join(', ')+'. '+
+      'Ajuste o campo <b>Empresa</b> desses contratos no Sistema NH, ou o nome em Configurações › Empresas.'+
+      '</div>';
+  }
+
   dash.innerHTML =
     '<div class="psec">' +
       '<span class="psec-olho">Visão geral</span>' +
       '<div class="psec-tit">'+pEsc(titulo)+'</div>' +
       '<div class="psec-sub">'+apoio+'</div>' +
-    '</div>' +
+    '</div>' + _aviso +
     '<div class="emp-grid" style="display:grid;grid-template-columns:'+cols+';gap:16px;align-items:start">'+cards.join('')+'</div>' +
     '<div style="height:1px;background:rgba(255,255,255,.06);margin:22px 0"></div>';
 
@@ -4182,7 +4216,9 @@ function _execOuvir(colecao, destino){
       /* A empresa cliente só carrega o que é dela. O corte de verdade
          é a regra do Firestore; isto evita guardar em memória o que
          não vai ser mostrado. */
-      if(!isAdmin && String(d.empresa||'').trim().toUpperCase() !== empAtual) return;
+      /* Mesmo critério da lista e do dashboard. Com `!==` exato, a
+         empresa via os contratos e não via o faturamento deles. */
+      if(!isAdmin && !mesmaEmpresa(d.empresa, empAtual)) return;
       (novo[cid] = novo[cid] || []).push(Object.assign({id:doc.id}, d));
     });
     Object.keys(novo).forEach(function(cid){
