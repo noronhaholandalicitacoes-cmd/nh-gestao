@@ -871,6 +871,40 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 .ac-a2{width:80%;height:80%;border-top-color:rgba(124,58,237,.6);border-left-color:rgba(124,58,237,.2);animation-direction:reverse;animation-duration:6s}
 .ac-a3{width:60%;height:60%;border-bottom-color:rgba(59,130,246,.6);border-right-color:rgba(59,130,246,.2);animation-duration:8s}
 @keyframes acGira{to{transform:rotate(360deg)}}
+/* ── Selo NH ───────────────────────────────────────────────────────
+   A marca do cabeçalho, igual nos quatro sistemas: mesma logo, mesmos
+   42px, mesmo canto, e os três anéis girando em volta — os mesmos da
+   tela de acesso, em escala menor.
+
+   Antes cada sistema tinha o seu: 46px redondo no Sistema NH, 40px no
+   Viabilidade, 38px no Portal e uma <img> de 30px apontando para um
+   arquivo inexistente no Financeiro. Quatro tamanhos, quatro formatos
+   e um quebrado. Agora é um só, e mexer aqui muda em todos. */
+.nh-selo{position:relative;width:54px;height:54px;display:inline-flex;
+  align-items:center;justify-content:center;flex-shrink:0}
+.nh-selo-anel{position:absolute;border-radius:50%;border:2px solid transparent;
+  animation:acGira 6s linear infinite}
+.nh-selo-anel.a1{width:100%;height:100%;border-top-color:rgba(249,115,22,.6);
+  border-right-color:rgba(249,115,22,.2);animation-duration:4s}
+.nh-selo-anel.a2{width:82%;height:82%;border-top-color:rgba(124,58,237,.6);
+  border-left-color:rgba(124,58,237,.2);animation-direction:reverse;animation-duration:6s}
+.nh-selo-anel.a3{width:64%;height:64%;border-bottom-color:rgba(59,130,246,.6);
+  border-right-color:rgba(59,130,246,.2);animation-duration:8s}
+/* O !important vence os tamanhos antigos que cada sistema declarava
+   para a sua própria marca — assim não preciso caçar cada um deles. */
+.nh-selo .logo-mark,.nh-selo .sb-logomark,.nh-selo .nh-marca,.nh-selo .marca-img{
+  position:relative;z-index:2;
+  width:38px!important;height:38px!important;border-radius:12px!important;
+  margin:0!important;overflow:hidden;flex-shrink:0;
+  box-shadow:0 4px 14px rgba(249,115,22,.35);
+}
+/* Os anéis do selo giram sempre, como os da tela de acesso. */
+@media (prefers-reduced-motion:reduce){
+  .nh-selo-anel{animation:acGira 6s linear infinite!important}
+  .nh-selo-anel.a1{animation-duration:4s!important}
+  .nh-selo-anel.a2{animation-duration:6s!important;animation-direction:reverse!important}
+  .nh-selo-anel.a3{animation-duration:8s!important}
+}
 .ac-marca{position:relative;z-index:2;width:52px;height:52px;border-radius:16px;
   display:flex;align-items:center;justify-content:center;
   font-size:17px;font-weight:800;letter-spacing:-.02em;
@@ -996,7 +1030,10 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
     <div class="topbar-logo">
       <!-- Logo igual à imagem: ícone laranja circular + texto -->
       <div style="display:flex;align-items:center;gap:10px">
-        <div class="nh-marca" style="width:38px;height:38px;border-radius:11px;flex-shrink:0"></div>
+        <span class="nh-selo">
+          <span class="nh-selo-anel a1"></span><span class="nh-selo-anel a2"></span><span class="nh-selo-anel a3"></span>
+          <span class="nh-marca"></span>
+        </span>
         <div>
           <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:var(--t1);line-height:1.1">NH <span style="color:#f97316">Licitações</span></div>
           <div style="font-size:10px;color:var(--t3);font-weight:600;letter-spacing:.04em">Gerenciamento de Contratos</div>
