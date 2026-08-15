@@ -401,6 +401,40 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 .ac-a2{width:80%;height:80%;border-top-color:rgba(124,58,237,.6);border-left-color:rgba(124,58,237,.2);animation-direction:reverse;animation-duration:6s}
 .ac-a3{width:60%;height:60%;border-bottom-color:rgba(59,130,246,.6);border-right-color:rgba(59,130,246,.2);animation-duration:8s}
 @keyframes acGira{to{transform:rotate(360deg)}}
+/* ── Selo NH ───────────────────────────────────────────────────────
+   A marca do cabeçalho, igual nos quatro sistemas: mesma logo, mesmos
+   42px, mesmo canto, e os três anéis girando em volta — os mesmos da
+   tela de acesso, em escala menor.
+
+   Antes cada sistema tinha o seu: 46px redondo no Sistema NH, 40px no
+   Viabilidade, 38px no Portal e uma <img> de 30px apontando para um
+   arquivo inexistente no Financeiro. Quatro tamanhos, quatro formatos
+   e um quebrado. Agora é um só, e mexer aqui muda em todos. */
+.nh-selo{position:relative;width:54px;height:54px;display:inline-flex;
+  align-items:center;justify-content:center;flex-shrink:0}
+.nh-selo-anel{position:absolute;border-radius:50%;border:2px solid transparent;
+  animation:acGira 6s linear infinite}
+.nh-selo-anel.a1{width:100%;height:100%;border-top-color:rgba(249,115,22,.6);
+  border-right-color:rgba(249,115,22,.2);animation-duration:4s}
+.nh-selo-anel.a2{width:82%;height:82%;border-top-color:rgba(124,58,237,.6);
+  border-left-color:rgba(124,58,237,.2);animation-direction:reverse;animation-duration:6s}
+.nh-selo-anel.a3{width:64%;height:64%;border-bottom-color:rgba(59,130,246,.6);
+  border-right-color:rgba(59,130,246,.2);animation-duration:8s}
+/* O !important vence os tamanhos antigos que cada sistema declarava
+   para a sua própria marca — assim não preciso caçar cada um deles. */
+.nh-selo .logo-mark,.nh-selo .sb-logomark,.nh-selo .nh-marca,.nh-selo .marca-img{
+  position:relative;z-index:2;
+  width:38px!important;height:38px!important;border-radius:12px!important;
+  margin:0!important;overflow:hidden;flex-shrink:0;
+  box-shadow:0 4px 14px rgba(249,115,22,.35);
+}
+/* Os anéis do selo giram sempre, como os da tela de acesso. */
+@media (prefers-reduced-motion:reduce){
+  .nh-selo-anel{animation:acGira 6s linear infinite!important}
+  .nh-selo-anel.a1{animation-duration:4s!important}
+  .nh-selo-anel.a2{animation-duration:6s!important;animation-direction:reverse!important}
+  .nh-selo-anel.a3{animation-duration:8s!important}
+}
 .ac-marca{position:relative;z-index:2;width:52px;height:52px;border-radius:16px;
   display:flex;align-items:center;justify-content:center;
   font-size:17px;font-weight:800;letter-spacing:-.02em;
@@ -495,7 +529,10 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 
 <div class="header">
   <div class="logo">
-    <div class="logo-mark">NH</div>
+    <span class="nh-selo">
+      <span class="nh-selo-anel a1"></span><span class="nh-selo-anel a2"></span><span class="nh-selo-anel a3"></span>
+      <span class="logo-mark"></span>
+    </span>
     <div class="logo-info">
       <div class="title">NH Licitações</div>
       <div class="sub" id="hd-sub">Análise de Viabilidade</div>
@@ -653,7 +690,13 @@ function resolverPerfilResponsavel(num, lista) {
   if (!r.todas && !(r.empresas || []).length) {
     return {ok: false, motivo: 'Seu acesso ainda não tem empresa vinculada. Fale com a NH.'};
   }
-  return {ok: true, sessao: {num: num, nome: r.nome || '', empresas: r.empresas || [], todas: !!r.todas}};
+  /* 'empresa' = vê tudo das empresas marcadas; 'meus' = só o que está
+     no nome dela. Cadastro sem o campo vale como 'empresa': é o que o
+     admin marcou na tela. Antes o sistema assumia 'meus' sem dizer, e
+     quem entrava novo — nome ainda não usado em edital nenhum — abria
+     a tela vazia mesmo com as empresas certas liberadas. */
+  return {ok: true, sessao: {num: num, nome: r.nome || '', empresas: r.empresas || [], todas: !!r.todas,
+                             escopo: (r.escopoViab === 'meus' ? 'meus' : 'empresa')}};
 }
 // Cores reais vêm do Firebase (config/empresas) — o objeto acima é só fallback
 // de segurança para o caso de falha de conexão antes do fetch completar.
@@ -906,14 +949,21 @@ function _mesmaPessoa(a,b){
   return ua.length>=3&&ub.length>=3&&ua===ub;
 }
 
-/* Além da empresa, o edital precisa ser DESTE responsável. Sem isso,
-   um edital da SOS lançado no nome do Antunes aparecia na tela do
-   Noronha só porque a empresa é dele — e vice-versa. Quem tem "vê
-   todas" (assessoria) continua enxergando tudo. Edital ainda sem
-   responsável definido continua visível para não sumir da fila. */
+/* Restringe ao responsável do edital — mas SÓ quando o cadastro pediu
+   isso ("Só os processos no nome dela"). Serve para quando duas pessoas
+   dividem a mesma empresa e cada uma cuida dos seus: sem isso, um edital
+   da SOS lançado no nome do Antunes aparecia na tela do Noronha.
+
+   Isto já foi o comportamento padrão, sem estar escrito em lugar nenhum,
+   e era uma armadilha: quem entrava novo não tinha o nome em edital
+   algum, então via a tela zerada com as empresas todas certas. Agora é
+   escolha explícita na tela de Acessos, e o padrão é ver tudo das
+   empresas marcadas. Edital ainda sem responsável continua visível para
+   não sumir da fila. */
 function podeVerResp(valor){
   if(!SESSAO)return false;
   if(SESSAO.todas)return true;
+  if(SESSAO.escopo!=='meus')return true;
   var meu=String(SESSAO.nome||'').trim();
   if(!meu)return true;
   var partes=partesResp(valor);
@@ -938,15 +988,26 @@ async function carregar(){
     await carregarAnalisesViab();
     var snap=await db.collection('editais').orderBy('_id','desc').get();
     TODOS=[];
+    /* Cada edital descartado é contado junto com o MOTIVO. Sem isso a
+       tela vazia não distingue "não existe nada" de "existe, mas o seu
+       acesso está apertado demais" — e foi exatamente essa confusão que
+       fez o acesso de um colaborador novo parecer quebrado. */
+    var _desc={total:0, semArr:0, empresa:0, resp:0, outrasEmps:{}};
     snap.forEach(function(doc){
       var d=doc.data();
-      if(!d._arr) return;
-      if(!podeVer(d._arr[2])) return;
-      if(!podeVerResp(d._arr[9])) return;
+      if(!d._arr){_desc.semArr++; return;}
+      _desc.total++;
+      if(!podeVer(d._arr[2])){
+        _desc.empresa++;
+        var e=String(d._arr[2]||'').trim(); if(e)_desc.outrasEmps[e]=(_desc.outrasEmps[e]||0)+1;
+        return;
+      }
+      if(!podeVerResp(d._arr[9])){_desc.resp++; return;}
       TODOS.push({id:doc.id,_id:d._id,arr:d._arr});
     });
     TODOS.sort(function(a,b){return b._id-a._id;});
     _canon=null;
+    if(!TODOS.length){ vExplicarVazio(_desc); return; }
     buildFiltrosEmpresas();
     buildFiltrosResp();
     /* Os anos saem dos editais carregados. */
@@ -955,6 +1016,49 @@ async function carregar(){
   }catch(e){
     document.getElementById('main-content').innerHTML='<div class="empty"><div class="empty-ico">⚠️</div>Erro ao carregar: '+esc(e.message)+'</div>';
   }
+}
+
+/* Tela vazia que se explica. A pessoa entrou, o acesso é válido, e
+   mesmo assim não há o que mostrar — ela precisa saber se o problema é
+   dela, do cadastro ou simplesmente não há edital ainda. E precisa
+   saber o que dizer à NH. */
+function vExplicarVazio(d){
+  var minhas=(SESSAO.todas?'todas as empresas'
+    :(SESSAO.empresas||[]).map(function(v){
+        var s=String(v||'').trim();
+        if(/^\d{11,}$/.test(s.replace(/\D/g,''))){
+          for(var k in EMP_CNPJS){if(EMP_CNPJS[k]===s.replace(/\D/g,''))return k;}
+        }
+        return s;
+      }).join(', ')) || '—';
+
+  var tit,txt,dica='';
+  if(!d.total){
+    tit='Nenhum edital cadastrado ainda';
+    txt='O sistema est&aacute; funcionando e seu acesso est&aacute; certo &mdash; ainda n&atilde;o h&aacute; edital lan&ccedil;ado.';
+  }else if(d.resp>0){
+    tit=d.resp+(1===d.resp?' processo est&aacute;':' processos est&atilde;o')+' no nome de outro respons&aacute;vel';
+    txt='Seu acesso est&aacute; configurado para mostrar <b>s&oacute; os processos lan&ccedil;ados no seu nome</b>, e '+
+        'nenhum dos '+d.resp+' das suas empresas est&aacute;.';
+    dica='Pe&ccedil;a &agrave; NH para abrir <b>Acessos &rsaquo; '+esc(SESSAO.nome||'seu acesso')+'</b> e marcar '+
+         '&ldquo;<b>Tudo das empresas marcadas</b>&rdquo;.';
+  }else{
+    var outras=Object.keys(d.outrasEmps).sort();
+    tit='Nenhum processo das suas empresas';
+    txt='Voc&ecirc; tem acesso a <b>'+esc(minhas)+'</b>. H&aacute; '+d.total+' processo'+(1===d.total?'':'s')+
+        ' no sistema, mas nenhum dessas empresas.';
+    if(outras.length)dica='Os processos existentes s&atilde;o de: <b>'+esc(outras.slice(0,8).join(', '))+
+      '</b>'+(outras.length>8?' e outras':'')+'. Se alguma dessas deveria ser sua, o nome pode estar '+
+      'escrito diferente no cadastro &mdash; avise a NH.';
+  }
+
+  document.getElementById('main-content').innerHTML=
+    '<div class="empty"><div class="empty-ico">&#128269;</div>'+
+    '<div style="font-size:16px;font-weight:800;color:var(--t1);margin-bottom:8px">'+tit+'</div>'+
+    '<div style="max-width:520px;margin:0 auto;line-height:1.6;color:var(--t2);font-size:13px">'+txt+
+    (dica?'<div style="margin-top:14px;padding:12px 14px;background:var(--s2);border:1px solid var(--b1);'+
+          'border-radius:10px;text-align:left">'+dica+'</div>':'')+
+    '</div></div>';
 }
 
 function buildFiltrosResp(){
