@@ -301,12 +301,14 @@ body.light .ac-form{background:rgba(255,255,255,.75)}
         <input type="password" id="ac-senha" placeholder="••••••••" autocomplete="current-password"></div>
       <button class="btn btn-nh" id="ac-btn" style="width:100%;justify-content:center;padding:12px;font-size:14px" onclick="entrar()">Entrar</button>
       <div class="msg-erro" id="ac-msg"></div>
-      <!-- Dito na entrada, não só no erro: este é o único sistema em
-           que o login por WhatsApp não vale, e sem avisar a pessoa
-           tenta o número e leva "senha incorreta" sem entender. -->
+      <!-- O texto antigo dizia "acesso da equipe NH, pelo e-mail
+           cadastrado no Sistema NH". Estava errado e convidava ao erro:
+           o sistema é restrito aos SÓCIOS, e qualquer colaborador da
+           equipe que tentasse levaria uma recusa depois de digitar a
+           senha, sem entender por quê. Agora a porta diz de quem é. -->
       <div style="font-size:11.5px;color:var(--t3);text-align:center;margin-top:16px;line-height:1.6">
-        Acesso da <b style="color:var(--t2)">equipe NH</b>, pelo e-mail cadastrado no Sistema NH.<br>
-        Acesso de empresa (por WhatsApp) não entra aqui.
+        Sistema <b style="color:var(--t2)">restrito aos sócios</b>.<br>
+        Depois do e-mail e senha, é pedida a <b style="color:var(--t2)">senha do financeiro</b> — que é outra.
       </div>
     </div>
   </div>
@@ -328,6 +330,7 @@ body.light .ac-form{background:rgba(255,255,255,.75)}
   </div>
   <div style="flex:1"></div>
   <button class="btn" onclick="imprimirRelatorio()" title="Relatório do mês — imprimir ou salvar em PDF">🖨️ Relatório</button>
+  <button class="btn" onclick="trocarSenhaFinanceiro()" title="Trocar a senha exclusiva deste sistema">🔒 Senha</button>
   <button class="btn" onclick="trocarTema()" id="btn-tema">◐</button>
   <button class="btn" onclick="sair()">Sair</button>
 </div>
@@ -529,6 +532,13 @@ var _finApp=(firebase.apps||[]).filter(function(a){return a.name==='nh-financeir
 const db=_finApp.firestore();
 const auth=_finApp.auth();
 db.settings({experimentalAutoDetectLongPolling:true,merge:true});
+
+/* Terceira instância, só para conferir a segunda senha. Entrar nela não
+   mexe na sessão do sócio — é o que permite validar uma credencial
+   diferente sem derrubar quem está na tela. */
+var _finApp2=(firebase.apps||[]).filter(function(a){return a.name==='nh-fin-cofre';})[0]
+  || firebase.initializeApp(firebaseConfig,'nh-fin-cofre');
+const authCofre=_finApp2.auth();
 
 /* ── Estado ────────────────────────────────────────────────────── */
 var EMPRESAS=[];        /* {nome, cnpj} de config/empresas   */
@@ -2198,6 +2208,123 @@ function msgErro(e){
 var SOCIOS=['noronhaholandalicitacoes@gmail.com','noronhaholanda@gmail.com'];
 function ehSocio(email){ return SOCIOS.indexOf(String(email||'').trim().toLowerCase())>=0; }
 
+/* ── Segunda senha: a do financeiro ───────────────────────────────
+   O e-mail e a senha do primeiro passo são os MESMOS que abrem o
+   Sistema NH, onde a equipe inteira trabalha. Quem tiver aquela senha
+   por qualquer motivo — computador destravado, senha anotada, alguém
+   que já a conheceu — entraria direto no financeiro do escritório.
+   Uma credencial que abre duas portas de sensibilidade tão diferente
+   não deveria abrir a segunda.
+
+   Então há um segundo segredo, exclusivo daqui: uma conta dedicada no
+   Firebase Auth que ninguém usa para entrar em lugar nenhum. Quem
+   confere é o servidor da Google, e a senha não fica guardada — nem
+   aqui, nem no banco.
+
+   Fica na sessão do navegador (sessionStorage): fechou a aba, pede de
+   novo. Diferente do cofre dos Acessos, que vale 10 minutos — aqui o
+   assunto é o dinheiro da NH, e a exigência é maior. */
+var FIN_CONTA_COFRE='cofre.financeiro@nh.interno';
+
+function finCofreLiberado(){
+  try{ return sessionStorage.getItem('nh_fin_cofre')==='1'; }catch(e){ return false; }
+}
+function finCofreMarcar(v){
+  try{ v ? sessionStorage.setItem('nh_fin_cofre','1') : sessionStorage.removeItem('nh_fin_cofre'); }catch(e){}
+}
+
+async function finPedirCofre(){
+  var s=prompt('Senha do financeiro:\n\n(é a senha exclusiva deste sistema, não a do seu login)');
+  if(s===null) return false;
+  if(!s) return false;
+  try{
+    await authCofre.signInWithEmailAndPassword(FIN_CONTA_COFRE, String(s));
+    try{ await authCofre.signOut(); }catch(e){}
+    finCofreMarcar(true);
+    return true;
+  }catch(e){
+    try{ await authCofre.signOut(); }catch(e2){}
+    if(String(e&&e.code||'').indexOf('too-many-requests')>=0){
+      alert('Muitas tentativas. Aguarde alguns minutos.');
+      return false;
+    }
+    /* A proteção contra enumeração de contas do Firebase devolve o
+       mesmo erro para senha errada e para conta inexistente — de
+       propósito. Como não dá para distinguir, pergunta. */
+    return finCofreIndefinido();
+  }
+}
+
+async function finCofreIndefinido(){
+  var criar=confirm('A senha não confere.\n\n'
+    + 'Pode ser que ela esteja errada, ou que a senha do financeiro ainda '
+    + 'não tenha sido criada (primeira vez). O Firebase não diz qual dos dois.\n\n'
+    + 'Se for a primeira vez, clique OK para criá-la agora.\n'
+    + 'Se você já tem a senha e só errou, clique Cancelar e tente de novo.');
+  if(!criar) return false;
+
+  var a=prompt('Crie a senha do financeiro (mínimo 8 caracteres):');
+  if(a===null) return false;
+  a=String(a);
+  if(a.length<8){ alert('A senha precisa de ao menos 8 caracteres.'); return false; }
+  var b=prompt('Digite de novo para confirmar:');
+  if(b===null) return false;
+  if(a!==b){ alert('As duas senhas não são iguais.'); return false; }
+
+  try{
+    await authCofre.createUserWithEmailAndPassword(FIN_CONTA_COFRE, a);
+    try{ await authCofre.signOut(); }catch(e){}
+    finCofreMarcar(true);
+    alert('Senha do financeiro criada. Anote — ela não fica guardada no sistema.');
+    return true;
+  }catch(e){
+    try{ await authCofre.signOut(); }catch(e2){}
+    if(String(e&&e.code||'').indexOf('email-already-in-use')>=0){
+      alert('A senha do financeiro já existe — a que você digitou é que está incorreta. Tente de novo.');
+      return false;
+    }
+    alert('Não consegui criar: '+((e&&e.message)||e));
+    return false;
+  }
+}
+
+/* Trocar a senha do financeiro. Existe aqui porque não existe em lugar
+   nenhum: o console do Firebase só oferece "redefinir por e-mail", e
+   cofre.financeiro@nh.interno é domínio interno — o e-mail não chega.
+   Pede a atual antes, para não bastar estar diante da tela aberta. */
+async function trocarSenhaFinanceiro(){
+  var atual=prompt('Senha ATUAL do financeiro:');
+  if(atual===null) return;
+  var cred;
+  try{
+    cred=await authCofre.signInWithEmailAndPassword(FIN_CONTA_COFRE, String(atual));
+  }catch(e){
+    try{ await authCofre.signOut(); }catch(e2){}
+    if(String(e&&e.code||'').indexOf('too-many-requests')>=0){ alert('Muitas tentativas. Aguarde.'); return; }
+    await finCofreIndefinido();
+    return;
+  }
+  var n1=prompt('Nova senha (mínimo 8 caracteres):');
+  if(n1===null){ try{ await authCofre.signOut(); }catch(e){} return; }
+  n1=String(n1);
+  if(n1.length<8){ try{ await authCofre.signOut(); }catch(e){} alert('Mínimo 8 caracteres.'); return; }
+  var n2=prompt('Digite a nova senha de novo:');
+  if(n2===null){ try{ await authCofre.signOut(); }catch(e){} return; }
+  if(n1!==n2){ try{ await authCofre.signOut(); }catch(e){} alert('As duas senhas não são iguais.'); return; }
+
+  try{
+    var u=(cred&&cred.user)||authCofre.currentUser;
+    await u.updatePassword(n1);
+    try{ await authCofre.signOut(); }catch(e){}
+    /* Trocou a fechadura: a liberação desta sessão cai junto. */
+    finCofreMarcar(false);
+    alert('Senha do financeiro trocada. Anote — ela não fica guardada.\n\nVocê vai precisar dela ao recarregar a página.');
+  }catch(e){
+    try{ await authCofre.signOut(); }catch(e2){}
+    alert('Não consegui trocar: '+((e&&e.message)||e));
+  }
+}
+
 async function entrar(){
   var email=gv('ac-email'), senha=document.getElementById('ac-senha').value;
   var msg=document.getElementById('ac-msg'), btn=document.getElementById('ac-btn');
@@ -2254,6 +2381,20 @@ auth.onAuthStateChanged(async function(u){
     await auth.signOut();
     return;
   }
+  /* Segunda porta: a senha exclusiva do financeiro. Fica ANTES de
+     mostrar qualquer número — recusar aqui não pode deixar o painel
+     aparecer por um instante que seja. */
+  if(!finCofreLiberado()){
+    var ok=await finPedirCofre();
+    if(!ok){
+      var m2=document.getElementById('ac-msg');
+      m2.style.display='block';
+      m2.innerHTML='Senha do financeiro n&atilde;o confirmada. Recarregue e tente de novo.';
+      await auth.signOut();
+      return;
+    }
+  }
+
   acesso.style.display='none';
   document.getElementById('topo').style.display='flex';
   document.getElementById('app').style.display='block';
