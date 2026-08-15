@@ -3124,11 +3124,13 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
       <div class="ac-topo-tit">Acessos das pessoas</div>
       <div class="ac-topo-sub">Quem entra no <b>An&aacute;lise de Viabilidade</b> e no <b>Portal de Contratos</b>. O login &eacute; o WhatsApp da pessoa e uma senha.</div>
     </div>
+    <button class="btn btn-ghost" onclick="acAuditar()" title="Conferir todos os acessos e apontar o que merece aten&ccedil;&atilde;o">&#128269; Auditoria</button>
     <button class="btn btn-ghost" onclick="acTrocarCofre()" title="Trocar a senha exclusiva desta aba">&#128274; Senha do cofre</button>
     <button class="btn btn-nh" onclick="acNovo()">&#43; Novo acesso</button>
   </div>
 
   <div class="ac-resumo" id="ac-resumo"></div>
+  <div id="ac-auditoria"></div>
 
   <div class="ac-filtros">
     <input type="text" id="ac-busca" placeholder="&#128269; Buscar por nome, WhatsApp ou empresa..." oninput="acRender()">
@@ -4570,6 +4572,156 @@ function acFiltro(f){
   document.querySelectorAll('#ac-filtro button').forEach(function(b){
     b.classList.toggle('on',b.getAttribute('data-f')===f);});
   acRender();
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   AUDITORIA DE ACESSOS
+
+   Não é relatório de uma vez só: é uma tela que responde "quem entra
+   em quê, e o que está estranho" sempre que for aberta.
+
+   A lista de verificações saiu dos erros que já aconteceram de verdade
+   neste sistema — acesso zerado por falta de empresa, responsável de
+   edital sem acesso à empresa, cadastro antigo herdando sistema por
+   omissão. Cada item diz QUEM, não só quantos: sem o nome, a pessoa
+   não tem o que fazer com o aviso.
+   ══════════════════════════════════════════════════════════════════ */
+function acAuditar(){
+  var box=document.getElementById('ac-auditoria');
+  if(!box) return;
+  /* Segundo clique fecha — o painel é longo e empurra a lista. */
+  if(box.innerHTML){ box.innerHTML=''; return; }
+
+  var nums=Object.keys(RESPONSAVEIS||{});
+  var itens=[];
+
+  function achado(nivel, titulo, lista, oQueFazer){
+    if(!lista.length) return;
+    itens.push({nivel:nivel, titulo:titulo, lista:lista, acao:oQueFazer});
+  }
+  var nome=function(n){
+    var r=RESPONSAVEIS[n]||{};
+    return (r.nome||'(sem nome)')+' · '+nhFormataWpp(n);
+  };
+
+  /* 1. Sem sistema marcado: o cadastro antigo herda Viabilidade e
+        Portal por omissão. Foi decisão consciente para ninguém perder
+        acesso quando o campo nasceu — mas hoje é acesso que ninguém
+        concedeu de propósito. */
+  achado('alto','Entram em dois sistemas sem ninguém ter marcado',
+    nums.filter(function(n){ return !(RESPONSAVEIS[n]||{}).acessos; }).map(nome),
+    'Cadastro anterior ao controle por sistema. Abra cada um, confira o que deve abrir e salve — isso grava a escolha.');
+
+  /* 2. Vencido mas ainda ativo: não entra, mas fica poluindo a lista e
+        esconde o fato de que aquela pessoa deveria ter saído. */
+  achado('medio','Acesso vencido e ainda marcado como ativo',
+    nums.filter(function(n){ var r=acNormaliza(RESPONSAVEIS[n]); return r.ativo && acExpirado(r); }).map(nome),
+    'Já não conseguem entrar. Desative ou renove, para a lista dizer a verdade.');
+
+  /* 3. Sem empresa: entra e vê tela vazia. Foi exatamente o erro que
+        levou dois dias para ser entendido. */
+  achado('alto','Sem empresa vinculada — vão ver tudo zerado',
+    nums.filter(function(n){ var r=acNormaliza(RESPONSAVEIS[n]);
+      return r.ativo && !r.todas && !(r.empresas||[]).length; }).map(nome),
+    'Marque as empresas, ou "Todas as empresas".');
+
+  /* 4. Sem senha nenhuma: o registro existe e a pessoa não entra. */
+  achado('medio','Sem senha definida',
+    nums.filter(function(n){ var r=RESPONSAVEIS[n]||{}; return !r.temSenha && !r.hash; }).map(nome),
+    'Edite e preencha o campo Senha — sem isso o login não existe.');
+
+  /* 5. Quem vê tudo. Não é erro; é poder, e poder tem de ser visível. */
+  achado('info','Enxergam TODAS as empresas',
+    nums.filter(function(n){ return (RESPONSAVEIS[n]||{}).todas; }).map(nome),
+    'Confira se cada um destes realmente precisa ver o grupo inteiro.');
+
+  /* 6. Conta mestra: pode APAGAR contrato. É o maior poder do Portal. */
+  achado('alto','Podem EXCLUIR contrato (conta mestra do Portal)',
+    nums.filter(function(n){ return (RESPONSAVEIS[n]||{}).contaMestra; }).map(nome),
+    'Exclusão de contrato não tem desfazer. Deixe só para quem administra.');
+
+  /* 7. Portal de Licitações é liberação comercial. */
+  achado('info','Abrem o Portal de Licitações (o site)',
+    nums.filter(function(n){ var a=(RESPONSAVEIS[n]||{}).acessos||{}; return a.dashboard===true; }).map(nome),
+    'É liberação comercial para a empresa cliente. Confira se está de acordo com o contrato dela.');
+
+  /* 8. Escopo restrito: a armadilha do "vê zero e ninguém entende". */
+  achado('medio','No Viabilidade, veem só o que está no próprio nome',
+    nums.filter(function(n){ var r=acNormaliza(RESPONSAVEIS[n]);
+      return r.acessos.viabilidade && r.escopoViab==='meus'; }).map(nome),
+    'Se o nome dessa pessoa não estiver no campo Responsável dos editais, ela vê a tela vazia.');
+
+  /* 9. O caso da Lucia: edital com responsável que não abre a empresa
+        daquele edital. É inconsistência de dado, não de acesso — e é
+        invisível até alguém estranhar. */
+  var descasados={};
+  try{
+    (ALL.editais||[]).forEach(function(a){
+      var emp=String(a[2]||'').trim(); if(!emp) return;
+      var resp=String(a[9]||'').trim(); if(!resp) return;
+      /* Alguém no cadastro cujo nome bate com o responsável do edital */
+      var donos=nums.filter(function(n){
+        var r=RESPONSAVEIS[n]||{};
+        return r.nome && normTxt(r.nome)===normTxt(resp);
+      });
+      if(!donos.length) return;   /* nome livre, não é do cadastro */
+      var algumVe=donos.some(function(n){
+        var r=acNormaliza(RESPONSAVEIS[n]);
+        if(r.todas) return true;
+        return (r.empresas||[]).some(function(v){
+          var d=String(v||'').replace(/\D/g,'');
+          if(d) return acNomeEmpresa(v).toUpperCase()===emp.toUpperCase();
+          return String(v||'').trim().toUpperCase()===emp.toUpperCase();
+        });
+      });
+      if(!algumVe){
+        var k=resp+' → '+emp;
+        descasados[k]=(descasados[k]||0)+1;
+      }
+    });
+  }catch(e){}
+  achado('medio','Processos no nome de quem não abre aquela empresa',
+    Object.keys(descasados).sort().map(function(k){ return k+'  ('+descasados[k]+' processo'+(descasados[k]===1?'':'s')+')'; }),
+    'Ou o acesso da pessoa deveria incluir essa empresa, ou o campo Responsável do processo está errado. É o que faz um nome aparecer na tela de quem não esperava.');
+
+  /* 10. Empresa sem CNPJ: o vínculo passa a ser por NOME, e nome muda.
+         É a origem da família de bugs "portal zerado". */
+  achado('medio','Empresas cadastradas sem CNPJ',
+    (EMPRESAS||[]).filter(function(e){ return !String(e.cnpj||'').replace(/\D/g,''); })
+      .map(function(e){ return e.nome; }),
+    'Sem CNPJ o vínculo do acesso é feito pelo NOME — e basta alguém escrever diferente para a empresa ver a tela vazia.');
+
+  var cor={alto:'#ef4444', medio:'#eab308', info:'#3b82f6'};
+  var rot={alto:'ATENÇÃO', medio:'CONFERIR', info:'INFORMAÇÃO'};
+
+  var cab='<div style="display:flex;align-items:baseline;gap:10px;margin:4px 0 14px;flex-wrap:wrap">'+
+    '<b style="font-size:14px;color:var(--t1)">Auditoria de acessos</b>'+
+    '<span style="font-size:12px;color:var(--t3)">'+nums.length+' acesso(s) cadastrado(s) · '+
+      itens.length+' ponto(s) a olhar</span>'+
+    '<button class="btn btn-ghost" style="margin-left:auto;padding:4px 10px;font-size:11px" onclick="acAuditar()">fechar</button>'+
+    '</div>';
+
+  if(!itens.length){
+    box.innerHTML=cab+'<div class="ac-card" style="border-left-color:#22c55e">'+
+      '<div style="font-size:13px;color:var(--t2)">✓ Nada fora do lugar. Todos os acessos têm empresa, senha e sistema definidos, '+
+      'nenhum está vencido em aberto, e não há processo no nome de quem não abre a empresa dele.</div></div>';
+    return;
+  }
+
+  box.innerHTML=cab+itens.map(function(it){
+    return '<div class="ac-card" style="border-left:3px solid '+cor[it.nivel]+';margin-bottom:10px">'+
+      '<div style="display:flex;align-items:center;gap:9px;margin-bottom:7px;flex-wrap:wrap">'+
+        '<span style="font-size:9.5px;font-weight:800;letter-spacing:.08em;color:'+cor[it.nivel]+'">'+rot[it.nivel]+'</span>'+
+        '<b style="font-size:13px;color:var(--t1)">'+it.titulo+'</b>'+
+        '<span style="font-size:11px;color:var(--t3)">'+it.lista.length+'</span>'+
+      '</div>'+
+      '<div style="font-size:12.5px;color:var(--t2);line-height:1.7;margin-bottom:7px">'+
+        it.lista.map(function(x){ return '• '+esc0(x); }).join('<br>')+
+      '</div>'+
+      '<div style="font-size:11.5px;color:var(--t3);line-height:1.55;border-top:1px solid var(--b1);padding-top:7px">'+
+        it.acao+'</div>'+
+      '</div>';
+  }).join('');
 }
 
 function acRender(){
