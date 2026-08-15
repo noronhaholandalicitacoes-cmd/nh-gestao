@@ -7278,16 +7278,42 @@ async function acConfirmarSenha(){
     try{ await _authSecundario.signOut(); }catch(e2){}
     var c = String(e&&e.code||'');
 
-    /* Primeira vez: o cofre ainda não existe. Em vez de dar erro e
-       deixar a pessoa sem saída, oferece definir a senha agora. Só o
-       admin chega aqui — cfgAba() já barrou o resto antes. */
-    if(c.indexOf('user-not-found')>=0) return acCriarCofre();
+    if(c.indexOf('too-many-requests')>=0){
+      toast('Muitas tentativas. Aguarde alguns minutos.','err');
+      return false;
+    }
 
-    toast(c.indexOf('too-many-requests')>=0
-      ? 'Muitas tentativas. Aguarde alguns minutos.'
-      : 'Senha do cofre incorreta.','err');
-    return false;
+    /* ⚠️ Aqui eu errei feio na primeira versão.
+       Eu tratava só `auth/user-not-found` como "cofre ainda não
+       existe". Mas este projeto tem a proteção contra enumeração de
+       contas ligada, e o Firebase responde INVALID_LOGIN_CREDENTIALS
+       tanto para senha errada quanto para conta inexistente — é o
+       objetivo da proteção: não deixar descobrir quais contas existem.
+
+       Como o código só reconhecia `user-not-found`, o caminho de
+       criação nunca era alcançado: TODA senha dava "incorreta", e o
+       cofre não tinha como nascer. Não havia senha certa.
+
+       Sem conseguir distinguir os dois casos, o jeito é perguntar. Se
+       a pessoa mandar criar e a conta já existir, o próprio
+       createUser devolve `email-already-in-use` e aí sim sabemos que
+       era só senha errada — e dizemos isso. */
+    return acCofreIndefinido();
   }
+}
+
+/* Não dá para saber se foi senha errada ou cofre inexistente. Em vez
+   de escolher um dos dois e arriscar mentir, apresenta os dois. */
+async function acCofreIndefinido(){
+  var criar = confirm('A senha não confere.\n\n'
+    + 'Isso acontece em dois casos:\n'
+    + '  • a senha digitada está errada; ou\n'
+    + '  • o cofre ainda não foi criado (primeira vez).\n\n'
+    + 'O Firebase não diz qual dos dois, de propósito.\n\n'
+    + 'Se for a primeira vez, clique OK para criar a senha do cofre agora.\n'
+    + 'Se você já tem a senha e só errou, clique Cancelar e tente de novo.');
+  if(!criar) return false;
+  return acCriarCofre();
 }
 
 async function acCriarCofre(){
@@ -7312,6 +7338,13 @@ async function acCriarCofre(){
     return true;
   }catch(e){
     try{ await _authSecundario.signOut(); }catch(e2){}
+    /* O cofre já existia: então a senha digitada lá atrás é que estava
+       errada. Agora dá para afirmar isso com certeza — foi a tentativa
+       de criar que resolveu a ambiguidade. */
+    if(String(e&&e.code||'').indexOf('email-already-in-use')>=0){
+      toast('O cofre já existe — a senha digitada é que está incorreta. Tente de novo.','err');
+      return false;
+    }
     toast('Não consegui criar o cofre: '+(e.message||e),'err');
     return false;
   }
@@ -7339,10 +7372,12 @@ async function acTrocarCofre(){
   }catch(e){
     try{ await _authSecundario.signOut(); }catch(e2){}
     var c = String(e&&e.code||'');
-    if(c.indexOf('user-not-found')>=0){ await acCriarCofre(); return; }
-    toast(c.indexOf('too-many-requests')>=0
-      ? 'Muitas tentativas. Aguarde alguns minutos.'
-      : 'Senha atual incorreta.','err');
+    if(c.indexOf('too-many-requests')>=0){
+      toast('Muitas tentativas. Aguarde alguns minutos.','err'); return;
+    }
+    /* Mesma ambiguidade de acConfirmarSenha: senha errada e cofre
+       inexistente devolvem o mesmo erro. Pergunta em vez de adivinhar. */
+    await acCofreIndefinido();
     return;
   }
 
