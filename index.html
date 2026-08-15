@@ -3124,6 +3124,7 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
       <div class="ac-topo-tit">Acessos das pessoas</div>
       <div class="ac-topo-sub">Quem entra no <b>An&aacute;lise de Viabilidade</b> e no <b>Portal de Contratos</b>. O login &eacute; o WhatsApp da pessoa e uma senha.</div>
     </div>
+    <button class="btn btn-ghost" onclick="acTrocarCofre()" title="Trocar a senha exclusiva desta aba">&#128274; Senha do cofre</button>
     <button class="btn btn-nh" onclick="acNovo()">&#43; Novo acesso</button>
   </div>
 
@@ -7231,47 +7232,145 @@ function cfgAplicarPermissoes(){
   if(!IS_ADMIN && CFG_ABAS_SOCIO[_cfgAba]) cfgAba('empresas');
 }
 
-/* ── Confirmação de senha para abrir Acessos ──────────────────────
-   O cliente pediu uma senha na frente desta aba, que só ele tenha.
-   Eu disse que uma senha guardada e conferida em JavaScript é teatro:
-   quem abre o console lê a senha no código ou pula a checagem. Ele
-   reafirmou o pedido, e ele está certo no objetivo — o que muda é
-   COMO se faz.
+/* ── Senha do cofre: a trava da aba Acessos ───────────────────────
+   Primeiro eu fiz isto pedindo a senha DA CONTA de quem está logado.
+   Estava errado, e o cliente viu antes de mim: a senha da conta é a
+   mesma com que a pessoa entrou no sistema — ela já a sabe de cor, e
+   se a equipe compartilha login, todo mundo sabe. Confirmar uma senha
+   que o próprio suspeito já digitou dois minutos antes não separa
+   ninguém de nada.
 
-   Em vez de inventar uma senha nova e guardá-la em algum lugar, o
-   sistema pede a senha DA CONTA e manda o próprio Firebase conferir
-   (reauthenticateWithCredential). Isso dá exatamente o que foi pedido
-   — ninguém entra sem digitar uma senha que só o dono tem — sem criar
-   um segredo novo para vazar, e a conferência acontece no servidor da
-   Google, não aqui.
+   Agora existe um SEGREDO SEPARADO. Uma conta dedicada no Firebase
+   Auth, que ninguém usa para entrar em lugar nenhum e cuja senha só o
+   dono conhece. Para abrir a aba, o sistema tenta autenticar NESSA
+   conta — e quem confere é o servidor da Google, não este arquivo.
 
-   Vale por 10 minutos, para não pedir a cada clique. Continua não
-   sendo a tranca do banco: quem contornar isto pelo console esbarra no
-   firestore.rules, que só aceita escrita em config/* de admin(). */
+   A checagem roda no app secundário do Firebase, o mesmo que já era
+   usado para criar login de responsável. Isso é o que permite validar
+   uma segunda credencial sem derrubar a sessão de quem está na tela.
+
+   Nada da senha fica guardado aqui: nem em texto, nem em hash. Se for
+   esquecida, redefine-se pelo console do Firebase.
+
+   ⚠️ Isto é uma tranca de TELA. A tranca do banco continua sendo o
+   firestore.rules, que só aceita escrita em config/* de admin(). Quem
+   contornar esta janela pelo console do navegador não consegue gravar
+   nada — mas ainda assim é uma barreira real, porque exige um segredo
+   que não está no código nem na cabeça da equipe. */
+var AC_CONTA_COFRE = 'cofre.acessos@nh.interno';
 var _acLiberadoAte = 0;
 var AC_VALIDADE_MS = 10*60*1000;
 
 function acPrecisaSenha(){ return Date.now() > _acLiberadoAte; }
 
 async function acConfirmarSenha(){
-  var u = (typeof auth!=='undefined' && auth.currentUser) || null;
-  if(!u || !u.email){ toast('Sessão expirada. Entre de novo.','err'); return false; }
-
-  var senha = prompt('Confirme sua senha para abrir os Acessos:');
+  var senha = prompt('Senha do cofre — para abrir os Acessos:\n\n'
+    + '(é a senha exclusiva desta aba, não a do seu login)');
   if(senha===null) return false;           /* cancelou, sem drama */
   if(!senha){ toast('Senha vazia.','err'); return false; }
 
   try{
-    var cred = firebase.auth.EmailAuthProvider.credential(u.email, senha);
-    await u.reauthenticateWithCredential(cred);
+    await _authSecundario.signInWithEmailAndPassword(AC_CONTA_COFRE, senha);
+    try{ await _authSecundario.signOut(); }catch(e2){}
     _acLiberadoAte = Date.now() + AC_VALIDADE_MS;
     return true;
   }catch(e){
+    try{ await _authSecundario.signOut(); }catch(e2){}
     var c = String(e&&e.code||'');
+
+    /* Primeira vez: o cofre ainda não existe. Em vez de dar erro e
+       deixar a pessoa sem saída, oferece definir a senha agora. Só o
+       admin chega aqui — cfgAba() já barrou o resto antes. */
+    if(c.indexOf('user-not-found')>=0) return acCriarCofre();
+
     toast(c.indexOf('too-many-requests')>=0
       ? 'Muitas tentativas. Aguarde alguns minutos.'
-      : 'Senha incorreta.','err');
+      : 'Senha do cofre incorreta.','err');
     return false;
+  }
+}
+
+async function acCriarCofre(){
+  if(!confirm('A senha do cofre ainda não foi definida.\n\n'
+    + 'Ela é exclusiva da aba Acessos e não substitui o seu login. '
+    + 'Guarde bem: o sistema não armazena essa senha em lugar nenhum, '
+    + 'e para recuperá-la só pelo console do Firebase.\n\nDefinir agora?')) return false;
+
+  var s1 = prompt('Crie a senha do cofre (mínimo 8 caracteres):');
+  if(s1===null) return false;
+  s1 = String(s1);
+  if(s1.length < 8){ toast('A senha do cofre precisa de ao menos 8 caracteres.','err'); return false; }
+  var s2 = prompt('Digite de novo para confirmar:');
+  if(s2===null) return false;
+  if(s1 !== s2){ toast('As duas senhas não são iguais.','err'); return false; }
+
+  try{
+    await _authSecundario.createUserWithEmailAndPassword(AC_CONTA_COFRE, s1);
+    try{ await _authSecundario.signOut(); }catch(e2){}
+    _acLiberadoAte = Date.now() + AC_VALIDADE_MS;
+    toast('Cofre criado. Anote a senha — ela não fica guardada no sistema.','ok');
+    return true;
+  }catch(e){
+    try{ await _authSecundario.signOut(); }catch(e2){}
+    toast('Não consegui criar o cofre: '+(e.message||e),'err');
+    return false;
+  }
+}
+
+/* Trocar a senha do cofre.
+
+   Precisa existir aqui porque não existe em lugar nenhum: o console do
+   Firebase só oferece "Redefinir senha", que MANDA UM E-MAIL — e
+   cofre.acessos@nh.interno é domínio interno, o e-mail não chega em
+   parte alguma. Sem esta tela, trocar a senha exigiria apagar a conta
+   e criar outra.
+
+   Pede a senha atual antes: quem está com a tela aberta pode ser
+   alguém que passou pela porta há nove minutos, e trocar a fechadura
+   sem provar que tem a chave velha seria pior que não ter fechadura. */
+async function acTrocarCofre(){
+  var atual = prompt('Senha ATUAL do cofre:');
+  if(atual===null) return;
+  if(!atual){ toast('Senha vazia.','err'); return; }
+
+  var cred;
+  try{
+    cred = await _authSecundario.signInWithEmailAndPassword(AC_CONTA_COFRE, String(atual));
+  }catch(e){
+    try{ await _authSecundario.signOut(); }catch(e2){}
+    var c = String(e&&e.code||'');
+    if(c.indexOf('user-not-found')>=0){ await acCriarCofre(); return; }
+    toast(c.indexOf('too-many-requests')>=0
+      ? 'Muitas tentativas. Aguarde alguns minutos.'
+      : 'Senha atual incorreta.','err');
+    return;
+  }
+
+  var n1 = prompt('Nova senha do cofre (mínimo 8 caracteres):');
+  if(n1===null){ try{ await _authSecundario.signOut(); }catch(e){} return; }
+  n1 = String(n1);
+  if(n1.length < 8){
+    try{ await _authSecundario.signOut(); }catch(e){}
+    toast('A senha do cofre precisa de ao menos 8 caracteres.','err'); return;
+  }
+  var n2 = prompt('Digite a nova senha de novo:');
+  if(n2===null){ try{ await _authSecundario.signOut(); }catch(e){} return; }
+  if(n1 !== n2){
+    try{ await _authSecundario.signOut(); }catch(e){}
+    toast('As duas senhas não são iguais.','err'); return;
+  }
+
+  try{
+    var u = (cred && cred.user) || _authSecundario.currentUser;
+    await u.updatePassword(n1);
+    try{ await _authSecundario.signOut(); }catch(e2){}
+    /* Trocou a fechadura: a liberação atual morre junto, para a próxima
+       abertura já cobrar a senha nova. */
+    _acLiberadoAte = 0;
+    toast('Senha do cofre trocada. Anote — ela não fica guardada no sistema.','ok');
+  }catch(e){
+    try{ await _authSecundario.signOut(); }catch(e2){}
+    toast('Não consegui trocar: '+(e.message||e),'err');
   }
 }
 
