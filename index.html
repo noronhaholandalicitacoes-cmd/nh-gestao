@@ -1579,7 +1579,27 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 /* Aviso de pessoa cadastrada duas vezes. Âmbar, não vermelho: não é
    falha nem risco — é sobra de um desenho que mudou. Vermelho aqui
    assustaria à toa e, de tanto aparecer, ensinaria a ignorar. */
-.ac-dup{background:rgba(234,179,8,.07);border:1px solid rgba(234,179,8,.32);
+/* ── O que cada pessoa abre, na linha dela ─────────────────────────
+   Chips clicáveis em vez de um modal separado: a decisão é vista e
+   tomada no mesmo lugar onde a pessoa está listada. Apagado = não
+   abre; aceso na cor do sistema = abre. */
+.eq-sis{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:9px}
+.eq-sis-lbl{font-size:10.5px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.05em;color:var(--t3);margin-right:2px}
+.eq-chip{font:inherit;font-size:11px;font-weight:700;cursor:pointer;
+  padding:3.5px 10px;border-radius:999px;line-height:1.4;
+  background:transparent;color:var(--t3);
+  border:1px dashed var(--b1);
+  transition:background .15s ease,color .15s ease,border-color .15s ease}
+.eq-chip:hover{color:var(--t1);border-color:var(--t3)}
+.eq-chip.on{
+  background:color-mix(in srgb, var(--cc) 15%, transparent);
+  border:1px solid color-mix(in srgb, var(--cc) 45%, transparent);
+  color:var(--cc)}
+.eq-chip.on:hover{background:color-mix(in srgb, var(--cc) 24%, transparent)}
+/* Linha desativada: os chips continuam legíveis, mas sem convidar. */
+.eq-l.off .eq-chip{opacity:.45;pointer-events:none}
+@media(max-width:560px){ .eq-sis-lbl{width:100%;margin-bottom:2px} }.ac-dup{background:rgba(234,179,8,.07);border:1px solid rgba(234,179,8,.32);
   border-radius:14px;padding:15px 17px;margin-bottom:16px}
 .ac-dup-tit{font-size:13.5px;font-weight:800;color:#eab308;margin-bottom:5px}
 .ac-dup-sub{font-size:12.5px;line-height:1.6;color:var(--t2);margin-bottom:12px;max-width:80ch}
@@ -5014,6 +5034,106 @@ function nhPintarSaudacao(){
   }
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   O QUE CADA PESSOA ABRE — 16/08/2026
+
+   O Portal de Licitações é a base: quem é da equipe entra. O que se
+   marca aqui é o que vem ALÉM dele.
+
+   Repare na assimetria dos padrões, que é deliberada:
+
+     Viabilidade e Contratos  →  LIGADOS quando o campo não existe
+     CRM e Financeiro         →  DESLIGADOS quando o campo não existe
+
+   Os dois primeiros são operação de licitação: é o trabalho para o
+   qual o colaborador foi contratado, e exigir marcação faria toda a
+   equipe perder acesso no dia em que este código subisse. Os dois
+   últimos são outra coisa — a lista de quem a NH está prospectando,
+   com a proposta de honorários de cada um, e o dinheiro do escritório.
+   Esses ninguém ganha por omissão; ganha porque alguém decidiu.
+
+   Sócio abre tudo, e as marcas não aparecem para ele — marcar o que
+   já é irrestrito só confundiria.
+
+   ⚠️ Isto aqui é a TELA. Quem protege de verdade são as regras do
+   Firestore (`ehCrm()`, `ehFinanceiro()`), que leem estas mesmas
+   marcas direto no banco. Esconder cartão não é segurança.
+   ══════════════════════════════════════════════════════════════════ */
+var EQ_SISTEMAS=[
+  {chave:'viabilidade', rot:'Viabilidade', cor:'#22c55e', padrao:true,
+   dica:'Análise de viabilidade dos editais'},
+  {chave:'contratos',   rot:'Contratos',   cor:'#3b82f6', padrao:true,
+   dica:'Portal de gerenciamento de contratos'},
+  {chave:'crm',         rot:'CRM',         cor:'#06b6d4', padrao:false,
+   dica:'Funil de prospecção, com a proposta de honorários de cada empresa'},
+  {chave:'financeiro',  rot:'Financeiro',  cor:'#eab308', padrao:false,
+   dica:'Honorários, recebimentos e despesas do escritório'}
+];
+
+/** Se a pessoa abre um sistema. Sócio abre tudo. Campo ausente cai no
+    padrão da tabela acima. */
+function eqAbre(u,chave){
+  if(!u) return false;
+  if(ehPapelSocio(u)) return true;
+  var def=false;
+  for(var i=0;i<EQ_SISTEMAS.length;i++){
+    if(EQ_SISTEMAS[i].chave===chave){ def=EQ_SISTEMAS[i].padrao; break; }
+  }
+  var v=u[chave];
+  return v===undefined||v===null ? def : v===true;
+}
+
+function eqSistemasHTML(u,socio,n){
+  if(socio){
+    return '<div class="eq-sis"><span class="eq-sis-lbl">abre tudo</span></div>';
+  }
+  return '<div class="eq-sis">'+
+    '<span class="eq-sis-lbl">Além do portal:</span>'+
+    EQ_SISTEMAS.map(function(s){
+      var on=eqAbre(u,s.chave);
+      return '<button class="eq-chip'+(on?' on':'')+'" style="--cc:'+s.cor+'"'+
+        ' title="'+esc(s.dica)+(on?' — clique para tirar':' — clique para liberar')+'"'+
+        ' onclick="eqAlternarSistema('+n+',\''+s.chave+'\')">'+s.rot+'</button>';
+    }).join('')+
+  '</div>';
+}
+
+/** Liga/desliga um sistema para uma pessoa. Grava o valor explícito
+    (true/false) e nunca deixa o campo ausente depois de um clique — é o
+    que separa "ninguém decidiu ainda" de "foi decidido que não". */
+async function eqAlternarSistema(n,chave){
+  var k=eqChave(n); if(!k) return;
+  var u=USUARIOS[k]||{};
+  if(ehPapelSocio(u)){ toast('Sócio abre tudo — não há o que marcar.','err'); return; }
+  var antes=eqAbre(u,chave), depois=!antes;
+  var rot=chave;
+  EQ_SISTEMAS.forEach(function(s){ if(s.chave===chave) rot=s.rot; });
+
+  /* Os dois sensíveis pedem confirmação ao LIBERAR. Tirar não pergunta:
+     errar para menos é recuperável com outro clique. */
+  if(depois && (chave==='crm'||chave==='financeiro')){
+    var aviso = chave==='crm'
+      ? 'Liberar o CRM para '+(u.nome||k)+'?\n\nEla passa a ver todas as empresas que a NH está prospectando e a proposta de honorários de cada uma.'
+      : 'Liberar o Financeiro para '+(u.nome||k)+'?\n\nEla passa a ver honorários, recebimentos e despesas do escritório.';
+    if(!confirm(aviso)) return;
+  }
+
+  u[chave]=depois; USUARIOS[k]=u;
+  /* Se a gravação não foi aceita, desfaz na tela. Dizer "agora abre o
+     CRM" com a regra do Firestore tendo recusado seria pior do que o
+     erro: você iria embora achando que liberou. */
+  if(!(await salvarUsuarios())){
+    u[chave]=antes; USUARIOS[k]=u;
+    eqRender(); return;
+  }
+  try{ if(window.NHAudit&&NHAudit.pronto()) NHAudit.registrar({
+    acao:'alterou', onde:'config/usuarios', alvo:k,
+    rotulo:'Acesso de '+(u.nome||k),
+    campos:[{campo:rot, de:(antes?'liberado':'bloqueado'), para:(depois?'liberado':'bloqueado')}]}); }catch(_a){}
+  eqRender();
+  toast((u.nome||k)+(depois?' agora abre o '+rot:' não abre mais o '+rot),'ok');
+}
+
 function eqRender(){
   var box=document.getElementById('eq-lista'); if(!box) return;
   var ks=Object.keys(USUARIOS||{}).filter(function(k){
@@ -5042,9 +5162,11 @@ function eqRender(){
       '<div class="eq-s">'+
         '<span class="eq-tag '+(socio?'eq-socio':'eq-colab')+'">'+(socio?'Sócio':'Colaborador')+'</span>'+
         (off?'<span class="eq-tag eq-off">desativado</span>':'')+
-        ((socio||u.crm)?'<span class="eq-tag eq-crm">CRM</span>':'')+
+        
         '<span>'+esc(tel?eqFone(tel):k)+'</span>'+
-      '</div></div>'+
+      '</div>'+
+      eqSistemasHTML(u,socio,n)+
+      '</div>'+
       '<div class="eq-acts">'+
         '<button class="btn btn-ghost" onclick="eqEditar('+n+')">Editar</button>'+
         '<button class="btn btn-ghost" onclick="eqSenha('+n+')" title="Definir uma senha nova para esta pessoa">Senha</button>'+
@@ -5365,7 +5487,23 @@ function renderListaUsuarios(){
       '</div></div>';
   });
   box.innerHTML=html;
-}function salvarUsuarios(){if(typeof db!=="undefined"&&db){db.collection("config").doc("usuarios").set({lista:USUARIOS||{}},{merge:true}).catch(function(){toast&&toast("Erro ao salvar usuários","err");});}}/* Cria o CADASTRO e o LOGIN de uma vez.
+}/* Devolve uma PROMESSA que resolve para true/false — nunca rejeita.
+   ⚠️ 16/08/2026: antes ela não devolvia nada e engolia o erro num
+   .catch(). Quem chamasse `await salvarUsuarios()` seguia em frente na
+   mesma hora, achando que tinha gravado. Foi o que quase deixou o
+   botão de liberar CRM dizer "agora abre" com a gravação recusada pela
+   regra do Firestore.
+   Não rejeita de propósito: há chamadores antigos que não usam await,
+   e uma promessa rejeitada sem tratamento vira ruído no console. */
+function salvarUsuarios(){
+  if(typeof db==="undefined"||!db) return Promise.resolve(false);
+  return db.collection("config").doc("usuarios").set({lista:USUARIOS||{}},{merge:true})
+    .then(function(){ return true; })
+    .catch(function(e){
+      toast&&toast("Erro ao salvar usuários: "+(e&&e.message||""),"err");
+      return false;
+    });
+}/* Cria o CADASTRO e o LOGIN de uma vez.
    Antes só criava o cadastro; a conta no Firebase tinha de ser feita à
    mão no console, e como isso dava trabalho, ninguém fazia — todo mundo
    acabava usando a mesma senha. A tela que dá trabalho é a tela que é
@@ -18037,6 +18175,8 @@ if('function'===typeof nhCertFechar){
 </script>
 </body>
 </html>
+
+
 
 
 
