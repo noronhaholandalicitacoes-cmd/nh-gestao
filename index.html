@@ -132,7 +132,22 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;min-he
 .sb-divider{height:1px;background:var(--b1);margin:6px 16px}
 
 /* API BOX */
-.api-box{
+/* O selo de conexão, agora dentro do menu ⋮. Discreto: só precisa
+   existir para quem for conferir se o banco está de pé. */
+.nh-menu-fb{display:flex;align-items:center;gap:7px;padding:8px 12px;margin-bottom:4px;
+  border-bottom:1px solid var(--b1);font-size:11px;color:#22c55e;font-weight:600}
+.nh-menu-fb .dot{width:7px;height:7px;border-radius:50%;background:#22c55e;flex-shrink:0}
+.nh-menu-fb .dot:not(.ok){background:#ef4444}/* A saudação do topo. Antes aqui ficava o e-mail (ou, depois do login
+   por WhatsApp, o telefone) em 11px cinza — um dado de sistema onde
+   cabia o nome de quem está trabalhando. O identificador não sumiu:
+   foi para o title, a um passar de mouse. */
+.nh-saud{font-size:11px;color:var(--t2);max-width:130px;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.nh-saud.tem-nome{font-size:13px;font-weight:650;color:var(--t1);max-width:230px;
+  letter-spacing:-.01em}
+/* Em tela estreita a barra tem botões demais para uma frase inteira. */
+@media(max-width:640px){ .nh-saud.tem-nome{max-width:120px;font-size:12px} }
+@media(max-width:420px){ .nh-saud{display:none} }.api-box{
   margin:10px;padding:14px;
   background:var(--s2);border:1px solid var(--b1);
   border-radius:11px;
@@ -3002,13 +3017,12 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
 
   </nav>
 
-  <div class="api-box" style="background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.3)">
-    <label class="api-lbl" style="color:#22c55e">🔥 Firebase</label>
-    <div class="api-status">
-      <div class="dot ok" id="sDot"></div>
-      <span id="sTxt" style="color:#22c55e">nh-licitacoes</span>
-    </div>
-  </div>
+  <!-- O selo do Firebase saiu daqui em 16/08/2026. Ele ocupava o pé da
+       barra o tempo todo dizendo o nome do banco — informação de quem
+       mantém o sistema, não de quem usa. Foi para o menu ⋮, onde
+       continua acessível quando alguém precisa conferir se a conexão
+       está de pé. Os ids sDot/sTxt seguem os mesmos, então setSt()
+       continua funcionando sem saber que a caixa mudou de lugar. -->
 </aside>
 
 <!-- ══════ MAIN ══════════════════════════════ -->
@@ -3032,10 +3046,11 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
         Atualizar
       </button>
       <div id="user-info" style="display:none;align-items:center;gap:6px">
-        <span id="user-name" style="font-size:11px;color:var(--t2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+        <span id="user-name" class="nh-saud"></span>
         <button onclick="alternarTema()" id="btn-tema" class="nh-iconbtn" title="Alternar entre tema claro e escuro">🌙</button><div class="nh-menu-wrap"><button class="nh-iconbtn" onclick="nhToggleMenu(event)" title="Mais opções" aria-haspopup="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button><div id="nh-menu" class="nh-menu"><!-- 👥 Usuários saiu daqui em 16/08/2026: virou a seção "Equipe da NH"
        dentro de Configurações › Acessos, que já é protegida por senha
-       própria. Duas telas para "quem entra no sistema" era uma a mais. --><button onclick="exportarExcelCompleto();nhCloseMenu()" class="nh-menu-item">📊 Exportar Tudo</button><button onclick="exportarBackupCompleto();nhCloseMenu()" id="btn-backup" title="Baixa um arquivo com TODOS os dados do sistema (para guardar em local seguro)" class="nh-menu-item">💾 Backup</button><div class="nh-menu-sep"></div><button onclick="logoutGoogle()" class="nh-menu-item nh-menu-danger"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Sair</button></div></div>
+       própria. Duas telas para "quem entra no sistema" era uma a mais. --><div class="nh-menu-fb"><span class="dot ok" id="sDot"></span><span id="sTxt">nh-licitacoes</span></div>
+        <button onclick="exportarExcelCompleto();nhCloseMenu()" class="nh-menu-item">📊 Exportar Tudo</button><button onclick="exportarBackupCompleto();nhCloseMenu()" id="btn-backup" title="Baixa um arquivo com TODOS os dados do sistema (para guardar em local seguro)" class="nh-menu-item">💾 Backup</button><div class="nh-menu-sep"></div><button onclick="logoutGoogle()" class="nh-menu-item nh-menu-danger"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Sair</button></div></div>
       </div>
     </div>
   </div>
@@ -4668,7 +4683,7 @@ async function loginEmailSenha(){
     return mostraErro(erroRede ? "Não consegui conectar. Verifique a internet e tente de novo."
                                : "WhatsApp ou senha incorretos.");
   }
-}function logoutGoogle(){auth.signOut()}var ADMIN_EMAIL="noronhaholandalicitacoes@gmail.com",USUARIOS=null,USER_EMAIL="",IS_ADMIN=false,USER_SOS=true,IS_READONLY=false;async function carregarUsuarios(){if(USUARIOS!==null)return USUARIOS;USUARIOS={};try{if(db){var d=await db.collection("config").doc("usuarios").get();if(d.exists){var x=d.data();if(x&&x.lista)USUARIOS=x.lista;}}}catch(e){}return USUARIOS;}/* ══════════════════════════════════════════════════════════════════
+}function logoutGoogle(){auth.signOut()}var ADMIN_EMAIL="noronhaholandalicitacoes@gmail.com",USUARIOS=null,USER_EMAIL="",USER_NOME="",IS_ADMIN=false,USER_SOS=true,IS_READONLY=false;async function carregarUsuarios(){if(USUARIOS!==null)return USUARIOS;USUARIOS={};try{if(db){var d=await db.collection("config").doc("usuarios").get();if(d.exists){var x=d.data();if(x&&x.lista)USUARIOS=x.lista;}}}catch(e){}return USUARIOS;}/* ══════════════════════════════════════════════════════════════════
    EQUIPE DA NH — cadastro por WhatsApp
 
    Mudou em 16/08/2026. O colaborador entrava por e-mail; passou a
@@ -4708,8 +4723,127 @@ function meuNome(){
   try{
     var u=(USUARIOS||{})[String(USER_EMAIL||'').toLowerCase()];
     if(u&&u.nome) return u.nome;
+    /* O sócio não está em config/usuarios (ele é reconhecido pelo
+       e-mail fixo), então o nome dele vem do resolveAcesso. */
+    if(typeof USER_NOME!=='undefined'&&USER_NOME) return USER_NOME;
   }catch(e){}
   return String(USER_EMAIL||'').split('@')[0];
+}
+
+/** Só o primeiro nome — é o que cabe na barra e é como se fala com alguém. */
+function meuPrimeiroNome(){
+  var n=String(meuNome()||'').trim();
+  /* Se caiu no fallback do e-mail, pode ter vindo "5581999..." ou
+     "fulana.silva". Número não vira saudação; ponto vira espaço. */
+  if(/^\d+$/.test(n)) return '';
+  n=n.replace(/[._-]+/g,' ').trim();
+  var p=n.split(/\s+/)[0]||'';
+  if(!p) return '';
+  return p.charAt(0).toUpperCase()+p.slice(1).toLowerCase();
+}
+
+/* As frases da barra. Nenhuma marca gênero — o cadastro guarda nome e
+   WhatsApp, não guarda se é ele ou ela, e errar isso na cara da pessoa
+   todo dia é pior do que qualquer ganho de simpatia. Por isso
+   "Boas-vindas" no lugar de "bem-vindo/bem-vinda".
+   {n} é trocado pelo primeiro nome. */
+var SAUD_GERAL=[
+  'Olá, {n}',
+  'Boas-vindas, {n}',
+  'Que bom te ver, {n}',
+  'E aí, {n}',
+  'Bora, {n}',
+  'De volta, {n}'
+];
+/* As curtas são de propósito: no celular a caixa tem 120px e nome
+   comprido ("Wellington") come quase tudo. Sem elas, quem tem nome
+   grande via sempre as mesmas três frases. */
+var SAUD_ANIMO=[
+  'Firme, {n}',
+  'Vamos lá, {n}',
+  'Dia bom, {n}',
+  'Capricha, {n}',
+  'Hoje rende, {n}',
+  'Bom trabalho, {n}',
+  'Foco no prazo, {n}',
+  'Vamos ganhar essa, {n}',
+  'Um edital de cada vez, {n}',
+  'Tá tudo sob controle, {n}'
+];
+/* Domingo=0. Cada dia tem as suas; o dia da semana é o gancho mais
+   forte, então ele entra com peso maior no sorteio abaixo. */
+var SAUD_DIA=[
+  ['Domingou, {n}','Domingo tranquilo, {n}'],
+  ['Segundou, {n}','Semana nova, {n}'],
+  ['Terça é dia de andar, {n}','Bom dia de terça, {n}'],
+  ['Quarta já, {n}','Metade da semana, {n}'],
+  ['Quinta acelerando, {n}','Quase lá, {n}'],
+  ['Sextou, {n}','Sexta-feira, {n}'],
+  ['Sábado produtivo, {n}','Sabadou, {n}']
+];
+
+/* Quanto a frase pode medir, em pixels, antes de virar reticências.
+   Espelha o max-width de .nh-saud.tem-nome no CSS. Se mexer lá, mexa
+   aqui — é a única duplicação, e é de propósito: sortear uma frase que
+   não cabe e deixar o CSS cortar produz "Um edital de cada ve…", que é
+   pior do que não ter frase nenhuma. */
+function _saudLargura(){
+  return (window.innerWidth<=640) ? 120 : 230;
+}
+/* Mede o texto de verdade, com a fonte de verdade. Sem isto sobra
+   contar caracteres, e "Wellington" e "Ana" não medem igual. */
+var _saudCtx=null;
+function _saudCabe(txt){
+  try{
+    if(!_saudCtx) _saudCtx=document.createElement('canvas').getContext('2d');
+    var el=document.getElementById('user-name');
+    var fam=el?getComputedStyle(el).fontFamily:'sans-serif';
+    var px=(window.innerWidth<=640)?12:13;
+    _saudCtx.font='650 '+px+'px '+fam;
+    return _saudCtx.measureText(txt).width<=_saudLargura();
+  }catch(e){ return txt.length<=20; }   /* sem canvas, chuta pelo tamanho */
+}
+
+/** Monta a frase do topo. Sorteia a cada carregamento — a pessoa entra
+    no sistema várias vezes por dia e a frase fixa cansa. */
+function nhSaudacao(){
+  var n=meuPrimeiroNome();
+  if(!n) return '';                        /* sem nome, sem frase */
+  var d=new Date(), h=d.getHours();
+  var pool=[];
+  /* Hora do dia manda quando é começo ou fim de expediente. */
+  if(h<12) pool.push('Bom dia, {n}');
+  else if(h<18) pool.push('Boa tarde, {n}');
+  else pool.push('Boa noite, {n}');
+  pool=pool
+    .concat(SAUD_DIA[d.getDay()]||[])      /* dia da semana, peso maior */
+    .concat(SAUD_DIA[d.getDay()]||[])
+    .concat(SAUD_GERAL)
+    .concat(SAUD_ANIMO);
+  /* Troca o nome ANTES de medir: quem decide se cabe é a frase pronta. */
+  var prontas=pool.map(function(f){ return f.replace('{n}',n) });
+  var cabem=prontas.filter(_saudCabe);
+  /* No celular sobram poucas — as curtas. Se o nome for comprido a
+     ponto de nenhuma caber, mostra só o nome, que é o que importa. */
+  if(!cabem.length) return _saudCabe(n)?n:'';
+  return cabem[Math.floor(Math.random()*cabem.length)];
+}
+
+/** Escreve a saudação na barra. Se não houver nome cadastrado, mostra
+    o identificador de sempre — melhor um telefone do que nada. */
+function nhPintarSaudacao(){
+  var s=document.getElementById('user-name'); if(!s) return;
+  var frase=nhSaudacao();
+  if(frase){
+    s.textContent=frase;
+    s.classList.add('tem-nome');
+    /* O login continua acessível, só saiu da frente: passa o mouse. */
+    s.title='Conectado como '+(USER_EMAIL||'').replace('@nh.interno','');
+  }else{
+    s.textContent=String(USER_EMAIL||'').replace('@nh.interno','');
+    s.classList.remove('tem-nome');
+    s.title='';
+  }
 }
 
 function eqRender(){
@@ -5152,7 +5286,7 @@ function toggleAtivoIdx(n){
 function toggleCrmIdx(n){var em=Object.keys(USUARIOS||{})[n];if(!em)return;var u=USUARIOS[em]||{};
   if(String(u.tipo||'').toLowerCase()==='empresa'){toast&&toast('Acesso de empresa não entra no CRM','err');return;}
   u.crm=!u.crm;USUARIOS[em]=u;salvarUsuarios();renderListaUsuarios();
-  toast&&toast(u.crm?('"'+em+'" agora vê o CRM'):('"'+em+'" não vê mais o CRM'),'ok');}auth.onAuthStateChanged(function(e){var a=document.getElementById("login-screen"),t=document.getElementById("sb"),o=document.querySelector(".topbar"),i=document.querySelector(".main");if(e){resolveAcesso(e.email).then(function(acc){if(!acc.ok){auth.signOut();var n=document.getElementById("login-err");return void(n&&(n.style.display="block",n.textContent=acc.motivo==="desativado"?("Este acesso foi desativado. Fale com um sócio. ("+e.email+")"):("Email não autorizado: "+e.email)))}IS_ADMIN=acc.admin,USER_SOS=acc.sos,IS_READONLY=acc.readonly,USER_EMAIL=e.email;try{if(window.NHAudit){NHAudit.iniciar({db:db,sistema:'sistema'});NHAudit.identificar(e.email,acc.admin?'admin':'equipe',acc.nome||'');NHAudit.registrar({acao:'entrou',onde:'',alvo:'',rotulo:'Sistema NH'});}}catch(_a){}a&&(a.style.display="none"),t&&(t.style.display=""),o&&(o.style.display=""),i&&(i.style.display="");var r=document.getElementById("user-info"),s=document.getElementById("user-name");r&&(r.style.display="flex"),s&&(s.textContent=e.email),aplicarPermissoes(),window._appInited||(window._appInited=!0,initApp())})}else{a&&(a.style.display="flex"),t&&(t.style.display="none"),o&&(o.style.display="none"),i&&(i.style.display="none"),(r=document.getElementById("user-info"))&&(r.style.display="none")}});const FB_COLS={editais:"editais",andamento:"andamento",finalizados:"finalizados",ganhas:"ganhas",atestados:"atestados",financeiro:"financeiro",valores:"valores",config:"config"};var EMPRESAS=[{nome:"VISE",cor:"#eab308"},{nome:"SAUTEC",cor:"#3b82f6"},{nome:"SOS",cor:"#22c55e"},{nome:"SOS FILIAL",cor:"#ef4444"},{nome:"ONLAV",cor:"#06b6d4"},{nome:"ENGEMED",cor:"#ec4899"}];async function carregarEmpresas(){try{var e=await db.collection("config").doc("empresas").get();e.exists&&e.data().lista&&(EMPRESAS=e.data().lista)}catch(e){}EMPRESAS.forEach(function(e){EMP_DATA[e.nome]||(EMP_DATA[e.nome]={cnpj:e.cnpj||"",portais:[],docs:[]}),TOPS["emp-"+e.nome]||(TOPS["emp-"+e.nome]=["Empresa — "+e.nome,"Portais, certidões e documentação"+(e.cnpj?" · CNPJ "+e.cnpj:"")])}),atualizarSelectsEmpresas(),Promise.all(EMPRESAS.map(function(e){return loadEmpData(e.nome)})).then(function(){atualizarSelectsEmpresas()}).catch(function(e){})}async function salvarEmpresas(){await db.collection("config").doc("empresas").set({lista:EMPRESAS})}
+  toast&&toast(u.crm?('"'+em+'" agora vê o CRM'):('"'+em+'" não vê mais o CRM'),'ok');}auth.onAuthStateChanged(function(e){var a=document.getElementById("login-screen"),t=document.getElementById("sb"),o=document.querySelector(".topbar"),i=document.querySelector(".main");if(e){resolveAcesso(e.email).then(function(acc){if(!acc.ok){auth.signOut();var n=document.getElementById("login-err");return void(n&&(n.style.display="block",n.textContent=acc.motivo==="desativado"?("Este acesso foi desativado. Fale com um sócio. ("+e.email+")"):("Email não autorizado: "+e.email)))}IS_ADMIN=acc.admin,USER_SOS=acc.sos,IS_READONLY=acc.readonly,USER_EMAIL=e.email,USER_NOME=acc.nome||"";try{if(window.NHAudit){NHAudit.iniciar({db:db,sistema:'sistema'});NHAudit.identificar(e.email,acc.admin?'admin':'equipe',acc.nome||'');NHAudit.registrar({acao:'entrou',onde:'',alvo:'',rotulo:'Sistema NH'});}}catch(_a){}a&&(a.style.display="none"),t&&(t.style.display=""),o&&(o.style.display=""),i&&(i.style.display="");var r=document.getElementById("user-info"),s=document.getElementById("user-name");r&&(r.style.display="flex"),nhPintarSaudacao(),aplicarPermissoes(),window._appInited||(window._appInited=!0,initApp())})}else{a&&(a.style.display="flex"),t&&(t.style.display="none"),o&&(o.style.display="none"),i&&(i.style.display="none"),(r=document.getElementById("user-info"))&&(r.style.display="none")}});const FB_COLS={editais:"editais",andamento:"andamento",finalizados:"finalizados",ganhas:"ganhas",atestados:"atestados",financeiro:"financeiro",valores:"valores",config:"config"};var EMPRESAS=[{nome:"VISE",cor:"#eab308"},{nome:"SAUTEC",cor:"#3b82f6"},{nome:"SOS",cor:"#22c55e"},{nome:"SOS FILIAL",cor:"#ef4444"},{nome:"ONLAV",cor:"#06b6d4"},{nome:"ENGEMED",cor:"#ec4899"}];async function carregarEmpresas(){try{var e=await db.collection("config").doc("empresas").get();e.exists&&e.data().lista&&(EMPRESAS=e.data().lista)}catch(e){}EMPRESAS.forEach(function(e){EMP_DATA[e.nome]||(EMP_DATA[e.nome]={cnpj:e.cnpj||"",portais:[],docs:[]}),TOPS["emp-"+e.nome]||(TOPS["emp-"+e.nome]=["Empresa — "+e.nome,"Portais, certidões e documentação"+(e.cnpj?" · CNPJ "+e.cnpj:"")])}),atualizarSelectsEmpresas(),Promise.all(EMPRESAS.map(function(e){return loadEmpData(e.nome)})).then(function(){atualizarSelectsEmpresas()}).catch(function(e){})}async function salvarEmpresas(){await db.collection("config").doc("empresas").set({lista:EMPRESAS})}
 /* ══════════════════════════════════════════════════════════════════
    ACESSOS DAS PESSOAS
    Registro próprio, com chave = número do WhatsApp (só dígitos).
@@ -8194,7 +8328,22 @@ var _cfgAba='empresas';
    `config/*` e `emp_data` só aceitam escrita de admin(), e emp_data nem
    leitura permite. Esconder aqui evita a pessoa abrir uma tela que vai
    dar erro — não é a tranca, e nunca deve ser confundido com uma. */
-var CFG_ABAS_SOCIO={acessos:1, portais:1, cadastros:1, atividade:1};
+/* Abas restritas ao sócio. Enxugado em 16/08/2026 a pedido do cliente:
+   o colaborador precisa cadastrar empresa nova e portal novo — é
+   trabalho dele, e obrigá-lo a chamar um sócio para isso empurra de
+   volta para a senha compartilhada, que é o problema que estamos
+   resolvendo.
+
+   Ficam de fora dele só duas, e por motivos diferentes:
+
+     acessos    — é onde se dá e se tira acesso de todo mundo, e onde
+                  ficam as senhas. Quem opera não precisa disso.
+     atividade  — é a trilha de auditoria: o registro do que TODOS
+                  fizeram. Não é assunto de quem está sendo registrado.
+
+   `cadastros` (as empresas que se cadastraram pelo link público) saiu
+   da lista: conferir documentação de cadastro novo é operação. */
+var CFG_ABAS_SOCIO={acessos:1, atividade:1};
 
 /* Chamado depois de resolver quem entrou: some com as abas que a pessoa
    não pode usar, para ninguém esbarrar numa tela que não é sua. */
@@ -17588,6 +17737,12 @@ if('function'===typeof nhCertFechar){
 </script>
 </body>
 </html>
+
+
+
+
+
+
 
 
 
