@@ -604,15 +604,39 @@ body.light-theme select{color-scheme:light;}
    de cadastro: coluna única, cartões empilhados, título com barrinha. */
 
 /* Abas da página de Configurações */
-.cfg-abas{display:flex;gap:4px;background:var(--s2);border:1px solid var(--b1);
-  border-radius:12px;padding:4px;margin-bottom:22px}
-.cfg-aba{flex:1;background:none;border:none;color:var(--t3);font-family:'Outfit',sans-serif;
-  font-size:13px;font-weight:700;padding:10px 12px;border-radius:9px;cursor:pointer;
+/* ══════════════════════════════════════════════════════════════════
+   CONFIGURAÇÕES — refeito em 16/08/2026
+
+   Antes: a página inteira num corredor de 640px. Num monitor de 1700px
+   isso deixa mais de mil pixels vazios enquanto o conteúdo se espreme
+   — a "miséria de tela" que o cliente apontou. 640px é largura de
+   LEITURA, boa para texto corrido; esta tela é um painel de
+   administração, com listas, tabelas e formulários lado a lado.
+
+   Agora: 1180px, cards com respiro, e as coisas que se leem juntas
+   ficando juntas em duas colunas quando há espaço.
+   ══════════════════════════════════════════════════════════════════ */
+.cfg-abas{display:flex;gap:5px;background:var(--s2);border:1px solid var(--b1);
+  border-radius:14px;padding:5px;margin-bottom:26px;overflow-x:auto}
+.cfg-aba{flex:1 0 auto;background:none;border:none;color:var(--t3);font-family:'Outfit',sans-serif;
+  font-size:13.5px;font-weight:700;padding:12px 18px;border-radius:10px;cursor:pointer;
   transition:all .18s;display:flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap}
-.cfg-aba:hover{color:var(--t2)}
+.cfg-aba:hover{color:var(--t2);background:rgba(255,255,255,.02)}
 .cfg-aba.on{background:var(--s1);color:var(--nh);box-shadow:0 1px 3px rgba(0,0,0,.25)}
 .cfg-painel{display:none;animation:cfgEntra .22s ease}
 .cfg-painel.on{display:block}
+
+/* Cabeçalho de cada aba: diz onde a pessoa está e para que serve,
+   antes de qualquer campo. */
+.cfg-cab{margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid var(--b1)}
+.cfg-cab h2{font-size:23px;font-weight:800;color:var(--t1);letter-spacing:-.4px;margin:0}
+.cfg-cab p{font-size:13.5px;color:var(--t3);line-height:1.6;margin:6px 0 0;max-width:70ch}
+
+/* Duas colunas quando cabe. Os cards que precisam da largura inteira
+   pedem .cfg-largo. */
+.cfg-grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:18px;align-items:start}
+.cfg-largo{grid-column:1/-1}
+@media(max-width:900px){.cfg-grade{grid-template-columns:1fr}}
 @keyframes cfgEntra{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .cfg-link{display:flex;align-items:center;gap:10px;background:var(--s1);border:1px solid var(--b1);
   border-radius:10px;padding:11px 13px}
@@ -717,7 +741,7 @@ body.light-theme select{color-scheme:light;}
 .atv-alerta b{color:#f87171;display:block;margin-bottom:5px;font-size:13.5px}
 .atv-alerta span{font-size:12.5px;color:var(--t2);line-height:1.6}
 
-.pc-card{background:var(--s2);border:1px solid var(--b1);border-radius:14px;padding:22px;margin-bottom:18px}
+.pc-card{background:var(--s2);border:1px solid var(--b1);border-radius:16px;padding:26px 28px;margin-bottom:18px}
 .pc-card:last-child{margin-bottom:0}
 .pc-tit{font-size:13px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;
   margin-bottom:16px;display:flex;align-items:center;gap:9px}
@@ -1433,8 +1457,40 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 /* ══════════════════════════════════════════════════════════
    ACESSOS (.ac-*) — quem entra no Viabilidade e no Portal
    ══════════════════════════════════════════════════════════ */
+/* Duas seções na mesma aba — equipe e clientes. O bloco separa sem
+   precisar de outra aba: são a mesma pergunta ("quem entra?") vista de
+   dois lados, e trocar de aba para comparar seria pior.
+
+   ⚠️ Chama-se `cfg-bloco`, e NÃO `ac-secao`: essa já existia no
+   arquivo, com outro sentido (espaçamento entre partes do formulário
+   dentro do modal de acesso). Reaproveitar o nome teria envolvido
+   cinco blocos daquele modal num card que não é deles. */
+.cfg-bloco{background:var(--s2);border:1px solid var(--b1);border-radius:16px;
+  padding:24px 26px;margin-bottom:20px}
+.cfg-bloco .ac-topo{margin-bottom:16px}
 .ac-topo{display:flex;align-items:flex-start;gap:16px;margin-bottom:18px;flex-wrap:wrap}
-.ac-topo-tit{font-size:17px;font-weight:800;color:var(--t1);letter-spacing:-.2px}
+.ac-topo>div:first-child{flex:1;min-width:240px}
+.ac-topo-tit{font-size:18px;font-weight:800;color:var(--t1);letter-spacing:-.3px}
+
+/* ── Linha de colaborador ─────────────────────────────────────── */
+.eq-l{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--s1);
+  border:1px solid var(--b1);border-radius:12px;margin-bottom:9px;flex-wrap:wrap}
+.eq-l.off{opacity:.5}
+.eq-av{width:38px;height:38px;border-radius:11px;flex-shrink:0;display:flex;
+  align-items:center;justify-content:center;font-weight:800;font-size:14px;
+  background:var(--nha);color:var(--nh)}
+.eq-c{flex:1;min-width:170px}
+.eq-n{font-size:14.5px;font-weight:700;color:var(--t1);line-height:1.3}
+.eq-s{font-size:12px;color:var(--t3);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.eq-tag{font-size:10.5px;font-weight:800;padding:3px 10px;border-radius:20px}
+.eq-socio{background:rgba(249,115,22,.16);color:var(--nh)}
+.eq-colab{background:rgba(59,130,246,.14);color:#60a5fa}
+.eq-off{background:rgba(239,68,68,.16);color:#f87171}
+.eq-crm{background:rgba(34,197,94,.15);color:#22c55e}
+.eq-acts{display:flex;gap:6px;flex-wrap:wrap}
+.eq-acts .btn{padding:7px 12px;font-size:12px}
+.eq-vazio{padding:26px 18px;text-align:center;color:var(--t3);font-size:13px;line-height:1.65;
+  border:1px dashed var(--b1);border-radius:12px}
 .ac-topo-sub{font-size:12.5px;color:var(--t3);margin-top:4px;line-height:1.55;max-width:640px}
 .ac-topo .btn{margin-left:auto;white-space:nowrap}
 
@@ -2967,7 +3023,9 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
       </button>
       <div id="user-info" style="display:none;align-items:center;gap:6px">
         <span id="user-name" style="font-size:11px;color:var(--t2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
-        <button onclick="alternarTema()" id="btn-tema" class="nh-iconbtn" title="Alternar entre tema claro e escuro">🌙</button><div class="nh-menu-wrap"><button class="nh-iconbtn" onclick="nhToggleMenu(event)" title="Mais opções" aria-haspopup="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button><div id="nh-menu" class="nh-menu"><button id="btn-usuarios" onclick="abrirUsuarios();nhCloseMenu()" class="nh-menu-item">👥 Usuários</button><button onclick="exportarExcelCompleto();nhCloseMenu()" class="nh-menu-item">📊 Exportar Tudo</button><button onclick="exportarBackupCompleto();nhCloseMenu()" id="btn-backup" title="Baixa um arquivo com TODOS os dados do sistema (para guardar em local seguro)" class="nh-menu-item">💾 Backup</button><div class="nh-menu-sep"></div><button onclick="logoutGoogle()" class="nh-menu-item nh-menu-danger"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Sair</button></div></div>
+        <button onclick="alternarTema()" id="btn-tema" class="nh-iconbtn" title="Alternar entre tema claro e escuro">🌙</button><div class="nh-menu-wrap"><button class="nh-iconbtn" onclick="nhToggleMenu(event)" title="Mais opções" aria-haspopup="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button><div id="nh-menu" class="nh-menu"><!-- 👥 Usuários saiu daqui em 16/08/2026: virou a seção "Equipe da NH"
+       dentro de Configurações › Acessos, que já é protegida por senha
+       própria. Duas telas para "quem entra no sistema" era uma a mais. --><button onclick="exportarExcelCompleto();nhCloseMenu()" class="nh-menu-item">📊 Exportar Tudo</button><button onclick="exportarBackupCompleto();nhCloseMenu()" id="btn-backup" title="Baixa um arquivo com TODOS os dados do sistema (para guardar em local seguro)" class="nh-menu-item">💾 Backup</button><div class="nh-menu-sep"></div><button onclick="logoutGoogle()" class="nh-menu-item nh-menu-danger"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Sair</button></div></div>
       </div>
     </div>
   </div>
@@ -3076,7 +3134,7 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
     <!-- PORTAL CONFIG -->
     <!-- CONFIGURAÇÕES -->
     <div class="page" id="page-config">
-      <div style="max-width:640px;margin:0 auto;padding:8px 0">
+      <div style="max-width:1180px;margin:0 auto;padding:8px 0">
 
         <div class="cfg-abas">
           <button class="cfg-aba on" id="cfg-ab-empresas" onclick="cfgAba('empresas')">Empresas</button>
@@ -3186,9 +3244,37 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
 
         <div class="cfg-painel" id="cfg-p-acessos">
 
-  <div class="ac-topo">
-    <div>
-      <div class="ac-topo-tit">Acessos das pessoas</div>
+  <!-- ══════════════════════════════════════════════════════════════
+       EQUIPE DA NH — mudou de lugar em 16/08/2026
+
+       Estava no menu ⋮ › Usuários, uma tela solta. Veio para cá a
+       pedido do cliente, e o motivo é bom: esta aba já é protegida por
+       uma senha própria (o cofre), e criar acesso é justamente a ação
+       que merece essa trava. Duas telas para "quem entra no sistema"
+       também era uma a mais do que o necessário.
+
+       O login do colaborador passou a ser o WhatsApp, igual ao das
+       empresas — mas os dois cadastros continuam separados no banco
+       (config/usuarios × config/responsaveis), porque são coisas
+       diferentes: um é gente da casa, o outro é cliente.
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="cfg-bloco">
+    <div class="ac-topo">
+      <div>
+        <div class="ac-topo-tit">Equipe da NH</div>
+        <div class="ac-topo-sub">Quem trabalha aqui dentro. Entra com o <b>WhatsApp e uma senha</b>, e cada
+        um tem a sua — &eacute; isso que faz a trilha de auditoria dizer um nome em vez de &ldquo;a conta do escrit&oacute;rio&rdquo;.</div>
+      </div>
+      <button class="btn btn-ghost" onclick="minhaSenhaTrocar()" title="Trocar a senha com que voc&ecirc; entra">&#128273; Minha senha</button>
+      <button class="btn btn-nh" onclick="eqNovo()">&#43; Novo colaborador</button>
+    </div>
+    <div id="eq-lista"></div>
+  </div>
+
+  <div class="cfg-bloco">
+    <div class="ac-topo">
+      <div>
+        <div class="ac-topo-tit">Acessos das pessoas</div>
       <div class="ac-topo-sub">Quem entra no <b>An&aacute;lise de Viabilidade</b> e no <b>Portal de Contratos</b>. O login &eacute; o WhatsApp da pessoa e uma senha.</div>
     </div>
     <button class="btn btn-ghost" onclick="acAuditar()" title="Conferir todos os acessos e apontar o que merece aten&ccedil;&atilde;o">&#128269; Auditoria</button>
@@ -3214,6 +3300,7 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
   <div style="margin-top:22px;padding-top:16px;border-top:1px dashed var(--b1);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
     <div style="font-size:11px;color:var(--t3);max-width:480px">Editais antigos podem ter o campo "Responsável" com o nome de mais de uma pessoa junto (ex.: "Antunes &amp; Noronha"), de antes desse controle por empresa existir.</div>
     <button class="btn btn-ghost" onclick="acLimparResponsaveis()">&#129529; Corrigir Respons&aacute;vel dos editais antigos</button>
+  </div>
   </div>
 </div>
 
@@ -4475,6 +4562,265 @@ function acTrocarTema(){acAplicarTema(!document.body.classList.contains('light-t
 (function(){try{acAplicarTema('claro'===localStorage.getItem('nh_tema'));}catch(e){}})();
 
 function loginEmailSenha(){var e=document.getElementById("login-email").value.trim(),a=document.getElementById("login-senha").value,t=document.getElementById("btn-login"),o=document.getElementById("login-err");if(!e||!a)return o.style.display="block",void(o.textContent="Preencha email e senha");t&&(t.textContent="Entrando..."),o.style.display="none",auth.signInWithEmailAndPassword(e,a).catch(function(e){t&&(t.textContent="Entrar"),o.style.display="block","auth/wrong-password"===e.code||"auth/user-not-found"===e.code||"auth/invalid-credential"===e.code?o.textContent="Email ou senha incorretos":o.textContent="Erro: "+e.message})}function logoutGoogle(){auth.signOut()}var ADMIN_EMAIL="noronhaholandalicitacoes@gmail.com",USUARIOS=null,USER_EMAIL="",IS_ADMIN=false,USER_SOS=true,IS_READONLY=false;async function carregarUsuarios(){if(USUARIOS!==null)return USUARIOS;USUARIOS={};try{if(db){var d=await db.collection("config").doc("usuarios").get();if(d.exists){var x=d.data();if(x&&x.lista)USUARIOS=x.lista;}}}catch(e){}return USUARIOS;}/* ══════════════════════════════════════════════════════════════════
+   EQUIPE DA NH — cadastro por WhatsApp
+
+   Mudou em 16/08/2026. O colaborador entrava por e-mail; passou a
+   entrar pelo WhatsApp e uma senha, igual às empresas clientes. Pedido
+   do cliente, e a razão é prática: número todo mundo sabe de cor, e o
+   cadastro vive na aba que já tem senha própria.
+
+   O login é o mesmo truque das empresas: `numero@nh.interno` como
+   e-mail no Firebase Auth. Mas os dois cadastros seguem SEPARADOS no
+   banco — `config/usuarios` para a equipe, `config/responsaveis` para
+   as clientes — porque são coisas diferentes, e misturar faria uma
+   cliente virar equipe por engano.
+
+   O NOME é obrigatório, e não é enfeite: sem ele a trilha de auditoria
+   diria "5583999887766 alterou o edital #412". O nome vai gravado
+   junto na trilha, no momento da ação, então continua legível mesmo
+   depois que a pessoa sair da empresa.
+   ══════════════════════════════════════════════════════════════════ */
+
+/** Só dígitos. É a chave de tudo: login, cadastro e comparação. */
+function eqNum(v){ return String(v||'').replace(/\D/g,''); }
+
+/** WhatsApp legível: (83) 9 9999-0000 */
+function eqFone(n){
+  var d=eqNum(n);
+  if(d.length>=12 && d.indexOf('55')===0) d=d.substring(2);
+  if(d.length===11) return '('+d.substring(0,2)+') '+d.substring(2,3)+' '+d.substring(3,7)+'-'+d.substring(7);
+  if(d.length===10) return '('+d.substring(0,2)+') '+d.substring(2,6)+'-'+d.substring(6);
+  return n||'';
+}
+function eqIniciais(nome){
+  var p=String(nome||'?').trim().split(/\s+/);
+  return ((p[0]||'?')[0]+((p.length>1?p[p.length-1]:'')[0]||'')).toUpperCase();
+}
+/** O nome de quem está usando, para a trilha. */
+function meuNome(){
+  try{
+    var u=(USUARIOS||{})[String(USER_EMAIL||'').toLowerCase()];
+    if(u&&u.nome) return u.nome;
+  }catch(e){}
+  return String(USER_EMAIL||'').split('@')[0];
+}
+
+function eqRender(){
+  var box=document.getElementById('eq-lista'); if(!box) return;
+  var ks=Object.keys(USUARIOS||{}).filter(function(k){
+    /* Acesso marcado como empresa não é equipe — ele aparece na
+       seção de baixo, junto com as clientes. */
+    return String((USUARIOS[k]||{}).tipo||'').toLowerCase()!=='empresa';
+  });
+  var html='<div class="eq-l"><div class="eq-av">NH</div><div class="eq-c">'+
+    '<div class="eq-n">'+ADMIN_EMAIL+'</div>'+
+    '<div class="eq-s"><span class="eq-tag eq-socio">Sócio</span>'+
+    '<span>conta principal, não pode ser removida</span></div></div></div>';
+  if(!ks.length){
+    html+='<div class="eq-vazio">Nenhum colaborador cadastrado ainda.<br>'+
+      'Enquanto isso, quem trabalha aqui usa um login compartilhado — e a trilha '+
+      'não consegue dizer quem fez o quê.</div>';
+  }
+  ks.forEach(function(k,n){
+    var u=USUARIOS[k]||{};
+    var socio=ehPapelSocio(u);
+    var off=(u.ativo===false);
+    var nome=u.nome||String(k).split('@')[0];
+    var tel=u.telefone||(String(k).indexOf('@nh.interno')>0?String(k).split('@')[0]:'');
+    html+='<div class="eq-l'+(off?' off':'')+'">'+
+      '<div class="eq-av">'+esc(eqIniciais(nome))+'</div>'+
+      '<div class="eq-c"><div class="eq-n">'+esc(nome)+'</div>'+
+      '<div class="eq-s">'+
+        '<span class="eq-tag '+(socio?'eq-socio':'eq-colab')+'">'+(socio?'Sócio':'Colaborador')+'</span>'+
+        (off?'<span class="eq-tag eq-off">desativado</span>':'')+
+        ((socio||u.crm)?'<span class="eq-tag eq-crm">CRM</span>':'')+
+        '<span>'+esc(tel?eqFone(tel):k)+'</span>'+
+      '</div></div>'+
+      '<div class="eq-acts">'+
+        '<button class="btn btn-ghost" onclick="eqEditar('+n+')">Editar</button>'+
+        '<button class="btn btn-ghost" onclick="eqSenha('+n+')" title="Definir uma senha nova para esta pessoa">Senha</button>'+
+        '<button class="btn btn-ghost" onclick="eqAtivo('+n+')">'+(off?'Reativar':'Desativar')+'</button>'+
+        (off?'<button class="btn btn-ghost" style="color:#f87171;border-color:rgba(239,68,68,.3)" onclick="eqRemover('+n+')">Remover</button>':'')+
+      '</div></div>';
+  });
+  box.innerHTML=html;
+}
+/** Cria colaborador: nome, WhatsApp, senha e papel.
+ *  Cria o LOGIN e o CADASTRO de uma vez — se criar login desse
+ *  trabalho, ninguém criaria, e todos voltariam para a senha
+ *  compartilhada. */
+async function eqNovo(){
+  var nome=prompt('Nome do colaborador\n\n(aparece na trilha de auditoria — use o nome pelo qual a equipe o chama)');
+  if(nome===null) return;
+  nome=String(nome).trim();
+  if(nome.length<2){ toast('Preciso do nome para a trilha fazer sentido.','err'); return; }
+
+  var fone=prompt('WhatsApp de '+nome+'\n\nCom DDD. É com ele que a pessoa entra.');
+  if(fone===null) return;
+  var num=eqNum(fone);
+  if(num.length<10){ toast('WhatsApp incompleto — precisa do DDD.','err'); return; }
+
+  var chave=emailFalsoResp(num,1);
+  if((USUARIOS||{})[chave]){ toast('Este WhatsApp já é de um colaborador.','err'); return; }
+  /* Guarda contra o pior erro possível deste desenho: o mesmo número
+     cadastrado nos dois lugares faria a pessoa ser equipe E cliente ao
+     mesmo tempo, vendo dados que não são dela. */
+  try{
+    if(ACESSOS && ACESSOS[num]){
+      toast('Este WhatsApp já é de um acesso de EMPRESA. Use outro número.','err'); return;
+    }
+  }catch(e){}
+
+  var senha=prompt('Senha inicial de '+nome+'\n\nMínimo 6 caracteres. Ela pode trocar depois.');
+  if(senha===null) return;
+  senha=String(senha);
+  if(senha.length<6){ toast('A senha precisa de 6 caracteres.','err'); return; }
+
+  var socio=confirm('Papel de '+nome+':\n\nOK = SÓCIO (vê Financeiro, apaga da lixeira, entra em Configurações)\nCancelar = COLABORADOR (opera, mas nada do que faz é irreversível)');
+
+  var aviso='';
+  try{
+    await _authSecundario.createUserWithEmailAndPassword(chave,senha);
+    try{ await _authSecundario.signOut(); }catch(e2){}
+  }catch(err){
+    try{ await _authSecundario.signOut(); }catch(e2){}
+    var c=String(err&&err.code||'');
+    if(c.indexOf('email-already-in-use')>=0){ aviso=' (o login já existia — a senha continua a antiga)'; }
+    else { toast('Não consegui criar o login: '+(err&&err.message||c),'err'); return; }
+  }
+
+  USUARIOS=USUARIOS||{};
+  USUARIOS[chave]={nome:nome, telefone:num, role:(socio?'socio':'colaborador'),
+                   ativo:true, sos:true,
+                   criadoPor:meuNome(), criadoEm:Date.now()};
+  salvarUsuarios(); eqRender();
+  try{ if(window.NHAudit&&NHAudit.pronto()) NHAudit.registrar({acao:'criou',onde:'config/usuarios',
+    alvo:chave, rotulo:'Acesso de '+nome+' ('+(socio?'Sócio':'Colaborador')+')'}); }catch(_a){}
+  toast('Acesso criado para '+nome+aviso,'ok');
+}
+
+/** Editar nome e papel. O WhatsApp não muda: ele é o login, e trocá-lo
+ *  seria criar outra conta — melhor cadastrar de novo e desativar a
+ *  antiga, que deixa o rastro certo na trilha. */
+function eqEditar(n){
+  var k=eqChave(n); if(!k) return;
+  var u=USUARIOS[k]||{};
+  var nome=prompt('Nome de quem usa '+eqFone(u.telefone||k)+':', u.nome||'');
+  if(nome===null) return;
+  nome=String(nome).trim();
+  if(nome.length<2){ toast('O nome não pode ficar vazio.','err'); return; }
+  var eraSocio=ehPapelSocio(u);
+  var socio=confirm('Papel de '+nome+':\n\nOK = SÓCIO\nCancelar = COLABORADOR\n\n(hoje é '+(eraSocio?'Sócio':'Colaborador')+')');
+  var campos=[];
+  if((u.nome||'')!==nome) campos.push({campo:'Nome',de:u.nome||'',para:nome});
+  if(eraSocio!==socio) campos.push({campo:'Papel',de:eraSocio?'Sócio':'Colaborador',para:socio?'Sócio':'Colaborador'});
+  u.nome=nome; u.role=socio?'socio':'colaborador';
+  USUARIOS[k]=u; salvarUsuarios(); eqRender();
+  if(campos.length){
+    try{ if(window.NHAudit&&NHAudit.pronto()) NHAudit.registrar({acao:'alterou',onde:'config/usuarios',
+      alvo:k, rotulo:'Acesso de '+nome, campos:campos}); }catch(_a){}
+  }
+  toast('Salvo.','ok');
+}
+
+/** Redefinir a senha de alguém que esqueceu.
+ *
+ *  O Firebase não deixa trocar a senha de outra conta pelo navegador —
+ *  de propósito. O jeito que já funciona para as empresas é criar uma
+ *  VERSÃO nova do login (numero.r2@nh.interno) com a senha nova, e
+ *  apontar o cadastro para ela. A conta antiga fica órfã e inofensiva:
+ *  o número dela não está mais em lugar nenhum que dê acesso. */
+async function eqSenha(n){
+  var k=eqChave(n); if(!k) return;
+  var u=USUARIOS[k]||{};
+  var num=u.telefone||eqNum(String(k).split('@')[0]);
+  if(!num){ toast('Este acesso não tem WhatsApp — foi criado por e-mail.','err'); return; }
+  var s=prompt('Nova senha para '+(u.nome||num)+'\n\nMínimo 6 caracteres. Passe para a pessoa por WhatsApp.');
+  if(s===null) return;
+  s=String(s);
+  if(s.length<6){ toast('A senha precisa de 6 caracteres.','err'); return; }
+
+  var v=(u.versao||1)+1, chaveNova=null;
+  /* Vai subindo a versão até achar uma livre. */
+  for(var i=0;i<12;i++){
+    var tent=emailFalsoResp(num,v);
+    try{
+      await _authSecundario.createUserWithEmailAndPassword(tent,s);
+      try{ await _authSecundario.signOut(); }catch(e2){}
+      chaveNova=tent; break;
+    }catch(err){
+      try{ await _authSecundario.signOut(); }catch(e2){}
+      if(String(err&&err.code||'').indexOf('email-already-in-use')>=0){ v++; continue; }
+      toast('Não consegui: '+(err&&err.message||''),'err'); return;
+    }
+  }
+  if(!chaveNova){ toast('Não consegui criar a senha nova.','err'); return; }
+
+  var novo=Object.assign({},u,{versao:v});
+  delete USUARIOS[k];
+  USUARIOS[chaveNova]=novo;
+  salvarUsuarios(); eqRender();
+  try{ if(window.NHAudit&&NHAudit.pronto()) NHAudit.registrar({acao:'alterou',onde:'config/usuarios',
+    alvo:chaveNova, rotulo:'Senha de '+(u.nome||num),
+    campos:[{campo:'Senha',de:'anterior',para:'redefinida'}]}); }catch(_a){}
+  toast('Senha nova definida para '+(u.nome||num)+'. Passe para ela.','ok');
+}
+
+function eqAtivo(n){
+  var k=eqChave(n); if(!k) return;
+  var u=USUARIOS[k]||{}; var off=(u.ativo===false);
+  if(!off && !confirm('Desativar '+(u.nome||k)+'?\n\nEla deixa de entrar em todos os sistemas na hora. O cadastro e o histórico ficam.')) return;
+  u.ativo=off?true:false; USUARIOS[k]=u; salvarUsuarios(); eqRender();
+  try{ if(window.NHAudit&&NHAudit.pronto()) NHAudit.registrar({acao:'alterou',onde:'config/usuarios',
+    alvo:k, rotulo:'Acesso de '+(u.nome||k),
+    campos:[{campo:'Situação',de:off?'desativado':'ativo',para:off?'ativo':'desativado'}]}); }catch(_a){}
+  toast((u.nome||k)+(off?' reativado':' desativado'),'ok');
+}
+
+function eqRemover(n){
+  var k=eqChave(n); if(!k) return;
+  var u=USUARIOS[k]||{};
+  if(!confirm('Remover o cadastro de '+(u.nome||k)+' de vez?\n\nA trilha de auditoria vai continuar mostrando o número, mas perde o nome — daqui a seis meses ninguém vai saber de quem era.\n\nDesativar costuma ser melhor.')) return;
+  delete USUARIOS[k]; salvarUsuarios(); eqRender();
+  try{ if(window.NHAudit&&NHAudit.pronto()) NHAudit.registrar({acao:'excluiu',onde:'config/usuarios',
+    alvo:k, rotulo:'Cadastro de '+(u.nome||k)}); }catch(_a){}
+  toast('Removido.','ok');
+}
+
+/** Trocar a própria senha. Reautentica antes — o Firebase exige, e é
+ *  a proteção contra alguém trocar a senha num computador destravado. */
+async function minhaSenhaTrocar(){
+  var atual=prompt('Para trocar a sua senha, digite a senha ATUAL:');
+  if(atual===null) return;
+  var nova=prompt('Nova senha (mínimo 6 caracteres):');
+  if(nova===null) return;
+  nova=String(nova);
+  if(nova.length<6){ toast('A senha precisa de 6 caracteres.','err'); return; }
+  var conf=prompt('Digite a nova senha de novo:');
+  if(conf===null) return;
+  if(String(conf)!==nova){ toast('As duas senhas não são iguais.','err'); return; }
+  try{
+    var u=auth.currentUser;
+    var cred=firebase.auth.EmailAuthProvider.credential(u.email,String(atual));
+    await u.reauthenticateWithCredential(cred);
+    await u.updatePassword(nova);
+    try{ if(window.NHAudit&&NHAudit.pronto()) NHAudit.registrar({acao:'alterou',onde:'config/usuarios',
+      alvo:u.email, rotulo:'Própria senha', campos:[{campo:'Senha',de:'anterior',para:'trocada'}]}); }catch(_a){}
+    toast('Senha trocada. Use a nova da próxima vez que entrar.','ok');
+  }catch(e){
+    var c=String(e&&e.code||'');
+    if(c.indexOf('wrong-password')>=0||c.indexOf('invalid-credential')>=0){ toast('A senha atual não confere.','err'); }
+    else if(c.indexOf('weak-password')>=0){ toast('Senha fraca demais.','err'); }
+    else toast('Não consegui trocar: '+(e&&e.message||c),'err');
+  }
+}
+/** Índice → chave, respeitando o mesmo filtro do render. */
+function eqChave(n){
+  return Object.keys(USUARIOS||{}).filter(function(k){
+    return String((USUARIOS[k]||{}).tipo||'').toLowerCase()!=='empresa';
+  })[n];
+}
+/* ══════════════════════════════════════════════════════════════════
    OS DOIS PAPÉIS — decidido com o cliente em 15/08/2026
 
      SÓCIO       vê e faz tudo, inclusive Financeiro, Configurações e a
@@ -4505,7 +4851,7 @@ function ehPapelSocio(u){ var r=String((u&&u.role)||''); return r==='socio'||r==
 function rotuloPapel(u){ return ehPapelSocio(u)?'Sócio':'Colaborador'; }
 
 async function resolveAcesso(em){
-  if(em===ADMIN_EMAIL) return{ok:true,admin:true,sos:true,readonly:false,papel:'socio'};
+  if(em===ADMIN_EMAIL) return{ok:true,admin:true,sos:true,readonly:false,papel:'socio',nome:'Sócio'};
   var U=await carregarUsuarios();
   var u=U[em];
   if(u){
@@ -4514,15 +4860,15 @@ async function resolveAcesso(em){
        continua tendo a quem se referir. */
     if(u.ativo===false) return{ok:false,motivo:'desativado'};
     var socio=ehPapelSocio(u);
-    return{ok:true, admin:socio, sos:socio||!!u.sos,
+    return{ok:true, admin:socio, sos:socio||!!u.sos, nome:u.nome||'',
            /* Somente leitura deixou de ser o padrão. Só fica quem for
               marcado de propósito. */
            readonly:u.role==='leitura_only',
            papel:socio?'socio':'colaborador'};
   }
-  if(EMAILS_AUTORIZADOS.indexOf(em)>-1) return{ok:true,admin:true,sos:true,readonly:false,papel:'socio'};
+  if(EMAILS_AUTORIZADOS.indexOf(em)>-1) return{ok:true,admin:true,sos:true,readonly:false,papel:'socio',nome:'Sócio'};
   return{ok:false};
-}function aplicarPermissoes(){try{document.body.classList.toggle("ro-mode",!!IS_READONLY);document.body.classList.toggle("no-sos",!USER_SOS);if(!USER_SOS)MOSTRAR_SOS=false;var bu=document.getElementById("btn-usuarios");bu&&(bu.style.display=IS_ADMIN?"inline-block":"none");
+}function aplicarPermissoes(){try{document.body.classList.toggle("ro-mode",!!IS_READONLY);document.body.classList.toggle("no-sos",!USER_SOS);if(!USER_SOS)MOSTRAR_SOS=false;
 if(typeof cfgAplicarPermissoes==="function")cfgAplicarPermissoes();}catch(e){}}function abrirUsuarios(){if(!IS_ADMIN)return;carregarUsuarios().then(function(){var w=document.getElementById("usuarios-ovwrap");if(!w){w=document.createElement("div");w.id="usuarios-ovwrap";document.body.appendChild(w);}w.innerHTML='<div class="uov" onclick="if(event.target===this)fecharUsuarios()"><div class="upanel"><div class="uhead"><div class="uhc"><div class="uicon">👥</div><h3>Usuários do sistema</h3></div><button class="uclose" onclick="fecharUsuarios()">&times;</button></div><div class="uhint"><b>Uma conta por pessoa.</b> Cada colaborador entra com o próprio e-mail e a própria senha — é isso que faz a trilha de auditoria dizer um nome em vez de &ldquo;a conta do escritório&rdquo;.<br><br><b>Sócio</b> vê e faz tudo, inclusive Financeiro e esvaziar a lixeira. <b>Colaborador</b> opera: cria, edita e exclui — e nada do que ele faz é irreversível, porque exclusão vai para a lixeira.<br><br>Quem sai da empresa você <b>desativa</b>, não remove: o nome dele continua fazendo sentido no histórico.</div><div class="uform"><input id="nu-email" type="email" placeholder="email@exemplo.com" class="uinput" autocomplete="off"><input id="nu-senha" type="text" placeholder="senha inicial (mín. 6)" class="uinput" autocomplete="new-password"><select id="nu-role" class="uinput usel"><option value="colaborador">Colaborador</option><option value="socio">Sócio</option></select><label class="uswlbl"><span>vê Externo</span><span class="usw"><input id="nu-sos" type="checkbox"><span></span></span></label><button class="ubtn-add" onclick="addUsuario()">Criar acesso</button></div><div id="usuarios-lista"></div></div></div>';renderListaUsuarios();});}function fecharUsuarios(){var w=document.getElementById("usuarios-ovwrap");if(w)w.innerHTML="";}/* Define se um e-mail de config/usuarios é EQUIPE (vê tudo) ou EMPRESA
    (vê só as dela). Até 15/08/2026 não havia essa distinção: qualquer
    e-mail cadastrado aqui entrava no Portal de Licitações com `todas:
@@ -4699,7 +5045,7 @@ function toggleAtivoIdx(n){
 function toggleCrmIdx(n){var em=Object.keys(USUARIOS||{})[n];if(!em)return;var u=USUARIOS[em]||{};
   if(String(u.tipo||'').toLowerCase()==='empresa'){toast&&toast('Acesso de empresa não entra no CRM','err');return;}
   u.crm=!u.crm;USUARIOS[em]=u;salvarUsuarios();renderListaUsuarios();
-  toast&&toast(u.crm?('"'+em+'" agora vê o CRM'):('"'+em+'" não vê mais o CRM'),'ok');}auth.onAuthStateChanged(function(e){var a=document.getElementById("login-screen"),t=document.getElementById("sb"),o=document.querySelector(".topbar"),i=document.querySelector(".main");if(e){resolveAcesso(e.email).then(function(acc){if(!acc.ok){auth.signOut();var n=document.getElementById("login-err");return void(n&&(n.style.display="block",n.textContent=acc.motivo==="desativado"?("Este acesso foi desativado. Fale com um sócio. ("+e.email+")"):("Email não autorizado: "+e.email)))}IS_ADMIN=acc.admin,USER_SOS=acc.sos,IS_READONLY=acc.readonly,USER_EMAIL=e.email;try{if(window.NHAudit){NHAudit.iniciar({db:db,sistema:'sistema'});NHAudit.identificar(e.email,acc.admin?'admin':'equipe');NHAudit.registrar({acao:'entrou',onde:'',alvo:'',rotulo:'Sistema NH'});}}catch(_a){}a&&(a.style.display="none"),t&&(t.style.display=""),o&&(o.style.display=""),i&&(i.style.display="");var r=document.getElementById("user-info"),s=document.getElementById("user-name");r&&(r.style.display="flex"),s&&(s.textContent=e.email),aplicarPermissoes(),window._appInited||(window._appInited=!0,initApp())})}else{a&&(a.style.display="flex"),t&&(t.style.display="none"),o&&(o.style.display="none"),i&&(i.style.display="none"),(r=document.getElementById("user-info"))&&(r.style.display="none")}});const FB_COLS={editais:"editais",andamento:"andamento",finalizados:"finalizados",ganhas:"ganhas",atestados:"atestados",financeiro:"financeiro",valores:"valores",config:"config"};var EMPRESAS=[{nome:"VISE",cor:"#eab308"},{nome:"SAUTEC",cor:"#3b82f6"},{nome:"SOS",cor:"#22c55e"},{nome:"SOS FILIAL",cor:"#ef4444"},{nome:"ONLAV",cor:"#06b6d4"},{nome:"ENGEMED",cor:"#ec4899"}];async function carregarEmpresas(){try{var e=await db.collection("config").doc("empresas").get();e.exists&&e.data().lista&&(EMPRESAS=e.data().lista)}catch(e){}EMPRESAS.forEach(function(e){EMP_DATA[e.nome]||(EMP_DATA[e.nome]={cnpj:e.cnpj||"",portais:[],docs:[]}),TOPS["emp-"+e.nome]||(TOPS["emp-"+e.nome]=["Empresa — "+e.nome,"Portais, certidões e documentação"+(e.cnpj?" · CNPJ "+e.cnpj:"")])}),atualizarSelectsEmpresas(),Promise.all(EMPRESAS.map(function(e){return loadEmpData(e.nome)})).then(function(){atualizarSelectsEmpresas()}).catch(function(e){})}async function salvarEmpresas(){await db.collection("config").doc("empresas").set({lista:EMPRESAS})}
+  toast&&toast(u.crm?('"'+em+'" agora vê o CRM'):('"'+em+'" não vê mais o CRM'),'ok');}auth.onAuthStateChanged(function(e){var a=document.getElementById("login-screen"),t=document.getElementById("sb"),o=document.querySelector(".topbar"),i=document.querySelector(".main");if(e){resolveAcesso(e.email).then(function(acc){if(!acc.ok){auth.signOut();var n=document.getElementById("login-err");return void(n&&(n.style.display="block",n.textContent=acc.motivo==="desativado"?("Este acesso foi desativado. Fale com um sócio. ("+e.email+")"):("Email não autorizado: "+e.email)))}IS_ADMIN=acc.admin,USER_SOS=acc.sos,IS_READONLY=acc.readonly,USER_EMAIL=e.email;try{if(window.NHAudit){NHAudit.iniciar({db:db,sistema:'sistema'});NHAudit.identificar(e.email,acc.admin?'admin':'equipe',acc.nome||'');NHAudit.registrar({acao:'entrou',onde:'',alvo:'',rotulo:'Sistema NH'});}}catch(_a){}a&&(a.style.display="none"),t&&(t.style.display=""),o&&(o.style.display=""),i&&(i.style.display="");var r=document.getElementById("user-info"),s=document.getElementById("user-name");r&&(r.style.display="flex"),s&&(s.textContent=e.email),aplicarPermissoes(),window._appInited||(window._appInited=!0,initApp())})}else{a&&(a.style.display="flex"),t&&(t.style.display="none"),o&&(o.style.display="none"),i&&(i.style.display="none"),(r=document.getElementById("user-info"))&&(r.style.display="none")}});const FB_COLS={editais:"editais",andamento:"andamento",finalizados:"finalizados",ganhas:"ganhas",atestados:"atestados",financeiro:"financeiro",valores:"valores",config:"config"};var EMPRESAS=[{nome:"VISE",cor:"#eab308"},{nome:"SAUTEC",cor:"#3b82f6"},{nome:"SOS",cor:"#22c55e"},{nome:"SOS FILIAL",cor:"#ef4444"},{nome:"ONLAV",cor:"#06b6d4"},{nome:"ENGEMED",cor:"#ec4899"}];async function carregarEmpresas(){try{var e=await db.collection("config").doc("empresas").get();e.exists&&e.data().lista&&(EMPRESAS=e.data().lista)}catch(e){}EMPRESAS.forEach(function(e){EMP_DATA[e.nome]||(EMP_DATA[e.nome]={cnpj:e.cnpj||"",portais:[],docs:[]}),TOPS["emp-"+e.nome]||(TOPS["emp-"+e.nome]=["Empresa — "+e.nome,"Portais, certidões e documentação"+(e.cnpj?" · CNPJ "+e.cnpj:"")])}),atualizarSelectsEmpresas(),Promise.all(EMPRESAS.map(function(e){return loadEmpData(e.nome)})).then(function(){atualizarSelectsEmpresas()}).catch(function(e){})}async function salvarEmpresas(){await db.collection("config").doc("empresas").set({lista:EMPRESAS})}
 /* ══════════════════════════════════════════════════════════════════
    ACESSOS DAS PESSOAS
    Registro próprio, com chave = número do WhatsApp (só dígitos).
@@ -7967,9 +8313,21 @@ function _atvQuando(ms){
   else dia=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');
   return {dia:dia, hora:hora, curto:(dif<1?'agora':dif<60?('há '+dif+' min'):'')};
 }
-function _atvNome(email){
+/** O nome de quem agiu. Prefere o que foi GRAVADO na linha — ele
+    sobrevive à saída da pessoa da empresa. Sem ele, cai para o login,
+    que com WhatsApp é o número. */
+/** Acha uma linha da trilha daquela pessoa, só para o menu de filtro
+    poder mostrar o nome em vez do número. */
+function _atvRegDe(email){
+  for(var i=0;i<ATV.length;i++) if(ATV[i].quem===email && ATV[i].nome) return ATV[i];
+  return null;
+}
+function _atvNome(email, reg){
+  if(reg && reg.nome) return reg.nome;
   var e=String(email||''); if(!e) return '(sem identificação)';
-  return e.split('@')[0];
+  var loc=e.split('@')[0];
+  if(/^\d{8,}/.test(loc) && typeof eqFone==='function') return eqFone(loc);
+  return loc;
 }
 
 async function atvCarregar(forcar){
@@ -8002,7 +8360,7 @@ function atvMontarFiltros(){
   ATV.forEach(function(a){ if(a.quem) quem[a.quem]=1; if(a.sistema) sis[a.sistema]=1; });
   var sq=document.getElementById('atv-quem'), ss=document.getElementById('atv-sistema');
   if(sq) sq.innerHTML='<option value="">Todo mundo</option>'+
-    Object.keys(quem).sort().map(function(q){ return '<option value="'+esc(q)+'">'+esc(_atvNome(q))+'</option>'; }).join('');
+    Object.keys(quem).sort().map(function(q){ return '<option value="'+esc(q)+'">'+esc(_atvNome(q,_atvRegDe(q)))+'</option>'; }).join('');
   if(ss) ss.innerHTML='<option value="">Todos os sistemas</option>'+
     Object.keys(sis).sort().map(function(s){ return '<option value="'+esc(s)+'">'+esc(ATV_SISTEMAS[s]||s)+'</option>'; }).join('');
 }
@@ -8058,7 +8416,7 @@ function atvPintar(){
     return '<div class="atv-l" style="--ac:'+ac.c+'">'+
       '<div class="atv-h"><b>'+q.dia+'</b>'+q.hora+(q.curto?'<br>'+q.curto:'')+'</div>'+
       '<div class="atv-c">'+
-        '<div class="atv-t">'+esc(_atvNome(a.quem))+' <span class="qual">'+esc(ac.r)+'</span> '+
+        '<div class="atv-t">'+esc(_atvNome(a.quem,a))+' <span class="qual">'+esc(ac.r)+'</span> '+
           esc(a.rotulo||a.alvo||ATV_SISTEMAS[a.sistema]||'')+'</div>'+
         '<div class="atv-q">'+esc(ATV_SISTEMAS[a.sistema]||a.sistema||'')+onde+
           (a.toques>1?' · '+a.toques+' gravações':'')+
@@ -8106,7 +8464,7 @@ function atvPintarLixeira(){
 
     return '<div class="lix-l'+(l.restaurado?' usada':'')+'">'+
       '<div class="lix-c"><div class="lix-n">'+esc(l.rotulo||l.docId||'(sem nome)')+'</div>'+
-      '<div class="lix-q">'+esc(l.colecao||'')+' · '+esc(_atvNome(l.excluidoPor))+
+      '<div class="lix-q">'+esc(l.colecao||'')+' · '+esc(_atvNome(l.excluidoPor,{nome:l.excluidoPorNome}))+
         ' · '+q.dia+' '+q.hora+
         (l.restaurado?' · <b style="color:#22c55e">já restaurado</b>':'')+'</div></div>'+
       (l.restaurado?'':'<button class="btn btn-ghost" onclick="lixRestaurar(\''+esc(l.id)+'\')">Restaurar</button>')+
@@ -8171,7 +8529,7 @@ function cfgAba(nome){
     var b=document.getElementById('cfg-ab-'+n),p=document.getElementById('cfg-p-'+n);
     if(b)b.classList.toggle('on',n===nome);
     if(p)p.classList.toggle('on',n===nome);});
-  if('acessos'===nome)acCarregar();
+  if('acessos'===nome){acCarregar();carregarUsuarios().then(eqRender);}
   if('empresas'===nome)renderListaEmpresas();
   if('portais'===nome)ptCarregarUrls().then(ptRender).catch(function(){ptRender();});
   if('cadastros'===nome)carregarCadastros();
@@ -17123,6 +17481,19 @@ if('function'===typeof nhCertFechar){
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
