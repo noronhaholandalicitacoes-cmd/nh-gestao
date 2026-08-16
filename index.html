@@ -141,7 +141,69 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;min-he
    por WhatsApp, o telefone) em 11px cinza — um dado de sistema onde
    cabia o nome de quem está trabalhando. O identificador não sumiu:
    foi para o title, a um passar de mouse. */
-.nh-saud{font-size:11px;color:var(--t2);max-width:130px;overflow:hidden;
+/* ══════════════════════════════════════════════════════════════════
+   BOAS-VINDAS DA TELA INICIAL (.bv)
+
+   A saudação da barra do topo tem 13px e divide espaço com quatro
+   botões — serve para se situar, não para receber alguém. Este bloco
+   é o contrário: primeira linha da primeira tela, o nome da pessoa no
+   tamanho de um título, e a data por extenso, que é uma pergunta real
+   de quem trabalha com prazo.
+
+   Segue o mesmo desenho da capa do Portal de Licitações, de propósito:
+   quem entra no portal e depois no sistema deve reconhecer a casa.
+   ══════════════════════════════════════════════════════════════════ */
+.bv{
+  position:relative; overflow:hidden;
+  display:flex; align-items:center; justify-content:space-between;
+  flex-wrap:wrap; gap:20px;
+  background:
+    radial-gradient(70% 120% at 12% 0%, rgba(255,107,0,.10), transparent 62%),
+    radial-gradient(60% 120% at 90% 10%, rgba(168,85,247,.07), transparent 60%),
+    var(--s1);
+  border:1px solid var(--b1);
+  border-radius:18px;
+  padding:24px 26px;
+  margin-bottom:20px;
+}
+.bv::before{
+  content:''; position:absolute; inset:0 0 auto 0; height:2px;
+  background:linear-gradient(90deg,transparent,var(--nh),transparent);
+  opacity:.55;
+}
+.bv-txt{min-width:0;flex:1 1 320px}
+.bv-olho{
+  display:flex; align-items:center; gap:7px; margin-bottom:9px;
+  font-size:10.5px; font-weight:800; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--t2);
+}
+.bv-dot{width:6px;height:6px;border-radius:50%;background:#22c55e;flex-shrink:0}
+.bv-tit{
+  margin:0; font-weight:900; line-height:1.08; letter-spacing:-.025em;
+  color:var(--t1);
+  /* Cresce com a tela mas nunca a ponto de quebrar em três linhas. */
+  font-size:clamp(1.45rem,3.2vw,2.35rem);
+}
+/* O nome com o gradiente da marca — é o pedaço que tem de saltar. */
+.bv-nome{
+  background:linear-gradient(135deg,#f97316,#a855f7);
+  -webkit-background-clip:text; background-clip:text;
+  -webkit-text-fill-color:transparent; color:transparent;
+}
+.bv-data{margin-top:7px;font-size:13px;color:var(--t3);text-transform:capitalize}
+
+/* Os números do dia, à direita. */
+.bv-nums{display:flex;gap:22px;flex-wrap:wrap}
+.bv-num{min-width:74px}
+.bv-num-v{font-size:26px;font-weight:900;line-height:1;color:var(--cc,var(--nh))}
+.bv-num-l{font-size:10.5px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.06em;color:var(--t3);margin-top:5px}
+
+@media(max-width:640px){
+  .bv{padding:18px 18px;border-radius:14px}
+  .bv-nums{gap:16px}
+  .bv-num-v{font-size:21px}
+}.nh-saud{font-size:11px;color:var(--t2);max-width:130px;overflow:hidden;
   text-overflow:ellipsis;white-space:nowrap}
 .nh-saud.tem-nome{font-size:13px;font-weight:650;color:var(--t1);max-width:230px;
   letter-spacing:-.01em}
@@ -1514,7 +1576,16 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 .ac-topo .btn{margin-left:auto;white-space:nowrap}
 
 /* Contadores */
-.ac-resumo{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:11px;margin-bottom:16px}
+/* Aviso de pessoa cadastrada duas vezes. Âmbar, não vermelho: não é
+   falha nem risco — é sobra de um desenho que mudou. Vermelho aqui
+   assustaria à toa e, de tanto aparecer, ensinaria a ignorar. */
+.ac-dup{background:rgba(234,179,8,.07);border:1px solid rgba(234,179,8,.32);
+  border-radius:14px;padding:15px 17px;margin-bottom:16px}
+.ac-dup-tit{font-size:13.5px;font-weight:800;color:#eab308;margin-bottom:5px}
+.ac-dup-sub{font-size:12.5px;line-height:1.6;color:var(--t2);margin-bottom:12px;max-width:80ch}
+.ac-dup-l{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  flex-wrap:wrap;padding:9px 0;border-top:1px solid rgba(234,179,8,.18);font-size:13px}
+.ac-dup-l i{color:var(--t3);font-style:normal}.ac-resumo{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:11px;margin-bottom:16px}
 .ac-rc{
   background:linear-gradient(90deg,var(--cc,var(--t3)),transparent 55%) top left/100% 2px no-repeat,var(--s2);
   border:1px solid var(--b1);border-left:3px solid var(--cc,var(--b2));
@@ -3059,6 +3130,20 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
 
     <!-- RESUMO -->
     <div class="page" id="page-resumo">
+      <!-- A saudação estava só na barra do topo, em 13px ao lado dos
+           botões — o cliente chamou de "minúscula e sem graça", e tinha
+           razão: naquele tamanho ela concorre com um ícone de engrenagem
+           e perde. Aqui ela tem a primeira linha da primeira tela, que
+           é onde uma boa-vinda se resolve. A da barra continua, menor,
+           para quem navegou para outra página e ainda quer se situar. -->
+      <div id="nh-boasvindas" class="bv" style="display:none">
+        <div class="bv-txt">
+          <div class="bv-olho"><span class="bv-dot"></span><span id="bv-papel">Sistema NH Licitações</span></div>
+          <h1 class="bv-tit"><span id="bv-antes"></span><span class="bv-nome" id="bv-nome"></span></h1>
+          <div class="bv-data" id="bv-data"></div>
+        </div>
+        <div class="bv-nums" id="bv-nums"></div>
+      </div>
       <div id="resumo-body"><div class="load"><div class="spin"></div>Carregando resumo...</div></div>
     </div>
 
@@ -3288,7 +3373,7 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
       <div>
         <div class="ac-topo-tit">Equipe da NH</div>
         <div class="ac-topo-sub">Quem trabalha aqui dentro. Entra com o <b>WhatsApp e uma senha</b>, e cada
-        um tem a sua — &eacute; isso que faz a trilha de auditoria dizer um nome em vez de &ldquo;a conta do escrit&oacute;rio&rdquo;.</div>
+        um tem a sua — &eacute; isso que faz a trilha de auditoria dizer um nome em vez de &ldquo;a conta do escrit&oacute;rio&rdquo;.<br><b>Um cadastro basta:</b> o mesmo WhatsApp e a mesma senha abrem o Portal de Licita&ccedil;&otilde;es e todos os sistemas.</div>
       </div>
       <button class="btn btn-ghost" onclick="minhaSenhaTrocar()" title="Trocar a senha com que voc&ecirc; entra">&#128273; Minha senha</button>
       <button class="btn btn-nh" onclick="eqNovo()">&#43; Novo colaborador</button>
@@ -3299,14 +3384,15 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
   <div class="cfg-bloco">
     <div class="ac-topo">
       <div>
-        <div class="ac-topo-tit">Acessos das pessoas</div>
-      <div class="ac-topo-sub">Quem entra no <b>An&aacute;lise de Viabilidade</b> e no <b>Portal de Contratos</b>. O login &eacute; o WhatsApp da pessoa e uma senha.</div>
+        <div class="ac-topo-tit">Acessos dos clientes</div>
+      <div class="ac-topo-sub">Gente das <b>empresas clientes</b> — n&atilde;o da NH. Cada uma v&ecirc; s&oacute; a empresa dela.<br>Colaborador da NH <b>n&atilde;o entra aqui</b>: o cadastro l&aacute; em cima j&aacute; abre o portal e todos os sistemas.</div>
     </div>
     <button class="btn btn-ghost" onclick="acAuditar()" title="Conferir todos os acessos e apontar o que merece aten&ccedil;&atilde;o">&#128269; Auditoria</button>
     <button class="btn btn-ghost" onclick="acTrocarCofre()" title="Trocar a senha exclusiva desta aba">&#128274; Senha do cofre</button>
     <button class="btn btn-nh" onclick="acNovo()">&#43; Novo acesso</button>
   </div>
 
+  <div id="ac-dup"></div>
   <div class="ac-resumo" id="ac-resumo"></div>
   <div id="ac-auditoria"></div>
 
@@ -4829,11 +4915,69 @@ function nhSaudacao(){
   return cabem[Math.floor(Math.random()*cabem.length)];
 }
 
+/* A frase da sessão. `null` = ainda não sorteada; `''` = sorteada e
+   deu vazio (sem nome cadastrado), e nesse caso não se tenta de novo. */
+var _nhFrase=null;
+
+/** Preenche o bloco de boas-vindas da tela inicial.
+    Chamado no login e de novo quando os dados chegam, para os números
+    saírem do zero. Sem nome cadastrado o bloco não aparece: uma
+    boas-vinda grande dirigida a um número de telefone é pior do que
+    nenhuma. */
+function nhPintarBoasVindas(){
+  var box=document.getElementById('nh-boasvindas'); if(!box) return;
+  /* Sorteia UMA vez por sessão. Este bloco é repintado quando os dados
+     chegam, para os números saírem do vazio — e sem guardar a frase ela
+     trocaria sozinha na frente da pessoa, do nada. */
+  if(_nhFrase===null) _nhFrase=nhSaudacao();
+  var frase=_nhFrase;
+  if(!frase){ box.style.display='none'; return; }
+  box.style.display='flex';
+
+  /* Pinta só o nome com o gradiente. lastIndexOf porque o nome vem
+     sempre no fim da frase. */
+  var n=meuPrimeiroNome(), i=frase.lastIndexOf(n);
+  var antes=document.getElementById('bv-antes'), nome=document.getElementById('bv-nome');
+  if(i<0){ antes.textContent=frase; nome.textContent=''; }
+  else{ antes.textContent=frase.substring(0,i); nome.textContent=frase.substring(i); }
+
+  var papel=document.getElementById('bv-papel');
+  if(papel) papel.textContent=IS_ADMIN?'Sócio · Sistema NH':'Sistema NH Licitações';
+
+  var d=document.getElementById('bv-data');
+  if(d) d.textContent=new Date().toLocaleDateString('pt-BR',
+    {weekday:'long',day:'numeric',month:'long'});
+
+  /* Três números que dizem "como estamos" sem sair da tela. Se ALL
+     ainda não chegou, o bloco fica sem eles em vez de mostrar zeros —
+     zero e "ainda não carregou" são coisas diferentes, e confundir as
+     duas é o erro que já apareceu cinco vezes neste sistema. */
+  var box2=document.getElementById('bv-nums'); if(!box2) return;
+  var A=(typeof ALL!=='undefined'&&ALL)||null;
+  if(!A||!A.editais){ box2.innerHTML=''; return; }
+  var linhas=[
+    {v:(A.editais||[]).length,      l:'Editais',      c:'var(--nh)'},
+    {v:(A.andamento||[]).length,    l:'Em andamento', c:'#3b82f6'},
+    {v:(A.ganhas||[]).length,       l:'Ganhas',       c:'#22c55e'}
+  ];
+  box2.innerHTML=linhas.map(function(x){
+    return '<div class="bv-num" style="--cc:'+x.c+'"><div class="bv-num-v">'+x.v+
+           '</div><div class="bv-num-l">'+x.l+'</div></div>';
+  }).join('');
+}
+
 /** Escreve a saudação na barra. Se não houver nome cadastrado, mostra
     o identificador de sempre — melhor um telefone do que nada. */
 function nhPintarSaudacao(){
   var s=document.getElementById('user-name'); if(!s) return;
-  var frase=nhSaudacao();
+  if(_nhFrase===null) _nhFrase=nhSaudacao();
+  /* A MESMA frase do bloco de boas-vindas — as duas ficam visíveis ao
+     mesmo tempo na tela inicial, e duas saudações diferentes lado a
+     lado parecem defeito. Se não couber nos 230px da barra, aqui fica
+     só o primeiro nome; lá em cima, onde há espaço, fica a frase
+     inteira. Uma é o resumo da outra, nunca uma contradição. */
+  var frase=_nhFrase;
+  if(frase && !_saudCabe(frase)) frase=meuPrimeiroNome();
   if(frase){
     s.textContent=frase;
     s.classList.add('tem-nome');
@@ -5286,7 +5430,7 @@ function toggleAtivoIdx(n){
 function toggleCrmIdx(n){var em=Object.keys(USUARIOS||{})[n];if(!em)return;var u=USUARIOS[em]||{};
   if(String(u.tipo||'').toLowerCase()==='empresa'){toast&&toast('Acesso de empresa não entra no CRM','err');return;}
   u.crm=!u.crm;USUARIOS[em]=u;salvarUsuarios();renderListaUsuarios();
-  toast&&toast(u.crm?('"'+em+'" agora vê o CRM'):('"'+em+'" não vê mais o CRM'),'ok');}auth.onAuthStateChanged(function(e){var a=document.getElementById("login-screen"),t=document.getElementById("sb"),o=document.querySelector(".topbar"),i=document.querySelector(".main");if(e){resolveAcesso(e.email).then(function(acc){if(!acc.ok){auth.signOut();var n=document.getElementById("login-err");return void(n&&(n.style.display="block",n.textContent=acc.motivo==="desativado"?("Este acesso foi desativado. Fale com um sócio. ("+e.email+")"):("Email não autorizado: "+e.email)))}IS_ADMIN=acc.admin,USER_SOS=acc.sos,IS_READONLY=acc.readonly,USER_EMAIL=e.email,USER_NOME=acc.nome||"";try{if(window.NHAudit){NHAudit.iniciar({db:db,sistema:'sistema'});NHAudit.identificar(e.email,acc.admin?'admin':'equipe',acc.nome||'');NHAudit.registrar({acao:'entrou',onde:'',alvo:'',rotulo:'Sistema NH'});}}catch(_a){}a&&(a.style.display="none"),t&&(t.style.display=""),o&&(o.style.display=""),i&&(i.style.display="");var r=document.getElementById("user-info"),s=document.getElementById("user-name");r&&(r.style.display="flex"),nhPintarSaudacao(),aplicarPermissoes(),window._appInited||(window._appInited=!0,initApp())})}else{a&&(a.style.display="flex"),t&&(t.style.display="none"),o&&(o.style.display="none"),i&&(i.style.display="none"),(r=document.getElementById("user-info"))&&(r.style.display="none")}});const FB_COLS={editais:"editais",andamento:"andamento",finalizados:"finalizados",ganhas:"ganhas",atestados:"atestados",financeiro:"financeiro",valores:"valores",config:"config"};var EMPRESAS=[{nome:"VISE",cor:"#eab308"},{nome:"SAUTEC",cor:"#3b82f6"},{nome:"SOS",cor:"#22c55e"},{nome:"SOS FILIAL",cor:"#ef4444"},{nome:"ONLAV",cor:"#06b6d4"},{nome:"ENGEMED",cor:"#ec4899"}];async function carregarEmpresas(){try{var e=await db.collection("config").doc("empresas").get();e.exists&&e.data().lista&&(EMPRESAS=e.data().lista)}catch(e){}EMPRESAS.forEach(function(e){EMP_DATA[e.nome]||(EMP_DATA[e.nome]={cnpj:e.cnpj||"",portais:[],docs:[]}),TOPS["emp-"+e.nome]||(TOPS["emp-"+e.nome]=["Empresa — "+e.nome,"Portais, certidões e documentação"+(e.cnpj?" · CNPJ "+e.cnpj:"")])}),atualizarSelectsEmpresas(),Promise.all(EMPRESAS.map(function(e){return loadEmpData(e.nome)})).then(function(){atualizarSelectsEmpresas()}).catch(function(e){})}async function salvarEmpresas(){await db.collection("config").doc("empresas").set({lista:EMPRESAS})}
+  toast&&toast(u.crm?('"'+em+'" agora vê o CRM'):('"'+em+'" não vê mais o CRM'),'ok');}auth.onAuthStateChanged(function(e){var a=document.getElementById("login-screen"),t=document.getElementById("sb"),o=document.querySelector(".topbar"),i=document.querySelector(".main");if(e){resolveAcesso(e.email).then(function(acc){if(!acc.ok){auth.signOut();var n=document.getElementById("login-err");return void(n&&(n.style.display="block",n.textContent=acc.motivo==="desativado"?("Este acesso foi desativado. Fale com um sócio. ("+e.email+")"):("Email não autorizado: "+e.email)))}IS_ADMIN=acc.admin,USER_SOS=acc.sos,IS_READONLY=acc.readonly,USER_EMAIL=e.email,USER_NOME=acc.nome||"";try{if(window.NHAudit){NHAudit.iniciar({db:db,sistema:'sistema'});NHAudit.identificar(e.email,acc.admin?'admin':'equipe',acc.nome||'');NHAudit.registrar({acao:'entrou',onde:'',alvo:'',rotulo:'Sistema NH'});}}catch(_a){}a&&(a.style.display="none"),t&&(t.style.display=""),o&&(o.style.display=""),i&&(i.style.display="");var r=document.getElementById("user-info"),s=document.getElementById("user-name");r&&(r.style.display="flex"),nhPintarSaudacao(),nhPintarBoasVindas(),aplicarPermissoes(),window._appInited||(window._appInited=!0,initApp())})}else{a&&(a.style.display="flex"),t&&(t.style.display="none"),o&&(o.style.display="none"),i&&(i.style.display="none"),(r=document.getElementById("user-info"))&&(r.style.display="none")}});const FB_COLS={editais:"editais",andamento:"andamento",finalizados:"finalizados",ganhas:"ganhas",atestados:"atestados",financeiro:"financeiro",valores:"valores",config:"config"};var EMPRESAS=[{nome:"VISE",cor:"#eab308"},{nome:"SAUTEC",cor:"#3b82f6"},{nome:"SOS",cor:"#22c55e"},{nome:"SOS FILIAL",cor:"#ef4444"},{nome:"ONLAV",cor:"#06b6d4"},{nome:"ENGEMED",cor:"#ec4899"}];async function carregarEmpresas(){try{var e=await db.collection("config").doc("empresas").get();e.exists&&e.data().lista&&(EMPRESAS=e.data().lista)}catch(e){}EMPRESAS.forEach(function(e){EMP_DATA[e.nome]||(EMP_DATA[e.nome]={cnpj:e.cnpj||"",portais:[],docs:[]}),TOPS["emp-"+e.nome]||(TOPS["emp-"+e.nome]=["Empresa — "+e.nome,"Portais, certidões e documentação"+(e.cnpj?" · CNPJ "+e.cnpj:"")])}),atualizarSelectsEmpresas(),Promise.all(EMPRESAS.map(function(e){return loadEmpData(e.nome)})).then(function(){atualizarSelectsEmpresas()}).catch(function(e){})}async function salvarEmpresas(){await db.collection("config").doc("empresas").set({lista:EMPRESAS})}
 /* ══════════════════════════════════════════════════════════════════
    ACESSOS DAS PESSOAS
    Registro próprio, com chave = número do WhatsApp (só dígitos).
@@ -5464,6 +5608,125 @@ function acFiltro(f){
    omissão. Cada item diz QUEM, não só quantos: sem o nome, a pessoa
    não tem o que fazer com o aviso.
    ══════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════
+   PESSOA CADASTRADA DUAS VEZES — 16/08/2026
+
+   Havia dois cadastros que pediam a mesma coisa (nome, WhatsApp,
+   senha): "Equipe da NH" (config/usuarios) e o de baixo
+   (config/responsaveis). E até 16/08 duplicar era o certo a fazer:
+   o Portal de Licitações só reconhecia quem estivesse em
+   config/responsaveis, então dar portal a um colaborador exigia
+   cadastrá-lo nos dois.
+
+   Isso saía caro. Duas senhas para a mesma pessoa, duas datas de
+   validade, dois lugares para desativar quando ela sai — e desativar
+   em um só não desativa. Foi assim que descobrimos, na mesma leitura,
+   que o portal nem olhava o campo `ativo`.
+
+   Com o portal corrigido, um cadastro basta. Estas funções acham quem
+   ficou nos dois e ajudam a limpar.
+
+   O que NÃO fazemos: apagar sozinhos. A remoção tira o acesso de
+   alguém — quem decide isso é o sócio, com o nome na frente.
+   ══════════════════════════════════════════════════════════════════ */
+
+/** O mesmo telefone escrito de formas diferentes tem que dar a mesma
+    chave. Um cadastro grava "5583991112222", outro pode ter
+    "(83) 99111-2222" — os dois são a mesma pessoa, e comparar dígito a
+    dígito diria que não são. Tira o 55 do começo quando sobra número
+    demais e compara o resto. */
+function acChaveFone(v){
+  var d=eqNum(v);
+  if(d.length>11 && d.indexOf('55')===0) d=d.substring(2);
+  return d;
+}
+
+/** Os WhatsApps da equipe. Aceita as duas formas de chave em
+    config/usuarios: `numero@nh.interno` e `numero.r3@nh.interno`
+    (versão criada quando a senha é redefinida). */
+function acNumerosDaEquipe(){
+  var fora={};
+  Object.keys(USUARIOS||{}).forEach(function(k){
+    var u=USUARIOS[k]||{};
+    /* Acesso marcado como empresa mora aqui por outro motivo e não
+       conta como equipe — ele não é duplicata de nada. */
+    if(String(u.tipo||'').toLowerCase()==='empresa') return;
+    var local=String(k).split('@')[0].split('.r')[0];
+    var n=acChaveFone(u.telefone||local);
+    if(n) fora[n]={nome:u.nome||'', chave:k};
+  });
+  return fora;
+}
+
+/** Quem está nos dois cadastros. Devolve [{num, nomeEquipe, nomeCli}]. */
+function acDuplicados(){
+  var equipe=acNumerosDaEquipe(), saida=[];
+  Object.keys(RESPONSAVEIS||{}).forEach(function(num){
+    var n=acChaveFone(num);
+    if(!equipe[n]) return;
+    saida.push({
+      num: num,
+      nomeEquipe: equipe[n].nome || '(sem nome)',
+      nomeCli: (RESPONSAVEIS[num]||{}).nome || '(sem nome)',
+    });
+  });
+  return saida;
+}
+
+/** Tira a pessoa da lista de clientes, deixando só o cadastro de
+    equipe. A conta de login não é tocada: ela é a mesma nos dois — o
+    que muda é de onde as permissões vêm. */
+async function acRemoverDuplicado(num){
+  var d=acDuplicados().filter(function(x){ return x.num===num; })[0];
+  if(!d) return;
+  if(!confirm(
+      'Tirar "'+d.nomeCli+'" da lista de clientes?\n\n'+
+      'Esta pessoa também está cadastrada como EQUIPE ('+d.nomeEquipe+'), '+
+      'e é de lá que vêm as permissões dela.\n\n'+
+      'O WhatsApp e a senha continuam os mesmos. Ela segue entrando '+
+      'no portal e em todos os sistemas — só deixa de aparecer duas vezes.\n\n'+
+      'Se na verdade ela for cliente e não for da equipe, cancele: '+
+      'quem deve sair é o cadastro de equipe, não este.')) return;
+
+  var antes=RESPONSAVEIS[num];
+  delete RESPONSAVEIS[num];
+  try{
+    await salvarResponsaveis();
+  }catch(e){
+    RESPONSAVEIS[num]=antes;              /* devolve: nada meio-feito */
+    toast('Não consegui salvar: '+(e&&e.message||''),'err');
+    return;
+  }
+  try{ if(window.NHAudit&&NHAudit.pronto()) NHAudit.registrar({
+    acao:'excluiu', onde:'config/responsaveis', alvo:num,
+    rotulo:'Cadastro repetido de '+d.nomeCli,
+    campos:[{campo:'Motivo',de:'estava nos dois cadastros',para:'ficou só como equipe'}]}); }catch(_a){}
+  acRender(); toast('"'+d.nomeCli+'" agora aparece só como equipe.','ok');
+}
+
+/** O aviso em cima da lista de clientes. Fica visível sempre que
+    houver duplicata — esconder num painel que precisa de clique é
+    como não avisar. */
+function acPintarDuplicados(){
+  var box=document.getElementById('ac-dup'); if(!box) return;
+  var dups=acDuplicados();
+  if(!dups.length){ box.innerHTML=''; return; }
+  box.innerHTML=
+    '<div class="ac-dup">'+
+      '<div class="ac-dup-tit">⚠️ '+dups.length+' '+
+        (dups.length===1?'pessoa está cadastrada duas vezes':'pessoas estão cadastradas duas vezes')+'</div>'+
+      '<div class="ac-dup-sub">Estão na <b>Equipe da NH</b> (acima) e também aqui, na lista de clientes. '+
+        'Isso era necessário antes de 16/08, quando o portal só reconhecia quem estivesse nesta lista. '+
+        'Hoje o cadastro de equipe já abre o portal e todos os sistemas — o de baixo virou repetição, '+
+        'com uma segunda validade para vencer e um segundo lugar para desativar.</div>'+
+      dups.map(function(d){
+        return '<div class="ac-dup-l"><span><b>'+_atEsc(d.nomeEquipe)+'</b> · '+eqFone(d.num)+
+          (_ppNorm(d.nomeEquipe)!==_ppNorm(d.nomeCli)?' <i>(aqui está como "'+_atEsc(d.nomeCli)+'")</i>':'')+
+          '</span><button class="btn btn-ghost btn-sm" onclick="acRemoverDuplicado(\''+d.num+'\')">Manter só como equipe</button></div>';
+      }).join('')+
+    '</div>';
+}
+
 function acAuditar(){
   var box=document.getElementById('ac-auditoria');
   if(!box) return;
@@ -5489,6 +5752,14 @@ function acAuditar(){
   achado('alto','Entram em dois sistemas sem ninguém ter marcado',
     nums.filter(function(n){ return !(RESPONSAVEIS[n]||{}).acessos; }).map(nome),
     'Cadastro anterior ao controle por sistema. Abra cada um, confira o que deve abrir e salve — isso grava a escolha.');
+
+  /* 1b. Cadastrado nos dois lugares. Não é risco de invasão — as
+         permissões vêm da equipe, que é consultada primeiro —, mas é
+         duas validades para vencer e dois lugares para desativar. E
+         desativar em um só não desativa. */
+  achado('medio','Cadastrados duas vezes: como equipe e como cliente',
+    acDuplicados().map(function(d){ return d.nomeEquipe+' · '+eqFone(d.num); }),
+    'Era preciso antes de 16/08, quando o portal só reconhecia esta lista. Hoje o cadastro de equipe já abre tudo. Use "Manter só como equipe" no aviso acima.');
 
   /* 2. Vencido mas ainda ativo: não entra, mas fica poluindo a lista e
         esconde o fato de que aquela pessoa deveria ter saído. */
@@ -5609,6 +5880,7 @@ function acRender(){
 
   var cont={ativo:0,expirado:0,inativo:0};
   nums.forEach(function(n){cont[acStatus(acNormaliza(RESPONSAVEIS[n]))]++;});
+  acPintarDuplicados();
   var res=document.getElementById('ac-resumo');
   if(res)res.innerHTML=
     '<div class="ac-rc" style="--cc:#22c55e"><div class="ac-rc-v">'+cont.ativo+'</div><div class="ac-rc-l">Ativos</div></div>'+
@@ -6332,7 +6604,7 @@ return i.length?i.map(function(e){
       wg=t.part>0?Math.max(2,Math.round(t.gan/t.part*100)):0;
   return'<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><span style="width:90px;font-size:12px;font-weight:600;color:'+t.cor+'">'+n+'</span><div style="flex:1;height:16px;background:var(--s2);border-radius:4px;position:relative;overflow:hidden"><div style="height:100%;width:'+w+'%;background:rgba(59,130,246,.25);border-radius:4px"></div><div style="position:absolute;top:0;left:0;height:100%;width:'+(t.cap>0?Math.max(1,Math.round(t.gan/t.cap*100)):0)+'%;background:rgba(34,197,94,.35);border-radius:4px"></div></div><span style="font-size:12px;font-weight:700;color:'+cor+';min-width:35px;text-align:right">'+pct+'%</span><span style="font-size:10px;color:var(--t3);min-width:60px;text-align:right">'+t.gan+"/"+t.part+" part.</span></div>";
 }).join(""):'<div style="color:var(--t3);font-size:12px;padding:8px">Sem dados</div>';
-}function buildDescPeriodo(){return"total"===_rPeriodo?"Todos os registros":"mes"===_rPeriodo?["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"][_rMesSel]+" "+_rAnoSel:"trimestre"===_rPeriodo?Math.floor(_rMesSel/3)+1+"º Trimestre de "+_rAnoSel:"ano"===_rPeriodo?"Ano "+_rAnoSel:""}var MOSTRAR_SOS=true;function buildResumo(){var e=document.getElementById("resumo-body");if(!API)return void(e.innerHTML=noConf());
+}function buildDescPeriodo(){return"total"===_rPeriodo?"Todos os registros":"mes"===_rPeriodo?["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"][_rMesSel]+" "+_rAnoSel:"trimestre"===_rPeriodo?Math.floor(_rMesSel/3)+1+"º Trimestre de "+_rAnoSel:"ano"===_rPeriodo?"Ano "+_rAnoSel:""}var MOSTRAR_SOS=true;function buildResumo(){try{nhPintarBoasVindas()}catch(_b){}var e=document.getElementById("resumo-body");if(!API)return void(e.innerHTML=noConf());
 var _ed=FIL.editais||ALL.editais||[],
     _an=FIL.andamento||ALL.andamento||[],
     _fi=FIL.finalizados||ALL.finalizados||[],
@@ -17737,6 +18009,12 @@ if('function'===typeof nhCertFechar){
 </script>
 </body>
 </html>
+
+
+
+
+
+
 
 
 
