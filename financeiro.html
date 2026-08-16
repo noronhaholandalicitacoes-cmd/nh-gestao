@@ -295,8 +295,8 @@ body.light .ac-form{background:rgba(255,255,255,.75)}
     <div class="ac-tit">NH <span class="grad">Financeiro</span></div>
     <div class="ac-sub">Honorários recebidos e despesas do escritório</div>
     <div class="ac-form">
-      <div class="campo"><label>E-mail</label>
-        <input type="email" id="ac-email" placeholder="seu@email.com" autocomplete="username"></div>
+      <div class="campo"><label>E-mail ou WhatsApp</label>
+        <input type="text" id="ac-email" placeholder="seu@email.com ou (83) 99999-9999" autocomplete="username"></div>
       <div class="campo"><label>Senha</label>
         <input type="password" id="ac-senha" placeholder="••••••••" autocomplete="current-password"></div>
       <button class="btn btn-nh" id="ac-btn" style="width:100%;justify-content:center;padding:12px;font-size:14px" onclick="entrar()">Entrar</button>
@@ -2330,33 +2330,108 @@ async function entrar(){
   var msg=document.getElementById('ac-msg'), btn=document.getElementById('ac-btn');
   if(!email||!senha){ msg.style.display='block'; msg.textContent='Preencha e-mail e senha.'; return; }
 
-  /* Digitar o número do WhatsApp aqui é o engano natural — é assim que
-     se entra nos outros três sistemas. Dizer "senha incorreta" nesse
-     caso manda a pessoa procurar erro onde não está. */
-  if(email.indexOf('@') < 0){
+  /* ⚠️ 16/08/2026 — o WhatsApp passou a valer aqui.
+     Esta tela recusava número, e estava certa enquanto o Financeiro era
+     só dos sócios, que entram por e-mail. Agora a marca `financeiro` é
+     dada por pessoa, e colaborador entra por WhatsApp — recusar seria
+     dar a permissão e trancar a porta. */
+  var ehEmail = email.indexOf('@') >= 0;
+  var digitos = email.replace(/\D/g,'');
+  if(!ehEmail && digitos.length < 10){
     msg.style.display='block';
-    msg.innerHTML = /\d/.test(email) && email.replace(/\D/g,'').length >= 8
-      ? 'Aqui o acesso é <b>pelo e-mail</b>, não pelo WhatsApp — este sistema é da equipe NH. '
-        + 'Use o mesmo e-mail com que você entra no Sistema NH.'
-      : 'Informe um e-mail válido.';
+    msg.textContent = 'Informe o e-mail inteiro ou o WhatsApp com DDD.';
     return;
   }
   msg.style.display='none';
   btn.disabled=true; btn.textContent='Entrando…';
-  try{
-    await auth.signInWithEmailAndPassword(email, senha);
-  }catch(e){
-    var c=String(e&&e.code||'');
+
+  /* As duas convenções de número que existem gravadas — a mesma lista
+     do Sistema NH e do Portal. Equipe primeiro: esta tela é da equipe. */
+  var tentativas;
+  if(ehEmail){ tentativas=[email]; }
+  else{
+    var comDDI=(digitos.length<=11?'55'+digitos:digitos);
+    var semDDI=(digitos.length>11&&digitos.indexOf('55')===0)?digitos.substring(2):digitos;
+    var formas=(comDDI===semDDI)?[comDDI]:[semDDI,comDDI];
+    tentativas=[];
+    formas.forEach(function(f){ tentativas.push(f+'@nh.interno'); });
+    for(var v=8; v>=2; v--){ formas.forEach(function(f){ tentativas.push(f+'.r'+v+'@nh.interno'); }); }
+  }
+
+  var credRuim=['auth/user-not-found','auth/wrong-password','auth/invalid-credential','auth/invalid-login-credentials'];
+  var entrou=false, ultimo=null;
+  for(var i=0;i<tentativas.length && !entrou;i++){
+    try{
+      await auth.signInWithEmailAndPassword(tentativas[i], senha);
+      entrou=true;
+    }catch(e){
+      ultimo=String(e&&e.code||'');
+      if(ultimo.indexOf('too-many-requests')>=0) break;
+      if(credRuim.indexOf(ultimo)<0) break;   /* rede, não credencial */
+    }
+  }
+  if(!entrou){
     msg.style.display='block';
-    msg.innerHTML = (c.indexOf('user-not-found')>=0)
-      ? 'Não existe conta com este e-mail. Ele precisa estar cadastrado em <b>Configurações › Usuários</b> do Sistema NH.'
-      : (c.indexOf('too-many-requests')>=0)
+    msg.innerHTML = (String(ultimo).indexOf('too-many-requests')>=0)
       ? 'Muitas tentativas seguidas. Aguarde alguns minutos e tente de novo.'
-      : 'E-mail ou senha incorretos.';
+      : (credRuim.indexOf(ultimo)>=0)
+      ? (ehEmail ? 'E-mail ou senha incorretos.' : 'WhatsApp ou senha incorretos.')
+      : 'Não consegui conectar. Verifique a internet e tente de novo.';
     btn.disabled=false; btn.textContent='Entrar';
   }
 }
 function sair(){ auth.signOut(); }
+
+/**
+ * Quem abre o Financeiro.
+ *
+ * Três caminhos, nesta ordem:
+ *
+ *   1. Os e-mails de sócio fixos no código. Ficam como rede de
+ *      segurança: se `config/usuarios` estiver ilegível — regra
+ *      publicada errada, rede caindo —, os donos ainda entram. Sem
+ *      isto, um erro de configuração trancaria todo mundo para fora do
+ *      próprio dinheiro.
+ *   2. Papel de sócio no cadastro.
+ *   3. A marca `financeiro: true`, ligada por pessoa em
+ *      Configurações › Acessos.
+ *
+ * Isto é a porta da TELA. Quem protege o dado é a regra do Firestore
+ * (`ehFinanceiro()`), que confere a mesma marca no banco — se alguém
+ * burlar esta função pelo console, o banco continua recusando.
+ */
+async function finPodeEntrar(email){
+  var em=String(email||'').trim().toLowerCase();
+  if(ehSocio(em)) return {ok:true};
+
+  var lista={};
+  try{
+    var d=await db.collection('config').doc('usuarios').get();
+    lista=(d.exists&&d.data()&&d.data().lista)||{};
+  }catch(e){
+    /* Não dá para confirmar: recusa. Deixar entrar "na dúvida" é o
+       oposto do que uma porta serve. */
+    return {ok:false, motivo:'N&atilde;o consegui confirmar o seu acesso agora. '+
+      'Verifique a internet e tente de novo.'};
+  }
+
+  var u=lista[em];
+  if(!u){
+    return {ok:false, motivo: /@nh\.interno$/i.test(em)
+      ? 'Este acesso n&atilde;o &eacute; da equipe da NH e n&atilde;o abre o Financeiro.'
+      : 'Esta conta n&atilde;o est&aacute; cadastrada na equipe da NH.'};
+  }
+  if(u.ativo===false){
+    return {ok:false, motivo:'Este acesso foi desativado. Fale com um s&oacute;cio.'};
+  }
+  var papel=String(u.role||'');
+  if(papel==='socio'||papel==='admin') return {ok:true};
+  if(u.financeiro===true) return {ok:true};
+
+  return {ok:false, motivo:'Sua conta entra no Sistema NH, mas o <b>Financeiro</b> '+
+    'n&atilde;o est&aacute; liberado para voc&ecirc;. Um s&oacute;cio libera em '+
+    '<b>Configura&ccedil;&otilde;es &rsaquo; Acessos</b>.'};
+}
 
 auth.onAuthStateChanged(async function(u){
   var acesso=document.getElementById('tela-acesso');
@@ -2368,16 +2443,19 @@ auth.onAuthStateChanged(async function(u){
     btn.disabled=false; btn.textContent='Entrar';
     return;
   }
-  /* Empresa cliente entra por numero@nh.interno; colaborador da NH entra
-     com e-mail real, mas isso não basta — o Financeiro é dos sócios.
-     Quem não estiver na lista sai aqui, com o motivo escrito. */
-  if(!ehSocio(u.email)){
+  /* ⚠️ 16/08/2026 — quem entra deixou de ser uma lista fixa.
+     Antes: só os dois e-mails de sócio, e a decisão era pelo FORMATO do
+     login (@nh.interno = empresa cliente = fora). Isso passou a estar
+     errado por dois motivos: colaborador da NH também é @nh.interno
+     agora, e o cliente vai contratar alguém só para o financeiro.
+     A alternativa seria tornar essa pessoa sócia — o que abriria junto
+     a lixeira, o cadastro de acessos e o CRM.
+     Agora quem decide é o cadastro, não o formato. */
+  var perm=await finPodeEntrar(u.email);
+  if(!perm.ok){
     var m=document.getElementById('ac-msg');
     m.style.display='block';
-    m.innerHTML=/@nh\.interno$/i.test(u.email||'')
-      ? 'Este acesso &eacute; de empresa cliente e n&atilde;o abre o Financeiro da NH.'
-      : 'Sua conta entra no Sistema NH, mas o <b>Financeiro &eacute; restrito aos s&oacute;cios</b>. '
-        + 'Se voc&ecirc; deveria ter acesso, fale com a NH.';
+    m.innerHTML=perm.motivo;
     await auth.signOut();
     return;
   }
@@ -2415,3 +2493,4 @@ auth.onAuthStateChanged(async function(u){
 </script>
 </body>
 </html>
+
