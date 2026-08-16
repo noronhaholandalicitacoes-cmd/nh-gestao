@@ -295,6 +295,21 @@
    * Devolve {ok:true} ou {ok:false, erro}. Se a cópia para a lixeira
    * falhar, NÃO apaga: melhor o registro ficar do que sumir sem volta.
    */
+  /* ── A lixeira NÃO expira sozinha ────────────────────────────────
+     Decidido com o cliente em 15/08/2026. Cheguei a montar expiração
+     automática de 90 dias por TTL do Firestore, e ele preferiu que
+     nada suma sem alguém decidir — só o sócio apaga, quando quiser.
+
+     É a escolha mais segura das duas, e por um motivo que vale
+     registrar: prazo automático é uma promessa silenciosa. Se um dia
+     a política for desligada por engano no console, ninguém percebe;
+     se for esquecida ligada, some coisa que alguém ainda ia procurar.
+     Sem prazo, o estado da lixeira é sempre o que se vê na tela.
+
+     O custo é ela crescer para sempre. Não é problema real: são linhas
+     de texto, não arquivos — e se um dia incomodar, o sócio limpa pelo
+     botão, que é justamente o que existe. */
+
   NH.excluir = function (colecao, id, rotulo) {
     if (!_ligado) return Promise.reject(new Error('auditoria não iniciada'));
     var ref = _db.collection(colecao).doc(String(id));
@@ -352,6 +367,37 @@
       });
     }).catch(function (e) {
       return { ok: false, erro: e && e.message || String(e) };
+    });
+  };
+
+  /** Apaga um item da lixeira PARA SEMPRE.
+   *
+   *  É a única operação de todo o sistema que perde dado sem volta —
+   *  por isso a regra do Firestore a restringe ao sócio, e por isso ela
+   *  deixa rastro: some o dado, fica o registro de que alguém o
+   *  destruiu, com nome e hora. A trilha sobrevive ao que ela descreve.
+   */
+  NH.apagarDaLixeira = function (lixeiraId) {
+    if (!_ligado) return Promise.reject(new Error('auditoria não iniciada'));
+    var lref = _db.collection('lixeira').doc(String(lixeiraId));
+    return lref.get().then(function (snap) {
+      if (!snap.exists) return { ok: false, erro: 'este item já não está na lixeira' };
+      var it = snap.data();
+      return lref.delete().then(function () {
+        NH.registrar({
+          acao: 'destruiu', onde: it.colecao || 'lixeira', alvo: it.docId || String(lixeiraId),
+          rotulo: it.rotulo || '(sem nome)'
+        });
+        return { ok: true };
+      });
+    }).catch(function (e) {
+      var m = e && e.message || String(e);
+      /* A regra recusa para quem não é sócio. Vale traduzir, senão a
+         pessoa lê "Missing or insufficient permissions" e acha que o
+         sistema quebrou. */
+      if (/permission|insufficient/i.test(m))
+        return { ok: false, erro: 'apagar da lixeira é só de sócio' };
+      return { ok: false, erro: m };
     });
   };
 
