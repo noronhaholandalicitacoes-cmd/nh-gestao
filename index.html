@@ -669,6 +669,54 @@ body.light-theme select{color-scheme:light;}
   border-radius:8px;padding:9px 11px;font-size:12.5px;font-family:'Outfit',sans-serif}
 @media(max-width:640px){.cad-painel{width:96vw}.cad-item-row{flex-direction:column;align-items:stretch}}
 
+/* ── Atividade ────────────────────────────────────────────────────
+   A trilha de auditoria e a lixeira, na aba Atividade. */
+.atv-filtros{display:flex;gap:7px;flex-wrap:wrap;margin:14px 0 16px}
+.atv-filtros input,.atv-filtros select{
+  background:var(--s1);border:1px solid var(--b1);color:var(--t1);border-radius:9px;
+  padding:9px 11px;font-family:'Outfit',sans-serif;font-size:12.5px;min-height:38px;outline:none}
+.atv-filtros input{flex:1 1 190px;min-width:150px}
+.atv-filtros select{flex:0 1 auto;min-width:126px;cursor:pointer}
+.atv-filtros input:focus,.atv-filtros select:focus{border-color:var(--nh)}
+.atv-filtros .btn{min-height:38px;padding:0 13px}
+
+/* Uma linha por acontecimento. A cor da barra à esquerda diz o tipo
+   antes de a pessoa ler qualquer palavra. */
+.atv-l{display:grid;grid-template-columns:64px 1fr;gap:12px;padding:11px 12px;
+  border-left:3px solid var(--ac);background:var(--s1);border-radius:0 10px 10px 0;margin-bottom:7px}
+.atv-h{font-size:11.5px;color:var(--t3);font-variant-numeric:tabular-nums;line-height:1.35;padding-top:1px}
+.atv-h b{display:block;color:var(--t2);font-size:12.5px;font-weight:700}
+.atv-c{min-width:0}
+.atv-t{font-size:13px;font-weight:600;color:var(--t1);line-height:1.4}
+.atv-t .qual{color:var(--ac);font-weight:800}
+.atv-q{font-size:11.5px;color:var(--t3);margin-top:3px}
+.atv-campos{margin-top:7px;display:flex;flex-direction:column;gap:4px}
+.atv-cp{font-size:11.5px;color:var(--t2);line-height:1.45;
+  background:var(--s2);border-radius:7px;padding:5px 9px}
+.atv-cp b{color:var(--t1)}
+.atv-cp .de{color:var(--t3);text-decoration:line-through}
+.atv-cp .pa{color:var(--g1)}
+.atv-mais{font-size:11px;color:var(--t3);margin-top:5px}
+.atv-vazio{padding:26px 14px;text-align:center;color:var(--t3);font-size:13px;line-height:1.65;
+  border:1px dashed var(--b1);border-radius:11px}
+
+/* Lixeira */
+.lix-l{display:flex;align-items:center;gap:12px;padding:11px 13px;background:var(--s1);
+  border:1px solid var(--b1);border-radius:10px;margin-bottom:7px;flex-wrap:wrap}
+.lix-c{flex:1;min-width:150px}
+.lix-n{font-size:13px;font-weight:700;color:var(--t1);line-height:1.3}
+.lix-q{font-size:11.5px;color:var(--t3);margin-top:2px}
+.lix-l.usada{opacity:.5}
+.lix-l .btn{padding:6px 12px;font-size:12px;min-height:0}
+
+/* O aviso de auditoria parada. Vermelho e no alto de propósito: sem
+   ele, "ninguém fez nada" e "o sistema não está anotando" são a mesma
+   tela em branco. */
+.atv-alerta{background:rgba(239,68,68,.09);border:1px solid rgba(239,68,68,.4);
+  border-radius:12px;padding:15px 17px;margin-bottom:16px}
+.atv-alerta b{color:#f87171;display:block;margin-bottom:5px;font-size:13.5px}
+.atv-alerta span{font-size:12.5px;color:var(--t2);line-height:1.6}
+
 .pc-card{background:var(--s2);border:1px solid var(--b1);border-radius:14px;padding:22px;margin-bottom:18px}
 .pc-card:last-child{margin-bottom:0}
 .pc-tit{font-size:13px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;
@@ -3037,6 +3085,7 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
           <button class="cfg-aba" id="cfg-ab-viab" onclick="cfgAba('viab')">Viabilidade</button>
           <button class="cfg-aba" id="cfg-ab-portais" onclick="cfgAba('portais')">Portais</button>
           <button class="cfg-aba" id="cfg-ab-cadastros" onclick="cfgAba('cadastros')">Cadastros</button>
+          <button class="cfg-aba" id="cfg-ab-atividade" onclick="cfgAba('atividade')">Atividade</button>
         </div>
 
         <div class="cfg-painel on" id="cfg-p-empresas">
@@ -3426,6 +3475,59 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
     <div class="pc-tit">Cadastros recebidos</div>
     <div class="pc-desc">Clique num cadastro para conferir a documentação, marcar o que falta ou está vencido, e montar o parecer para a empresa.</div>
     <div id="cad-lista" style="display:flex;flex-direction:column;gap:8px"></div>
+  </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════
+             ATIVIDADE — quem fez o quê
+
+             A trilha grava desde 15/08/2026, mas até aqui só dava para
+             ler pelo console do Firebase. Esta aba é a leitura.
+
+             Duas metades: o que foi feito (a trilha) e o que foi
+             apagado (a lixeira, com restaurar). E, no alto, o aviso de
+             quando a auditoria NÃO está gravando — porque lista vazia
+             e auditoria desligada são a mesma imagem na tela, e
+             confundir as duas é o pior jeito de se enganar.
+             ══════════════════════════════════════════════════════════ -->
+        <div class="cfg-painel" id="cfg-p-atividade">
+  <div id="at-aviso"></div>
+
+  <div class="pc-card">
+    <div class="pc-tit">Atividade<span class="cnt" id="atv-cnt"></span></div>
+    <div class="pc-desc">Tudo que foi criado, alterado e excluído nos sistemas, com quem fez e quando.
+    Ninguém pode editar nem apagar esta lista — nem os sócios.</div>
+
+    <div class="atv-filtros">
+      <input type="text" id="atv-busca" placeholder="Buscar empresa, licitação ou pessoa" oninput="atvPintar()" autocomplete="off">
+      <select id="atv-quem" onchange="atvPintar()"></select>
+      <select id="atv-acao" onchange="atvPintar()">
+        <option value="">Tudo que aconteceu</option>
+        <option value="criou">Criações</option>
+        <option value="alterou">Alterações</option>
+        <option value="excluiu">Exclusões</option>
+        <option value="destruiu">Apagados para sempre</option>
+        <option value="restaurou">Restaurações</option>
+        <option value="entrou">Entradas no sistema</option>
+      </select>
+      <select id="atv-sistema" onchange="atvPintar()"></select>
+      <select id="atv-dias" onchange="atvPintar()">
+        <option value="7">Últimos 7 dias</option>
+        <option value="30" selected>Últimos 30 dias</option>
+        <option value="90">Últimos 3 meses</option>
+        <option value="99999">Tudo</option>
+      </select>
+      <button class="btn btn-ghost" onclick="atvCarregar(true)" title="Buscar de novo no banco">↻</button>
+    </div>
+
+    <div id="atv-lista"></div>
+  </div>
+
+  <div class="pc-card">
+    <div class="pc-tit">Lixeira<span class="cnt" id="lix-cnt"></span></div>
+    <div class="pc-desc">Nada é apagado de verdade. O que foi excluído fica aqui e pode voltar para o lugar.
+    Esvaziar de vez é a única ação sem volta do sistema, e é só de sócio.</div>
+    <div id="lix-lista"></div>
   </div>
         </div>
 
@@ -7639,7 +7741,7 @@ var _cfgAba='empresas';
    `config/*` e `emp_data` só aceitam escrita de admin(), e emp_data nem
    leitura permite. Esconder aqui evita a pessoa abrir uma tela que vai
    dar erro — não é a tranca, e nunca deve ser confundido com uma. */
-var CFG_ABAS_SOCIO={acessos:1, portais:1, cadastros:1};
+var CFG_ABAS_SOCIO={acessos:1, portais:1, cadastros:1, atividade:1};
 
 /* Chamado depois de resolver quem entrou: some com as abas que a pessoa
    não pode usar, para ninguém esbarrar numa tela que não é sua. */
@@ -7830,6 +7932,225 @@ async function acTrocarCofre(){
   }
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   ATIVIDADE — a leitura da trilha de auditoria e da lixeira
+
+   A trilha é gravada por nh-auditoria.js desde o primeiro clique. Esta
+   parte só lê e mostra. Só sócio chega aqui: é o histórico de todo
+   mundo, e não é assunto de quem está sendo registrado.
+   ══════════════════════════════════════════════════════════════════ */
+var ATV=[], LIX=[], _atvCarregou=false, _atvCarregando=false;
+
+var ATV_ACOES={
+  criou    :{r:'criou',      c:'#22c55e'},
+  alterou  :{r:'alterou',    c:'#3b82f6'},
+  excluiu  :{r:'excluiu',    c:'#ef4444'},
+  /* Vermelho mais forte: destruiu e excluiu não são a mesma coisa.
+     Excluiu volta da lixeira; destruiu, não. */
+  destruiu :{r:'apagou para sempre', c:'#dc2626'},
+  restaurou:{r:'restaurou',  c:'#a855f7'},
+  entrou   :{r:'entrou em',  c:'#8b95a1'},
+  saiu     :{r:'saiu de',    c:'#8b95a1'}
+};
+var ATV_SISTEMAS={sistema:'Sistema NH', viabilidade:'Viabilidade',
+  portal:'Portal de Contratos', financeiro:'Financeiro', crm:'CRM'};
+
+/** Quanto tempo faz, em palavras. "há 3 min" diz mais que um relógio
+    quando a pergunta é "isso é recente?". */
+function _atvQuando(ms){
+  var d=new Date(ms), dif=Math.round((Date.now()-ms)/60000);
+  var hora=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  var dia;
+  var hoje=new Date(); hoje.setHours(0,0,0,0);
+  var dd=Math.round((hoje-new Date(d.getFullYear(),d.getMonth(),d.getDate()))/86400000);
+  if(dd===0) dia='hoje'; else if(dd===1) dia='ontem';
+  else dia=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');
+  return {dia:dia, hora:hora, curto:(dif<1?'agora':dif<60?('há '+dif+' min'):'')};
+}
+function _atvNome(email){
+  var e=String(email||''); if(!e) return '(sem identificação)';
+  return e.split('@')[0];
+}
+
+async function atvCarregar(forcar){
+  if(_atvCarregando) return;
+  if(_atvCarregou && !forcar){ atvPintar(); return; }
+  _atvCarregando=true;
+  var lista=document.getElementById('atv-lista');
+  if(lista) lista.innerHTML='<div class="atv-vazio">Carregando…</div>';
+  try{
+    if(!window.NHAudit){ _atvCarregando=false; atvPintar(); return; }
+    NHAudit.iniciar({db:db,sistema:'sistema'});
+    var r=await Promise.all([NHAudit.listar(500), NHAudit.listarLixeira(200)]);
+    ATV=r[0]||[]; LIX=r[1]||[];
+    _atvCarregou=true;
+  }catch(e){
+    ATV=[]; LIX=[];
+    if(lista) lista.innerHTML='<div class="atv-vazio">Não consegui ler o histórico: '+
+      (e&&e.message||e)+'<br><br>Se disser “permissões insuficientes”, publique o firestore.rules.</div>';
+    _atvCarregando=false; return;
+  }
+  _atvCarregando=false;
+  atvMontarFiltros();
+  atvPintar();
+}
+
+/** As opções saem do que existe, não de uma lista fixa: pessoa que
+    nunca mexeu em nada não polui o menu. */
+function atvMontarFiltros(){
+  var quem={}, sis={};
+  ATV.forEach(function(a){ if(a.quem) quem[a.quem]=1; if(a.sistema) sis[a.sistema]=1; });
+  var sq=document.getElementById('atv-quem'), ss=document.getElementById('atv-sistema');
+  if(sq) sq.innerHTML='<option value="">Todo mundo</option>'+
+    Object.keys(quem).sort().map(function(q){ return '<option value="'+esc(q)+'">'+esc(_atvNome(q))+'</option>'; }).join('');
+  if(ss) ss.innerHTML='<option value="">Todos os sistemas</option>'+
+    Object.keys(sis).sort().map(function(s){ return '<option value="'+esc(s)+'">'+esc(ATV_SISTEMAS[s]||s)+'</option>'; }).join('');
+}
+
+function atvPintar(){
+  atvAviso();
+  var lista=document.getElementById('atv-lista'); if(!lista) return;
+  var busca=(document.getElementById('atv-busca')||{}).value||'';
+  var quem=(document.getElementById('atv-quem')||{}).value||'';
+  var acao=(document.getElementById('atv-acao')||{}).value||'';
+  var sis=(document.getElementById('atv-sistema')||{}).value||'';
+  var dias=+((document.getElementById('atv-dias')||{}).value||30);
+  var corte=Date.now()-dias*86400000;
+  var b=busca.trim().toLowerCase();
+
+  var vis=ATV.filter(function(a){
+    if(quem && a.quem!==quem) return false;
+    if(acao && a.acao!==acao) return false;
+    if(sis && a.sistema!==sis) return false;
+    if(a.quando && a.quando<corte) return false;
+    if(b){
+      var alvo=[a.rotulo,a.quem,a.onde,a.alvo].join(' ').toLowerCase();
+      if(alvo.indexOf(b)<0) return false;
+    }
+    return true;
+  });
+
+  var cnt=document.getElementById('atv-cnt');
+  if(cnt) cnt.textContent=vis.length;
+
+  if(!vis.length){
+    lista.innerHTML='<div class="atv-vazio">'+
+      (ATV.length? 'Nada com estes filtros. Foram '+ATV.length+' registros carregados.'
+                 : 'Nada registrado ainda. A trilha começa a gravar assim que alguém salvar algo.')+
+      '</div>';
+    return;
+  }
+
+  lista.innerHTML=vis.map(function(a){
+    var ac=ATV_ACOES[a.acao]||{r:a.acao,c:'#8b95a1'};
+    var q=_atvQuando(a.quando||0);
+    var onde=a.onde?(' · '+esc(a.onde)):'';
+    var campos='';
+    if(a.campos && a.campos.length){
+      var mostra=a.campos.slice(0,4);
+      campos='<div class="atv-campos">'+mostra.map(function(c){
+        return '<div class="atv-cp"><b>'+esc(c.campo)+'</b>: '+
+          (c.de?'<span class="de">'+esc(String(c.de).substring(0,60))+'</span> → ':'')+
+          '<span class="pa">'+esc(String(c.para||'(vazio)').substring(0,60))+'</span></div>';
+      }).join('')+'</div>'+
+      (a.campos.length>4?'<div class="atv-mais">+ '+(a.campos.length-4)+' outros campos</div>':'');
+    }
+    return '<div class="atv-l" style="--ac:'+ac.c+'">'+
+      '<div class="atv-h"><b>'+q.dia+'</b>'+q.hora+(q.curto?'<br>'+q.curto:'')+'</div>'+
+      '<div class="atv-c">'+
+        '<div class="atv-t">'+esc(_atvNome(a.quem))+' <span class="qual">'+esc(ac.r)+'</span> '+
+          esc(a.rotulo||a.alvo||ATV_SISTEMAS[a.sistema]||'')+'</div>'+
+        '<div class="atv-q">'+esc(ATV_SISTEMAS[a.sistema]||a.sistema||'')+onde+
+          (a.toques>1?' · '+a.toques+' gravações':'')+
+          (a.papel==='empresa'?' · <b style="color:#eab308">acesso de empresa</b>':'')+'</div>'+
+        campos+
+      '</div></div>';
+  }).join('');
+
+  atvPintarLixeira();
+}
+
+/** O aviso mais importante desta tela. Sem ele, auditoria desligada e
+    "ninguém fez nada" são a mesma imagem — e a segunda é tranquila. */
+function atvAviso(){
+  var box=document.getElementById('at-aviso'); if(!box) return;
+  if(!window.NHAudit){
+    box.innerHTML='<div class="atv-alerta"><b>A auditoria NÃO está gravando</b>'+
+      '<span>O arquivo <code>nh-auditoria.js</code> não foi encontrado. O sistema continua '+
+      'funcionando, mas ninguém está registrando quem faz o quê, e exclusões voltam a apagar '+
+      'de vez.<br><br>Publique o <code>nh-auditoria.js</code> na mesma pasta do '+
+      '<code>index.html</code> e recarregue esta página.</span></div>';
+    return;
+  }
+  if(NHAudit.falhas>0){
+    box.innerHTML='<div class="atv-alerta"><b>'+NHAudit.falhas+' registro(s) não foram gravados</b>'+
+      '<span>A trilha tentou anotar e o banco recusou. Último erro: '+esc(NHAudit.ultimoErro||'')+
+      '<br><br>Se falar em permissão, publique o <code>firestore.rules</code> — a coleção '+
+      '<code>auditoria</code> precisa de <code>create</code> liberado.</span></div>';
+    return;
+  }
+  box.innerHTML='';
+}
+
+function atvPintarLixeira(){
+  var box=document.getElementById('lix-lista'); if(!box) return;
+  var cnt=document.getElementById('lix-cnt');
+  var pend=LIX.filter(function(l){ return !l.restaurado; });
+  if(cnt) cnt.textContent=pend.length;
+  if(!LIX.length){
+    box.innerHTML='<div class="atv-vazio">A lixeira está vazia. Nada foi excluído.</div>';
+    return;
+  }
+  box.innerHTML=LIX.map(function(l){
+    var q=_atvQuando(l.excluidoEm||0);
+
+    return '<div class="lix-l'+(l.restaurado?' usada':'')+'">'+
+      '<div class="lix-c"><div class="lix-n">'+esc(l.rotulo||l.docId||'(sem nome)')+'</div>'+
+      '<div class="lix-q">'+esc(l.colecao||'')+' · '+esc(_atvNome(l.excluidoPor))+
+        ' · '+q.dia+' '+q.hora+
+        (l.restaurado?' · <b style="color:#22c55e">já restaurado</b>':'')+'</div></div>'+
+      (l.restaurado?'':'<button class="btn btn-ghost" onclick="lixRestaurar(\''+esc(l.id)+'\')">Restaurar</button>')+
+      '<button class="btn btn-ghost" style="color:#f87171;border-color:rgba(239,68,68,.3)" '+
+        'onclick="lixApagar(\''+esc(l.id)+'\')" title="Apagar para sempre">Apagar</button>'+
+    '</div>';
+  }).join('');
+}
+
+/** Apagar da lixeira é a ÚNICA ação sem volta do sistema inteiro.
+ *
+ *  Por isso pede o número do registro digitado à mão, e não um "tem
+ *  certeza?" — em que todo mundo clica em Sim sem ler. Digitar obriga
+ *  a olhar o que se está destruindo.
+ *
+ *  A trilha sobrevive: some o dado, fica o registro de quem o destruiu. */
+async function lixApagar(id){
+  var it=LIX.filter(function(l){ return l.id===id; })[0]||{};
+  var nome=it.rotulo||it.docId||id;
+  var alvo=String(it.docId||'').trim();
+  var msg='APAGAR PARA SEMPRE:\n\n'+nome+'\n\n'+
+    'Isto não vai para lugar nenhum. Não tem como voltar atrás — nem por mim, nem pelo suporte.\n\n'+
+    (it.restaurado?'(este item já foi restaurado, então o registro original continua no sistema)\n\n':'')+
+    (alvo?('Para confirmar, digite o número do registro: '+alvo):'Digite APAGAR para confirmar');
+  var r=prompt(msg);
+  if(r===null) return;
+  var esperado=alvo||'APAGAR';
+  if(String(r).trim()!==esperado){ toast('Não confere. Nada foi apagado.','err'); return; }
+  var res=await NHAudit.apagarDaLixeira(id);
+  if(!res.ok){ toast(res.erro||'não consegui apagar','err'); return; }
+  toast('Apagado para sempre. O registro de quem apagou fica na trilha.','ok');
+  await atvCarregar(true);
+}
+async function lixRestaurar(id){
+  var it=LIX.filter(function(l){ return l.id===id; })[0]||{};
+  if(!confirm('Restaurar "'+(it.rotulo||id)+'"?\n\nEle volta para '+(it.colecao||'a coleção de origem')+'.')) return;
+  var r=await NHAudit.restaurar(id);
+  if(!r.ok){ toast(r.erro||'não consegui restaurar','err'); return; }
+  toast('Restaurado. Recarregue a aba para ver na lista.','ok');
+  await atvCarregar(true);
+  /* O dado voltou para o banco, mas as tabelas na tela ainda têm a
+     versão sem ele. Recarregar é mais honesto do que remendar. */
+  try{ await loadAll(); }catch(e){}
+}
 function cfgAba(nome){
   /* Trava também aqui: sem isto, cfgAba('acessos') digitado no console
      abriria a tela. Continua não sendo a tranca — é para a tela não
@@ -7846,14 +8167,17 @@ function cfgAba(nome){
     return;
   }
   _cfgAba=nome;
-  ['empresas','acessos','portal','viab','portais','cadastros'].forEach(function(n){
+  ['empresas','acessos','portal','viab','portais','cadastros','atividade'].forEach(function(n){
     var b=document.getElementById('cfg-ab-'+n),p=document.getElementById('cfg-p-'+n);
     if(b)b.classList.toggle('on',n===nome);
     if(p)p.classList.toggle('on',n===nome);});
   if('acessos'===nome)acCarregar();
   if('empresas'===nome)renderListaEmpresas();
   if('portais'===nome)ptCarregarUrls().then(ptRender).catch(function(){ptRender();});
-  if('cadastros'===nome)carregarCadastros();}
+  if('cadastros'===nome)carregarCadastros();
+  /* Só busca a trilha quando a aba é aberta: são 500 documentos, e
+     ninguém precisa deles ao entrar no sistema. */
+  if('atividade'===nome)atvCarregar();}
 
 /* ══════════════════════════════════════════════════════════════════
    PORTAIS — lista única usada por Editais, Buscador e Em Andamento
@@ -16799,6 +17123,14 @@ if('function'===typeof nhCertFechar){
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
 
 
 
