@@ -48,6 +48,7 @@
   var _sistema = '';
   var _quem = '';
   var _papel = '';
+  var _nome = '';
   var _ligado = false;
 
   /* ── Coalescência: por que ela junta ANTES de gravar ─────────────
@@ -97,9 +98,15 @@
    *  `papel` diz de que tipo é o acesso: 'admin', 'equipe' ou
    *  'empresa' — porque na hora de ler a trilha importa saber se quem
    *  mexeu era da casa ou era a cliente. */
-  NH.identificar = function (email, papel) {
+  /** `nome` entrou em 16/08/2026, quando o login da equipe passou a ser
+   *  o WhatsApp. Sem ele a trilha diria "5583999887766 alterou o edital
+   *  #412" — verdadeiro e inútil. O nome é gravado em CADA linha, no
+   *  momento da ação, e não consultado depois: assim continua legível
+   *  mesmo que a pessoa saia da empresa e o cadastro suma. */
+  NH.identificar = function (email, papel, nome) {
     _quem = String(email || '').toLowerCase();
     _papel = String(papel || '');
+    _nome = String(nome || '');
     return NH;
   };
 
@@ -227,6 +234,7 @@
     var doc = {
       quando: _agora(),
       quem: _quem || '(sem identificação)',
+      nome: _nome || '',
       papel: _papel,
       sistema: _sistema,
       acao: String(ev.acao || 'alterou'),
@@ -322,6 +330,7 @@
         dados: dados,
         rotulo: String(rotulo || '').substring(0, 160),
         excluidoPor: _quem || '(sem identificação)',
+        excluidoPorNome: _nome || '',
         excluidoEm: _agora(),
         sistema: _sistema,
         restaurado: false
@@ -426,3 +435,5 @@
   };
 
 })(window);
+
+
