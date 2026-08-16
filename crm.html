@@ -35,7 +35,13 @@ body.light .topo{background:rgba(242,245,252,.9)}
 .marca{display:flex;align-items:center;gap:10px;font-weight:800;font-size:15px}
 .marca img{width:30px;height:30px;border-radius:9px;object-fit:cover}
 .grad{background:linear-gradient(90deg,#f97316,#a855f7);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.wrap{max-width:1240px;margin:0 auto;padding:20px}
+/* 1240px era o limite de largura de LEITURA, copiado dos outros
+   sistemas. Aqui ele estava errado: num kanban de sete colunas, o funil
+   rolava para o lado enquanto 500px de monitor ficavam vazios nas
+   bordas. Rolar por falta de espaço que existe é o pior tipo de rolagem.
+   1560px aproveita a tela e ainda deixa margem — tela cheia até a borda
+   não parece página, parece erro. */
+.wrap{max-width:1560px;margin:0 auto;padding:20px}
 
 .btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--b1);background:var(--s2);
   color:var(--t2);padding:8px 14px;border-radius:9px;font-family:inherit;font-size:13px;
@@ -375,6 +381,20 @@ body.light .ac-form{background:rgba(255,255,255,.75)}
    A barra de rolagem do sistema, cinza e grossa, cortava a tela ao
    meio no escuro. Aqui ela é discreta, e há um degradê nas bordas
    dizendo que existe mais coisa para o lado. */
+/* TENTEI e DESFIZ: esticar o funil até as bordas da janela com
+   `width:100vw; margin-left:calc(-50vw + 50%)`. Não use.
+
+   `100vw` inclui a barra de rolagem vertical, mas `100%` não. Num
+   monitor de 1736px com barra de 15px, o funil ficava 15px mais largo
+   que a página: vazava 8px de cada lado, a primeira coluna nascia
+   cortada e o corpo ganhava rolagem horizontal. `overflow-x:clip` no
+   body esconde a rolagem, mas o corte da primeira coluna continua.
+
+   Sete colunas pedem ~1780px de largura útil. Isso não cabe em monitor
+   nenhum comum — rolar o kanban para o lado é normal (o Trello e o
+   Pipedrive fazem igual). O que não era normal era rolar com 500px de
+   tela vazios nas bordas, e isso quem resolveu foi o `.wrap` mais
+   largo. */
 .funil-cx{position:relative}
 .funil-cx::after{content:'';position:absolute;top:0;bottom:14px;right:0;width:52px;
   pointer-events:none;background:linear-gradient(90deg,transparent,var(--bg));
