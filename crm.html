@@ -396,9 +396,33 @@ body.light .ac-form{background:rgba(255,255,255,.75)}
    tela vazios nas bordas, e isso quem resolveu foi o `.wrap` mais
    largo. */
 .funil-cx{position:relative}
-.funil-cx::after{content:'';position:absolute;top:0;bottom:14px;right:0;width:52px;
-  pointer-events:none;background:linear-gradient(90deg,transparent,var(--bg));
-  opacity:var(--fade,1);transition:opacity .2s}
+/* Degradê nas duas bordas: diz que existe mais coisa para o lado. Some
+   quando a ponta é atingida, senão vira enfeite que mente. */
+.funil-cx::before,.funil-cx::after{content:'';position:absolute;top:0;bottom:16px;width:56px;
+  pointer-events:none;transition:opacity .2s;z-index:3}
+.funil-cx::before{left:0;background:linear-gradient(270deg,transparent,var(--bg));opacity:var(--fadeE,0)}
+.funil-cx::after{right:0;background:linear-gradient(90deg,transparent,var(--bg));opacity:var(--fadeD,1)}
+
+/* ── Setas do kanban ──────────────────────────────────────────────
+   Arrastar a barra de rolagem para ver a coluna Ganho é trabalho. As
+   setas ficam grudadas na borda, por cima do degradê, e andam uma
+   coluna inteira por clique — não um punhado de pixels. */
+.seta-f{
+  position:absolute;top:50%;transform:translateY(-50%);z-index:4;
+  width:38px;height:38px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--s2);border:1px solid var(--b2);color:var(--t1);
+  cursor:pointer;font-size:17px;line-height:1;font-family:inherit;
+  box-shadow:0 4px 14px rgba(0,0,0,.35);
+  transition:opacity .2s,background .14s,transform .14s;
+}
+body.light .seta-f{box-shadow:0 4px 14px rgba(15,23,42,.16)}
+.seta-f:hover{background:var(--nh);border-color:var(--nh);color:#0a0e1a}
+.seta-f:active{transform:translateY(-50%) scale(.93)}
+.seta-f[disabled]{opacity:0;pointer-events:none}
+.seta-e{left:-6px}
+.seta-d{right:-6px}
+@media(max-width:760px){.seta-f{display:none}}
 .funil{display:flex;gap:12px;overflow-x:auto;padding:2px 2px 16px;align-items:flex-start;
   scrollbar-width:thin;scrollbar-color:var(--b2) transparent}
 .funil::-webkit-scrollbar{height:9px}
@@ -599,6 +623,109 @@ body.light .fn-l:hover{background:rgba(0,0,0,.02)}
 .ag-s{font-size:10px;font-weight:800;padding:3px 9px;border-radius:20px;flex-shrink:0;
   background:var(--ab,var(--s3));color:var(--ac,var(--t2))}
 
+/* ── Barra de filtros ─────────────────────────────────────────────
+   Fica acima das abas porque vale para todas: filtrar no funil e a
+   aba de tratativas mostrar outra coisa seria mentira. */
+.filtros{
+  display:flex;gap:9px;align-items:center;flex-wrap:wrap;
+  background:var(--s1);border:1px solid var(--b1);border-radius:14px;
+  padding:11px 13px;margin-bottom:16px;
+}
+.busca{position:relative;flex:1 1 260px;min-width:200px}
+.busca input{padding-left:36px;min-height:40px;font-size:13.5px}
+.busca::before{
+  content:'';position:absolute;left:13px;top:50%;width:13px;height:13px;
+  transform:translateY(-50%);border:1.6px solid var(--t3);border-radius:50%;
+  pointer-events:none;
+}
+.busca::after{
+  content:'';position:absolute;left:23px;top:calc(50% + 4px);width:6px;height:1.6px;
+  background:var(--t3);transform:rotate(45deg);pointer-events:none;
+}
+.filtros select{width:auto;min-width:132px;min-height:40px;font-size:13px;padding:9px 32px 9px 12px}
+.f-limpar{
+  background:none;border:none;color:var(--t3);font-family:inherit;font-size:12.5px;
+  font-weight:700;cursor:pointer;padding:8px 6px;text-decoration:underline;
+  text-underline-offset:3px;
+}
+.f-limpar:hover{color:var(--nh)}
+.f-conta{
+  font-size:12.5px;font-weight:700;color:var(--t2);white-space:nowrap;
+  padding:0 4px;margin-left:auto;
+}
+.f-conta b{color:var(--nh)}
+@media(max-width:640px){
+  .filtros select{flex:1 1 calc(50% - 5px);min-width:0}
+  .f-conta{margin-left:0;width:100%}
+}
+
+/* ── Temperatura ──────────────────────────────────────────────────
+   Três botões grandes em vez de um menu: é escolha de três opções que
+   se lê pela cor, e menu esconde as opções atrás de um clique. */
+.temps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.temp{
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  /* 13px de folga põe o botão em 44px de altura — o mínimo em que o
+     dedo acerta de primeira. Com 11px ficava em 40px, e errar a
+     temperatura é errar o alerta de follow-up junto. */
+  padding:13px 8px;min-height:44px;border-radius:10px;cursor:pointer;
+  background:var(--s1);border:1.5px solid var(--b1);
+  font-size:13px;font-weight:700;color:var(--t3);
+  transition:border-color .14s,background .14s,color .14s;
+}
+.temp:hover{border-color:var(--b2);color:var(--t2)}
+.temp.on{background:color-mix(in srgb,var(--tc) 12%,transparent);
+  border-color:var(--tc);color:var(--tc)}
+.temp i{font-style:normal;font-size:15px;line-height:1}
+
+/* Selo no cartão e nas listas. */
+.tsel{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:800;
+  padding:3px 8px;border-radius:20px;
+  background:color-mix(in srgb,var(--tc) 16%,transparent);color:var(--tc)}
+.tsel i{font-style:normal;font-size:10px}
+/* Aviso de esfriamento: fundo vermelho fraco no cartão inteiro, para
+   ser visto sem ler. */
+.lc.gelando{border-color:var(--r1)}
+.lc.gelando::after{content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(135deg,rgba(239,68,68,.09),transparent 55%)}
+.gelo{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:800;
+  padding:3px 8px;border-radius:20px;background:rgba(239,68,68,.16);color:var(--r1)}
+
+/* ── Tratativas ───────────────────────────────────────────────────
+   Agrupadas por dia, porque a pergunta é sempre "o que aconteceu
+   ontem" e nunca "o que aconteceu no registro 47". */
+.dia-t{
+  font-size:12px;font-weight:800;color:var(--t3);text-transform:uppercase;
+  letter-spacing:.08em;display:flex;align-items:center;gap:9px;
+  padding-bottom:10px;margin-bottom:4px;border-bottom:1px solid var(--b1);
+}
+.dia-t span{
+  margin-left:auto;font-size:11px;font-weight:800;color:var(--t2);
+  background:var(--s3);border-radius:20px;padding:1px 8px;letter-spacing:0;
+}
+.trat{
+  display:grid;grid-template-columns:96px 1fr;gap:14px;align-items:start;
+  padding:11px 10px;margin:0 -10px;border-radius:10px;cursor:pointer;
+  transition:background .14s;
+}
+.trat:hover{background:var(--s2)}
+.trat-tp{
+  font-size:11px;font-weight:800;color:var(--tc);text-align:right;
+  padding-top:2px;border-right:2px solid var(--tc);padding-right:12px;
+}
+.trat-c{min-width:0}
+.trat-e{font-size:13.5px;font-weight:800;line-height:1.3;display:flex;
+  align-items:baseline;gap:8px;flex-wrap:wrap}
+.trat-et{font-size:10px;font-weight:700;color:var(--t3);background:var(--s3);
+  border-radius:20px;padding:2px 8px}
+.trat-x{font-size:13px;color:var(--t2);line-height:1.55;margin-top:3px;white-space:pre-wrap}
+.trat-a{font-size:11px;color:var(--t3);margin-top:4px}
+@media(max-width:620px){
+  .trat{grid-template-columns:1fr;gap:5px}
+  .trat-tp{text-align:left;border-right:none;padding-right:0;
+    border-left:2px solid var(--tc);padding-left:9px}
+}
+
 /* Vazio que ensina, em vez de espaço em branco. */
 .nada{text-align:center;padding:26px 16px}
 .nada-i{font-size:30px;line-height:1;margin-bottom:10px;opacity:.55}
@@ -626,9 +753,27 @@ body.light .fn-l:hover{background:rgba(0,0,0,.02)}
        que está aberto fechar. O resto é apoio. -->
   <div id="hero"></div>
   <div class="kpis" id="kpis"></div>
+
+  <!-- Os filtros ficam ACIMA das abas de propósito: valem para todas
+       ao mesmo tempo. Filtrar no funil e a aba de tratativas mostrar
+       outra coisa seria o sistema contando duas histórias. -->
+  <div class="filtros">
+    <div class="busca">
+      <input type="text" id="f-busca" placeholder="Buscar empresa, contato, telefone ou e-mail"
+        oninput="fMudou()" autocomplete="off">
+    </div>
+    <select id="f-temp" onchange="fMudou()"></select>
+    <select id="f-resp" onchange="fMudou()"></select>
+    <select id="f-origem" onchange="fMudou()"></select>
+    <select id="f-etapa" onchange="fMudou()"></select>
+    <button class="f-limpar" id="f-limpar" onclick="fLimpar()" style="display:none">limpar</button>
+    <span class="f-conta" id="f-conta"></span>
+  </div>
+
   <div class="abas">
     <button class="aba on" data-a="painel" onclick="trocarAba('painel',this)">Painel</button>
     <button class="aba" data-a="funil" onclick="trocarAba('funil',this)">Funil</button>
+    <button class="aba" data-a="trat" onclick="trocarAba('trat',this)">Tratativas <span id="selo-trat"></span></button>
     <button class="aba" data-a="prazos" onclick="trocarAba('prazos',this)">Prazos <span id="selo-prazos"></span></button>
     <button class="aba" data-a="result" onclick="trocarAba('result',this)">Resultados</button>
   </div>
@@ -706,6 +851,13 @@ body.light .fn-l:hover{background:rgba(0,0,0,.02)}
 
           <div class="bloco" style="--bc:#f97316">
             <div class="bloco-t">Andamento</div>
+            <!-- Etapa e temperatura são perguntas diferentes: uma diz
+                 onde a conversa está, a outra o quanto ela está viva.
+                 Dá para estar em Negociação e estar frio. -->
+            <div class="campo"><label>Temperatura</label>
+              <div class="temps" id="ld-temps"></div>
+              <div class="dica" id="ld-temp-nota"></div>
+            </div>
             <div class="grade" style="margin-bottom:14px">
               <div class="campo"><label>Etapa <span class="obr">*</span></label><select id="ld-etapa"></select></div>
               <div class="campo"><label>Responsável</label><input type="text" id="ld-resp" placeholder="Quem cuida"></div>
@@ -977,6 +1129,27 @@ var ORIGENS={
   SITE:'Site', PROSPECCAO:'Prospecção', OUTRO:'Outro'
 };
 
+/* ── Temperatura ──────────────────────────────────────────────────
+   Etapa diz onde a conversa está; temperatura diz o quanto ela está
+   viva. São coisas diferentes, e é por confundir as duas que vendedor
+   perde negócio: dá para estar em Negociação há três semanas e estar
+   frio, e dá para estar em Contato e estar quentíssimo.
+
+   Quem marca é a pessoa, porque é ela que ouviu o tom da conversa —
+   nenhuma regra automática sabe isso. Mas o sistema cobra: lead
+   marcado como quente que passa `alerta` dias sem tratativa registrada
+   aparece com aviso. Quente que ninguém toca esfria, e o CRM tem que
+   dizer isso antes do cliente sumir. */
+var TEMPERATURAS={
+  QUENTE:{r:'Quente', c:'#ef4444', i:'🔥', alerta:3,
+          d:'Quer fechar. Cobrar retorno em dias, não semanas.'},
+  MORNO :{r:'Morno',  c:'#eab308', i:'🌤', alerta:10,
+          d:'Tem interesse, mas não tem pressa.'},
+  FRIO  :{r:'Frio',   c:'#3b82f6', i:'❄',  alerta:30,
+          d:'Sem interesse claro agora. Manter aquecendo.'}
+};
+function tempDe(l){ return TEMPERATURAS[l&&l.temperatura] || null; }
+
 /** O que a NH ganha por mês se este lead fechar. É o número que move
  *  o funil: percentual de êxito é aposta, mensalidade é receita. */
 function mrrDo(l){
@@ -1025,12 +1198,172 @@ async function carregarTudo(){
   pintar();
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   FILTROS
+
+   Um filtro só, aplicado antes de qualquer conta. Tudo que a tela
+   mostra — funil, prazos, tratativas, relatórios e até os KPIs do topo
+   — lê de `visiveis()`, nunca de LEADS direto.
+
+   Isso é decisão de projeto, não detalhe: se o funil filtrasse e o
+   relatório não, o sistema estaria contando duas histórias ao mesmo
+   tempo e ninguém saberia qual acreditar.
+   ══════════════════════════════════════════════════════════════════ */
+var FILTRO={busca:'', temp:'', resp:'', origem:'', etapa:''};
+
+/* O intervalo das marcas de acento (U+0300 a U+036F) é montado por
+   código, não escrito no arquivo: marca de combinação escrita literal
+   some em qualquer conversão de codificação, e aí o filtro para de
+   achar tudo que tem acento sem ninguém entender por quê. */
+var _ACENTOS=new RegExp('['+String.fromCharCode(0x300)+'-'+String.fromCharCode(0x36f)+']','g');
+/** Tira acento e caixa: quem digita "sertao" tem que achar "Sertão".
+ *  Os acentos vão escapados (̀-ͯ) de propósito — marca de
+ *  combinação escrita literal no código some em qualquer conversão de
+ *  codificação do arquivo, e o filtro passa a não achar nada com
+ *  acento sem ninguém entender por quê. */
+function _norm(s){
+  return String(s==null?'':s).normalize('NFD').replace(_ACENTOS,'').toLowerCase();
+}
+
+function passaFiltro(l){
+  if(FILTRO.temp   && (l.temperatura||'')!==FILTRO.temp) return false;
+  if(FILTRO.etapa  && (l.etapa||'PROSPECCAO')!==FILTRO.etapa) return false;
+  if(FILTRO.origem && (l.origem||'OUTRO')!==FILTRO.origem) return false;
+  if(FILTRO.resp){
+    var r=String(l.responsavel||'').trim();
+    /* "(sem dono)" é uma escolha de filtro válida, e das mais úteis:
+       é a lista do que ninguém está tocando. */
+    if(FILTRO.resp==='__SEM__'){ if(r) return false; }
+    else if(r!==FILTRO.resp) return false;
+  }
+  if(FILTRO.busca){
+    var alvo=_norm([l.empresa,l.contatoNome,l.contatoTelefone,l.contatoEmail,
+                    l.cnpj,l.segmento,l.cidade].join(' '));
+    /* Telefone também casa só por dígitos: ninguém digita a pontuação
+       igual à que está gravada. */
+    var digitos=String(l.contatoTelefone||'').replace(/\D/g,'')+' '+String(l.cnpj||'');
+    var termos=_norm(FILTRO.busca).split(/\s+/).filter(Boolean);
+    var soDig=FILTRO.busca.replace(/\D/g,'');
+    var casaDig=soDig.length>=3 && digitos.indexOf(soDig)>=0;
+    if(!casaDig && !termos.every(function(t){ return alvo.indexOf(t)>=0; })) return false;
+  }
+  return true;
+}
+
+/** A lista que TODA a tela usa. */
+function visiveis(){ return LEADS.filter(passaFiltro); }
+
+function filtroAtivo(){
+  return !!(FILTRO.busca||FILTRO.temp||FILTRO.resp||FILTRO.origem||FILTRO.etapa);
+}
+
+/** Monta as opções a partir dos dados que existem, não de uma lista
+    fixa: responsável que ninguém usa não polui o menu. */
+function fMontarOpcoes(){
+  var op=function(v,r,sel){ return '<option value="'+esc(v)+'"'+(sel===v?' selected':'')+'>'+esc(r)+'</option>'; };
+
+  document.getElementById('f-temp').innerHTML=
+    op('','Toda temperatura',FILTRO.temp)+
+    Object.keys(TEMPERATURAS).map(function(k){
+      return op(k,TEMPERATURAS[k].i+' '+TEMPERATURAS[k].r,FILTRO.temp); }).join('')+
+    op('__NENHUMA__','Sem temperatura',FILTRO.temp);
+
+  var resps={}, semDono=false;
+  LEADS.forEach(function(l){
+    var r=String(l.responsavel||'').trim();
+    if(r) resps[r]=true; else semDono=true;
+  });
+  document.getElementById('f-resp').innerHTML=
+    op('','Todo responsável',FILTRO.resp)+
+    Object.keys(resps).sort().map(function(r){ return op(r,r,FILTRO.resp); }).join('')+
+    (semDono?op('__SEM__','Sem responsável',FILTRO.resp):'');
+
+  var oris={};
+  LEADS.forEach(function(l){ oris[l.origem||'OUTRO']=true; });
+  document.getElementById('f-origem').innerHTML=
+    op('','Toda origem',FILTRO.origem)+
+    Object.keys(oris).sort().map(function(k){ return op(k,ORIGENS[k]||k,FILTRO.origem); }).join('');
+
+  document.getElementById('f-etapa').innerHTML=
+    op('','Toda etapa',FILTRO.etapa)+
+    ETAPAS.map(function(e){ return op(e.k,e.r,FILTRO.etapa); }).join('');
+}
+
+function fMudou(){
+  FILTRO.busca =gv('f-busca');
+  FILTRO.temp  =gv('f-temp');
+  FILTRO.resp  =gv('f-resp');
+  FILTRO.origem=gv('f-origem');
+  FILTRO.etapa =gv('f-etapa');
+  pintar();
+}
+function fLimpar(){
+  FILTRO={busca:'',temp:'',resp:'',origem:'',etapa:''};
+  sv('f-busca','');
+  pintar();
+}
+
+/* "Sem temperatura" não é um valor: é a ausência dele. Tratado à parte
+   para o menu poder oferecer a opção sem inventar um estado no banco. */
+var _passaOrig=passaFiltro;
+passaFiltro=function(l){
+  if(FILTRO.temp==='__NENHUMA__'){
+    if(TEMPERATURAS[l.temperatura]) return false;
+    var salvo=FILTRO.temp; FILTRO.temp='';
+    var r=_passaOrig(l); FILTRO.temp=salvo; return r;
+  }
+  return _passaOrig(l);
+};
+
 function atividadesDo(leadId){
   return ATIVIDADES.filter(function(a){ return a.leadId===leadId; })
     .sort(function(x,y){
       var a=dData(x.data)||new Date(0), b=dData(y.data)||new Date(0);
       return b-a;
     });
+}
+
+/** Data da última tratativa registrada, ou null se nunca houve.
+ *  Conta só o que foi conversa de verdade — a linha automática de
+ *  mudança de etapa não é contato com o cliente, e deixá-la contar
+ *  faria o lead parecer atendido quando ninguém falou com ele. */
+function ultimoContato(leadId){
+  var reais=ATIVIDADES.filter(function(a){
+    return a.leadId===leadId && !a.automatico;
+  });
+  if(!reais.length) return null;
+  var maior=null;
+  reais.forEach(function(a){
+    var d=dData(a.data);
+    if(d && (!maior || d>maior)) maior=d;
+  });
+  return maior;
+}
+
+/** Dias desde a última tratativa. `null` quando nunca houve nenhuma —
+ *  que é diferente de zero e a tela precisa saber diferenciar. */
+function diasSemContato(leadId){
+  var d=ultimoContato(leadId);
+  if(!d) return null;
+  return Math.max(0, Math.round((hoje0()-d)/86400000));
+}
+
+/** O lead está esfriando? Só faz sentido para quem está aberto e tem
+ *  temperatura marcada — sem marcação não há promessa a cobrar. */
+function esfriando(l){
+  if(l.etapa==='GANHO'||l.etapa==='PERDIDO') return null;
+  var t=tempDe(l); if(!t) return null;
+  var dias=diasSemContato(l.id);
+  /* Nunca houve tratativa: conta da entrada no funil. Lead que entrou
+     há duas semanas e nunca foi tocado é o pior caso, não o neutro. */
+  if(dias===null){
+    if(!l.criadoEm) return null;
+    dias=Math.max(0, Math.round((Date.now()-l.criadoEm)/86400000));
+    if(dias<=t.alerta) return null;
+    return {dias:dias, limite:t.alerta, temp:t, nunca:true};
+  }
+  if(dias<=t.alerta) return null;
+  return {dias:dias, limite:t.alerta, temp:t, nunca:false};
 }
 
 /* ── Prazos: o que vence, de todos os leads ───────────────────────
@@ -1040,7 +1373,7 @@ function atividadesDo(leadId){
    dentro" em "isto vence terça". */
 function prazosAbertos(){
   var out=[];
-  LEADS.forEach(function(l){
+  visiveis().forEach(function(l){
     if(l.etapa==='GANHO'||l.etapa==='PERDIDO') return;
 
     /* O edital em pauta é o relógio da venda: se o pregão fecha dia 20
@@ -1066,9 +1399,10 @@ function prazosAbertos(){
 
 /* ── Tela ──────────────────────────────────────────────────────── */
 function pintar(){
-  var abertos=LEADS.filter(function(l){ return l.etapa!=='GANHO'&&l.etapa!=='PERDIDO'; });
-  var ganhos=LEADS.filter(function(l){ return l.etapa==='GANHO'; });
-  var perdidos=LEADS.filter(function(l){ return l.etapa==='PERDIDO'; });
+  var VIS=visiveis();
+  var abertos=VIS.filter(function(l){ return l.etapa!=='GANHO'&&l.etapa!=='PERDIDO'; });
+  var ganhos=VIS.filter(function(l){ return l.etapa==='GANHO'; });
+  var perdidos=VIS.filter(function(l){ return l.etapa==='PERDIDO'; });
   /* Mensalidade, não "valor". Percentual de êxito é aposta — pode
      render muito ou zero, e depende de a cliente ganhar licitação. A
      mensalidade é o que entra todo mês independentemente disso, e é
@@ -1080,6 +1414,16 @@ function pintar(){
 
   var prz=prazosAbertos();
   var urgentes=prz.filter(function(p){ return p.dias<=3; });
+
+  /* O filtro tem que se anunciar. Número que encolheu sem explicação é
+     como o painel mente sem querer: a pessoa vê "2 no funil", esquece
+     que filtrou por Kethleen, e acha que a equipe parou de vender. */
+  fMontarOpcoes();
+  var temF=filtroAtivo();
+  document.getElementById('f-limpar').style.display=temF?'':'none';
+  document.getElementById('f-conta').innerHTML= temF
+    ? '<b>'+VIS.length+'</b> de '+LEADS.length+' — filtro ligado'
+    : (LEADS.length? LEADS.length+' '+(LEADS.length===1?'empresa':'empresas') : '');
 
   /* ── Faixa de abertura ──────────────────────────────────────────
      A tela abria em quatro quadradinhos de igual peso e o olho não
@@ -1124,10 +1468,20 @@ function pintar(){
     (urgentes.length ? kpi('Prazo urgente', String(urgentes.length), 'var(--r1)', 'vence em até 3 dias', 'prazos') : '') +
     kpi('Perdidos', String(perdidos.length), 'var(--t3)', perdidos.length?'com motivo registrado':'', 'result');
 
+  var pastilha=function(n,cor){
+    return '<span style="background:'+cor+';font-size:10px;font-weight:800;'+
+      'padding:1px 7px;border-radius:9px;margin-left:5px">'+n+'</span>';
+  };
   var selo=document.getElementById('selo-prazos');
   if(selo) selo.innerHTML = urgentes.length
-    ? '<span style="background:rgba(239,68,68,.2);color:var(--r1);font-size:10px;font-weight:800;'+
-      'padding:1px 7px;border-radius:9px;margin-left:5px">'+urgentes.length+'</span>' : '';
+    ? pastilha(urgentes.length,'rgba(239,68,68,.2);color:var(--r1)') : '';
+
+  /* O selo de Tratativas conta quem está ESFRIANDO, não quantas
+     conversas houve. Contar conversa premia quem registra muito;
+     contar abandono cobra quem esqueceu — e é o que muda o dia. */
+  var frios=abertos.filter(function(l){ return !!esfriando(l); }).length;
+  var st=document.getElementById('selo-trat');
+  if(st) st.innerHTML = frios ? pastilha(frios,'rgba(234,179,8,.22);color:var(--y1)') : '';
 
   /* Os prazos urgentes ficam acima de tudo, em qualquer aba: prazo
      perdido em licitação não tem recurso. */
@@ -1136,9 +1490,10 @@ function pintar(){
   document.getElementById('painel').innerHTML =
     ABA==='painel' ? painelInicio(prz) :
     ABA==='funil'  ? painelFunil() :
+    ABA==='trat'   ? painelTratativas() :
     ABA==='prazos' ? painelPrazos(prz, false) : painelResultados();
 
-  if(ABA==='funil') ligarArrasto();
+  if(ABA==='funil'){ ligarArrasto(); funilLigarRolagem(); }
 }
 
 /** Leva o clique do KPI até a aba que detalha aquele número. Sem isso o
@@ -1163,7 +1518,17 @@ function irPara(aba){
       onde gastar no mês que vem.
    ══════════════════════════════════════════════════════════════════ */
 function painelInicio(prz){
-  if(!LEADS.length){
+  if(!visiveis().length){
+    /* Vazio por filtro e vazio de verdade são coisas diferentes, e
+       dizer a mesma frase nos dois casos manda a pessoa cadastrar um
+       lead que já existe. */
+    if(filtroAtivo()) return '<div class="cx"><div class="nada">'+
+      '<div class="nada-i">🔍</div>'+
+      '<div class="nada-t">Nenhuma empresa com este filtro</div>'+
+      '<div class="nada-s">Existem <b>'+LEADS.length+'</b> no funil, mas nenhuma passa '+
+        'pelo que está filtrado agora.<br><br>'+
+        '<button class="btn" onclick="fLimpar()">Limpar o filtro</button></div>'+
+    '</div></div>';
     return '<div class="cx"><div class="nada">'+
       '<div class="nada-i">🎯</div>'+
       '<div class="nada-t">O funil está vazio</div>'+
@@ -1194,7 +1559,7 @@ function painelInicio(prz){
 function cxFunil(){
   var etapas=ETAPAS.filter(function(e){ return e.k!=='PERDIDO'; });
   var aqui=etapas.map(function(e){
-    var meus=LEADS.filter(function(l){ return (l.etapa||'PROSPECCAO')===e.k; });
+    var meus=visiveis().filter(function(l){ return (l.etapa||'PROSPECCAO')===e.k; });
     return {e:e, n:meus.length, v:meus.reduce(function(s,l){ return s+mrrDo(l); },0)};
   });
   /* Chegaram até a etapa i = quem está nela + todos que já passaram. */
@@ -1223,7 +1588,7 @@ function cxFunil(){
     return html;
   }).join('');
 
-  var perdidos=LEADS.filter(function(l){ return l.etapa==='PERDIDO'; }).length;
+  var perdidos=visiveis().filter(function(l){ return l.etapa==='PERDIDO'; }).length;
   return '<div class="cx">'+
     '<div class="cx-t">Onde a venda trava'+
       (perdidos?'<span>'+perdidos+' '+(perdidos===1?'perdido':'perdidos')+', fora desta conta</span>':'')+'</div>'+
@@ -1263,7 +1628,7 @@ function cxAgenda(prz){
 /** De onde vêm os leads, e quanto cada origem já fechou. */
 function cxOrigem(){
   var por={};
-  LEADS.forEach(function(l){
+  visiveis().forEach(function(l){
     var k=l.origem||'OUTRO';
     if(!por[k]) por[k]={n:0,g:0};
     por[k].n++; if(l.etapa==='GANHO') por[k].g++;
@@ -1294,7 +1659,7 @@ function cxEvolucao(){
     var d=new Date(hoje.getFullYear(),hoje.getMonth()-i,1);
     meses.push({ano:d.getFullYear(),mes:d.getMonth(),n:0,g:0});
   }
-  LEADS.forEach(function(l){
+  visiveis().forEach(function(l){
     if(!l.criadoEm) return;
     var d=new Date(l.criadoEm);
     if(isNaN(d.getTime())) return;
@@ -1326,7 +1691,7 @@ function cxEvolucao(){
     ninguém — e lead sem dono é lead que ninguém liga. */
 function cxResponsaveis(){
   var por={};
-  LEADS.filter(function(l){ return l.etapa!=='GANHO'&&l.etapa!=='PERDIDO'; }).forEach(function(l){
+  visiveis().filter(function(l){ return l.etapa!=='GANHO'&&l.etapa!=='PERDIDO'; }).forEach(function(l){
     var k=String(l.responsavel||'').trim()||'(sem dono)';
     if(!por[k]) por[k]={n:0,v:0};
     por[k].n++; por[k].v+=mrrDo(l);
@@ -1351,9 +1716,152 @@ function cxResponsaveis(){
   '</div>';
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   TRATATIVAS
+
+   O histórico de cada lead sempre existiu, dentro da ficha dele. O que
+   não existia era ver tudo junto: quem falou com quem, quando, e — o
+   que mais importa — com quem NINGUÉM falou.
+
+   Duas metades, e a segunda é a que ninguém entrega:
+   1. A linha do tempo de todas as conversas, na ordem.
+   2. O silêncio: as empresas paradas há mais tempo, ordenadas pelo
+      abandono. Um CRM que só mostra o que foi feito esconde o que não
+      foi, e é o não-feito que perde cliente.
+   ══════════════════════════════════════════════════════════════════ */
+var TRAT_TIPO='';   /* filtro de tipo, só desta aba */
+var TRAT_DIAS=90;   /* período em dias */
+
+function tratFiltrar(v){ TRAT_TIPO=v; pintar(); }
+function tratPeriodo(v){ TRAT_DIAS=+v||90; pintar(); }
+
+/** Todas as tratativas dos leads que passam pelo filtro geral. */
+function tratativas(){
+  var ids={}; visiveis().forEach(function(l){ ids[l.id]=l; });
+  var corte=new Date(); corte.setDate(corte.getDate()-TRAT_DIAS);
+  return ATIVIDADES
+    .filter(function(a){
+      if(!ids[a.leadId]) return false;
+      if(TRAT_TIPO==='__AUTO__') return !!a.automatico;
+      if(TRAT_TIPO && String(a.tipo||'NOTA')!==TRAT_TIPO) return false;
+      if(TRAT_TIPO!=='__AUTO__' && TRAT_TIPO && a.automatico) return false;
+      var d=dData(a.data);
+      return !d || d>=corte;
+    })
+    .map(function(a){ return {a:a, lead:ids[a.leadId]}; })
+    .sort(function(x,y){
+      var a=dData(x.a.data)||new Date(0), b=dData(y.a.data)||new Date(0);
+      if(b-a) return b-a;
+      return (y.a.criadoEm||0)-(x.a.criadoEm||0);
+    });
+}
+
+function painelTratativas(){
+  var lista=tratativas();
+  var MES=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+
+  var op=function(v,r){ return '<option value="'+v+'"'+(TRAT_TIPO===v?' selected':'')+'>'+r+'</option>'; };
+  var opd=function(v,r){ return '<option value="'+v+'"'+(TRAT_DIAS===v?' selected':'')+'>'+r+'</option>'; };
+  var barra='<div class="filtros" style="margin-bottom:14px">'+
+    '<select onchange="tratFiltrar(this.value)" style="min-width:160px">'+
+      op('','Toda conversa')+
+      Object.keys(ATIV_TIPOS).map(function(k){ return op(k,ATIV_TIPOS[k].r); }).join('')+
+      op('__AUTO__','Mudanças de etapa')+
+    '</select>'+
+    '<select onchange="tratPeriodo(this.value)" style="min-width:150px">'+
+      opd(15,'Últimos 15 dias')+opd(30,'Últimos 30 dias')+
+      opd(90,'Últimos 3 meses')+opd(365,'Último ano')+opd(99999,'Desde o começo')+
+    '</select>'+
+    '<span class="f-conta">'+lista.length+' '+(lista.length===1?'registro':'registros')+'</span>'+
+  '</div>';
+
+  /* ── Quem está no silêncio ── */
+  var mudas=visiveis()
+    .filter(function(l){ return l.etapa!=='GANHO'&&l.etapa!=='PERDIDO'; })
+    .map(function(l){
+      var d=diasSemContato(l.id);
+      var nunca=(d===null);
+      if(nunca && l.criadoEm) d=Math.round((Date.now()-l.criadoEm)/86400000);
+      return {l:l, dias:(d===null?9999:d), nunca:nunca};
+    })
+    .filter(function(x){ return x.dias>=3; })
+    .sort(function(a,b){ return b.dias-a.dias; })
+    .slice(0,8);
+
+  var cxSilencio='<div class="cx">'+
+    '<div class="cx-t">Há quanto tempo ninguém fala com elas'+
+      (mudas.length?'<span>'+mudas.length+' '+(mudas.length===1?'empresa':'empresas')+'</span>':'')+'</div>'+
+    '<div class="cx-sub">Só o que está aberto no funil, das mais esquecidas para as menos. '+
+      'Um CRM que só mostra o que foi feito esconde o que não foi — e é o não-feito que perde cliente.</div>'+
+    (mudas.length ? mudas.map(function(x){
+      var t=tempDe(x.l);
+      var cor=x.dias>=30?'#ef4444':x.dias>=14?'#eab308':'#8b95a1';
+      return '<div class="ag" style="--ac:'+cor+';--ab:color-mix(in srgb,'+cor+' 15%,transparent)" '+
+          'onclick="abrirLead(\''+esc(x.l.id)+'\')">'+
+        '<div class="ag-d"><div class="ag-dn" style="color:'+cor+'">'+(x.dias>=999?'—':x.dias)+'</div>'+
+          '<div class="ag-dm">dias</div></div>'+
+        '<div class="ag-c"><div class="ag-e">'+esc(x.l.empresa||'(sem nome)')+'</div>'+
+          '<div class="ag-q">'+(x.nunca?'nunca teve tratativa registrada':'última conversa há '+x.dias+' dias')+
+            ' · '+esc(etapaDe(x.l.etapa).r)+'</div></div>'+
+        (t?'<span class="tsel" style="--tc:'+t.c+'"><i>'+t.i+'</i>'+t.r+'</span>':'')+
+      '</div>';
+    }).join('') : '<div class="nada"><div class="nada-i">👏</div>'+
+      '<div class="nada-t">Ninguém esquecido</div>'+
+      '<div class="nada-s">Todas as empresas abertas tiveram tratativa nos últimos três dias.</div></div>')+
+  '</div>';
+
+  /* ── A linha do tempo ── */
+  var corpo;
+  if(!lista.length){
+    corpo='<div class="cx"><div class="nada">'+
+      '<div class="nada-i">💬</div>'+
+      '<div class="nada-t">Nenhuma conversa neste recorte</div>'+
+      '<div class="nada-s">Registre pelo botão <b>+ Registrar</b> dentro da ficha de cada '+
+      'empresa. Cada ligação, WhatsApp ou visita vira uma linha aqui.</div></div>';
+  }else{
+    /* Agrupado por dia: a pergunta é sempre "o que aconteceu ontem",
+       nunca "o que aconteceu no registro 47". */
+    var dias=[], atual=null;
+    lista.forEach(function(it){
+      var chave=it.a.data||'(sem data)';
+      if(!atual || atual.chave!==chave){ atual={chave:chave, itens:[]}; dias.push(atual); }
+      atual.itens.push(it);
+    });
+    corpo=dias.map(function(g){
+      var d=dData(g.chave);
+      var dd=diasAte(g.chave);
+      var rot = dd===0?'Hoje' : dd===-1?'Ontem'
+              : d?(d.getDate()+' de '+MES[d.getMonth()]+(d.getFullYear()!==new Date().getFullYear()?' de '+d.getFullYear():''))
+              : 'Sem data';
+      return '<div class="cx" style="padding:16px 20px">'+
+        '<div class="dia-t">'+esc(rot)+'<span>'+g.itens.length+'</span></div>'+
+        g.itens.map(function(it){
+          var t=ATIV_TIPOS[String(it.a.tipo||'NOTA').toUpperCase()]||ATIV_TIPOS.NOTA;
+          return '<div class="trat" style="--tc:'+t.c+'" onclick="abrirLead(\''+esc(it.lead.id)+'\')">'+
+            '<div class="trat-tp">'+t.r+'</div>'+
+            '<div class="trat-c">'+
+              '<div class="trat-e">'+esc(it.lead.empresa||'(sem nome)')+
+                '<span class="trat-et">'+esc(etapaDe(it.lead.etapa).r)+'</span></div>'+
+              '<div class="trat-x">'+esc(it.a.descricao||'')+'</div>'+
+              (it.a.autor?'<div class="trat-a">'+esc(it.a.autor)+'</div>':'')+
+            '</div>'+
+          '</div>';
+        }).join('')+
+      '</div>';
+    }).join('');
+  }
+
+  return '<div class="pn">'+barra+cxSilencio+corpo+'</div>';
+}
+
 function painelFunil(){
-  return '<div class="funil-cx"><div class="funil">'+ETAPAS.map(function(e){
-    var meus=LEADS.filter(function(l){ return (l.etapa||'PROSPECCAO')===e.k; })
+  return '<div class="funil-cx" id="funil-cx">'+
+    '<button class="seta-f seta-e" id="seta-e" onclick="funilAndar(-1)" '+
+      'aria-label="Ver etapas anteriores" disabled>&#8249;</button>'+
+    '<button class="seta-f seta-d" id="seta-d" onclick="funilAndar(1)" '+
+      'aria-label="Ver etapas seguintes">&#8250;</button>'+
+    '<div class="funil" id="funil">'+ETAPAS.map(function(e){
+    var meus=visiveis().filter(function(l){ return (l.etapa||'PROSPECCAO')===e.k; })
       .sort(function(a,b){
         /* Quem tem próxima ação mais próxima sobe. O topo da coluna é
            onde o olho cai primeiro; ali fica o que é para hoje. */
@@ -1377,6 +1885,52 @@ function painelFunil(){
   }).join('')+'</div></div>';
 }
 
+/* ── Rolagem do funil ─────────────────────────────────────────────
+   Anda uma coluna inteira por clique: parar no meio de um cartão é
+   pior do que não andar. */
+function funilAndar(dir){
+  var f=document.getElementById('funil'); if(!f) return;
+  var col=f.querySelector('.col');
+  var passo=col ? col.getBoundingClientRect().width+12 : 260;
+  f.scrollBy({left:dir*passo, behavior:
+    matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+}
+
+/** Liga/desliga as setas e os degradês conforme a posição. Seta que
+    não leva a lugar nenhum some — botão morto ensina a ignorar botão. */
+function funilAtualizarSetas(){
+  var f=document.getElementById('funil'), cx=document.getElementById('funil-cx');
+  if(!f||!cx) return;
+  var e=document.getElementById('seta-e'), d=document.getElementById('seta-d');
+  var maxSc=f.scrollWidth-f.clientWidth;
+  var temE=f.scrollLeft>4, temD=f.scrollLeft<maxSc-4;
+  if(e) e.disabled=!temE;
+  if(d) d.disabled=!temD;
+  cx.style.setProperty('--fadeE', temE?'1':'0');
+  cx.style.setProperty('--fadeD', temD?'1':'0');
+}
+
+function funilLigarRolagem(){
+  var f=document.getElementById('funil'); if(!f) return;
+  f.addEventListener('scroll', funilAtualizarSetas, {passive:true});
+  /* Roda do mouse rola o funil para o lado quando o ponteiro está sobre
+     ele. Sem isto, quem usa mouse sem roda horizontal fica preso às
+     setas — e no meio de um arrasto é justamente quando se precisa. */
+  f.addEventListener('wheel', function(ev){
+    if(ev.deltaX!==0) return;              /* já é horizontal: deixa passar */
+    if(f.scrollWidth<=f.clientWidth) return;
+    var maxSc=f.scrollWidth-f.clientWidth;
+    var vai=f.scrollLeft+ev.deltaY;
+    /* Só sequestra a roda enquanto há para onde ir; no fim, devolve a
+       rolagem para a página em vez de travar o dedo. */
+    if((ev.deltaY<0 && f.scrollLeft>0) || (ev.deltaY>0 && f.scrollLeft<maxSc)){
+      ev.preventDefault();
+      f.scrollLeft=Math.max(0,Math.min(maxSc,vai));
+    }
+  }, {passive:false});
+  funilAtualizarSetas();
+}
+
 function cartaoLead(l, cor){
   var prox=diasAte(l.dataProximaAcao);
   var gancho=l.editalGancho||null;
@@ -1387,13 +1941,18 @@ function cartaoLead(l, cor){
      resolve". Só aparece depois que alguém preencheu o diagnóstico. */
   var docs=Array.isArray(l.documentos)?l.documentos:[];
   var faltam=docs.filter(function(d){ return !d.ok; }).length;
+  var t=tempDe(l);
+  var gelo=esfriando(l);
 
-  return '<div class="lc" draggable="true" data-id="'+esc(l.id)+'" style="--cc:'+cor+'" '+
-      'onclick="abrirLead(\''+esc(l.id)+'\')">'+
+  return '<div class="lc'+(gelo?' gelando':'')+'" draggable="true" data-id="'+esc(l.id)+'" '+
+      'style="--cc:'+cor+'" onclick="abrirLead(\''+esc(l.id)+'\')">'+
     '<div class="lc-emp">'+esc(l.empresa||'(sem nome)')+'</div>'+
     (l.contatoNome?'<div class="lc-sub">'+esc(l.contatoNome)+(l.contatoCargo?' · '+esc(l.contatoCargo):'')+'</div>':'')+
     (prop?'<div class="lc-val">'+esc(prop)+'</div>':'')+
     '<div class="lc-pe">'+
+      (t?'<span class="tsel" style="--tc:'+t.c+'"><i>'+t.i+'</i>'+t.r+'</span>':'')+
+      (gelo?'<span class="gelo">'+(gelo.nunca?'nunca contactado':'')+
+            (gelo.nunca?'':gelo.dias+'d sem contato')+'</span>':'')+
       (l.segmento?'<span class="tag tag-org">'+esc(l.segmento)+'</span>':'')+
       (docs.length&&faltam?'<span class="tag tag-prz perto">faltam '+faltam+' doc</span>':'')+
       (docs.length&&!faltam?'<span class="tag" style="background:rgba(34,197,94,.15);color:var(--g1)">apta</span>':'')+
@@ -1426,7 +1985,7 @@ function painelPrazos(lista, compacto){
 }
 
 function painelResultados(){
-  var fechados=LEADS.filter(function(l){ return l.etapa==='GANHO'||l.etapa==='PERDIDO'; });
+  var fechados=visiveis().filter(function(l){ return l.etapa==='GANHO'||l.etapa==='PERDIDO'; });
   if(!fechados.length)
     return '<div class="kpi" style="padding:22px"><div class="kpi-l" style="margin-top:0">Nada fechado ainda</div>'+
       '<div style="font-size:12.5px;color:var(--t2)">Quando os primeiros leads forem para Ganho ou Perdido, '+
@@ -1468,24 +2027,228 @@ function painelResultados(){
       '</div></div>';
   }).join('');
 
-  return '<div class="fin-duplo" style="align-items:start">'+
-    '<div class="kpi" style="padding:0;overflow:hidden">'+
-      '<div class="kpi-l" style="padding:16px 16px 10px;margin:0">Conversão por origem</div>'+
-      '<div style="overflow-x:auto"><table style="min-width:0">'+
-        '<thead><tr><th>Origem</th><th class="num">Fechados</th><th class="num">Ganhos</th>'+
-        '<th class="num">Taxa</th><th class="num">Mensalidade</th></tr></thead>'+
-        '<tbody>'+linhasOri+'</tbody></table></div></div>'+
-    '<div class="kpi" style="padding:18px">'+
-      '<div class="kpi-l" style="margin-top:0">Por que perdemos</div>'+
-      (linhasMot||'<div style="font-size:12.5px;color:var(--t2)">Nenhuma perda registrada.</div>')+
-    '</div></div>';
+  return '<div class="pn">'+
+    '<div class="cx" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">'+
+      '<div style="min-width:0"><div class="cx-t" style="margin:0">Relatórios</div>'+
+      '<div class="cx-sub" style="margin:2px 0 0">'+fechados.length+' '+
+        (fechados.length===1?'negócio fechado':'negócios fechados')+
+        (filtroAtivo()?' <b>no filtro atual</b>':'')+'.</div></div>'+
+      '<button class="btn" onclick="exportarLeads()" style="margin-left:auto">⬇ Leads em Excel</button>'+
+      '<button class="btn" onclick="exportarTratativas()">⬇ Tratativas em Excel</button>'+
+    '</div>'+
+    cxTempoEtapa()+
+    '<div class="pn-2">'+
+      '<div class="cx" style="padding:0;overflow:hidden">'+
+        '<div class="cx-t" style="padding:20px 22px 4px">Conversão por origem</div>'+
+        '<div class="cx-sub" style="padding:0 22px">Onde vale a pena gastar no mês que vem.</div>'+
+        '<div style="overflow-x:auto"><table style="min-width:0">'+
+          '<thead><tr><th>Origem</th><th class="num">Fechados</th><th class="num">Ganhos</th>'+
+          '<th class="num">Taxa</th><th class="num">Mensalidade</th></tr></thead>'+
+          '<tbody>'+linhasOri+'</tbody></table></div></div>'+
+      '<div class="cx">'+
+        '<div class="cx-t">Por que perdemos</div>'+
+        '<div class="cx-sub">Ordenado por frequência — o de cima é o que dá mais retorno mudar.</div>'+
+        (linhasMot||'<div class="dica">Nenhuma perda registrada.</div>')+
+      '</div>'+
+    '</div>'+
+    cxEsforco()+
+  '</div>';
+}
+
+/* ── Quanto tempo a venda leva ────────────────────────────────────
+   Média de dias entre a entrada no funil e o fechamento, separando
+   ganho de perdido. O número que ninguém mede e todo mundo precisa:
+   é ele que diz se a proposta de hoje fecha neste mês ou no outro. */
+function cxTempoEtapa(){
+  var g=[], p=[];
+  visiveis().forEach(function(l){
+    if(!l.criadoEm) return;
+    var fim=null;
+    /* O fechamento não tem data própria; a marca automática de mudança
+       de etapa é o registro mais fiel que existe. */
+    var mudou=ATIVIDADES.filter(function(a){
+      return a.leadId===l.id && a.automatico && /Ganho|Perdido/.test(a.descricao||'');
+    });
+    if(mudou.length){
+      mudou.forEach(function(a){ var d=dData(a.data); if(d&&(!fim||d>fim)) fim=d; });
+    }
+    if(!fim) return;
+    var dias=Math.round((fim-new Date(l.criadoEm))/86400000);
+    if(dias<0) return;
+    if(l.etapa==='GANHO') g.push(dias); else if(l.etapa==='PERDIDO') p.push(dias);
+  });
+  var med=function(a){ return a.length?Math.round(a.reduce(function(s,x){return s+x;},0)/a.length):null; };
+  var mg=med(g), mp=med(p);
+
+  if(mg===null && mp===null){
+    return '<div class="cx">'+
+      '<div class="cx-t">Quanto tempo a venda leva</div>'+
+      '<div class="cx-sub">Ainda não dá para calcular: o tempo é medido da entrada no funil '+
+      'até a mudança para Ganho ou Perdido, e nenhum lead fechado tem esse par de datas ainda. '+
+      'Os que forem fechados a partir de agora entram nesta conta.</div></div>';
+  }
+  var bloco=function(rot,v,n,cor){
+    return '<div><div class="fin-mini-l">'+rot+'</div>'+
+      '<div class="fin-mini-v" style="color:'+cor+';font-size:24px">'+
+        (v===null?'—':v+'<span style="font-size:13px;color:var(--t3);font-weight:700"> dias</span>')+'</div>'+
+      '<div style="font-size:11px;color:var(--t3);margin-top:3px">'+n+'</div></div>';
+  };
+  return '<div class="cx">'+
+    '<div class="cx-t">Quanto tempo a venda leva</div>'+
+    '<div class="cx-sub">Da entrada no funil até o fechamento. É o que diz se a proposta '+
+      'de hoje fecha neste mês ou no outro.</div>'+
+    '<div style="display:flex;gap:40px;flex-wrap:wrap">'+
+      bloco('Até ganhar',mg,g.length+' '+(g.length===1?'negócio':'negócios'),'var(--g1)')+
+      bloco('Até perder',mp,p.length+' '+(p.length===1?'negócio':'negócios'),'var(--r1)')+
+      ((mg!==null&&mp!==null&&mp<mg)
+        ? '<div style="max-width:280px;font-size:12px;color:var(--t2);line-height:1.55;align-self:center">'+
+          '<b>Perde-se mais rápido do que se ganha</b>, e isso é bom: significa que o não '+
+          'vem cedo, sem consumir semanas de trabalho.</div>' : '')+
+    '</div>'+
+  '</div>';
+}
+
+/* ── Esforço por responsável ──────────────────────────────────────
+   Quantas tratativas cada um registrou e quanto fechou. Lado a lado
+   de propósito: muita conversa e nenhum fechamento é um problema
+   diferente de pouca conversa e bom fechamento. */
+function cxEsforco(){
+  var ids={}; visiveis().forEach(function(l){ ids[l.id]=l; });
+  var por={};
+  var garante=function(k){ if(!por[k]) por[k]={trat:0,ganhos:0,abertos:0,mrr:0}; return por[k]; };
+  visiveis().forEach(function(l){
+    var k=String(l.responsavel||'').trim()||'(sem dono)';
+    var o=garante(k);
+    if(l.etapa==='GANHO'){ o.ganhos++; o.mrr+=mrrDo(l); }
+    else if(l.etapa!=='PERDIDO') o.abertos++;
+  });
+  ATIVIDADES.forEach(function(a){
+    if(a.automatico || !ids[a.leadId]) return;
+    var k=String(ids[a.leadId].responsavel||'').trim()||'(sem dono)';
+    garante(k).trat++;
+  });
+  var chaves=Object.keys(por).sort(function(a,b){ return por[b].trat-por[a].trat; });
+  if(!chaves.length) return '';
+  var maior=Math.max.apply(null,chaves.map(function(k){return por[k].trat;}).concat([1]));
+
+  return '<div class="cx">'+
+    '<div class="cx-t">Esforço e resultado, por pessoa</div>'+
+    '<div class="cx-sub">Conversas registradas de um lado, negócios fechados do outro. '+
+      'Muita conversa sem fechar e pouca conversa fechando bem são problemas diferentes — '+
+      'e nenhum dos dois aparece olhando só o total de vendas.</div>'+
+    '<div class="tab-cx"><table>'+
+      '<thead><tr><th>Responsável</th><th class="num">Tratativas</th>'+
+      '<th class="num">Abertos</th><th class="num">Ganhos</th><th class="num">Mensalidade</th></tr></thead>'+
+      '<tbody>'+chaves.map(function(k){
+        var o=por[k], sem=(k==='(sem dono)');
+        return '<tr><td><b'+(sem?' style="color:var(--y1)"':'')+'>'+esc(k)+'</b>'+
+            '<div style="height:5px;border-radius:4px;background:var(--s3);margin-top:6px;max-width:180px">'+
+            '<div style="height:100%;width:'+((o.trat/maior)*100).toFixed(1)+'%;border-radius:4px;'+
+            'background:'+(sem?'var(--y1)':'var(--nh)')+'"></div></div></td>'+
+          '<td class="num"><b>'+o.trat+'</b></td>'+
+          '<td class="num">'+o.abertos+'</td>'+
+          '<td class="num"'+(o.ganhos?' style="color:var(--g1);font-weight:800"':'')+'>'+o.ganhos+'</td>'+
+          '<td class="num">'+(o.mrr>0?brl(o.mrr):'—')+'</td></tr>';
+      }).join('')+'</tbody></table></div>'+
+  '</div>';
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   EXPORTAÇÃO
+
+   CSV com ponto e vírgula e BOM, não XLSX: o Excel em português abre
+   direto com as colunas separadas e os acentos certos, e o arquivo não
+   depende de biblioteca nenhuma. XLSX exigiria carregar uma, e o preço
+   não se paga para uma planilha que vai ser aberta e filtrada à mão.
+
+   Exporta o que está FILTRADO na tela. Se a pessoa filtrou por
+   Kethleen e exportou, ela espera a planilha da Kethleen — exportar
+   tudo ali seria surpresa desagradável.
+   ══════════════════════════════════════════════════════════════════ */
+function _csvCampo(v){
+  var s=String(v==null?'':v);
+  /* Ponto e vírgula, aspas e quebra de linha obrigam a envolver em
+     aspas; aspas de dentro dobram. Sem isto, uma observação com ponto
+     e vírgula quebra a linha inteira em colunas erradas. */
+  if(/[";\r\n]/.test(s)) return '"'+s.replace(/"/g,'""')+'"';
+  return s;
+}
+function _baixarCsv(nome, linhas){
+  var txt=linhas.map(function(l){ return l.map(_csvCampo).join(';'); }).join('\r\n');
+  /* O BOM é o que faz o Excel entender que é UTF-8. Sem ele, "Negociação"
+     vira "NegociaÃ§Ã£o" na planilha. */
+  var blob=new Blob(['﻿'+txt], {type:'text/csv;charset=utf-8;'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=nome;
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 400);
+}
+function _hoje(){
+  var d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+function exportarLeads(){
+  var L=visiveis();
+  if(!L.length){ alert('Não há nada para exportar com o filtro atual.'); return; }
+  var linhas=[['Empresa','CNPJ','Segmento','Porte','Cidade','Já licita','Etapa','Temperatura',
+    'Dias sem contato','Contato','Cargo','Telefone','E-mail','Responsável','Origem','Campanha',
+    'Modelo','Mensalidade','% êxito','Adesão','Aptidão (ok/total)','Órgão do edital','Nº do edital',
+    'Prazo do edital','Próxima ação','Quando','Previsão','Motivo da perda','Criado em']];
+  L.forEach(function(l){
+    var p=l.proposta||{}, e=l.editalGancho||{};
+    var docs=Array.isArray(l.documentos)?l.documentos:[];
+    var d=diasSemContato(l.id);
+    var m=MODELOS[p.tipo||'MENSAL']||MODELOS.MENSAL;
+    linhas.push([
+      l.empresa||'', l.cnpj||'', l.segmento||'', l.porte||'', l.cidade||'',
+      ({NAO:'Não',AS_VEZES:'Às vezes',SIM:'Sim'})[l.jaLicita||'NAO']||'',
+      etapaDe(l.etapa).r,
+      (TEMPERATURAS[l.temperatura]||{}).r||'',
+      d===null?'nunca':d,
+      l.contatoNome||'', l.contatoCargo||'', l.contatoTelefone||'', l.contatoEmail||'',
+      l.responsavel||'', ORIGENS[l.origem]||l.origem||'', l.campanha||'',
+      m.r,
+      /* Número com vírgula: é assim que o Excel em português entende
+         decimal. Ponto viraria texto e não somaria. */
+      num(p.mensalidade)>0?String(num(p.mensalidade).toFixed(2)).replace('.',','):'',
+      num(p.percentual)>0?String(num(p.percentual)).replace('.',','):'',
+      num(p.adesao)>0?String(num(p.adesao).toFixed(2)).replace('.',','):'',
+      docs.length?(docs.filter(function(x){return x.ok;}).length+'/'+docs.length):'',
+      e.orgao||'', e.numero||'', e.prazo||'',
+      l.proximaAcao||'', l.dataProximaAcao||'', l.previsaoFechamento||'',
+      l.motivoPerda||'',
+      l.criadoEm?new Date(l.criadoEm).toLocaleDateString('pt-BR'):''
+    ]);
+  });
+  _baixarCsv('nh-crm-leads-'+_hoje()+'.csv', linhas);
+}
+
+function exportarTratativas(){
+  var ids={}; visiveis().forEach(function(l){ ids[l.id]=l; });
+  var linhas=[['Data','Empresa','Etapa','Responsável','Tipo','O que aconteceu','Quem registrou','Automático']];
+  ATIVIDADES
+    .filter(function(a){ return ids[a.leadId]; })
+    .sort(function(x,y){ var a=dData(x.data)||new Date(0), b=dData(y.data)||new Date(0); return b-a; })
+    .forEach(function(a){
+      var l=ids[a.leadId];
+      linhas.push([
+        a.data||'', l.empresa||'', etapaDe(l.etapa).r, l.responsavel||'',
+        (ATIV_TIPOS[String(a.tipo||'NOTA').toUpperCase()]||ATIV_TIPOS.NOTA).r,
+        a.descricao||'', a.autor||'', a.automatico?'sim':'não'
+      ]);
+    });
+  if(linhas.length===1){ alert('Não há tratativas para exportar com o filtro atual.'); return; }
+  _baixarCsv('nh-crm-tratativas-'+_hoje()+'.csv', linhas);
 }
 
 /* ── Arrastar entre etapas ─────────────────────────────────────────
-   HTML5 drag and drop nativo: sem biblioteca, e funciona no toque
-   longo do celular na maioria dos navegadores. O que move o lead é a
-   coluna onde ele foi solto, não a posição dentro dela — ordem dentro
-   da coluna é calculada, não arrastada. */
+   HTML5 drag and drop nativo, sem biblioteca. NÃO funciona no toque do
+   celular (nem no Safari do iPhone, nem no Chrome do Android): lá a
+   etapa se muda pelo campo Etapa dentro da ficha. O que move o lead é
+   a coluna onde ele foi solto, não a posição dentro dela — ordem
+   dentro da coluna é calculada, não arrastada. */
 var _arrastando=null;
 function ligarArrasto(){
   document.querySelectorAll('.lc').forEach(function(el){
@@ -1596,6 +2359,8 @@ function abrirLead(id){
   sv('ld-perc',  num(p.percentual)>0?p.percentual:'');
   sv('ld-adesao',num(p.adesao)>0?brl(num(p.adesao)):'');
   sv('ld-resp',  l?(l.responsavel||quemSou()):quemSou());
+  _ldTemp=(l&&TEMPERATURAS[l.temperatura])?l.temperatura:'';
+  ldTempsRender();
   sv('ld-prev',  l?dISO(l.previsaoFechamento):'');
   sv('ld-origem',l?(l.origem||'PROSPECCAO'):'PROSPECCAO');
   sv('ld-campanha', l?(l.campanha||''):'');
@@ -1632,6 +2397,27 @@ function ldAlternarEdital(){
 function ldAlternarEtapa(){
   document.getElementById('cx-perda').style.display=(gv('ld-etapa')==='PERDIDO')?'':'none';
 }
+
+/* ── Temperatura na ficha ─────────────────────────────────────────
+   Guardada fora do formulário porque não é um <input>: são três
+   botões, e o estado vive aqui até o salvar. */
+var _ldTemp='';
+function ldTempsRender(){
+  document.getElementById('ld-temps').innerHTML=
+    Object.keys(TEMPERATURAS).map(function(k){
+      var t=TEMPERATURAS[k];
+      return '<div class="temp'+(_ldTemp===k?' on':'')+'" style="--tc:'+t.c+'" '+
+        'onclick="ldTempEscolher(\''+k+'\')"><i>'+t.i+'</i>'+t.r+'</div>';
+    }).join('');
+  var n=document.getElementById('ld-temp-nota');
+  n.textContent=_ldTemp
+    ? TEMPERATURAS[_ldTemp].d+' O CRM avisa se passar '+
+      TEMPERATURAS[_ldTemp].alerta+' dias sem tratativa registrada.'
+    : 'Sem marcação, o CRM não tem como cobrar follow-up deste lead.';
+}
+/* Clicar no que já está marcado desmarca — senão não há como voltar
+   atrás de uma marcação feita por engano. */
+function ldTempEscolher(k){ _ldTemp = (_ldTemp===k) ? '' : k; ldTempsRender(); }
 /* Cada modelo de honorário usa campos diferentes. Mostrar os três
    sempre convida a preencher o que não vale para aquele contrato — e
    depois ninguém sabe se aquele 5% é para valer. */
@@ -1705,6 +2491,9 @@ async function salvarLead(){
   var dados={
     empresa:org, cnpj:gv('ld-cnpj').replace(/\D/g,''), segmento:gv('ld-seg'),
     porte:gv('ld-porte'), cidade:gv('ld-cidade'), jaLicita:gv('ld-jalicita')||'NAO',
+    /* Vazio quando ninguém marcou — e vazio é uma resposta, não um
+       defeito: sem marcação o CRM não cobra follow-up deste lead. */
+    temperatura:_ldTemp||'',
     contatoNome:gv('ld-nome'), contatoCargo:gv('ld-cargo'),
     contatoTelefone:gv('ld-fone'), contatoEmail:gv('ld-email'),
     etapa:etapa,
@@ -1902,4 +2691,8 @@ document.addEventListener('keydown', function(e){
 </script>
 </body>
 </html>
+
+
+
+
 
