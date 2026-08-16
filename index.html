@@ -2733,6 +2733,11 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
   <!-- Firebase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-firestore-compat.js"></script>
+  <!-- Trilha de auditoria e lixeira. Arquivo compartilhado pelos cinco
+       sistemas — precisa ser publicado junto. Se faltar, o sistema
+       continua funcionando mas PARA DE AUDITAR, e a aba Atividade em
+       Configurações avisa isso em vermelho. -->
+  <script src="nh-auditoria.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-auth-compat.js"></script>
 </head>
 <body class="compact">
@@ -4367,12 +4372,56 @@ function acAplicarTema(claro){
 function acTrocarTema(){acAplicarTema(!document.body.classList.contains('light-theme'));}
 (function(){try{acAplicarTema('claro'===localStorage.getItem('nh_tema'));}catch(e){}})();
 
-function loginEmailSenha(){var e=document.getElementById("login-email").value.trim(),a=document.getElementById("login-senha").value,t=document.getElementById("btn-login"),o=document.getElementById("login-err");if(!e||!a)return o.style.display="block",void(o.textContent="Preencha email e senha");t&&(t.textContent="Entrando..."),o.style.display="none",auth.signInWithEmailAndPassword(e,a).catch(function(e){t&&(t.textContent="Entrar"),o.style.display="block","auth/wrong-password"===e.code||"auth/user-not-found"===e.code||"auth/invalid-credential"===e.code?o.textContent="Email ou senha incorretos":o.textContent="Erro: "+e.message})}function logoutGoogle(){auth.signOut()}var ADMIN_EMAIL="noronhaholandalicitacoes@gmail.com",USUARIOS=null,USER_EMAIL="",IS_ADMIN=false,USER_SOS=true,IS_READONLY=false;async function carregarUsuarios(){if(USUARIOS!==null)return USUARIOS;USUARIOS={};try{if(db){var d=await db.collection("config").doc("usuarios").get();if(d.exists){var x=d.data();if(x&&x.lista)USUARIOS=x.lista;}}}catch(e){}return USUARIOS;}/* `crm` NÃO entra aqui: este sistema não abre o CRM. A marca existe em
-   config/usuarios e é lida por quem precisa dela — o servidor do Portal
-   (para mostrar o cartão) e a regra do Firestore (que é quem protege).
-   Aqui só se ADMINISTRA a marca, em Configurações › Usuários. */
-async function resolveAcesso(em){if(em===ADMIN_EMAIL)return{ok:true,admin:true,sos:true,readonly:false};var U=await carregarUsuarios();var u=U[em];if(u)return{ok:true,admin:"admin"===u.role,sos:"admin"===u.role||!!u.sos,readonly:"admin"!==u.role};if(EMAILS_AUTORIZADOS.indexOf(em)>-1)return{ok:true,admin:true,sos:true,readonly:false};return{ok:false};}function aplicarPermissoes(){try{document.body.classList.toggle("ro-mode",!!IS_READONLY);document.body.classList.toggle("no-sos",!USER_SOS);if(!USER_SOS)MOSTRAR_SOS=false;var bu=document.getElementById("btn-usuarios");bu&&(bu.style.display=IS_ADMIN?"inline-block":"none");
-if(typeof cfgAplicarPermissoes==="function")cfgAplicarPermissoes();}catch(e){}}function abrirUsuarios(){if(!IS_ADMIN)return;carregarUsuarios().then(function(){var w=document.getElementById("usuarios-ovwrap");if(!w){w=document.createElement("div");w.id="usuarios-ovwrap";document.body.appendChild(w);}w.innerHTML='<div class="uov" onclick="if(event.target===this)fecharUsuarios()"><div class="upanel"><div class="uhead"><div class="uhc"><div class="uicon">👥</div><h3>Usuários do sistema</h3></div><button class="uclose" onclick="fecharUsuarios()">&times;</button></div><div class="uhint">O admin vê e edita tudo. Os demais entram em <b>somente leitura</b>. Ative <b>vê Externo</b> só para quem pode ver os processos externos.</div><div class="uform"><input id="nu-email" type="email" placeholder="email@exemplo.com" class="uinput"><select id="nu-role" class="uinput usel"><option value="leitura">Somente leitura</option><option value="admin">Admin</option></select><label class="uswlbl"><span>vê Externo</span><span class="usw"><input id="nu-sos" type="checkbox"><span></span></span></label><button class="ubtn-add" onclick="addUsuario()">Adicionar</button></div><div id="usuarios-lista"></div></div></div>';renderListaUsuarios();});}function fecharUsuarios(){var w=document.getElementById("usuarios-ovwrap");if(w)w.innerHTML="";}/* Define se um e-mail de config/usuarios é EQUIPE (vê tudo) ou EMPRESA
+function loginEmailSenha(){var e=document.getElementById("login-email").value.trim(),a=document.getElementById("login-senha").value,t=document.getElementById("btn-login"),o=document.getElementById("login-err");if(!e||!a)return o.style.display="block",void(o.textContent="Preencha email e senha");t&&(t.textContent="Entrando..."),o.style.display="none",auth.signInWithEmailAndPassword(e,a).catch(function(e){t&&(t.textContent="Entrar"),o.style.display="block","auth/wrong-password"===e.code||"auth/user-not-found"===e.code||"auth/invalid-credential"===e.code?o.textContent="Email ou senha incorretos":o.textContent="Erro: "+e.message})}function logoutGoogle(){auth.signOut()}var ADMIN_EMAIL="noronhaholandalicitacoes@gmail.com",USUARIOS=null,USER_EMAIL="",IS_ADMIN=false,USER_SOS=true,IS_READONLY=false;async function carregarUsuarios(){if(USUARIOS!==null)return USUARIOS;USUARIOS={};try{if(db){var d=await db.collection("config").doc("usuarios").get();if(d.exists){var x=d.data();if(x&&x.lista)USUARIOS=x.lista;}}}catch(e){}return USUARIOS;}/* ══════════════════════════════════════════════════════════════════
+   OS DOIS PAPÉIS — decidido com o cliente em 15/08/2026
+
+     SÓCIO       vê e faz tudo, inclusive Financeiro, Configurações e a
+                 única ação sem volta que existe (esvaziar a lixeira).
+     COLABORADOR opera: cria, edita e exclui. Nada do que ele faz é
+                 irreversível — exclusão vai para a lixeira e tudo fica
+                 na trilha de auditoria.
+
+   ⚠️ MUDANÇA DE COMPORTAMENTO, e é a que resolve o problema relatado:
+      antes, `role` diferente de "admin" caía em SOMENTE LEITURA. Como
+      a equipe precisa lançar edital, todo mundo acabava entrando com a
+      conta de admin — a senha compartilhada. O sistema empurrava para
+      o compartilhamento, e depois não sabia quem tinha feito o quê.
+
+      Agora colaborador OPERA de verdade. Aí faz sentido cada um ter a
+      sua conta, e a trilha passa a dizer um nome em vez de "a conta".
+
+   Os valores antigos continuam valendo: 'admin' é lido como sócio e
+   'leitura' como colaborador, para nenhum cadastro existente perder
+   acesso no dia em que isto subir.
+
+   `crm` não entra aqui: este sistema não abre o CRM. A marca vive no
+   mesmo config/usuarios e é lida por quem precisa — o servidor do
+   Portal (para mostrar o cartão) e a regra do Firestore (que protege).
+   Aqui só se ADMINISTRA a marca.
+   ══════════════════════════════════════════════════════════════════ */
+function ehPapelSocio(u){ var r=String((u&&u.role)||''); return r==='socio'||r==='admin'; }
+function rotuloPapel(u){ return ehPapelSocio(u)?'Sócio':'Colaborador'; }
+
+async function resolveAcesso(em){
+  if(em===ADMIN_EMAIL) return{ok:true,admin:true,sos:true,readonly:false,papel:'socio'};
+  var U=await carregarUsuarios();
+  var u=U[em];
+  if(u){
+    /* Conta desativada não entra. Desativar é o que se faz quando
+       alguém sai da empresa — melhor que excluir, porque a trilha
+       continua tendo a quem se referir. */
+    if(u.ativo===false) return{ok:false,motivo:'desativado'};
+    var socio=ehPapelSocio(u);
+    return{ok:true, admin:socio, sos:socio||!!u.sos,
+           /* Somente leitura deixou de ser o padrão. Só fica quem for
+              marcado de propósito. */
+           readonly:u.role==='leitura_only',
+           papel:socio?'socio':'colaborador'};
+  }
+  if(EMAILS_AUTORIZADOS.indexOf(em)>-1) return{ok:true,admin:true,sos:true,readonly:false,papel:'socio'};
+  return{ok:false};
+}function aplicarPermissoes(){try{document.body.classList.toggle("ro-mode",!!IS_READONLY);document.body.classList.toggle("no-sos",!USER_SOS);if(!USER_SOS)MOSTRAR_SOS=false;var bu=document.getElementById("btn-usuarios");bu&&(bu.style.display=IS_ADMIN?"inline-block":"none");
+if(typeof cfgAplicarPermissoes==="function")cfgAplicarPermissoes();}catch(e){}}function abrirUsuarios(){if(!IS_ADMIN)return;carregarUsuarios().then(function(){var w=document.getElementById("usuarios-ovwrap");if(!w){w=document.createElement("div");w.id="usuarios-ovwrap";document.body.appendChild(w);}w.innerHTML='<div class="uov" onclick="if(event.target===this)fecharUsuarios()"><div class="upanel"><div class="uhead"><div class="uhc"><div class="uicon">👥</div><h3>Usuários do sistema</h3></div><button class="uclose" onclick="fecharUsuarios()">&times;</button></div><div class="uhint"><b>Uma conta por pessoa.</b> Cada colaborador entra com o próprio e-mail e a própria senha — é isso que faz a trilha de auditoria dizer um nome em vez de &ldquo;a conta do escritório&rdquo;.<br><br><b>Sócio</b> vê e faz tudo, inclusive Financeiro e esvaziar a lixeira. <b>Colaborador</b> opera: cria, edita e exclui — e nada do que ele faz é irreversível, porque exclusão vai para a lixeira.<br><br>Quem sai da empresa você <b>desativa</b>, não remove: o nome dele continua fazendo sentido no histórico.</div><div class="uform"><input id="nu-email" type="email" placeholder="email@exemplo.com" class="uinput" autocomplete="off"><input id="nu-senha" type="text" placeholder="senha inicial (mín. 6)" class="uinput" autocomplete="new-password"><select id="nu-role" class="uinput usel"><option value="colaborador">Colaborador</option><option value="socio">Sócio</option></select><label class="uswlbl"><span>vê Externo</span><span class="usw"><input id="nu-sos" type="checkbox"><span></span></span></label><button class="ubtn-add" onclick="addUsuario()">Criar acesso</button></div><div id="usuarios-lista"></div></div></div>';renderListaUsuarios();});}function fecharUsuarios(){var w=document.getElementById("usuarios-ovwrap");if(w)w.innerHTML="";}/* Define se um e-mail de config/usuarios é EQUIPE (vê tudo) ou EMPRESA
    (vê só as dela). Até 15/08/2026 não havia essa distinção: qualquer
    e-mail cadastrado aqui entrava no Portal de Licitações com `todas:
    true` e enxergava o grupo inteiro. A correção está no servidor
@@ -4426,14 +4475,129 @@ function usuarioVincular(n){
   USUARIOS[em]=u; salvarUsuarios(); renderListaUsuarios();
   toast('"'+em+'" agora vê só: '+pedidas.join(', '),'ok');
 }
-function renderListaUsuarios(){var box=document.getElementById("usuarios-lista");if(!box)return;var html='<div class="urow uadmin"><div class="uinfo"><b>'+ADMIN_EMAIL+'</b><div class="umeta"><span class="ubadge badm">Admin</span><span class="ubadge bext">vê Externo</span></div></div><span class="ufix">fixo</span></div>';var ks=Object.keys(USUARIOS||{});if(!ks.length)html+='<div class="uempty">Nenhum usuário adicional cadastrado.</div>';ks.forEach(function(em,n){var u=USUARIOS[em]||{};var adm="admin"===u.role;var vs=adm||u.sos;html+='<div class="urow"><div class="uinfo"><b>'+em+'</b><div class="umeta"><span class="ubadge '+(adm?"badm":"ble")+'">'+(u.tipo==="empresa"?"Empresa":(adm?"Admin":"Leitura"))+'</span>'+(u.tipo==="empresa"?'<span class="ubadge" style="background:rgba(59,130,246,.15);color:#3b82f6">'+((u.empresas||[]).map(function(v){return acNomeEmpresa(v);}).join(", ")||"sem empresa")+'</span>':"")+(vs?'<span class="ubadge bext">vê Externo</span>':'')+((adm||u.crm)?'<span class="ubadge" style="background:rgba(34,197,94,.15);color:#22c55e">CRM</span>':'')+'</div></div><div class="uacts">'+(adm?"":'<button class="upill '+(u.sos?"on":"")+'" onclick="toggleSosIdx('+n+')">'+(u.sos?"vê Externo":"sem Externo")+'</button>')+(adm?"":'<button class="upill '+(u.crm?"on":"")+'" onclick="toggleCrmIdx('+n+')" title="Ver o funil de prospecção e as propostas de honorários">'+(u.crm?"tem CRM":"sem CRM")+'</button>')+'<button class="upill" onclick="usuarioVincular('+n+')" title="Definir se e empresa e quais ela ve">empresas</button><button class="utrash" onclick="removerIdx('+n+')" title="Remover">🗑</button></div></div>';});box.innerHTML=html;}function salvarUsuarios(){if(typeof db!=="undefined"&&db){db.collection("config").doc("usuarios").set({lista:USUARIOS||{}},{merge:true}).catch(function(){toast&&toast("Erro ao salvar usuários","err");});}}function addUsuario(){var em=(document.getElementById("nu-email").value||"").trim().toLowerCase();if(!em||em.indexOf("@")<1){toast&&toast("E-mail inválido","err");return;}if(em===ADMIN_EMAIL){toast&&toast("Esse já é o admin","err");return;}var role=document.getElementById("nu-role").value;var sos=document.getElementById("nu-sos").checked;USUARIOS=USUARIOS||{};USUARIOS[em]={role:role,sos:!!sos};salvarUsuarios();document.getElementById("nu-email").value="";document.getElementById("nu-sos").checked=false;renderListaUsuarios();toast&&toast("Usuário adicionado","ok");}function removerIdx(n){var em=Object.keys(USUARIOS||{})[n];if(em){delete USUARIOS[em];salvarUsuarios();renderListaUsuarios();toast&&toast("Usuário removido","ok");}}function toggleSosIdx(n){var em=Object.keys(USUARIOS||{})[n];if(em){USUARIOS[em].sos=!USUARIOS[em].sos;salvarUsuarios();renderListaUsuarios();}}
+function renderListaUsuarios(){
+  var box=document.getElementById("usuarios-lista"); if(!box)return;
+  var html='<div class="urow uadmin"><div class="uinfo"><b>'+ADMIN_EMAIL+'</b>'+
+    '<div class="umeta"><span class="ubadge badm">Sócio</span>'+
+    '<span class="ubadge bext">vê Externo</span></div></div><span class="ufix">fixo</span></div>';
+  var ks=Object.keys(USUARIOS||{});
+  if(!ks.length) html+='<div class="uempty">Nenhuma conta criada ainda. Enquanto isso, a equipe compartilha um login — e a trilha não sabe dizer quem fez o quê.</div>';
+  ks.forEach(function(em,n){
+    var u=USUARIOS[em]||{};
+    var socio=ehPapelSocio(u);
+    var emp=u.tipo==="empresa";
+    var off=u.ativo===false;
+    var vs=socio||u.sos;
+    html+='<div class="urow"'+(off?' style="opacity:.5"':'')+'><div class="uinfo"><b>'+em+'</b>'+
+      '<div class="umeta">'+
+        '<span class="ubadge '+(socio?"badm":"ble")+'">'+(emp?"Empresa":rotuloPapel(u))+'</span>'+
+        (off?'<span class="ubadge" style="background:rgba(239,68,68,.16);color:#ef4444">desativado</span>':'')+
+        (emp?'<span class="ubadge" style="background:rgba(59,130,246,.15);color:#3b82f6">'+((u.empresas||[]).map(function(v){return acNomeEmpresa(v);}).join(", ")||"sem empresa")+'</span>':"")+
+        (vs?'<span class="ubadge bext">vê Externo</span>':'')+
+        ((socio||u.crm)?'<span class="ubadge" style="background:rgba(34,197,94,.15);color:#22c55e">CRM</span>':'')+
+      '</div></div><div class="uacts">'+
+      /* Trocar o papel é a ação mais usada aqui — merece um clique só. */
+      '<button class="upill '+(socio?"on":"")+'" onclick="togglePapelIdx('+n+')" title="Alternar entre Sócio e Colaborador">'+(socio?"Sócio":"Colaborador")+'</button>'+
+      (socio?"":'<button class="upill '+(u.sos?"on":"")+'" onclick="toggleSosIdx('+n+')">'+(u.sos?"vê Externo":"sem Externo")+'</button>')+
+      (socio?"":'<button class="upill '+(u.crm?"on":"")+'" onclick="toggleCrmIdx('+n+')" title="Ver o funil de prospecção e as propostas de honorários">'+(u.crm?"tem CRM":"sem CRM")+'</button>')+
+      '<button class="upill" onclick="usuarioVincular('+n+')" title="Definir se é empresa e quais ela vê">empresas</button>'+
+      /* Desativar, e não remover: o histórico continua tendo a quem
+         se referir. Remover de vez ficou escondido atrás do desativar. */
+      '<button class="upill'+(off?" on":"")+'" onclick="toggleAtivoIdx('+n+')" title="'+(off?"Voltar a permitir a entrada":"Impedir a entrada sem apagar o cadastro")+'">'+(off?"reativar":"desativar")+'</button>'+
+      (off?'<button class="utrash" onclick="removerIdx('+n+')" title="Remover de vez (o histórico perde o nome)">🗑</button>':'')+
+      '</div></div>';
+  });
+  box.innerHTML=html;
+}function salvarUsuarios(){if(typeof db!=="undefined"&&db){db.collection("config").doc("usuarios").set({lista:USUARIOS||{}},{merge:true}).catch(function(){toast&&toast("Erro ao salvar usuários","err");});}}/* Cria o CADASTRO e o LOGIN de uma vez.
+   Antes só criava o cadastro; a conta no Firebase tinha de ser feita à
+   mão no console, e como isso dava trabalho, ninguém fazia — todo mundo
+   acabava usando a mesma senha. A tela que dá trabalho é a tela que é
+   contornada.
+
+   Usa `_authSecundario`, a segunda instância do Firebase, porque criar
+   conta na instância principal ENTRARIA com o usuário novo e derrubaria
+   a sessão de quem está cadastrando. */
+async function addUsuario(){
+  var em=(document.getElementById("nu-email").value||"").trim().toLowerCase();
+  var senha=(document.getElementById("nu-senha").value||"");
+  if(!em||em.indexOf("@")<1){ toast&&toast("E-mail inválido","err"); return; }
+  if(em===ADMIN_EMAIL){ toast&&toast("Esse já é o admin","err"); return; }
+  if(USUARIOS&&USUARIOS[em]){ toast&&toast("Esse e-mail já tem acesso","err"); return; }
+  if(senha.length<6){ toast&&toast("A senha inicial precisa de 6 caracteres","err"); return; }
+
+  var role=document.getElementById("nu-role").value;
+  var sos=document.getElementById("nu-sos").checked;
+  var btn=document.querySelector(".ubtn-add");
+  if(btn){ btn.disabled=true; btn.textContent="Criando..."; }
+
+  var loginOk=false, aviso="";
+  try{
+    await _authSecundario.createUserWithEmailAndPassword(em,senha);
+    try{ await _authSecundario.signOut(); }catch(e2){}
+    loginOk=true;
+  }catch(err){
+    var c=String(err&&err.code||"");
+    try{ await _authSecundario.signOut(); }catch(e2){}
+    if(c.indexOf("email-already-in-use")>=0){
+      /* Já existe login com esse e-mail: o cadastro entra assim mesmo e
+         a pessoa usa a senha que já tinha. Recusar aqui deixaria o
+         acesso pela metade. */
+      loginOk=true; aviso=" (o login já existia — a senha continua a antiga)";
+    }else if(c.indexOf("weak-password")>=0){
+      aviso="Senha fraca demais para o Firebase."; }
+    else{ aviso="Não consegui criar o login: "+(err&&err.message||c); }
+  }
+  if(!loginOk){
+    if(btn){ btn.disabled=false; btn.textContent="Criar acesso"; }
+    toast&&toast(aviso,"err"); return;
+  }
+
+  USUARIOS=USUARIOS||{};
+  USUARIOS[em]={role:role, sos:!!sos, ativo:true,
+                criadoPor:(typeof USER_EMAIL!=="undefined"?USER_EMAIL:""), criadoEm:Date.now()};
+  salvarUsuarios();
+  try{ if(window.NHAudit&&NHAudit.pronto()) NHAudit.registrar({acao:'criou',onde:'config/usuarios',alvo:em,
+    rotulo:'Acesso de '+em+' ('+(role==='socio'?'Sócio':'Colaborador')+')'}); }catch(_a){}
+
+  document.getElementById("nu-email").value="";
+  document.getElementById("nu-senha").value="";
+  document.getElementById("nu-sos").checked=false;
+  if(btn){ btn.disabled=false; btn.textContent="Criar acesso"; }
+  renderListaUsuarios();
+  toast&&toast("Acesso criado para "+em+aviso,"ok");
+}
+
+/** Alterna Sócio ⇄ Colaborador. */
+function togglePapelIdx(n){
+  var em=Object.keys(USUARIOS||{})[n]; if(!em) return;
+  var u=USUARIOS[em]||{};
+  var vira=ehPapelSocio(u)?'colaborador':'socio';
+  if(vira==='socio' && !confirm('Tornar "'+em+'" SÓCIO?\n\nEle passa a ver o Financeiro, entrar em Configurações e esvaziar a lixeira — a única ação sem volta do sistema.')) return;
+  u.role=vira; USUARIOS[em]=u; salvarUsuarios(); renderListaUsuarios();
+  try{ if(window.NHAudit&&NHAudit.pronto()) NHAudit.registrar({acao:'alterou',onde:'config/usuarios',alvo:em,
+    rotulo:'Papel de '+em, campos:[{campo:'Papel',de:vira==='socio'?'Colaborador':'Sócio',para:vira==='socio'?'Sócio':'Colaborador'}]}); }catch(_a){}
+  toast&&toast('"'+em+'" agora é '+(vira==='socio'?'Sócio':'Colaborador'),"ok");
+}
+
+/** Desativar em vez de remover: impede a entrada e mantém o nome no
+    histórico. É o que se faz quando alguém sai da empresa. */
+function toggleAtivoIdx(n){
+  var em=Object.keys(USUARIOS||{})[n]; if(!em) return;
+  var u=USUARIOS[em]||{};
+  var off=(u.ativo===false);
+  if(!off && !confirm('Desativar "'+em+'"?\n\nEle deixa de entrar em todos os sistemas na hora. O cadastro e o histórico ficam.')) return;
+  u.ativo=off?true:false; USUARIOS[em]=u; salvarUsuarios(); renderListaUsuarios();
+  try{ if(window.NHAudit&&NHAudit.pronto()) NHAudit.registrar({acao:'alterou',onde:'config/usuarios',alvo:em,
+    rotulo:'Acesso de '+em, campos:[{campo:'Situação',de:off?'desativado':'ativo',para:off?'ativo':'desativado'}]}); }catch(_a){}
+  toast&&toast('"'+em+'" '+(off?'reativado':'desativado'),"ok");
+}function removerIdx(n){var em=Object.keys(USUARIOS||{})[n];if(em){delete USUARIOS[em];salvarUsuarios();renderListaUsuarios();toast&&toast("Usuário removido","ok");}}function toggleSosIdx(n){var em=Object.keys(USUARIOS||{})[n];if(em){USUARIOS[em].sos=!USUARIOS[em].sos;salvarUsuarios();renderListaUsuarios();}}
 /* Liga/desliga o CRM para uma pessoa. Vale para o atalho na barra, para
    o cartão no Portal e — o que de fato protege — para a regra do
    Firestore, que confere esta mesma marca no banco. */
 function toggleCrmIdx(n){var em=Object.keys(USUARIOS||{})[n];if(!em)return;var u=USUARIOS[em]||{};
   if(String(u.tipo||'').toLowerCase()==='empresa'){toast&&toast('Acesso de empresa não entra no CRM','err');return;}
   u.crm=!u.crm;USUARIOS[em]=u;salvarUsuarios();renderListaUsuarios();
-  toast&&toast(u.crm?('"'+em+'" agora vê o CRM'):('"'+em+'" não vê mais o CRM'),'ok');}auth.onAuthStateChanged(function(e){var a=document.getElementById("login-screen"),t=document.getElementById("sb"),o=document.querySelector(".topbar"),i=document.querySelector(".main");if(e){resolveAcesso(e.email).then(function(acc){if(!acc.ok){auth.signOut();var n=document.getElementById("login-err");return void(n&&(n.style.display="block",n.textContent="Email não autorizado: "+e.email))}IS_ADMIN=acc.admin,USER_SOS=acc.sos,IS_READONLY=acc.readonly,USER_EMAIL=e.email;a&&(a.style.display="none"),t&&(t.style.display=""),o&&(o.style.display=""),i&&(i.style.display="");var r=document.getElementById("user-info"),s=document.getElementById("user-name");r&&(r.style.display="flex"),s&&(s.textContent=e.email),aplicarPermissoes(),window._appInited||(window._appInited=!0,initApp())})}else{a&&(a.style.display="flex"),t&&(t.style.display="none"),o&&(o.style.display="none"),i&&(i.style.display="none"),(r=document.getElementById("user-info"))&&(r.style.display="none")}});const FB_COLS={editais:"editais",andamento:"andamento",finalizados:"finalizados",ganhas:"ganhas",atestados:"atestados",financeiro:"financeiro",valores:"valores",config:"config"};var EMPRESAS=[{nome:"VISE",cor:"#eab308"},{nome:"SAUTEC",cor:"#3b82f6"},{nome:"SOS",cor:"#22c55e"},{nome:"SOS FILIAL",cor:"#ef4444"},{nome:"ONLAV",cor:"#06b6d4"},{nome:"ENGEMED",cor:"#ec4899"}];async function carregarEmpresas(){try{var e=await db.collection("config").doc("empresas").get();e.exists&&e.data().lista&&(EMPRESAS=e.data().lista)}catch(e){}EMPRESAS.forEach(function(e){EMP_DATA[e.nome]||(EMP_DATA[e.nome]={cnpj:e.cnpj||"",portais:[],docs:[]}),TOPS["emp-"+e.nome]||(TOPS["emp-"+e.nome]=["Empresa — "+e.nome,"Portais, certidões e documentação"+(e.cnpj?" · CNPJ "+e.cnpj:"")])}),atualizarSelectsEmpresas(),Promise.all(EMPRESAS.map(function(e){return loadEmpData(e.nome)})).then(function(){atualizarSelectsEmpresas()}).catch(function(e){})}async function salvarEmpresas(){await db.collection("config").doc("empresas").set({lista:EMPRESAS})}
+  toast&&toast(u.crm?('"'+em+'" agora vê o CRM'):('"'+em+'" não vê mais o CRM'),'ok');}auth.onAuthStateChanged(function(e){var a=document.getElementById("login-screen"),t=document.getElementById("sb"),o=document.querySelector(".topbar"),i=document.querySelector(".main");if(e){resolveAcesso(e.email).then(function(acc){if(!acc.ok){auth.signOut();var n=document.getElementById("login-err");return void(n&&(n.style.display="block",n.textContent=acc.motivo==="desativado"?("Este acesso foi desativado. Fale com um sócio. ("+e.email+")"):("Email não autorizado: "+e.email)))}IS_ADMIN=acc.admin,USER_SOS=acc.sos,IS_READONLY=acc.readonly,USER_EMAIL=e.email;try{if(window.NHAudit){NHAudit.iniciar({db:db,sistema:'sistema'});NHAudit.identificar(e.email,acc.admin?'admin':'equipe');NHAudit.registrar({acao:'entrou',onde:'',alvo:'',rotulo:'Sistema NH'});}}catch(_a){}a&&(a.style.display="none"),t&&(t.style.display=""),o&&(o.style.display=""),i&&(i.style.display="");var r=document.getElementById("user-info"),s=document.getElementById("user-name");r&&(r.style.display="flex"),s&&(s.textContent=e.email),aplicarPermissoes(),window._appInited||(window._appInited=!0,initApp())})}else{a&&(a.style.display="flex"),t&&(t.style.display="none"),o&&(o.style.display="none"),i&&(i.style.display="none"),(r=document.getElementById("user-info"))&&(r.style.display="none")}});const FB_COLS={editais:"editais",andamento:"andamento",finalizados:"finalizados",ganhas:"ganhas",atestados:"atestados",financeiro:"financeiro",valores:"valores",config:"config"};var EMPRESAS=[{nome:"VISE",cor:"#eab308"},{nome:"SAUTEC",cor:"#3b82f6"},{nome:"SOS",cor:"#22c55e"},{nome:"SOS FILIAL",cor:"#ef4444"},{nome:"ONLAV",cor:"#06b6d4"},{nome:"ENGEMED",cor:"#ec4899"}];async function carregarEmpresas(){try{var e=await db.collection("config").doc("empresas").get();e.exists&&e.data().lista&&(EMPRESAS=e.data().lista)}catch(e){}EMPRESAS.forEach(function(e){EMP_DATA[e.nome]||(EMP_DATA[e.nome]={cnpj:e.cnpj||"",portais:[],docs:[]}),TOPS["emp-"+e.nome]||(TOPS["emp-"+e.nome]=["Empresa — "+e.nome,"Portais, certidões e documentação"+(e.cnpj?" · CNPJ "+e.cnpj:"")])}),atualizarSelectsEmpresas(),Promise.all(EMPRESAS.map(function(e){return loadEmpData(e.nome)})).then(function(){atualizarSelectsEmpresas()}).catch(function(e){})}async function salvarEmpresas(){await db.collection("config").doc("empresas").set({lista:EMPRESAS})}
 /* ══════════════════════════════════════════════════════════════════
    ACESSOS DAS PESSOAS
    Registro próprio, com chave = número do WhatsApp (só dígitos).
@@ -5305,7 +5469,87 @@ return _empCache[e]}async function saveEmpData(e,a,t){_empCache[e]||(_empCache[e
     n++;
   }
   return n;
-}async function fbSave(e,a,t,_docId){var _d=_docId?String(_docId):String(a);var o={_id:a,_arr:t,_updatedAt:Date.now()};try{var i=await db.collection(e).doc(_d).get();i.exists&&i.data()._createdAt?o._createdAt=i.data()._createdAt:o._createdAt=i.exists&&i.data()._createdAt||Date.now()}catch(e){o._createdAt=Date.now()}await db.collection(e).doc(_d).set(o)}async function fbDelete(e,a){await db.collection(e).doc(String(a)).delete()}async function loadAll(){setSt("load"),await Promise.all(Object.keys(SHEETS).map(function(e){return _load(e)})),setSt("ok"),
+}/* ══════════════════════════════════════════════════════════════════
+   AUDITORIA — ponto de estrangulamento
+
+   TODA gravação e TODA exclusão do sistema principal passam por estas
+   duas funções. Instrumentar aqui cobre as sete coleções de uma vez,
+   sem espalhar chamada por trinta lugares — e sem correr o risco de
+   esquecer justamente a tela que alguém usa para apagar contrato.
+
+   `fbSave` já lia o documento antes de gravar (para preservar o
+   _createdAt), então o estado ANTERIOR sai de graça: dá para registrar
+   o que mudou, campo a campo, sem nenhuma leitura extra no banco.
+   ══════════════════════════════════════════════════════════════════ */
+
+/** Como a pessoa reconhece o registro. O índice 2 é a Empresa e o 3 a
+    Licitação em editais, andamento, finalizados e ganhas — o mesmo em
+    todas, por isso serve de rótulo genérico. */
+function _nhRotulo(col,id,arr){
+  var partes=['#'+id];
+  if(Array.isArray(arr)){
+    if(arr[2]) partes.push(String(arr[2]).substring(0,40));
+    if(arr[3]) partes.push(String(arr[3]).substring(0,50));
+  }
+  return partes.join(' · ');
+}
+/** Nomes das colunas daquela aba, para a trilha dizer "Status" em vez
+    de "coluna 12". Vem do TCFG, que já existe para desenhar a tabela. */
+function _nhCols(col){
+  try{
+    for(var k in TCFG){ if(FB_COLS[k]===col && TCFG[k] && TCFG[k].cols) return TCFG[k].cols; }
+  }catch(e){}
+  return null;
+}
+function _nhAuditou(col,id,existia,antes,depois){
+  try{
+    if(!window.NHAudit || !NHAudit.pronto()) return;
+    if(!existia){
+      NHAudit.registrar({acao:'criou', onde:col, alvo:id, rotulo:_nhRotulo(col,id,depois)});
+      return;
+    }
+    var mudou=NHAudit.diffArr(antes, depois, _nhCols(col));
+    /* Gravação que não mudou nada não é notícia. O sistema regrava a
+       linha inteira a cada célula, e sem este corte a trilha encheria
+       de linhas dizendo que nada aconteceu. */
+    if(!mudou.length) return;
+    NHAudit.registrar({acao:'alterou', onde:col, alvo:id,
+      rotulo:_nhRotulo(col,id,depois), campos:mudou});
+  }catch(e){ /* auditoria nunca derruba o trabalho de quem está usando */ }
+}
+
+async function fbSave(e,a,t,_docId){
+  var _d=_docId?String(_docId):String(a);
+  var o={_id:a,_arr:t,_updatedAt:Date.now()};
+  var _existia=false,_antes=null;
+  try{
+    var i=await db.collection(e).doc(_d).get();
+    if(i.exists){ _existia=true; _antes=(i.data()||{})._arr||null; }
+    o._createdAt=(i.exists&&i.data()._createdAt)||Date.now();
+  }catch(_err){ o._createdAt=Date.now() }
+  /* Quem gravou, no próprio registro. A trilha responde "o que
+     aconteceu ao longo do tempo"; este campo responde "quem mexeu
+     nisto por último" sem precisar consultar a trilha. */
+  o._updatedBy=(typeof USER_EMAIL!=='undefined'&&USER_EMAIL)||'';
+  await db.collection(e).doc(_d).set(o);
+  _nhAuditou(e,a,_existia,_antes,t);
+}
+
+async function fbDelete(e,a){
+  /* Não apaga mais: move para a lixeira, com quem tirou e quando.
+     Se a cópia falhar, o registro FICA onde está — perder o dado é
+     pior do que não conseguir apagar. */
+  if(window.NHAudit && NHAudit.pronto()){
+    var linha=null;
+    try{ var s=await db.collection(e).doc(String(a)).get(); if(s.exists) linha=(s.data()||{})._arr; }catch(_x){}
+    var r=await NHAudit.excluir(e,a,_nhRotulo(e,a,linha));
+    if(!r.ok) throw new Error(r.erro||'não consegui mover para a lixeira');
+    return;
+  }
+  /* Sem o nh-auditoria.js publicado, volta ao comportamento antigo em
+     vez de travar o sistema. A tela de Atividade avisa em vermelho. */
+  await db.collection(e).doc(String(a)).delete();
+}async function loadAll(){setSt("load"),await Promise.all(Object.keys(SHEETS).map(function(e){return _load(e)})),setSt("ok"),
 /* Os anos do filtro de período saem dos dados, então o controle só
    pode ser montado depois da carga. Rodar de novo é inofensivo: a
    função sai fora se já existir. */
@@ -16555,3 +16799,11 @@ if('function'===typeof nhCertFechar){
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
