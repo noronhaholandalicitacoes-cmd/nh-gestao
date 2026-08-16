@@ -4812,7 +4812,32 @@ async function loginEmailSenha(){
     return mostraErro(erroRede ? "Não consegui conectar. Verifique a internet e tente de novo."
                                : "WhatsApp ou senha incorretos.");
   }
-}function logoutGoogle(){auth.signOut()}var ADMIN_EMAIL="noronhaholandalicitacoes@gmail.com",USUARIOS=null,USER_EMAIL="",USER_NOME="",IS_ADMIN=false,USER_SOS=true,IS_READONLY=false;async function carregarUsuarios(){if(USUARIOS!==null)return USUARIOS;USUARIOS={};try{if(db){var d=await db.collection("config").doc("usuarios").get();if(d.exists){var x=d.data();if(x&&x.lista)USUARIOS=x.lista;}}}catch(e){}return USUARIOS;}/* ══════════════════════════════════════════════════════════════════
+}function logoutGoogle(){auth.signOut()}var ADMIN_EMAIL="noronhaholandalicitacoes@gmail.com",USUARIOS=null,USER_EMAIL="",USER_NOME="",IS_ADMIN=false,USER_SOS=true,IS_READONLY=false;/* Marca se a lista que está na memória veio MESMO do banco.
+   ⚠️ 16/08/2026 — isto existe por causa de uma armadilha real:
+   `carregarUsuarios` engolia o erro de leitura e deixava USUARIOS={}.
+   Enquanto salvarUsuarios usava {merge:true} isso era inofensivo (merge
+   não apaga nada). Ao tirar o merge — necessário para que remover
+   alguém funcione —, uma gravação nesse estado apagaria a equipe
+   INTEIRA de uma vez. */
+var USUARIOS_OK=false;
+
+async function carregarUsuarios(){
+  if(USUARIOS!==null) return USUARIOS;
+  try{
+    if(!db){ USUARIOS=null; return {}; }
+    var d=await db.collection("config").doc("usuarios").get();
+    var x=d.exists?d.data():null;
+    USUARIOS=(x&&x.lista)||{};
+    USUARIOS_OK=true;                  /* leitura confirmada */
+    return USUARIOS;
+  }catch(e){
+    /* Falhou: deixa null para a PRÓXIMA chamada tentar de novo. Antes
+       ficava {} para sempre, e o sistema seguia a sessão inteira
+       achando que não existe colaborador nenhum. */
+    USUARIOS=null; USUARIOS_OK=false;
+    return {};
+  }
+}/* ══════════════════════════════════════════════════════════════════
    EQUIPE DA NH — cadastro por WhatsApp
 
    Mudou em 16/08/2026. O colaborador entrava por e-mail; passou a
@@ -5233,7 +5258,7 @@ async function eqNovo(){
 /** Editar nome e papel. O WhatsApp não muda: ele é o login, e trocá-lo
  *  seria criar outra conta — melhor cadastrar de novo e desativar a
  *  antiga, que deixa o rastro certo na trilha. */
-function eqEditar(n){
+async function eqEditar(n){
   var k=eqChave(n); if(!k) return;
   var u=USUARIOS[k]||{};
   var nome=prompt('Nome de quem usa '+eqFone(u.telefone||k)+':', u.nome||'');
@@ -5246,7 +5271,9 @@ function eqEditar(n){
   if((u.nome||'')!==nome) campos.push({campo:'Nome',de:u.nome||'',para:nome});
   if(eraSocio!==socio) campos.push({campo:'Papel',de:eraSocio?'Sócio':'Colaborador',para:socio?'Sócio':'Colaborador'});
   u.nome=nome; u.role=socio?'socio':'colaborador';
-  USUARIOS[k]=u; salvarUsuarios(); eqRender();
+  USUARIOS[k]=u;
+  if(!(await salvarUsuarios())){ eqRender(); return; }
+  eqRender();
   if(campos.length){
     try{ if(window.NHAudit&&NHAudit.pronto()) NHAudit.registrar({acao:'alterou',onde:'config/usuarios',
       alvo:k, rotulo:'Acesso de '+nome, campos:campos}); }catch(_a){}
@@ -5297,22 +5324,29 @@ async function eqSenha(n){
   toast('Senha nova definida para '+(u.nome||num)+'. Passe para ela.','ok');
 }
 
-function eqAtivo(n){
+async function eqAtivo(n){
   var k=eqChave(n); if(!k) return;
   var u=USUARIOS[k]||{}; var off=(u.ativo===false);
   if(!off && !confirm('Desativar '+(u.nome||k)+'?\n\nEla deixa de entrar em todos os sistemas na hora. O cadastro e o histórico ficam.')) return;
-  u.ativo=off?true:false; USUARIOS[k]=u; salvarUsuarios(); eqRender();
+  u.ativo=off?true:false; USUARIOS[k]=u;
+  if(!(await salvarUsuarios())){ u.ativo=off; USUARIOS[k]=u; eqRender(); return; }
+  eqRender();
   try{ if(window.NHAudit&&NHAudit.pronto()) NHAudit.registrar({acao:'alterou',onde:'config/usuarios',
     alvo:k, rotulo:'Acesso de '+(u.nome||k),
     campos:[{campo:'Situação',de:off?'desativado':'ativo',para:off?'ativo':'desativado'}]}); }catch(_a){}
   toast((u.nome||k)+(off?' reativado':' desativado'),'ok');
 }
 
-function eqRemover(n){
+async function eqRemover(n){
   var k=eqChave(n); if(!k) return;
   var u=USUARIOS[k]||{};
   if(!confirm('Remover o cadastro de '+(u.nome||k)+' de vez?\n\nA trilha de auditoria vai continuar mostrando o número, mas perde o nome — daqui a seis meses ninguém vai saber de quem era.\n\nDesativar costuma ser melhor.')) return;
-  delete USUARIOS[k]; salvarUsuarios(); eqRender();
+  /* Espera a gravação. Antes dizia "Removido." na hora e seguia — e
+     como o merge não removia nada, a pessoa voltava no F5 sem nenhum
+     aviso de que a remoção não tinha valido. */
+  delete USUARIOS[k];
+  if(!(await salvarUsuarios())){ USUARIOS[k]=u; eqRender(); return; }
+  eqRender();
   try{ if(window.NHAudit&&NHAudit.pronto()) NHAudit.registrar({acao:'excluiu',onde:'config/usuarios',
     alvo:k, rotulo:'Cadastro de '+(u.nome||k)}); }catch(_a){}
   toast('Removido.','ok');
@@ -5497,7 +5531,27 @@ function renderListaUsuarios(){
    e uma promessa rejeitada sem tratamento vira ruído no console. */
 function salvarUsuarios(){
   if(typeof db==="undefined"||!db) return Promise.resolve(false);
-  return db.collection("config").doc("usuarios").set({lista:USUARIOS||{}},{merge:true})
+
+  /* ⚠️ 16/08/2026 — O `{merge:true}` SAIU daqui, e o motivo importa.
+     Merge no Firestore nunca REMOVE chave: ele junta o que você manda
+     com o que já está lá. Apagar um colaborador do objeto em memória e
+     salvar com merge não apagava nada no banco — a pessoa voltava no
+     próximo carregamento, e o sistema parecia estar zoando com quem
+     tentou removê-la. Aconteceu duas vezes com o cliente antes de a
+     causa ser encontrada.
+     Escrever o documento inteiro é o certo aqui, porque esta função
+     SEMPRE monta a lista completa. */
+
+  /* A contrapartida de escrever tudo: se a lista em memória não veio do
+     banco, gravar apaga a equipe inteira. Só grava com leitura
+     confirmada. Uma lista legitimamente vazia passa — USUARIOS_OK só
+     fica true depois de uma leitura bem-sucedida. */
+  if(!USUARIOS_OK){
+    toast&&toast("Não salvei: o cadastro ainda não foi carregado. Atualize a página e tente de novo.","err");
+    return Promise.resolve(false);
+  }
+
+  return db.collection("config").doc("usuarios").set({lista:USUARIOS||{}})
     .then(function(){ return true; })
     .catch(function(e){
       toast&&toast("Erro ao salvar usuários: "+(e&&e.message||""),"err");
@@ -18175,6 +18229,9 @@ if('function'===typeof nhCertFechar){
 </script>
 </body>
 </html>
+
+
+
 
 
 
