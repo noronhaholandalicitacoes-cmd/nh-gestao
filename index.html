@@ -4753,11 +4753,34 @@ async function loginEmailSenha(){
     return;   /* onAuthStateChanged assume daqui */
   }
 
-  var num=String(campo).replace(/\D/g,'');
+  /* ⚠️ 16/08/2026 — as duas convenções de número.
+
+     O cadastro de EQUIPE grava o número como veio, só sem os símbolos
+     (eqNum): "(83) 99111-2222" → 83991112222@nh.interno, SEM o 55.
+     O cadastro de CLIENTE usa nhNumeroWpp, que prefixa 55.
+
+     Esta tela só montava a primeira forma, e por isso funcionava para
+     a equipe. O Portal de Licitações só montava a segunda, e por isso
+     o colaborador não entrava lá. Cada lado acertava metade.
+
+     Agora as duas telas tentam as duas formas, na mesma ordem. Alinhar
+     é o que impede o problema de voltar pela outra ponta. */
+  var _cru=String(campo).replace(/\D/g,'');
+  var _comDDI=(_cru.length<=11?'55'+_cru:_cru);
+  var _semDDI=(_cru.length>11&&_cru.indexOf('55')===0)?_cru.substring(2):_cru;
+  var _formas=(_comDDI===_semDDI)?[_comDDI]:[_semDDI,_comDDI];
+  /* Equipe primeiro: esta tela é da equipe. Cliente entra pelo portal. */
+
+  var _tentativas=[];
+  _formas.forEach(function(f){ _tentativas.push(emailFalsoResp(f,1)); });
+  for(var _v=LOGIN_MAX_VERSOES; _v>=2; _v--){
+    _formas.forEach(function(f){ _tentativas.push(emailFalsoResp(f,_v)); });
+  }
+
   var erroRede=null, entrou=false;
-  for(var v=LOGIN_MAX_VERSOES; v>=1 && !entrou; v--){
+  for(var i=0;i<_tentativas.length && !entrou;i++){
     try{
-      await auth.signInWithEmailAndPassword(emailFalsoResp(num,v),senha);
+      await auth.signInWithEmailAndPassword(_tentativas[i],senha);
       entrou=true;
     }catch(e){
       var cc=String(e&&e.code||'');
@@ -4841,9 +4864,8 @@ var SAUD_GERAL=[
   'Bora, {n}',
   'De volta, {n}'
 ];
-/* As curtas são de propósito: no celular a caixa tem 120px e nome
-   comprido ("Wellington") come quase tudo. Sem elas, quem tem nome
-   grande via sempre as mesmas três frases. */
+/* As curtas existem para o celular, onde o título usa o menor tamanho
+   e uma frase longa viraria três linhas. */
 var SAUD_ANIMO=[
   'Firme, {n}',
   'Vamos lá, {n}',
@@ -4868,26 +4890,19 @@ var SAUD_DIA=[
   ['Sábado produtivo, {n}','Sabadou, {n}']
 ];
 
-/* Quanto a frase pode medir, em pixels, antes de virar reticências.
-   Espelha o max-width de .nh-saud.tem-nome no CSS. Se mexer lá, mexa
-   aqui — é a única duplicação, e é de propósito: sortear uma frase que
-   não cabe e deixar o CSS cortar produz "Um edital de cada ve…", que é
-   pior do que não ter frase nenhuma. */
-function _saudLargura(){
-  return (window.innerWidth<=640) ? 120 : 230;
-}
-/* Mede o texto de verdade, com a fonte de verdade. Sem isto sobra
-   contar caracteres, e "Wellington" e "Ana" não medem igual. */
-var _saudCtx=null;
+/* Quantos caracteres a frase pode ter.
+   Ela mora no título do bloco de boas-vindas (.bv-tit), que quebra em
+   duas linhas sem estragar nada — então o limite é generoso. Só o
+   celular tem teto: ali o título usa o menor tamanho do clamp e cabem
+   umas 16 letras por linha; passar de duas linhas empurra os números
+   e a data para fora da primeira tela.
+
+   Antes isto media em pixels contra os 120px da barra do topo. Fazia
+   sentido enquanto a frase ficava lá; com ela no bloco, o filtro
+   passou a cortar frases boas por um motivo que já não existia — quem
+   tem nome comprido via sempre as mesmas quatro. */
 function _saudCabe(txt){
-  try{
-    if(!_saudCtx) _saudCtx=document.createElement('canvas').getContext('2d');
-    var el=document.getElementById('user-name');
-    var fam=el?getComputedStyle(el).fontFamily:'sans-serif';
-    var px=(window.innerWidth<=640)?12:13;
-    _saudCtx.font='650 '+px+'px '+fam;
-    return _saudCtx.measureText(txt).width<=_saudLargura();
-  }catch(e){ return txt.length<=20; }   /* sem canvas, chuta pelo tamanho */
+  return String(txt||'').length <= (window.innerWidth<=640 ? 32 : 60);
 }
 
 /** Monta a frase do topo. Sorteia a cada carregamento — a pessoa entra
@@ -4924,7 +4939,7 @@ var _nhFrase=null;
     saírem do zero. Sem nome cadastrado o bloco não aparece: uma
     boas-vinda grande dirigida a um número de telefone é pior do que
     nenhuma. */
-function nhPintarBoasVindas(){
+function nhPintarBoasVindas(nums){
   var box=document.getElementById('nh-boasvindas'); if(!box) return;
   /* Sorteia UMA vez por sessão. Este bloco é repintado quando os dados
      chegam, para os números saírem do vazio — e sem guardar a frase ela
@@ -4948,17 +4963,24 @@ function nhPintarBoasVindas(){
   if(d) d.textContent=new Date().toLocaleDateString('pt-BR',
     {weekday:'long',day:'numeric',month:'long'});
 
-  /* Três números que dizem "como estamos" sem sair da tela. Se ALL
-     ainda não chegou, o bloco fica sem eles em vez de mostrar zeros —
-     zero e "ainda não carregou" são coisas diferentes, e confundir as
-     duas é o erro que já apareceu cinco vezes neste sistema. */
+  /* Os números vêm PRONTOS de buildResumo — nunca recalculados aqui.
+     ⚠️ 16/08/2026: a primeira versão lia ALL.andamento direto e mostrou
+     266 enquanto o cartão logo abaixo dizia 18. ALL é o banco inteiro;
+     o painel aplica filtro de empresa (FIL), recorte de período e a
+     regra de conteúdo restrito antes de contar. Dois lugares contando
+     por conta própria divergem — é questão de tempo. Agora só existe
+     uma contagem, e este bloco a recebe.
+
+     Sem os números (chamada do login, antes dos dados), fica sem eles
+     em vez de mostrar zeros: zero e "ainda não carregou" são coisas
+     diferentes, e confundir as duas é o erro que já apareceu cinco
+     vezes neste sistema. */
   var box2=document.getElementById('bv-nums'); if(!box2) return;
-  var A=(typeof ALL!=='undefined'&&ALL)||null;
-  if(!A||!A.editais){ box2.innerHTML=''; return; }
+  if(!nums){ box2.innerHTML=''; return; }
   var linhas=[
-    {v:(A.editais||[]).length,      l:'Editais',      c:'var(--nh)'},
-    {v:(A.andamento||[]).length,    l:'Em andamento', c:'#3b82f6'},
-    {v:(A.ganhas||[]).length,       l:'Ganhas',       c:'#22c55e'}
+    {v:nums.editais,   l:'Editais',      c:'var(--nh)'},
+    {v:nums.andamento, l:'Em andamento', c:'#3b82f6'},
+    {v:nums.ganhas,    l:'Ganhas',       c:'#22c55e'}
   ];
   box2.innerHTML=linhas.map(function(x){
     return '<div class="bv-num" style="--cc:'+x.c+'"><div class="bv-num-v">'+x.v+
@@ -4970,16 +4992,18 @@ function nhPintarBoasVindas(){
     o identificador de sempre — melhor um telefone do que nada. */
 function nhPintarSaudacao(){
   var s=document.getElementById('user-name'); if(!s) return;
-  if(_nhFrase===null) _nhFrase=nhSaudacao();
-  /* A MESMA frase do bloco de boas-vindas — as duas ficam visíveis ao
-     mesmo tempo na tela inicial, e duas saudações diferentes lado a
-     lado parecem defeito. Se não couber nos 230px da barra, aqui fica
-     só o primeiro nome; lá em cima, onde há espaço, fica a frase
-     inteira. Uma é o resumo da outra, nunca uma contradição. */
-  var frase=_nhFrase;
-  if(frase && !_saudCabe(frase)) frase=meuPrimeiroNome();
-  if(frase){
-    s.textContent=frase;
+  /* ⚠️ 16/08/2026 — a barra mostrava a MESMA frase do bloco de
+     boas-vindas. Eu tinha feito de propósito, para as duas não se
+     contradizerem; o resultado na tela foi pior: "Hoje rende, Sócio"
+     aparecia duas vezes, a 60px de distância, e lia como defeito.
+
+     A barra volta a fazer o que barra faz — dizer QUEM está logado.
+     A saudação é do bloco, que tem espaço para ela. Sem repetição e
+     sem contradição, porque agora são coisas diferentes: uma é o
+     nome, a outra é a frase. */
+  var n=meuPrimeiroNome();
+  if(n){
+    s.textContent=n;
     s.classList.add('tem-nome');
     /* O login continua acessível, só saiu da frente: passa o mouse. */
     s.title='Conectado como '+(USER_EMAIL||'').replace('@nh.interno','');
@@ -6604,7 +6628,7 @@ return i.length?i.map(function(e){
       wg=t.part>0?Math.max(2,Math.round(t.gan/t.part*100)):0;
   return'<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><span style="width:90px;font-size:12px;font-weight:600;color:'+t.cor+'">'+n+'</span><div style="flex:1;height:16px;background:var(--s2);border-radius:4px;position:relative;overflow:hidden"><div style="height:100%;width:'+w+'%;background:rgba(59,130,246,.25);border-radius:4px"></div><div style="position:absolute;top:0;left:0;height:100%;width:'+(t.cap>0?Math.max(1,Math.round(t.gan/t.cap*100)):0)+'%;background:rgba(34,197,94,.35);border-radius:4px"></div></div><span style="font-size:12px;font-weight:700;color:'+cor+';min-width:35px;text-align:right">'+pct+'%</span><span style="font-size:10px;color:var(--t3);min-width:60px;text-align:right">'+t.gan+"/"+t.part+" part.</span></div>";
 }).join(""):'<div style="color:var(--t3);font-size:12px;padding:8px">Sem dados</div>';
-}function buildDescPeriodo(){return"total"===_rPeriodo?"Todos os registros":"mes"===_rPeriodo?["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"][_rMesSel]+" "+_rAnoSel:"trimestre"===_rPeriodo?Math.floor(_rMesSel/3)+1+"º Trimestre de "+_rAnoSel:"ano"===_rPeriodo?"Ano "+_rAnoSel:""}var MOSTRAR_SOS=true;function buildResumo(){try{nhPintarBoasVindas()}catch(_b){}var e=document.getElementById("resumo-body");if(!API)return void(e.innerHTML=noConf());
+}function buildDescPeriodo(){return"total"===_rPeriodo?"Todos os registros":"mes"===_rPeriodo?["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"][_rMesSel]+" "+_rAnoSel:"trimestre"===_rPeriodo?Math.floor(_rMesSel/3)+1+"º Trimestre de "+_rAnoSel:"ano"===_rPeriodo?"Ano "+_rAnoSel:""}var MOSTRAR_SOS=true;function buildResumo(){var e=document.getElementById("resumo-body");if(!API)return void(e.innerHTML=noConf());
 var _ed=FIL.editais||ALL.editais||[],
     _an=FIL.andamento||ALL.andamento||[],
     _fi=FIL.finalizados||ALL.finalizados||[],
@@ -6617,6 +6641,10 @@ var isTotal="total"===_rPeriodo;
 var edP=ed.filter(function(e){return"SIM"===String(e[10]||"").toUpperCase().trim()}).length;
 var anAtivos=an.filter(function(e){return"EM ANDAMENTO"===String(e[12]||"").toUpperCase().trim()}).length;
 var nGanhos=ga.length;
+/* O bloco de boas-vindas recebe os MESMOS números do painel: ed, an e
+   ga já passaram por FIL, período e conteúdo restrito. Recalcular lá
+   dentro foi o que fez ele mostrar 266 contra 18 do cartão ao lado. */
+try{ nhPintarBoasVindas({editais:ed.length, andamento:an.length, ganhas:nGanhos}); }catch(_b){}
 /* Ativo = Em Execução E dentro do prazo (mesma regra do relatório e do Portal). Vencidos não entram. */
 var contAtivos=ga.filter(function(e){return"exec"===_relCategoria(e)}).length;
 var fatAtivo=ga.filter(function(e){return"exec"===_relCategoria(e)}).reduce(function(s,e){return s+_relValor(e)},0);
@@ -18009,6 +18037,7 @@ if('function'===typeof nhCertFechar){
 </script>
 </body>
 </html>
+
 
 
 
