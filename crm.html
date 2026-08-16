@@ -344,8 +344,8 @@ body.light .ac-form{background:rgba(255,255,255,.75)}
     <div class="ac-tit">NH <span class="grad">CRM</span></div>
     <div class="ac-sub">Captação de clientes e funil de vendas</div>
     <div class="ac-form">
-      <div class="campo"><label>E-mail</label>
-        <input type="email" id="ac-email" placeholder="seu@email.com" autocomplete="username"></div>
+      <div class="campo"><label>E-mail ou WhatsApp</label>
+        <input type="text" id="ac-email" placeholder="seu@email.com ou (83) 99999-9999" autocomplete="username"></div>
       <div class="campo"><label>Senha</label>
         <input type="password" id="ac-senha" placeholder="••••••••" autocomplete="current-password"></div>
       <button class="btn btn-nh" id="ac-btn" style="width:100%;justify-content:center;padding:12px;font-size:14px" onclick="entrar()">Entrar</button>
@@ -2598,21 +2598,53 @@ function fecharModal(id){ document.getElementById(id).classList.remove('on'); }
 async function entrar(){
   var email=gv('ac-email'), senha=document.getElementById('ac-senha').value;
   var msg=document.getElementById('ac-msg'), btn=document.getElementById('ac-btn');
-  if(!email||!senha){ msg.style.display='block'; msg.textContent='Preencha e-mail e senha.'; return; }
-  if(email.indexOf('@')<0){
+  if(!email||!senha){ msg.style.display='block'; msg.textContent='Preencha o acesso e a senha.'; return; }
+
+  /* ⚠️ 16/08/2026 — o WhatsApp passou a valer aqui.
+     Esta tela recusava número dizendo "este sistema é da equipe NH" —
+     e estava certa quando a equipe entrava por e-mail. Hoje entra por
+     WhatsApp, então a frase virou o contrário do que queria dizer:
+     recusava justamente a equipe. */
+  var ehEmail=email.indexOf('@')>=0;
+  var dig=email.replace(/\D/g,'');
+  if(!ehEmail && dig.length<10){
     msg.style.display='block';
-    msg.innerHTML='Aqui o acesso é <b>pelo e-mail</b>, não pelo WhatsApp — este sistema é da equipe NH.';
+    msg.textContent='Informe o e-mail inteiro ou o WhatsApp com DDD.';
     return;
   }
   msg.style.display='none';
   btn.disabled=true; btn.textContent='Entrando…';
-  try{ await auth.signInWithEmailAndPassword(email, senha); }
-  catch(e){
-    var c=String(e&&e.code||'');
+
+  /* As duas convenções de número que existem gravadas — mesma lista do
+     Sistema NH, do Portal e do Financeiro. Equipe primeiro. */
+  var tentativas;
+  if(ehEmail){ tentativas=[email]; }
+  else{
+    var comDDI=(dig.length<=11?'55'+dig:dig);
+    var semDDI=(dig.length>11&&dig.indexOf('55')===0)?dig.substring(2):dig;
+    var formas=(comDDI===semDDI)?[comDDI]:[semDDI,comDDI];
+    tentativas=[];
+    formas.forEach(function(f){ tentativas.push(f+'@nh.interno'); });
+    for(var v=8; v>=2; v--){ formas.forEach(function(f){ tentativas.push(f+'.r'+v+'@nh.interno'); }); }
+  }
+
+  var credRuim=['auth/user-not-found','auth/wrong-password','auth/invalid-credential','auth/invalid-login-credentials'];
+  var entrou=false, ultimo=null;
+  for(var i=0;i<tentativas.length && !entrou;i++){
+    try{ await auth.signInWithEmailAndPassword(tentativas[i],senha); entrou=true; }
+    catch(e){
+      ultimo=String(e&&e.code||'');
+      if(ultimo.indexOf('too-many-requests')>=0) break;
+      if(credRuim.indexOf(ultimo)<0) break;
+    }
+  }
+  if(!entrou){
     msg.style.display='block';
-    msg.innerHTML=(c.indexOf('too-many-requests')>=0)
+    msg.innerHTML=(String(ultimo).indexOf('too-many-requests')>=0)
       ? 'Muitas tentativas seguidas. Aguarde alguns minutos.'
-      : 'E-mail ou senha incorretos.';
+      : (credRuim.indexOf(ultimo)>=0)
+      ? (ehEmail?'E-mail ou senha incorretos.':'WhatsApp ou senha incorretos.')
+      : 'Não consegui conectar. Verifique a internet e tente de novo.';
     btn.disabled=false; btn.textContent='Entrar';
   }
 }
@@ -2628,17 +2660,19 @@ auth.onAuthStateChanged(async function(u){
     btn.disabled=false; btn.textContent='Entrar';
     return;
   }
-  if(/@nh\.interno$/i.test(u.email||'')){
-    var m=document.getElementById('ac-msg');
-    m.style.display='block';
-    m.innerHTML='Este acesso &eacute; de empresa cliente e n&atilde;o abre o CRM.';
-    await auth.signOut();
-    return;
-  }
+  /* ⚠️ 16/08/2026 — aqui havia um corte por FORMATO de login:
+     qualquer `@nh.interno` era tratado como empresa cliente e recusado.
+     Isso deixou de valer quando a equipe passou a entrar por WhatsApp:
+     o vendedor recebia a marca CRM, digitava o número certo e era
+     expulso na porta, com uma mensagem dizendo que ele era cliente.
+
+     Quem decide é o cadastro, não o formato do e-mail. Empresa cliente
+     continua fora — pelo motivo certo: ela não está em
+     config/usuarios. */
 
   /* Entrar no Firebase não é ter acesso ao CRM. Estar em
      config/usuarios também não: a marca `crm` é ligada por pessoa em
-     Configurações › Usuários.
+     Configurações › Acessos.
 
      Esta conferência é de CORTESIA, não de segurança — quem protege é a
      regra do Firestore, que confere a mesma marca no banco. O que ela
@@ -2651,12 +2685,18 @@ auth.onAuthStateChanged(async function(u){
     var d=await db.collection('config').doc('usuarios').get();
     var lista=(d.exists && d.data() && d.data().lista) || {};
     var reg=lista[String(u.email||'').toLowerCase()];
+    var _ehWpp=/@nh\.interno$/i.test(String(u.email||''));
     if(ADMINS.indexOf(String(u.email||'').toLowerCase())>=0) podeCrm=true;
-    else if(!reg) motivo='Este e-mail não está cadastrado em Configurações › Usuários do Sistema NH.';
-    else if(String(reg.role||'')==='admin') podeCrm=true;
+    else if(!reg) motivo = _ehWpp
+      ? 'Este acesso não é da equipe da NH e não abre o CRM.'
+      : 'Este e-mail não está cadastrado em Configurações › Acessos do Sistema NH.';
+    else if(reg.ativo===false) motivo='Este acesso foi desativado. Fale com um sócio.';
+    /* 'socio' é o papel que a tela nova grava; 'admin' é o antigo, e
+       continua valendo para quem foi cadastrado antes de 15/08. */
+    else if(String(reg.role||'')==='admin'||String(reg.role||'')==='socio') podeCrm=true;
     else if(reg.crm===true) podeCrm=true;
     else motivo='O seu acesso existe, mas o CRM ainda não foi liberado para ele. '+
-                'Peça a um sócio para ligar a marca <b>CRM</b> em Configurações › Usuários.';
+                'Peça a um sócio para ligar a marca <b>CRM</b> em Configurações › Acessos.';
   }catch(e){
     /* Não conseguir ler o cadastro não é o mesmo que não ter acesso.
        Deixa passar e o Firestore decide — errar para o lado de barrar
@@ -2691,6 +2731,7 @@ document.addEventListener('keydown', function(e){
 </script>
 </body>
 </html>
+
 
 
 
