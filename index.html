@@ -911,7 +911,11 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 .ac-err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);
   color:var(--r1);padding:11px 14px;border-radius:9px;font-size:12.5px;font-weight:600;
   margin-bottom:14px;display:none;text-align:center;line-height:1.5}
-.ac-rodape{font-size:11.5px;color:var(--t3);text-align:center;margin-top:16px;line-height:1.6}
+/* Dica embaixo do campo de login. Diz, enquanto a pessoa digita, se o
+   sistema entendeu e-mail ou WhatsApp — assim ninguém descobre que
+   errou só depois de apertar Entrar. */
+.ac-dica{font-size:11.5px;color:var(--t3);margin:-8px 0 4px;min-height:15px;line-height:1.4}
+.ac-dica.ok{color:var(--nh)}.ac-rodape{font-size:11.5px;color:var(--t3);text-align:center;margin-top:16px;line-height:1.6}
 
 /* Alternador de tema, no canto */
 .ac-tema{position:absolute;top:18px;right:18px;z-index:3;
@@ -2861,10 +2865,16 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
     <div class="ac-sub">Sistema de gestão de licitações</div>
     <div class="ac-form">
       <div class="ac-err" id="login-err"></div>
-      <div class="ac-campo"><label>E-mail</label><input type="email" id="login-email" placeholder="seu@email.com" autocomplete="off" autocomplete="email"></div>
+      <!-- Um campo só, e não duas abas: cada pessoa sempre usa a mesma
+           coisa (o sócio o e-mail, a equipe o WhatsApp), então escolher
+           o tipo seria uma decisão repetida todo dia — e uma chance de
+           errar. O sistema descobre pelo que foi digitado: tem "@" é
+           e-mail, só números é WhatsApp. -->
+      <div class="ac-campo"><label>E-mail ou WhatsApp</label><input type="text" id="login-email" placeholder="seu@email.com  ou  (83) 9 9999-0000" autocomplete="off" inputmode="email" oninput="loginDica()"></div>
+      <div class="ac-dica" id="login-dica"></div>
       <div class="ac-campo"><label>Senha</label><input type="password" id="login-senha" placeholder="••••••••" autocomplete="off" autocomplete="current-password" onkeydown="if(event.key==='Enter')loginEmailSenha()"></div>
       <button class="ac-btn" id="btn-login" onclick="loginEmailSenha()">Entrar</button>
-      <div class="ac-rodape">Acesso restrito à equipe NH.</div>
+      <div class="ac-rodape">Acesso restrito à equipe NH.<br>S&oacute;cios entram pelo e-mail; a equipe, pelo WhatsApp.</div>
     </div>
   </div>
 </div>
@@ -4561,7 +4571,104 @@ function acAplicarTema(claro){
 function acTrocarTema(){acAplicarTema(!document.body.classList.contains('light-theme'));}
 (function(){try{acAplicarTema('claro'===localStorage.getItem('nh_tema'));}catch(e){}})();
 
-function loginEmailSenha(){var e=document.getElementById("login-email").value.trim(),a=document.getElementById("login-senha").value,t=document.getElementById("btn-login"),o=document.getElementById("login-err");if(!e||!a)return o.style.display="block",void(o.textContent="Preencha email e senha");t&&(t.textContent="Entrando..."),o.style.display="none",auth.signInWithEmailAndPassword(e,a).catch(function(e){t&&(t.textContent="Entrar"),o.style.display="block","auth/wrong-password"===e.code||"auth/user-not-found"===e.code||"auth/invalid-credential"===e.code?o.textContent="Email ou senha incorretos":o.textContent="Erro: "+e.message})}function logoutGoogle(){auth.signOut()}var ADMIN_EMAIL="noronhaholandalicitacoes@gmail.com",USUARIOS=null,USER_EMAIL="",IS_ADMIN=false,USER_SOS=true,IS_READONLY=false;async function carregarUsuarios(){if(USUARIOS!==null)return USUARIOS;USUARIOS={};try{if(db){var d=await db.collection("config").doc("usuarios").get();if(d.exists){var x=d.data();if(x&&x.lista)USUARIOS=x.lista;}}}catch(e){}return USUARIOS;}/* ══════════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════════════════
+   LOGIN — e-mail OU WhatsApp, no mesmo campo
+
+   Ficou torto por um dia: em 16/08 a equipe passou a entrar por
+   WhatsApp e a porta continuou dizendo "E-mail". Mudei a identidade e
+   esqueci a entrada.
+
+   Um campo só, e não duas abas. Cada pessoa sempre usa a mesma coisa —
+   o sócio o e-mail, a equipe o WhatsApp — então escolher o tipo seria
+   uma decisão repetida todos os dias, e uma chance a mais de errar. O
+   sistema descobre pelo que foi digitado.
+
+   Quem teve a senha redefinida tem login `numero.r2@nh.interno`, e a
+   pessoa não sabe disso nem precisa saber: digita o número de sempre e
+   o sistema tenta da versão mais nova para a mais antiga, igual ao
+   Portal de Contratos faz.
+   ══════════════════════════════════════════════════════════════════ */
+var LOGIN_MAX_VERSOES = 8;
+
+/** O que foi digitado é e-mail ou WhatsApp? Tem "@" é e-mail; o resto,
+ *  se sobrar dígito suficiente, é telefone. */
+function loginTipo(v){
+  var s=String(v||'').trim();
+  if(s.indexOf('@')>0) return 'email';
+  var d=s.replace(/\D/g,'');
+  if(d.length>=10) return 'whats';
+  return '';
+}
+
+/** Dica embaixo do campo, enquanto a pessoa digita. Não é enfeite: é o
+ *  que evita alguém digitar o telefone achando que é campo de e-mail e
+ *  levar "e-mail inválido" sem entender. */
+function loginDica(){
+  var el=document.getElementById('login-dica'); if(!el) return;
+  var v=document.getElementById('login-email').value;
+  var tipo=loginTipo(v);
+  if(!String(v||'').trim()){ el.textContent=''; el.className='ac-dica'; return; }
+  if(tipo==='email'){ el.textContent='Entrando pelo e-mail'; el.className='ac-dica ok'; }
+  else if(tipo==='whats'){
+    var d=String(v).replace(/\D/g,'');
+    el.textContent='Entrando pelo WhatsApp '+(typeof eqFone==='function'?eqFone(d):d);
+    el.className='ac-dica ok';
+  }
+  else { el.textContent='Digite o e-mail inteiro ou o WhatsApp com DDD'; el.className='ac-dica'; }
+}
+
+async function loginEmailSenha(){
+  var campo=document.getElementById("login-email").value.trim();
+  var senha=document.getElementById("login-senha").value;
+  var btn=document.getElementById("btn-login");
+  var err=document.getElementById("login-err");
+  var mostraErro=function(txt){
+    err.style.display="block"; err.textContent=txt;
+    if(btn){ btn.disabled=false; btn.textContent="Entrar"; }
+  };
+  if(!campo||!senha) return mostraErro("Preencha o acesso e a senha.");
+
+  var tipo=loginTipo(campo);
+  if(!tipo) return mostraErro("Digite o e-mail inteiro ou o WhatsApp com DDD.");
+
+  err.style.display="none";
+  if(btn){ btn.disabled=true; btn.textContent="Entrando..."; }
+
+  /* Erros que significam "credencial não bateu" — nesses vale tentar a
+     próxima versão. Qualquer outro é problema de rede ou de conta, e
+     insistir só atrasaria a mensagem certa. */
+  var credRuim=['auth/user-not-found','auth/wrong-password','auth/invalid-credential',
+                'auth/invalid-login-credentials'];
+
+  if(tipo==='email'){
+    try{
+      await auth.signInWithEmailAndPassword(campo,senha);
+    }catch(e){
+      var c=String(e&&e.code||'');
+      if(c.indexOf('too-many-requests')>=0) return mostraErro("Muitas tentativas seguidas. Aguarde alguns minutos.");
+      if(credRuim.indexOf(c)>=0) return mostraErro("E-mail ou senha incorretos.");
+      return mostraErro("Não consegui conectar. Verifique a internet e tente de novo.");
+    }
+    return;   /* onAuthStateChanged assume daqui */
+  }
+
+  var num=String(campo).replace(/\D/g,'');
+  var erroRede=null, entrou=false;
+  for(var v=LOGIN_MAX_VERSOES; v>=1 && !entrou; v--){
+    try{
+      await auth.signInWithEmailAndPassword(emailFalsoResp(num,v),senha);
+      entrou=true;
+    }catch(e){
+      var cc=String(e&&e.code||'');
+      if(cc.indexOf('too-many-requests')>=0){ return mostraErro("Muitas tentativas seguidas. Aguarde alguns minutos."); }
+      if(credRuim.indexOf(cc)<0){ erroRede=e; break; }
+    }
+  }
+  if(!entrou){
+    return mostraErro(erroRede ? "Não consegui conectar. Verifique a internet e tente de novo."
+                               : "WhatsApp ou senha incorretos.");
+  }
+}function logoutGoogle(){auth.signOut()}var ADMIN_EMAIL="noronhaholandalicitacoes@gmail.com",USUARIOS=null,USER_EMAIL="",IS_ADMIN=false,USER_SOS=true,IS_READONLY=false;async function carregarUsuarios(){if(USUARIOS!==null)return USUARIOS;USUARIOS={};try{if(db){var d=await db.collection("config").doc("usuarios").get();if(d.exists){var x=d.data();if(x&&x.lista)USUARIOS=x.lista;}}}catch(e){}return USUARIOS;}/* ══════════════════════════════════════════════════════════════════
    EQUIPE DA NH — cadastro por WhatsApp
 
    Mudou em 16/08/2026. O colaborador entrava por e-mail; passou a
@@ -17481,6 +17588,9 @@ if('function'===typeof nhCertFechar){
 </script>
 </body>
 </html>
+
+
+
 
 
 
