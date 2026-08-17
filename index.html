@@ -1599,7 +1599,79 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 .eq-chip.on:hover{background:color-mix(in srgb, var(--cc) 24%, transparent)}
 /* Linha desativada: os chips continuam legíveis, mas sem convidar. */
 .eq-l.off .eq-chip{opacity:.45;pointer-events:none}
-@media(max-width:560px){ .eq-sis-lbl{width:100%;margin-bottom:2px} }.ac-dup{background:rgba(234,179,8,.07);border:1px solid rgba(234,179,8,.32);
+@media(max-width:560px){ .eq-sis-lbl{width:100%;margin-bottom:2px} }/* ══════════════════════════════════════════════════════════════════
+   AGENDA POR PROCESSO (.ag-*)
+   Cada processo é um cartão; dentro dele, os marcos em ordem. A cor
+   da esquerda é a da empresa, para reconhecer de longe de quem é.
+   ══════════════════════════════════════════════════════════════════ */
+.ag-cab{display:flex;align-items:flex-end;justify-content:space-between;
+  flex-wrap:wrap;gap:12px;margin-bottom:14px}
+.ag-tit{font-size:15px;font-weight:800;color:var(--t1);letter-spacing:-.01em}
+.ag-sub{font-size:12px;color:var(--t3);margin-top:2px}
+.ag-busca{flex:1;min-width:240px;max-width:420px}
+.ag-busca input{width:100%;background:var(--s1);border:1px solid var(--b1);
+  color:var(--t1);padding:9px 13px;border-radius:9px;font-size:13px;font-family:inherit}
+.ag-busca input:focus{outline:none;border-color:var(--nh)}
+
+.ag-filtros{display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:12px;margin-bottom:16px}
+.ag-seg{display:inline-flex;background:var(--s1);border:1px solid var(--b1);
+  border-radius:10px;padding:3px;gap:2px;flex-wrap:wrap}
+.ag-seg button{background:none;border:none;color:var(--t3);cursor:pointer;
+  font:inherit;font-size:12px;font-weight:700;padding:6px 13px;border-radius:7px}
+.ag-seg button:hover{color:var(--t1)}
+.ag-seg button.on{background:var(--nh);color:#fff}
+.ag-legenda{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--t3)}
+.ag-legenda span{display:inline-flex;align-items:center;gap:5px}
+.ag-legenda i{width:9px;height:9px;border-radius:2px;display:inline-block}
+
+.ag-card{background:var(--s2);border:1px solid var(--b1);
+  border-left:3px solid var(--ec);border-radius:13px;padding:15px 17px;margin-bottom:12px}
+.ag-card-top{display:flex;align-items:center;gap:11px;margin-bottom:8px}
+.ag-emp{width:32px;height:32px;border-radius:9px;flex-shrink:0;color:#000;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-weight:800;font-size:11px}
+.ag-card-id{flex:1;min-width:0}
+.ag-lic{font-size:14px;font-weight:800;color:var(--t1);line-height:1.25}
+.ag-obj{font-size:11.5px;color:var(--t3);margin-top:2px;line-height:1.4;
+  display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.ag-st{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;
+  color:var(--t2);background:rgba(255,255,255,.05);border:1px solid var(--b1);
+  padding:3px 9px;border-radius:999px;white-space:nowrap;flex-shrink:0}
+/* Suspenso, adiado e cancelado ficam âmbar: é o que o olho tem de pegar. */
+.ag-st.alerta{color:#eab308;background:rgba(234,179,8,.12);border-color:rgba(234,179,8,.4)}
+.ag-meta{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--t3);
+  margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--b1)}
+
+/* A trilha. Em tela larga vira uma linha; no celular empilha. */
+.ag-trilha{display:flex;align-items:flex-start;flex-wrap:wrap;gap:0}
+.ag-liga{flex:0 0 26px;height:2px;background:var(--b1);margin:17px 4px 0}
+.ag-passo{display:flex;gap:9px;align-items:flex-start;min-width:0;
+  flex:1 1 200px;opacity:.62}
+/* Marco que ainda vai acontecer é o que importa hoje. */
+.ag-passo.fut{opacity:1}
+.ag-passo-ic{width:30px;height:30px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:13px;
+  background:color-mix(in srgb, var(--mc) 16%, transparent);
+  border:1px solid color-mix(in srgb, var(--mc) 45%, transparent)}
+.ag-passo-txt{min-width:0}
+.ag-passo-rot{font-size:11.5px;font-weight:800;color:var(--mc);
+  text-transform:uppercase;letter-spacing:.04em}
+.ag-passo-dt{font-size:12px;color:var(--t2);margin-top:2px;font-variant-numeric:tabular-nums}
+.ag-passo-av{font-size:12px;color:var(--t1);margin-top:6px;line-height:1.5;
+  background:rgba(234,179,8,.07);border:1px solid rgba(234,179,8,.22);
+  border-radius:8px;padding:7px 10px;white-space:pre-line;max-width:44ch}
+.ag-nova{color:var(--t3);font-size:11px}
+
+.ag-vazio{padding:34px;text-align:center;color:var(--t3);font-size:13px;
+  background:var(--s2);border:1px dashed var(--b1);border-radius:13px}
+.ag-vazio-mini{font-size:12px;color:var(--t3);padding:4px 0}
+
+@media(max-width:760px){
+  .ag-liga{display:none}
+  .ag-trilha{flex-direction:column;gap:12px}
+  .ag-passo{flex:1 1 auto;width:100%}
+}.ac-dup{background:rgba(234,179,8,.07);border:1px solid rgba(234,179,8,.32);
   border-radius:14px;padding:15px 17px;margin-bottom:16px}
 .ac-dup-tit{font-size:13.5px;font-weight:800;color:#eab308;margin-bottom:5px}
 .ac-dup-sub{font-size:12.5px;line-height:1.6;color:var(--t2);margin-bottom:12px;max-width:80ch}
@@ -4369,18 +4441,48 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
         </div>
         <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr)"></div>
       </div>
-      <!-- Lista semanal de eventos -->
-      <div style="margin-top:20px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-          <div style="font-size:13px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.1em" id="cal-lista-titulo">Disputas e Reaberturas da Semana</div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <button onclick="calSemana(-1)" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:13px">‹</button>
-            <span id="cal-semana-label" style="font-size:12px;color:var(--t2);min-width:160px;text-align:center"></span>
-            <button onclick="calSemana(1)" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:13px">›</button>
-            <button onclick="calSemanaHoje()" style="background:var(--s2);border:1px solid var(--b1);color:var(--t3);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px">Hoje</button>
+      <!-- ══════════════════════════════════════════════════════════
+           LINHA DO TEMPO POR PROCESSO — 17/08/2026
+
+           A lista semanal antiga misturava tudo: disputa da VISE,
+           reabertura da SOS e disputa da ONLAV, ordenadas só por data.
+           Para saber o que tinha acontecido com UM processo era preciso
+           varrer semanas para frente e para trás.
+
+           Agora agrupa por processo e mostra os marcos em ordem —
+           abertura, suspensão, reabertura, disputa —, como um
+           histórico. O filtro é só dos processos vivos, a pedido do
+           cliente: processo encerrado polui a lista de quem trabalha
+           com o que está em pé.
+           ══════════════════════════════════════════════════════════ -->
+      <div style="margin-top:24px">
+        <div class="ag-cab">
+          <div>
+            <div class="ag-tit">Linha do tempo dos processos</div>
+            <div class="ag-sub" id="ag-sub"></div>
+          </div>
+          <div class="ag-busca">
+            <input type="text" id="ag-q" placeholder="🔍 Buscar por licitação, empresa, objeto ou município..." oninput="agRender()">
           </div>
         </div>
-        <div id="cal-lista"></div>
+
+        <div class="ag-filtros" id="ag-filtros">
+          <div class="ag-seg" id="ag-seg">
+            <button class="on" data-f="vivos"  onclick="agFiltro('vivos')">Em andamento</button>
+            <button data-f="avisos"            onclick="agFiltro('avisos')">Com aviso</button>
+            <button data-f="semana"            onclick="agFiltro('semana')">Esta semana</button>
+            <button data-f="todos"             onclick="agFiltro('todos')">Todos</button>
+          </div>
+          <div class="ag-legenda">
+            <span><i style="background:#a855f7"></i>Abertura</span>
+            <span><i style="background:#f97316"></i>Disputa</span>
+            <span><i style="background:#3b82f6"></i>Reabertura</span>
+            <span><i style="background:#eab308"></i>Suspenso</span>
+            <span><i style="background:#ef4444"></i>Cancelado</span>
+          </div>
+        </div>
+
+        <div id="ag-lista"></div>
       </div>
     </div>
 
@@ -4436,10 +4538,40 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
     <div class="fg"><label>Portal</label><select id="a-portal"><option value="">-</option><option>compras gov</option><option>BLL</option><option>LICITANET</option><option>CONLICITACAO</option><option>Outro</option></select></div>
     <div class="fg"><label>Data de Disputa</label><input type="date" id="a-disp"></div>
     <div class="fg"><label>Classificação</label><select id="a-class"><option></option><option>1 posição</option><option>2 posição</option><option>3 posição</option><option>4 posição</option><option>5 posição</option><option>6 posição</option><option>7 posição</option><option>8 posição</option><option>9 posição</option><option>10 posição</option><option>11 posição</option><option>12 posição</option><option>13 posição</option><option>14 posição</option><option>15 posição</option><option>Proposta enviada</option><option>Desclassificado</option><option>Inabilitado</option><option>Cancelado</option><option>Não participou</option></select></div>
-    <div class="fg"><label>Status</label><select id="a-status"><option value="">-</option><option>EM DISPUTA</option><option>AGUARDANDO</option><option>RECURSO</option><option>ADJUDICADO</option><option>CANCELADO</option></select></div>
+    <div class="fg"><label>Status</label><select id="a-status" onchange="aAvisoAoMudarStatus()"><option value="">-</option><option>EM ANDAMENTO</option><option>EM DISPUTA</option><option>AGUARDANDO</option><option>SUSPENSO</option><option>ADIADO</option><option>RECURSO</option><option>ADJUDICADO</option><option>CANCELADO</option></select></div>
     <div class="fg"><label>Reabertura</label><input type="date" id="a-reab"></div>
     <div class="fg"><label>Recurso</label><select id="a-rec"><option value="">-</option><option>sim</option><option>não</option></select></div>
     <div class="fg fc"><label>Resumo do Andamento <span style="font-weight:400;color:var(--t3);font-size:10px">— para registrar com data, use o campo no card</span></label><textarea id="a-resumo"></textarea></div>
+    <!-- ══════════════════════════════════════════════════════════
+         AVISO AO CLIENTE — 17/08/2026
+
+         Por que um campo separado do Resumo do Andamento, se o texto
+         costuma ser o mesmo: o Resumo é INTERNO. É onde a equipe
+         escreve "concorrente entrou com impugnação, vamos segurar" ou
+         "cliente atrasou a certidão". Publicar isso direto no portal
+         significa que um dia alguém escreve algo que o cliente não
+         deveria ler — e só descobre depois.
+
+         O botão "usar o resumo" copia o texto num clique, então o
+         caminho rápido continua rápido. O que muda é que publicar
+         passou a ser uma decisão, e não o efeito colateral de anotar.
+         ══════════════════════════════════════════════════════════ -->
+    <div class="fsec">Aviso ao cliente 📣</div>
+    <div class="fg fc" id="a-aviso-box" style="border:1px solid rgba(234,179,8,.25);border-radius:10px;padding:12px;background:rgba(234,179,8,.05)">
+      <label style="color:#eab308">O que a empresa vê no Portal de Licitações
+        <span style="font-weight:400;color:var(--t3);font-size:10px">— deixe vazio para não publicar nada</span>
+      </label>
+      <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:8px">
+        <textarea id="a-aviso" style="flex:1" placeholder="Ex.: Sessão suspensa pelo órgão. Aguardando nova data."></textarea>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="aAvisoUsarResumo()"
+          title="Copiar o texto do Resumo do Andamento para cá" style="white-space:nowrap">↑ usar o resumo</button>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <div style="flex:1;min-width:150px"><label>Data do aviso</label><input type="date" id="a-avisodata"></div>
+        <div style="flex:1;min-width:150px"><label>Nova data prevista</label><input type="date" id="a-novadata"></div>
+      </div>
+      <div id="a-aviso-dica" style="font-size:11px;color:var(--t3);margin-top:8px;line-height:1.5"></div>
+    </div>
     <div class="fsec">Resultado ⚡</div>
     <div class="fg" style="border:1px solid rgba(249,115,22,.2);border-radius:8px;padding:10px;background:var(--nha2)">
       <label style="color:var(--nh)">ADJU — sim copia para Finalizados automaticamente</label>
@@ -10106,7 +10238,13 @@ function closeWpp(){document.getElementById("mo-whatsapp").style.display="none"}
   var cores={green:"#22c55e",red:"#ef4444",yellow:"#eab308",orange:"#f97316",blue:"#3b82f6",dark:"#1e1e1e"};
   if(cores[cor]) el.style.borderLeftColor=cores[cor];
 }
-async function _processQueue(){if(!_saveRunning&&_saveQueue.length){_saveRunning=!0;var e=_saveQueue.shift(),a=e.k,t=e.ci,o=e.rowId,i=e.row,_fid=e.fbId;try{await fbSave(FB_COLS[a],parseInt(o),i,_fid),await syncEntreAbas(a,t,i),updateKcard(a,parseInt(o),i),"andamento"===a&&16===t&&"sim"===String(i[16]||"").toLowerCase().trim()&&(FIL.andamento=FIL.andamento.filter(function(e){return parseInt(e[0])!==parseInt(o)}),ALL.andamento=ALL.andamento.map(function(e){return parseInt(e[0])===parseInt(o)?i:e}),"andamento"===CUR&&renderTbl("andamento")),"resumo"===CUR&&buildResumo()}catch(e){toast("Erro ao salvar: "+e.message,"err")}_saveRunning=!1,_saveQueue.length?_processQueue():setSavingDot(!1)}else _saveQueue.length||setSavingDot(!1)}function renderPag(e,a){var t=Math.ceil(a/20);if(t<=1)document.getElementById("pag-"+e).innerHTML="";else{var o="",i=PG[e];i>1&&(o+='<div class="pb" onclick="goPg(\''+e+"',"+(i-1)+')">&#8249;</div>');for(var n=Math.max(1,i-2);n<=Math.min(t,i+2);n++)o+='<div class="pb'+(n===i?" on":"")+'" onclick="goPg(\''+e+"',"+n+')">'+n+"</div>";i<t&&(o+='<div class="pb" onclick="goPg(\''+e+"',"+(i+1)+')">&#8250;</div>'),document.getElementById("pag-"+e).innerHTML=o}}function goPg(e,a){PG[e]=a,renderTbl(e);var t=document.getElementById("tbl-"+e);t&&t.scrollIntoView({behavior:"smooth",block:"start"})}function openM(e){if(IS_READONLY)return;if(EROW[e]=null,clearF(e),"atestados"===e&&(atDocsClear(),atDocAdd("ART","")),"financeiro"===e){["f-data","f-emp","f-cat","f-desc","f-forn","f-valor","f-status","f-conta","f-obs"].forEach(function(e){var a=document.getElementById(e);a&&("SELECT"===a.tagName?a.selectedIndex=0:a.value="")});var a=document.getElementById("f-data");if(a){var t=new Date;a.value=t.toISOString().split("T")[0]}document.getElementById("mht-financeiro").textContent="Novo Lançamento Financeiro",populateFinEmpSelect()}var o={editais:"Novo Edital Capturado",andamento:"Nova Licitação em Andamento",ganhas:"Registrar Licitação Ganha",atestados:"Novo Atestado",valores:"Novo Valor Praticado"};"valores"===e&&populateValoresEmpSelect();o[e]&&(document.getElementById("mht-"+e).textContent=o[e]),"financeiro"===e&&(populateFinEmpSelect(),setv("f-data",isoDate(finGetData(t))),setv("f-emp",String(t[8]||"").trim()),setv("f-cat",String(t[1]||"").trim()),setv("f-desc",String(t[2]||"").trim()),setv("f-forn",String(t[3]||"").trim()),setv("f-valor",fmtValBR(t[4]||"")),setv("f-status",String(t[5]||"").trim()),setv("f-conta",String(t[6]||"").trim()),setv("f-obs",String(t[7]||"").trim())),_modalHook(e),document.getElementById("mo-"+e).classList.add("open"),setTimeout(lfRenderAll,0)}function closeM(e){var a=document.getElementById("mo-"+e);a&&(a.classList.contains("modal-overlay")?(a.style.display="none",a.classList.remove("open")):a.classList.remove("open"),void 0!==EROW&&EROW&&(EROW[e]=null))}function clearF(e){var a={editais:"e-",andamento:"a-",ganhas:"g-",atestados:"at-"}[e];document.querySelectorAll('[id^="'+a+'"]').forEach(function(e){"SELECT"===e.tagName?e.selectedIndex=0:e.value=""})}function sv(e){var a=document.getElementById(e);return a?a.value:""}function setv(e,a){var t=document.getElementById(e);t&&("date"===t.type&&a&&-1!==a.indexOf("/")?t.value=isoDate(String(a).split(" ")[0]):t.value=a||"")}function doEdit(e,a){var t=FIL[e][a];EROW[e]=a,document.getElementById("mht-"+e).textContent="Editar Registro","editais"===e?(setv("e-data",isoDate(String(t[1]||""))),setv("e-empresa",t[2]),setv("e-licit",t[3]),setv("e-objeto",t[4]),setv("e-local",t[5]),setv("e-mun",t[6]),setv("e-valor",fmtValBR(t[7])),setv("e-prior",t[8]),popularRespEdital(t[2],t[9]),setv("e-part",t[10]),setv("e-viab",t[11]),setv("e-just",t[12]),setv("e-link",t[13]),setv("e-pasta",t[14]),popularPortalEdital(t[15])):"andamento"===e?(setv("a-data",isoDate(String(t[1]||""))),setv("a-emp",t[2]),setv("a-licit",t[3]),setv("a-obj",t[4]),setv("a-local",t[5]),setv("a-mun",t[6]),setv("a-vest",fmtValBR(t[7])),setv("a-vfin",fmtValBR(t[8])),setv("a-portal",t[9]),setv("a-disp",isoDate(String(t[10]||""))),setv("a-class",t[11]),setv("a-status",t[12]),setv("a-reab",isoDate(String(t[13]||""))),setv("a-rec",t[14]),setv("a-resumo",t[15]),setv("a-adju",t[16]),setv("a-conc",t[17]),setv("a-vconc",fmtValBR(t[18])),setv("a-link",t[19])):"ganhas"===e?(setv("g-data",t[1]),setv("g-emp",t[2]),setv("g-licit",t[3]),setv("g-obj",t[4]),setv("g-local",t[5]),setv("g-mun",t[6]),setv("g-valor",fmtValBR(t[7])),setv("g-cont",t[8]),setv("g-stcont",t[9]),setv("g-vig",t[10]),setv("g-dtcont",isoDate(String(t[11]||""))),setv("g-venc",isoDate(String(t[12]||""))),setv("g-recomp",t[13]),setv("g-trecomp",t[14]),setv("g-strecomp",t[15]),setv("g-novadata",isoDate(String(t[16]||""))),setv("g-vigrecomp",t[17]),setv("g-vencrecomp",isoDate(String(t[18]||""))),setv("g-vfin",fmtValBR(t[19])),setv("g-recomp2",t[20]),setv("g-trecomp2",t[21]),setv("g-strecomp2",t[22]),setv("g-novadata2",isoDate(String(t[23]||""))),setv("g-vigrecomp2",t[24]),setv("g-vencrecomp2",isoDate(String(t[25]||""))),setv("g-vfin2",fmtValBR(t[26])),setv("g-recomp3",t[27]),setv("g-trecomp3",t[28]),setv("g-strecomp3",t[29]),setv("g-novadata3",isoDate(String(t[30]||""))),setv("g-vigrecomp3",t[31]),setv("g-vencrecomp3",isoDate(String(t[32]||""))),setv("g-vfin3",fmtValBR(t[33])),setv("g-recomp4",t[34]),setv("g-trecomp4",t[35]),setv("g-strecomp4",t[36]),setv("g-novadata4",isoDate(String(t[37]||""))),setv("g-vigrecomp4",t[38]),setv("g-vencrecomp4",isoDate(String(t[39]||""))),setv("g-vfin4",fmtValBR(t[40])),setv("g-obs",t[41]),setv("g-link",t[42]),setv("g-situacao",t[43]),setv("g-srp",t[44]),setv("g-atatotal",fmtValBR(t[45])),setv("g-atacons",fmtValBR(t[46])),setv("g-atacarona",fmtValBR(t[47])),setv("g-atavig",isoDate(t[48])),setv("g-proxacao",t[49]),calcAta()):"valores"===e?(populateValoresEmpSelect(),setv("v-data",isoDate(String(t[1]||""))),setv("v-emp",t[2]),setv("v-item",t[3]),setv("v-qtd",t[4]),setv("v-vunit",fmtValBR(t[5])),setv("v-vtotal",fmtValBR(t[6])),setv("v-conc",t[7]),setv("v-vconc",fmtValBR(t[8])),setv("v-origem",t[9]||"Manual"),setv("v-mun",t[10])):"atestados"===e&&(setv("at-data",isoDate(String(t[1]||""))),setv("at-emp",t[2]),setv("at-licit",t[3]),setv("at-obj",t[4]),setv("at-local",t[5]),setv("at-mun",t[6]),setv("at-cont",t[7]),setv("at-dtcont",isoDate(String(t[8]||""))),setv("at-vig",isoDate(String(t[9]||""))),setv("at-req",t[10]),setv("at-receb",t[11]),setv("at-dtreceb",isoDate(String(t[12]||""))),setv("at-emit",t[13]),setv("at-cat",t[14]),setv("at-catst",t[15]),setv("at-art",t[16]),setv("at-artst",t[17]),setv("at-status",t[18]),setv("at-obs",t[19]),setv("at-link",t[20]),atDocsLoad(t)),document.getElementById("mo-"+e).classList.add("open"),setTimeout(lfRenderAll,0)}async function doSave(e){var a=[];if(({editais:[{id:"e-data",lbl:"Data"},{id:"e-empresa",lbl:"Empresa"},{id:"e-licit",lbl:"Licitação"}],andamento:[{id:"a-data",lbl:"Data"},{id:"a-emp",lbl:"Empresa"},{id:"a-licit",lbl:"Licitação"}],ganhas:[{id:"g-data",lbl:"Data"},{id:"g-emp",lbl:"Empresa"},{id:"g-licit",lbl:"Licitação"}],atestados:[{id:"at-data",lbl:"Data"},{id:"at-emp",lbl:"Empresa"},{id:"at-licit",lbl:"Licitação"}],financeiro:[{id:"f-data",lbl:"Data"},{id:"f-cat",lbl:"Categoria"},{id:"f-desc",lbl:"Descrição"}],valores:[{id:"v-data",lbl:"Data"},{id:"v-emp",lbl:"Empresa"},{id:"v-item",lbl:"Item"}]}[e]||[]).forEach(function(e){var t=document.getElementById(e.id);(t?t.value.trim():"")?t&&(t.style.borderColor="",t.style.borderWidth=""):(a.push(e.lbl),t&&(t.style.borderColor="var(--r1)",t.style.borderWidth="2px"))}),a.length)toast("Campos obrigatórios: "+a.join(", "),"err");else{var t=document.getElementById("sb-"+e);t.disabled=!0,t.textContent="Salvando...";var o=[],i=null!==EROW[e],n=i?FIL[e][EROW[e]]:null;if("editais"===e){var r=n?n[0]:"",s=sv("e-data");s&&-1!==s.indexOf("-")&&(s=formatDateBR(s)),!s&&n&&(s=n[1]||"");var d=sv("e-valor");o=[r,s,sv("e-empresa"),sv("e-licit"),sv("e-objeto"),sv("e-local"),sv("e-mun"),d,sv("e-prior"),sv("e-resp"),sv("e-part"),sv("e-viab"),sv("e-just"),sv("e-link"),sv("e-pasta"),sv("e-portal")]}else if("andamento"===e){var l=n?n[0]:"",c=sv("a-data");function A(e){var a=sv(e);return a&&-1!==a.indexOf("-")?formatDateBR(a):a}c&&-1!==c.indexOf("-")&&(c=formatDateBR(c)),!c&&n&&(c=n[1]||"");var p=sv("a-vest"),u=sv("a-vfin"),m=sv("a-vconc");o=[l,c,sv("a-emp"),sv("a-licit"),sv("a-obj"),sv("a-local"),sv("a-mun"),fmtValBR(p)||p,fmtValBR(u)||u,sv("a-portal"),A("a-disp"),sv("a-class"),sv("a-status"),A("a-reab"),sv("a-rec"),sv("a-resumo"),sv("a-adju"),sv("a-conc"),fmtValBR(m)||m,sv("a-link")]}else if("ganhas"===e){var v=n?n[0]:"",f=sv("g-data");function g(e){var a=sv(e);return a&&-1!==a.indexOf("-")?formatDateBR(a):a}f&&-1!==f.indexOf("-")&&(f=formatDateBR(f)),!f&&n&&(f=n[1]||""),o=[v,f,sv("g-emp"),sv("g-licit"),sv("g-obj"),sv("g-local"),sv("g-mun"),parseMoeda(sv("g-valor"))?fmtValBR(sv("g-valor")):sv("g-valor"),sv("g-cont"),sv("g-stcont"),sv("g-vig"),g("g-dtcont"),g("g-venc"),sv("g-recomp"),sv("g-trecomp"),sv("g-strecomp"),g("g-novadata"),sv("g-vigrecomp"),g("g-vencrecomp"),sv("g-vfin"),sv("g-recomp2"),sv("g-trecomp2"),sv("g-strecomp2"),g("g-novadata2"),sv("g-vigrecomp2"),g("g-vencrecomp2"),sv("g-vfin2"),sv("g-recomp3"),sv("g-trecomp3"),sv("g-strecomp3"),g("g-novadata3"),sv("g-vigrecomp3"),g("g-vencrecomp3"),sv("g-vfin3"),sv("g-recomp4"),sv("g-trecomp4"),sv("g-strecomp4"),g("g-novadata4"),sv("g-vigrecomp4"),g("g-vencrecomp4"),sv("g-vfin4"),sv("g-obs"),sv("g-link"),sv("g-situacao"),sv("g-srp"),sv("g-atatotal"),sv("g-atacons"),sv("g-atacarona"),g("g-atavig"),sv("g-proxacao")]}else if("atestados"===e){var b=n?n[0]:"",h=sv("at-data"),_docs=atDocsRead();function y(e){var a=sv(e);return a&&-1!==a.indexOf("-")?formatDateBR(a):a}h&&-1!==h.indexOf("-")&&(h=formatDateBR(h)),!h&&n&&(h=n[1]||""),o=[b,h,sv("at-emp"),sv("at-licit"),sv("at-obj"),sv("at-local"),sv("at-mun"),sv("at-cont"),y("at-dtcont"),y("at-vig"),sv("at-req"),sv("at-receb"),y("at-dtreceb"),sv("at-emit"),_docFirst(_docs,"CAT"),(n&&n[15])||"",_docFirst(_docs,"ART"),(n&&n[17])||"",sv("at-status"),sv("at-obs"),sv("at-link"),(n&&n[21])||"",JSON.stringify(_docs)]}else if("financeiro"===e){var x=sv("f-data");x&&-1!==x.indexOf("-")&&(x=formatDateBR(x)),o=[x,sv("f-cat"),sv("f-desc"),sv("f-forn"),sv("f-valor"),sv("f-status"),sv("f-conta"),sv("f-obs"),sv("f-emp")]}else if("valores"===e){var ID=n?n[0]:"",vd=sv("v-data");vd&&-1!==vd.indexOf("-")&&(vd=formatDateBR(vd));!vd&&n&&(vd=n[1]||"");var vu=sv("v-vunit"),vt=sv("v-vtotal"),vc=sv("v-vconc");o=[ID,vd,sv("v-emp"),sv("v-item"),sv("v-qtd"),fmtValBR(vu)||vu,fmtValBR(vt)||vt,sv("v-conc"),fmtValBR(vc)||vc,sv("v-origem")||"Manual",sv("v-mun")]}var E=void 0!==i?i:null!==EROW[e],S=FB_COLS[e];try{var C;if(E?C="financeiro"===e?n._docId||parseInt(n[0])||1:parseInt(n?n[0]:FIL[e][EROW[e]]?FIL[e][EROW[e]][0]:0):(C=await fbGetNextId(S),"financeiro"!==e&&(o[0]=C)),await fbSave(S,C,o,(E&&n&&n._fbId)?n._fbId:null),_vbPend=("editais"===e&&!E)?C:null,"editais"===e)if("SIM"===String(o[10]||"").toUpperCase().trim()&&"NÃO"!==String(o[11]||"").toUpperCase().trim()&&"NEGATIVO"!==String(o[11]||"").toUpperCase().trim()&&"NAO"!==String(o[11]||"").toUpperCase().trim()){var T=String(o[3]||"").trim().toLowerCase();ALL.andamento.some(function(e){return String(e[3]||"").trim().toLowerCase()===T})?await syncEntreAbas("editais",2,o):await criarAndamentoDoEdital(o);}else if(("POSITIVO"===String(o[11]||"").toUpperCase().trim()||"SIM"===String(o[11]||"").toUpperCase().trim())&&"SIM"===String(o[10]||"").toUpperCase().trim()){var _T2=String(o[3]||"").trim().toLowerCase();ALL.andamento.some(function(e){return String(e[3]||"").trim().toLowerCase()===_T2})||await criarAndamentoDoEdital(o);}else E&&await syncEntreAbas("editais",10,o);if("andamento"===e){var V=String(o[16]||"").toLowerCase().trim(),P=String(o[11]||"").trim(),k="sim"===V&&is1Posicao(P);if("sim"===V&&await copiarParaFinalizados(o),k)await criarLicitacaoGanha(o);else{var I=String(o[3]||"").trim().toLowerCase(),w=String(o[2]||"").trim(),z=ALL.ganhas.findIndex(function(e){return String(e[3]||"").trim().toLowerCase()===I&&String(e[2]||"").trim()===w});if(-1!==z){var L=ALL.ganhas[z]._fbId||parseInt(ALL.ganhas[z][0]);await fbDelete("ganhas",L),ALL.ganhas.splice(z,1),applyFilters("ganhas");var M=document.getElementById("b-ganhas");M&&(M.textContent=ALL.ganhas.length),toast("Removido de Licitações Ganhas","info")}}}t.disabled=!1,t.textContent="Salvar",toast(E?"Atualizado!":"Salvo com sucesso!","ok"),closeM(e),await loadPage(e),"editais"===e&&await loadPage("andamento"),_vbDisparar(),"financeiro"===e&&(buildFinResumo(),filtrarFinanceiroMes()),"resumo"===CUR&&buildResumo()}catch(q){t.disabled=!1,t.textContent="Salvar",toast("Erro: "+q.message,"err"),_vbDisparar()}}}async function doDel(e,a){var t=FIL[e][a],o="financeiro"===e?t[2]:t[3];if(confirm('Excluir?\n"'+o+'"\n\nEsta ação não pode ser desfeita.')){var i=t._fbId?String(t._fbId):("financeiro"===e&&t._docId?String(t._docId):String(t[0]||"").trim());if(i)try{if(await fbDelete(FB_COLS[e],i),"editais"===e)for(var n=String(t[3]||"").trim().toLowerCase(),r=String(t[2]||"").trim(),s=["andamento","finalizados","ganhas"],d=0;d<s.length;d++){var l=s[d],c=ALL[l].findIndex(function(e){return String(e[3]||"").trim().toLowerCase()===n&&String(e[2]||"").trim()===r});if(-1!==c){var A=ALL[l][c]._fbId||parseInt(ALL[l][c][0]);A&&await fbDelete(FB_COLS[l],A),ALL[l].splice(c,1),FIL[l]=ALL[l].slice();var p=document.getElementById("b-"+l);p&&(p.textContent=ALL[l].length)}}toast("Excluído!","ok"),await loadPage(e),"resumo"===CUR&&buildResumo()}catch(e){toast("Erro ao excluir: "+e.message,"err")}else try{var u=await db.collection(FB_COLS[e]).where("_arr","array-contains",t[2]||"").limit(10).get(),m=!1,_cands=[];u.forEach(function(e){var a=e.data()._arr||[];String(a[2]||"")===String(t[2]||"")&&String(a[3]||"")===String(t[3]||"")&&_cands.push(e)}),_cands.length>1?(alert("Foram encontrados "+_cands.length+" registros idênticos (mesma empresa e licitação) e o card não possui ID.\n\nNenhum foi excluído, para evitar apagar o errado.\n\nUse o console: nhDiagnosticar(\""+e+"\")"),m=!1):_cands.length===1&&(await _cands[0].ref.delete(),m=!0),m?(toast("Excluído!","ok"),await loadPage(e)):(ALL[e]=ALL[e].filter(function(e,t){return t!==a}),FIL[e]=FIL[e].filter(function(e,t){return t!==a}),renderTbl(e),toast("Removido localmente","ok"))}catch(e){toast("Erro: "+e.message,"err")}}}function toast(e,a){a||(a="info");var t=document.getElementById("toasts"),o=document.createElement("div");o.className="toast "+("ok"===a?"tok":"err"===a?"terr":"tinfo");var i="ok"===a?'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>':"err"===a?'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>':'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>';o.innerHTML='<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">'+i+"</svg>"+e,t.appendChild(o),setTimeout(function(){o.remove()},4e3)}function noConf(){return'<div class="empty"><svg width="44" height="44" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg><p>Cole a URL do Apps Script na barra lateral para conectar com a planilha</p></div>'}function emptyEl(e){return'<div class="empty"><svg width="44" height="44" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg><p>'+e+"</p></div>"}var isDark="light"!==localStorage.getItem("nh_theme");function setTheme(e){isDark=e,document.documentElement.setAttribute("data-theme",e?"dark":"light"),localStorage.setItem("nh_theme",e?"dark":"light")}async function migrarFinanceiro(){var e=await db.collection("financeiro").get(),a=db.batch(),t=0;e.forEach(function(e){var o=e.data(),i=o._arr||[],n=String(i[0]||"");if(i.length>0&&-1===n.indexOf("/")){var r=o._createdAt||Date.now(),s=new Date(r),d=[("0"+s.getDate()).slice(-2)+"/"+("0"+(s.getMonth()+1)).slice(-2)+"/"+s.getFullYear(),i[1],i[2],i[3],i[4],i[5],i[6],i[7]];a.update(e.ref,{_arr:d,_updatedAt:Date.now()}),t++}}),t>0&&(await a.commit(),toast("✅ "+t+" registros financeiros atualizados com data","ok"),await _load("financeiro"))}async function importarDadosMarco(){var e="financeiro",a=await db.collection(e).get(),t=!1;if(a.forEach(function(e){var a=e.data()._arr||[];-1!==String(a[0]||"").indexOf("/03/2026")&&(t=!0)}),!t){var o=await db.collection(e).orderBy("_id","desc").limit(1).get(),i=o.empty?1:(o.docs[0].data()._id||0)+1,n=db.batch();[["05/03/2026","Portais","Portal Compras Públicas","Compras Públicas","R$ 165,00","Pago","Banco Inter","Pago acesso mensal pela empresa VISE."],["13/03/2026","Portais","BNC","BNC","R$ 121,77","Pago","Banco Inter","Pagamento em atraso do BNC pela empresa SAUTEC."],["16/03/2026","Informática","Aquisição de adaptador wireless","Kalunga SA","R$ 136,85","Pago","Banco Inter","Adaptador wireless para o computador de Charlayne."],["18/03/2026","Portais","Pagamento mensal portal Compras Públicas - SAUTEC","Portal Compras Públicas","R$ 165,00","Pago","Banco Inter","Pago pelo cartão de crédito, sem saldo em conta."],["24/03/2026","Portais","Pagamento portal BNC","BNC","R$ 118,00","Pago","Banco Inter","Boleto para participar do processo de licitação pela empresa VISE."],["10/03/2026","Telefonia","Plano Business","TIM","R$ 30,00","Pago","Banco Inter","Recarga plano pré-pago TIM — telefone do escritório."]].forEach(function(a){var t=db.collection(e).doc(String(i));n.set(t,{_id:i,_arr:a,_createdAt:Date.now(),_updatedAt:Date.now()}),i++}),await n.commit(),ALL.financeiro&&await _load("financeiro"),toast("✅ 6 lançamentos de março importados!","ok")}}async function restaurarSAUTEC(){
+async function _processQueue(){if(!_saveRunning&&_saveQueue.length){_saveRunning=!0;var e=_saveQueue.shift(),a=e.k,t=e.ci,o=e.rowId,i=e.row,_fid=e.fbId;try{await fbSave(FB_COLS[a],parseInt(o),i,_fid),await syncEntreAbas(a,t,i),updateKcard(a,parseInt(o),i),"andamento"===a&&16===t&&"sim"===String(i[16]||"").toLowerCase().trim()&&(FIL.andamento=FIL.andamento.filter(function(e){return parseInt(e[0])!==parseInt(o)}),ALL.andamento=ALL.andamento.map(function(e){return parseInt(e[0])===parseInt(o)?i:e}),"andamento"===CUR&&renderTbl("andamento")),"resumo"===CUR&&buildResumo()}catch(e){toast("Erro ao salvar: "+e.message,"err")}_saveRunning=!1,_saveQueue.length?_processQueue():setSavingDot(!1)}else _saveQueue.length||setSavingDot(!1)}function renderPag(e,a){var t=Math.ceil(a/20);if(t<=1)document.getElementById("pag-"+e).innerHTML="";else{var o="",i=PG[e];i>1&&(o+='<div class="pb" onclick="goPg(\''+e+"',"+(i-1)+')">&#8249;</div>');for(var n=Math.max(1,i-2);n<=Math.min(t,i+2);n++)o+='<div class="pb'+(n===i?" on":"")+'" onclick="goPg(\''+e+"',"+n+')">'+n+"</div>";i<t&&(o+='<div class="pb" onclick="goPg(\''+e+"',"+(i+1)+')">&#8250;</div>'),document.getElementById("pag-"+e).innerHTML=o}}function goPg(e,a){PG[e]=a,renderTbl(e);var t=document.getElementById("tbl-"+e);t&&t.scrollIntoView({behavior:"smooth",block:"start"})}function openM(e){if(IS_READONLY)return;if(EROW[e]=null,clearF(e),"atestados"===e&&(atDocsClear(),atDocAdd("ART","")),"financeiro"===e){["f-data","f-emp","f-cat","f-desc","f-forn","f-valor","f-status","f-conta","f-obs"].forEach(function(e){var a=document.getElementById(e);a&&("SELECT"===a.tagName?a.selectedIndex=0:a.value="")});var a=document.getElementById("f-data");if(a){var t=new Date;a.value=t.toISOString().split("T")[0]}document.getElementById("mht-financeiro").textContent="Novo Lançamento Financeiro",populateFinEmpSelect()}var o={editais:"Novo Edital Capturado",andamento:"Nova Licitação em Andamento",ganhas:"Registrar Licitação Ganha",atestados:"Novo Atestado",valores:"Novo Valor Praticado"};"valores"===e&&populateValoresEmpSelect();o[e]&&(document.getElementById("mht-"+e).textContent=o[e]),"financeiro"===e&&(populateFinEmpSelect(),setv("f-data",isoDate(finGetData(t))),setv("f-emp",String(t[8]||"").trim()),setv("f-cat",String(t[1]||"").trim()),setv("f-desc",String(t[2]||"").trim()),setv("f-forn",String(t[3]||"").trim()),setv("f-valor",fmtValBR(t[4]||"")),setv("f-status",String(t[5]||"").trim()),setv("f-conta",String(t[6]||"").trim()),setv("f-obs",String(t[7]||"").trim())),_modalHook(e),document.getElementById("mo-"+e).classList.add("open"),setTimeout(lfRenderAll,0)}function closeM(e){var a=document.getElementById("mo-"+e);a&&(a.classList.contains("modal-overlay")?(a.style.display="none",a.classList.remove("open")):a.classList.remove("open"),void 0!==EROW&&EROW&&(EROW[e]=null))}function clearF(e){var a={editais:"e-",andamento:"a-",ganhas:"g-",atestados:"at-"}[e];document.querySelectorAll('[id^="'+a+'"]').forEach(function(e){"SELECT"===e.tagName?e.selectedIndex=0:e.value=""})}function sv(e){var a=document.getElementById(e);return a?a.value:""}function setv(e,a){var t=document.getElementById(e);t&&("date"===t.type&&a&&-1!==a.indexOf("/")?t.value=isoDate(String(a).split(" ")[0]):t.value=a||"")}function doEdit(e,a){var t=FIL[e][a];EROW[e]=a,document.getElementById("mht-"+e).textContent="Editar Registro","editais"===e?(setv("e-data",isoDate(String(t[1]||""))),setv("e-empresa",t[2]),setv("e-licit",t[3]),setv("e-objeto",t[4]),setv("e-local",t[5]),setv("e-mun",t[6]),setv("e-valor",fmtValBR(t[7])),setv("e-prior",t[8]),popularRespEdital(t[2],t[9]),setv("e-part",t[10]),setv("e-viab",t[11]),setv("e-just",t[12]),setv("e-link",t[13]),setv("e-pasta",t[14]),popularPortalEdital(t[15])):"andamento"===e?(setv("a-data",isoDate(String(t[1]||""))),setv("a-emp",t[2]),setv("a-licit",t[3]),setv("a-obj",t[4]),setv("a-local",t[5]),setv("a-mun",t[6]),setv("a-vest",fmtValBR(t[7])),setv("a-vfin",fmtValBR(t[8])),setv("a-portal",t[9]),setv("a-disp",isoDate(String(t[10]||""))),setv("a-class",t[11]),setv("a-status",t[12]),setv("a-reab",isoDate(String(t[13]||""))),setv("a-rec",t[14]),setv("a-resumo",t[15]),setv("a-adju",t[16]),setv("a-conc",t[17]),setv("a-vconc",fmtValBR(t[18])),setv("a-link",t[19]),setv("a-aviso",t[21]),setv("a-avisodata",isoDate(String(t[22]||""))),setv("a-novadata",isoDate(String(t[23]||"")))):"ganhas"===e?(setv("g-data",t[1]),setv("g-emp",t[2]),setv("g-licit",t[3]),setv("g-obj",t[4]),setv("g-local",t[5]),setv("g-mun",t[6]),setv("g-valor",fmtValBR(t[7])),setv("g-cont",t[8]),setv("g-stcont",t[9]),setv("g-vig",t[10]),setv("g-dtcont",isoDate(String(t[11]||""))),setv("g-venc",isoDate(String(t[12]||""))),setv("g-recomp",t[13]),setv("g-trecomp",t[14]),setv("g-strecomp",t[15]),setv("g-novadata",isoDate(String(t[16]||""))),setv("g-vigrecomp",t[17]),setv("g-vencrecomp",isoDate(String(t[18]||""))),setv("g-vfin",fmtValBR(t[19])),setv("g-recomp2",t[20]),setv("g-trecomp2",t[21]),setv("g-strecomp2",t[22]),setv("g-novadata2",isoDate(String(t[23]||""))),setv("g-vigrecomp2",t[24]),setv("g-vencrecomp2",isoDate(String(t[25]||""))),setv("g-vfin2",fmtValBR(t[26])),setv("g-recomp3",t[27]),setv("g-trecomp3",t[28]),setv("g-strecomp3",t[29]),setv("g-novadata3",isoDate(String(t[30]||""))),setv("g-vigrecomp3",t[31]),setv("g-vencrecomp3",isoDate(String(t[32]||""))),setv("g-vfin3",fmtValBR(t[33])),setv("g-recomp4",t[34]),setv("g-trecomp4",t[35]),setv("g-strecomp4",t[36]),setv("g-novadata4",isoDate(String(t[37]||""))),setv("g-vigrecomp4",t[38]),setv("g-vencrecomp4",isoDate(String(t[39]||""))),setv("g-vfin4",fmtValBR(t[40])),setv("g-obs",t[41]),setv("g-link",t[42]),setv("g-situacao",t[43]),setv("g-srp",t[44]),setv("g-atatotal",fmtValBR(t[45])),setv("g-atacons",fmtValBR(t[46])),setv("g-atacarona",fmtValBR(t[47])),setv("g-atavig",isoDate(t[48])),setv("g-proxacao",t[49]),calcAta()):"valores"===e?(populateValoresEmpSelect(),setv("v-data",isoDate(String(t[1]||""))),setv("v-emp",t[2]),setv("v-item",t[3]),setv("v-qtd",t[4]),setv("v-vunit",fmtValBR(t[5])),setv("v-vtotal",fmtValBR(t[6])),setv("v-conc",t[7]),setv("v-vconc",fmtValBR(t[8])),setv("v-origem",t[9]||"Manual"),setv("v-mun",t[10])):"atestados"===e&&(setv("at-data",isoDate(String(t[1]||""))),setv("at-emp",t[2]),setv("at-licit",t[3]),setv("at-obj",t[4]),setv("at-local",t[5]),setv("at-mun",t[6]),setv("at-cont",t[7]),setv("at-dtcont",isoDate(String(t[8]||""))),setv("at-vig",isoDate(String(t[9]||""))),setv("at-req",t[10]),setv("at-receb",t[11]),setv("at-dtreceb",isoDate(String(t[12]||""))),setv("at-emit",t[13]),setv("at-cat",t[14]),setv("at-catst",t[15]),setv("at-art",t[16]),setv("at-artst",t[17]),setv("at-status",t[18]),setv("at-obs",t[19]),setv("at-link",t[20]),atDocsLoad(t)),document.getElementById("mo-"+e).classList.add("open"),setTimeout(lfRenderAll,0)}async function doSave(e){var a=[];if(({editais:[{id:"e-data",lbl:"Data"},{id:"e-empresa",lbl:"Empresa"},{id:"e-licit",lbl:"Licitação"}],andamento:[{id:"a-data",lbl:"Data"},{id:"a-emp",lbl:"Empresa"},{id:"a-licit",lbl:"Licitação"}],ganhas:[{id:"g-data",lbl:"Data"},{id:"g-emp",lbl:"Empresa"},{id:"g-licit",lbl:"Licitação"}],atestados:[{id:"at-data",lbl:"Data"},{id:"at-emp",lbl:"Empresa"},{id:"at-licit",lbl:"Licitação"}],financeiro:[{id:"f-data",lbl:"Data"},{id:"f-cat",lbl:"Categoria"},{id:"f-desc",lbl:"Descrição"}],valores:[{id:"v-data",lbl:"Data"},{id:"v-emp",lbl:"Empresa"},{id:"v-item",lbl:"Item"}]}[e]||[]).forEach(function(e){var t=document.getElementById(e.id);(t?t.value.trim():"")?t&&(t.style.borderColor="",t.style.borderWidth=""):(a.push(e.lbl),t&&(t.style.borderColor="var(--r1)",t.style.borderWidth="2px"))}),a.length)toast("Campos obrigatórios: "+a.join(", "),"err");else{var t=document.getElementById("sb-"+e);t.disabled=!0,t.textContent="Salvando...";var o=[],i=null!==EROW[e],n=i?FIL[e][EROW[e]]:null;if("editais"===e){var r=n?n[0]:"",s=sv("e-data");s&&-1!==s.indexOf("-")&&(s=formatDateBR(s)),!s&&n&&(s=n[1]||"");var d=sv("e-valor");o=[r,s,sv("e-empresa"),sv("e-licit"),sv("e-objeto"),sv("e-local"),sv("e-mun"),d,sv("e-prior"),sv("e-resp"),sv("e-part"),sv("e-viab"),sv("e-just"),sv("e-link"),sv("e-pasta"),sv("e-portal")]}else if("andamento"===e){var l=n?n[0]:"",c=sv("a-data");function A(e){var a=sv(e);return a&&-1!==a.indexOf("-")?formatDateBR(a):a}c&&-1!==c.indexOf("-")&&(c=formatDateBR(c)),!c&&n&&(c=n[1]||"");var p=sv("a-vest"),u=sv("a-vfin"),m=sv("a-vconc");o=[l,c,sv("a-emp"),sv("a-licit"),sv("a-obj"),sv("a-local"),sv("a-mun"),fmtValBR(p)||p,fmtValBR(u)||u,sv("a-portal"),A("a-disp"),sv("a-class"),sv("a-status"),A("a-reab"),sv("a-rec"),sv("a-resumo"),sv("a-adju"),sv("a-conc"),fmtValBR(m)||m,sv("a-link"),(n&&n[20])||"",sv("a-aviso"),A("a-avisodata"),A("a-novadata")]}else if("ganhas"===e){var v=n?n[0]:"",f=sv("g-data");function g(e){var a=sv(e);return a&&-1!==a.indexOf("-")?formatDateBR(a):a}f&&-1!==f.indexOf("-")&&(f=formatDateBR(f)),!f&&n&&(f=n[1]||""),o=[v,f,sv("g-emp"),sv("g-licit"),sv("g-obj"),sv("g-local"),sv("g-mun"),parseMoeda(sv("g-valor"))?fmtValBR(sv("g-valor")):sv("g-valor"),sv("g-cont"),sv("g-stcont"),sv("g-vig"),g("g-dtcont"),g("g-venc"),sv("g-recomp"),sv("g-trecomp"),sv("g-strecomp"),g("g-novadata"),sv("g-vigrecomp"),g("g-vencrecomp"),sv("g-vfin"),sv("g-recomp2"),sv("g-trecomp2"),sv("g-strecomp2"),g("g-novadata2"),sv("g-vigrecomp2"),g("g-vencrecomp2"),sv("g-vfin2"),sv("g-recomp3"),sv("g-trecomp3"),sv("g-strecomp3"),g("g-novadata3"),sv("g-vigrecomp3"),g("g-vencrecomp3"),sv("g-vfin3"),sv("g-recomp4"),sv("g-trecomp4"),sv("g-strecomp4"),g("g-novadata4"),sv("g-vigrecomp4"),g("g-vencrecomp4"),sv("g-vfin4"),sv("g-obs"),sv("g-link"),sv("g-situacao"),sv("g-srp"),sv("g-atatotal"),sv("g-atacons"),sv("g-atacarona"),g("g-atavig"),sv("g-proxacao")]}else if("atestados"===e){var b=n?n[0]:"",h=sv("at-data"),_docs=atDocsRead();function y(e){var a=sv(e);return a&&-1!==a.indexOf("-")?formatDateBR(a):a}h&&-1!==h.indexOf("-")&&(h=formatDateBR(h)),!h&&n&&(h=n[1]||""),o=[b,h,sv("at-emp"),sv("at-licit"),sv("at-obj"),sv("at-local"),sv("at-mun"),sv("at-cont"),y("at-dtcont"),y("at-vig"),sv("at-req"),sv("at-receb"),y("at-dtreceb"),sv("at-emit"),_docFirst(_docs,"CAT"),(n&&n[15])||"",_docFirst(_docs,"ART"),(n&&n[17])||"",sv("at-status"),sv("at-obs"),sv("at-link"),(n&&n[21])||"",JSON.stringify(_docs)]}else if("financeiro"===e){var x=sv("f-data");x&&-1!==x.indexOf("-")&&(x=formatDateBR(x)),o=[x,sv("f-cat"),sv("f-desc"),sv("f-forn"),sv("f-valor"),sv("f-status"),sv("f-conta"),sv("f-obs"),sv("f-emp")]}else if("valores"===e){var ID=n?n[0]:"",vd=sv("v-data");vd&&-1!==vd.indexOf("-")&&(vd=formatDateBR(vd));!vd&&n&&(vd=n[1]||"");var vu=sv("v-vunit"),vt=sv("v-vtotal"),vc=sv("v-vconc");o=[ID,vd,sv("v-emp"),sv("v-item"),sv("v-qtd"),fmtValBR(vu)||vu,fmtValBR(vt)||vt,sv("v-conc"),fmtValBR(vc)||vc,sv("v-origem")||"Manual",sv("v-mun")]}var E=void 0!==i?i:null!==EROW[e],S=FB_COLS[e];try{var C;if(E?C="financeiro"===e?n._docId||parseInt(n[0])||1:parseInt(n?n[0]:FIL[e][EROW[e]]?FIL[e][EROW[e]][0]:0):(C=await fbGetNextId(S),"financeiro"!==e&&(o[0]=C)),await fbSave(S,C,o,(E&&n&&n._fbId)?n._fbId:null),_vbPend=("editais"===e&&!E)?C:null,"editais"===e)if("SIM"===String(o[10]||"").toUpperCase().trim()&&"NÃO"!==String(o[11]||"").toUpperCase().trim()&&"NEGATIVO"!==String(o[11]||"").toUpperCase().trim()&&"NAO"!==String(o[11]||"").toUpperCase().trim()){var T=String(o[3]||"").trim().toLowerCase();ALL.andamento.some(function(e){return String(e[3]||"").trim().toLowerCase()===T})?await syncEntreAbas("editais",2,o):await criarAndamentoDoEdital(o);}else if(("POSITIVO"===String(o[11]||"").toUpperCase().trim()||"SIM"===String(o[11]||"").toUpperCase().trim())&&"SIM"===String(o[10]||"").toUpperCase().trim()){var _T2=String(o[3]||"").trim().toLowerCase();ALL.andamento.some(function(e){return String(e[3]||"").trim().toLowerCase()===_T2})||await criarAndamentoDoEdital(o);}else E&&await syncEntreAbas("editais",10,o);if("andamento"===e){var V=String(o[16]||"").toLowerCase().trim(),P=String(o[11]||"").trim(),k="sim"===V&&is1Posicao(P);if("sim"===V&&await copiarParaFinalizados(o),k)await criarLicitacaoGanha(o);else{var I=String(o[3]||"").trim().toLowerCase(),w=String(o[2]||"").trim(),z=ALL.ganhas.findIndex(function(e){return String(e[3]||"").trim().toLowerCase()===I&&String(e[2]||"").trim()===w});if(-1!==z){var L=ALL.ganhas[z]._fbId||parseInt(ALL.ganhas[z][0]);await fbDelete("ganhas",L),ALL.ganhas.splice(z,1),applyFilters("ganhas");var M=document.getElementById("b-ganhas");M&&(M.textContent=ALL.ganhas.length),toast("Removido de Licitações Ganhas","info")}}}t.disabled=!1,t.textContent="Salvar",toast(E?"Atualizado!":"Salvo com sucesso!","ok"),closeM(e),await loadPage(e),"editais"===e&&await loadPage("andamento"),_vbDisparar(),"financeiro"===e&&(buildFinResumo(),filtrarFinanceiroMes()),"resumo"===CUR&&buildResumo()}catch(q){t.disabled=!1,t.textContent="Salvar",toast("Erro: "+q.message,"err"),_vbDisparar()}}}async function doDel(e,a){var t=FIL[e][a],o="financeiro"===e?t[2]:t[3];
+  /* ⚠️ 17/08/2026 — o confirm() sozinho saiu daqui.
+     Ele dizia "Esta ação não pode ser desfeita", o que deixou de ser
+     verdade quando a lixeira entrou — e, pior, não protegia nada:
+     qualquer colaborador apagava qualquer processo com um clique.
+     Agora passa pela senha de exclusão, que também faz a confirmação. */
+  if(await nhAutorizarExclusao(o)){var i=t._fbId?String(t._fbId):("financeiro"===e&&t._docId?String(t._docId):String(t[0]||"").trim());if(i)try{if(await fbDelete(FB_COLS[e],i),"editais"===e)for(var n=String(t[3]||"").trim().toLowerCase(),r=String(t[2]||"").trim(),s=["andamento","finalizados","ganhas"],d=0;d<s.length;d++){var l=s[d],c=ALL[l].findIndex(function(e){return String(e[3]||"").trim().toLowerCase()===n&&String(e[2]||"").trim()===r});if(-1!==c){var A=ALL[l][c]._fbId||parseInt(ALL[l][c][0]);A&&await fbDelete(FB_COLS[l],A),ALL[l].splice(c,1),FIL[l]=ALL[l].slice();var p=document.getElementById("b-"+l);p&&(p.textContent=ALL[l].length)}}toast("Excluído!","ok"),await loadPage(e),"resumo"===CUR&&buildResumo()}catch(e){toast("Erro ao excluir: "+e.message,"err")}else try{var u=await db.collection(FB_COLS[e]).where("_arr","array-contains",t[2]||"").limit(10).get(),m=!1,_cands=[];u.forEach(function(e){var a=e.data()._arr||[];String(a[2]||"")===String(t[2]||"")&&String(a[3]||"")===String(t[3]||"")&&_cands.push(e)}),_cands.length>1?(alert("Foram encontrados "+_cands.length+" registros idênticos (mesma empresa e licitação) e o card não possui ID.\n\nNenhum foi excluído, para evitar apagar o errado.\n\nUse o console: nhDiagnosticar(\""+e+"\")"),m=!1):_cands.length===1&&(await _cands[0].ref.delete(),m=!0),m?(toast("Excluído!","ok"),await loadPage(e)):(ALL[e]=ALL[e].filter(function(e,t){return t!==a}),FIL[e]=FIL[e].filter(function(e,t){return t!==a}),renderTbl(e),toast("Removido localmente","ok"))}catch(e){toast("Erro: "+e.message,"err")}}}function toast(e,a){a||(a="info");var t=document.getElementById("toasts"),o=document.createElement("div");o.className="toast "+("ok"===a?"tok":"err"===a?"terr":"tinfo");var i="ok"===a?'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>':"err"===a?'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>':'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>';o.innerHTML='<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">'+i+"</svg>"+e,t.appendChild(o),setTimeout(function(){o.remove()},4e3)}function noConf(){return'<div class="empty"><svg width="44" height="44" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg><p>Cole a URL do Apps Script na barra lateral para conectar com a planilha</p></div>'}function emptyEl(e){return'<div class="empty"><svg width="44" height="44" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg><p>'+e+"</p></div>"}var isDark="light"!==localStorage.getItem("nh_theme");function setTheme(e){isDark=e,document.documentElement.setAttribute("data-theme",e?"dark":"light"),localStorage.setItem("nh_theme",e?"dark":"light")}async function migrarFinanceiro(){var e=await db.collection("financeiro").get(),a=db.batch(),t=0;e.forEach(function(e){var o=e.data(),i=o._arr||[],n=String(i[0]||"");if(i.length>0&&-1===n.indexOf("/")){var r=o._createdAt||Date.now(),s=new Date(r),d=[("0"+s.getDate()).slice(-2)+"/"+("0"+(s.getMonth()+1)).slice(-2)+"/"+s.getFullYear(),i[1],i[2],i[3],i[4],i[5],i[6],i[7]];a.update(e.ref,{_arr:d,_updatedAt:Date.now()}),t++}}),t>0&&(await a.commit(),toast("✅ "+t+" registros financeiros atualizados com data","ok"),await _load("financeiro"))}async function importarDadosMarco(){var e="financeiro",a=await db.collection(e).get(),t=!1;if(a.forEach(function(e){var a=e.data()._arr||[];-1!==String(a[0]||"").indexOf("/03/2026")&&(t=!0)}),!t){var o=await db.collection(e).orderBy("_id","desc").limit(1).get(),i=o.empty?1:(o.docs[0].data()._id||0)+1,n=db.batch();[["05/03/2026","Portais","Portal Compras Públicas","Compras Públicas","R$ 165,00","Pago","Banco Inter","Pago acesso mensal pela empresa VISE."],["13/03/2026","Portais","BNC","BNC","R$ 121,77","Pago","Banco Inter","Pagamento em atraso do BNC pela empresa SAUTEC."],["16/03/2026","Informática","Aquisição de adaptador wireless","Kalunga SA","R$ 136,85","Pago","Banco Inter","Adaptador wireless para o computador de Charlayne."],["18/03/2026","Portais","Pagamento mensal portal Compras Públicas - SAUTEC","Portal Compras Públicas","R$ 165,00","Pago","Banco Inter","Pago pelo cartão de crédito, sem saldo em conta."],["24/03/2026","Portais","Pagamento portal BNC","BNC","R$ 118,00","Pago","Banco Inter","Boleto para participar do processo de licitação pela empresa VISE."],["10/03/2026","Telefonia","Plano Business","TIM","R$ 30,00","Pago","Banco Inter","Recarga plano pré-pago TIM — telefone do escritório."]].forEach(function(a){var t=db.collection(e).doc(String(i));n.set(t,{_id:i,_arr:a,_createdAt:Date.now(),_updatedAt:Date.now()}),i++}),await n.commit(),ALL.financeiro&&await _load("financeiro"),toast("✅ 6 lançamentos de março importados!","ok")}}async function restaurarSAUTEC(){
   // Verifica se SAUTEC já existe
   if(EMPRESAS.find(function(e){return e.nome==="SAUTEC";})){
     toast("SAUTEC já está na lista","info");
@@ -10142,7 +10280,7 @@ async function _processQueue(){if(!_saveRunning&&_saveQueue.length){_saveRunning
 function initApp(){setTheme(isDark),carregarEmpresas(),carregarResponsaveis(),carregarOptsCustom(),setSt("load"),carregarIAKey(),document.querySelectorAll(".page").forEach(function(e){e.style.display="none"});var e=document.getElementById("page-resumo");e&&(e.classList.add("on"),e.style.display="block"),loadAll().then(function(){setTimeout(function(){migrarFinanceiro().then(function(){importarDadosMarco()})},2e3)}),setTimeout(verificarVencimentos,3e3),setTimeout(iniciarNotificacoesCalendario,5e3),carregarTarefas()}function parseBRDate(e){if(!e)return null;var a=String(e).trim().split(" ")[0].split("/");if(3!==a.length)return null;var t=new Date(parseInt(a[2]),parseInt(a[1])-1,parseInt(a[0]));return isNaN(t.getTime())?null:t}function verificarVencimentos(){var e=new Date;e.setHours(0,0,0,0);var a=[],t=JSON.parse(localStorage.getItem("nh_avisos_vistos")||"{}"),o=e.toISOString().split("T")[0];(ALL.ganhas||[]).forEach(function(i){var n=String(i[9]||"").toUpperCase().trim();if("EM EXECUÇÃO"===n||"EM EXECUCAO"===n){var r=parseBRDate(i[12]);if(r){var s=Math.round((r-e)/864e5);if(s>=0&&s<=30){var d="g_"+i[0]+"_"+o;t[d]||a.push({tipo:"ganhas",id:i[0],emp:i[2],licit:String(i[3]||"").substring(0,40),dias:s,chave:d})}}}}),(ALL.andamento||[]).forEach(function(i){var n=parseBRDate(i[10]);if(n){var r=Math.round((n-e)/864e5);if(r>=0&&r<=1){var s="a_"+i[0]+"_"+o;t[s]||a.push({tipo:"andamento",id:i[0],emp:i[2],licit:String(i[3]||"").substring(0,40),dias:r,disputa:!0,chave:s})}}}),a.length>0&&mostrarNotificacoes(a)}function marcarAvisoVisto(e){var a=JSON.parse(localStorage.getItem("nh_avisos_vistos")||"{}");a[e]=!0;var t=Date.now()-5184e6;Object.keys(a).forEach(function(e){var o=e.split("_"),i=o[o.length-1];i&&new Date(i).getTime()<t&&delete a[e]}),localStorage.setItem("nh_avisos_vistos",JSON.stringify(a))}function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 function mostrarNotificacoes(e){var a=document.getElementById("notif-banner");a&&a.remove();var t=document.createElement("div");if(t.id="notif-banner",t.style.cssText="position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px;max-width:360px",e.slice(0,5).forEach(function(e){var a=0===e.dias?"#ef4444":e.dias<=3?"#f97316":e.dias<=7?"#eab308":"#60a5fa",o=e.disputa?0===e.dias?"DISPUTA HOJE":"DISPUTA AMANHÃ":0===e.dias?"VENCE HOJE":(e.dias<=3||e.dias,"VENCE EM "+e.dias+"d"),i=document.createElement("div");i.style.cssText="background:var(--s1);border:1px solid var(--b1);border-left:4px solid "+a+";border-radius:8px;padding:12px 14px;font-size:12px;color:var(--t1);box-shadow:0 4px 14px rgba(0,0,0,.35);display:flex;align-items:flex-start;gap:10px",i.innerHTML='<div style="flex:1"><div style="font-size:10px;font-weight:800;color:'+a+';letter-spacing:.06em;margin-bottom:3px">'+o+'</div><div style="font-weight:700;color:#f0f0f0;margin-bottom:2px">'+esc(e.emp)+'</div><div style="color:#aaa;font-size:11px;line-height:1.4">'+esc(e.licit)+'</div></div><button title="Dispensar" style="background:none;border:none;color:#555;cursor:pointer;font-size:18px;padding:0;line-height:1;flex-shrink:0">×</button>',i.querySelector("button").onclick=function(){e.chave&&marcarAvisoVisto(e.chave),i.remove(),t.querySelector('div[style*="border-left"]')||t.remove()},i.style.cursor="pointer",i.onclick=function(_ev){_ev.target.closest("button")||(t.remove(),irParaCard(e.tipo,e.id))},t.appendChild(i)}),e.length>5){var o=document.createElement("div");o.style.cssText="background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--t3);text-align:center;cursor:pointer",o.textContent="+ "+(e.length-5)+" outros avisos",o.onclick=function(){t.remove()},t.appendChild(o)}document.body.appendChild(t),setTimeout(function(){t.parentNode&&t.remove()},15e3)}window.addEventListener("load",function(){});var DADOS_FIXOS={VISE:{razao:"VIA DE SERVIÇOS ESPECIALIZADOS LTDA",cnpj:"08.348.687/0001-62",endereco:"Av. Camilo de Holanda, Nº432, Centro",cidade:"João Pessoa/PB",cep:"58.013-360",tel:"(83) 9 8229-1361",email:"licitacoes@viseservicos.com",socio:"Caio Cesar Germano Rodrigues",cpf:"111.368.404-60",cargo:"Sócio-Administrador",banco:"Bradesco",agencia:"1061",conta:"0019654-1"},SAUTEC:{razao:"SAUTEC EQUIPAMENTOS MEDICO HOSPITALARES LTDA",cnpj:"31.586.684/0001-89",endereco:"Rua Gualberto Filho, 0020, Centro",cidade:"Sousa/PB",cep:"58.800-262",tel:"(83) 99909-1477",email:"sauteclicitacoes@gmail.com",socio:"Adson Danilo da Silva Feitosa",cpf:"071.012.224-12",cargo:"Sócio Administrador",banco:"",agencia:"",conta:""},ONLAV:{razao:"ONLAV COMÉRCIO E SERVIÇOS LTDA",cnpj:"13.141.717/0001-03",endereco:"Rua Manoel Veloso Borges, 57 – Sesi em Bayeux PB",cidade:"Bayeux/PB",cep:"58.111-335",tel:"(83) 2179-7006",email:"licitacoesonlav@gmail.com",socio:"Ivan Marques Lisboa Junior",cpf:"070.186.804-09",cargo:"Sócio Proprietário",banco:"",agencia:"",conta:""},SOS:{razao:"SOS SOLUÇÕES INTEGRADAS LTDA",cnpj:"38.714.702/0001-00",endereco:"R. João Pereira Santos Filho, 298 - Itapetinga",cidade:"Mossoró/RN",cep:"",tel:"(84) 2140-6187",email:"licitasossolucoesintegrada@gmail.com",socio:"",cpf:"",cargo:"Sócio Administrador",banco:"",agencia:"",conta:""}},LOGOS={},TIMBRADOS={};
 
-var _calAno=(new Date).getFullYear(),_calMes=(new Date).getMonth(),_calSemanaInicio=function(){var e=new Date;return e.setHours(0,0,0,0),e.setDate(e.getDate()-e.getDay()),e}(),MESES=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];function calMes(e){(_calMes+=e)>11&&(_calMes=0,_calAno++),_calMes<0&&(_calMes=11,_calAno--),renderCalendario()}function calHoje(){var e=new Date;_calAno=e.getFullYear(),_calMes=e.getMonth(),renderCalendario()}function calSemana(e){(_calSemanaInicio=new Date(_calSemanaInicio)).setDate(_calSemanaInicio.getDate()+7*e),renderListaSemanal()}function calSemanaHoje(){(_calSemanaInicio=new Date).setHours(0,0,0,0),_calSemanaInicio.setDate(_calSemanaInicio.getDate()-_calSemanaInicio.getDay()),renderListaSemanal()}function renderListaSemanal(){var e=new Date(_calSemanaInicio);e.setDate(e.getDate()+6),e.setHours(23,59,59,0);var a=new Date(_calSemanaInicio),t=document.getElementById("cal-semana-label");if(t){var o=a.getDate()+"/"+(a.getMonth()+1),i=e.getDate()+"/"+(e.getMonth()+1)+"/"+e.getFullYear();t.textContent=o+" — "+i}var n=ALL.andamento||[],r=[];n.forEach(function(t){var o=String(t[2]||"").trim(),i=String(t[3]||"").trim(),n=String(t[4]||"").trim(),s=String(t[5]||"").trim(),d=String(t[6]||"").trim(),l=String(t[15]||"").trim(),c=String(t[9]||"").trim(),A=String(t[7]||"").trim(),p=String(t[10]||"").trim(),u=String(t[13]||"").trim();function m(t,p){var u=parseDataCal(t);u&&(u.setHours(0,0,0,0),u>=a&&u<=e&&r.push({tipo:p,data:u,dia:u.getDate(),emp:o,licit:i,hora:t,obj:n,local:s,mun:d,resumo:l,portal:c,vest:A}))}m(p,"disputa"),m(u,"reabertura")}),r.sort(function(e,a){return e.data-a.data}),window._calEventos=r;var s=document.getElementById("cal-lista");if(s)if(r.length){var d=new Date;d.setHours(0,0,0,0),s.innerHTML=r.map(function(e,a){var t="disputa"===e.tipo?"#f97316":"#3b82f6",o=empCorCad(e.emp)||"#888",i="disputa"===e.tipo?"⚡":"🔄",n=criarLinkGoogleCal(e),r=e.data.getTime()===d.getTime();return'<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--s2);'+(r?"border:2px solid "+t+";":"border:1px solid var(--b1);border-left:4px solid "+t+";")+'border-radius:8px;margin-bottom:8px"><div style="min-width:48px;text-align:center;cursor:pointer" onclick="mostrarPreviewEvento('+a+')"><div style="font-size:10px;color:'+t+';font-weight:700;text-transform:uppercase">'+["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"][e.data.getDay()]+'</div><div style="font-size:22px;font-weight:800;color:'+(r?t:"var(--t1)")+';line-height:1">'+e.dia+'</div></div><div style="flex:1;overflow:hidden;cursor:pointer" onclick="mostrarPreviewEvento('+a+')"><div style="font-size:11px;color:'+t+';font-weight:700;text-transform:uppercase">'+i+" "+e.tipo+(r?" · HOJE":"")+'</div><div style="font-size:13px;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.licit.substring(0,60)+'</div><div style="font-size:11px;margin-top:2px;display:flex;gap:8px"><span style="color:'+o+';font-weight:600">'+e.emp+"</span>"+(e.portal?'<span style="color:var(--t3)">· '+e.portal+"</span>":"")+"</div>"+(e.resumo?'<div style="font-size:11px;color:var(--t3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.resumo+"</div>":"")+'</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0"><div style="font-size:11px;color:var(--t3)">'+String(e.hora).substring(0,16)+"</div>"+(isEventoSalvo(e)?'<span style="background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">✅ Salvo</span>':'<a href="'+n+'" target="_blank" onclick="marcarSalvoEAtualizar('+a+')" style="background:#22c55e;color:#000;text-decoration:none;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;white-space:nowrap">📅 Salvar</a>')+'<button data-exc-emp="'+encodeURIComponent(e.emp)+'" data-exc-licit="'+encodeURIComponent(e.licit.substring(0,40))+'" data-exc-tipo="'+e.tipo+'" class="cal-excluir-btn" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#ef4444;font-size:10px;padding:3px 8px;border-radius:6px;cursor:pointer;font-family:Outfit,sans-serif">✕ Excluir</button></div></div>'}).join("")}else s.innerHTML='<div style="color:var(--t3);font-size:13px;padding:20px;text-align:center;background:var(--s2);border-radius:8px;border:1px solid var(--b1)">Nenhum evento nesta semana</div>'}function parseDataCal(e){if(!e)return null;var a=String(e).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);if(!a)return null;var t=new Date(parseInt(a[3]),parseInt(a[2])-1,parseInt(a[1]));return isNaN(t.getTime())?null:t}function getEventosDoMes(e,a){var t=[];return(ALL.andamento||[]).forEach(function(o){var i=String(o[2]||"").trim(),n=String(o[3]||"").trim(),r=String(o[4]||"").trim(),s=String(o[5]||"").trim(),d=String(o[6]||"").trim(),l=String(o[15]||"").trim(),c=String(o[10]||"").trim(),A=String(o[13]||"").trim(),p=String(o[9]||"").trim(),u=String(o[7]||"").trim();if(c){var m=parseDataCal(c);m&&m.getFullYear()===e&&m.getMonth()===a&&t.push({tipo:"disputa",data:m,dia:m.getDate(),emp:i,licit:n,hora:c,obj:r,local:s,mun:d,resumo:l,portal:p,vest:u})}if(A){var v=parseDataCal(A);v&&v.getFullYear()===e&&v.getMonth()===a&&t.push({tipo:"reabertura",data:v,dia:v.getDate(),emp:i,licit:n,hora:A,obj:r,local:s,mun:d,resumo:l,portal:p,vest:u})}}),t.sort(function(e,a){return e.data-a.data}),t}function renderCalendario(){document.getElementById("cal-titulo").textContent=MESES[_calMes]+" "+_calAno;var e=getEventosDoMes(_calAno,_calMes),a={};e.forEach(function(e){a[e.dia]||(a[e.dia]=[]),a[e.dia].push(e)});var t=new Date(_calAno,_calMes,1).getDay(),o=new Date(_calAno,_calMes+1,0).getDate(),i=new Date;i.setHours(0,0,0,0);for(var n=document.getElementById("cal-grid"),r="",s=0;s<t;s++)r+='<div style="min-height:80px;border-right:1px solid var(--b1);border-bottom:1px solid var(--b1);padding:6px;opacity:.3"></div>';for(var d=1;d<=o;d++){var l=new Date(_calAno,_calMes,d).getTime()===i.getTime(),c=a[d]||[];r+='<div style="min-height:80px;'+((t+d-1)%7<6?"border-right:1px solid var(--b1);":"")+"border-bottom:1px solid var(--b1);padding:6px;"+(l?"background:rgba(249,115,22,.1);":"")+'">',r+='<div style="font-size:13px;'+(l?"color:var(--nh);font-weight:800;":"color:var(--t2);")+'margin-bottom:4px">'+d+"</div>",c.slice(0,3).forEach(function(e){var a="disputa"===e.tipo?"#f97316":"#3b82f6",t=empCorCad(e.emp)||"#888";r+='<div style="background:'+a+';border-radius:3px;padding:2px 5px;margin-bottom:2px;font-size:10px;color:#000;font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis" title="'+e.emp+" · "+e.licit+'">',r+='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:'+t+';margin-right:3px;vertical-align:middle"></span>',r+=e.emp.substring(0,6)+"</div>"}),c.length>3&&(r+='<div style="font-size:10px;color:var(--t3)">+'+(c.length-3)+" mais</div>"),r+="</div>"}var A=t+o,p=A%7==0?0:7-A%7;for(s=0;s<p;s++){r+='<div style="min-height:80px;'+((A+s)%7<6?"border-right:1px solid var(--b1);":"")+'border-bottom:1px solid var(--b1);padding:6px;opacity:.3"></div>'}n.innerHTML=r;var u=document.getElementById("cal-lista");if(e.length){window._calEventos=e,u.innerHTML=e.map(function(e,a){var t="disputa"===e.tipo?"#f97316":"#3b82f6",o=empCorCad(e.emp)||"#888",i="disputa"===e.tipo?"⚡":"🔄",n=criarLinkGoogleCal(e),r=new Date;r.setHours(0,0,0,0);var s=e.data.getTime()===r.getTime();return'<div onclick="mostrarPreviewEvento('+a+')" style="cursor:pointer;display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--s2);'+(s?"border:2px solid "+t+";":"border:1px solid var(--b1);border-left:4px solid "+t+";")+'border-radius:8px;margin-bottom:8px;transition:all .15s" onmouseover="this.style.opacity=.85" onmouseout="this.style.opacity=1"><div style="min-width:44px;text-align:center"><div style="font-size:22px;font-weight:800;color:'+(s?t:"var(--t1)")+';line-height:1">'+e.dia+'</div><div style="font-size:10px;color:var(--t3)">'+MESES[_calMes].substring(0,3)+'</div></div><div style="flex:1;overflow:hidden"><div style="font-size:11px;color:'+t+';font-weight:700;text-transform:uppercase;letter-spacing:.05em">'+i+" "+e.tipo+(s?" · HOJE":"")+'</div><div style="font-size:13px;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+e.licit+'">'+e.licit.substring(0,60)+'</div><div style="font-size:11px;margin-top:2px;display:flex;gap:8px"><span style="color:'+o+';font-weight:600">'+e.emp+"</span>"+(e.portal?'<span style="color:var(--t3)">· '+e.portal+"</span>":"")+"</div>"+(e.resumo?'<div style="font-size:11px;color:var(--t3);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.resumo+"</div>":"")+'</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0"><div style="font-size:11px;color:var(--t3);white-space:nowrap">'+String(e.hora).substring(0,16)+"</div>"+(isEventoSalvo(e)?'<span style="background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3);font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;white-space:nowrap">✅ Salvo no Calendar</span>':'<a href="'+n+'" target="_blank" onclick="event.stopPropagation();marcarSalvoEAtualizar('+a+')" title="Salvar no Google Calendar" style="background:#22c55e;color:#000;text-decoration:none;font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;white-space:nowrap">📅 Salvar no Calendar</a>')+"</div></div>"}).join("");var m="https://calendar.google.com/calendar/r/month/"+_calAno+"/"+(_calMes+1);document.getElementById("btn-google-cal").href=m;var v=document.getElementById("b-calendario");v&&(v.textContent=e.length||"—"),renderListaSemanal()}else u.innerHTML='<div style="color:var(--t3);font-size:13px;padding:20px;text-align:center">Nenhuma disputa ou reabertura este mês</div>'}function eventoCalKey(e){return"gcal_"+e.tipo+"_"+e.emp+"_"+String(e.hora||"").replace(/\W/g,"")}function isEventoSalvo(e){return"1"===localStorage.getItem(eventoCalKey(e))}function marcarEventoSalvo(e){localStorage.setItem(eventoCalKey(e),"1")}function criarLinkGoogleCal(e){var a=e.data,t="090000",o=String(e.hora||"").match(/(\d{1,2})[h:](\d{2})/i);o&&(t=("0"+o[1]).slice(-2)+("0"+o[2]).slice(-2)+"00");var i=a.getFullYear(),n=("0"+(a.getMonth()+1)).slice(-2),r=("0"+a.getDate()).slice(-2),s=i+n+r+"T"+t,d=i+n+r+"T"+("0"+(parseInt(t.substring(0,2))+1)).slice(-2)+t.substring(2),l="disputa"===e.tipo?"⚡ DISPUTA: ":"🔄 REABERTURA: ",c=encodeURIComponent(l+e.emp+" - "+e.licit.substring(0,60)),A=e.licit;return e.obj&&(A+=" | Objeto: "+e.obj),e.local&&(A+=" | Local: "+e.local+(e.mun?" - "+e.mun:"")),e.portal&&(A+=" | Portal: "+e.portal),e.vest&&(A+=" | Valor Est.: R$ "+e.vest),e.resumo&&(A+=" | Resumo: "+e.resumo),"https://calendar.google.com/calendar/render?action=TEMPLATE&text="+c+"&dates="+s+"/"+d+"&details="+encodeURIComponent(A)+"&location="+encodeURIComponent(e.local||"")}var _tarefaEditId=null,_tarefaFiltro="todas";async function carregarTarefas(){try{
+var _calAno=(new Date).getFullYear(),_calMes=(new Date).getMonth(),_calSemanaInicio=function(){var e=new Date;return e.setHours(0,0,0,0),e.setDate(e.getDate()-e.getDay()),e}(),MESES=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];function calMes(e){(_calMes+=e)>11&&(_calMes=0,_calAno++),_calMes<0&&(_calMes=11,_calAno--),renderCalendario()}function calHoje(){var e=new Date;_calAno=e.getFullYear(),_calMes=e.getMonth(),renderCalendario()}function calSemana(e){(_calSemanaInicio=new Date(_calSemanaInicio)).setDate(_calSemanaInicio.getDate()+7*e),renderListaSemanal()}function calSemanaHoje(){(_calSemanaInicio=new Date).setHours(0,0,0,0),_calSemanaInicio.setDate(_calSemanaInicio.getDate()-_calSemanaInicio.getDay()),renderListaSemanal()}function renderListaSemanal(){var e=new Date(_calSemanaInicio);e.setDate(e.getDate()+6),e.setHours(23,59,59,0);var a=new Date(_calSemanaInicio),t=document.getElementById("cal-semana-label");if(t){var o=a.getDate()+"/"+(a.getMonth()+1),i=e.getDate()+"/"+(e.getMonth()+1)+"/"+e.getFullYear();t.textContent=o+" — "+i}var n=ALL.andamento||[],r=[];n.forEach(function(t){var o=String(t[2]||"").trim(),i=String(t[3]||"").trim(),n=String(t[4]||"").trim(),s=String(t[5]||"").trim(),d=String(t[6]||"").trim(),l=String(t[15]||"").trim(),c=String(t[9]||"").trim(),A=String(t[7]||"").trim(),p=String(t[10]||"").trim(),u=String(t[13]||"").trim();function m(t,p){var u=parseDataCal(t);u&&(u.setHours(0,0,0,0),u>=a&&u<=e&&r.push({tipo:p,data:u,dia:u.getDate(),emp:o,licit:i,hora:t,obj:n,local:s,mun:d,resumo:l,portal:c,vest:A}))}m(p,"disputa"),m(u,"reabertura")}),r.sort(function(e,a){return e.data-a.data}),window._calEventos=r;var s=document.getElementById("cal-lista");if(s)if(r.length){var d=new Date;d.setHours(0,0,0,0),s.innerHTML=r.map(function(e,a){var t="disputa"===e.tipo?"#f97316":"#3b82f6",o=empCorCad(e.emp)||"#888",i="disputa"===e.tipo?"⚡":"🔄",n=criarLinkGoogleCal(e),r=e.data.getTime()===d.getTime();return'<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--s2);'+(r?"border:2px solid "+t+";":"border:1px solid var(--b1);border-left:4px solid "+t+";")+'border-radius:8px;margin-bottom:8px"><div style="min-width:48px;text-align:center;cursor:pointer" onclick="mostrarPreviewEvento('+a+')"><div style="font-size:10px;color:'+t+';font-weight:700;text-transform:uppercase">'+["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"][e.data.getDay()]+'</div><div style="font-size:22px;font-weight:800;color:'+(r?t:"var(--t1)")+';line-height:1">'+e.dia+'</div></div><div style="flex:1;overflow:hidden;cursor:pointer" onclick="mostrarPreviewEvento('+a+')"><div style="font-size:11px;color:'+t+';font-weight:700;text-transform:uppercase">'+i+" "+e.tipo+(r?" · HOJE":"")+'</div><div style="font-size:13px;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.licit.substring(0,60)+'</div><div style="font-size:11px;margin-top:2px;display:flex;gap:8px"><span style="color:'+o+';font-weight:600">'+e.emp+"</span>"+(e.portal?'<span style="color:var(--t3)">· '+e.portal+"</span>":"")+"</div>"+(e.resumo?'<div style="font-size:11px;color:var(--t3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.resumo+"</div>":"")+'</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0"><div style="font-size:11px;color:var(--t3)">'+String(e.hora).substring(0,16)+"</div>"+(isEventoSalvo(e)?'<span style="background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">✅ Salvo</span>':'<a href="'+n+'" target="_blank" onclick="marcarSalvoEAtualizar('+a+')" style="background:#22c55e;color:#000;text-decoration:none;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;white-space:nowrap">📅 Salvar</a>')+'<button data-exc-emp="'+encodeURIComponent(e.emp)+'" data-exc-licit="'+encodeURIComponent(e.licit.substring(0,40))+'" data-exc-tipo="'+e.tipo+'" class="cal-excluir-btn" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#ef4444;font-size:10px;padding:3px 8px;border-radius:6px;cursor:pointer;font-family:Outfit,sans-serif">✕ Excluir</button></div></div>'}).join("")}else s.innerHTML='<div style="color:var(--t3);font-size:13px;padding:20px;text-align:center;background:var(--s2);border-radius:8px;border:1px solid var(--b1)">Nenhum evento nesta semana</div>'}function parseDataCal(e){if(!e)return null;var a=String(e).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);if(!a)return null;var t=new Date(parseInt(a[3]),parseInt(a[2])-1,parseInt(a[1]));return isNaN(t.getTime())?null:t}function getEventosDoMes(e,a){var t=[];return(ALL.andamento||[]).forEach(function(o){var i=String(o[2]||"").trim(),n=String(o[3]||"").trim(),r=String(o[4]||"").trim(),s=String(o[5]||"").trim(),d=String(o[6]||"").trim(),l=String(o[15]||"").trim(),c=String(o[10]||"").trim(),A=String(o[13]||"").trim(),p=String(o[9]||"").trim(),u=String(o[7]||"").trim();if(c){var m=parseDataCal(c);m&&m.getFullYear()===e&&m.getMonth()===a&&t.push({tipo:"disputa",data:m,dia:m.getDate(),emp:i,licit:n,hora:c,obj:r,local:s,mun:d,resumo:l,portal:p,vest:u})}if(A){var v=parseDataCal(A);v&&v.getFullYear()===e&&v.getMonth()===a&&t.push({tipo:"reabertura",data:v,dia:v.getDate(),emp:i,licit:n,hora:A,obj:r,local:s,mun:d,resumo:l,portal:p,vest:u})}}),t.sort(function(e,a){return e.data-a.data}),t}function renderCalendario(){try{agRender()}catch(_ag){}document.getElementById("cal-titulo").textContent=MESES[_calMes]+" "+_calAno;var e=getEventosDoMes(_calAno,_calMes),a={};e.forEach(function(e){a[e.dia]||(a[e.dia]=[]),a[e.dia].push(e)});var t=new Date(_calAno,_calMes,1).getDay(),o=new Date(_calAno,_calMes+1,0).getDate(),i=new Date;i.setHours(0,0,0,0);for(var n=document.getElementById("cal-grid"),r="",s=0;s<t;s++)r+='<div style="min-height:80px;border-right:1px solid var(--b1);border-bottom:1px solid var(--b1);padding:6px;opacity:.3"></div>';for(var d=1;d<=o;d++){var l=new Date(_calAno,_calMes,d).getTime()===i.getTime(),c=a[d]||[];r+='<div style="min-height:80px;'+((t+d-1)%7<6?"border-right:1px solid var(--b1);":"")+"border-bottom:1px solid var(--b1);padding:6px;"+(l?"background:rgba(249,115,22,.1);":"")+'">',r+='<div style="font-size:13px;'+(l?"color:var(--nh);font-weight:800;":"color:var(--t2);")+'margin-bottom:4px">'+d+"</div>",c.slice(0,3).forEach(function(e){var a="disputa"===e.tipo?"#f97316":"#3b82f6",t=empCorCad(e.emp)||"#888";r+='<div style="background:'+a+';border-radius:3px;padding:2px 5px;margin-bottom:2px;font-size:10px;color:#000;font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis" title="'+e.emp+" · "+e.licit+'">',r+='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:'+t+';margin-right:3px;vertical-align:middle"></span>',r+=e.emp.substring(0,6)+"</div>"}),c.length>3&&(r+='<div style="font-size:10px;color:var(--t3)">+'+(c.length-3)+" mais</div>"),r+="</div>"}var A=t+o,p=A%7==0?0:7-A%7;for(s=0;s<p;s++){r+='<div style="min-height:80px;'+((A+s)%7<6?"border-right:1px solid var(--b1);":"")+'border-bottom:1px solid var(--b1);padding:6px;opacity:.3"></div>'}n.innerHTML=r;var u=document.getElementById("cal-lista");if(e.length){window._calEventos=e,u&&(u.innerHTML=e.map(function(e,a){var t="disputa"===e.tipo?"#f97316":"#3b82f6",o=empCorCad(e.emp)||"#888",i="disputa"===e.tipo?"⚡":"🔄",n=criarLinkGoogleCal(e),r=new Date;r.setHours(0,0,0,0);var s=e.data.getTime()===r.getTime();return'<div onclick="mostrarPreviewEvento('+a+')" style="cursor:pointer;display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--s2);'+(s?"border:2px solid "+t+";":"border:1px solid var(--b1);border-left:4px solid "+t+";")+'border-radius:8px;margin-bottom:8px;transition:all .15s" onmouseover="this.style.opacity=.85" onmouseout="this.style.opacity=1"><div style="min-width:44px;text-align:center"><div style="font-size:22px;font-weight:800;color:'+(s?t:"var(--t1)")+';line-height:1">'+e.dia+'</div><div style="font-size:10px;color:var(--t3)">'+MESES[_calMes].substring(0,3)+'</div></div><div style="flex:1;overflow:hidden"><div style="font-size:11px;color:'+t+';font-weight:700;text-transform:uppercase;letter-spacing:.05em">'+i+" "+e.tipo+(s?" · HOJE":"")+'</div><div style="font-size:13px;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+e.licit+'">'+e.licit.substring(0,60)+'</div><div style="font-size:11px;margin-top:2px;display:flex;gap:8px"><span style="color:'+o+';font-weight:600">'+e.emp+"</span>"+(e.portal?'<span style="color:var(--t3)">· '+e.portal+"</span>":"")+"</div>"+(e.resumo?'<div style="font-size:11px;color:var(--t3);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.resumo+"</div>":"")+'</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0"><div style="font-size:11px;color:var(--t3);white-space:nowrap">'+String(e.hora).substring(0,16)+"</div>"+(isEventoSalvo(e)?'<span style="background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3);font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;white-space:nowrap">✅ Salvo no Calendar</span>':'<a href="'+n+'" target="_blank" onclick="event.stopPropagation();marcarSalvoEAtualizar('+a+')" title="Salvar no Google Calendar" style="background:#22c55e;color:#000;text-decoration:none;font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;white-space:nowrap">📅 Salvar no Calendar</a>')+"</div></div>"}).join(""));var m="https://calendar.google.com/calendar/r/month/"+_calAno+"/"+(_calMes+1);document.getElementById("btn-google-cal").href=m;var v=document.getElementById("b-calendario");v&&(v.textContent=e.length||"—"),renderListaSemanal()}else u.innerHTML='<div style="color:var(--t3);font-size:13px;padding:20px;text-align:center">Nenhuma disputa ou reabertura este mês</div>'}function eventoCalKey(e){return"gcal_"+e.tipo+"_"+e.emp+"_"+String(e.hora||"").replace(/\W/g,"")}function isEventoSalvo(e){return"1"===localStorage.getItem(eventoCalKey(e))}function marcarEventoSalvo(e){localStorage.setItem(eventoCalKey(e),"1")}function criarLinkGoogleCal(e){var a=e.data,t="090000",o=String(e.hora||"").match(/(\d{1,2})[h:](\d{2})/i);o&&(t=("0"+o[1]).slice(-2)+("0"+o[2]).slice(-2)+"00");var i=a.getFullYear(),n=("0"+(a.getMonth()+1)).slice(-2),r=("0"+a.getDate()).slice(-2),s=i+n+r+"T"+t,d=i+n+r+"T"+("0"+(parseInt(t.substring(0,2))+1)).slice(-2)+t.substring(2),l="disputa"===e.tipo?"⚡ DISPUTA: ":"🔄 REABERTURA: ",c=encodeURIComponent(l+e.emp+" - "+e.licit.substring(0,60)),A=e.licit;return e.obj&&(A+=" | Objeto: "+e.obj),e.local&&(A+=" | Local: "+e.local+(e.mun?" - "+e.mun:"")),e.portal&&(A+=" | Portal: "+e.portal),e.vest&&(A+=" | Valor Est.: R$ "+e.vest),e.resumo&&(A+=" | Resumo: "+e.resumo),"https://calendar.google.com/calendar/render?action=TEMPLATE&text="+c+"&dates="+s+"/"+d+"&details="+encodeURIComponent(A)+"&location="+encodeURIComponent(e.local||"")}var _tarefaEditId=null,_tarefaFiltro="todas";async function carregarTarefas(){try{
   var snap=await db.collection("tarefas").orderBy("_criado","desc").get();
   var a=[];
   snap.forEach(function(doc){
@@ -10769,6 +10907,357 @@ function toggleRobo(e){
   e.style.opacity=on?"1":".3";
   e.querySelector("svg").setAttribute("stroke",on?"#a78bfa":"#aaa");
   e.title=on?"🤖 Lance via Robô":"Robô de Lances";
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   AGENDA POR PROCESSO — 17/08/2026
+
+   A lista antiga era um varal de eventos: disputa da VISE, reabertura
+   da SOS, disputa da ONLAV, ordenados só por data. Para entender o que
+   tinha acontecido com UM processo era preciso varrer semanas.
+
+   Agora cada processo é uma linha do tempo — os marcos em ordem, com
+   cor e rótulo próprios. A pergunta que a tela responde deixou de ser
+   "o que tem no dia 20?" e passou a ser "onde está este processo?",
+   que é a pergunta que a equipe faz de verdade.
+
+   O calendário mensal acima continua igual: ele responde a primeira
+   pergunta, e as duas têm o seu lugar.
+   ══════════════════════════════════════════════════════════════════ */
+
+var _agFiltro='vivos';
+
+/* Os marcos de um processo, na ordem em que a vida acontece.
+   `campo` é o índice no array; `cor` casa com a legenda da tela. */
+var AG_MARCOS=[
+  {chave:'abertura',   idx:1,  rot:'Abertura',   cor:'#a855f7', ic:'📋'},
+  {chave:'disputa',    idx:10, rot:'Disputa',    cor:'#f97316', ic:'⚡'},
+  {chave:'reabertura', idx:13, rot:'Reabertura', cor:'#3b82f6', ic:'🔄'}
+];
+
+/** Date → "17/08". Formatador próprio de propósito: `acDataBR` recebe
+    TEXTO no formato aaaa-mm-dd, não um objeto Date — passar um Date
+    para ela devolve "Sun Aug 17 2026" na tela. */
+function agDataBR(d){
+  if(!d) return '';
+  var dia=String(d.getDate()).padStart(2,'0');
+  var mes=String(d.getMonth()+1).padStart(2,'0');
+  /* O ano só aparece quando não é o corrente — em agenda de trabalho
+     ele é ruído em 99% das linhas. */
+  var ano=d.getFullYear()===new Date().getFullYear() ? '' : '/'+d.getFullYear();
+  return dia+'/'+mes+ano;
+}
+
+function agFiltro(f){
+  _agFiltro=f;
+  var box=document.getElementById('ag-seg');
+  if(box) Array.prototype.forEach.call(box.querySelectorAll('button'),function(b){
+    b.classList.toggle('on', b.getAttribute('data-f')===f);
+  });
+  agRender();
+}
+
+/** Monta a linha do tempo de um processo. Devolve os marcos em ordem
+    de data; marco sem data não entra — data vazia não é evento. */
+function agMarcosDe(r){
+  var out=[];
+  AG_MARCOS.forEach(function(m){
+    var d=parseDataCal(String(r[m.idx]||'').trim());
+    if(d) out.push({rot:m.rot, cor:m.cor, ic:m.ic, data:d, chave:m.chave});
+  });
+
+  /* O aviso ao cliente vira um marco também: é o que explica o buraco
+     entre a disputa que não aconteceu e a reabertura que ainda não
+     tem data. Sem ele a linha do tempo mente por omissão. */
+  var st=String(r[12]||'').toUpperCase().trim();
+  var aviso=String(r[21]||'').trim();
+  if(statusAvisa(st)){
+    var dAviso=parseDataCal(String(r[22]||'').trim());
+    var cor = st==='CANCELADO' ? '#ef4444' : st==='ADIADO' ? '#3b82f6' : '#eab308';
+    var ic  = st==='CANCELADO' ? '✕' : st==='ADIADO' ? '⏳' : '⏸';
+    out.push({rot:(st.charAt(0)+st.slice(1).toLowerCase()), cor:cor, ic:ic,
+              data:dAviso, chave:'aviso', texto:aviso,
+              nova:String(r[23]||'').trim()});
+  }
+
+  out.sort(function(a,b){
+    /* Marco sem data vai para o fim, sem sumir. */
+    if(!a.data) return 1;
+    if(!b.data) return -1;
+    return a.data-b.data;
+  });
+  return out;
+}
+
+function agRender(){
+  var box=document.getElementById('ag-lista'); if(!box) return;
+  var q=_ppNorm((document.getElementById('ag-q')||{}).value||'');
+
+  var hoje=new Date(); hoje.setHours(0,0,0,0);
+  var fimSemana=new Date(hoje); fimSemana.setDate(fimSemana.getDate()+7);
+
+  var linhas=(ALL.andamento||[]).filter(function(r){
+    /* ADJU=sim já virou finalizado; não é mais agenda de ninguém. */
+    if(String(r[16]||'').toLowerCase().trim()==='sim') return false;
+
+    var st=String(r[12]||'').trim();
+    if(_agFiltro==='vivos'  && !statusEmAndamento(st)) return false;
+    if(_agFiltro==='avisos' && !(statusAvisa(st) && String(r[21]||'').trim())) return false;
+    if(_agFiltro==='semana'){
+      var tem=agMarcosDe(r).some(function(m){
+        return m.data && m.data>=hoje && m.data<fimSemana;
+      });
+      if(!tem) return false;
+    }
+    if(q){
+      var alvo=_ppNorm([r[3],r[2],r[4],r[6],r[9]].join(' '));
+      if(alvo.indexOf(q)<0) return false;
+    }
+    return true;
+  });
+
+  /* Ordena pelo marco futuro mais próximo — o que exige atenção antes.
+     Processo sem nada à frente vai para o fim. */
+  function proximo(r){
+    var ms=agMarcosDe(r).filter(function(m){ return m.data && m.data>=hoje; });
+    return ms.length ? ms[0].data.getTime() : Infinity;
+  }
+  linhas.sort(function(a,b){ return proximo(a)-proximo(b); });
+
+  var sub=document.getElementById('ag-sub');
+  if(sub) sub.textContent = linhas.length
+    ? linhas.length+(linhas.length===1?' processo':' processos')+
+      (_agFiltro==='vivos'?' em andamento':_agFiltro==='avisos'?' com aviso ao cliente':
+       _agFiltro==='semana'?' com marco nos próximos 7 dias':' no total')
+    : '';
+
+  if(!linhas.length){
+    box.innerHTML='<div class="ag-vazio">'+
+      (q?'Nenhum processo com esse termo.':'Nenhum processo neste filtro.')+'</div>';
+    return;
+  }
+
+  box.innerHTML=linhas.map(function(r){
+    var marcos=agMarcosDe(r);
+    var st=String(r[12]||'').trim();
+    var cor=empCorCad(String(r[2]||'').trim())||'#888';
+
+    var passos=marcos.map(function(m){
+      var futuro = m.data && m.data>=hoje;
+      var dias = m.data ? Math.round((m.data-hoje)/86400000) : null;
+      var quando = m.data ? agDataBR(m.data) : 'sem data';
+      var faltam = dias===null ? ''
+        : dias===0 ? '<b>hoje</b>'
+        : dias>0 ? 'em '+dias+(dias===1?' dia':' dias')
+        : 'há '+Math.abs(dias)+(Math.abs(dias)===1?' dia':' dias');
+      return '<div class="ag-passo'+(futuro?' fut':'')+'" style="--mc:'+m.cor+'">'+
+        '<div class="ag-passo-ic">'+m.ic+'</div>'+
+        '<div class="ag-passo-txt">'+
+          '<div class="ag-passo-rot">'+m.rot+'</div>'+
+          '<div class="ag-passo-dt">'+quando+(faltam?' · '+faltam:'')+'</div>'+
+          (m.texto?'<div class="ag-passo-av">'+_atEsc(m.texto)+
+            (m.nova?'<br><span class="ag-nova">Nova data prevista: '+_atEsc(m.nova)+'</span>':'')+
+          '</div>':'')+
+        '</div></div>';
+    }).join('<div class="ag-liga"></div>');
+
+    return '<article class="ag-card" style="--ec:'+cor+'">'+
+      '<header class="ag-card-top">'+
+        '<span class="ag-emp" style="background:'+cor+'">'+_atEsc(String(r[2]||'').substring(0,2).toUpperCase())+'</span>'+
+        '<div class="ag-card-id">'+
+          '<div class="ag-lic">'+_atEsc(String(r[3]||'(sem número)'))+'</div>'+
+          '<div class="ag-obj">'+_atEsc(String(r[4]||''))+'</div>'+
+        '</div>'+
+        (st?'<span class="ag-st'+(statusAvisa(st)?' alerta':'')+'">'+_atEsc(st)+'</span>':'')+
+      '</header>'+
+      '<div class="ag-meta">'+
+        (r[6]?'<span>📍 '+_atEsc(String(r[6]))+'</span>':'')+
+        (r[9]?'<span>🌐 '+_atEsc(String(r[9]))+'</span>':'')+
+        (r[11]?'<span>🏅 '+_atEsc(String(r[11]))+'</span>':'')+
+      '</div>'+
+      '<div class="ag-trilha">'+(passos||'<div class="ag-vazio-mini">Sem datas registradas.</div>')+'</div>'+
+    '</article>';
+  }).join('');
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   SUSPENSÃO E CANCELAMENTO — 17/08/2026
+
+   O processo às vezes é suspenso ou cancelado antes de começar, e até
+   hoje o responsável da empresa não ficava sabendo: a informação
+   existia no sistema (no Status e no Resumo) e não chegava ao portal
+   de forma visível.
+
+   Os três campos novos moram no fim do array — índices 21, 22 e 23 —
+   justamente para não deslocar nada do que já está gravado. O índice
+   20 fica intocado: é 'ATA/RESUMO PARCIAL', que o portal já lê.
+
+   Um cadastro antigo não tem estes campos; sem eles, simplesmente não
+   há aviso, e nada quebra.
+   ══════════════════════════════════════════════════════════════════ */
+
+/** Os status em que faz sentido avisar o cliente. */
+var STATUS_AVISA=['SUSPENSO','ADIADO','CANCELADO'];
+function statusAvisa(s){
+  return STATUS_AVISA.indexOf(String(s||'').toUpperCase().trim())>=0;
+}
+/* Os status que ainda contam como processo VIVO. Suspenso e adiado
+   saem da contagem de "em andamento" — decidido com o cliente: um
+   processo parado inflaria o número de disputas que a NH tem em pé. */
+function statusEmAndamento(s){
+  var v=String(s||'').toUpperCase().trim();
+  return v==='EM ANDAMENTO'||v==='EM DISPUTA'||v==='AGUARDANDO'||v==='RECURSO';
+}
+
+/** Copia o Resumo do Andamento para o campo de aviso. */
+function aAvisoUsarResumo(){
+  var r=document.getElementById('a-resumo'), a=document.getElementById('a-aviso');
+  if(!r||!a) return;
+  if(!String(r.value||'').trim()){ toast('O resumo está vazio.','err'); return; }
+  a.value=r.value;
+  a.focus();
+  toast('Texto copiado — revise antes de salvar; o cliente vai ler isto.','info');
+}
+
+/** Ao trocar o Status, orienta sem obrigar.
+    Não preenche nada sozinho: texto que aparece no portal sem alguém
+    ter escrito é exatamente o que não pode acontecer. */
+function aAvisoAoMudarStatus(){
+  var s=document.getElementById('a-status'), dica=document.getElementById('a-aviso-dica');
+  var box=document.getElementById('a-aviso-box'), dt=document.getElementById('a-avisodata');
+  if(!s||!dica) return;
+  var v=String(s.value||'').toUpperCase().trim();
+
+  if(statusAvisa(v)){
+    if(box) box.style.borderColor='rgba(234,179,8,.55)';
+    dica.innerHTML='<b style="color:#eab308">Este status some do portal sem explicação se você não escrever aqui.</b><br>'+
+      'A empresa vê o aviso, a data e a nova data prevista — nada do Resumo do Andamento.';
+    /* Data do aviso em branco vira hoje: é quase sempre hoje, e deixar
+       a pessoa digitar a data de novo é atrito à toa. */
+    if(dt && !dt.value){
+      var h=new Date();
+      dt.value=h.getFullYear()+'-'+String(h.getMonth()+1).padStart(2,'0')+'-'+String(h.getDate()).padStart(2,'0');
+    }
+  }else{
+    if(box) box.style.borderColor='rgba(234,179,8,.25)';
+    dica.innerHTML='Serve para qualquer situação que a empresa precise saber. '+
+      'Em <b>SUSPENSO</b>, <b>ADIADO</b> ou <b>CANCELADO</b> passa a ser o que explica o que houve.';
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   A TRAVA DE EXCLUSÃO — 17/08/2026
+
+   Até hoje, qualquer pessoa logada excluía qualquer card de processo:
+   `doDel()` pedia um confirm() e apagava. Com a equipe crescendo, isso
+   virou o risco que o cliente apontou — um clique errado de um
+   colaborador leva embora um edital, um contrato ganho, um atestado.
+
+   A senha de exclusão já existia no sistema (guardada como hash com
+   salt, com tela para definir em Configurações). Faltava alguém
+   CONFERIR: havia função para gravar e nenhuma para validar.
+
+   Três coisas que valem entender:
+
+   1. Isto NÃO é a proteção final. A regra do Firestore é. Esta trava
+      evita o acidente; a regra evita o contorno.
+
+   2. A exclusão continua indo para a LIXEIRA. A senha protege contra
+      o clique errado, não contra a perda — quem apaga por engano com
+      a senha na mão ainda recupera.
+
+   3. Se a senha nunca foi definida, só o sócio exclui, e o sistema diz
+      onde defini-la. Travar todo mundo por falta de configuração
+      transformaria uma proteção em paralisia.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Uma vez conferida, vale por alguns minutos: limpar cinco processos
+   antigos não deve pedir cinco senhas. Curto de propósito — é o tempo
+   de uma tarefa, não de um expediente. */
+var EXC_VALIDADE_MS = 3 * 60 * 1000;
+var _excLiberadoAte = 0;
+
+/** Confere a senha contra o hash guardado.
+    Devolve {ok:true} | {ok:false, motivo:'errada'|'indefinida'|'erro'} */
+async function nhConferirSenhaExclusao(senha){
+  var d;
+  try{
+    d = await db.collection('config').doc('senha_exclusao').get();
+  }catch(e){
+    return {ok:false, motivo:'erro', detalhe:(e&&e.message)||''};
+  }
+  var dados = (d.exists && d.data()) || {};
+
+  if(dados.hash && dados.salt){
+    var h = await nhHashSenha(senha, dados.salt);
+    return h===dados.hash ? {ok:true} : {ok:false, motivo:'errada'};
+  }
+  /* Formato antigo, em texto puro. Continua aceito para quem ainda não
+     redefiniu — a migração acontece na próxima vez que a senha for
+     salva pela tela de Configurações. */
+  if(dados.senha){
+    return String(dados.senha)===String(senha) ? {ok:true} : {ok:false, motivo:'errada'};
+  }
+  return {ok:false, motivo:'indefinida'};
+}
+
+/** Pede a senha e devolve true quando pode excluir.
+    `oQue` aparece na pergunta, para a pessoa saber o que vai embora. */
+async function nhAutorizarExclusao(oQue){
+  if(Date.now() < _excLiberadoAte) return true;
+
+  /* ⚠️ Não confundir "não consegui LER" com "não existe senha".
+     A primeira versão engolia o erro de leitura num catch vazio e caía
+     no caminho de "senha ainda não definida" — que, para um sócio,
+     libera a exclusão só com um confirm. Ou seja: uma queda de rede
+     rebaixava a proteção em silêncio, exatamente quando ela não pode
+     ser rebaixada. Sem conseguir conferir, ninguém exclui. */
+  var d=null, falhouLer=false;
+  try{ d = await db.collection('config').doc('senha_exclusao').get(); }
+  catch(e){ falhouLer=true; }
+  if(falhouLer){
+    toast('Não consegui confirmar a senha de exclusão agora. Verifique a internet e tente de novo.','err');
+    return false;
+  }
+
+  /* Sem senha definida, a exclusão fica com o sócio — e ele é avisado
+     de como fechar isso para valer. */
+  var dd = (d && d.exists && d.data()) || {};
+  if(!dd.hash && !dd.senha){
+    if(!IS_ADMIN){
+      alert('A exclusão está protegida por senha, e essa senha ainda não foi definida.\n\n'
+        + 'Peça a um sócio para definir em Configurações › Cadastros › Senha de exclusão.');
+      return false;
+    }
+    return confirm('Excluir "'+oQue+'"?\n\n'
+      + '⚠️ A senha de exclusão ainda não foi definida, então neste momento '
+      + 'qualquer sócio exclui sem senha.\n\n'
+      + 'Defina em Configurações › Cadastros para travar isto também para os colaboradores.');
+  }
+
+  var senha = prompt('Excluir "'+oQue+'"\n\n'
+    + 'Esta ação pede a SENHA DE EXCLUSÃO.\n'
+    + '(o item vai para a lixeira e pode ser recuperado por um sócio)');
+  if(senha===null) return false;
+  if(!senha){ toast('Senha vazia.','err'); return false; }
+
+  var r = await nhConferirSenhaExclusao(senha);
+  if(r.ok){
+    _excLiberadoAte = Date.now() + EXC_VALIDADE_MS;
+    return true;
+  }
+  if(r.motivo==='erro'){
+    toast('Não consegui confirmar a senha agora. Verifique a internet.','err');
+  }else{
+    toast('Senha de exclusão incorreta.','err');
+    /* Tentativa recusada é exatamente o que a trilha existe para
+       mostrar: alguém tentou apagar algo e não conseguiu. */
+    try{ if(window.NHAudit&&NHAudit.pronto()) NHAudit.registrar({
+      acao:'alterou', onde:'seguranca', alvo:'exclusao',
+      rotulo:'Senha de exclusão recusada',
+      campos:[{campo:'Tentou excluir', de:'', para:String(oQue||'')}]}); }catch(_a){}
+  }
+  return false;
 }
 
 /* Guarda a senha de exclusão como hash SHA-256 com salt, igual já é
@@ -18271,6 +18760,15 @@ if('function'===typeof nhCertFechar){
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
 
 
 
