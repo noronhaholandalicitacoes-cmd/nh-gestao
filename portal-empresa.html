@@ -1058,6 +1058,17 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
   .ac-a3{animation-duration:8s!important}
 }
 
+/* Crachá de quem está usando o sistema. */
+.nh-quem{display:none;align-items:center;gap:7px;padding:4px 11px 4px 4px;
+  border-radius:999px;background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.10);white-space:nowrap}
+.nh-quem-av{width:24px;height:24px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:800;letter-spacing:.02em;color:#fff;
+  background:linear-gradient(135deg,#f97316,#a855f7)}
+.nh-quem-nm{font-size:12.5px;font-weight:700;max-width:130px;
+  overflow:hidden;text-overflow:ellipsis}
+@media(max-width:620px){ .nh-quem-nm{display:none} .nh-quem{padding:4px} }
 </style>
 </head>
 <body>
@@ -1136,6 +1147,7 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
       <div class="topbar-emp-dot" id="emp-dot"></div>
       <div class="topbar-emp-name" id="emp-nome-top"></div>
     </div>
+    <span class="nh-quem" id="nh-quem"><span class="nh-quem-av"></span><span class="nh-quem-nm"></span></span>
     <button class="topbar-tema" id="btn-tema-app" onclick="acTrocarTema()" title="Alternar tema">◐</button>
     <button class="topbar-logout" onclick="fazerLogout()">Sair</button>
   </div>
@@ -6170,6 +6182,91 @@ async function salvarAlteracoes(id){
 }
 
 // ─── INIT ────────────────────────────────────────────────────────
+/* ══════════════════════════════════════════════════════════════════
+   QUEM ESTÁ USANDO — 17/08/2026
+
+   Pedido do cliente: o nome de quem entrou tem que aparecer em TODOS
+   os sistemas, não só no principal. Antes, quatro dos cinco não diziam
+   nada: a pessoa entrava e a tela não confirmava sequer quem ela era.
+   Num sistema com senha por pessoa e trilha de auditoria, isso importa
+   — é o que deixa alguém perceber na hora que está no login errado.
+
+   O bloco é autocontido de propósito. Estes arquivos são HTML estático
+   sem empacotador; cada um já carrega a própria cópia das constantes
+   de acesso. Um import compartilhado exigiria uma etapa de build que
+   este projeto não tem.
+
+   Descobre o nome em três tentativas, nesta ordem:
+     1. sócio fixo no código (a rede de segurança que entra sempre)
+     2. equipe da NH, em config/usuarios
+     3. empresa cliente, em config/responsaveis (chave = o número)
+
+   Não achar nome não é erro: o crachá some e a tela segue igual.
+   ══════════════════════════════════════════════════════════════════ */
+var NH_NOMES_FIXOS={'noronhaholandalicitacoes@gmail.com':'Thiago Soares'};
+
+function nhQuemIniciais(n){
+  var p=String(n||'?').trim().split(/\s+/);
+  return ((p[0]||'?')[0]+((p.length>1?p[p.length-1]:'')[0]||'')).toUpperCase();
+}
+function nhQuemPrimeiro(n){
+  var s=String(n||'').trim().replace(/[._-]+/g,' ');
+  var p=s.split(/\s+/)[0]||'';
+  return p?p.charAt(0).toUpperCase()+p.slice(1).toLowerCase():'';
+}
+
+async function nhQuemSou(email){
+  var em=String(email||'').trim().toLowerCase();
+  if(!em) return null;
+  if(NH_NOMES_FIXOS[em]) return {nome:NH_NOMES_FIXOS[em], papel:'Sócio'};
+
+  try{
+    var du=await db.collection('config').doc('usuarios').get();
+    var lu=(du.exists&&du.data()&&du.data().lista)||{};
+    var u=lu[em];
+    if(u&&u.nome){
+      var p=String(u.role||'');
+      return {nome:u.nome, papel:(p==='socio'||p==='admin')?'Sócio':'Colaborador'};
+    }
+  }catch(e){}
+
+  /* Empresa cliente: a chave é só o número, sem a versão .rN que a
+     redefinição de senha cria. */
+  var num=em.split('@')[0].split('.r')[0];
+  try{
+    var dr=await db.collection('config').doc('responsaveis').get();
+    var lr=(dr.exists&&dr.data()&&dr.data().lista)||{};
+    var r=lr[num];
+    if(r&&r.nome) return {nome:r.nome, papel:'Cliente'};
+  }catch(e){}
+
+  return null;
+}
+
+async function nhPintarQuem(email){
+  var box=document.getElementById('nh-quem'); if(!box) return;
+  var q=null;
+  try{ q=await nhQuemSou(email); }catch(e){}
+  if(!q||!q.nome){ box.style.display='none'; return; }
+  box.style.display='inline-flex';
+  box.querySelector('.nh-quem-av').textContent=nhQuemIniciais(q.nome);
+  box.querySelector('.nh-quem-nm').textContent=nhQuemPrimeiro(q.nome);
+  /* Nome inteiro, papel e login ficam no title — a barra mostra só o
+     primeiro nome, que é o que cabe e é como se chama alguém. */
+  box.title=q.nome+(q.papel?' · '+q.papel:'')+
+            '\n'+String(email||'').replace('@nh.interno','');
+}
+
+/* Observador PRÓPRIO, em vez de mexer no onAuthStateChanged que cada
+   arquivo já tem: o Firebase aceita vários, e assim o crachá não corre
+   risco de quebrar a lógica de quem pode entrar. */
+try{
+  auth.onAuthStateChanged(function(u){
+    if(u) nhPintarQuem(u.email);
+    else { var b=document.getElementById('nh-quem'); if(b) b.style.display='none'; }
+  });
+}catch(_q){}
+
 window.addEventListener('load', async ()=>{
   // Aguardar Firebase estar pronto (até 5s)
   let tentativas = 0;
@@ -6184,7 +6281,10 @@ window.addEventListener('load', async ()=>{
      Firebase decide, com a persistência dele, se já existe alguém
      autenticado. login-screen só aparece se o listener concluir
      que ninguém está logado. */
-  auth.onAuthStateChanged(async function(user){
+  
+
+
+auth.onAuthStateChanged(async function(user){
     if(!user){
       empAtual=''; isAdmin=false; CONTA_MESTRA_EMPRESAS=null; dadosGanhas=[];
       document.getElementById('portal').style.display='none';
@@ -6309,3 +6409,5 @@ window.addEventListener('load', async ()=>{
 </script>
 </body>
 </html>
+
+
