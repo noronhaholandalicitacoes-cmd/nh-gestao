@@ -5085,6 +5085,14 @@ function nhPintarSaudacao(){
    marcas direto no banco. Esconder cartão não é segurança.
    ══════════════════════════════════════════════════════════════════ */
 var EQ_SISTEMAS=[
+  /* ⚠️ 16/08/2026 — O SISTEMA FALTAVA NESTA LISTA.
+     Eu criei os chips para Viabilidade, Contratos, CRM e Financeiro e
+     esqueci do principal: o próprio Sistema de Licitações. Ele ficava
+     aberto para toda a equipe, no cartão do portal e no login.
+     O cliente descobriu do pior jeito: cadastrou uma vendedora que só
+     deveria ver o CRM, e a senha dela abriu o sistema inteiro. */
+  {chave:'sistema',     rot:'Sistema',     cor:'#FF6B00', padrao:true,
+   dica:'O Sistema NH de Licitações — editais, andamento, finalizados, ganhas'},
   {chave:'viabilidade', rot:'Viabilidade', cor:'#22c55e', padrao:true,
    dica:'Análise de viabilidade dos editais'},
   {chave:'contratos',   rot:'Contratos',   cor:'#3b82f6', padrao:true,
@@ -5166,10 +5174,15 @@ function eqRender(){
        seção de baixo, junto com as clientes. */
     return String((USUARIOS[k]||{}).tipo||'').toLowerCase()!=='empresa';
   });
-  var html='<div class="eq-l"><div class="eq-av">NH</div><div class="eq-c">'+
-    '<div class="eq-n">'+ADMIN_EMAIL+'</div>'+
+  /* A conta principal, com nome. Antes esta linha mostrava só o e-mail
+     e as iniciais "NH" — a única pessoa da lista sem nome era justamente
+     a que abre o sistema todo dia. */
+  var nomeAdm=nomeFixoDe(ADMIN_EMAIL);
+  var html='<div class="eq-l"><div class="eq-av">'+esc(eqIniciais(nomeAdm))+'</div><div class="eq-c">'+
+    '<div class="eq-n">'+esc(nomeAdm)+'</div>'+
     '<div class="eq-s"><span class="eq-tag eq-socio">Sócio</span>'+
-    '<span>conta principal, não pode ser removida</span></div></div></div>';
+    '<span>'+ADMIN_EMAIL+' · conta principal, não pode ser removida</span></div></div>'+
+    '<div class="eq-sis"><span class="eq-sis-lbl">abre tudo</span></div></div>';
   if(!ks.length){
     html+='<div class="eq-vazio">Nenhum colaborador cadastrado ainda.<br>'+
       'Enquanto isso, quem trabalha aqui usa um login compartilhado — e a trilha '+
@@ -5415,8 +5428,24 @@ function eqChave(n){
 function ehPapelSocio(u){ var r=String((u&&u.role)||''); return r==='socio'||r==='admin'; }
 function rotuloPapel(u){ return ehPapelSocio(u)?'Sócio':'Colaborador'; }
 
+/* Os nomes das contas de sócio que vivem no código, e não em
+   config/usuarios.
+   ⚠️ Elas são a rede de segurança do sistema: entram mesmo que o
+   cadastro esteja ilegível, e por isso não podem depender dele. O preço
+   era aparecer como "Sócio" na tela — genérico, e sem graça nenhuma na
+   saudação da tela inicial ("Hoje rende, Sócio").
+   Se um dia entrar mais um sócio fixo, o nome dele vem aqui. */
+var NOMES_FIXOS={
+  'noronhaholandalicitacoes@gmail.com': 'Thiago Soares'
+};
+/** O nome de uma conta fixa. Sem nome cadastrado, devolve 'Sócio' —
+    que é o que aparecia antes, e continua sendo melhor que o e-mail. */
+function nomeFixoDe(em){
+  return NOMES_FIXOS[String(em||'').trim().toLowerCase()] || 'Sócio';
+}
+
 async function resolveAcesso(em){
-  if(em===ADMIN_EMAIL) return{ok:true,admin:true,sos:true,readonly:false,papel:'socio',nome:'Sócio'};
+  if(em===ADMIN_EMAIL) return{ok:true,admin:true,sos:true,readonly:false,papel:'socio',nome:nomeFixoDe(em)};
   var U=await carregarUsuarios();
   var u=U[em];
   if(u){
@@ -5425,13 +5454,26 @@ async function resolveAcesso(em){
        continua tendo a quem se referir. */
     if(u.ativo===false) return{ok:false,motivo:'desativado'};
     var socio=ehPapelSocio(u);
+
+    /* ⚠️ 16/08/2026 — estar cadastrado deixou de bastar.
+       Até hoje, qualquer pessoa em config/usuarios entrava AQUI. Uma
+       vendedora cadastrada só para o CRM abriu o sistema inteiro com a
+       própria senha — editais, contratos ganhos, banco de preços.
+       Agora o Sistema é uma marca como as outras, e a ausência dela
+       barra na porta. Sócio entra sempre.
+       Note o `=== false`: cadastro antigo, sem o campo, continua
+       entrando. Ninguém perde acesso por causa desta linha. */
+    if(!socio && u.sistema===false){
+      return{ok:false, motivo:'sem_sistema', nome:u.nome||''};
+    }
+
     return{ok:true, admin:socio, sos:socio||!!u.sos, nome:u.nome||'',
            /* Somente leitura deixou de ser o padrão. Só fica quem for
               marcado de propósito. */
            readonly:u.role==='leitura_only',
            papel:socio?'socio':'colaborador'};
   }
-  if(EMAILS_AUTORIZADOS.indexOf(em)>-1) return{ok:true,admin:true,sos:true,readonly:false,papel:'socio',nome:'Sócio'};
+  if(EMAILS_AUTORIZADOS.indexOf(em)>-1) return{ok:true,admin:true,sos:true,readonly:false,papel:'socio',nome:nomeFixoDe(em)};
   return{ok:false};
 }function aplicarPermissoes(){try{document.body.classList.toggle("ro-mode",!!IS_READONLY);document.body.classList.toggle("no-sos",!USER_SOS);if(!USER_SOS)MOSTRAR_SOS=false;
 if(typeof cfgAplicarPermissoes==="function")cfgAplicarPermissoes();}catch(e){}}function abrirUsuarios(){if(!IS_ADMIN)return;carregarUsuarios().then(function(){var w=document.getElementById("usuarios-ovwrap");if(!w){w=document.createElement("div");w.id="usuarios-ovwrap";document.body.appendChild(w);}w.innerHTML='<div class="uov" onclick="if(event.target===this)fecharUsuarios()"><div class="upanel"><div class="uhead"><div class="uhc"><div class="uicon">👥</div><h3>Usuários do sistema</h3></div><button class="uclose" onclick="fecharUsuarios()">&times;</button></div><div class="uhint"><b>Uma conta por pessoa.</b> Cada colaborador entra com o próprio e-mail e a própria senha — é isso que faz a trilha de auditoria dizer um nome em vez de &ldquo;a conta do escritório&rdquo;.<br><br><b>Sócio</b> vê e faz tudo, inclusive Financeiro e esvaziar a lixeira. <b>Colaborador</b> opera: cria, edita e exclui — e nada do que ele faz é irreversível, porque exclusão vai para a lixeira.<br><br>Quem sai da empresa você <b>desativa</b>, não remove: o nome dele continua fazendo sentido no histórico.</div><div class="uform"><input id="nu-email" type="email" placeholder="email@exemplo.com" class="uinput" autocomplete="off"><input id="nu-senha" type="text" placeholder="senha inicial (mín. 6)" class="uinput" autocomplete="new-password"><select id="nu-role" class="uinput usel"><option value="colaborador">Colaborador</option><option value="socio">Sócio</option></select><label class="uswlbl"><span>vê Externo</span><span class="usw"><input id="nu-sos" type="checkbox"><span></span></span></label><button class="ubtn-add" onclick="addUsuario()">Criar acesso</button></div><div id="usuarios-lista"></div></div></div>';renderListaUsuarios();});}function fecharUsuarios(){var w=document.getElementById("usuarios-ovwrap");if(w)w.innerHTML="";}/* Define se um e-mail de config/usuarios é EQUIPE (vê tudo) ou EMPRESA
@@ -5646,7 +5688,7 @@ function toggleAtivoIdx(n){
 function toggleCrmIdx(n){var em=Object.keys(USUARIOS||{})[n];if(!em)return;var u=USUARIOS[em]||{};
   if(String(u.tipo||'').toLowerCase()==='empresa'){toast&&toast('Acesso de empresa não entra no CRM','err');return;}
   u.crm=!u.crm;USUARIOS[em]=u;salvarUsuarios();renderListaUsuarios();
-  toast&&toast(u.crm?('"'+em+'" agora vê o CRM'):('"'+em+'" não vê mais o CRM'),'ok');}auth.onAuthStateChanged(function(e){var a=document.getElementById("login-screen"),t=document.getElementById("sb"),o=document.querySelector(".topbar"),i=document.querySelector(".main");if(e){resolveAcesso(e.email).then(function(acc){if(!acc.ok){auth.signOut();var n=document.getElementById("login-err");return void(n&&(n.style.display="block",n.textContent=acc.motivo==="desativado"?("Este acesso foi desativado. Fale com um sócio. ("+e.email+")"):("Email não autorizado: "+e.email)))}IS_ADMIN=acc.admin,USER_SOS=acc.sos,IS_READONLY=acc.readonly,USER_EMAIL=e.email,USER_NOME=acc.nome||"";try{if(window.NHAudit){NHAudit.iniciar({db:db,sistema:'sistema'});NHAudit.identificar(e.email,acc.admin?'admin':'equipe',acc.nome||'');NHAudit.registrar({acao:'entrou',onde:'',alvo:'',rotulo:'Sistema NH'});}}catch(_a){}a&&(a.style.display="none"),t&&(t.style.display=""),o&&(o.style.display=""),i&&(i.style.display="");var r=document.getElementById("user-info"),s=document.getElementById("user-name");r&&(r.style.display="flex"),nhPintarSaudacao(),nhPintarBoasVindas(),aplicarPermissoes(),window._appInited||(window._appInited=!0,initApp())})}else{a&&(a.style.display="flex"),t&&(t.style.display="none"),o&&(o.style.display="none"),i&&(i.style.display="none"),(r=document.getElementById("user-info"))&&(r.style.display="none")}});const FB_COLS={editais:"editais",andamento:"andamento",finalizados:"finalizados",ganhas:"ganhas",atestados:"atestados",financeiro:"financeiro",valores:"valores",config:"config"};var EMPRESAS=[{nome:"VISE",cor:"#eab308"},{nome:"SAUTEC",cor:"#3b82f6"},{nome:"SOS",cor:"#22c55e"},{nome:"SOS FILIAL",cor:"#ef4444"},{nome:"ONLAV",cor:"#06b6d4"},{nome:"ENGEMED",cor:"#ec4899"}];async function carregarEmpresas(){try{var e=await db.collection("config").doc("empresas").get();e.exists&&e.data().lista&&(EMPRESAS=e.data().lista)}catch(e){}EMPRESAS.forEach(function(e){EMP_DATA[e.nome]||(EMP_DATA[e.nome]={cnpj:e.cnpj||"",portais:[],docs:[]}),TOPS["emp-"+e.nome]||(TOPS["emp-"+e.nome]=["Empresa — "+e.nome,"Portais, certidões e documentação"+(e.cnpj?" · CNPJ "+e.cnpj:"")])}),atualizarSelectsEmpresas(),Promise.all(EMPRESAS.map(function(e){return loadEmpData(e.nome)})).then(function(){atualizarSelectsEmpresas()}).catch(function(e){})}async function salvarEmpresas(){await db.collection("config").doc("empresas").set({lista:EMPRESAS})}
+  toast&&toast(u.crm?('"'+em+'" agora vê o CRM'):('"'+em+'" não vê mais o CRM'),'ok');}auth.onAuthStateChanged(function(e){var a=document.getElementById("login-screen"),t=document.getElementById("sb"),o=document.querySelector(".topbar"),i=document.querySelector(".main");if(e){resolveAcesso(e.email).then(function(acc){if(!acc.ok){auth.signOut();var n=document.getElementById("login-err");return void(n&&(n.style.display="block",n.innerHTML=acc.motivo==="desativado"?("Este acesso foi desativado. Fale com um sócio. ("+e.email+")"):acc.motivo==="sem_sistema"?("O seu acesso não abre o <b>Sistema de Licitações</b>.<br>Use o Portal de Licitações para chegar no que foi liberado para você.<br><span style=\"opacity:.7\">Entrou como "+e.email.replace("@nh.interno","")+".</span>"):("Email não autorizado: "+e.email)))}IS_ADMIN=acc.admin,USER_SOS=acc.sos,IS_READONLY=acc.readonly,USER_EMAIL=e.email,USER_NOME=acc.nome||"";try{if(window.NHAudit){NHAudit.iniciar({db:db,sistema:'sistema'});NHAudit.identificar(e.email,acc.admin?'admin':'equipe',acc.nome||'');NHAudit.registrar({acao:'entrou',onde:'',alvo:'',rotulo:'Sistema NH'});}}catch(_a){}a&&(a.style.display="none"),t&&(t.style.display=""),o&&(o.style.display=""),i&&(i.style.display="");var r=document.getElementById("user-info"),s=document.getElementById("user-name");r&&(r.style.display="flex"),nhPintarSaudacao(),nhPintarBoasVindas(),aplicarPermissoes(),window._appInited||(window._appInited=!0,initApp())})}else{a&&(a.style.display="flex"),t&&(t.style.display="none"),o&&(o.style.display="none"),i&&(i.style.display="none"),(r=document.getElementById("user-info"))&&(r.style.display="none")}});const FB_COLS={editais:"editais",andamento:"andamento",finalizados:"finalizados",ganhas:"ganhas",atestados:"atestados",financeiro:"financeiro",valores:"valores",config:"config"};var EMPRESAS=[{nome:"VISE",cor:"#eab308"},{nome:"SAUTEC",cor:"#3b82f6"},{nome:"SOS",cor:"#22c55e"},{nome:"SOS FILIAL",cor:"#ef4444"},{nome:"ONLAV",cor:"#06b6d4"},{nome:"ENGEMED",cor:"#ec4899"}];async function carregarEmpresas(){try{var e=await db.collection("config").doc("empresas").get();e.exists&&e.data().lista&&(EMPRESAS=e.data().lista)}catch(e){}EMPRESAS.forEach(function(e){EMP_DATA[e.nome]||(EMP_DATA[e.nome]={cnpj:e.cnpj||"",portais:[],docs:[]}),TOPS["emp-"+e.nome]||(TOPS["emp-"+e.nome]=["Empresa — "+e.nome,"Portais, certidões e documentação"+(e.cnpj?" · CNPJ "+e.cnpj:"")])}),atualizarSelectsEmpresas(),Promise.all(EMPRESAS.map(function(e){return loadEmpData(e.nome)})).then(function(){atualizarSelectsEmpresas()}).catch(function(e){})}async function salvarEmpresas(){await db.collection("config").doc("empresas").set({lista:EMPRESAS})}
 /* ══════════════════════════════════════════════════════════════════
    ACESSOS DAS PESSOAS
    Registro próprio, com chave = número do WhatsApp (só dígitos).
@@ -18229,6 +18271,8 @@ if('function'===typeof nhCertFechar){
 </script>
 </body>
 </html>
+
+
 
 
 
