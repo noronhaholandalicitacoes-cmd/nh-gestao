@@ -334,7 +334,42 @@ body.light .ac-form{background:rgba(255,255,255,.75)}
 .nh-quem-nm{font-size:12.5px;font-weight:700;max-width:130px;
   overflow:hidden;text-overflow:ellipsis}
 @media(max-width:620px){ .nh-quem-nm{display:none} .nh-quem{padding:4px} }
-</style>
+/* ── Farol do CNPJ ───────────────────────────────────────────────
+   Resumo do cadastro da Receita. Discreto de propósito: é apoio à
+   decisão, não o assunto da ficha. */
+.farol{margin:-4px 0 14px;padding:12px 14px;border-radius:10px;
+  background:rgba(6,182,212,.06);border:1px solid rgba(6,182,212,.25)}
+.farol-t{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px;font-size:13px;color:var(--t1)}
+.farol-sit{font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+  color:#22c55e;background:rgba(34,197,94,.14);border:1px solid rgba(34,197,94,.4);
+  padding:2.5px 8px;border-radius:999px}
+.farol-sit.ruim{color:#ef4444;background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.4)}
+.farol-idade{font-size:11.5px;color:var(--t3)}
+.farol-alerta{font-size:12px;line-height:1.5;color:#fca5a5;
+  background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);
+  border-radius:8px;padding:8px 11px;margin-bottom:9px}
+.farol-linhas{display:grid;gap:6px;font-size:12px;color:var(--t1);line-height:1.5}
+.farol-linhas span{display:block;font-size:10px;font-weight:800;text-transform:uppercase;
+  letter-spacing:.05em;color:var(--t3);margin-bottom:1px}
+.farol-linhas i{color:var(--t3);font-style:normal}/* ── Histórico no PNCP ──────────────────────────────────────────── */
+.farol.pncp{background:rgba(168,85,247,.06);border-color:rgba(168,85,247,.25)}
+.pncp-carga{font-size:12px;color:var(--t3)}
+.pncp-t{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:9px;font-size:13px;color:var(--t1)}
+.pncp-tag{font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+  padding:2.5px 8px;border-radius:999px}
+.pncp-tag.forte{color:#22c55e;background:rgba(34,197,94,.14);border:1px solid rgba(34,197,94,.4)}
+.pncp-tag.medio{color:#eab308;background:rgba(234,179,8,.14);border:1px solid rgba(234,179,8,.4)}
+.pncp-tag.fraco{color:#f97316;background:rgba(249,115,22,.14);border:1px solid rgba(249,115,22,.4)}
+.pncp-tag.zero{color:#6b7a94;background:rgba(107,122,148,.14);border:1px solid rgba(107,122,148,.35)}
+.pncp-sub{font-size:11px;color:var(--t3)}
+.pncp-nota{font-size:12px;line-height:1.55;color:var(--t2)}
+.pncp-lista{display:grid;gap:5px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(168,85,247,.18)}
+.pncp-item{display:flex;align-items:baseline;gap:9px;text-decoration:none;
+  font-size:11.5px;color:var(--t2);padding:4px 0}
+.pncp-item:hover{color:var(--t1)}
+.pncp-item-v{font-weight:800;color:var(--t1);white-space:nowrap;font-variant-numeric:tabular-nums}
+.pncp-item-o{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pncp-item-d{color:var(--t3);white-space:nowrap;font-variant-numeric:tabular-nums}</style>
 </head>
 <body>
 
@@ -805,11 +840,18 @@ body.light .fn-l:hover{background:rgba(0,0,0,.02)}
         <div>
           <div class="bloco" style="--bc:#3b82f6">
             <div class="bloco-t">Empresa</div>
-            <div class="campo"><label>Razão social <span class="obr">*</span></label>
+            <div class="campo"><label>Razão social</label>
               <input type="text" id="ld-org" placeholder="A empresa que pode virar cliente da NH"></div>
             <div class="grade" style="margin-bottom:14px">
-              <div class="campo"><label>CNPJ</label>
-                <input type="text" id="ld-cnpj" placeholder="00.000.000/0001-00"></div>
+              <div class="campo"><label>CNPJ
+                <span style="font-weight:400;color:var(--t3);font-size:10px">— digite e clique no farol</span></label>
+                <div style="display:flex;gap:7px">
+                  <input type="text" id="ld-cnpj" placeholder="00.000.000/0001-00" style="flex:1"
+                    onkeydown="if(event.key==='Enter'){event.preventDefault();farolCNPJ();}">
+                  <button type="button" class="btn" id="farol-btn" onclick="farolCNPJ()"
+                    title="Consultar o CNPJ na Receita Federal e preencher a ficha"
+                    style="white-space:nowrap;padding:9px 13px">🔦 Farol</button>
+                </div></div>
               <div class="campo"><label>Segmento</label>
                 <input type="text" id="ld-seg" placeholder="Limpeza, saúde, engenharia…"></div>
               <div class="campo"><label>Porte</label>
@@ -832,6 +874,11 @@ body.light .fn-l:hover{background:rgba(0,0,0,.02)}
               </select>
               <div class="dica">Quem nunca licitou precisa de estruturação — outro trabalho e outro preço.</div>
             </div>
+            <!-- O raio-X do CNPJ. Fica fora do grid de campos porque
+                 não é um campo: é o que a Receita respondeu, e serve
+                 para decidir se vale seguir com a proposta. -->
+            <div id="farol-painel" class="farol" style="display:none"></div>
+            <div id="farol-pncp" class="farol pncp" style="display:none"></div>
           </div>
 
           <div class="bloco" style="--bc:#a855f7">
@@ -844,24 +891,13 @@ body.light .fn-l:hover{background:rgba(0,0,0,.02)}
             </div>
           </div>
 
-          <div class="bloco" style="--bc:#22c55e">
-            <div class="bloco-t">Proposta de honorários</div>
-            <!-- Os mesmos modelos do Financeiro. Ao ganhar o lead, o
-                 contrato nasce sem ninguém traduzir nada. -->
-            <div class="grade" style="margin-bottom:14px">
-              <div class="campo"><label>Modelo</label>
-                <select id="ld-modelo" onchange="ldAlternarModelo()"></select></div>
-              <div class="campo" id="cx-mensalidade"><label>Mensalidade</label>
-                <input type="text" id="ld-mensal" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
-              <div class="campo" id="cx-percentual"><label>% sobre o êxito</label>
-                <input type="number" id="ld-perc" placeholder="5" step="0.01" min="0" max="100"></div>
-              <div class="campo"><label>Taxa de adesão</label>
-                <input type="text" id="ld-adesao" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
-            </div>
-            <div class="dica" id="ld-modelo-nota" style="margin-bottom:14px"></div>
-          </div>
-
-          <div class="bloco" style="--bc:#f97316">
+          <!-- ⚠️ ORDEM DOS BLOCOS — 17/08/2026
+               Andamento subiu para logo depois do contato, e a proposta
+               de honorários desceu para o fim. A ordem passou a seguir a
+               conversa de verdade: primeiro se sabe quem é a empresa e
+               com quem se fala, depois em que pé está a conversa, e só
+               então quanto vai custar. Preço no meio da ficha fazia o
+               vendedor preencher valor antes de saber se havia negócio. -->          <div class="bloco" style="--bc:#f97316">
             <div class="bloco-t">Andamento</div>
             <!-- Etapa e temperatura são perguntas diferentes: uma diz
                  onde a conversa está, a outra o quanto ela está viva.
@@ -902,6 +938,7 @@ body.light .fn-l:hover{background:rgba(0,0,0,.02)}
               <div class="campo"><label>Quando</label><input type="date" id="ld-proxdata"></div>
             </div>
           </div>
+
         </div>
 
         <!-- ── Coluna 2: diagnóstico, edital-gancho e histórico ── -->
@@ -922,6 +959,30 @@ body.light .fn-l:hover{background:rgba(0,0,0,.02)}
                 onkeydown="if(event.key==='Enter'){event.preventDefault();ckAdicionar();}">
               <button class="btn" onclick="ckAdicionar()" style="padding:9px 15px">+</button>
             </div>
+          </div>
+
+          <!-- ⚠️ HONORÁRIOS DESCEU PARA CÁ — 17/08/2026
+               Estava na coluna 1, antes do diagnóstico. Mas o preço
+               DEPENDE do diagnóstico: empresa sem certidão em dia dá
+               mais trabalho, e é isso que justifica o valor. Precificar
+               antes de saber o que falta era pedir um número no escuro.
+               Agora a coluna 2 lê como a conversa acontece:
+               o que ela já tem  →  quanto vamos cobrar  →  qual edital
+               serve de gancho. -->          <div class="bloco" style="--bc:#22c55e">
+            <div class="bloco-t">Proposta de honorários</div>
+            <!-- Os mesmos modelos do Financeiro. Ao ganhar o lead, o
+                 contrato nasce sem ninguém traduzir nada. -->
+            <div class="grade" style="margin-bottom:14px">
+              <div class="campo"><label>Modelo</label>
+                <select id="ld-modelo" onchange="ldAlternarModelo()"></select></div>
+              <div class="campo" id="cx-mensalidade"><label>Mensalidade</label>
+                <input type="text" id="ld-mensal" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
+              <div class="campo" id="cx-percentual"><label>% sobre o êxito</label>
+                <input type="number" id="ld-perc" placeholder="5" step="0.01" min="0" max="100"></div>
+              <div class="campo"><label>Taxa de adesão</label>
+                <input type="text" id="ld-adesao" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
+            </div>
+            <div class="dica" id="ld-modelo-nota" style="margin-bottom:14px"></div>
           </div>
 
           <!-- O edital não é o negócio: é o gancho. "Esse pregão fecha
@@ -1622,7 +1683,7 @@ function cxAgenda(prz){
         'onclick="abrirLead(\''+esc(p.lead.id)+'\')">'+
       '<div class="ag-d"><div class="ag-dn" style="color:'+cor+'">'+(d?d.getDate():'—')+'</div>'+
         '<div class="ag-dm">'+(d?MES[d.getMonth()]:'')+'</div></div>'+
-      '<div class="ag-c"><div class="ag-e">'+esc(p.lead.empresa||'(sem nome)')+'</div>'+
+      '<div class="ag-c"><div class="ag-e">'+esc(ldRotulo(p.lead))+'</div>'+
         '<div class="ag-q">'+esc(p.campo)+'</div></div>'+
       '<div class="ag-s">'+esc(textoPrazo(p.dias))+'</div>'+
     '</div>';
@@ -1812,7 +1873,7 @@ function painelTratativas(){
           'onclick="abrirLead(\''+esc(x.l.id)+'\')">'+
         '<div class="ag-d"><div class="ag-dn" style="color:'+cor+'">'+(x.dias>=999?'—':x.dias)+'</div>'+
           '<div class="ag-dm">dias</div></div>'+
-        '<div class="ag-c"><div class="ag-e">'+esc(x.l.empresa||'(sem nome)')+'</div>'+
+        '<div class="ag-c"><div class="ag-e">'+esc(ldRotulo(x.l))+'</div>'+
           '<div class="ag-q">'+(x.nunca?'nunca teve tratativa registrada':'última conversa há '+x.dias+' dias')+
             ' · '+esc(etapaDe(x.l.etapa).r)+'</div></div>'+
         (t?'<span class="tsel" style="--tc:'+t.c+'"><i>'+t.i+'</i>'+t.r+'</span>':'')+
@@ -1852,7 +1913,7 @@ function painelTratativas(){
           return '<div class="trat" style="--tc:'+t.c+'" onclick="abrirLead(\''+esc(it.lead.id)+'\')">'+
             '<div class="trat-tp">'+t.r+'</div>'+
             '<div class="trat-c">'+
-              '<div class="trat-e">'+esc(it.lead.empresa||'(sem nome)')+
+              '<div class="trat-e">'+esc(ldRotulo(it.lead))+
                 '<span class="trat-et">'+esc(etapaDe(it.lead.etapa).r)+'</span></div>'+
               '<div class="trat-x">'+esc(it.a.descricao||'')+'</div>'+
               (it.a.autor?'<div class="trat-a">'+esc(it.a.autor)+'</div>':'')+
@@ -1958,7 +2019,7 @@ function cartaoLead(l, cor){
 
   return '<div class="lc'+(gelo?' gelando':'')+'" draggable="true" data-id="'+esc(l.id)+'" '+
       'style="--cc:'+cor+'" onclick="abrirLead(\''+esc(l.id)+'\')">'+
-    '<div class="lc-emp">'+esc(l.empresa||'(sem nome)')+'</div>'+
+    '<div class="lc-emp">'+esc(ldRotulo(l))+'</div>'+
     (l.contatoNome?'<div class="lc-sub">'+esc(l.contatoNome)+(l.contatoCargo?' · '+esc(l.contatoCargo):'')+'</div>':'')+
     (prop?'<div class="lc-val">'+esc(prop)+'</div>':'')+
     '<div class="lc-pe">'+
@@ -1989,7 +2050,7 @@ function painelPrazos(lista, compacto){
     var cor = p.dias<=0?'#ef4444' : p.dias<=3?'#eab308' : p.cor;
     return '<div class="prz" style="--pc:'+cor+'" onclick="abrirLead(\''+esc(p.lead.id)+'\')">'+
       '<div class="prz-q">'+esc(p.campo)+' · '+textoPrazo(p.dias)+'</div>'+
-      '<div class="prz-e">'+esc(p.lead.empresa||'(sem nome)')+'</div>'+
+      '<div class="prz-e">'+esc(ldRotulo(p.lead))+'</div>'+
       '<div class="prz-d">'+esc(p.data)+
         (p.lead.editalGancho&&p.lead.editalGancho.numero?' · '+esc(p.lead.editalGancho.numero):'')+'</div>'+
       '</div>';
@@ -2490,9 +2551,324 @@ function ckAdicionar(){
 }
 
 /* ── Gravar ────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════
+   FAROL DO CNPJ — 17/08/2026
+
+   Pedido a partir do "Farol" da Cielo, que mostra as empresas do mesmo
+   ramo. A parte de "listar todo mundo do ramo" a Cielo consegue porque
+   a base de lojistas é DELA. Não existe API pública que devolva
+   "todas as empresas com o CNAE X" — a Receita publica o cadastro por
+   CNPJ, não o inverso.
+
+   O que dá para fazer, e que serve mais para vender assessoria de
+   licitação: um raio-X do CNPJ. O vendedor digita o número que anotou
+   na ligação e a ficha se preenche — razão social, nome fantasia,
+   CNAE (que É o segmento), porte, cidade e situação cadastral.
+
+   Três coisas que este raio-X responde e que mudam a conversa:
+
+     · Situação cadastral — empresa BAIXADA ou INAPTA não licita, e
+       descobrir isso agora evita uma semana de proposta perdida.
+     · Porte — ME e EPP têm tratamento diferenciado na Lei 14.133, o
+       que muda o argumento de venda inteiro.
+     · Data de abertura e CNAEs secundários — dizem em quantas frentes
+       a empresa pode concorrer.
+
+   Fonte: BrasilAPI, que espelha o cadastro da Receita. Gratuita, sem
+   chave e com CORS liberado — chamada direto do navegador, sem
+   intermediário guardando os CNPJs que a NH consulta.
+   ══════════════════════════════════════════════════════════════════ */
+
+function farolDigitos(v){ return String(v||'').replace(/\D/g,''); }
+
+/** Só a formatação. Devolve vazio quando não são 14 dígitos, para o
+    chamador poder recusar sem repetir a checagem. */
+function farolFormata(d){
+  d=farolDigitos(d);
+  if(d.length!==14) return '';
+  return d.slice(0,2)+'.'+d.slice(2,5)+'.'+d.slice(5,8)+'/'+d.slice(8,12)+'-'+d.slice(12);
+}
+
+/* Guarda o que já foi consultado nesta sessão: o vendedor volta ao
+   mesmo lead várias vezes, e o cadastro da Receita não muda no
+   intervalo de uma tarde. */
+var _farolCache={};
+
+async function farolCNPJ(){
+  var campo=document.getElementById('ld-cnpj');
+  var btn=document.getElementById('farol-btn');
+  if(!campo) return;
+  var d=farolDigitos(campo.value);
+
+  if(d.length!==14){
+    erro('ld-erro','O CNPJ precisa dos 14 dígitos para o farol consultar.');
+    return;
+  }
+  erro('ld-erro','');
+  campo.value=farolFormata(d);
+
+  var txtOriginal=btn?btn.textContent:'';
+  if(btn){ btn.disabled=true; btn.textContent='Consultando…'; }
+
+  try{
+    var dados=_farolCache[d];
+    if(!dados){
+      var res=await fetch('https://brasilapi.com.br/api/cnpj/v1/'+d);
+      if(res.status===404){
+        erro('ld-erro','CNPJ não encontrado na Receita Federal. Confira o número.');
+        return;
+      }
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      dados=await res.json();
+      _farolCache[d]=dados;
+    }
+    farolPreencher(dados);
+    /* Em paralelo, sem travar: o farol da Receita ja apareceu. */
+    farolPNCP(d);
+  }catch(e){
+    erro('ld-erro','Não consegui consultar agora ('+(e&&e.message||'')+'). O cadastro pode ser preenchido à mão.');
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent=txtOriginal; }
+  }
+}
+
+/** Preenche a ficha com o que veio da Receita.
+    ⚠️ NUNCA sobrescreve campo que a pessoa já preencheu. O que o
+    vendedor anotou na ligação vale mais que o cadastro: o contato
+    disse "somos a Alfa Serviços", e na Receita está "ALFA SERVICOS
+    EIRELI" — quem manda é quem atendeu o telefone. */
+function farolPreencher(x){
+  function porVazio(id,valor){
+    var el=document.getElementById(id);
+    if(!el || !valor) return false;
+    if(String(el.value||'').trim()) return false;
+    el.value=valor;
+    return true;
+  }
+  var cheios=0;
+  if(porVazio('ld-org', x.razao_social||'')) cheios++;
+  if(porVazio('ld-seg', x.cnae_fiscal_descricao||'')) cheios++;
+  if(porVazio('ld-cidade', [x.municipio,x.uf].filter(Boolean).join(' - '))) cheios++;
+
+  /* Porte é um <select>: só marca quando o valor da Receita casa com
+     uma das opções que existem. */
+  var porte={'MICRO EMPRESA':'Microempresa','EMPRESA DE PEQUENO PORTE':'Pequeno porte',
+             'DEMAIS':'','MEI':'MEI'}[String(x.porte||'').toUpperCase().trim()];
+  if(porte && porVazio('ld-porte', porte)) cheios++;
+
+  farolPainel(x);
+  /* O CRM não tem toast — a caixa de erro do próprio modal é o canal.
+     Mensagem boa não é só a de falha: dizer o que foi preenchido evita
+     a pessoa procurar o que mudou na ficha. */
+  var el=document.getElementById('ld-erro');
+  if(el){
+    el.style.display='block';
+    el.style.color='var(--t2)';
+    el.textContent = cheios
+      ? ('Farol: '+cheios+(cheios===1?' campo preenchido':' campos preenchidos')+'. Confira antes de salvar.')
+      : 'Farol: a ficha já estava preenchida — o resumo do CNPJ está abaixo.';
+    setTimeout(function(){ if(el.textContent.indexOf('Farol:')===0){ el.style.display='none'; el.style.color=''; } },6000);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   O HISTÓRICO NO PNCP — a parte que decide a venda
+
+   A Receita diz quem a empresa É. O PNCP diz o que ela FAZ em
+   licitação — e é essa a pergunta do vendedor.
+
+   Como chegamos aqui: a API oficial de consulta (`/v1/contratos`) NÃO
+   tem filtro por fornecedor. Conferido na documentação: só dá para
+   filtrar por órgão comprador. Seriam 23 mil contratos por semana para
+   varrer atrás de um CNPJ — inviável.
+
+   O que funciona é a busca do próprio site do PNCP (`/api/search/`),
+   que indexa o CNPJ do fornecedor. Não está na documentação pública,
+   então trato como o que é: pode mudar sem aviso. Por isso toda falha
+   aqui é silenciosa — o farol da Receita continua valendo sozinho, e
+   o vendedor nunca fica travado por causa disto.
+
+   ⚠️ O PNCP limita chamadas em rajada: testando, uma sequência rápida
+   passou a devolver nada. Uma chamada por clique, com cache, está
+   folgada — mas não transforme isto num laço.
+   ══════════════════════════════════════════════════════════════════ */
+
+var _pncpCache={};
+
+async function farolPNCP(cnpj){
+  var box=document.getElementById('farol-pncp'); if(!box) return;
+  var d=String(cnpj||'').replace(/\D/g,'');
+  if(d.length!==14){ box.style.display='none'; return; }
+
+  box.style.display='block';
+  box.innerHTML='<div class="pncp-carga">Consultando o histórico em licitações…</div>';
+
+  var dados=_pncpCache[d];
+  if(!dados){
+    try{
+      var url='https://pncp.gov.br/api/search/?q='+d+
+              '&tipos_documento=contrato&pagina=1&tam_pagina=20';
+      var r=await fetch(url);
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      dados=await r.json();
+      _pncpCache[d]=dados;
+    }catch(e){
+      /* Falhou: some sem drama. Este bloco é um bônus, não o farol. */
+      box.style.display='none';
+      return;
+    }
+  }
+  farolPNCPPainel(dados, d);
+}
+
+/** ⚠️ A busca do PNCP é TEXTO LIVRE: ela casa o CNPJ em qualquer campo
+    do documento, inclusive no do órgão comprador.
+    Descoberto testando com o CNPJ do Banco do Brasil, que voltou 1859
+    contratos — todos ele COMPRANDO, nenhum ele fornecendo. Sem este
+    filtro, uma prefeitura digitada por engano apareceria como
+    "licitante frequente".
+    Empresa privada nunca é órgão, então na prática isto quase nunca
+    tira nada — mas "quase nunca" não é "nunca", e o número precisa
+    significar o que diz. */
+function pncpSoFornecedor(itens, cnpj){
+  return (itens||[]).filter(function(i){
+    return String(i.orgao_cnpj||'').replace(/\D/g,'')!==cnpj;
+  });
+}
+
+function farolPNCPPainel(j, cnpj){
+  var box=document.getElementById('farol-pncp'); if(!box) return;
+  var itens=pncpSoFornecedor((j&&j.items)||[], cnpj);
+  /* `total` vem da busca inteira, que inclui o que o filtro tirou.
+     Quando o filtro removeu TUDO desta página, o CNPJ é de um órgão e
+     não de um fornecedor — e o total não vale nada. */
+  var total=itens.length ? ((j&&typeof j.total==='number')?j.total:itens.length) : 0;
+
+  if(!total){
+    box.innerHTML='<div class="pncp-t"><span class="pncp-tag zero">Nunca ganhou pelo PNCP</span></div>'+
+      '<div class="pncp-nota">Não achei contrato público em nome deste CNPJ desde 2023. '+
+      'Pode ser empresa que licita pouco, que perde, ou que nunca tentou — e é exatamente '+
+      'a conversa que a NH quer ter.</div>';
+    return;
+  }
+
+  /* Soma só o que veio nesta página. Dizer "R$ X em N contratos" com
+     N maior que os itens somados seria um número errado com cara de
+     certo — por isso o rótulo diz "nos últimos". */
+  var soma=itens.reduce(function(s,i){ return s+(Number(i.valor_global)||0); },0);
+  var fmt=function(v){ return v.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}); };
+
+  var ufs={}, orgaos={};
+  itens.forEach(function(i){
+    if(i.uf) ufs[i.uf]=(ufs[i.uf]||0)+1;
+    if(i.orgao_nome) orgaos[i.orgao_nome]=(orgaos[i.orgao_nome]||0)+1;
+  });
+  var topUf=Object.keys(ufs).sort(function(a,b){return ufs[b]-ufs[a]}).slice(0,4);
+  var topOrg=Object.keys(orgaos).sort(function(a,b){return orgaos[b]-orgaos[a]}).slice(0,3);
+
+  var recentes=itens.slice().sort(function(a,b){
+    return String(b.data_assinatura||'').localeCompare(String(a.data_assinatura||''));
+  }).slice(0,3);
+
+  /* O rótulo que resume tudo numa palavra. */
+  var perfil = total>=20 ? {t:'Licitante frequente', c:'forte'}
+             : total>=5  ? {t:'Licita com alguma constância', c:'medio'}
+             :             {t:'Licita pouco', c:'fraco'};
+
+  box.innerHTML=
+    '<div class="pncp-t">'+
+      '<span class="pncp-tag '+perfil.c+'">'+perfil.t+'</span>'+
+      '<b>'+total+(total===1?' contrato público':' contratos públicos')+'</b>'+
+      '<span class="pncp-sub">desde 2023, pelo PNCP</span>'+
+    '</div>'+
+    '<div class="farol-linhas">'+
+      '<div><span>Valor somado nos '+itens.length+' mais recentes</span>'+fmt(soma)+'</div>'+
+      (topUf.length?'<div><span>Onde ganha</span>'+esc(topUf.join(' · '))+'</div>':'')+
+      (topOrg.length?'<div><span>Órgãos que mais contratam</span>'+esc(topOrg.join(' · '))+'</div>':'')+
+    '</div>'+
+    '<div class="pncp-lista">'+
+      recentes.map(function(i){
+        return '<a class="pncp-item" target="_blank" rel="noopener noreferrer" '+
+          'href="https://pncp.gov.br'+esc(i.item_url||'')+'">'+
+          '<span class="pncp-item-v">'+fmt(Number(i.valor_global)||0)+'</span>'+
+          '<span class="pncp-item-o">'+esc(i.orgao_nome||'')+
+            (i.municipio_nome?' · '+esc(i.municipio_nome)+'/'+esc(i.uf||''):'')+'</span>'+
+          '<span class="pncp-item-d">'+esc(String(i.data_assinatura||'').split('-').reverse().join('/'))+'</span>'+
+        '</a>';
+      }).join('')+
+    '</div>';
+}
+
+/** O resumo que o formulário não tem campo para guardar, mas que muda
+    a decisão de vender ou não. */
+function farolPainel(x){
+  var box=document.getElementById('farol-painel'); if(!box) return;
+
+  var sit=String(x.descricao_situacao_cadastral||'').toUpperCase().trim();
+  var ativa=sit==='ATIVA';
+  var secundarios=(x.cnaes_secundarios||[]).filter(function(c){ return c && c.descricao; });
+  var socios=(x.qsa||[]).map(function(s){ return s.nome_socio; }).filter(Boolean);
+
+  function anos(iso){
+    if(!iso) return '';
+    var d=new Date(iso); if(isNaN(d.getTime())) return '';
+    var a=Math.floor((Date.now()-d.getTime())/31557600000);
+    return a>=1 ? (a+(a===1?' ano':' anos')+' de empresa') : 'menos de um ano de empresa';
+  }
+
+  box.style.display='block';
+  box.innerHTML=
+    '<div class="farol-t">'+
+      '<span class="farol-sit'+(ativa?'':' ruim')+'">'+esc(sit||'situação desconhecida')+'</span>'+
+      (x.nome_fantasia?'<b>'+esc(x.nome_fantasia)+'</b>':'')+
+      (anos(x.data_inicio_atividade)?'<span class="farol-idade">'+anos(x.data_inicio_atividade)+'</span>':'')+
+    '</div>'+
+    (!ativa
+      ? '<div class="farol-alerta">Empresa fora da situação ATIVA não participa de licitação. '+
+        'Vale confirmar com o contato antes de seguir com a proposta.</div>'
+      : '')+
+    '<div class="farol-linhas">'+
+      (x.cnae_fiscal_descricao?'<div><span>Atividade principal</span>'+esc(x.cnae_fiscal_descricao)+'</div>':'')+
+      (secundarios.length?'<div><span>Também pode atuar em</span>'+
+        esc(secundarios.slice(0,4).map(function(c){return c.descricao}).join(' · '))+
+        (secundarios.length>4?' <i>e mais '+(secundarios.length-4)+'</i>':'')+'</div>':'')+
+      (x.capital_social?'<div><span>Capital social</span>'+
+        Number(x.capital_social).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})+'</div>':'')+
+      (socios.length?'<div><span>Quem responde</span>'+esc(socios.slice(0,3).join(' · '))+
+        (socios.length>3?' <i>e mais '+(socios.length-3)+'</i>':'')+'</div>':'')+
+    '</div>';
+}
+
+/** Como chamar um lead na tela.
+    A razão social deixou de ser obrigatória em 17/08, então o rótulo
+    precisa de alternativas — mas SÓ na exibição. No banco continua o
+    que a pessoa digitou: inventar nome no dado é como se perde a
+    diferença entre "não sabemos" e "chama-se assim". */
+function ldRotulo(l){
+  if(!l) return '(sem nome)';
+  var org=String(l.empresa||'').trim();
+  if(org) return org;
+  var cnpj=String(l.cnpj||'').replace(/\D/g,'');
+  if(cnpj.length===14){
+    return 'CNPJ '+cnpj.slice(0,2)+'.'+cnpj.slice(2,5)+'.'+cnpj.slice(5,8)+'/'+cnpj.slice(8,12)+'-'+cnpj.slice(12);
+  }
+  if(cnpj) return 'CNPJ '+cnpj;
+  var nome=String(l.contatoNome||'').trim();
+  if(nome) return nome+' (contato)';
+  return '(sem nome)';
+}
 async function salvarLead(){
   var org=gv('ld-org'), etapa=gv('ld-etapa');
-  if(!org) return erro('ld-erro','Informe a razão social da empresa — é por ela que o lead é reconhecido.');
+  /* ⚠️ 17/08/2026 — a razão social deixou de ser obrigatória.
+     O vendedor liga, anota o CNPJ e o nome de quem atendeu, e a razão
+     social ele só descobre depois. Exigir agora fazia o lead nascer
+     com um nome inventado, ou não nascer.
+
+     O que o lead PRECISA é de alguma identificação. Sem razão social,
+     usa o CNPJ; sem CNPJ, o nome de quem atendeu. Só recusa quando não
+     há nada dos três — aí não há lead, há um cadastro em branco. */
+  if(!org && !gv('ld-cnpj').replace(/\D/g,'') && !gv('ld-nome').trim())
+    return erro('ld-erro','Informe pelo menos a razão social, o CNPJ ou o nome de quem atendeu — sem nada disso o lead não tem como ser reconhecido depois.');
   if(etapa==='PERDIDO' && !gv('ld-motivo'))
     return erro('ld-erro','Escolha o motivo da perda. Sem ele não há o que aprender no fim do mês.');
   erro('ld-erro','');
@@ -2829,6 +3205,17 @@ document.addEventListener('keydown', function(e){
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
 
 
 
