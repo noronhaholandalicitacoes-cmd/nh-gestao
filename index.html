@@ -7159,10 +7159,20 @@ async function nhRodarMigracaoEmpresa(){
       msg.style.color=ok?'#4ade80':'#fbbf24';
       msg.innerHTML=(ok
         ? '<strong>Pronto.</strong> Todos os registros têm empresa e os responsáveis estão resolvidos. Pode me avisar para eu seguir.'
+        /* ⚠️ A mensagem anterior mandava "preencha a empresa neles no
+           sistema" — e isso podia ser IMPOSSÍVEL. O carregamento
+           (`_load`) descarta todo registro com o campo ID vazio, com um
+           aviso no console: "Registro ignorado (campo [0] vazio)". Um
+           registro assim não aparece em tela nenhuma, então não há onde
+           preencher. Mandei o cliente procurar o que ele não podia
+           achar. Agora a mensagem separa os dois casos. */
         : '<strong>Quase.</strong> '+r.semEmpresa+' registro(s) sem empresa:<br>'+quais
-          +'<br>Preencha a empresa neles no sistema e rode de novo. '
-          +'Não é bloqueio: depois do passo 3 eles somem para as EMPRESAS clientes '
-          +'(o que é correto — sem empresa, não são de ninguém) e continuam visíveis para a equipe da NH.')
+          +'<br><br>Se o registro <b>aparece na tela</b> do sistema, abra, preencha a empresa e salve.'
+          +'<br>Se ele <b>não aparece em lugar nenhum</b>, é registro órfão — o sistema já o descarta '
+          +'ao carregar (campo ID vazio). Nesse caso não há o que preencher: apague pelo console do '
+          +'Firebase, ou simplesmente deixe como está.'
+          +'<br><br>De todo jeito <b>não é bloqueio</b>: depois do passo 3 ele some para as EMPRESAS '
+          +'clientes — o que é correto, sem empresa não é de ninguém — e segue visível para a equipe da NH.')
         +'<br><br>'+linhas+'<br>'+linhaResp;
     }
   }catch(err){
@@ -7202,7 +7212,26 @@ async function fbSave(e,a,t,_docId){
   o._updatedBy=(typeof USER_EMAIL!=='undefined'&&USER_EMAIL)||'';
   await db.collection(e).doc(_d).set(o);
   nhCarimbarAlteracao();
+  /* Mantém o contador que o Portal de Contratos usa para numerar
+     contrato novo. Ele existe porque, depois do passo 3, a empresa
+     cliente não pode mais ler a coleção inteira para descobrir o maior
+     ID — ver a nota em portal-empresa.html, na criação de contrato. */
+  if(e===FB_COLS.ganhas) nhAtualizarSeqGanhas(a);
   _nhAuditou(e,a,_existia,_antes,t);
+}
+
+/* Só sobe, nunca desce: um contrato antigo sendo reeditado não pode
+   fazer a numeração voltar atrás e colidir com o que já existe. */
+function nhAtualizarSeqGanhas(id){
+  var n=parseInt(id,10);
+  if(!Number.isFinite(n)) return;
+  try{
+    db.collection('config').doc('seq_ganhas').get().then(function(d){
+      var atual=d.exists?parseInt((d.data()||{}).proximo,10):0;
+      if(!Number.isFinite(atual)) atual=0;
+      if(n+1>atual) return db.collection('config').doc('seq_ganhas').set({proximo:n+1},{merge:true});
+    }).catch(function(){});
+  }catch(_e){}
 }
 
 /* ══════════════════════════════════════════════════════════════════
