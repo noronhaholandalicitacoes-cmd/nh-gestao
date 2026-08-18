@@ -1825,6 +1825,41 @@ const PS_PORTAL = 20; // registros por página
 const EMPRESAS_SISTEMA = ['VISE','SOS','SOS FILIAL','SAUTEC','ONLAV','ENGEMED'];
 const auth = _portalApp.auth();
 var CONTA_MESTRA_EMPRESAS = null; // travado no login da conta mestra — nunca cresce sozinho
+
+/* ══════════════════════════════════════════════════════════════════
+   PASSO 2 DA SEPARAÇÃO POR EMPRESA — 18/08/2026
+
+   Até aqui este arquivo baixava as coleções INTEIRAS e escondia no
+   navegador o que não era do cliente — `window._portalDescartados`
+   guardava até a contagem do que foi descartado, de quem. O dado das
+   concorrentes chegava à máquina do cliente; bastava o console.
+
+   `_pEscopo()` devolve a lista de empresas para a cláusula
+   `.where('empresa','in', ...)`, ou `null` quando não deve filtrar:
+
+     · conta mestra / admin → null (vê tudo, e a regra reconhece isso)
+     · empresa comum        → ['VISE'] etc., o nome exato gravado no
+                              documento pelo passo 1
+
+   Depois do passo 3, consulta sem a cláusula é NEGADA pela regra —
+   é isso que fecha a brecha de verdade, e não a filtragem na tela.
+   ══════════════════════════════════════════════════════════════════ */
+function _pEscopo(){
+  if(isAdmin) return null;
+  if(CONTA_MESTRA_EMPRESAS && CONTA_MESTRA_EMPRESAS.length) return null;
+  var e=String(empAtual||'').trim().toUpperCase();
+  return e ? [e] : null;
+}
+
+/* Aplica o filtro quando houver escopo. Uma função só, para as cinco
+   consultas não divergirem com o tempo — foi assim que o `===` exato
+   sobreviveu num lugar depois de corrigido no outro, em 15/08. */
+function _pQuery(colecao){
+  var esc=_pEscopo();
+  var ref=db.collection(colecao);
+  /* `in` aceita 30 valores; são 6 empresas no total. */
+  return esc ? ref.where('empresa','in',esc.slice(0,30)) : ref;
+}
 var EMP_NOME_POR_CNPJ = {};
 
 /* A senha de acesso pode ser redefinida pela NH. Como um site estático
@@ -2231,15 +2266,61 @@ async function mcSalvar(){
         _portalLog: firebase.firestore.FieldValue.arrayUnion(logEntry)
       });
     } else {
-      // Novo contrato — próximo ID livre (não reutiliza documento existente)
-      var snap = await db.collection('ganhas').orderBy('_id','desc').limit(1).get();
-      var nextId = snap.empty ? 1 : (snap.docs[0].data()._id||0)+1;
+      /* ⚠️ MUDOU EM 18/08/2026, junto com o passo 2.
+
+         Antes o próximo ID vinha de `.orderBy('_id','desc').limit(1)` —
+         uma leitura da coleção INTEIRA, sem filtro por empresa. Depois
+         do passo 3 a regra nega essa consulta para a empresa cliente, e
+         o sinal de "não achei" viraria uma exceção: o laço abaixo
+         tratava `!_d.exists` como "livre", mas permissão negada não é
+         documento inexistente — é erro. O contrato nasceria com ID
+         errado ou a tela travaria.
+
+         Agora o número vem de um contador em `config/seq_ganhas`, que o
+         Sistema NH mantém a cada gravação. Uma leitura só, do próprio
+         documento, sem varrer nada.
+
+         Quando o contador ainda não existe (nenhum contrato salvo pelo
+         sistema desde a mudança), quem vê tudo — admin e conta mestra —
+         cai no caminho antigo, que continua permitido para eles. A
+         empresa comum recebe uma mensagem clara em vez de um contrato
+         com número duplicado. */
+      var nextId = 0;
+      try{
+        var _c = await db.collection('config').doc('seq_ganhas').get();
+        var _prox = _c.exists ? parseInt((_c.data()||{}).proximo, 10) : NaN;
+        if(Number.isFinite(_prox) && _prox > 0) nextId = _prox;
+      }catch(_e){}
+
+      if(!nextId){
+        if(_pEscopo()){
+          erroEl.textContent = 'Não consigo gerar o número do contrato agora. '+
+            'Peça à NH para salvar qualquer contrato no sistema uma vez — isso inicia a numeração.';
+          erroEl.style.display='block';
+          btn.disabled=false; btn.textContent='💾 Salvar Contrato';
+          return;
+        }
+        var snap = await db.collection('ganhas').orderBy('_id','desc').limit(1).get();
+        nextId = snap.empty ? 1 : (snap.docs[0].data()._id||0)+1;
+      }
+
+      /* Confere se o número está livre. A checagem vale para quem vê
+         tudo; para a empresa comum um documento de outra empresa é
+         invisível, e por isso a leitura pode falhar — nesse caso o
+         contador manda, que é a fonte de verdade. */
       for(var _g=0; _g<50; _g++){
-        var _d = await db.collection('ganhas').doc(String(nextId)).get();
-        if(!_d.exists) break;
+        try{
+          var _d = await db.collection('ganhas').doc(String(nextId)).get();
+          if(!_d.exists) break;
+        }catch(_e){ break; }
         nextId++;
       }
       arr[0] = nextId;
+      /* Empurra o contador para o próximo, para dois cadastros
+         simultâneos não caírem no mesmo número. */
+      try{
+        await db.collection('config').doc('seq_ganhas').set({proximo: nextId+1},{merge:true});
+      }catch(_e){}
       var logEntryN = { autor: autor, empresa: empAtual, data: _agora, acao: 'Contrato criado pelo portal' };
       await db.collection('ganhas').doc(String(nextId)).set({
         _id: nextId, _arr: arr, _updatedAt: Date.now(), _createdAt: Date.now(),
@@ -3177,7 +3258,7 @@ let dadosAndamento = [];
 
 async function carregarAndamento(){
   try{
-    const snap = await db.collection('andamento').get();
+    const snap = await _pQuery('andamento').get();
     const out = [];
     snap.forEach(doc => {
       const arr = (doc.data()._arr) || [];
@@ -3215,7 +3296,7 @@ var ATEST_POR_CONTRATO = null;
 
 async function carregarAtestados(){
   try{
-    const snap = await db.collection('atestados').get();
+    const snap = await _pQuery('atestados').get();
     const out = [];
     snap.forEach(doc => {
       const arr = (doc.data()._arr) || [];
@@ -3590,7 +3671,7 @@ function _portalGanhasDocs(){
     if(window._portalListener){ resolve(window._portalSnapDocs || []); return; }
 
     var primeira = true;
-    window._portalListener = db.collection('ganhas').onSnapshot(function(snap){
+    window._portalListener = _pQuery('ganhas').onSnapshot(function(snap){
       window._portalSnapDocs = snap.docs;
       if(primeira){ primeira = false; resolve(snap.docs); return; }
 
@@ -4376,7 +4457,7 @@ function _execAgendarRedesenho(){
 }
 
 function _execOuvir(colecao, destino){
-  return db.collection(colecao).onSnapshot(function(snap){
+  return _pQuery(colecao).onSnapshot(function(snap){
     var novo = {};
     snap.forEach(function(doc){
       var d = doc.data() || {};
