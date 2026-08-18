@@ -93,12 +93,72 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
 }
 
 /* Filtros */
-/* Sem padding por padrão: com a linha de Status removida, quem não é
-   admin não vê nenhum filtro aqui, e o padding deixava uma faixa vazia.
-   A classe .tem-filtro é ligada quando alguma linha aparece. */
-.filtros-wrap{padding:0 18px;display:flex;flex-direction:column;gap:12px;position:relative;z-index:1}
+/* O padding voltou a ser fixo em 18/08/2026: antes ficava zerado até
+   alguma linha de filtro aparecer, porque quem não é admin não via
+   filtro nenhum e sobrava uma faixa vazia. Agora a barra de busca e
+   prioridade está sempre lá, para todo mundo, então a faixa nunca é
+   vazia. `.tem-filtro` continua existindo — as linhas de Responsável e
+   Empresa ainda a ligam — e virou inofensiva. */
+.filtros-wrap{padding:8px 18px 14px;display:flex;flex-direction:column;gap:12px;position:relative;z-index:1}
 .filtros-wrap.tem-filtro{padding:8px 18px 14px}
 .filtros-row{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+
+/* ── Barra embutida: busca + prioridade + período ──────────────────
+   Uma faixa só, no lugar de três linhas rotuladas empilhadas. Numa
+   tela feita para despachar fila, altura gasta com controle é altura
+   que não mostra edital. */
+.v-barra{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+
+.v-busca{display:flex;align-items:center;gap:7px;flex:1 1 260px;min-width:0;
+  background:var(--s1);border:1px solid var(--b1);border-radius:9px;
+  padding:0 10px;color:var(--t3)}
+.v-busca:focus-within{border-color:var(--nh);color:var(--nh)}
+.v-busca input{flex:1;min-width:0;background:none;border:none;outline:none;
+  color:var(--t1);font-family:inherit;font-size:13px;padding:9px 0}
+.v-busca input::placeholder{color:var(--t3)}
+/* O X nativo do type=search não existe no Firefox e some no Safari —
+   por isso o botão é nosso. */
+.v-busca input::-webkit-search-cancel-button{display:none}
+.v-busca-x{background:none;border:none;cursor:pointer;color:var(--t3);
+  font-size:13px;line-height:1;padding:4px}
+.v-busca-x:hover{color:var(--t1)}
+
+.v-prio-filtro{display:flex;gap:5px;flex-shrink:0}
+.v-chip{background:var(--s1);border:1px solid var(--b1);color:var(--t3);
+  cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;
+  padding:8px 13px;border-radius:9px;white-space:nowrap}
+.v-chip:hover{color:var(--t1)}
+.v-chip.on{background:var(--nh);border-color:var(--nh);color:#fff}
+.v-chip.alta.on{background:var(--r1);border-color:var(--r1)}
+.v-chip.media.on{background:var(--y1);border-color:var(--y1);color:#1a1a1a}
+
+/* Quantos a busca achou. Sem isto, buscar e não achar nada fica igual
+   a "não existe edital nenhum". */
+.v-achados{font-size:11.5px;color:var(--t3);flex-basis:100%;margin-top:-2px}
+.v-achados b{color:var(--t2)}
+
+/* ── Bandeirinha de prioridade no cartão ───────────────────────────
+   Três estados no mesmo botão (nenhuma → alta → média → nenhuma). Um
+   botão só, porque marcar prioridade é gesto rápido no meio da fila;
+   abrir menu para isso custa mais que a marcação vale. */
+.v-prio{display:inline-flex;align-items:center;gap:5px;cursor:pointer;
+  background:var(--s1);border:1px solid var(--b1);color:var(--t3);
+  font-family:inherit;font-size:11px;font-weight:700;
+  padding:4px 10px;border-radius:999px}
+.v-prio:hover{border-color:var(--t3);color:var(--t2)}
+.v-prio.alta{background:rgba(239,68,68,.13);border-color:rgba(239,68,68,.45);color:#f87171}
+.v-prio.media{background:rgba(234,179,8,.13);border-color:rgba(234,179,8,.45);color:#eab308}
+/* A faixa lateral repete a prioridade na borda do cartão: numa lista
+   longa, é o que se enxerga sem ler. */
+.card.prio-alta{border-left:3px solid var(--r1)}
+.card.prio-media{border-left:3px solid var(--y1)}
+
+@media (max-width:640px){
+  .v-barra{gap:7px}
+  .v-busca{flex:1 1 100%}
+  .v-prio-filtro{flex:1}
+  .v-chip{flex:1;text-align:center;padding:8px 6px}
+}
 
 /* ── Filtro de período: botão + painel ─────────────────────────────
    Mesmo padrão dos outros dois sistemas. Nasceu com um select e dois
@@ -581,12 +641,28 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
       <button class="f-btn on" id="fe-todos" onclick="setFiltroEmp('todos',this)">Todas</button>
     </div>
   </div>
-  <!-- Período num botão só, como nos outros dois sistemas. O edital
-       tem uma data só (lançamento), então aqui não se pergunta "sobre
-       qual data" — só o intervalo. -->
-  <div id="linha-periodo">
-    <div class="filtro-label">Período</div>
-    <div class="filtros-row" id="filtros-periodo" style="align-items:center">
+  <!-- ── Barra embutida: busca + prioridade + período ──────────────
+       Antes cada filtro tinha a própria linha, com rótulo em cima:
+       três blocos empilhados antes de chegar no primeiro edital. Numa
+       tela que existe para despachar fila, isso é altura gasta com
+       controle em vez de conteúdo.
+       Agora é uma faixa só, e os rótulos saíram: "Buscar" está no
+       placeholder e as bandeirinhas se explicam pela cor. -->
+  <div class="v-barra">
+    <div class="v-busca">
+      <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="m20 20-3.5-3.5"/></svg>
+      <input type="search" id="v-busca" placeholder="Buscar licitação, objeto, órgão, município…"
+             autocomplete="off" oninput="vBuscar(this.value)">
+      <button type="button" id="v-busca-x" class="v-busca-x" onclick="vLimparBusca()" title="Limpar busca" style="display:none">✕</button>
+    </div>
+
+    <div class="v-prio-filtro" role="group" aria-label="Filtrar por prioridade">
+      <button class="v-chip on" id="vp-todas" onclick="setFiltroPrio('todas',this)">Todas</button>
+      <button class="v-chip alta"  id="vp-alta"  onclick="setFiltroPrio('alta',this)"  title="Só as marcadas como alta">🔴 Alta</button>
+      <button class="v-chip media" id="vp-media" onclick="setFiltroPrio('media',this)" title="Só as marcadas como média">🟡 Média</button>
+    </div>
+
+    <div class="filtros-row" id="filtros-periodo" style="align-items:center;margin:0">
       <div class="per-wrap">
         <button class="per-btn" id="v-per-btn" onclick="vTogglePop(event)" title="Filtrar por data">
           <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -1015,7 +1091,10 @@ async function carregar(){
         return;
       }
       if(!podeVerResp(d._arr[9])){_desc.resp++; return;}
-      TODOS.push({id:doc.id,_id:d._id,arr:d._arr});
+      /* `prioridade` é campo de primeiro nível, não posição do `_arr`:
+         o array é o mesmo schema do Sistema NH, e esticá-lo aqui
+         obrigaria a mexer nos dois lados a cada mudança. */
+      TODOS.push({id:doc.id,_id:d._id,arr:d._arr,prio:String(d.prioridade||'')});
     });
     TODOS.sort(function(a,b){return b._id-a._id;});
     _canon=null;
@@ -1271,9 +1350,124 @@ function vPintarResumo(){
     : '';
 }
 
+/* ── Busca ─────────────────────────────────────────────────────────
+   Procura em licitação, objeto, município, local, empresa e
+   responsável — os seis campos por onde alguém realmente lembra de um
+   edital. Sem acento e sem caixa, porque ninguém digita "MUNICÍPIO"
+   com acento no meio da correria. */
+var FILTRO_BUSCA='';
+var _buscaTimer=null;
+
+function vTextoDoEdital(d){
+  if(d._busca!==undefined) return d._busca;
+  var a=d.arr||[];
+  d._busca=normTxt([a[3],a[4],a[6],a[5],a[2],a[9]].join(' '));
+  return d._busca;
+}
+
+/* A contagem só aparece quando algum filtro está apertando — dizer
+   "48 editais" com a lista inteira na tela é ruído. */
+function vPintarAchados(n){
+  var el=document.getElementById('v-achados');
+  if(!el){
+    var barra=document.querySelector('.v-barra');
+    if(!barra) return;
+    el=document.createElement('div');
+    el.id='v-achados'; el.className='v-achados';
+    barra.appendChild(el);
+  }
+  if(!FILTRO_BUSCA && FILTRO_PRIO==='todas'){ el.textContent=''; return; }
+  el.innerHTML='<b>'+n+'</b> '+(n===1?'edital encontrado':'editais encontrados')
+    +(FILTRO_BUSCA?' para “'+esc(document.getElementById('v-busca').value.trim())+'”':'');
+}
+
+function vBuscar(v){
+  /* Espera a digitação parar: a cada tecla é uma re-renderização da
+     lista inteira, e com algumas centenas de cartões isso engasga. */
+  clearTimeout(_buscaTimer);
+  _buscaTimer=setTimeout(function(){
+    FILTRO_BUSCA=normTxt(String(v||'').trim());
+    var x=document.getElementById('v-busca-x');
+    if(x) x.style.display=FILTRO_BUSCA?'':'none';
+    renderizar();
+  },180);
+}
+
+function vLimparBusca(){
+  var i=document.getElementById('v-busca');
+  if(i) i.value='';
+  FILTRO_BUSCA='';
+  var x=document.getElementById('v-busca-x');
+  if(x) x.style.display='none';
+  renderizar();
+  if(i) i.focus();
+}
+
+/* ── Prioridade ────────────────────────────────────────────────────
+   Gravada como campo de primeiro nível (`prioridade`), não como
+   posição nova no `_arr`: o array é o schema compartilhado com o
+   Sistema NH, e esticá-lo obrigaria a mexer nos dois lados.
+   O fbSave do Sistema NH preserva este campo — ele grava com `set`
+   sem merge, então tem uma lista explícita do que recuperar. */
+var FILTRO_PRIO='todas';
+var PRIO_CICLO={'':'alta','alta':'media','media':''};
+var PRIO_ROTULO={'alta':'🔴 Alta','media':'🟡 Média','':'○ Prioridade'};
+
+function setFiltroPrio(f,btn){
+  FILTRO_PRIO=f;
+  ['vp-todas','vp-alta','vp-media'].forEach(function(id){
+    var e=document.getElementById(id); if(e) e.classList.remove('on');
+  });
+  if(btn) btn.classList.add('on');
+  renderizar();
+}
+
+async function togglePrioridade(id,ev){
+  if(ev) ev.stopPropagation();
+  var d=TODOS.find(function(x){return x.id===id;});
+  if(!d) return;
+  var novo=PRIO_CICLO[d.prio||''];
+  var btn=document.getElementById('prio-'+id);
+  /* Pinta antes de gravar: é uma marcação pessoal de triagem, e
+     esperar a rede para ver a cor mudar faz o botão parecer travado.
+     Se a gravação falhar, volta ao que era e avisa. */
+  var antes=d.prio;
+  d.prio=novo;
+  if(btn){
+    btn.className='v-prio'+(novo?' '+novo:'');
+    btn.textContent=PRIO_ROTULO[novo];
+  }
+  var card=document.getElementById('card-'+id);
+  if(card){
+    card.classList.remove('prio-alta','prio-media');
+    if(novo) card.classList.add('prio-'+novo);
+  }
+  try{
+    await db.collection('editais').doc(id).set({prioridade:novo},{merge:true});
+  }catch(e){
+    d.prio=antes;
+    if(btn){
+      btn.className='v-prio'+(antes?' '+antes:'');
+      btn.textContent=PRIO_ROTULO[antes||''];
+    }
+    if(card){
+      card.classList.remove('prio-alta','prio-media');
+      if(antes) card.classList.add('prio-'+antes);
+    }
+    toast('Não consegui salvar a prioridade: '+e.message,'err');
+    return;
+  }
+  /* Se a lista está filtrada por prioridade, o cartão que acabou de
+     sair do filtro tem de sumir — senão fica ali, contradizendo o
+     próprio filtro. */
+  if(FILTRO_PRIO!=='todas') renderizar();
+}
+
 function getFiltrados(){
   return TODOS.filter(function(d){
     if(!vNoPeriodo(d.arr)) return false;
+    if(FILTRO_PRIO!=='todas' && (d.prio||'')!==FILTRO_PRIO) return false;
+    if(FILTRO_BUSCA && vTextoDoEdital(d).indexOf(FILTRO_BUSCA)===-1) return false;
     var part=String(d.arr[10]||'').toUpperCase().trim();
     var resp=String(d.arr[9]||'').toUpperCase().trim();
     var emp=String(d.arr[2]||'').trim();
@@ -1312,8 +1506,26 @@ function atualizarStats(){
 function renderizar(){
   atualizarStats();
   var lista=ordenarPorPrazo(getFiltrados());
+  vPintarAchados(lista.length);
   if(!lista.length){
-    document.getElementById('main-content').innerHTML='<div class="empty"><div class="empty-ico">📭</div>Nenhum edital neste filtro</div>';
+    /* Vazio que diz o PORQUÊ e oferece a saída. "Nenhum edital neste
+       filtro" com quatro filtros ligados não ajuda ninguém a descobrir
+       qual deles apertou demais. */
+    var ativos=[];
+    if(FILTRO_BUSCA) ativos.push('a busca');
+    if(FILTRO_PRIO!=='todas') ativos.push('a prioridade');
+    if(FILTRO_STATUS!=='todos') ativos.push('o status');
+    if(FILTRO_RESP!=='todos') ativos.push('o responsável');
+    if(FILTRO_EMP!=='todos') ativos.push('a empresa');
+    var msg = ativos.length
+      ? 'Nenhum edital com '+(ativos.length>1
+          ? ativos.slice(0,-1).join(', ')+' e '+ativos[ativos.length-1]
+          : ativos[0])+' assim.'
+      : 'Nenhum edital para mostrar.';
+    document.getElementById('main-content').innerHTML=
+      '<div class="empty"><div class="empty-ico">🔍</div>'+esc(msg)+
+      (FILTRO_BUSCA?'<div style="margin-top:10px"><button class="v-chip" onclick="vLimparBusca()">Limpar a busca</button></div>':'')+
+      '</div>';
     return;
   }
   var wrap=document.createElement('div');
@@ -1397,8 +1609,16 @@ function diasAteSessao(arr){
    para o fim — não dá mais para decidir participação, então ficar no topo
    só empurraria para baixo o que ainda dá tempo de avaliar. Edital sem
    data fica entre os dois, ordenado do mais recente para o mais antigo. */
+var _PRIO_PESO={'alta':0,'media':1,'':2};
+
 function ordenarPorPrazo(lista){
   return lista.slice().sort(function(a,b){
+    /* Prioridade vem antes do prazo, de propósito: marcar é dizer
+       "este importa mais", e uma marcação que não muda a ordem não
+       serve para nada. Dentro de cada faixa o prazo continua mandando,
+       então nada urgente se perde — só desce alguns cartões. */
+    var pa=_PRIO_PESO[a.prio||''],pb=_PRIO_PESO[b.prio||''];
+    if(pa!==pb) return pa-pb;
     var da=dataSessao(a.arr),db_=dataSessao(b.arr);
     var ga=da?(diasAteSessao(a.arr)<0?2:0):1;
     var gb=db_?(diasAteSessao(b.arr)<0?2:0):1;
@@ -1426,6 +1646,8 @@ function renderCard(d){
 
   var empCor=EMP_CORES[emp]||'#f97316';
   var cardCls=isSim(part)?'sim':isNao(part)?'nao':isAnalise(part)?'analise':'';
+  var prio=String(d.prio||'');
+  if(prio) cardCls+=' prio-'+prio;
 
   var tagResp=tagResponsavel(arr[9]);
 
@@ -1470,6 +1692,12 @@ function renderCard(d){
         '<span class="card-emp" style="background:'+empCor+'22;color:'+empCor+';border:1px solid '+empCor+'44">'+esc(emp)+'</span>'+
         tagResp+
         pill+
+        /* Fica na mesma linha das tags, e não junto dos botões de voto:
+           marcar prioridade é triagem, não decisão — misturar os dois
+           convida a clicar em SIM sem querer. */
+        '<button type="button" class="v-prio'+(prio?' '+prio:'')+'" id="prio-'+id+'" '+
+          'title="Prioridade — clique para alternar entre alta, média e nenhuma" '+
+          'onclick="togglePrioridade(\''+id+'\',event)">'+PRIO_ROTULO[prio]+'</button>'+
       '</div>'+
     '</div>'+
     '<div class="card-info">'+
