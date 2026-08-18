@@ -496,6 +496,28 @@ textarea.mc-input{resize:vertical;min-height:64px}
 .exec-vazio{padding:26px 16px;text-align:center;color:var(--t2);font-size:13px;line-height:1.7;
   border:1px dashed var(--b2);border-radius:10px}
 
+/* ── Atestados do contrato (18/08/2026) ──────────────────────────── */
+.at-resumo{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:13px}
+.at-kpi{flex:1 1 90px;min-width:0;background:var(--s1);border:1px solid var(--b1);
+  border-radius:10px;padding:10px 12px;text-align:center}
+.at-kpi b{display:block;font-size:19px;font-weight:800;color:var(--t1);line-height:1.2}
+.at-kpi i{font-style:normal;font-size:10.5px;color:var(--t3)}
+.at-kpi.ok b{color:#22c55e}
+.at-kpi.pend b{color:#eab308}
+
+.at-lista{display:grid;gap:9px}
+.at-linha{background:var(--s1);border:1px solid var(--b1);border-left:3px solid var(--ac);
+  border-radius:10px;padding:11px 13px}
+.at-linha-top{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:5px}
+.at-tag{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;
+  padding:2px 9px;border-radius:999px;white-space:nowrap}
+.at-obj{font-size:12.5px;font-weight:600;color:var(--t1);min-width:0;flex:1}
+.at-meta{font-size:11.5px;color:var(--t3);line-height:1.6}
+.at-meta b{color:var(--t2);font-weight:700}
+.at-obs{margin-top:6px;font-size:11.5px;color:var(--t2);line-height:1.55;white-space:pre-line}
+.at-link{display:inline-block;margin-top:7px;font-size:11.5px;font-weight:700;color:var(--nh)}
+.at-link:hover{text-decoration:underline}
+
 @media(max-width:640px){
   .exec-saude{gap:12px}
   .exec-chips{gap:12px}
@@ -3169,6 +3191,90 @@ async function carregarAndamento(){
   }
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   ATESTADOS DE CAPACIDADE TÉCNICA — 18/08/2026
+
+   Pedido do cliente: a empresa precisa saber, no próprio contrato,
+   como está o andamento dos atestados dela.
+
+   Faz sentido que viva aqui e não só no Sistema NH: o atestado é o que
+   a empresa LEVA para a próxima licitação. Um contrato executado sem
+   atestado emitido é trabalho feito que não conta como qualificação
+   técnica — e quem descobre isso tarde perde a licitação seguinte por
+   falta de papel, não por preço.
+
+   O array vem do Sistema NH (aba Atestados):
+     0 id · 1 data · 2 empresa · 3 licitação · 4 objeto · 5 local
+     6 município · 7 contrato · 8 data do contrato · 9 vigência
+     10 requerido(SIM/NÃO) · 11 recebido(SIM/NÃO) · 12 data receb.
+     13 emitente · 14 CAT · 15 status CAT · 16 ART · 17 status ART
+     18 STATUS · 19 observação · 20 link
+   ══════════════════════════════════════════════════════════════════ */
+var ATEST = [];
+var ATEST_POR_CONTRATO = null;
+
+async function carregarAtestados(){
+  try{
+    const snap = await db.collection('atestados').get();
+    const out = [];
+    snap.forEach(doc => {
+      const arr = (doc.data()._arr) || [];
+      const emp = String(arr[2]||'').trim().toUpperCase();
+      if(isAdmin || mesmaEmpresa(emp, empAtual)) out.push(arr);
+    });
+    ATEST = out;
+  }catch(e){
+    /* Sem permissão ou sem rede: a seção some, o resto do portal segue.
+       Atestado é informação a mais — não pode derrubar a tela dos
+       contratos, que é o que a empresa vem ver. */
+    console.warn('[Portal] Não consegui ler atestados:', e.message);
+    ATEST = [];
+  }
+  ATEST_POR_CONTRATO = null;
+}
+
+/* A chave é a LICITAÇÃO, não o número do contrato: o contrato às vezes
+   é preenchido depois (ou nunca), enquanto a licitação existe desde a
+   captação e é a mesma nos dois cadastros. O número do contrato entra
+   como segunda chance, para o caso de a licitação ter sido digitada
+   diferente de um lado e do outro. */
+function _atKey(s){
+  return String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+}
+function atestadosDoContrato(arr){
+  if(!ATEST_POR_CONTRATO){
+    ATEST_POR_CONTRATO = {porLicit:{}, porContrato:{}};
+    ATEST.forEach(function(a){
+      var kl=_atKey(a[3]); if(kl) (ATEST_POR_CONTRATO.porLicit[kl]=ATEST_POR_CONTRATO.porLicit[kl]||[]).push(a);
+      var kc=_atKey(a[7]); if(kc) (ATEST_POR_CONTRATO.porContrato[kc]=ATEST_POR_CONTRATO.porContrato[kc]||[]).push(a);
+    });
+  }
+  var porL=ATEST_POR_CONTRATO.porLicit[_atKey(arr[IDX.LICITACAO])]||[];
+  if(porL.length) return porL;
+  return ATEST_POR_CONTRATO.porContrato[_atKey(arr[IDX.CONTRATO])]||[];
+}
+
+/* Um atestado conta como RESOLVIDO quando o status diz completo ou
+   recebido, ou quando o campo "recebido" está em SIM. São três formas
+   de dizer a mesma coisa, e o cadastro usa as três conforme a época —
+   ler só o status faria atestado recebido aparecer como pendente. */
+function atestResolvido(a){
+  var st=String(a[18]||'').toUpperCase().trim();
+  if(st==='COMPLETO'||st==='RECEBIDO') return true;
+  return String(a[11]||'').toUpperCase().trim()==='SIM';
+}
+
+function atestResumo(arr){
+  var lista=atestadosDoContrato(arr);
+  var r={total:lista.length, prontos:0, pendentes:0, cat:0, art:0, lista:lista};
+  lista.forEach(function(a){
+    if(atestResolvido(a)) r.prontos++; else r.pendentes++;
+    if(String(a[15]||'').toUpperCase().indexOf('EMIT')>-1 || String(a[14]||'').trim()) r.cat++;
+    if(String(a[17]||'').toUpperCase().indexOf('EMIT')>-1 || String(a[16]||'').trim()) r.art++;
+  });
+  return r;
+}
+
 function _pDias(v){
   // Corta qualquer hora após a data (ex.: "27/03/2026 as 23.59") antes de parsear.
   const s=String(v||'').trim().split(' ')[0]; if(!s) return null;
@@ -3569,6 +3675,9 @@ async function carregarContratos(){
        lista depois de carregá-los. */
     pPopularPeriodos();
     await carregarAndamento();
+    /* Atestados junto do andamento: os dois são leitura de apoio e
+       nenhum bloqueia a lista de contratos, que já está na tela. */
+    await carregarAtestados();
     renderContratos();
     renderStats();
     renderAvisos();
@@ -3672,6 +3781,29 @@ function renderStats(){
     if(ex.glosado>0)  html += sc('Glosado', fmtMoedaP(ex.glosado), '#eab308', '');
     if(ex.notAbertas>0) html += sc('Notif. Abertas', ex.notAbertas, '#ef4444',
       ex.multas>0 ? 'multas ' + fmtMoedaP(ex.multas) : '');
+    html += '</div>';
+  }
+
+  /* ── Atestados, no agregado (18/08/2026) ──
+     Terceira fileira, e só aparece quando há atestado cadastrado. O que
+     interessa à empresa não é o total: é quantos contratos executados
+     ainda NÃO renderam atestado — isso é qualificação técnica que ela
+     tem direito e não está usando na próxima licitação. */
+  var atg = {total:0, prontos:0, pendentes:0, contratosSemNenhum:0};
+  dadosGanhas.forEach(function(e){
+    var r = atestResumo(e.arr);
+    atg.total += r.total; atg.prontos += r.prontos; atg.pendentes += r.pendentes;
+    if(!r.total) atg.contratosSemNenhum++;
+  });
+
+  if(atg.total > 0){
+    html += '<div class="kpi-grid" style="margin-top:10px">';
+    html += sc('Atestados em mãos', atg.prontos, '#22c55e',
+      atg.total ? ('de ' + atg.total + ' registrados') : '');
+    if(atg.pendentes>0) html += sc('Atestados em andamento', atg.pendentes, '#a855f7',
+      'solicitados e ainda não recebidos');
+    if(atg.contratosSemNenhum>0) html += sc('Contratos sem atestado', atg.contratosSemNenhum, '#eab308',
+      'execução que ainda não virou qualificação');
     html += '</div>';
   }
 
@@ -4348,17 +4480,85 @@ function execMontarAbas(id, arr, geralHTML, histHTML){
       '<button class="exec-aba on" data-aba="geral" onclick="execTrocarAba(\''+id+'\',\'geral\',this)">Visão Geral</button>' +
       '<button class="exec-aba" data-aba="fat" onclick="execTrocarAba(\''+id+'\',\'fat\',this)">Faturamento'+selo(r.qtd,'#22c55e')+'</button>' +
       '<button class="exec-aba" data-aba="not" onclick="execTrocarAba(\''+id+'\',\'not\',this)">Notificações'+selo(n.abertas,'#ef4444')+'</button>' +
+      /* Atestados entram como aba própria, e não dentro da Visão Geral:
+         é o documento que a empresa leva para a PRÓXIMA licitação, então
+         merece lugar fixo em vez de virar mais uma linha. O selo conta
+         os pendentes, que é a única parte acionável. */
+      '<button class="exec-aba" data-aba="atest" onclick="execTrocarAba(\''+id+'\',\'atest\',this)">Atestados'+selo(atestResumo(arr).pendentes,'#a855f7')+'</button>' +
       '<button class="exec-aba" data-aba="hist" onclick="execTrocarAba(\''+id+'\',\'hist\',this)">Histórico</button>' +
     '</div>' +
     '<div class="exec-painel" id="aba-geral-'+id+'">' + geralHTML + '</div>' +
     '<div class="exec-painel" id="aba-fat-'+id+'" style="display:none">' + execAbaFaturamento(id, arr) + '</div>' +
     '<div class="exec-painel" id="aba-not-'+id+'" style="display:none">' + execAbaNotificacoes(id, arr) + '</div>' +
+    '<div class="exec-painel" id="aba-atest-'+id+'" style="display:none">' + execAbaAtestados(arr) + '</div>' +
     '<div class="exec-painel" id="aba-hist-'+id+'" style="display:none">' +
       (histHTML || '<div class="exec-vazio">Nenhuma alteração registrada ainda.</div>') + '</div>';
 }
 
+/* O painel de atestados do contrato. Só leitura: quem emite atestado é
+   a NH, junto ao órgão — a empresa acompanha. Botão que promete uma
+   ação que a tela não faz é pior do que não ter botão. */
+function execAbaAtestados(arr){
+  var r=atestResumo(arr);
+
+  if(!r.total){
+    return '<div class="exec-vazio">'+
+      'Nenhum atestado registrado para este contrato ainda.<br>'+
+      '<span style="font-size:11.5px;opacity:.8">A NH solicita o atestado ao órgão depois da execução. '+
+      'Assim que houver movimento, ele aparece aqui.</span></div>';
+  }
+
+  var cor=function(a){
+    if(atestResolvido(a)) return '#22c55e';
+    var st=String(a[18]||'').toUpperCase().trim();
+    return st.indexOf('SOLICITA')>-1 ? '#3b82f6' : '#eab308';
+  };
+  var rotulo=function(a){
+    if(atestResolvido(a)) return 'Recebido';
+    var st=String(a[18]||'').trim();
+    return st || 'Pendente';
+  };
+
+  var resumo='<div class="at-resumo">'+
+    '<div class="at-kpi"><b>'+r.total+'</b><i>'+(r.total===1?'atestado':'atestados')+'</i></div>'+
+    '<div class="at-kpi ok"><b>'+r.prontos+'</b><i>em mãos</i></div>'+
+    (r.pendentes?'<div class="at-kpi pend"><b>'+r.pendentes+'</b><i>em andamento</i></div>':'')+
+  '</div>';
+
+  var linhas=r.lista.map(function(a){
+    var c=cor(a);
+    var dtReceb=String(a[12]||'').trim();
+    var emit=String(a[13]||'').trim();
+    var cat=String(a[14]||'').trim(), catSt=String(a[15]||'').trim();
+    var art=String(a[16]||'').trim(), artSt=String(a[17]||'').trim();
+    var obs=String(a[19]||'').trim();
+    var link=String(a[20]||'').trim();
+    var extras=[];
+    if(emit) extras.push('Emitente: <b>'+pEsc(emit)+'</b>');
+    if(dtReceb) extras.push('Recebido em <b>'+pEsc(dtReceb)+'</b>');
+    if(cat) extras.push('CAT <b>'+pEsc(cat)+'</b>'+(catSt?' ('+pEsc(catSt)+')':''));
+    if(art) extras.push('ART <b>'+pEsc(art)+'</b>'+(artSt?' ('+pEsc(artSt)+')':''));
+    return '<div class="at-linha" style="--ac:'+c+'">'+
+      '<div class="at-linha-top">'+
+        '<span class="at-tag" style="background:'+c+'1f;color:'+c+';border:1px solid '+c+'55">'+rotulo(a)+'</span>'+
+        '<span class="at-obj">'+pEsc(String(a[4]||'').slice(0,110)||'(sem objeto)')+'</span>'+
+      '</div>'+
+      (extras.length?'<div class="at-meta">'+extras.join(' · ')+'</div>':'')+
+      (obs?'<div class="at-obs">'+pEsc(obs)+'</div>':'')+
+      (link&&/^https?:\/\//i.test(link)
+        ? '<a class="at-link" href="'+pEsc(link)+'" target="_blank" rel="noopener">Abrir o documento</a>' : '')+
+    '</div>';
+  }).join('');
+
+  return resumo+'<div class="at-lista">'+linhas+'</div>';
+}
+
 function execTrocarAba(id, aba, btn){
-  ['geral','fat','not','hist'].forEach(function(a){
+  /* A lista é fixa aqui e precisa acompanhar as abas lá em cima. Ao
+     acrescentar 'atest' em 18/08/2026 eu esqueci desta linha primeiro:
+     a aba nova abria e as outras não fechavam, empilhando dois painéis.
+     Se acrescentar outra, é aqui também. */
+  ['geral','fat','not','atest','hist'].forEach(function(a){
     var el = document.getElementById('aba-'+a+'-'+id);
     if(el) el.style.display = (a === aba) ? '' : 'none';
   });
