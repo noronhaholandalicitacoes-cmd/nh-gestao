@@ -7041,9 +7041,10 @@ async function nhMigrarCampoEmpresa(aoProgredir){
          ninguém) e continua visível para a equipe da NH. */
       if(!emp){
         conta.semEmpresa++; r.semEmpresa++;
+        var _a=dados._arr||[];
         (r.semEmpresaIds=r.semEmpresaIds||[]).push({
           colecao:col, doc:d.id,
-          id:(dados._arr||[])[0], licitacao:(dados._arr||[])[3]||'(sem número)'
+          id:_a[0], licitacao:_a[3], objeto:_a[4]
         });
         continue;
       }
@@ -7112,9 +7113,37 @@ async function nhRodarMigracaoEmpresa(){
     }).join('<br>');
     /* Quem ficou sem empresa, nomeado. Contar sem dizer qual obriga a
        caçar um registro entre centenas. */
+    /* ⚠️ REESCRITO EM 18/08/2026 — a primeira versão saiu "— ID ·",
+       sem ID e sem licitação, e mandou o cliente procurar um registro
+       entre 268 sem dizer qual.
+
+       Dois erros. O primeiro é certo: `x.id !== undefined` dá VERDADEIRO
+       para string vazia, então quando o campo ID do registro estava em
+       branco ele imprimia o vazio em vez de cair para o id do documento.
+       O segundo eu não consegui reproduzir com certeza, e é justamente
+       por isso que agora nada aqui depende de um campo específico ter
+       valor: o id do documento no Firestore SEMPRE existe, e é por ele
+       que se acha o registro no console do Firebase.
+
+       Regra: mostrar tudo que houver, e nunca depender de um só campo. */
+    /* Escapa o DADO e monta o HTML depois. A primeira tentativa fez o
+       contrário — montava o HTML e passava uma regex esperta por cima,
+       com um lookahead para poupar as tags do próprio template. Não
+       funcionou: ela protegia o `<` de `<code>` e comia o `>`, saindo
+       "<codeabc123". Regex que tenta distinguir a tag que eu escrevi da
+       que veio do banco é sempre mais frágil do que escapar na entrada. */
+    var _lbl=function(v){ return esc0(String(v==null?'':v).trim()); };
     var quais=(r.semEmpresaIds||[]).map(function(x){
-      return '&nbsp;&nbsp;› <strong>'+x.colecao+'</strong> — ID '+(x.id!==undefined?x.id:x.doc)
-        +' · '+String(x.licitacao).replace(/[<>]/g,'');
+      var partes=[];
+      if(_lbl(x.licitacao)) partes.push(_lbl(x.licitacao));
+      if(_lbl(x.id)) partes.push('ID '+_lbl(x.id));
+      if(_lbl(x.objeto)) partes.push(_lbl(x.objeto).slice(0,60));
+      /* O id do documento é o último recurso e o único garantido: os
+         campos do registro podem estar todos em branco — foi o que
+         aconteceu no primeiro relatório, que saiu "— ID ·" e mandou o
+         cliente procurar um entre 268 sem dizer qual. */
+      partes.push('documento <code>'+_lbl(x.doc)+'</code>');
+      return '&nbsp;&nbsp;› <strong>'+_lbl(x.colecao)+'</strong> — '+partes.join(' · ');
     }).join('<br>');
 
     var resp=r.responsaveis||{};
