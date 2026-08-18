@@ -6228,6 +6228,19 @@ function acAuditar(){
       return r.ativo && !r.todas && !(r.empresas||[]).length; }).map(nome),
     'Marque as empresas, ou "Todas as empresas".');
 
+  /* 3b. Cadastrado e sem nenhum sistema marcado. Entra e não abre
+         nada — e este é o caso que mais chega como "o acesso não
+         funciona", porque o cadastro parece completo: tem nome, tem
+         WhatsApp, tem senha, tem empresa. Só não tem porta.
+         Acrescentado em 18/08/2026, depois de um sócio cadastrado como
+         responsável não conseguir entrar no Portal de Licitações —
+         `dashboard` nasce falso e ninguém tinha como perceber. */
+  achado('alto','Cadastrados sem nenhum sistema marcado — entram e não abrem nada',
+    nums.filter(function(n){ var r=acNormaliza(RESPONSAVEIS[n]);
+      var a=r.acessos||{};
+      return r.ativo && !a.viabilidade && !a.portal && !a.dashboard; }).map(nome),
+    'Edite e marque pelo menos um: Viabilidade, Portal de Contratos ou Portal do site. O "Portal do site" (Portal de Licitações) vem DESMARCADO por padrão — é o esquecimento mais comum.');
+
   /* 4. Sem senha nenhuma: o registro existe e a pessoa não entra. */
   achado('medio','Sem senha definida',
     nums.filter(function(n){ var r=RESPONSAVEIS[n]||{}; return !r.temSenha && !r.hash; }).map(nome),
@@ -6373,9 +6386,38 @@ function acRender(){
     var tags='';
     if(st==='inativo')tags+='<span class="ac-tag" style="background:rgba(107,114,128,.18);color:#9ca3af;border:1px solid rgba(107,114,128,.4)">DESATIVADO</span>';
     else if(st==='expirado')tags+='<span class="ac-tag" style="background:rgba(234,179,8,.15);color:#eab308;border:1px solid rgba(234,179,8,.4)">EXPIROU '+acDataBR(r.validade)+'</span>';
-    if(r.acessos.viabilidade)tags+='<span class="ac-tag" style="background:rgba(59,130,246,.14);color:#3b82f6;border:1px solid rgba(59,130,246,.35)">&#128202; Viabilidade</span>';
-    if(r.acessos.portal)tags+='<span class="ac-tag" style="background:rgba(34,197,94,.14);color:#22c55e;border:1px solid rgba(34,197,94,.35)">&#128188; Contratos</span>';
-    if(r.acessos.dashboard)tags+='<span class="ac-tag" style="background:rgba(168,85,247,.14);color:#a855f7;border:1px solid rgba(168,85,247,.35)">&#128202; Portal do site</span>';
+    /* ⚠️ MUDOU EM 18/08/2026 — o cartão passou a mostrar também o que
+       a pessoa NÃO abre.
+
+       Antes só existia etiqueta do que ela TEM. Quem foi cadastrado sem
+       o Portal do site simplesmente não ganhava etiqueta roxa — e
+       ausência de etiqueta não se lê como "bloqueado", se lê como "não
+       sei". O cadastro parecia completo, a pessoa esbarrava na porta, e
+       o cliente vinha perguntar por que "ninguém consegue acessar".
+
+       O caso que motivou: um sócio cadastrado como responsável não
+       entrou no Portal de Licitações. Não era defeito — `dashboard`
+       nasce FALSO por padrão. Só não havia como ver isso sem abrir o
+       cadastro e conferir campo por campo.
+
+       Agora os três sistemas aparecem sempre: ligado em cor, desligado
+       apagado e riscado. O buraco fica visível na hora de cadastrar, e
+       não três dias depois. */
+    var _sis=[
+      {on:r.acessos.viabilidade,ic:'&#128202;',rot:'Viabilidade',   cor:'59,130,246'},
+      {on:r.acessos.portal,     ic:'&#128188;',rot:'Contratos',     cor:'34,197,94'},
+      {on:r.acessos.dashboard,  ic:'&#128202;',rot:'Portal do site',cor:'168,85,247'}
+    ];
+    _sis.forEach(function(s){
+      tags += s.on
+        ? '<span class="ac-tag" style="background:rgba('+s.cor+',.14);color:rgb('+s.cor+');border:1px solid rgba('+s.cor+',.35)">'+s.ic+' '+s.rot+'</span>'
+        : '<span class="ac-tag" title="Esta pessoa N&Atilde;O abre '+s.rot+'. Edite o acesso para liberar." '+
+          'style="background:transparent;color:#6b7280;border:1px dashed rgba(107,114,128,.5);text-decoration:line-through;opacity:.75">'+s.rot+'</span>';
+    });
+    /* Nenhum sistema marcado: a pessoa entra e não abre nada. Merece
+       aviso, não uma linha de etiquetas apagadas que passa batido. */
+    if(!r.acessos.viabilidade && !r.acessos.portal && !r.acessos.dashboard)
+      tags+='<span class="ac-tag" style="background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.45);font-weight:800">&#9888; N&Atilde;O ABRE NENHUM SISTEMA</span>';
     if(r.contaMestra)tags+='<span class="ac-tag" style="background:rgba(249,115,22,.15);color:var(--nh);border:1px solid rgba(249,115,22,.4)">&#128081; Conta mestra</span>';
     /* Escopo restrito é o que mais confunde na hora de conferir "por que
        fulano não está vendo nada" — então aparece no cartão. */
