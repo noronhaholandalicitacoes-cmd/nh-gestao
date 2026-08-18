@@ -1761,6 +1761,24 @@ const IDX = {
   OBS:41, LINK:42,
   SITUACAO:43, SRP:44, ATA_TOTAL:45, ATA_CONSUMIDO:46, ATA_CARONA:47, ATA_VIGENCIA:48, PROX_ACAO:49
 };
+
+/* Fase 1 da separação entre empresas (18/08/2026) — ver a nota longa
+   em index.html, junto de fbSave.
+
+   Em resumo: a empresa mora em `_arr[2]`, e o Firestore não consulta
+   posição de array. Enquanto for assim, este arquivo precisa baixar a
+   coleção INTEIRA e esconder no navegador o que é das outras — que é
+   exatamente o que `window._portalDescartados` denuncia mais abaixo.
+   O campo solto é o que vai permitir `.where('empresa','==',...)` na
+   fase 2 e a regra de verdade na fase 3.
+
+   Aqui a gravação é sempre da própria empresa do contrato, então sai
+   do próprio array — não de `empAtual`. São a mesma coisa no fluxo
+   normal, mas o array é o dado, e `empAtual` é quem está na tela. */
+function nhEmpresaDoArr(arr){
+  var v = String((arr||[])[IDX.EMPRESA] || '').trim().replace(/\s+/g,' ').toUpperCase();
+  return v || null;
+}
 // Cores reais vêm do Firebase (config/empresas) — isso é só um fallback
 // de segurança para o caso de falha de conexão antes do fetch completar.
 async function carregarCoresEmpresas(){
@@ -2183,6 +2201,10 @@ async function mcSalvar(){
       var logEntry = { autor: autor, empresa: empAtual, data: _agora, acao: 'Contrato editado pelo portal' };
       await db.collection('ganhas').doc(_mcEditId).update({
         _arr: arr, _updatedAt: Date.now(),
+        /* Reescrito junto com o `_arr` para o campo não envelhecer:
+           `update` preservaria o valor antigo, e um contrato que
+           trocasse de empresa ficaria indexado na errada. */
+        empresa: nhEmpresaDoArr(arr),
         _portalUltimaEdicao: autor+' ('+empAtual+') em '+_agora,
         _portalLog: firebase.firestore.FieldValue.arrayUnion(logEntry)
       });
@@ -2199,6 +2221,9 @@ async function mcSalvar(){
       var logEntryN = { autor: autor, empresa: empAtual, data: _agora, acao: 'Contrato criado pelo portal' };
       await db.collection('ganhas').doc(String(nextId)).set({
         _id: nextId, _arr: arr, _updatedAt: Date.now(), _createdAt: Date.now(),
+        /* `set` sem merge — o campo tem de vir junto, senão o contrato
+           nasce sem ele e o backfill precisaria rodar de novo. */
+        empresa: nhEmpresaDoArr(arr),
         _portalUltimaEdicao: autor+' ('+empAtual+') em '+_agora,
         _portalLog: [logEntryN]
       });
