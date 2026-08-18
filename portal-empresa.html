@@ -3675,16 +3675,52 @@ function _portalGanhasDocs(){
       window._portalSnapDocs = snap.docs;
       if(primeira){ primeira = false; resolve(snap.docs); return; }
 
+      /* ⚠️ CORRIGIDO EM 18/08/2026 — este era o "o portal não atualiza".
+
+         A linha anterior era `if(change.type !== 'modified') return;`.
+         O Firestore classifica mudança em três tipos, e só um estava
+         sendo tratado:
+
+           added    — contrato NOVO. Era descartado em silêncio. Foi
+                      exatamente o relato do cliente: lançou contrato no
+                      sistema e ele nunca apareceu no portal, nem
+                      recarregando, porque a lista em memória já tinha
+                      sido montada e o novo nunca entrava nela.
+           modified — edição. Só este funcionava.
+           removed  — exclusão. O contrato sumia do banco e continuava
+                      na tela do cliente, o que é pior do que não
+                      atualizar: mostra o que não existe mais.
+
+         Havia uma segunda trava no mesmo caminho: `if(idx < 0) return;`
+         abandonava qualquer documento que ainda não estivesse na lista.
+         Mesmo que 'added' passasse, ele cairia aí. Duas portas fechadas
+         para o mesmo caso. */
       var houve = false;
       snap.docChanges().forEach(function(change){
-        if(change.type !== 'modified') return;
+        var id = change.doc.id;
+        var idx = dadosGanhas.findIndex(function(e){ return e.id === id; });
+
+        if(change.type === 'removed'){
+          if(idx >= 0){ dadosGanhas.splice(idx, 1); houve = true; }
+          return;
+        }
+
         var d = change.doc.data();
         var arr = d._arr || [];
-        var idx = dadosGanhas.findIndex(function(e){ return e.id === change.doc.id; });
-        if(idx < 0) return;
+        var editor = d._portalUltimaEdicao || '';
+
+        if(idx < 0){
+          /* Novo para esta tela — entra na lista. */
+          dadosGanhas.push({ id:id, arr:arr,
+            _portalUltimaEdicao: editor, _portalLog: d._portalLog || [] });
+          houve = true;
+          return;
+        }
+
+        /* O aviso de "fulano atualizou" só faz sentido em edição, e só
+           quando a observação mudou — senão toda gravação vira toast. */
         var antigaObs = dadosGanhas[idx].arr[IDX.OBS] || '';
         var novaObs = arr[IDX.OBS] || '';
-        var editor = d._portalUltimaEdicao || '';
         if(isAdmin && editor && editor.indexOf('GROWTH') === -1 && novaObs !== antigaObs){
           portalToast('📢 ' + editor.split(' em ')[0] + ' atualizou um contrato', 'ok');
         }
