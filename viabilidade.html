@@ -783,7 +783,13 @@ function resolverPerfilResponsavel(num, lista) {
      admin marcou na tela. Antes o sistema assumia 'meus' sem dizer, e
      quem entrava novo — nome ainda não usado em edital nenhum — abria
      a tela vazia mesmo com as empresas certas liberadas. */
+  /* `empresasNomes` é a mesma lista de `empresas`, já traduzida para
+     NOME em maiúscula pela tela de Acessos. Passa a viajar na sessão
+     porque é por ela que a consulta filtra no servidor (passo 2 da
+     separação por empresa) — `empresas` guarda ora CNPJ, ora nome, e
+     `.where()` precisa do valor exato que está gravado no documento. */
   return {ok: true, sessao: {num: num, nome: r.nome || '', empresas: r.empresas || [], todas: !!r.todas,
+                             empresasNomes: r.empresasNomes || [],
                              escopo: (r.escopoViab === 'meus' ? 'meus' : 'empresa')}};
 }
 // Cores reais vêm do Firebase (config/empresas) — o objeto acima é só fallback
@@ -1074,7 +1080,36 @@ async function carregar(){
     await carregarCoresEmpresas();
     await carregarRespsCad();
     await carregarAnalisesViab();
-    var snap=await db.collection('editais').orderBy('_id','desc').get();
+    /* ══════════════════════════════════════════════════════════════
+       PASSO 2 DA SEPARAÇÃO POR EMPRESA — 18/08/2026
+
+       Antes: `.orderBy('_id','desc').get()` trazia a coleção INTEIRA e
+       o `podeVer()` abaixo escondia o que não era do cliente. O dado
+       das outras empresas chegava ao navegador; bastava o console para
+       lê-lo. Era isso que a auditoria apontou.
+
+       Agora a filtragem acontece no servidor, com `.where('empresa',
+       'in', ...)`. Depois do passo 3 a regra passa a EXIGIR essa
+       cláusula: consulta sem ela é negada, o que fecha o buraco de
+       verdade — e não só na tela.
+
+       Duas decisões que parecem detalhe e não são:
+
+       · o `orderBy` sai da consulta filtrada. Combinar `where` com
+         `orderBy` em campos diferentes exige índice composto no
+         Firestore, e sem ele a consulta FALHA com um erro pedindo para
+         criar o índice. A ordenação já é refeita logo abaixo
+         (`TODOS.sort`), então não perdemos nada.
+
+       · `todas` e a equipe seguem sem filtro. Quem vê tudo não tem uma
+         lista de empresas para filtrar, e a regra reconhece esse caso
+         separadamente. */
+    var _nomes = (SESSAO && SESSAO.empresasNomes) || [];
+    var _semFiltro = !SESSAO || SESSAO.todas || !_nomes.length;
+    var snap = _semFiltro
+      ? await db.collection('editais').orderBy('_id','desc').get()
+      /* `in` aceita até 30 valores; hoje são 6 empresas no total. */
+      : await db.collection('editais').where('empresa','in',_nomes.slice(0,30)).get();
     TODOS=[];
     /* Cada edital descartado é contado junto com o MOTIVO. Sem isso a
        tela vazia não distingue "não existe nada" de "existe, mas o seu
