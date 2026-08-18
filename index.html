@@ -5902,8 +5902,51 @@ async function salvarResponsaveis(){
     if(!r||typeof r!=='object')return;
     if(r.hash!==undefined||r.salt!==undefined)r.temSenha=true;
     delete r.hash; delete r.salt;
+    /* `empresasNomes` — os mesmos vínculos, já resolvidos para NOME em
+       maiúscula. Ver a nota em nhNomesDeEmpresas(). */
+    r.empresasNomes=nhNomesDeEmpresas(r.empresas);
   });
   await db.collection("config").doc("responsaveis").set({lista:RESPONSAVEIS});}
+
+/* ══════════════════════════════════════════════════════════════════
+   `empresasNomes` — pré-requisito do passo 3 (18/08/2026)
+
+   O cadastro de Acessos guarda a empresa do responsável ora pelo CNPJ
+   (só dígitos), ora pelo nome — depende de quando foi cadastrada. O
+   portal e o viabilidade traduzem isso em JavaScript, com uma tabela
+   montada a partir de config/empresas.
+
+   Uma REGRA do Firestore não consegue fazer essa tradução: ela até lê
+   config/empresas, mas não percorre um array procurando cada elemento.
+   E sem traduzir, a regra não tem como comparar o vínculo da pessoa
+   com o campo `empresa` do documento.
+
+   Por isso cada responsável passa a carregar também a lista já
+   resolvida, em maiúscula, no mesmo formato que `nhEmpresaDoArr()`
+   grava nos documentos. Aí a regra vira uma comparação direta.
+
+   O campo antigo `empresas` FICA como está — o portal e o viabilidade
+   continuam lendo ele, e mexer nisso agora quebraria login de cliente
+   por um ganho nenhum. */
+function nhNomesDeEmpresas(lista){
+  var mapa={};
+  (EMPRESAS||[]).forEach(function(e){
+    var c=String(e.cnpj||'').replace(/\D/g,'');
+    if(c) mapa[c]=String(e.nome||'').trim().toUpperCase();
+  });
+  var out=[];
+  (lista||[]).forEach(function(v){
+    var bruto=String(v||'').trim();
+    if(!bruto) return;
+    var digitos=bruto.replace(/\D/g,'');
+    /* Só trata como CNPJ quando é comprido o bastante: "SOS 2" tem
+       dígito e nem por isso é CNPJ. */
+    var nome=(digitos.length>=11 && mapa[digitos]) ? mapa[digitos] : bruto.toUpperCase();
+    nome=nome.replace(/\s+/g,' ').trim();
+    if(nome && out.indexOf(nome)===-1) out.push(nome);
+  });
+  return out;
+}
 
 
 /* O cadastro de Acessos grava a empresa pelo CNPJ (só dígitos) quando ela
@@ -6947,10 +6990,21 @@ async function nhMigrarCampoEmpresa(aoProgredir){
       conta.total++; r.total++;
       if(dados.empresa){ conta.jaTinham++; r.jaTinham++; continue; }
       var emp=nhEmpresaDoArr(col,dados._arr);
-      /* Documento sem empresa preenchida fica de fora e é CONTADO. A
-         fase 3 não pode subir enquanto este número não for zero —
-         cada um destes viraria um registro que ninguém mais enxerga. */
-      if(!emp){ conta.semEmpresa++; r.semEmpresa++; continue; }
+      /* Documento sem empresa preenchida fica de fora, é CONTADO e é
+         IDENTIFICADO. Contar sem dizer qual é obriga a procurar um
+         registro entre centenas — foi o que aconteceu na primeira
+         rodada, com 1 em 267.
+         Depois do passo 3, um registro assim deixa de aparecer para as
+         empresas clientes (o que é correto: sem empresa, não é de
+         ninguém) e continua visível para a equipe da NH. */
+      if(!emp){
+        conta.semEmpresa++; r.semEmpresa++;
+        (r.semEmpresaIds=r.semEmpresaIds||[]).push({
+          colecao:col, doc:d.id,
+          id:(dados._arr||[])[0], licitacao:(dados._arr||[])[3]||'(sem número)'
+        });
+        continue;
+      }
       try{
         await db.collection(col).doc(d.id).set({empresa:emp},{merge:true});
         conta.gravados++; r.gravados++;
@@ -6959,6 +7013,30 @@ async function nhMigrarCampoEmpresa(aoProgredir){
     }
     r.porColecao[col]=conta;
     if(aoProgredir) aoProgredir(col,r);
+  }
+
+  /* Segunda metade: os responsáveis. Sem `empresasNomes` resolvido, a
+     regra do passo 3 não tem como comparar o vínculo da pessoa com o
+     campo `empresa` do documento — e negaria tudo para todo cliente. */
+  try{
+    if(aoProgredir) aoProgredir('responsáveis',r);
+    var dc=await db.collection('config').doc('responsaveis').get();
+    var lista=(dc.exists&&(dc.data()||{}).lista)||{};
+    var mudou=false, semVinculo=[];
+    Object.keys(lista).forEach(function(k){
+      var p=lista[k];
+      if(!p||typeof p!=='object') return;
+      var nomes=nhNomesDeEmpresas(p.empresas);
+      if(!nomes.length){ semVinculo.push(p.nome||k); return; }
+      var atual=p.empresasNomes||[];
+      if(atual.length!==nomes.length||nomes.some(function(n,i){return atual[i]!==n;})){
+        p.empresasNomes=nomes; mudou=true;
+      }
+    });
+    if(mudou) await db.collection('config').doc('responsaveis').set({lista:lista},{merge:true});
+    r.responsaveis={total:Object.keys(lista).length,atualizados:mudou?1:0,semVinculo:semVinculo};
+  }catch(err){
+    r.responsaveis={erro:err.message};
   }
   return r;
 }
@@ -6990,15 +7068,31 @@ async function nhRodarMigracaoEmpresa(){
       return '· <strong>'+c+'</strong>: '+x.total+' registros, '+x.gravados+' preenchidos agora, '
         +x.jaTinham+' já tinham'+(x.semEmpresa?', <span style="color:#fbbf24">'+x.semEmpresa+' sem empresa</span>':'');
     }).join('<br>');
-    var ok=r.semEmpresa===0;
+    /* Quem ficou sem empresa, nomeado. Contar sem dizer qual obriga a
+       caçar um registro entre centenas. */
+    var quais=(r.semEmpresaIds||[]).map(function(x){
+      return '&nbsp;&nbsp;› <strong>'+x.colecao+'</strong> — ID '+(x.id!==undefined?x.id:x.doc)
+        +' · '+String(x.licitacao).replace(/[<>]/g,'');
+    }).join('<br>');
+
+    var resp=r.responsaveis||{};
+    var linhaResp = resp.erro
+      ? '· <strong>responsáveis</strong>: não consegui ler — '+resp.erro
+      : '· <strong>responsáveis</strong>: '+(resp.total||0)+' cadastrados, empresas resolvidas'
+        +((resp.semVinculo&&resp.semVinculo.length)
+          ? ', <span style="color:#fbbf24">'+resp.semVinculo.length+' sem empresa vinculada ('
+            +resp.semVinculo.join(', ')+')</span>' : '');
+
+    var ok=r.semEmpresa===0 && !resp.erro;
     if(msg){
       msg.style.color=ok?'#4ade80':'#fbbf24';
       msg.innerHTML=(ok
-        ? '<strong>Pronto.</strong> Todos os registros têm empresa. Pode me avisar para seguir para os passos 2 e 3.'
-        : '<strong>Quase.</strong> Sobraram '+r.semEmpresa+' registro(s) com a empresa em branco. '
-          +'Preencha a empresa neles no sistema e rode de novo — se os passos 2 e 3 subirem antes disso, '
-          +'esses registros somem da tela de todo mundo.')
-        +'<br><br>'+linhas;
+        ? '<strong>Pronto.</strong> Todos os registros têm empresa e os responsáveis estão resolvidos. Pode me avisar para eu seguir.'
+        : '<strong>Quase.</strong> '+r.semEmpresa+' registro(s) sem empresa:<br>'+quais
+          +'<br>Preencha a empresa neles no sistema e rode de novo. '
+          +'Não é bloqueio: depois do passo 3 eles somem para as EMPRESAS clientes '
+          +'(o que é correto — sem empresa, não são de ninguém) e continuam visíveis para a equipe da NH.')
+        +'<br><br>'+linhas+'<br>'+linhaResp;
     }
   }catch(err){
     if(msg){msg.style.color='#f87171';msg.textContent='Falhou: '+err.message;}
@@ -7018,6 +7112,18 @@ async function fbSave(e,a,t,_docId){
     var i=await db.collection(e).doc(_d).get();
     if(i.exists){ _existia=true; _antes=(i.data()||{})._arr||null; }
     o._createdAt=(i.exists&&i.data()._createdAt)||Date.now();
+    /* ⚠️ Esta gravação é `set` SEM merge — ela substitui o documento
+       inteiro. Todo campo de primeiro nível que outro sistema escreve
+       precisa ser recuperado aqui, ou some quando a equipe salvar.
+       `prioridade` é do Viabilidade; `_portalLog` e
+       `_portalUltimaEdicao` são do Portal de Contratos.
+       Só copia o que existe, para não criar campo vazio à toa. */
+    if(i.exists){
+      var _ant=i.data()||{};
+      ['prioridade','_portalLog','_portalUltimaEdicao'].forEach(function(k){
+        if(_ant[k]!==undefined && o[k]===undefined) o[k]=_ant[k];
+      });
+    }
   }catch(_err){ o._createdAt=Date.now() }
   /* Quem gravou, no próprio registro. A trilha responde "o que
      aconteceu ao longo do tempo"; este campo responde "quem mexeu
