@@ -138,10 +138,46 @@ body.light .kpi:hover{box-shadow:0 8px 24px rgba(15,23,42,.12)}
 @media(max-width:900px){.fin-duplo{grid-template-columns:1fr}.fin-hero-lado{margin-left:0}}
 
 .abas{display:flex;gap:4px;border-bottom:1px solid var(--b1);margin-bottom:18px;flex-wrap:wrap}
-.aba{background:none;border:none;border-bottom:2px solid transparent;color:var(--t3);
-  font-family:inherit;font-size:13.5px;font-weight:700;padding:9px 14px;cursor:pointer}
-.aba:hover{color:var(--t1)}
-.aba.on{color:var(--nh);border-bottom-color:var(--nh)}
+/* ── Abas ──────────────────────────────────────────────────────────
+   Eram texto puro em `--t3`, o tom mais fraco da paleta, sem fundo e
+   sem ícone: quatro das cinco ficavam cinza-claro sobre fundo escuro,
+   e só a ativa tinha cor. Lidas de longe, pareciam desabilitadas.
+
+   Agora são pastilhas com ícone: o inativo subiu para `--t2` e ganhou
+   superfície, então existe sem competir; o ativo é laranja cheio e não
+   deixa dúvida de onde se está. */
+.abas{gap:6px;padding-bottom:10px}
+.aba{display:inline-flex;align-items:center;gap:7px;
+  background:var(--s1);border:1px solid var(--b1);border-radius:10px;
+  color:var(--t2);font-family:inherit;font-size:13px;font-weight:700;
+  padding:9px 14px;cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+.aba svg{width:15px;height:15px;flex-shrink:0;stroke:currentColor;fill:none;
+  stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.aba:hover{color:var(--t1);border-color:var(--b2);background:var(--s2)}
+.aba.on{background:var(--nh);border-color:var(--nh);color:#fff;
+  box-shadow:0 6px 18px -8px var(--nh)}
+.aba.on:hover{background:var(--nh);color:#fff}
+/* O selo tem cor com significado — vermelho é prazo vencendo, amarelo
+   é lead esfriando — e ela vem do estilo inline, que o CSS aqui não
+   toca. O que muda dentro da aba ATIVA é só o fundo.
+
+   A primeira tentativa foi um anel branco em volta, mantendo o fundo
+   translúcido. Não resolveu: o fundo do selo é a cor a 20%, e sobre a
+   pastilha laranja o número vermelho sumia — na captura restava um
+   anel branco vazio, sem dígito. O anel salvava a forma e perdia a
+   informação, que é justamente o número.
+   Fundo branco sólido resolve e preserva o significado: o vermelho e o
+   amarelo continuam sendo a cor do texto, agora legíveis. */
+.aba.on .selo{background:#fff!important}
+body.light .aba:not(.on){background:#fff}
+
+@media (max-width:640px){
+  /* No celular o rótulo sai e fica só o ícone — cinco pastilhas com
+     texto não cabem, e quebrar em duas linhas come a tela. */
+  .aba{padding:9px 12px}
+  .aba .rot{display:none}
+  .aba svg{width:17px;height:17px}
+}
 
 .tabela-wrap{border:1px solid var(--b1);border-radius:13px;overflow-x:auto;background:var(--s1)}
 table{width:100%;border-collapse:collapse;font-size:13px;min-width:760px}
@@ -818,11 +854,21 @@ body.light .fn-l:hover{background:rgba(0,0,0,.02)}
   </div>
 
   <div class="abas">
-    <button class="aba on" data-a="painel" onclick="trocarAba('painel',this)">Painel</button>
-    <button class="aba" data-a="funil" onclick="trocarAba('funil',this)">Funil</button>
-    <button class="aba" data-a="trat" onclick="trocarAba('trat',this)">Tratativas <span id="selo-trat"></span></button>
-    <button class="aba" data-a="prazos" onclick="trocarAba('prazos',this)">Prazos <span id="selo-prazos"></span></button>
-    <button class="aba" data-a="result" onclick="trocarAba('result',this)">Resultados</button>
+    <button class="aba on" data-a="painel" onclick="trocarAba('painel',this)" title="Painel">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+      <span class="rot">Painel</span></button>
+    <button class="aba" data-a="funil" onclick="trocarAba('funil',this)" title="Funil">
+      <svg viewBox="0 0 24 24"><path d="M3 4h18l-7 8v7l-4 2v-9L3 4z"/></svg>
+      <span class="rot">Funil</span></button>
+    <button class="aba" data-a="trat" onclick="trocarAba('trat',this)" title="Tratativas">
+      <svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.5 8.5 0 0 1-3.8-.9L3 20.5l1.5-4.6A8.4 8.4 0 0 1 12 3.1a8.4 8.4 0 0 1 9 8.4z"/></svg>
+      <span class="rot">Tratativas</span> <span id="selo-trat"></span></button>
+    <button class="aba" data-a="prazos" onclick="trocarAba('prazos',this)" title="Prazos">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+      <span class="rot">Prazos</span> <span id="selo-prazos"></span></button>
+    <button class="aba" data-a="result" onclick="trocarAba('result',this)" title="Resultados">
+      <svg viewBox="0 0 24 24"><path d="M3 21h18"/><rect x="5" y="12" width="3.6" height="6" rx="1"/><rect x="10.2" y="8" width="3.6" height="10" rx="1"/><rect x="15.4" y="4" width="3.6" height="14" rx="1"/></svg>
+      <span class="rot">Resultados</span></button>
   </div>
   <div id="painel"></div>
 </div>
@@ -843,14 +889,22 @@ body.light .fn-l:hover{background:rgba(0,0,0,.02)}
             <div class="campo"><label>Razão social</label>
               <input type="text" id="ld-org" placeholder="A empresa que pode virar cliente da NH"></div>
             <div class="grade" style="margin-bottom:14px">
-              <div class="campo"><label>CNPJ
-                <span style="font-weight:400;color:var(--t3);font-size:10px">— digite e clique no farol</span></label>
-                <div style="display:flex;gap:7px">
-                  <input type="text" id="ld-cnpj" placeholder="00.000.000/0001-00" style="flex:1"
-                    onkeydown="if(event.key==='Enter'){event.preventDefault();farolCNPJ();}">
-                  <button type="button" class="btn" id="farol-btn" onclick="farolCNPJ()"
-                    title="Consultar o CNPJ na Receita Federal e preencher a ficha"
-                    style="white-space:nowrap;padding:9px 13px">🔦 Farol</button>
+              <!-- ⚠️ O Farol existia aqui desde a primeira versão e
+                   funcionava — o cliente só não achou. Era um botão
+                   cinza, do mesmo tom dos outros, com a explicação em
+                   letra de 10px do lado do rótulo. Ninguém procura uma
+                   função que não se anuncia.
+                   Agora o botão é laranja, ocupa a linha inteira abaixo
+                   do campo e diz o que faz. -->
+              <div class="campo" style="grid-column:1/-1"><label>CNPJ</label>
+                <input type="text" id="ld-cnpj" placeholder="00.000.000/0001-00"
+                  onkeydown="if(event.key==='Enter'){event.preventDefault();farolCNPJ();}">
+                <button type="button" class="btn btn-nh" id="farol-btn" onclick="farolCNPJ()"
+                  title="Consulta o CNPJ na Receita Federal, preenche a ficha e mostra o histórico de contratos públicos da empresa"
+                  style="width:100%;margin-top:7px;justify-content:center;gap:7px">
+                  🔦 Farol — preencher pelo CNPJ</button>
+                <div style="font-size:10.5px;color:var(--t3);margin-top:5px;line-height:1.5">
+                  Traz razão social, porte, endereço e o histórico de contratos públicos da empresa.
                 </div></div>
               <div class="campo"><label>Segmento</label>
                 <input type="text" id="ld-seg" placeholder="Limpeza, saúde, engenharia…"></div>
@@ -1541,8 +1595,13 @@ function pintar(){
     (urgentes.length ? kpi('Prazo urgente', String(urgentes.length), 'var(--r1)', 'vence em até 3 dias', 'prazos') : '') +
     kpi('Perdidos', String(perdidos.length), 'var(--t3)', perdidos.length?'com motivo registrado':'', 'result');
 
+  /* A classe entrou junto com as abas em pastilha (18/08/2026): a cor
+     continua vindo do inline, porque ela SIGNIFICA coisa — vermelho é
+     prazo vencendo, amarelo é lead esfriando —, e a classe só serve
+     para o CSS dar contraste quando o selo cai dentro da aba ativa,
+     que é laranja cheia. */
   var pastilha=function(n,cor){
-    return '<span style="background:'+cor+';font-size:10px;font-weight:800;'+
+    return '<span class="selo" style="background:'+cor+';font-size:10px;font-weight:800;'+
       'padding:1px 7px;border-radius:9px;margin-left:5px">'+n+'</span>';
   };
   var selo=document.getElementById('selo-prazos');
@@ -2775,6 +2834,38 @@ function farolPNCPPainel(j, cnpj){
              : total>=5  ? {t:'Licita com alguma constância', c:'medio'}
              :             {t:'Licita pouco', c:'fraco'};
 
+  /* ⚠️ CORRIGIDO EM 18/08/2026.
+     O painel dizia "12 contratos públicos · Licitante frequente" e, três
+     campos acima, o "Já participa de licitação?" continuava em "Não,
+     nunca participou" — a primeira opção do select, que nunca era
+     tocada. A mesma tela afirmava as duas coisas.
+
+     A regra só SOBE o nível, nunca desce, e o motivo não é cautela: o
+     PNCP guarda contrato ASSINADO, desde 2023. Empresa que disputa
+     muito e não ganha aparece com zero. Zero contrato não é prova de
+     que nunca participou — então zero não mexe em nada, e uma resposta
+     que o vendedor já tenha dado nunca é rebaixada por falta de dado.
+
+     Os cortes são os mesmos do `perfil` acima, de propósito: se o
+     painel diz "frequente" e o campo diz "sem constância", voltamos a
+     ter a tela se contradizendo. */
+  var sel=document.getElementById('ld-jalicita');
+  if(sel){
+    var nivel={'NAO':0,'AS_VEZES':1,'SIM':2};
+    var sugerido = total>=20 ? 'SIM' : 'AS_VEZES';
+    if((nivel[sugerido]||0) > (nivel[String(sel.value||'NAO')]||0)){
+      sel.value=sugerido;
+      /* Diz que foi o farol quem respondeu — campo que muda sozinho
+         sem explicação faz a pessoa desconfiar da ficha inteira. */
+      var dica=sel.parentElement && sel.parentElement.querySelector('.dica');
+      if(dica){
+        dica.innerHTML='<span style="color:var(--nh);font-weight:700">Respondido pelo farol:</span> '+
+          total+(total===1?' contrato público encontrado':' contratos públicos encontrados')+
+          ' no PNCP. Ajuste se souber melhor.';
+      }
+    }
+  }
+
   box.innerHTML=
     '<div class="pncp-t">'+
       '<span class="pncp-tag '+perfil.c+'">'+perfil.t+'</span>'+
@@ -3037,6 +3128,49 @@ async function entrar(){
   }
 }
 function sair(){ auth.signOut(); }
+
+/* ══════════════════════════════════════════════════════════════════
+   TEMA CLARO — 18/08/2026
+
+   O botão ◐ existia no topo desde sempre e chamava `trocarTema()`, uma
+   função que NUNCA foi escrita. Clicar dava ReferenceError no console e
+   nada acontecia na tela — o pior tipo de defeito, o que parece
+   "não funciona" sem dizer por quê.
+
+   O CSS já estava todo pronto: são umas dez regras `body.light` neste
+   arquivo, escritas junto com o resto. Só faltava quem ligasse a
+   classe. A implementação é a mesma do financeiro.html, com chave de
+   armazenamento própria para um sistema não mudar o tema do outro.
+   ══════════════════════════════════════════════════════════════════ */
+function nhPintarBotaoTema(){
+  var b=document.getElementById('btn-tema');
+  if(!b) return;
+  var claro=document.body.classList.contains('light');
+  /* O ícone mostra PARA ONDE o clique leva, não onde se está: é a
+     leitura que as pessoas fazem de um botão. */
+  b.textContent=claro?'🌙':'☀';
+  b.title=claro?'Voltar para a versão escura':'Mudar para a versão clara';
+  b.setAttribute('aria-label',b.title);
+}
+
+function trocarTema(){
+  document.body.classList.toggle('light');
+  try{
+    localStorage.setItem('nh_crm_tema',
+      document.body.classList.contains('light')?'claro':'escuro');
+  }catch(e){}
+  nhPintarBotaoTema();
+}
+
+/* Aplica o que estava salvo. Roda na carga do arquivo, antes do login:
+   assim a tela de acesso já nasce no tema certo, em vez de piscar
+   escura e clarear depois. */
+(function(){
+  try{ if(localStorage.getItem('nh_crm_tema')==='claro') document.body.classList.add('light'); }catch(e){}
+  if(document.readyState==='loading')
+    document.addEventListener('DOMContentLoaded',nhPintarBotaoTema);
+  else nhPintarBotaoTema();
+})();
 
 
 /* ══════════════════════════════════════════════════════════════════
