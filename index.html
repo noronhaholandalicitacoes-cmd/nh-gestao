@@ -3695,6 +3695,27 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
           <button onclick="salvarSenhaExclusao()" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);color:#f87171;padding:9px 22px;border-radius:8px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer">🔐 Alterar Senha de Exclusão</button>
         </div>
 
+        <!-- Separar os dados por empresa — fase 1 de 3 -->
+        <div style="background:var(--s2);border:1px solid var(--b1);border-radius:14px;padding:20px">
+          <div style="font-size:13px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;display:flex;align-items:center;gap:8px">
+            <span style="width:3px;height:14px;background:#a855f7;border-radius:2px;display:inline-block"></span>
+            Separar os dados por empresa — passo 1 de 3
+          </div>
+          <div style="font-size:12px;color:var(--t3);margin-bottom:14px;line-height:1.6">
+            Hoje o Viabilidade e o Portal de Contratos baixam a lista inteira e escondem no
+            navegador o que não é do cliente — quem entende de tecnologia consegue ver os
+            processos das outras empresas. Para fechar isso de verdade, cada registro precisa
+            carregar o nome da empresa num campo próprio.<br><br>
+            Este botão preenche esse campo nos registros antigos. <strong style="color:var(--t2)">Não
+            altera nada do que você vê</strong>, não apaga e não muda permissão: só grava onde
+            está faltando. Pode rodar mais de uma vez sem problema.<br><br>
+            Depois que ele terminar com <strong style="color:var(--t2)">zero “sem empresa”</strong>,
+            me avise para eu seguir para os passos 2 e 3.
+          </div>
+          <div id="mig-emp-msg" style="font-size:12.5px;margin-bottom:12px;display:none;line-height:1.7"></div>
+          <button id="mig-emp-btn" onclick="nhRodarMigracaoEmpresa()" style="background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.4);color:#c084fc;padding:9px 22px;border-radius:8px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer">🔒 Preencher a empresa nos registros</button>
+        </div>
+
         <!-- Link do portal -->
         <div style="background:var(--s2);border:1px solid var(--b1);border-radius:14px;padding:20px">
           <div style="font-size:13px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;display:flex;align-items:center;gap:8px">
@@ -6869,9 +6890,129 @@ function _nhAuditou(col,id,existia,antes,depois){
   }catch(e){ /* auditoria nunca derruba o trabalho de quem está usando */ }
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   FASE 1 DA SEPARAÇÃO ENTRE EMPRESAS — campo `empresa` solto
+   (18/08/2026)
+
+   O PROBLEMA
+   Hoje a empresa de um processo mora dentro do array posicional, em
+   `_arr[2]`. O Firestore não consulta por posição de array: não existe
+   `.where('_arr.2','==','VISE')`. Sem poder consultar, também não dá
+   para escrever uma REGRA que separe uma empresa da outra — e por isso
+   `viabilidade.html` e `portal-empresa.html` baixam a coleção INTEIRA
+   e escondem no navegador o que não é do cliente. Quem abrir o console
+   lê os processos, os contratos e os preços de todas as concorrentes.
+
+   O QUE ESTA FASE FAZ
+   Grava, ao lado do `_arr`, um campo `empresa` de primeiro nível. Só
+   isso. Nada muda de comportamento, nada passa a ser negado, nenhuma
+   tela muda. É de propósito: primeiro o dado existe em 100% dos
+   documentos, DEPOIS as consultas passam a usá-lo (fase 2) e só então
+   as regras apertam (fase 3).
+
+   Inverter essa ordem tranca todo mundo para fora: regra que exige um
+   campo que metade dos documentos não tem nega a metade.
+
+   O ÍNDICE É 2 NAS SEIS COLEÇÕES — conferido campo a campo nos
+   formulários (e-empresa, a-emp, g-emp, at-emp, v-emp) e no
+   mapeamento do servidor do portal (arrToEditais/arrToAndamento/
+   arrToGanhas em firebaseSync.ts).
+   ══════════════════════════════════════════════════════════════════ */
+var NH_EMP_IDX={editais:2,andamento:2,finalizados:2,ganhas:2,atestados:2,valores:2};
+
+/* Guardado em MAIÚSCULA e sem espaço dobrado porque é assim que o
+   cadastro de Acessos guarda o vínculo. Comparação exata só funciona
+   se os dois lados forem normalizados do mesmo jeito. */
+function nhEmpresaDoArr(colecao,arr){
+  var i=NH_EMP_IDX[colecao];
+  if(i===undefined||!arr) return null;
+  var v=String(arr[i]||'').trim().replace(/\s+/g,' ').toUpperCase();
+  return v||null;
+}
+
+/* Backfill — roda uma vez, por Configurações › Cadastros.
+   Só grava onde falta, então repetir é inofensivo e barato: documento
+   que já tem o campo nem é reescrito. Devolve o que fez, para a tela
+   poder mostrar em vez de "pronto" sem número. */
+async function nhMigrarCampoEmpresa(aoProgredir){
+  var cols=Object.keys(NH_EMP_IDX), r={total:0,gravados:0,jaTinham:0,semEmpresa:0,porColecao:{}};
+  for(var c=0;c<cols.length;c++){
+    var col=cols[c], snap;
+    try{ snap=await db.collection(col).get(); }
+    catch(err){ r.porColecao[col]={erro:err.message}; continue; }
+    var conta={total:0,gravados:0,jaTinham:0,semEmpresa:0};
+    var docs=snap.docs||[];
+    for(var i=0;i<docs.length;i++){
+      var d=docs[i], dados=d.data()||{};
+      conta.total++; r.total++;
+      if(dados.empresa){ conta.jaTinham++; r.jaTinham++; continue; }
+      var emp=nhEmpresaDoArr(col,dados._arr);
+      /* Documento sem empresa preenchida fica de fora e é CONTADO. A
+         fase 3 não pode subir enquanto este número não for zero —
+         cada um destes viraria um registro que ninguém mais enxerga. */
+      if(!emp){ conta.semEmpresa++; r.semEmpresa++; continue; }
+      try{
+        await db.collection(col).doc(d.id).set({empresa:emp},{merge:true});
+        conta.gravados++; r.gravados++;
+      }catch(err){ conta.erro=err.message; }
+      if(aoProgredir&&r.total%25===0) aoProgredir(col,r);
+    }
+    r.porColecao[col]=conta;
+    if(aoProgredir) aoProgredir(col,r);
+  }
+  return r;
+}
+
+/* O botão de Configurações › Cadastros. Só sócio: é uma varredura em
+   todas as coleções, e ainda que só grave campo novo, ninguém além de
+   quem administra tem motivo para disparar isso. */
+async function nhRodarMigracaoEmpresa(){
+  var btn=document.getElementById('mig-emp-btn'),
+      msg=document.getElementById('mig-emp-msg');
+  /* `IS_ADMIN` é o que o resto do arquivo usa; quem manda de verdade é
+     a regra do Firestore, que exige equipe para escrever nessas
+     coleções. Aqui é só para o botão não prometer o que vai falhar. */
+  if(!IS_ADMIN){
+    if(msg){msg.style.display='block';msg.style.color='#f87171';
+      msg.textContent='Só um sócio pode rodar isto.';}
+    return;
+  }
+  if(btn){btn.disabled=true;btn.textContent='Preenchendo…';}
+  if(msg){msg.style.display='block';msg.style.color='var(--t3)';
+    msg.textContent='Lendo os registros…';}
+  try{
+    var r=await nhMigrarCampoEmpresa(function(col,p){
+      if(msg) msg.textContent='Passando por '+col+'… '+p.gravados+' preenchidos de '+p.total+' lidos.';
+    });
+    var linhas=Object.keys(r.porColecao).map(function(c){
+      var x=r.porColecao[c];
+      if(x.erro) return '· <strong>'+c+'</strong>: não consegui ler — '+x.erro;
+      return '· <strong>'+c+'</strong>: '+x.total+' registros, '+x.gravados+' preenchidos agora, '
+        +x.jaTinham+' já tinham'+(x.semEmpresa?', <span style="color:#fbbf24">'+x.semEmpresa+' sem empresa</span>':'');
+    }).join('<br>');
+    var ok=r.semEmpresa===0;
+    if(msg){
+      msg.style.color=ok?'#4ade80':'#fbbf24';
+      msg.innerHTML=(ok
+        ? '<strong>Pronto.</strong> Todos os registros têm empresa. Pode me avisar para seguir para os passos 2 e 3.'
+        : '<strong>Quase.</strong> Sobraram '+r.semEmpresa+' registro(s) com a empresa em branco. '
+          +'Preencha a empresa neles no sistema e rode de novo — se os passos 2 e 3 subirem antes disso, '
+          +'esses registros somem da tela de todo mundo.')
+        +'<br><br>'+linhas;
+    }
+  }catch(err){
+    if(msg){msg.style.color='#f87171';msg.textContent='Falhou: '+err.message;}
+  }
+  if(btn){btn.disabled=false;btn.textContent='🔒 Preencher a empresa nos registros';}
+}
+
 async function fbSave(e,a,t,_docId){
   var _d=_docId?String(_docId):String(a);
   var o={_id:a,_arr:t,_updatedAt:Date.now()};
+  /* Fase 1: o campo solto acompanha toda gravação nova, para o
+     backfill não ter de correr atrás do que o sistema grava hoje. */
+  var _emp=nhEmpresaDoArr(e,t);
+  if(_emp) o.empresa=_emp;
   var _existia=false,_antes=null;
   try{
     var i=await db.collection(e).doc(_d).get();
