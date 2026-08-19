@@ -1203,6 +1203,51 @@ function painelReceber(r){
     '</tr></thead><tbody>'+linhas+'</tbody></table></div>';
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   EXCLUIR CONTRATO DE HONORÁRIOS — 19/08/2026
+
+   Faltava. Dava para cadastrar e editar, e um contrato lançado por
+   engano ficava para sempre — inflando o que a NH acha que tem a
+   receber.
+
+   O cuidado que a função toma: contrato é a ORIGEM de receita. Cada
+   mensalidade, taxa de adesão e percentual gravado em `nh_receitas`
+   aponta para ele por `contratoId`. Apagar o contrato com lançamento
+   vinculado deixaria receita órfã — que continua somando no total e
+   não tem mais como ser explicada. Por isso a função conta antes, e
+   nesse caso recusa em vez de apagar e avisar depois.
+   ══════════════════════════════════════════════════════════════════ */
+async function excluirContrato(id){
+  var c=CONTRATOS.filter(function(x){return x.id===id;})[0];
+  if(!c) return;
+
+  var vinculadas=RECEITAS.filter(function(r){return r.contratoId===id;});
+  if(vinculadas.length){
+    alert('Não dá para excluir o contrato de "'+(c.empresa||'—')+'".\n\n'+
+      'Existem '+vinculadas.length+' lançamento(s) de receita vinculados a ele. '+
+      'Apagar o contrato deixaria esses lançamentos sem origem, somando no total '+
+      'sem ninguém conseguir explicar de onde vêm.\n\n'+
+      'Se o contrato acabou, mude o status para ENCERRADO — o histórico fica de pé. '+
+      'Se foi lançado por engano, apague antes os lançamentos dele.');
+    return;
+  }
+
+  if(!confirm('Excluir o contrato de honorários de "'+(c.empresa||'—')+'"?\n\n'+
+              'Não há lançamento vinculado, então nada mais é afetado. '+
+              'Esta ação não tem desfazer.')) return;
+
+  try{
+    await db.collection('nh_contratos_honorarios').doc(id).delete();
+    /* `carregarTudo()` é o mesmo caminho que salvarContrato usa depois
+       de gravar: relê do banco e repinta. Mexer só na lista em memória
+       deixaria os totais do painel calculados sobre o contrato que
+       acabou de sumir. */
+    await carregarTudo();
+  }catch(e){
+    alert('Não consegui excluir: '+e.message);
+  }
+}
+
 function painelContratos(){
   var topo='<div style="margin-bottom:14px"><button class="btn btn-nh" onclick="abrirContrato()">+ Novo contrato</button></div>';
   if(!CONTRATOS.length){
@@ -1234,7 +1279,8 @@ function painelContratos(){
       '<td>'+esc(c.inicio||'—')+(c.fim?' → '+esc(c.fim):'')+'</td>'+
       '<td><span class="badge" style="background:'+(cores[st]||'#6b7280')+'1f;color:'+(cores[st]||'#6b7280')+'">'+
         ({ATIVO:'Ativo',SUSPENSO:'Suspenso',ENCERRADO:'Encerrado'}[st]||st)+'</span></td>'+
-      '<td class="acoes"><button onclick="abrirContrato(\''+c.id+'\')" title="Editar">✏️</button></td>'+
+      '<td class="acoes"><button onclick="abrirContrato(\''+c.id+'\')" title="Editar">✏️</button>'+
+        '<button onclick="excluirContrato(\''+c.id+'\')" title="Excluir contrato" class="bt-excluir">🗑️</button></td>'+
     '</tr>';
   }).join('');
   return topo+'<div class="tabela-wrap"><table><thead><tr>'+
