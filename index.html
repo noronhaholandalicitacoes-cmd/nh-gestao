@@ -6608,8 +6608,29 @@ async function acSalvar(){
        numa versão nova e guardamos qual é a vigente. */
     var authAviso=null;
     if(senhaGerada){
-      var ra=await criarContaAuthResp(num,senhaGerada,(reg.authVersao||0)+1);
-      if(ra.ok){ reg.authVersao=ra.versao; reg.authMigrado=true; }
+      var _vPedida=(reg.authVersao||0)+1;
+      var ra=await criarContaAuthResp(num,senhaGerada,_vPedida);
+      if(ra.ok){
+        reg.authVersao=ra.versao; reg.authMigrado=true;
+        /* ⚠️ ACRESCENTADO EM 19/08/2026 — o silêncio aqui custou um
+           acesso quebrado.
+
+           `criarContaAuthResp` sobe de versão sozinha quando o Firebase
+           responde "e-mail já em uso", e isso acontece sempre que o
+           número JÁ TEVE login antes: a conta velha continua existindo
+           no Firebase mesmo depois de o cadastro ser apagado daqui.
+
+           O problema é que a tela de login tenta a versão 1 primeiro. Se
+           a senha nova for IGUAL à antiga, a conta velha aceita, o login
+           para nela, e o servidor recusa com "Esta senha foi
+           substituída" — mensagem correta e incompreensível para quem
+           acabou de cadastrar a pessoa.
+
+           Nada disso aparecia na tela. Agora aparece, com o que fazer. */
+        if(ra.versao>_vPedida){
+          authAviso='versao:'+ra.versao;
+        }
+      }
       else { authAviso='falhou:'+(ra.erro||''); }
     }
 
@@ -6740,7 +6761,23 @@ function acMostrarSenha(nome,num,senha,nova,authAviso){
       box.className='ac-erro on';
       box.innerHTML='<b>N&atilde;o consegui criar o login desta pessoa.</b><br>'+esc0(authAviso.replace('falhou:',''))+
         '<br>O cadastro foi salvo, mas ela ainda n&atilde;o consegue entrar. Tente "Nova senha" novamente.';
+    }else if(authAviso&&authAviso.indexOf('versao:')===0){
+      /* Este número já tinha login antes. Não é erro — mas exige uma
+         senha DIFERENTE da anterior, e sem este aviso ninguém tem como
+         saber disso. */
+      box.className='ac-erro on';
+      box.style.background='rgba(234,179,8,.1)';
+      box.style.borderColor='rgba(234,179,8,.45)';
+      box.style.color='#eab308';
+      box.innerHTML='<b>&#9888; Este WhatsApp j&aacute; teve um acesso antes.</b><br>'+
+        'A conta antiga continua existindo e ainda aceita a senha VELHA. Por isso o login desta '+
+        'pessoa foi criado numa vers&atilde;o nova.<br><br>'+
+        '<b>Use a senha acima, e confira que ela &eacute; diferente da anterior.</b> '+
+        'Se for igual, a tela de login vai entrar pela conta velha e a pessoa vai ver '+
+        '"Esta senha foi substitu&iacute;da" &mdash; que &eacute; verdade, mas n&atilde;o ajuda em nada. '+
+        'Nesse caso, clique em <b>Nova senha</b> e envie a que o sistema gerar.';
     }else{
+      box.style.background='';box.style.borderColor='';box.style.color='';
       box.className='ac-erro';box.innerHTML='';
     }
   }
