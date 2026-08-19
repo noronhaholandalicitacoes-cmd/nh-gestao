@@ -38,7 +38,10 @@ body{background:var(--bg)}
 @keyframes bvFlutua1{0%,100%{transform:translate(0,0)}50%{transform:translate(30px,25px)}}
 @keyframes bvFlutua2{0%,100%{transform:translate(0,0)}50%{transform:translate(-25px,-30px)}}
 .bv-conteudo{position:relative;z-index:1;max-width:420px}
-.bv-logo{position:relative;width:104px;height:104px;margin:0 auto 30px;display:flex;align-items:center;justify-content:center;
+/* 100/52px é a medida das telas de acesso dos outros sistemas. Aqui
+   era 104/56 — perto o bastante para ninguém notar sozinho, longe o
+   bastante para as duas telas não baterem lado a lado. */
+.bv-logo{position:relative;width:100px;height:100px;margin:0 auto 30px;display:flex;align-items:center;justify-content:center;
   opacity:0;animation:bvApareceLogo .7s ease .1s forwards}
 @keyframes bvApareceLogo{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
 .bv-anel{position:absolute;border-radius:50%;border:2px solid transparent;animation:bvGira 6s linear infinite}
@@ -48,7 +51,7 @@ body{background:var(--bg)}
 .bv-a3{width:60%;height:60%;top:20%;left:20%;border-bottom-color:rgba(59,130,246,.6);border-right-color:rgba(59,130,246,.16);
   animation-duration:8s}
 @keyframes bvGira{to{transform:rotate(360deg)}}
-.bv-marca{position:relative;z-index:2;width:56px;height:56px;border-radius:17px;
+.bv-marca{position:relative;z-index:2;width:52px;height:52px;border-radius:16px;
   background-image:url("data:image/jpeg;base64,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");background-size:cover;
   box-shadow:0 0 30px rgba(249,115,22,.5)}
 .bv-selo{opacity:0;font-size:11px;font-weight:700;letter-spacing:.18em;color:var(--nh);
@@ -109,6 +112,54 @@ body{background:var(--bg)}
 .toggle2 button{flex:1;padding:11px;border-radius:9px;border:1px solid var(--b1);background:var(--s2);
   color:var(--t2);font-size:13px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif}
 .toggle2 button.on{background:rgba(249,115,22,.14);border-color:var(--nh);color:var(--nh)}
+/* Três opções não cabem lado a lado no celular com texto legível —
+   "Depende da oportunidade" sozinho já ocupa a largura de um botão. */
+.toggle2.t3 button{font-size:12.5px;padding:11px 6px}
+@media(max-width:520px){ .toggle2.t3{flex-direction:column} }
+
+/* Igual ao .f input, para o select não destoar dos campos vizinhos —
+   o navegador desenha select com estilo próprio se a gente deixar. */
+.f select{width:100%;background:var(--s2);border:1px solid var(--b1);color:var(--t1);
+  padding:11px 13px;border-radius:9px;font-size:14px;font-family:'Outfit',sans-serif;
+  outline:none;appearance:none;cursor:pointer;
+  background-image:linear-gradient(45deg,transparent 50%,var(--t3) 50%),linear-gradient(135deg,var(--t3) 50%,transparent 50%);
+  background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;
+  background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+.f select:focus{border-color:rgba(249,115,22,.55)}
+.f select option{background:var(--s1);color:var(--t1)}
+
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.grid3 input{width:100%;background:var(--s2);border:1px solid var(--b1);color:var(--t1);
+  padding:11px 13px;border-radius:9px;font-size:14px;font-family:'Outfit',sans-serif;outline:none}
+.grid3 input:focus{border-color:rgba(249,115,22,.55)}
+@media(max-width:640px){ .grid3{grid-template-columns:1fr} }
+
+.sub-tit{font-size:12px;font-weight:800;color:var(--t2);text-transform:uppercase;
+  letter-spacing:.06em;margin:22px 0 12px;padding-top:16px;border-top:1px solid var(--b1)}
+
+/* Alvo grande de toque: no celular, caixa de 14px é erro de clique
+   garantido — o rótulo inteiro liga o checkbox. */
+.check{display:flex;align-items:flex-start;gap:10px;cursor:pointer;padding:9px 0;
+  font-size:13px;line-height:1.5;color:var(--t2)}
+.check input{width:19px;height:19px;flex-shrink:0;margin-top:1px;accent-color:var(--nh);cursor:pointer}
+.check.obrig{background:var(--s2);border:1px solid var(--b1);border-radius:10px;
+  padding:12px 14px;margin-bottom:9px}
+.check .req{color:var(--nh)}
+
+/* O aviso do MEI precisa parar a pessoa, não passar despercebido. */
+.aviso-mei{display:none;background:rgba(234,179,8,.09);border:1px solid rgba(234,179,8,.42);
+  border-radius:11px;padding:14px 16px;margin-bottom:16px;font-size:13px;
+  line-height:1.6;color:#eab308}
+.aviso-mei.on{display:block}
+.aviso-mei b{display:block;margin-bottom:5px;font-size:13.5px}
+.aviso-mei .check{color:#eab308;font-weight:700;margin-top:6px;padding-bottom:0}
+
+/* Categoria por arquivo, na própria linha da lista. */
+.arq-cat{background:var(--s1);border:1px solid var(--b1);color:var(--t2);
+  font-size:11.5px;font-family:'Outfit',sans-serif;padding:5px 8px;border-radius:7px;
+  outline:none;cursor:pointer;max-width:190px}
+.arq-cat:focus{border-color:rgba(249,115,22,.55)}
+@media(max-width:520px){ .arq-cat{max-width:100%;width:100%;margin-top:6px} }
 
 .drop{border:2px dashed var(--b1);border-radius:12px;padding:26px 16px;text-align:center;cursor:pointer;
   transition:border-color .15s;background:var(--s2)}
@@ -172,7 +223,7 @@ body{background:var(--bg)}
   <div id="form-area">
     <div class="hero">
       <div class="hero-tit">Vamos <span class="grad">cadastrar</span> a sua empresa</div>
-      <div class="hero-sub">Preencha os dados abaixo e envie o que já tiver de documentação. Nossa equipe analisa tudo e retorna dizendo o que falta ou está vencido.</div>
+      <div class="hero-sub">Preencha os dados abaixo e envie os documentos que sua empresa já possui. Nossa equipe fará uma análise inicial do perfil da empresa, dos produtos ou serviços oferecidos, do território de atuação e da documentação disponível. Depois, retornaremos informando os próximos passos e eventuais documentos pendentes.</div>
     </div>
 
     <div class="erro-lista" id="erro-lista"></div>
@@ -195,6 +246,51 @@ body{background:var(--bg)}
       </div>
     </div>
 
+    <!-- ── Perfil da empresa ──────────────────────────────────────
+         Porte e CNAE decidem em quais licitações a empresa PODE
+         entrar: há certame exclusivo para ME/EPP, e o CNAE é o que o
+         órgão confere na habilitação. Sem isso a análise inicial vira
+         chute. -->
+    <div class="sec">
+      <div class="sec-tit">Perfil da empresa</div>
+      <div class="sec-desc">Define em quais licitações a empresa pode entrar — há certames exclusivos por porte.</div>
+      <div class="grid2">
+        <div class="f"><label for="c-porte">Porte da empresa</label>
+          <select id="c-porte">
+            <option value="">Selecione…</option>
+            <option>Microempresa</option>
+            <option>Empresa de Pequeno Porte</option>
+            <option>Média</option>
+            <option>Grande</option>
+            <option>Outro</option>
+          </select></div>
+        <div class="f"><label>A empresa é MEI?</label>
+          <div class="toggle2" id="toggle-mei">
+            <button type="button" data-valor="sim">Sim</button>
+            <button type="button" data-valor="nao" class="on">Não</button>
+          </div></div>
+      </div>
+      <!-- Aviso do MEI: aparece só quando marcado, e exige confirmação
+           explícita. Melhor dizer agora do que a pessoa preencher o
+           formulário inteiro e descobrir depois. -->
+      <div class="aviso-mei" id="aviso-mei">
+        <b>A NH Licitações não atende empresas enquadradas como MEI.</b>
+        O MEI tem limites de faturamento e de contratação que inviabilizam a maior parte
+        dos certames que trabalhamos. Se quiser enviar mesmo assim para uma orientação,
+        marque abaixo.
+        <label class="check"><input type="checkbox" id="c-mei-ok">
+          <span>Entendi e quero enviar o cadastro assim mesmo.</span></label>
+      </div>
+      <div class="grid2">
+        <div class="f"><label for="c-cnae">CNAE principal</label>
+          <input type="text" id="c-cnae" placeholder="00.00-0-00"></div>
+        <div class="f"><label for="c-fundacao">Ano de fundação</label>
+          <input type="text" id="c-fundacao" placeholder="2015" inputmode="numeric" maxlength="4"></div>
+      </div>
+      <div class="f"><label for="c-cnae-sec">CNAEs secundários</label>
+        <textarea id="c-cnae-sec" placeholder="Se houver — pode colar a lista do cartão CNPJ (opcional)"></textarea></div>
+    </div>
+
     <div class="sec">
       <div class="sec-tit">Responsável pelas licitações</div>
       <div class="sec-desc">É quem vai receber os avisos de processos no sistema de viabilidade.</div>
@@ -202,54 +298,166 @@ body{background:var(--bg)}
         <div class="f"><label for="c-resp-nome">Nome <span class="req">*</span></label><input type="text" id="c-resp-nome" placeholder="Nome completo" ></div>
         <div class="f"><label for="c-resp-wpp">WhatsApp <span class="req">*</span></label><input type="text" id="c-resp-wpp" placeholder="(83) 99999-9999" inputmode="numeric" oninput="pubMascaraWpp(this)"></div>
       </div>
-      <div class="f"><label for="c-outros">Outros contatos</label><textarea id="c-outros" placeholder="Financeiro, outro telefone, outro e-mail... (opcional)"></textarea></div>
-    </div>
+      <div class="f"><label for="c-outros">Outros contatos</label><textarea id="c-outros" placeholder="Outro telefone, outro e-mail... (opcional)"></textarea></div>
 
-    <div class="sec">
-      <div class="sec-tit">O que a empresa quer disputar</div>
-      <div class="sec-desc">Clique nos segmentos que se aplicam — pode marcar mais de um.</div>
-      <div class="chips" id="chips-segmentos">
-        <div class="chip" data-valor="Equipamentos médico-odontológicos">Equipamentos médico-odontológicos</div><div class="chip" data-valor="Gases medicinais">Gases medicinais</div><div class="chip" data-valor="Esterilização de material hospitalar">Esterilização de material hospitalar</div><div class="chip" data-valor="Manutenção predial">Manutenção predial</div><div class="chip" data-valor="Limpeza e conservação">Limpeza e conservação</div><div class="chip" data-valor="Alimentação e merenda">Alimentação e merenda</div><div class="chip" data-valor="Informática e TI">Informática e TI</div><div class="chip" data-valor="Obras e engenharia">Obras e engenharia</div><div class="chip" data-valor="Material de escritório">Material de escritório</div><div class="chip" data-valor="Uniformes e EPI">Uniformes e EPI</div><div class="chip" data-valor="Locação de veículos">Locação de veículos</div><div class="chip" data-valor="Outros">Outros</div>
+      <!-- Os três papéis abaixo travam processo quando ninguém sabe
+           quem é: aprovar preço perto do fim do prazo, achar a nota
+           para faturar, conseguir o documento que faltou na
+           habilitação. A caixa "é a mesma pessoa" existe para o caso
+           mais comum — empresa pequena, uma pessoa só — e evita pedir
+           três vezes o mesmo contato. -->
+      <div class="sub-tit">Outros responsáveis</div>
+      <label class="check" style="margin-bottom:12px"><input type="checkbox" id="c-mesmo-resp" checked>
+        <span>O responsável pelas licitações acumula todas as funções abaixo.</span></label>
+
+      <div id="bloco-responsaveis" style="display:none">
+        <div class="f"><label>Quem aprova participação, preço e envio de propostas</label>
+          <div class="grid3">
+            <input type="text" id="c-aprov-nome" placeholder="Nome">
+            <input type="text" id="c-aprov-wpp" placeholder="WhatsApp" inputmode="numeric" oninput="pubMascaraWpp(this)">
+            <input type="email" id="c-aprov-email" placeholder="E-mail">
+          </div></div>
+        <div class="f"><label>Responsável financeiro</label>
+          <div class="grid3">
+            <input type="text" id="c-fin-nome" placeholder="Nome">
+            <input type="text" id="c-fin-wpp" placeholder="WhatsApp" inputmode="numeric" oninput="pubMascaraWpp(this)">
+            <input type="email" id="c-fin-email" placeholder="E-mail">
+          </div></div>
+        <div class="f"><label>Responsável pelo envio de documentos</label>
+          <div class="grid3">
+            <input type="text" id="c-doc-nome" placeholder="Nome">
+            <input type="text" id="c-doc-wpp" placeholder="WhatsApp" inputmode="numeric" oninput="pubMascaraWpp(this)">
+            <input type="email" id="c-doc-email" placeholder="E-mail">
+          </div></div>
       </div>
-      <div class="f"><label for="c-objetos">Detalhe (opcional)</label><textarea id="c-objetos" placeholder="Descreva melhor, se quiser"></textarea></div>
     </div>
 
+    <!-- ── Produtos e serviços ────────────────────────────────────
+         A lista antiga era de SEGMENTOS já muito específicos
+         ("Esterilização de material hospitalar", "Uniformes e EPI") e
+         deixava de fora quem não se encaixasse em nenhum deles. Esta é
+         por NATUREZA do que a empresa faz, que é a pergunta que a
+         análise inicial precisa responder; o detalhe fino vai nos
+         campos de texto logo abaixo, sem repetir a mesma pergunta. -->
+    <div class="sec">
+      <div class="sec-tit">Quais produtos ou serviços sua empresa fornece?</div>
+      <div class="sec-desc">Pode marcar mais de uma opção.</div>
+      <div class="chips" id="chips-segmentos">
+        <div class="chip" data-valor="Fornecimento de produtos">Fornecimento de produtos</div><div class="chip" data-valor="Prestação de serviços">Prestação de serviços</div><div class="chip" data-valor="Obras e engenharia">Obras e engenharia</div><div class="chip" data-valor="Instalação">Instalação</div><div class="chip" data-valor="Manutenção e assistência técnica">Manutenção e assistência técnica</div><div class="chip" data-valor="Locação de equipamentos">Locação de equipamentos</div><div class="chip" data-valor="Tecnologia">Tecnologia</div><div class="chip" data-valor="Saúde e equipamentos médicos">Saúde e equipamentos médicos</div><div class="chip" data-valor="Gases medicinais e industriais">Gases medicinais e industriais</div><div class="chip" data-valor="Outro">Outro</div>
+      </div>
+      <div class="f"><label for="c-objetos">Descreva os principais produtos e serviços</label>
+        <textarea id="c-objetos" placeholder="O que a empresa fornece, na prática"></textarea></div>
+      <div class="f"><label for="c-marcas">Marcas, modelos, especialidades ou linhas prioritárias</label>
+        <textarea id="c-marcas" placeholder="O que a empresa trabalha e o que gostaria de priorizar"></textarea></div>
+      <div class="f"><label>A empresa possui autorizações, certificações, licenças, registros de fabricante, distribuidor autorizado ou documentos específicos relacionados ao que fornece?</label>
+        <div class="toggle2 t3" id="toggle-autorizacoes">
+          <button type="button" data-valor="sim">Sim</button>
+          <button type="button" data-valor="nao">Não</button>
+          <button type="button" data-valor="analise">Em análise</button>
+        </div></div>
+      <div class="f"><label for="c-autorizacoes-det">Detalhe as autorizações</label>
+        <textarea id="c-autorizacoes-det" placeholder="Quais são, de qual órgão, e o que está pendente (opcional)"></textarea></div>
+    </div>
+
+    <!-- ── Território ─────────────────────────────────────────────
+         "Onde quer atuar" continua sendo a pergunta central; o que
+         mudou é o que vem junto. Distância é custo: quem vende para
+         outro estado precisa saber se consegue instalar e dar
+         manutenção lá, e essa resposta muda quais editais valem a pena. -->
     <div class="sec">
       <div class="sec-tit">Onde quer atuar</div>
+      <div class="sec-desc">A cidade da sede está nos dados da empresa, acima. Marque os estados onde deseja disputar.</div>
       <div class="chips" id="chips-estados">
         <div class="chip brasil" id="chip-brasil">🇧🇷 Brasil inteiro</div>
         <div class="chip chip-uf" data-valor="AC">AC</div><div class="chip chip-uf" data-valor="AL">AL</div><div class="chip chip-uf" data-valor="AP">AP</div><div class="chip chip-uf" data-valor="AM">AM</div><div class="chip chip-uf" data-valor="BA">BA</div><div class="chip chip-uf" data-valor="CE">CE</div><div class="chip chip-uf" data-valor="DF">DF</div><div class="chip chip-uf" data-valor="ES">ES</div><div class="chip chip-uf" data-valor="GO">GO</div><div class="chip chip-uf" data-valor="MA">MA</div><div class="chip chip-uf" data-valor="MT">MT</div><div class="chip chip-uf" data-valor="MS">MS</div><div class="chip chip-uf" data-valor="MG">MG</div><div class="chip chip-uf" data-valor="PA">PA</div><div class="chip chip-uf" data-valor="PB">PB</div><div class="chip chip-uf" data-valor="PR">PR</div><div class="chip chip-uf" data-valor="PE">PE</div><div class="chip chip-uf" data-valor="PI">PI</div><div class="chip chip-uf" data-valor="RJ">RJ</div><div class="chip chip-uf" data-valor="RN">RN</div><div class="chip chip-uf" data-valor="RS">RS</div><div class="chip chip-uf" data-valor="RO">RO</div><div class="chip chip-uf" data-valor="RR">RR</div><div class="chip chip-uf" data-valor="SC">SC</div><div class="chip chip-uf" data-valor="SP">SP</div><div class="chip chip-uf" data-valor="SE">SE</div><div class="chip chip-uf" data-valor="TO">TO</div>
       </div>
+      <div class="f" style="margin-top:14px"><label for="c-municipios">Municípios ou regiões prioritárias</label>
+        <textarea id="c-municipios" placeholder="Onde a empresa prefere começar (opcional)"></textarea></div>
+      <div class="f"><label>Aceita atender outros estados quando a oportunidade for viável?</label>
+        <div class="toggle2 t3" id="toggle-outros-estados">
+          <button type="button" data-valor="sim">Sim</button>
+          <button type="button" data-valor="nao">Não</button>
+          <button type="button" data-valor="depende" class="on">Depende da oportunidade</button>
+        </div></div>
+      <div class="f"><label>Consegue fazer atendimento presencial, instalação ou manutenção fora da cidade da sede?</label>
+        <div class="toggle2 t3" id="toggle-presencial">
+          <button type="button" data-valor="sim">Sim</button>
+          <button type="button" data-valor="nao">Não</button>
+          <button type="button" data-valor="depende" class="on">Depende do contrato</button>
+        </div></div>
+      <div class="f"><label for="c-territorio-obs">Observações sobre território</label>
+        <textarea id="c-territorio-obs" placeholder="Opcional"></textarea></div>
     </div>
 
     <div class="sec">
       <div class="sec-tit">Participa de dispensa eletrônica?</div>
-      <div class="toggle2" id="toggle-dispensa">
-        <button data-valor="sim">Sim</button>
-        <button data-valor="nao" class="on">Não</button>
+      <div class="toggle2 t3" id="toggle-dispensa">
+        <button type="button" data-valor="sim">Sim</button>
+        <button type="button" data-valor="nao" class="on">Não</button>
+        <button type="button" data-valor="entender">Quero entender melhor</button>
       </div>
+    </div>
+
+    <!-- ── Objetivos comerciais ───────────────────────────────────
+         Não é pergunta de vendedor: o objetivo muda o TIPO de edital
+         que vale garimpar. Quem quer o primeiro contrato precisa de
+         certame pequeno e de baixa exigência; quem quer ocupar
+         capacidade ociosa aceita margem menor em volume maior. -->
+    <div class="sec">
+      <div class="sec-tit">Quais são os objetivos da sua empresa no mercado público?</div>
+      <div class="sec-desc">Pode marcar mais de uma opção.</div>
+      <div class="chips" id="chips-objetivos">
+        <div class="chip" data-valor="Conseguir os primeiros contratos públicos">Conseguir os primeiros contratos públicos</div><div class="chip" data-valor="Aumentar o faturamento">Aumentar o faturamento</div><div class="chip" data-valor="Expandir para outros estados">Expandir para outros estados</div><div class="chip" data-valor="Vender uma linha específica">Vender uma linha específica de produtos ou serviços</div><div class="chip" data-valor="Ocupar capacidade ociosa">Ocupar capacidade ociosa</div><div class="chip" data-valor="Criar uma nova área comercial">Criar uma nova área comercial</div><div class="chip" data-valor="Outro">Outro</div>
+      </div>
+      <div class="f"><label for="c-meta90">Que resultado gostaria de alcançar nos próximos 90 dias?</label>
+        <textarea id="c-meta90" placeholder="Opcional"></textarea></div>
+      <div class="f"><label for="c-prioritario">Existe algum produto ou serviço prioritário para começar?</label>
+        <textarea id="c-prioritario" placeholder="Opcional"></textarea></div>
+      <div class="f"><label for="c-obs-nh">Observações ou informações importantes para a NH</label>
+        <textarea id="c-obs-nh" placeholder="Opcional"></textarea></div>
     </div>
 
     <div class="sec">
       <div class="sec-tit">Documentação</div>
-      <div class="sec-desc">Envie o que já tiver — contrato social, certidões, balanço, o que for. Pode mandar tudo compactado num ZIP, se preferir. Até 25&nbsp;MB por arquivo.</div>
+      <div class="sec-desc">Envie os documentos que sua empresa já possui. Você pode enviar vários arquivos separados ou um único arquivo ZIP organizado por categoria. Nossa equipe identificará o que está completo, pendente ou vencido. Até 25&nbsp;MB por arquivo.</div>
       <div class="drop" id="drop-area">
         <div class="drop-ic">📎</div>
         <div class="drop-tit">Toque para escolher os arquivos</div>
         <div class="drop-sub">PDF, imagem, Word, Excel ou ZIP</div>
       </div>
       <input type="file" id="input-arquivos" multiple style="display:none" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx,.zip,.rar">
+      <!-- A categoria é escolhida POR ARQUIVO, na lista abaixo, e não
+           com sete campos de upload separados. Sete áreas de envio numa
+           tela de celular é rolagem demais para uma escolha que cabe
+           num seletor de uma linha — e quem manda tudo num ZIP não
+           precisaria de nenhuma delas. -->
       <div class="arq-lista" id="arq-lista"></div>
+      <label class="check" style="margin-top:14px"><input type="checkbox" id="c-sem-docs">
+        <span>Ainda não tenho todos os documentos organizados. Quero que a NH me informe o que falta.</span></label>
     </div>
 
-    <button class="btn-enviar" id="btn-enviar" onclick="pubEnviar()">Enviar cadastro</button>
+    <!-- ── Autorizações ───────────────────────────────────────────
+         Obrigatórias, e por isso ficam à vista antes do botão — não
+         escondidas atrás de um link que ninguém abre. -->
+    <div class="sec">
+      <div class="sec-tit">Autorizações</div>
+      <label class="check obrig"><input type="checkbox" id="c-aut-dados">
+        <span>Autorizo a NH Licitações a utilizar os dados e documentos enviados exclusivamente para análise comercial, documental e de oportunidades em licitações. <span class="req">*</span></span></label>
+      <label class="check obrig"><input type="checkbox" id="c-aut-veracidade">
+        <span>Declaro que as informações fornecidas são verdadeiras e autorizo a NH Licitações a solicitar documentos complementares quando necessário. <span class="req">*</span></span></label>
+      <div class="sec-desc" style="margin-top:10px">
+        <a href="#" id="link-privacidade" target="_blank" rel="noopener">Política de Privacidade da NH Licitações</a>
+      </div>
+    </div>
+
+    <button class="btn-enviar" id="btn-enviar" onclick="pubEnviar()">Enviar cadastro para análise</button>
     <div class="aviso">Seus dados são usados só para a análise de participação em licitações pela NH Licitações.</div>
   </div>
 
   <div class="sucesso" id="sucesso">
     <div class="sucesso-ic">✓</div>
-    <div class="sucesso-tit">Cadastro recebido!</div>
-    <div class="sucesso-sub">Nossa equipe vai analisar os dados e a documentação enviada. Em breve entramos em contato pelo WhatsApp informado.</div>
+    <div class="sucesso-tit">Cadastro recebido</div>
+    <div class="sucesso-sub">Nossa equipe irá revisar as informações e retornará informando os documentos pendentes, os pontos de atenção e os próximos passos.</div>
   </div>
 
 </div>
@@ -327,30 +535,88 @@ function pubValidarCadastro(campos) {
   if (!respNome) erros.push('Nome do responsável pelas licitações');
   if (respWhats.length < 12) erros.push('WhatsApp do responsável');
 
+  /* As duas autorizações são obrigatórias por decisão do cliente: sem
+     elas a NH não tem base para tratar os documentos enviados. */
+  if (!campos.autorizaDados) erros.push('Autorização de uso dos dados');
+  if (!campos.autorizaVeracidade) erros.push('Declaração de veracidade');
+
+  /* MEI: não bloqueia, mas exige que a pessoa tenha VISTO o aviso e
+     confirmado. Bloquear de vez faria alguém preencher tudo para
+     descobrir no fim que não podia enviar — e há casos em que vale a
+     conversa, mesmo sem contrato. */
+  if (campos.ehMei && !campos.meiConfirmado) {
+    erros.push('Confirmação do aviso sobre MEI');
+  }
+
+  /* Guarda só o que a pessoa preencheu, para o cadastro não encher de
+     campo vazio — quem lê não distingue "não respondeu" de "respondeu
+     em branco" quando tudo vem como ''. */
+  var txt = function (x) { return String(x || '').trim(); };
+  var poe = function (alvo, chave, valor) { if (valor) alvo[chave] = valor; };
+  var contato = function (c) {
+    if (!c) return null;
+    var o = {};
+    poe(o, 'nome', txt(c.nome));
+    poe(o, 'wpp', pubNumeroWpp(c.wpp));
+    poe(o, 'email', txt(c.email).toLowerCase());
+    return Object.keys(o).length ? o : null;
+  };
+
   if (erros.length) return {ok: false, erros: erros};
 
   var estados = Array.isArray(campos.estados) ? campos.estados.slice() : [];
   if (campos.brasilInteiro) estados = ['BRASIL'];
 
-  return {
-    ok: true,
-    dados: {
-      razao: razao,
-      fantasia: fantasia || razao,
-      cnpj: cnpj,
-      endereco: String(campos.endereco || '').trim(),
-      cidade: String(campos.cidade || '').trim(),
-      cep: pubSoDigitos(campos.cep),
-      telefone: telefone,
-      email: email.toLowerCase(),
-      respNome: respNome,
-      respWhats: respWhats,
-      outrosContatos: String(campos.outrosContatos || '').trim(),
-      objetos: String(campos.objetos || '').trim(),
-      estados: estados,
-      participaDispensa: !!campos.participaDispensa
-    }
+  var dados = {
+    razao: razao,
+    fantasia: fantasia || razao,
+    cnpj: cnpj,
+    endereco: txt(campos.endereco),
+    cidade: txt(campos.cidade),
+    cep: pubSoDigitos(campos.cep),
+    telefone: telefone,
+    email: email.toLowerCase(),
+    respNome: respNome,
+    respWhats: respWhats,
+    outrosContatos: txt(campos.outrosContatos),
+    objetos: txt(campos.objetos),
+    estados: estados,
+    participaDispensa: !!campos.participaDispensa,
+    /* Autorizações ficam registradas COM a hora: é o que dá valor a
+       elas depois. Uma caixa marcada sem quando não prova nada. */
+    autorizaDados: true,
+    autorizaVeracidade: true,
+    autorizadoEm: Date.now()
   };
+
+  poe(dados, 'dispensaResposta', txt(campos.dispensaResposta));
+  poe(dados, 'porte', txt(campos.porte));
+  if (campos.ehMei) { dados.ehMei = true; dados.meiConfirmado = !!campos.meiConfirmado; }
+  poe(dados, 'cnae', txt(campos.cnae));
+  poe(dados, 'cnaeSecundarios', txt(campos.cnaeSecundarios));
+  poe(dados, 'anoFundacao', pubSoDigitos(campos.anoFundacao));
+  poe(dados, 'marcas', txt(campos.marcas));
+  poe(dados, 'autorizacoes', txt(campos.autorizacoes));
+  poe(dados, 'autorizacoesDetalhe', txt(campos.autorizacoesDetalhe));
+  poe(dados, 'municipios', txt(campos.municipios));
+  poe(dados, 'aceitaOutrosEstados', txt(campos.aceitaOutrosEstados));
+  poe(dados, 'atendimentoPresencial', txt(campos.atendimentoPresencial));
+  poe(dados, 'territorioObs', txt(campos.territorioObs));
+  if (Array.isArray(campos.objetivos) && campos.objetivos.length) dados.objetivos = campos.objetivos.slice();
+  poe(dados, 'meta90', txt(campos.meta90));
+  poe(dados, 'produtoPrioritario', txt(campos.produtoPrioritario));
+  poe(dados, 'obsParaNh', txt(campos.obsParaNh));
+  if (campos.semDocumentos) dados.semDocumentos = true;
+
+  dados.mesmoResponsavel = campos.mesmoResponsavel !== false;
+  if (!dados.mesmoResponsavel) {
+    var a = contato(campos.aprovador), f = contato(campos.financeiro), d = contato(campos.documentos);
+    if (a) dados.aprovador = a;
+    if (f) dados.financeiro = f;
+    if (d) dados.responsavelDocumentos = d;
+  }
+
+  return {ok: true, dados: dados};
 }
 
 /** Cada arquivo é conferido sozinho, antes de qualquer envio — evita
@@ -425,10 +691,39 @@ document.getElementById('chip-brasil').addEventListener('click',function(){
 document.getElementById('chips-estados').addEventListener('click',function(e){
   var c=e.target.closest('.chip-uf'); if(c)c.classList.toggle('on');
 });
-document.getElementById('toggle-dispensa').addEventListener('click',function(e){
-  var b=e.target.closest('button'); if(!b)return;
-  this.querySelectorAll('button').forEach(function(x){x.classList.remove('on');});
-  b.classList.add('on');
+/* Um só ligador para TODOS os toggles, em vez de um bloco por caixa.
+   Antes era só o de dispensa; com seis, copiar o mesmo listener seis
+   vezes é seis lugares para esquecer de mexer depois. */
+['toggle-dispensa','toggle-mei','toggle-autorizacoes','toggle-outros-estados','toggle-presencial']
+.forEach(function(id){
+  var el=document.getElementById(id); if(!el)return;
+  el.addEventListener('click',function(e){
+    var b=e.target.closest('button'); if(!b)return;
+    this.querySelectorAll('button').forEach(function(x){x.classList.remove('on');});
+    b.classList.add('on');
+    if(id==='toggle-mei')pubAtualizarMei();
+  });
+});
+
+document.getElementById('chips-objetivos').addEventListener('click',function(e){
+  var c=e.target.closest('.chip'); if(c)c.classList.toggle('on');
+});
+
+/* MEI: mostra o aviso e zera a confirmação ao voltar para "Não" —
+   senão a caixa fica marcada de uma tentativa anterior e o aviso passa
+   a não avisar nada. */
+function pubAtualizarMei(){
+  var b=document.querySelector('#toggle-mei button.on');
+  var ehMei=!!b&&'sim'===b.getAttribute('data-valor');
+  var box=document.getElementById('aviso-mei');
+  box.classList.toggle('on',ehMei);
+  if(!ehMei){var ck=document.getElementById('c-mei-ok'); if(ck)ck.checked=false;}
+}
+
+/* Empresa pequena costuma ter uma pessoa só para tudo. A caixa vem
+   MARCADA por isso: o caminho comum não deve dar trabalho. */
+document.getElementById('c-mesmo-resp').addEventListener('change',function(){
+  document.getElementById('bloco-responsaveis').style.display=this.checked?'none':'block';
 });
 
 /* ── arquivos ─────────────────────────────────────────────────────── */
@@ -450,40 +745,105 @@ document.getElementById('input-arquivos').addEventListener('change',function(e){
 function adicionarArquivos(lista){
   Array.prototype.forEach.call(lista,function(f){
     var v=pubArquivoValido(f);
-    ARQUIVOS_ESCOLHIDOS.push({arquivo:f,ok:v.ok,motivo:v.motivo});
+    ARQUIVOS_ESCOLHIDOS.push({arquivo:f,ok:v.ok,motivo:v.motivo,categoria:'Outros documentos'});
   });
   renderArquivos();
 }
 function removerArquivo(i){ARQUIVOS_ESCOLHIDOS.splice(i,1);renderArquivos();}
+/* As categorias que a NH usa para conferir o que falta. "Outros" fica
+   por último e é o padrão: obrigar a classificar antes de enviar
+   travaria quem só quer mandar o ZIP e seguir a vida. */
+var PUB_CATEGORIAS=[
+  'Documentos societários',
+  'Cartão CNPJ e documentos cadastrais',
+  'Certidões fiscais e trabalhistas',
+  'Balanço e documentos contábeis',
+  'Catálogos e apresentação comercial',
+  'Atestados, certificados, licenças e registros',
+  'Outros documentos'
+];
+
 function renderArquivos(){
   var box=document.getElementById('arq-lista');
   box.innerHTML=ARQUIVOS_ESCOLHIDOS.map(function(item,i){
     var tam=pubTamanhoLegivel(item.arquivo.size);
     var direita=item.ok?'<span class="arq-tam">'+tam+'</span>':'<span class="arq-erro">'+item.motivo+'</span>';
+    var cat='<select class="arq-cat" data-idx="'+i+'" aria-label="Categoria do documento">'+
+      PUB_CATEGORIAS.map(function(c){
+        return '<option'+(c===item.categoria?' selected':'')+'>'+esc0(c)+'</option>';
+      }).join('')+'</select>';
     return '<div class="arq-item"><span class="arq-nome">'+esc0(item.arquivo.name)+'</span>'
-      +direita+'<button class="arq-rm" data-idx="'+i+'">✕</button></div>';
+      +cat+direita+'<button class="arq-rm" data-idx="'+i+'">✕</button></div>';
   }).join('');
 }
 document.getElementById('arq-lista').addEventListener('click',function(e){
   var b=e.target.closest('.arq-rm'); if(b)removerArquivo(parseInt(b.getAttribute('data-idx'),10));
 });
+/* `change` não sobe por `click`, então precisa do próprio ouvinte —
+   e vai no container, para sobreviver ao redesenho da lista. */
+document.getElementById('arq-lista').addEventListener('change',function(e){
+  var s=e.target.closest('.arq-cat'); if(!s)return;
+  var i=parseInt(s.getAttribute('data-idx'),10);
+  if(ARQUIVOS_ESCOLHIDOS[i])ARQUIVOS_ESCOLHIDOS[i].categoria=s.value;
+});
 function esc0(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 /* ── leitura dos campos ──────────────────────────────────────────── */
 function pubLerCampos(){
-  var segs=[]; document.querySelectorAll('#chips-segmentos .chip.on').forEach(function(c){segs.push(c.getAttribute('data-valor'));});
-  var ufs=[]; document.querySelectorAll('.chip-uf.on').forEach(function(c){ufs.push(c.getAttribute('data-valor'));});
-  var disp=document.querySelector('#toggle-dispensa button.on');
+  var v=function(id){var e=document.getElementById(id);return e?e.value:'';};
+  var mk=function(id){var e=document.getElementById(id);return !!e&&e.checked;};
+  var tg=function(id){var b=document.querySelector('#'+id+' button.on');return b?b.getAttribute('data-valor'):'';};
+  var chips=function(sel){var a=[];document.querySelectorAll(sel).forEach(function(c){a.push(c.getAttribute('data-valor'));});return a;};
+
+  var segs=chips('#chips-segmentos .chip.on');
+  var ufs=chips('.chip-uf.on');
+  var mesmoResp=mk('c-mesmo-resp');
+
   return {
-    razao:document.getElementById('c-razao').value, fantasia:document.getElementById('c-fantasia').value,
-    cnpj:document.getElementById('c-cnpj').value, endereco:document.getElementById('c-endereco').value,
-    cidade:document.getElementById('c-cidade').value, cep:document.getElementById('c-cep').value,
-    telefone:document.getElementById('c-telefone').value, email:document.getElementById('c-email').value,
-    respNome:document.getElementById('c-resp-nome').value, respWhats:document.getElementById('c-resp-wpp').value,
-    outrosContatos:document.getElementById('c-outros').value,
-    objetos:(segs.join(', ')+(document.getElementById('c-objetos').value?' — '+document.getElementById('c-objetos').value:'')).replace(/^—\s*/,''),
+    razao:v('c-razao'), fantasia:v('c-fantasia'),
+    cnpj:v('c-cnpj'), endereco:v('c-endereco'),
+    cidade:v('c-cidade'), cep:v('c-cep'),
+    telefone:v('c-telefone'), email:v('c-email'),
+    respNome:v('c-resp-nome'), respWhats:v('c-resp-wpp'),
+    outrosContatos:v('c-outros'),
+    objetos:(segs.join(', ')+(v('c-objetos')?' — '+v('c-objetos'):'')).replace(/^—\s*/,''),
     estados:ufs, brasilInteiro:document.getElementById('chip-brasil').classList.contains('on'),
-    participaDispensa: !!disp && 'sim'===disp.getAttribute('data-valor')
+    /* `participaDispensa` continua booleano para não quebrar quem já lê
+       esse campo; a resposta completa vai em `dispensaResposta`, que
+       distingue "não" de "quero entender melhor" — e são coisas bem
+       diferentes para quem vai atender esse cliente. */
+    participaDispensa: 'sim'===tg('toggle-dispensa'),
+    dispensaResposta: tg('toggle-dispensa'),
+
+    porte:v('c-porte'),
+    ehMei: 'sim'===tg('toggle-mei'),
+    meiConfirmado: mk('c-mei-ok'),
+    cnae:v('c-cnae'), cnaeSecundarios:v('c-cnae-sec'), anoFundacao:v('c-fundacao'),
+
+    marcas:v('c-marcas'),
+    autorizacoes:tg('toggle-autorizacoes'),
+    autorizacoesDetalhe:v('c-autorizacoes-det'),
+
+    municipios:v('c-municipios'),
+    aceitaOutrosEstados:tg('toggle-outros-estados'),
+    atendimentoPresencial:tg('toggle-presencial'),
+    territorioObs:v('c-territorio-obs'),
+
+    objetivos:chips('#chips-objetivos .chip.on'),
+    meta90:v('c-meta90'), produtoPrioritario:v('c-prioritario'), obsParaNh:v('c-obs-nh'),
+
+    mesmoResponsavel:mesmoResp,
+    /* Com "é a mesma pessoa" marcado, os campos ficam escondidos e
+       vazios — mandar string vazia seria dizer que não há responsável
+       financeiro, quando o certo é que é o mesmo. Quem lê o cadastro
+       resolve por `mesmoResponsavel`. */
+    aprovador: mesmoResp?null:{nome:v('c-aprov-nome'),wpp:v('c-aprov-wpp'),email:v('c-aprov-email')},
+    financeiro: mesmoResp?null:{nome:v('c-fin-nome'),wpp:v('c-fin-wpp'),email:v('c-fin-email')},
+    documentos: mesmoResp?null:{nome:v('c-doc-nome'),wpp:v('c-doc-wpp'),email:v('c-doc-email')},
+
+    semDocumentos:mk('c-sem-docs'),
+    autorizaDados:mk('c-aut-dados'),
+    autorizaVeracidade:mk('c-aut-veracidade')
   };
 }
 
@@ -530,11 +890,17 @@ async function pubEnviar(){
       try{
         var b64=await arquivoParaBase64(arquivosOk[i].arquivo);
         var res=await enviarArquivoUnico(r.dados.cnpj,r.dados.razao,arquivosOk[i].arquivo.name,b64);
-        salvos.push({nome:arquivosOk[i].arquivo.name,url:(res.arquivos[0]&&res.arquivos[0].url)||'',
+        salvos.push({nome:arquivosOk[i].arquivo.name,
+          /* A categoria escolhida na lista viaja com o arquivo: é o que
+             permite à NH ver de cara o que já veio e o que falta, sem
+             abrir um por um. */
+          categoria:arquivosOk[i].categoria||'Outros documentos',
+          url:(res.arquivos[0]&&res.arquivos[0].url)||'',
           tamanho:arquivosOk[i].arquivo.size});
         pastaUrl=res.pastaUrl||pastaUrl;
       }catch(e){
-        salvos.push({nome:arquivosOk[i].arquivo.name,erro:e.message});
+        salvos.push({nome:arquivosOk[i].arquivo.name,
+          categoria:arquivosOk[i].categoria||'Outros documentos',erro:e.message});
       }
     }
   }
@@ -586,7 +952,7 @@ async function pubEnviar(){
     document.getElementById('sucesso').style.display='block';
     window.scrollTo({top:0,behavior:'smooth'});
   }catch(e){
-    btn.disabled=false; btn.textContent='Enviar cadastro';
+    btn.disabled=false; btn.textContent='Enviar cadastro para análise';
     caixaErro.style.display='block';
     caixaErro.innerHTML='Não consegui salvar agora: '+e.message+'. Tente novamente em instantes.';
   }
