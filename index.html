@@ -727,8 +727,18 @@ body.light-theme select{color-scheme:light;}
   padding:12px 14px;background:var(--s1);border:1px solid var(--b1);border-radius:10px;
   cursor:pointer;transition:border-color .15s}
 .cad-linha:hover{border-color:rgba(249,115,22,.4)}
-.cad-nome{font-size:13.5px;font-weight:700;color:var(--t1)}
+.cad-nome{font-size:13.5px;font-weight:700;color:var(--t1);display:flex;align-items:center;gap:8px}
 .cad-sub{font-size:11.5px;color:var(--t3);margin-top:3px}
+/* Empresa que mandou mais de uma vez: o número no nome se vê de
+   relance, e a faixa abaixo explica o que ele significa — sem ela o
+   "3" pareceria contagem de arquivo. */
+.cad-n-envios{font-size:10px;font-weight:800;color:var(--nh);
+  background:rgba(249,115,22,.14);border:1px solid rgba(249,115,22,.4);
+  padding:1px 7px;border-radius:999px;flex-shrink:0}
+.cad-reenvios{margin-top:6px;font-size:11px;line-height:1.5;color:#eab308;
+  background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.3);
+  border-radius:7px;padding:6px 9px}
+.cad-reenvios b{font-weight:800}
 .cad-badge{font-size:10.5px;font-weight:700;padding:4px 10px;border-radius:20px;
   border:1px solid;white-space:nowrap;flex-shrink:0}
 .cad-dono{color:var(--t2);font-weight:600}
@@ -743,6 +753,10 @@ body.light-theme select{color-scheme:light;}
   padding:20px 24px;border-bottom:1px solid var(--b1);background:var(--s2);flex-shrink:0}
 .cad-cab-nome{font-size:17px;font-weight:800;color:var(--t1)}
 .cad-cab-sub{font-size:12px;color:var(--t3);margin-top:4px}
+.cad-link-reenvio{background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.4);
+  color:#93c5fd;font-family:'Outfit',sans-serif;font-size:11px;font-weight:700;
+  padding:3px 9px;border-radius:7px;cursor:pointer;margin-left:2px}
+.cad-link-reenvio:hover{background:rgba(59,130,246,.2)}
 .cad-fechar{background:var(--s1);border:1px solid var(--b1);color:var(--t3);width:32px;height:32px;
   border-radius:9px;cursor:pointer;font-size:14px;flex-shrink:0}
 .cad-fechar:hover{border-color:rgba(239,68,68,.4);color:#ef4444}
@@ -10068,16 +10082,70 @@ function renderListaCadastros() {
       + 'Nenhum cadastro recebido ainda.</div>';
     return;
   }
-  box.innerHTML = CADASTROS.map(function(c) {
+  /* ══════════════════════════════════════════════════════════════
+     AGRUPAMENTO POR CNPJ — 19/08/2026
+
+     O formulário público é sem login, e a regra do Firestore dá a ele
+     só `create`: não pode ler (leria a ficha de concorrente) nem
+     atualizar (sobrescreveria cadastro alheio). Por isso cada envio
+     nasce como documento NOVO, e quem manda a documentação que faltava
+     preenche o formulário de novo.
+
+     O resultado, até aqui, era a mesma empresa aparecendo duas ou três
+     vezes na lista, como se fossem cadastros diferentes — e alguém
+     tinha de reparar no CNPJ para juntar.
+
+     Não é preciso mudar nada no formulário nem na regra: o CNPJ já
+     está gravado em cada envio, e ele É a identidade da empresa. O que
+     faltava era usá-lo aqui. Agora a lista mostra uma linha por
+     empresa, com o envio mais recente na frente e os anteriores
+     acessíveis logo abaixo.
+     ══════════════════════════════════════════════════════════════ */
+  var porCnpj = {}, ordem = [];
+  CADASTROS.forEach(function(c) {
+    /* Sem CNPJ não dá para afirmar que é a mesma empresa — cada um
+       desses fica sozinho, com o próprio id como chave. Agrupar por
+       nome seria pior: "SOS" e "SOS FILIAL" viram a mesma. */
+    var d = String(c.cnpj || '').replace(/\D/g, '');
+    var k = d || ('__sem__' + c._id);
+    if (!porCnpj[k]) { porCnpj[k] = []; ordem.push(k); }
+    porCnpj[k].push(c);
+  });
+
+  box.innerHTML = ordem.map(function(k) {
+    var envios = porCnpj[k];
+    /* CADASTROS já vem ordenado por criadoEm desc, então o primeiro do
+       grupo é o mais recente — é ele que abre ao clicar e é dele que
+       sai o status mostrado. */
+    var c = envios[0];
     var st = statusCadInfo(c.status);
-    var nArq = (c.arquivos || []).length;
+    var nArq = envios.reduce(function(s, x) { return s + ((x.arquivos || []).length); }, 0);
+
+    var extra = '';
+    if (envios.length > 1) {
+      var datas = envios.slice(1).map(function(x) {
+        var dt = new Date(x.criadoEm || 0);
+        return isNaN(dt.getTime()) ? '' : ('0'+dt.getDate()).slice(-2)+'/'+('0'+(dt.getMonth()+1)).slice(-2);
+      }).filter(Boolean).join(', ');
+      extra = '<div class="cad-reenvios">'
+        + '<b>' + envios.length + ' envios</b> desta empresa'
+        + (datas ? ' · anteriores em ' + esc0(datas) : '')
+        + ' — provavelmente documentação complementar.'
+        + '</div>';
+    }
+
     return '<div class="cad-linha" data-id="' + c._id + '">'
       + '<div class="cad-info">'
-      + '<div class="cad-nome">' + esc0(c.fantasia || c.razao || '(sem nome)') + '</div>'
+      + '<div class="cad-nome">' + esc0(c.fantasia || c.razao || '(sem nome)')
+      + (envios.length > 1 ? '<span class="cad-n-envios">' + envios.length + '</span>' : '')
+      + '</div>'
       + '<div class="cad-sub">' + esc0(fmtCNPJcad(c.cnpj)) + ' · ' + esc0(c.respNome || 'sem responsável')
+      /* O total soma os arquivos de TODOS os envios: é o que a empresa
+         mandou até agora, que é a pergunta real de quem vai analisar. */
       + ' · ' + nArq + (1 === nArq ? ' arquivo' : ' arquivos')
       + (c.responsavelInterno ? ' · <span class="cad-dono">👤 ' + esc0(c.responsavelInterno) + '</span>' : ' · <span class="cad-dono sem">sem dono</span>')
       + '</div>'
+      + extra
       + '</div>'
       + '<div class="cad-badge" style="color:' + st.cor + ';border-color:' + st.cor + '55;background:' + st.cor + '14">' + st.rotulo + '</div>'
       + '</div>';
@@ -10087,10 +10155,60 @@ function renderListaCadastros() {
 /** Constrói (ou reaproveita) a lista de itens de documentação a analisar,
  *  a partir dos arquivos recebidos. Chamado só na primeira abertura —
  *  se o admin já começou a marcar status, não reseta o trabalho dele. */
+/* ══════════════════════════════════════════════════════════════════
+   LINK DE REENVIO — 19/08/2026
+
+   Manda para o formulário público com o CNPJ preenchido. O envio que
+   chega por ele nasce marcado como `complementar`, e o agrupamento por
+   CNPJ na lista já junta com o cadastro que existe.
+
+   Não é link secreto nem autenticação: quem o tiver pode ENVIAR
+   documento em nome daquele CNPJ, que é o mesmo que já pode fazer
+   abrindo o formulário e digitando o número. O link não revela nada da
+   empresa — só poupa a digitação e evita o CNPJ digitado errado, que é
+   o que quebraria o agrupamento.
+   ══════════════════════════════════════════════════════════════════ */
+var CAD_URL_PUBLICA = 'https://noronhaholandalicitacoes-cmd.github.io/nh-gestao/cadastro-empresa.html';
+
+function cadCopiarLinkReenvio(cnpj) {
+  var url = CAD_URL_PUBLICA + '?cnpj=' + encodeURIComponent(String(cnpj || '').replace(/\D/g, ''));
+  var avisar = function (ok) {
+    if (typeof toast === 'function') {
+      toast(ok ? '🔗 Link copiado — mande para a empresa pelo WhatsApp' : 'Não consegui copiar: ' + url,
+            ok ? 'ok' : 'err');
+    } else if (!ok) { prompt('Copie o link:', url); }
+  };
+  try {
+    navigator.clipboard.writeText(url).then(function(){ avisar(true); })
+      .catch(function(){ avisar(false); });
+  } catch (e) { avisar(false); }
+}
+
 function itensParaAnalise(c) {
   var salvos = (c.parecer && c.parecer.itens && c.parecer.itens.length)
     ? c.parecer.itens.slice() : [];
-  var arquivos = c.arquivos || [];
+
+  /* ⚠️ Junta os arquivos de TODOS os envios do mesmo CNPJ — 19/08/2026.
+     Sem isto, quem abrisse o envio mais recente veria só os arquivos
+     DELE e concluiria que falta o que já tinha sido mandado antes.
+     Como cada envio é um documento separado (o formulário público só
+     pode criar, nunca atualizar), a empresa que manda a documentação
+     complementar aparece com dois registros — e a análise precisa
+     enxergar os dois somados. O CNPJ é o que os liga. */
+  var meuCnpj = String(c.cnpj || '').replace(/\D/g, '');
+  var arquivos = [];
+  (meuCnpj
+    ? CADASTROS.filter(function(x){ return String(x.cnpj||'').replace(/\D/g,'') === meuCnpj; })
+    : [c]
+  ).forEach(function(env){
+    (env.arquivos || []).forEach(function(a){
+      /* Marca de qual envio veio, para a análise saber que um documento
+         chegou depois — costuma ser justamente o que estava pendente. */
+      arquivos.push(Object.assign({}, a, {_envioEm: env.criadoEm || 0}));
+    });
+  });
+  /* Mais antigo primeiro: é a ordem em que a documentação foi montada. */
+  arquivos.sort(function(a, b){ return (a._envioEm||0) - (b._envioEm||0); });
 
   // Primeira análise: a lista nasce dos arquivos recebidos.
   if (!salvos.length) {
@@ -10353,7 +10471,13 @@ function abrirCadastro(id) {
     + '  <div class="cad-cab">'
     + '    <div>'
     + '      <div class="cad-cab-nome">' + esc0(c.fantasia || c.razao || '') + '</div>'
-    + '      <div class="cad-cab-sub">' + esc0(fmtCNPJcad(c.cnpj)) + ' · <span style="color:' + st.cor + '">' + st.rotulo + '</span></div>'
+    + '      <div class="cad-cab-sub">' + esc0(fmtCNPJcad(c.cnpj)) + ' · <span style="color:' + st.cor + '">' + st.rotulo + '</span>'
+    /* O link de reenvio só existe se houver CNPJ — é ele que liga o
+       novo envio ao cadastro que já está aqui. */
+    + (String(c.cnpj || '').replace(/\D/g, '').length === 14
+        ? ' · <button class="cad-link-reenvio" onclick="cadCopiarLinkReenvio(\'' + esc0(String(c.cnpj).replace(/\D/g,'')) + '\')">🔗 Link para enviar o que falta</button>'
+        : '')
+    + '</div>'
     + '    </div>'
     + '    <button class="cad-fechar" data-acao="fechar">✕</button>'
     + '  </div>'
