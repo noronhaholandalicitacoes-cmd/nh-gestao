@@ -590,9 +590,36 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
     <div class="ac-sub">Entre com o WhatsApp cadastrado para ver<br>os processos das suas empresas</div>
     <div class="ac-form">
       <div class="ac-err" id="ac-err"></div>
-      <div class="ac-campo"><label>WhatsApp</label><input type="tel" id="lg-wpp" placeholder="(83) 99999-9999" autocomplete="off" inputmode="numeric" oninput="vMascara(this)" onkeydown="if(event.key==='Enter')document.getElementById('lg-senha').focus()"></div>
-      <div class="ac-campo"><label>Senha</label><input type="password" id="lg-senha" placeholder="••••••••" autocomplete="off" onkeydown="if(event.key==='Enter')entrar()"></div>
-      <button class="ac-btn" id="lg-btn" onclick="entrar()">Entrar</button>
+      <!-- ⚠️ 20/08/2026 — por que existe um <form> aqui, e por que o
+           autocomplete NÃO pode voltar a ser "off".
+
+           Pedido do cliente: "toda vez tenho que digitar login e
+           senha; queria que já viesse preenchido, como nos outros
+           sites". A causa era este bloco: os dois campos tinham
+           autocomplete="off", que é a instrução explícita para o
+           navegador NÃO oferecer "deseja salvar a senha?". Sem isso
+           salvo, não há o que preencher depois.
+
+           O <form> é a outra metade. Chrome e Safari no celular só
+           tratam a tela como login — e só oferecem salvar — quando os
+           campos estão dentro de um form, com um campo de usuário
+           marcado como username e a senha como current-password. Solto
+           numa div, o Android costuma ignorar.
+
+           onsubmit devolve false para a página não recarregar: quem
+           entra continua sendo entrar(), pelo Firebase. O form aqui é
+           semântico, para o navegador entender o que é a tela; não
+           envia nada para servidor nenhum.
+
+           type="text" + inputmode="numeric" no WhatsApp: com
+           type="tel" o gerenciador de senhas de alguns navegadores não
+           associa o campo ao usuário. O teclado continua numérico no
+           celular por causa do inputmode. -->
+      <form onsubmit="entrar();return false;" autocomplete="on">
+      <div class="ac-campo"><label>WhatsApp</label><input type="text" id="lg-wpp" name="username" placeholder="(83) 99999-9999" autocomplete="username" inputmode="numeric" oninput="vMascara(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('lg-senha').focus();}"></div>
+      <div class="ac-campo"><label>Senha</label><input type="password" id="lg-senha" name="password" placeholder="••••••••" autocomplete="current-password"></div>
+      <button class="ac-btn" id="lg-btn" type="submit">Entrar</button>
+      </form>
       <div class="ac-rodape">Não tem acesso? Fale com a NH Licitações.</div>
     </div>
   </div>
@@ -742,10 +769,41 @@ function emailFalsoViab(numero, versao) {
   var n = String(numero || '').replace(/\D/g, '');
   return (versao > 1 ? (n + '.r' + versao) : n) + '@nh.interno';
 }
+/* ── Entrada direta ───────────────────────────────────────────────
+   Link pessoal (?r=NUM&d=VERSAO.CHAVE) que loga sozinho, sem passar
+   pela tela de senha. É uma CONTA SEPARADA da senha normal da pessoa
+   — nunca se mistura com ela, e desmarcar "Entrar direto" no cadastro
+   (config/responsaveis[num].entradaDireta) invalida o link na hora,
+   mesmo que a conta no Firebase Auth continue existindo por baixo.
+   A versão existe pelo mesmo motivo da senha normal: gerar um link
+   novo (ex.: se o antigo vazou) aposenta o anterior sem apagar nada. */
+function emailAutoViab(numero, versao) {
+  var n = String(numero || '').replace(/\D/g, '');
+  return n + '.d' + Math.max(1, parseInt(versao, 10) || 1) + '@nh.interno';
+}
 function _viabDoEmail(email) {
   var local = String(email || '').split('@')[0];
+  var mAuto = local.match(/^(\d+)\.d(\d+)$/);
+  if (mAuto) return {num: mAuto[1], versao: parseInt(mAuto[2], 10), auto: true};
   var m = local.match(/^(\d+)(?:\.r(\d+))?$/);
   return m ? {num: m[1], versao: parseInt(m[2] || '1', 10)} : {num: local, versao: 1};
+}
+/* Tenta a entrada direta uma vez, em silêncio. Link antigo, chave
+   errada ou entradaDireta desmarcada no cadastro: cai para a tela
+   normal de login sem travar a pessoa em lugar nenhum. */
+async function tentarEntradaDireta(num, d) {
+  var pos = String(d || '').indexOf('.');
+  if (pos < 1) return false;
+  var versao = parseInt(d.substring(0, pos), 10);
+  var chave = d.substring(pos + 1);
+  if (!versao || !chave) return false;
+  try {
+    await auth.signInWithEmailAndPassword(emailAutoViab(num, versao), chave);
+    return true;
+  } catch (e) {
+    try { await auth.signOut(); } catch (e2) {}
+    return false;
+  }
 }
 
 /** A partir do número (já autenticado) e da lista de responsáveis,
@@ -1066,9 +1124,26 @@ function podeVerResp(valor){
 }
 
 function iniciarAcesso(){
-  var num='';
-  try{num=new URLSearchParams(location.search).get('r')||'';}catch(e){}
+  var num='', d='';
+  try{
+    var qs=new URLSearchParams(location.search);
+    num=qs.get('r')||'';
+    d=qs.get('d')||'';
+  }catch(e){}
   if(!num){try{num=localStorage.getItem('nh_viab_num')||'';}catch(e){}}
+  /* Link de entrada direta: tenta logar sozinho antes de mostrar
+     qualquer tela. Se funcionar, o onAuthStateChanged assume dali e
+     abre o app — esta função nem chega a desenhar o login. Se falhar
+     (link revogado, chave errada), cai para a tela normal abaixo. */
+  if(num&&d){
+    tentarEntradaDireta(num,d).then(function(ok){
+      if(!ok)mostrarTelaLogin(num);
+    });
+    return;
+  }
+  mostrarTelaLogin(num);
+}
+function mostrarTelaLogin(num){
   if(num)document.getElementById('lg-wpp').value=vFormata(vNumero(num));
   document.getElementById('nh-acesso').style.display='flex';
   setTimeout(function(){
@@ -1897,9 +1972,9 @@ async function nhQuemSou(email){
     }
   }catch(e){}
 
-  /* Empresa cliente: a chave é só o número, sem a versão .rN que a
-     redefinição de senha cria. */
-  var num=em.split('@')[0].split('.r')[0];
+  /* Empresa cliente: a chave é só o número, sem a versão .rN (senha
+     redefinida) nem .dN (entrada direta) que ficam coladas nele. */
+  var num=em.split('@')[0].split('.r')[0].split('.d')[0];
   try{
     var dr=await db.collection('config').doc('responsaveis').get();
     var lr=(dr.exists&&dr.data()&&dr.data().lista)||{};
@@ -1943,12 +2018,23 @@ auth.onAuthStateChanged(async function(user){
     var snap=await db.collection('config').doc('responsaveis').get();
     lista=(snap.exists&&snap.data()&&snap.data().lista)||{};
   }catch(e){lgErro('Não consegui conectar. Verifique a internet e tente de novo.');await auth.signOut();return;}
-  /* Senha antiga não vale: a conta velha continua no Firebase, mas o
-     cadastro diz qual versão está valendo. */
-  var _vAtual=parseInt((lista[num]||{}).authVersao||1,10);
-  if(_id.versao!==_vAtual){
-    lgErro('Esta senha foi substituída. Use a senha mais recente que a NH enviou.');
-    await auth.signOut();return;
+  var _reg=lista[num]||{};
+  if(_id.auto){
+    /* Entrada direta: só vale se a caixa ainda estiver marcada no
+       cadastro E a versão bater com o link mais recente gerado. */
+    var _vDireta=parseInt(_reg.authVersaoDireta||0,10);
+    if(!_reg.entradaDireta||_id.versao!==_vDireta){
+      lgErro('Este link de entrada direta não é mais válido. Peça um novo à NH.');
+      await auth.signOut();return;
+    }
+  }else{
+    /* Senha antiga não vale: a conta velha continua no Firebase, mas o
+       cadastro diz qual versão está valendo. */
+    var _vAtual=parseInt(_reg.authVersao||1,10);
+    if(_id.versao!==_vAtual){
+      lgErro('Esta senha foi substituída. Use a senha mais recente que a NH enviou.');
+      await auth.signOut();return;
+    }
   }
   var r=resolverPerfilResponsavel(num,lista);
   if(!r.ok){lgErro(r.motivo);await auth.signOut();return;}
