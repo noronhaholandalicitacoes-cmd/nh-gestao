@@ -1221,30 +1221,57 @@ async function excluirContrato(id){
   var c=CONTRATOS.filter(function(x){return x.id===id;})[0];
   if(!c) return;
 
+  /* ⚠️ REESCRITO EM 20/08/2026 — a primeira versão era um beco sem saída.
+     Ela RECUSAVA excluir quando havia receita vinculada e mandava
+     "apague antes os lançamentos" — só que boa parte deles é gerada
+     automaticamente pelo próprio contrato, e volta a aparecer. Um
+     contrato de teste virava permanente, que é o oposto de poder testar.
+
+     Agora a trava informa em vez de bloquear: mostra o que será
+     apagado junto e deixa a decisão com quem está olhando. O cuidado
+     que sobra é sobre o que NÃO se desfaz — receita já recebida é
+     dinheiro que entrou, e apagá-la reescreve o histórico do caixa.
+     Por isso ela é contada à parte e exige uma segunda confirmação. */
   var vinculadas=RECEITAS.filter(function(r){return r.contratoId===id;});
+  var recebidas=vinculadas.filter(function(r){
+    return String(statusDe(r).k||'').toUpperCase()==='RECEBIDA'; });
+
+  var texto='Excluir o contrato de honorários de "'+(c.empresa||'—')+'"?\n\n';
   if(vinculadas.length){
-    alert('Não dá para excluir o contrato de "'+(c.empresa||'—')+'".\n\n'+
-      'Existem '+vinculadas.length+' lançamento(s) de receita vinculados a ele. '+
-      'Apagar o contrato deixaria esses lançamentos sem origem, somando no total '+
-      'sem ninguém conseguir explicar de onde vêm.\n\n'+
-      'Se o contrato acabou, mude o status para ENCERRADO — o histórico fica de pé. '+
-      'Se foi lançado por engano, apague antes os lançamentos dele.');
-    return;
+    texto+='Serão apagados junto '+vinculadas.length+' lançamento(s) de receita '+
+           'vinculados a este contrato — senão eles ficariam somando no total '+
+           'sem origem que os explique.\n\n';
+  }else{
+    texto+='Não há lançamento vinculado.\n\n';
+  }
+  texto+='Esta ação não tem desfazer.';
+  if(!confirm(texto)) return;
+
+  if(recebidas.length){
+    if(!confirm('ATENÇÃO: '+recebidas.length+' desses lançamentos já está(ão) como RECEBIDO.\n\n'+
+      'É dinheiro que entrou no caixa. Apagar reescreve o histórico financeiro, '+
+      'e o valor some dos totais dos meses já fechados.\n\n'+
+      'Se este contrato foi só um teste, pode seguir. Se houve recebimento de '+
+      'verdade, cancele e mude o status do contrato para ENCERRADO.\n\n'+
+      'Confirma mesmo assim?')) return;
   }
 
-  if(!confirm('Excluir o contrato de honorários de "'+(c.empresa||'—')+'"?\n\n'+
-              'Não há lançamento vinculado, então nada mais é afetado. '+
-              'Esta ação não tem desfazer.')) return;
-
   try{
+    /* As receitas saem ANTES do contrato: se a exclusão falhar no meio,
+       é melhor sobrar contrato sem receita (visível, corrigível) do que
+       receita sem contrato (órfã e invisível). */
+    for(var i=0;i<vinculadas.length;i++){
+      await db.collection('nh_receitas').doc(vinculadas[i].id).delete();
+    }
     await db.collection('nh_contratos_honorarios').doc(id).delete();
     /* `carregarTudo()` é o mesmo caminho que salvarContrato usa depois
        de gravar: relê do banco e repinta. Mexer só na lista em memória
-       deixaria os totais do painel calculados sobre o contrato que
-       acabou de sumir. */
+       deixaria os totais do painel calculados sobre o que acabou de
+       sumir. */
     await carregarTudo();
   }catch(e){
-    alert('Não consegui excluir: '+e.message);
+    alert('Não consegui excluir: '+e.message+
+      '\n\nParte pode ter sido apagada. Recarregue a página para ver como ficou.');
   }
 }
 
