@@ -1,6 +1,6 @@
 const CACHE = 'nh-viabilidade-v2';
 self.addEventListener('install', function(e){
-  e.waitUntil(caches.open(CACHE).then(function(c){ return c.addAll(['/nh-gestao/viabilidade.html']); }).catch(function(){}));
+  e.waitUntil(caches.open(CACHE).then(function(c){ return c.addAll(['./viabilidade.html']); }).catch(function(){}));
   self.skipWaiting();
 });
 self.addEventListener('activate', function(e){
