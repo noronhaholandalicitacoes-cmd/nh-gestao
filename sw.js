@@ -1,6 +1,6 @@
 const CACHE = 'nh-gestao-v2';
 const ASSETS = [
-  '/nh-gestao/index.html',
+  './gestao.html',
   'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap',
   'https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js',
   'https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-firestore-compat.js',
