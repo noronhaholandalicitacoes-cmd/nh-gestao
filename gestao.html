@@ -4988,6 +4988,56 @@ async function loginEmailSenha(){
    INTEIRA de uma vez. */
 var USUARIOS_OK=false;
 
+/* ══════════════════════════════════════════════════════════════════
+   CONSERTA QUEM JÁ FOI REBATIZADO POR UMA TROCA DE SENHA — 24/08/2026
+
+   Até hoje, redefinir a senha de alguém da equipe mudava a CHAVE do
+   cadastro: `69999532364@nh.interno` virava `69999532364.r2@…`. Quem
+   entrasse pela conta antiga (que continua existindo no Firebase)
+   deixava de ser encontrado, e o sistema respondia "Email não
+   autorizado" — foi o que aconteceu com a Ana.
+
+   A gravação já não faz mais isso. Falta desfazer o estrago em quem
+   ficou com a chave torta. Roda a cada carga, em memória, e só grava
+   quando encontra algo para corrigir — quem já está certo não paga
+   nada.
+
+   Se a chave-base JÁ existir, os dois registros são fundidos com o de
+   MAIOR versão vencendo: é o que corresponde à senha que está valendo
+   de verdade no Firebase.
+   ══════════════════════════════════════════════════════════════════ */
+function nhRepararChavesUsuarios(){
+  if(!USUARIOS) return;
+  var mudou=false;
+  Object.keys(USUARIOS).forEach(function(k){
+    var m=String(k).match(/^(\d+)\.r(\d+)@nh\.interno$/i);
+    if(!m) return;                       /* e-mail real ou já normalizado */
+    var base=m[1]+'@nh.interno', ver=parseInt(m[2],10)||1;
+    var reg=USUARIOS[k];
+    var atual=USUARIOS[base];
+
+    if(!atual){
+      reg.versao=Math.max(parseInt(reg.versao,10)||1, ver);
+      USUARIOS[base]=reg;
+    }else{
+      /* Fusão: a versão maior é a que corresponde à senha vigente. */
+      var vAtual=parseInt(atual.versao,10)||1;
+      if(ver>vAtual){
+        reg.versao=ver;
+        USUARIOS[base]=Object.assign({},atual,reg);
+      }else{
+        atual.versao=Math.max(vAtual,ver);
+      }
+    }
+    delete USUARIOS[k];
+    mudou=true;
+    console.warn('[NH] chave de acesso corrigida: '+k+' → '+base);
+  });
+  /* Grava sem `await`: é conserto de bastidor e não pode segurar a
+     tela. Se falhar, roda de novo na próxima carga. */
+  if(mudou){ try{ salvarUsuarios(); }catch(e){} }
+}
+
 async function carregarUsuarios(){
   if(USUARIOS!==null) return USUARIOS;
   try{
@@ -4996,6 +5046,7 @@ async function carregarUsuarios(){
     var x=d.exists?d.data():null;
     USUARIOS=(x&&x.lista)||{};
     USUARIOS_OK=true;                  /* leitura confirmada */
+    nhRepararChavesUsuarios();
     return USUARIOS;
   }catch(e){
     /* Falhou: deixa null para a PRÓXIMA chamada tentar de novo. Antes
@@ -5494,9 +5545,26 @@ async function eqSenha(n){
   }
   if(!chaveNova){ toast('Não consegui criar a senha nova.','err'); return; }
 
-  var novo=Object.assign({},u,{versao:v});
-  delete USUARIOS[k];
-  USUARIOS[chaveNova]=novo;
+  /* ⚠️ A CHAVE NÃO MUDA MAIS — 24/08/2026.
+     Antes era `delete USUARIOS[k]; USUARIOS[chaveNova]=novo;`, ou seja,
+     a troca de senha REBATIZAVA a pessoa: de `numero@nh.interno` para
+     `numero.r2@nh.interno`.
+
+     Só que a conta antiga continua existindo no Firebase, e TRÊS
+     lugares procuram a pessoa pelo e-mail exato com que ela
+     autenticou: o resolveAcesso aqui, cinco funções do firestore.rules
+     e o servidor do portal. Quem entrasse pela conta antiga deixava de
+     ser encontrado — "Email não autorizado" — e quem entrasse pela
+     nova só era encontrado enquanto ninguém trocasse a senha de novo.
+
+     Era isso que fazia gente perder acesso a cada redefinição.
+
+     Agora a chave é a identidade da pessoa e não muda nunca; a versão
+     vira um CAMPO, exatamente como já é no cadastro de clientes
+     (`authVersao` em config/responsaveis). Nenhuma das três buscas
+     precisa mudar — elas voltam a achar porque a chave parou de fugir. */
+  u.versao=v;
+  USUARIOS[k]=u;
   salvarUsuarios(); eqRender();
   try{ if(window.NHAudit&&NHAudit.pronto()) NHAudit.registrar({acao:'alterou',onde:'config/usuarios',
     alvo:chaveNova, rotulo:'Senha de '+(u.nome||num),
@@ -5611,10 +5679,51 @@ function nomeFixoDe(em){
   return NOMES_FIXOS[String(em||'').trim().toLowerCase()] || 'Sócio';
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   ACHA A PESSOA MESMO QUE O E-MAIL NÃO BATA EXATAMENTE — 24/08/2026
+
+   Rede de segurança para o problema que mais atrapalhou o cliente.
+   Existem três formas de o e-mail autenticado divergir da chave:
+
+     · versão de senha  — entrou por `numero@` e o cadastro está em
+                          `numero.r2@` (ou o contrário)
+     · DDI              — a equipe grava sem o 55, o cliente com
+     · caixa            — e-mail real gravado com maiúscula
+
+   O conserto de fundo já está feito: a chave parou de mudar, e
+   `nhRepararChavesUsuarios` desfaz o estrago antigo. Isto aqui é o
+   cinto de segurança — se sobrar um caso, a pessoa entra em vez de
+   levar "Email não autorizado" na cara.
+   ══════════════════════════════════════════════════════════════════ */
+function nhAcharUsuario(U, em){
+  if(!U) return null;
+  var e=String(em||'').toLowerCase().trim();
+  if(U[e]) return U[e];
+  if(U[em]) return U[em];
+
+  var m=e.match(/^(\d+)(?:\.r\d+)?@nh\.interno$/);
+  if(!m) return null;
+
+  var n=m[1];
+  var semDDI=(n.length>11&&n.indexOf('55')===0)?n.substring(2):n;
+  var comDDI=(n.length<=11)?('55'+n):n;
+
+  /* Todas as formas plausíveis, da mais provável para a menos. */
+  var chaves=[];
+  [semDDI,comDDI].forEach(function(f){
+    chaves.push(f+'@nh.interno');
+    for(var v=2;v<=12;v++) chaves.push(f+'.r'+v+'@nh.interno');
+  });
+  for(var i=0;i<chaves.length;i++){
+    if(U[chaves[i]]) return U[chaves[i]];
+  }
+  return null;
+}
+
 async function resolveAcesso(em){
   if(em===ADMIN_EMAIL) return{ok:true,admin:true,sos:true,readonly:false,papel:'socio',nome:nomeFixoDe(em)};
   var U=await carregarUsuarios();
-  var u=U[em];
+  var u=nhAcharUsuario(U,em);
   if(u){
     /* Conta desativada não entra. Desativar é o que se faz quando
        alguém sai da empresa — melhor que excluir, porque a trilha
