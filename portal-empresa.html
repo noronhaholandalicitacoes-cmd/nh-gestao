@@ -2060,12 +2060,43 @@ async function fazerLogin(){
      redefinida entra na primeira tentativa. */
   var credRuim=['auth/user-not-found','auth/wrong-password','auth/invalid-credential','auth/invalid-login-credentials'];
   var erroRede=null, entrou=false;
-  for(var v=PORTAL_MAX_VERSOES; v>=1 && !entrou; v--){
+  /* ⚠️ PERGUNTA QUAL VERSÃO ESTÁ VALENDO — 20/08/2026.
+
+     Redefinir senha não altera a conta: cria uma NOVA (`numero.r2`,
+     `.r3`…), porque o navegador não consegue trocar a senha de uma
+     conta existente do Firebase. A velha continua aceitando a senha
+     velha.
+
+     Sem saber qual vale, este laço tentava até 8 vezes — e o Firebase
+     bloqueia por excesso de tentativas antes de chegar na conta certa.
+     A pessoa ficava sem entrar, e piorava a cada nova troca de senha.
+
+     Agora pergunta ao servidor do portal e tenta UMA. Falhando a
+     consulta, cai no laço antigo: ninguém fica de fora porque o
+     servidor piscou. */
+  var _vAlvo=null;
+  try{
+    var _rv=await fetch('https://nhlicitacoes.noronhaholanda.com.br/api/acesso/versao?wpp='+encodeURIComponent(num));
+    if(_rv.ok){ var _jv=await _rv.json(); var _n=parseInt(_jv&&_jv.versao,10);
+      if(isFinite(_n)&&_n>=1) _vAlvo=_n; }
+  }catch(e){}
+
+  if(_vAlvo!==null){
     try{
-      await auth.signInWithEmailAndPassword(emailFalsoPortal(num, v), senha);
-      entrou=true;   /* onAuthStateChanged assume daqui */
+      await auth.signInWithEmailAndPassword(emailFalsoPortal(num,_vAlvo), senha);
+      entrou=true;
     }catch(e){
-      if(credRuim.indexOf(e.code)<0){ erroRede=e; break; }
+      /* Credencial errada na versão vigente é credencial errada mesmo. */
+      if(credRuim.indexOf(e.code)<0) erroRede=e;
+    }
+  }else{
+    for(var v=PORTAL_MAX_VERSOES; v>=1 && !entrou; v--){
+      try{
+        await auth.signInWithEmailAndPassword(emailFalsoPortal(num, v), senha);
+        entrou=true;   /* onAuthStateChanged assume daqui */
+      }catch(e){
+        if(credRuim.indexOf(e.code)<0){ erroRede=e; break; }
+      }
     }
   }
   if(!entrou){
