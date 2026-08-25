@@ -7371,7 +7371,7 @@ async function fbSave(e,a,t,_docId){
      nisto por último" sem precisar consultar a trilha. */
   o._updatedBy=(typeof USER_EMAIL!=='undefined'&&USER_EMAIL)||'';
   await db.collection(e).doc(_d).set(o);
-  nhCarimbarAlteracao();
+  nhCarimbarAlteracao(e);
   /* Mantém o contador que o Portal de Contratos usa para numerar
      contrato novo. Ele existe porque, depois do passo 3, a empresa
      cliente não pode mais ler a coleção inteira para descobrir o maior
@@ -7413,10 +7413,20 @@ function nhAtualizarSeqGanhas(id){
    Não trava nada: a gravação já terminou quando isto roda, e falhar
    aqui só significa que o portal demora o TTL normal para perceber.
    Por isso não tem `await` no chamador e o erro morre aqui. */
-function nhCarimbarAlteracao(){
+function nhCarimbarAlteracao(colecao){
   try{
     db.collection('config').doc('ultima_alteracao')
-      .set({em:Date.now(), por:(typeof USER_EMAIL!=='undefined'&&USER_EMAIL)||''})
+      .set({em:Date.now(),
+            por:(typeof USER_EMAIL!=='undefined'&&USER_EMAIL)||'',
+            /* ⚠️ QUAL coleção mudou — acrescentado em 24/08/2026.
+               Sem isto o portal ressincronizava TUDO a cada
+               salvamento: ~1.300 documentos por vez. Quarenta
+               salvamentos num dia e a cota diária de leitura do
+               Firebase acabava — foi o que derrubou as certidões e,
+               junto, a consulta de versão de senha do login.
+               Com o nome da coleção, o portal relê só ela: gravar um
+               contrato passa a custar 67 leituras em vez de 1.300. */
+            col:String(colecao||'')})
       .catch(function(){});
   }catch(_e){}
 }
@@ -7433,13 +7443,13 @@ async function fbDelete(e,a){
     /* Excluir também muda o que o portal deve mostrar — carimba pelos
        DOIS caminhos, senão um contrato removido some do sistema e fica
        no portal por até 23 horas. */
-    nhCarimbarAlteracao();
+    nhCarimbarAlteracao(e);
     return;
   }
   /* Sem o nh-auditoria.js publicado, volta ao comportamento antigo em
      vez de travar o sistema. A tela de Atividade avisa em vermelho. */
   await db.collection(e).doc(String(a)).delete();
-  nhCarimbarAlteracao();
+  nhCarimbarAlteracao(e);
 }async function loadAll(){setSt("load"),await Promise.all(Object.keys(SHEETS).map(function(e){return _load(e)})),setSt("ok"),
 /* Os anos do filtro de período saem dos dados, então o controle só
    pode ser montado depois da carga. Rodar de novo é inofensivo: a
