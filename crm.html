@@ -542,6 +542,12 @@ body.light .seta-f{box-shadow:0 4px 14px rgba(15,23,42,.16)}
 .lc-sub{font-size:11.5px;color:var(--t3);line-height:1.45}
 .lc-val{font-size:12.5px;font-weight:800;color:var(--g1);margin-top:7px;font-variant-numeric:tabular-nums}
 .lc-pe{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.lc-links{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px;
+  padding-top:8px;border-top:1px solid var(--b1)}
+.lc-lk{font-size:11px;font-weight:700;color:var(--t2);text-decoration:none;
+  padding:3px 8px;border-radius:6px;background:var(--s3);border:1px solid var(--b1);
+  transition:.15s}
+.lc-lk:hover{color:var(--nh);border-color:var(--nh);background:rgba(249,115,22,.1)}
 .tag{font-size:9.5px;font-weight:800;padding:3px 8px;border-radius:20px;letter-spacing:.02em}
 /* Prazo: a cor é o aviso. Vermelho é hoje ou passou. */
 .tag-prz{background:rgba(59,130,246,.15);color:var(--b_)}
@@ -813,6 +819,112 @@ body.light .fn-l:hover{background:rgba(0,0,0,.02)}
 .nada-i{font-size:30px;line-height:1;margin-bottom:10px;opacity:.55}
 .nada-t{font-size:13.5px;font-weight:800;margin-bottom:5px}
 .nada-s{font-size:12px;color:var(--t3);line-height:1.6;max-width:330px;margin:0 auto}
+
+/* ── Lembretes com aviso sonoro (25/08/2026) ──────────────────────
+   Canto inferior direito, empilhados. Ficam até serem dispensados:
+   lembrete que some sozinho em 3 segundos se perde justamente quando
+   a pessoa estava olhando para o outro monitor — que é quando ele
+   mais precisava ser visto. */
+.lembretes{position:fixed;right:18px;bottom:18px;z-index:9999;
+  display:flex;flex-direction:column;gap:10px;max-width:340px}
+.lembrete{display:flex;align-items:center;gap:12px;cursor:pointer;
+  background:var(--s1);border:1px solid var(--nh);border-left:4px solid var(--nh);
+  border-radius:12px;padding:13px 14px;
+  box-shadow:0 14px 40px -12px rgba(0,0,0,.7);
+  animation:lbEntra .32s cubic-bezier(.2,.8,.2,1)}
+@keyframes lbEntra{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){ .lembrete{animation:none} }
+.lembrete:hover{background:var(--s2)}
+.lb-hora{flex-shrink:0;font-size:15px;font-weight:800;color:var(--nh);
+  font-variant-numeric:tabular-nums;line-height:1.2}
+.lb-txt{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1}
+.lb-txt b{font-size:13px;font-weight:800;color:var(--t1);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb-txt span{font-size:11.5px;color:var(--t2);line-height:1.4;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.lb-txt i{font-style:normal;font-size:10.5px;font-weight:700;color:var(--nh)}
+.lb-x{flex-shrink:0;background:none;border:none;color:var(--t3);cursor:pointer;
+  font-size:18px;line-height:1;padding:0 2px;align-self:flex-start}
+.lb-x:hover{color:var(--t1)}
+@media(max-width:520px){
+  .lembretes{left:12px;right:12px;bottom:12px;max-width:none}
+}
+
+/* ── Seletor de período do relatório ──────────────────────────── */
+.rel-per{display:flex;align-items:center;gap:7px;flex-wrap:wrap;
+  background:var(--s1);border:1px solid var(--b1);border-radius:12px;padding:11px 14px}
+.rel-per-r{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--t3);margin-right:4px}
+.rel-pb{background:var(--s3);border:1px solid var(--b1);color:var(--t2);
+  font-size:12.5px;font-weight:700;padding:6px 13px;border-radius:8px;cursor:pointer;
+  font-family:inherit;transition:.15s}
+.rel-pb:hover{color:var(--t1);border-color:var(--b2)}
+.rel-pb.on{background:var(--nh);border-color:var(--nh);color:#fff}
+
+/* ── Impressão ────────────────────────────────────────────────────
+   O `#imp` fica fora do fluxo na tela e vira a página inteira no
+   papel. Cores fixas em preto e branco de propósito: o tema escuro
+   do sistema sai da impressora como uma mancha de tinta, e ninguém
+   leva para reunião uma folha assim. */
+#imp{display:none}
+@media screen{ #imp{display:none!important} }
+@media print{
+  @page{ size:A4; margin:14mm 12mm; }
+  body.imprimindo > *{ display:none!important; }
+  body.imprimindo > #imp{ display:block!important; }
+  body.imprimindo{ background:#fff!important; color:#000!important; }
+  #imp,#imp *{ color:#000; background:transparent;
+    font-family:"Segoe UI",Arial,sans-serif; -webkit-print-color-adjust:exact;
+    print-color-adjust:exact; }
+  #imp{ font-size:9.6pt; line-height:1.42; }
+  .imp-top{ display:flex; align-items:flex-start; gap:16px;
+    border-bottom:2.5px solid #f97316; padding-bottom:10px; margin-bottom:14px; }
+  .imp-marca{ display:flex; align-items:center; gap:9px; flex-shrink:0; }
+  .imp-logo{ width:40px; height:40px; border-radius:8px; display:block; }
+  .imp-nh{ font-size:12pt; font-weight:800; letter-spacing:-.01em; }
+  .imp-nh2{ font-size:7.6pt; color:#555; }
+  .imp-tt{ margin-left:auto; text-align:right; }
+  .imp-tt h1{ font-size:14pt; font-weight:800; margin:0 0 3px; letter-spacing:-.01em; }
+  .imp-sub{ font-size:9pt; color:#333; }
+  .imp-emit{ font-size:7.6pt; color:#666; margin-top:3px; }
+  .imp-nota{ border-left:3px solid #eab308; background:#fdf6e3!important;
+    padding:6px 10px; font-size:8.4pt; margin:0 0 10px; }
+  #imp h2{ font-size:11pt; font-weight:800; margin:16px 0 6px;
+    padding-bottom:4px; border-bottom:1px solid #ccc; }
+  #imp h2.quebra{ page-break-before:always; break-before:page; margin-top:0; }
+  .imp-h2s{ font-size:8.2pt; color:#666; margin:-3px 0 7px; }
+  .imp-kpis{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:10px; }
+  .imp-kpis.dois{ grid-template-columns:repeat(2,1fr); }
+  .imp-k{ border:1px solid #ccc; border-radius:6px; padding:7px 10px; }
+  .imp-k-r{ font-size:7.4pt; text-transform:uppercase; letter-spacing:.05em;
+    color:#666; font-weight:700; }
+  .imp-k-v{ font-size:15pt; font-weight:800; line-height:1.15; margin-top:2px; }
+  .imp-k-n{ font-size:7.4pt; color:#666; }
+  /* `min-width:0` anula o `table{min-width:760px}` global. Na tela
+     aquele mínimo é o que faz a tabela rolar dentro da caixa em vez de
+     espremer as colunas; no papel não há rolagem, e 760px de tabela
+     numa folha de 730px de área útil corta a última coluna fora. */
+  .imp-tb{ width:100%; min-width:0; border-collapse:collapse; margin-bottom:4px;
+    table-layout:auto; }
+  .imp-tb th,.imp-tb td{ border:1px solid #ccc; padding:4px 7px;
+    text-align:left; vertical-align:top; }
+  .imp-tb th{ background:#f0f0f0!important; font-size:8pt; font-weight:800;
+    text-transform:uppercase; letter-spacing:.03em; }
+  .imp-tb td{ font-size:8.8pt; }
+  .imp-tb .n{ text-align:right; white-space:nowrap;
+    font-variant-numeric:tabular-nums; }
+  .imp-tb tr{ page-break-inside:avoid; break-inside:avoid; }
+  .imp-fx{ width:100%; min-width:0; border-collapse:collapse; margin-bottom:4px; }
+  .imp-fx th{ width:30%; text-align:left; font-size:8.2pt; font-weight:700;
+    color:#555; padding:3px 8px 3px 0; vertical-align:top;
+    border-bottom:1px solid #eee; }
+  .imp-fx td{ font-size:9pt; padding:3px 0; border-bottom:1px solid #eee;
+    word-break:break-word; }
+  #imp a{ color:#000; text-decoration:underline; }
+  .imp-vazio{ font-size:8.6pt; color:#666; font-style:italic; margin:0 0 6px; }
+  .imp-rod{ margin-top:18px; padding-top:7px; border-top:1px solid #ccc;
+    font-size:7.4pt; color:#777; text-align:center; }
+}
 </style>
 
 <div class="topo" id="topo" style="display:none">
@@ -989,7 +1101,14 @@ body.light .fn-l:hover{background:rgba(0,0,0,.02)}
             <div class="grade">
               <div class="campo"><label>Próxima ação</label>
                 <input type="text" id="ld-proxima" placeholder="O que fazer a seguir"></div>
-              <div class="campo"><label>Quando</label><input type="date" id="ld-proxdata"></div>
+              <div class="campo"><label>Quando</label>
+                <div style="display:flex;gap:8px">
+                  <input type="date" id="ld-proxdata" style="flex:1">
+                  <!-- O horário é opcional: nem toda tarefa tem hora
+                       marcada. Quando tem, é dele que sai o aviso
+                       sonoro — sem hora, o lembrete é do dia inteiro. -->
+                  <input type="time" id="ld-proxhora" style="width:110px" title="Horário (opcional)">
+                </div></div>
             </div>
           </div>
 
@@ -1037,6 +1156,16 @@ body.light .fn-l:hover{background:rgba(0,0,0,.02)}
                 <input type="text" id="ld-adesao" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
             </div>
             <div class="dica" id="ld-modelo-nota" style="margin-bottom:14px"></div>
+
+            <!-- Onde a proposta MORA. Sem isto, o vendedor manda o PDF
+                 pelo WhatsApp e três semanas depois ninguém acha o que
+                 foi proposto — nem o valor, nem a versão que o cliente
+                 recebeu. Os números acima dizem quanto; o link diz o
+                 que exatamente foi enviado. -->
+            <div class="campo"><label>Link da proposta</label>
+              <input type="url" id="ld-link-proposta" placeholder="Link do PDF, Google Docs, Drive…"></div>
+            <div class="campo"><label>Pasta do cliente</label>
+              <input type="url" id="ld-link-pasta" placeholder="Pasta no Drive com os documentos deste cliente"></div>
           </div>
 
           <!-- O edital não é o negócio: é o gancho. "Esse pregão fecha
@@ -1087,6 +1216,7 @@ body.light .fn-l:hover{background:rgba(0,0,0,.02)}
     </div>
     <div class="mf">
       <button class="btn" id="ld-excluir" onclick="excluirLead()" style="margin-right:auto;display:none">Excluir</button>
+      <button class="btn" id="ld-imprimir" onclick="imprimirFicha()" style="display:none">&#128424; Imprimir ficha</button>
       <button class="btn" onclick="fecharModal('ov-lead')">Cancelar</button>
       <button class="btn btn-nh" id="ld-salvar" onclick="salvarLead()">Salvar</button>
     </div>
@@ -1167,6 +1297,21 @@ function mascaraMoeda(el){
   el.value = a ? 'R$ '+(parseInt(a,10)/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : '';
 }
 function dBR(iso){ if(!iso) return ''; var p=String(iso).split('-'); return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:iso; }
+
+/* Endereço colado sem o "https://". O vendedor copia da barra do
+   navegador e cola "drive.google.com/drive/folders/..." — sem o
+   protocolo o navegador trata como caminho relativo e o link leva a
+   uma página inexistente DO PRÓPRIO CRM, que é o pior tipo de link
+   quebrado: parece que o sistema perdeu o arquivo.
+   Aceita só http e https: `javascript:` num campo que vira <a href>
+   seria script rodando com a sessão de quem clicou. */
+function _url(v){
+  var s=String(v||'').trim();
+  if(!s) return '';
+  if(/^https?:\/\//i.test(s)) return s;
+  if(/^[a-z][a-z0-9+.-]*:/i.test(s)) return '';   /* javascript:, data:, file: … */
+  return 'https://'+s;
+}
 function dISO(br){ if(!br) return ''; var p=String(br).split('/'); return p.length===3?p[2]+'-'+p[1]+'-'+p[0]:br; }
 function hoje0(){ var d=new Date(); d.setHours(0,0,0,0); return d; }
 function dData(br){ var p=String(br||'').split('/'); if(p.length!==3) return null;
@@ -1255,6 +1400,13 @@ var ORIGENS={
   TRAFEGO:'Tráfego pago', VENDEDOR:'Vendedor externo', INDICACAO:'Indicação',
   SITE:'Site', PROSPECCAO:'Prospecção', OUTRO:'Outro'
 };
+/* Os mesmos três do formulário, escritos por extenso para o impresso —
+   "AS_VEZES" numa folha que vai para reunião não diz nada. */
+var JA_LICITA={
+  NAO:'Não, nunca participou',
+  AS_VEZES:'Já participou, sem constância',
+  SIM:'Sim, participa com frequência'
+};
 
 /* ── Temperatura ──────────────────────────────────────────────────
    Etapa diz onde a conversa está; temperatura diz o quanto ela está
@@ -1323,6 +1475,9 @@ async function carregarTudo(){
   LEADS=ld.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
   ATIVIDADES=at.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
   pintar();
+  /* Os lembretes vivem sobre a lista que acabou de chegar — nenhuma
+     leitura a mais no banco. */
+  iniciarLembretes();
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -1522,6 +1677,139 @@ function prazosAbertos(){
     }
   });
   return out.sort(function(a,b){ return a.dias-b.dias; });
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   LEMBRETE COM AVISO SONORO — 25/08/2026
+
+   O CRM já sabia a data da próxima ação, mas só mostrava quando alguém
+   olhava. Ligação combinada para as 15h não é lembrete se o vendedor
+   precisa lembrar de conferir a tela.
+
+   Três decisões que evitam o vício mais comum deste tipo de recurso —
+   virar barulho que todo mundo desliga na primeira semana:
+
+   · só avisa o que tem HORÁRIO. Tarefa sem hora marcada é do dia
+     inteiro, e tocar às 8h por causa dela ensinaria a ignorar.
+   · avisa UMA VEZ por tarefa. O registro do que já tocou fica no
+     próprio navegador, por dia; virar meia-noite limpa sozinho.
+   · o som é gerado aqui, não é arquivo. Dois tons curtos, para
+     funcionar mesmo offline e não depender de nada carregar.
+
+   O navegador só deixa tocar som depois de a pessoa ter clicado em
+   algo na página — regra dele, não nossa. Por isso o aviso visual
+   aparece de qualquer jeito, e o som é o extra.
+   ══════════════════════════════════════════════════════════════════ */
+var LEMBRETE_MIN = 10;          /* avisa este tanto de minutos antes */
+var _lembreteTimer = null;
+
+function _chaveDoDia(){
+  var d=new Date();
+  return 'nh_crm_avisado_'+d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+}
+function _jaAvisou(id){
+  try{ return (JSON.parse(localStorage.getItem(_chaveDoDia())||'[]')).indexOf(id)>-1; }
+  catch(e){ return false; }
+}
+function _marcarAvisado(id){
+  try{
+    var k=_chaveDoDia();
+    var l=JSON.parse(localStorage.getItem(k)||'[]');
+    if(l.indexOf(id)<0){ l.push(id); localStorage.setItem(k,JSON.stringify(l)); }
+    /* Limpa as chaves dos dias anteriores — senão o localStorage vira
+       um depósito que só cresce. */
+    for(var i=0;i<localStorage.length;i++){
+      var ch=localStorage.key(i);
+      if(ch&&ch.indexOf('nh_crm_avisado_')===0&&ch!==k) localStorage.removeItem(ch);
+    }
+  }catch(e){}
+}
+
+/* Dois tons curtos, sintetizados. Chamado só depois de um clique da
+   pessoa em algum lugar da página; fora disso o navegador bloqueia e o
+   catch engole em silêncio. */
+function _tocarAviso(){
+  try{
+    var AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC) return;
+    var ctx=new AC();
+    [0,0.18].forEach(function(atraso,i){
+      var osc=ctx.createOscillator(), g=ctx.createGain();
+      osc.type='sine';
+      osc.frequency.value=i===0?880:1180;
+      g.gain.setValueAtTime(0.0001, ctx.currentTime+atraso);
+      g.gain.exponentialRampToValueAtTime(0.22, ctx.currentTime+atraso+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+atraso+0.15);
+      osc.connect(g); g.connect(ctx.destination);
+      osc.start(ctx.currentTime+atraso);
+      osc.stop(ctx.currentTime+atraso+0.16);
+    });
+    setTimeout(function(){ try{ ctx.close(); }catch(e){} }, 800);
+  }catch(e){}
+}
+
+/** Tarefas com hora marcada para HOJE que estão na janela do aviso. */
+function _lembretesAgora(){
+  var agora=new Date();
+  var hojeBR=('0'+agora.getDate()).slice(-2)+'/'+('0'+(agora.getMonth()+1)).slice(-2)+'/'+agora.getFullYear();
+  var out=[];
+  (LEADS||[]).forEach(function(l){
+    if(!l.horaProximaAcao || l.dataProximaAcao!==hojeBR) return;
+    if(l.etapa==='PERDIDO'||l.etapa==='GANHO') return;
+    var p=String(l.horaProximaAcao).split(':');
+    if(p.length<2) return;
+    var quando=new Date(agora);
+    quando.setHours(parseInt(p[0],10)||0, parseInt(p[1],10)||0, 0, 0);
+    var faltam=Math.round((quando-agora)/60000);
+    /* Janela: de LEMBRETE_MIN antes até 5 minutos depois da hora. Quem
+       abriu o CRM às 15h05 ainda precisa saber da ligação das 15h. */
+    if(faltam<=LEMBRETE_MIN && faltam>=-5) out.push({lead:l, faltam:faltam});
+  });
+  return out;
+}
+
+function _verLembretes(){
+  var novos=_lembretesAgora().filter(function(x){ return !_jaAvisou(x.lead.id); });
+  if(!novos.length) return;
+  novos.forEach(function(x){ _marcarAvisado(x.lead.id); });
+  _tocarAviso();
+  novos.forEach(function(x){
+    var nome=x.lead.empresa||x.lead.contatoNome||'Lead';
+    var oque=x.lead.proximaAcao||'Próxima ação';
+    var quando=x.faltam>0 ? ('em '+x.faltam+' min') : 'agora';
+    toastLembrete(nome, oque, x.lead.horaProximaAcao, quando, x.lead.id);
+  });
+}
+
+/* O aviso na tela. Fica até a pessoa fechar ou clicar — lembrete que
+   some sozinho em 3 segundos é lembrete que se perde quando alguém
+   estava olhando para o outro monitor. Clicar abre o lead. */
+function toastLembrete(nome, oque, hora, quando, leadId){
+  var box=document.getElementById('lembretes');
+  if(!box){
+    box=document.createElement('div');
+    box.id='lembretes'; box.className='lembretes';
+    document.body.appendChild(box);
+  }
+  var el=document.createElement('div');
+  el.className='lembrete';
+  el.innerHTML=
+    '<div class="lb-hora">'+esc(hora)+'</div>'+
+    '<div class="lb-txt"><b>'+esc(nome)+'</b><span>'+esc(oque)+'</span>'+
+      '<i>'+esc(quando)+'</i></div>'+
+    '<button class="lb-x" title="Dispensar">&times;</button>';
+  el.querySelector('.lb-x').onclick=function(ev){ ev.stopPropagation(); el.remove(); };
+  el.onclick=function(){ el.remove(); try{ abrirLead(leadId); }catch(e){} };
+  box.appendChild(el);
+}
+
+function iniciarLembretes(){
+  if(_lembreteTimer) return;
+  _verLembretes();
+  /* De minuto em minuto: é a menor granularidade que o horário tem, e
+     o custo é zero — roda sobre a lista que já está em memória, sem
+     tocar no banco. */
+  _lembreteTimer=setInterval(_verLembretes, 60000);
 }
 
 /* ── Tela ──────────────────────────────────────────────────────── */
@@ -2090,9 +2378,21 @@ function cartaoLead(l, cor){
       (docs.length&&!faltam?'<span class="tag" style="background:rgba(34,197,94,.15);color:var(--g1)">apta</span>':'')+
       (przEd!==null?'<span class="tag tag-prz '+classePrazo(przEd)+'">edital '+textoPrazo(przEd)+'</span>':'')+
       (prox!==null?'<span class="tag tag-prz '+classePrazo(prox)+'">'+
-        (l.proximaAcao?esc(String(l.proximaAcao).substring(0,20)):'ação')+' '+textoPrazo(prox)+'</span>':'')+
+        (l.proximaAcao?esc(String(l.proximaAcao).substring(0,20)):'ação')+' '+textoPrazo(prox)+
+        /* Hora só quando é hoje: em "daqui a 9 dias" o horário é ruído. */
+        ((prox===0&&l.horaProximaAcao)?' às '+esc(l.horaProximaAcao):'')+'</span>':'')+
       (l.origem==='TRAFEGO'?'<span class="tag tag-ori">anúncio</span>':'')+
-    '</div></div>';
+    '</div>'+
+    /* Proposta e pasta a um clique do cartão. stopPropagation porque o
+       cartão inteiro abre a ficha: sem isso o clique no link abriria a
+       ficha por baixo da aba nova. */
+    ((l.linkProposta||l.linkPasta)?'<div class="lc-links">'+
+      (l.linkProposta?'<a class="lc-lk" href="'+esc(l.linkProposta)+'" target="_blank" rel="noopener noreferrer" '+
+        'onclick="event.stopPropagation()" title="Abrir a proposta">&#128196; proposta</a>':'')+
+      (l.linkPasta?'<a class="lc-lk" href="'+esc(l.linkPasta)+'" target="_blank" rel="noopener noreferrer" '+
+        'onclick="event.stopPropagation()" title="Abrir a pasta de documentos">&#128193; pasta</a>':'')+
+    '</div>':'')+
+  '</div>';
 }
 
 function painelPrazos(lista, compacto){
@@ -2116,12 +2416,113 @@ function painelPrazos(lista, compacto){
   }).join('')+'</div>';
 }
 
+/* ═════════════════════════════════════════════════
+   PERÍODO DO RELATÓRIO
+
+   Sem recorte de tempo, "conversão de 40%" é a média de toda a
+   história da empresa — número que só engorda e nunca diz se o mês
+   passado foi bom. O recorte é por DATA DE FECHAMENTO, não por data de
+   cadastro: um lead cadastrado em janeiro e ganho em agosto é uma
+   venda de agosto, e é assim que a equipe conta.
+
+   O fechamento não tem campo próprio no banco. A marca automática de
+   mudança de etapa (gravada em `crm_atividades` a cada arraste) é o
+   registro mais fiel que existe; `atualizadoEm` entra só como reserva
+   para os leads fechados antes desse histórico existir.
+   ═════════════════════════════════════════════════ */
+var PERIODOS={
+  MES:   {r:'Este mês'},
+  ANT:   {r:'Mês passado'},
+  D90:   {r:'Últimos 90 dias'},
+  ANO:   {r:'Este ano'},
+  TUDO:  {r:'Tudo'}
+};
+var _relPer='TUDO';
+
+/** Data em que o lead foi para Ganho ou Perdido. null se não dá para saber. */
+function fechadoEm(l){
+  if(!l || (l.etapa!=='GANHO' && l.etapa!=='PERDIDO')) return null;
+  var fim=null;
+  ATIVIDADES.forEach(function(a){
+    if(a.leadId!==l.id || !a.automatico) return;
+    if(!/para (Ganho|Perdido)$/.test(String(a.descricao||''))) return;
+    var d=dData(a.data); if(d && (!fim || d>fim)) fim=d;
+  });
+  if(fim) return fim;
+  /* Reserva: "25/08/2026, 14:30:12" — só a parte da data interessa. */
+  var m=String(l.atualizadoEm||'').match(/(\d{2}\/\d{2}\/\d{4})/);
+  return m?dData(m[1]):null;
+}
+
+/** {ini, fim, rot} do período escolhido. ini/fim null em "Tudo". */
+function relJanela(){
+  var h=hoje0(), ini=null, fim=null;
+  if(_relPer==='MES'){ ini=new Date(h.getFullYear(),h.getMonth(),1); }
+  else if(_relPer==='ANT'){
+    ini=new Date(h.getFullYear(),h.getMonth()-1,1);
+    fim=new Date(h.getFullYear(),h.getMonth(),0);
+  }
+  else if(_relPer==='D90'){ ini=new Date(h.getTime()-89*86400000); }
+  else if(_relPer==='ANO'){ ini=new Date(h.getFullYear(),0,1); }
+  var f=function(d){ return d? ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear() : ''; };
+  return {
+    ini:ini, fim:fim,
+    rot: !ini ? 'Todo o histórico'
+       : (f(ini)+' a '+f(fim||h))
+  };
+}
+
+/** Os fechados que entram no relatório, já respeitando filtro e período. */
+function relFechados(){
+  var j=relJanela();
+  return visiveis().filter(function(l){
+    if(l.etapa!=='GANHO' && l.etapa!=='PERDIDO') return false;
+    if(!j.ini) return true;
+    var d=fechadoEm(l);
+    /* Sem data de fechamento não dá para afirmar que caiu no período.
+       Fica de fora do recorte — e o relatório avisa quantos são. */
+    if(!d) return false;
+    return d>=j.ini && (!j.fim || d<=j.fim);
+  });
+}
+
+/** Fechados que o período descartou por não terem data — para avisar. */
+function relSemData(){
+  if(!relJanela().ini) return 0;
+  return visiveis().filter(function(l){
+    return (l.etapa==='GANHO'||l.etapa==='PERDIDO') && !fechadoEm(l);
+  }).length;
+}
+
+function relTrocarPeriodo(k){ _relPer=k; pintar(); }
+
+function relSeletor(){
+  return '<div class="rel-per">'+
+    '<span class="rel-per-r">Período</span>'+
+    Object.keys(PERIODOS).map(function(k){
+      return '<button class="rel-pb'+(_relPer===k?' on':'')+'" '+
+        'onclick="relTrocarPeriodo(\''+k+'\')">'+PERIODOS[k].r+'</button>';
+    }).join('')+
+  '</div>';
+}
+
 function painelResultados(){
-  var fechados=visiveis().filter(function(l){ return l.etapa==='GANHO'||l.etapa==='PERDIDO'; });
-  if(!fechados.length)
-    return '<div class="kpi" style="padding:22px"><div class="kpi-l" style="margin-top:0">Nada fechado ainda</div>'+
-      '<div style="font-size:12.5px;color:var(--t2)">Quando os primeiros leads forem para Ganho ou Perdido, '+
-      'aqui aparece a conversão por origem e os motivos de perda.</div></div>';
+  var fechados=relFechados();
+  if(!fechados.length){
+    /* Vazio de período e vazio de verdade são coisas diferentes: com o
+       recorte ligado, a saída é trocar o período, não esperar uma venda. */
+    var temFechado=visiveis().some(function(l){ return l.etapa==='GANHO'||l.etapa==='PERDIDO'; });
+    return '<div class="pn">'+relSeletor()+
+      '<div class="cx"><div class="nada">'+
+      '<div class="nada-i">'+(temFechado?'&#128197;':'&#127919;')+'</div>'+
+      '<div class="nada-t">'+(temFechado?'Nada fechado neste período':'Nada fechado ainda')+'</div>'+
+      '<div class="nada-s">'+(temFechado
+        ? 'Existem negócios fechados fora de <b>'+esc(PERIODOS[_relPer].r).toLowerCase()+'</b>. '+
+          'Escolha <b>Tudo</b> acima para ver o histórico inteiro.'
+        : 'Quando os primeiros leads forem para Ganho ou Perdido, aqui aparece a conversão '+
+          'por origem, os motivos de perda e o relatório para imprimir.')+
+      '</div></div></div></div>';
+  }
 
   /* Conversão por origem: onde vale a pena gastar. */
   var porOri={};
@@ -2159,14 +2560,23 @@ function painelResultados(){
       '</div></div>';
   }).join('');
 
+  var semData=relSemData();
   return '<div class="pn">'+
+    relSeletor()+
     '<div class="cx" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">'+
       '<div style="min-width:0"><div class="cx-t" style="margin:0">Relatórios</div>'+
       '<div class="cx-sub" style="margin:2px 0 0">'+fechados.length+' '+
         (fechados.length===1?'negócio fechado':'negócios fechados')+
-        (filtroAtivo()?' <b>no filtro atual</b>':'')+'.</div></div>'+
-      '<button class="btn" onclick="exportarLeads()" style="margin-left:auto">⬇ Leads em Excel</button>'+
-      '<button class="btn" onclick="exportarTratativas()">⬇ Tratativas em Excel</button>'+
+        ' em '+esc(relJanela().rot).toLowerCase()+
+        (filtroAtivo()?' <b>no filtro atual</b>':'')+'.'+
+        (semData?'<br><span style="color:var(--y1)">'+semData+' '+
+          (semData===1?'negócio fechado ficou':'negócios fechados ficaram')+
+          ' de fora: não há registro da data em que '+(semData===1?'foi':'foram')+
+          ' fechado'+(semData===1?'':'s')+'. Em <b>Tudo</b> '+(semData===1?'ele entra':'eles entram')+'.</span>':'')+
+      '</div></div>'+
+      '<button class="btn btn-nh" onclick="imprimirRelatorio()" style="margin-left:auto">&#128424; Imprimir relatório</button>'+
+      '<button class="btn" onclick="exportarLeads()">&#11015; Leads em Excel</button>'+
+      '<button class="btn" onclick="exportarTratativas()">&#11015; Tratativas em Excel</button>'+
     '</div>'+
     cxTempoEtapa()+
     '<div class="pn-2">'+
@@ -2193,17 +2603,9 @@ function painelResultados(){
    é ele que diz se a proposta de hoje fecha neste mês ou no outro. */
 function cxTempoEtapa(){
   var g=[], p=[];
-  visiveis().forEach(function(l){
+  relFechados().forEach(function(l){
     if(!l.criadoEm) return;
-    var fim=null;
-    /* O fechamento não tem data própria; a marca automática de mudança
-       de etapa é o registro mais fiel que existe. */
-    var mudou=ATIVIDADES.filter(function(a){
-      return a.leadId===l.id && a.automatico && /Ganho|Perdido/.test(a.descricao||'');
-    });
-    if(mudou.length){
-      mudou.forEach(function(a){ var d=dData(a.data); if(d&&(!fim||d>fim)) fim=d; });
-    }
+    var fim=fechadoEm(l);
     if(!fim) return;
     var dias=Math.round((fim-new Date(l.criadoEm))/86400000);
     if(dias<0) return;
@@ -2246,18 +2648,27 @@ function cxTempoEtapa(){
    diferente de pouca conversa e bom fechamento. */
 function cxEsforco(){
   var ids={}; visiveis().forEach(function(l){ ids[l.id]=l; });
+  var j=relJanela();
   var por={};
-  var garante=function(k){ if(!por[k]) por[k]={trat:0,ganhos:0,abertos:0,mrr:0}; return por[k]; };
+  var garante=function(k){ if(!por[k]) por[k]={trat:0,ganhos:0,perdidos:0,abertos:0,mrr:0}; return por[k]; };
+  var dono=function(l){ return String((l&&l.responsavel)||'').trim()||'(sem dono)'; };
+  /* Ganhos e perdidos vêm do período; "abertos" é foto de agora — um
+     lead em negociação não pertence a mês nenhum, ele está em pé hoje. */
+  relFechados().forEach(function(l){
+    var o=garante(dono(l));
+    if(l.etapa==='GANHO'){ o.ganhos++; o.mrr+=mrrDo(l); } else o.perdidos++;
+  });
   visiveis().forEach(function(l){
-    var k=String(l.responsavel||'').trim()||'(sem dono)';
-    var o=garante(k);
-    if(l.etapa==='GANHO'){ o.ganhos++; o.mrr+=mrrDo(l); }
-    else if(l.etapa!=='PERDIDO') o.abertos++;
+    if(l.etapa==='GANHO'||l.etapa==='PERDIDO') return;
+    garante(dono(l)).abertos++;
   });
   ATIVIDADES.forEach(function(a){
     if(a.automatico || !ids[a.leadId]) return;
-    var k=String(ids[a.leadId].responsavel||'').trim()||'(sem dono)';
-    garante(k).trat++;
+    if(j.ini){
+      var d=dData(a.data);
+      if(!d || d<j.ini || (j.fim && d>j.fim)) return;
+    }
+    garante(dono(ids[a.leadId])).trat++;
   });
   var chaves=Object.keys(por).sort(function(a,b){ return por[b].trat-por[a].trat; });
   if(!chaves.length) return '';
@@ -2270,9 +2681,11 @@ function cxEsforco(){
       'e nenhum dos dois aparece olhando só o total de vendas.</div>'+
     '<div class="tab-cx"><table>'+
       '<thead><tr><th>Responsável</th><th class="num">Tratativas</th>'+
-      '<th class="num">Abertos</th><th class="num">Ganhos</th><th class="num">Mensalidade</th></tr></thead>'+
+      '<th class="num">Abertos</th><th class="num">Ganhos</th><th class="num">Perdidos</th>'+
+      '<th class="num">Taxa</th><th class="num">Mensalidade</th></tr></thead>'+
       '<tbody>'+chaves.map(function(k){
         var o=por[k], sem=(k==='(sem dono)');
+        var fech=o.ganhos+o.perdidos, tx=fech?Math.round(o.ganhos/fech*100):null;
         return '<tr><td><b'+(sem?' style="color:var(--y1)"':'')+'>'+esc(k)+'</b>'+
             '<div style="height:5px;border-radius:4px;background:var(--s3);margin-top:6px;max-width:180px">'+
             '<div style="height:100%;width:'+((o.trat/maior)*100).toFixed(1)+'%;border-radius:4px;'+
@@ -2280,9 +2693,329 @@ function cxEsforco(){
           '<td class="num"><b>'+o.trat+'</b></td>'+
           '<td class="num">'+o.abertos+'</td>'+
           '<td class="num"'+(o.ganhos?' style="color:var(--g1);font-weight:800"':'')+'>'+o.ganhos+'</td>'+
+          '<td class="num"'+(o.perdidos?' style="color:var(--r1)"':'')+'>'+o.perdidos+'</td>'+
+          '<td class="num">'+(tx===null?'—':'<b>'+tx+'%</b>')+'</td>'+
           '<td class="num">'+(o.mrr>0?brl(o.mrr):'—')+'</td></tr>';
       }).join('')+'</tbody></table></div>'+
   '</div>';
+}
+
+/* ═════════════════════════════════════════════════
+   IMPRESSÃO
+
+   Papel não é tela: no papel não há filtro para clicar, não há rolagem
+   e não há como perguntar de quando é o número. Por isso o impresso
+   carrega no cabeçalho o período, o filtro em vigor, quem emitiu e
+   quando — sem isso a folha vira um monte de número sem procedência,
+   e é justamente a folha que vai para a reunião.
+
+   O caminho é um só para tudo que se imprime: monta o HTML, joga em
+   `#imp` e chama o `print` do navegador. Abrir janela nova seria
+   bloqueado por bloqueador de pop-up e perderia o CSS junto.
+   ═════════════════════════════════════════════════ */
+function imprimir(html){
+  var cx=document.getElementById('imp');
+  if(!cx){ cx=document.createElement('div'); cx.id='imp'; document.body.appendChild(cx); }
+  cx.innerHTML=html;
+  document.body.classList.add('imprimindo');
+  /* Um quadro para o navegador aplicar o CSS antes de abrir o diálogo:
+     sem isso o Chrome às vezes fotografa a página antes da troca. */
+  setTimeout(function(){
+    try{ window.print(); }
+    finally{
+      /* `afterprint` não dispara em todo navegador; o tempo limpa de
+         qualquer jeito para a tela não ficar presa no modo impressão. */
+      setTimeout(function(){
+        document.body.classList.remove('imprimindo');
+        cx.innerHTML='';
+      }, 800);
+    }
+  }, 60);
+}
+
+function _impCabecalho(titulo, sub){
+  var ag=new Date();
+  return '<div class="imp-top">'+
+    '<div class="imp-marca"><span class="nh-marca imp-logo">NH</span>'+
+      '<div><div class="imp-nh">NH Licitações</div>'+
+      '<div class="imp-nh2">Assessoria em licitações</div></div></div>'+
+    '<div class="imp-tt"><h1>'+esc(titulo)+'</h1>'+
+      (sub?'<div class="imp-sub">'+sub+'</div>':'')+
+      '<div class="imp-emit">Emitido em '+ag.toLocaleDateString('pt-BR')+' às '+
+        ag.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+
+        (quemSou()?' por '+esc(quemSou()):'')+'</div>'+
+    '</div></div>';
+}
+
+function _impTabela(cabs, linhas, vazio){
+  if(!linhas.length) return '<p class="imp-vazio">'+(vazio||'Nada a listar.')+'</p>';
+  return '<table class="imp-tb"><thead><tr>'+
+    cabs.map(function(c){
+      return '<th'+(c.num?' class="n"':'')+'>'+esc(c.r)+'</th>';
+    }).join('')+'</tr></thead><tbody>'+
+    linhas.map(function(ls){
+      return '<tr>'+ls.map(function(v,i){
+        return '<td'+(cabs[i]&&cabs[i].num?' class="n"':'')+'>'+v+'</td>';
+      }).join('')+'</tr>';
+    }).join('')+'</tbody></table>';
+}
+
+/** O relatório completo do período, para o papel. */
+function relatorioImprimivel(){
+  var j=relJanela();
+  var fechados=relFechados();
+  var ganhos=fechados.filter(function(l){ return l.etapa==='GANHO'; });
+  var perdidos=fechados.filter(function(l){ return l.etapa==='PERDIDO'; });
+  var abertos=visiveis().filter(function(l){ return l.etapa!=='GANHO'&&l.etapa!=='PERDIDO'; });
+
+  var mrrGanho=ganhos.reduce(function(s,l){ return s+mrrDo(l); },0);
+  var mrrAberto=abertos.reduce(function(s,l){ return s+mrrDo(l); },0);
+  var conv=fechados.length?Math.round(ganhos.length/fechados.length*100):null;
+  var ticket=ganhos.length?mrrGanho/ganhos.length:0;
+
+  /* Ciclo médio: só entram os que têm as duas pontas da data. */
+  var ciclos=ganhos.map(function(l){
+    var f=fechadoEm(l);
+    if(!f||!l.criadoEm) return null;
+    var d=Math.round((f-new Date(l.criadoEm))/86400000);
+    return d>=0?d:null;
+  }).filter(function(x){ return x!==null; });
+  var ciclo=ciclos.length?Math.round(ciclos.reduce(function(s,x){return s+x;},0)/ciclos.length):null;
+
+  /* Leads que ENTRARAM no período — pergunta diferente de quantos
+     fecharam, e é ela que diz se a prospecção está andando. */
+  var novos=visiveis().filter(function(l){
+    if(!j.ini) return !!l.criadoEm;
+    if(!l.criadoEm) return false;
+    var d=new Date(l.criadoEm); d.setHours(0,0,0,0);
+    return d>=j.ini && (!j.fim || d<=j.fim);
+  }).length;
+
+  var kpi=function(r,v,n){
+    return '<div class="imp-k"><div class="imp-k-r">'+r+'</div>'+
+      '<div class="imp-k-v">'+v+'</div>'+
+      (n?'<div class="imp-k-n">'+n+'</div>':'')+'</div>';
+  };
+
+  /* ── Funil de hoje ─────────────────────────────────────── */
+  var linhasFunil=ETAPAS.filter(function(e){ return e.k!=='GANHO'&&e.k!=='PERDIDO'; })
+    .map(function(e){
+      var m=abertos.filter(function(l){ return (l.etapa||'PROSPECCAO')===e.k; });
+      var v=m.reduce(function(s,l){ return s+mrrDo(l); },0);
+      return [esc(e.r), String(m.length),
+              (abertos.length?Math.round(m.length/abertos.length*100):0)+'%',
+              v>0?brl(v):'—'];
+    });
+
+  /* ── Por responsável ───────────────────────────────────── */
+  var porResp={};
+  var dono=function(l){ return String((l&&l.responsavel)||'').trim()||'(sem dono)'; };
+  var gr=function(k){ if(!porResp[k]) porResp[k]={g:0,p:0,ab:0,mrr:0}; return porResp[k]; };
+  ganhos.forEach(function(l){ var o=gr(dono(l)); o.g++; o.mrr+=mrrDo(l); });
+  perdidos.forEach(function(l){ gr(dono(l)).p++; });
+  abertos.forEach(function(l){ gr(dono(l)).ab++; });
+  var linhasResp=Object.keys(porResp).sort(function(a,b){
+    return porResp[b].mrr-porResp[a].mrr || porResp[b].g-porResp[a].g;
+  }).map(function(k){
+    var o=porResp[k], f=o.g+o.p;
+    return [esc(k), String(o.ab), String(o.g), String(o.p),
+            f?Math.round(o.g/f*100)+'%':'—', o.mrr>0?brl(o.mrr):'—'];
+  });
+
+  /* ── Por origem ────────────────────────────────────────── */
+  var porOri={};
+  fechados.forEach(function(l){
+    var k=l.origem||'OUTRO';
+    if(!porOri[k]) porOri[k]={g:0,p:0,mrr:0};
+    if(l.etapa==='GANHO'){ porOri[k].g++; porOri[k].mrr+=mrrDo(l); } else porOri[k].p++;
+  });
+  var linhasOri=Object.keys(porOri).sort(function(a,b){
+    return (porOri[b].g+porOri[b].p)-(porOri[a].g+porOri[a].p);
+  }).map(function(k){
+    var o=porOri[k], t=o.g+o.p;
+    return [esc(ORIGENS[k]||k), String(t), String(o.g),
+            t?Math.round(o.g/t*100)+'%':'—', o.mrr>0?brl(o.mrr):'—'];
+  });
+
+  /* ── Motivos de perda ──────────────────────────────────── */
+  var porMot={};
+  perdidos.forEach(function(l){
+    var m=String(l.motivoPerda||'').trim()||'(não informado)';
+    porMot[m]=(porMot[m]||0)+1;
+  });
+  var linhasMot=Object.keys(porMot).sort(function(a,b){ return porMot[b]-porMot[a]; })
+    .map(function(m){
+      return [esc(m), String(porMot[m]),
+              perdidos.length?Math.round(porMot[m]/perdidos.length*100)+'%':'—'];
+    });
+
+  /* ── Listas nominais ───────────────────────────────────── */
+  var dataDe=function(l){
+    var d=fechadoEm(l);
+    return d?('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear():'—';
+  };
+  var ordFech=function(a,b){ return (fechadoEm(b)||0)-(fechadoEm(a)||0); };
+  var linhasG=ganhos.slice().sort(ordFech).map(function(l){
+    return [esc(ldRotulo(l)), esc(dono(l)), esc(propostaTexto(l)||'—'),
+            esc(ORIGENS[l.origem]||l.origem||'—'), dataDe(l)];
+  });
+  var linhasP=perdidos.slice().sort(ordFech).map(function(l){
+    return [esc(ldRotulo(l)), esc(dono(l)),
+            esc(String(l.motivoPerda||'').trim()||'(não informado)'),
+            esc(ORIGENS[l.origem]||l.origem||'—'), dataDe(l)];
+  });
+
+  /* ── Agenda: é foto de agora, não do período ───────────── */
+  var linhasAg=prazosAbertos().filter(function(p){ return p.dias<=30; }).map(function(p){
+    return [esc(p.data)+((p.lead.horaProximaAcao&&p.campo!=='Edital em pauta')
+                          ?' '+esc(p.lead.horaProximaAcao):''),
+            esc(ldRotulo(p.lead)), esc(p.campo), esc(dono(p.lead)),
+            p.dias<0?Math.abs(p.dias)+'d atrasado':(p.dias===0?'hoje':'em '+p.dias+'d')];
+  });
+
+  var semData=relSemData();
+
+  return _impCabecalho('Relatório do funil de vendas',
+      '<b>'+esc(PERIODOS[_relPer].r)+'</b> &middot; '+esc(j.rot)+
+      (filtroAtivo()?' &middot; <b>com filtro de tela aplicado</b>':''))+
+    (semData?'<p class="imp-nota">'+semData+' negócio(s) fechado(s) não entraram neste '+
+      'recorte por não haver registro da data de fechamento.</p>':'')+
+    (filtroAtivo()?'<p class="imp-nota">Atenção: a tela está filtrada. Este relatório '+
+      'cobre apenas os leads que passam pelo filtro em vigor.</p>':'')+
+
+    '<div class="imp-kpis">'+
+      kpi('Ganhos no período', String(ganhos.length),
+          mrrGanho>0?brl(mrrGanho)+' por mês':'sem mensalidade')+
+      kpi('Perdidos', String(perdidos.length), '')+
+      kpi('Conversão', conv===null?'—':conv+'%',
+          fechados.length+' fechado(s)')+
+      kpi('Ticket médio', ganhos.length?brl(ticket):'—', 'mensalidade por cliente')+
+      kpi('Ciclo de venda', ciclo===null?'—':ciclo+' dias',
+          ciclos.length?'média de '+ciclos.length+' venda(s)':'sem par de datas')+
+      kpi('Novos no funil', String(novos), 'leads cadastrados')+
+    '</div>'+
+
+    '<div class="imp-kpis dois">'+
+      kpi('Em aberto agora', String(abertos.length), 'negócios em andamento')+
+      kpi('Mensalidade em jogo', brl(mrrAberto), 'se todo o aberto fechar')+
+    '</div>'+
+
+    '<h2>Funil hoje</h2>'+
+    '<p class="imp-h2s">Foto do momento, não do período: negócio em andamento não pertence a mês nenhum.</p>'+
+    _impTabela([{r:'Etapa'},{r:'Negócios',num:true},{r:'% do funil',num:true},{r:'Mensalidade',num:true}],
+               linhasFunil, 'Nenhum negócio em aberto.')+
+
+    '<h2>Por responsável</h2>'+
+    _impTabela([{r:'Responsável'},{r:'Em aberto',num:true},{r:'Ganhos',num:true},
+                {r:'Perdidos',num:true},{r:'Taxa',num:true},{r:'Mensalidade',num:true}],
+               linhasResp, 'Nenhum responsável com movimento.')+
+
+    '<h2>Conversão por origem</h2>'+
+    _impTabela([{r:'Origem'},{r:'Fechados',num:true},{r:'Ganhos',num:true},
+                {r:'Taxa',num:true},{r:'Mensalidade',num:true}],
+               linhasOri, 'Nada fechado no período.')+
+
+    '<h2>Por que perdemos</h2>'+
+    _impTabela([{r:'Motivo'},{r:'Vezes',num:true},{r:'% das perdas',num:true}],
+               linhasMot, 'Nenhuma perda no período.')+
+
+    '<h2 class="quebra">Negócios ganhos no período</h2>'+
+    _impTabela([{r:'Empresa'},{r:'Responsável'},{r:'Proposta'},{r:'Origem'},{r:'Fechado em'}],
+               linhasG, 'Nenhum negócio ganho no período.')+
+
+    '<h2>Negócios perdidos no período</h2>'+
+    _impTabela([{r:'Empresa'},{r:'Responsável'},{r:'Motivo'},{r:'Origem'},{r:'Fechado em'}],
+               linhasP, 'Nenhum negócio perdido no período.')+
+
+    '<h2 class="quebra">Agenda dos próximos 30 dias</h2>'+
+    '<p class="imp-h2s">Prazos de edital e follow-ups combinados dos negócios em aberto.</p>'+
+    _impTabela([{r:'Data'},{r:'Empresa'},{r:'O quê'},{r:'Responsável'},{r:'Quando'}],
+               linhasAg, 'Nenhum prazo nos próximos 30 dias.')+
+
+    '<div class="imp-rod">NH Licitações &middot; relatório gerado pelo CRM &middot; '+
+      'uso interno</div>';
+}
+
+function imprimirRelatorio(){ imprimir(relatorioImprimivel()); }
+
+/** A ficha de um lead, para levar impressa na reunião. */
+function fichaImprimivel(id){
+  var l=LEADS.filter(function(x){ return x.id===id; })[0];
+  if(!l) return '';
+  var linha=function(r,v){
+    return v ? '<tr><th>'+esc(r)+'</th><td>'+v+'</td></tr>' : '';
+  };
+  var lk=function(u){
+    return u?'<a href="'+esc(u)+'">'+esc(u)+'</a>':'';
+  };
+  var t=tempDe(l);
+  var docs=Array.isArray(l.documentos)?l.documentos:[];
+  var g=l.editalGancho||null;
+
+  var ats=atividadesDo(l.id);
+  var linhasAt=ats.map(function(a){
+    return [esc(a.data||'—'), esc(a.tipo||'—'),
+            esc(a.descricao||'')+(a.automatico?' <i>(automático)</i>':''),
+            esc(a.autor||'—')];
+  });
+
+  return _impCabecalho('Ficha do lead — '+ldRotulo(l),
+      esc(etapaDe(l.etapa).r)+(t?' &middot; '+esc(t.r):''))+
+
+    '<h2>Empresa</h2>'+
+    '<table class="imp-fx">'+
+      linha('Empresa', esc(l.empresa||'—'))+
+      linha('CNPJ', esc(l.cnpj||''))+
+      linha('Segmento', esc(l.segmento||''))+
+      linha('Porte', esc(l.porte||''))+
+      linha('Cidade / UF', esc(l.cidade||''))+
+      linha('Já licita?', esc(JA_LICITA[l.jaLicita]||''))+
+      linha('Contato', esc([l.contatoNome,l.contatoCargo].filter(Boolean).join(' — ')))+
+      linha('Telefone', esc(l.contatoTelefone||''))+
+      linha('E-mail', esc(l.contatoEmail||''))+
+    '</table>'+
+
+    '<h2>Negócio</h2>'+
+    '<table class="imp-fx">'+
+      linha('Etapa', esc(etapaDe(l.etapa).r))+
+      linha('Temperatura', t?esc(t.r):'')+
+      linha('Responsável', esc(l.responsavel||'(sem dono)'))+
+      linha('Origem', esc(ORIGENS[l.origem]||l.origem||''))+
+      linha('Campanha', esc(l.campanha||''))+
+      linha('Proposta', esc(propostaTexto(l)||''))+
+      linha('Previsão de fechamento', esc(l.previsaoFechamento||''))+
+      linha('Próxima ação', esc(l.proximaAcao||'')+
+        (l.dataProximaAcao?' &mdash; '+esc(l.dataProximaAcao)+
+          (l.horaProximaAcao?' às '+esc(l.horaProximaAcao):''):''))+
+      linha('Motivo da perda', esc(l.motivoPerda||''))+
+      linha('Link da proposta', lk(l.linkProposta))+
+      linha('Pasta de documentos', lk(l.linkPasta))+
+    '</table>'+
+
+    (g?'<h2>Edital em pauta</h2><table class="imp-fx">'+
+      linha('Órgão', esc(g.orgao||''))+
+      linha('Número', esc(g.numero||''))+
+      linha('Modalidade', esc(g.modalidade||''))+
+      linha('Prazo', esc(g.prazo||''))+
+      linha('Valor estimado', num(g.valor)>0?brl(num(g.valor)):'')+
+    '</table>':'')+
+
+    (docs.length?'<h2>Diagnóstico de aptidão</h2>'+
+      _impTabela([{r:'Documento'},{r:'Situação'}],
+        docs.map(function(d){
+          return [esc(d.nome||''), d.ok?'ok':'<b>pendente</b>'];
+        }), ''):'')+
+
+    '<h2>Histórico de tratativas</h2>'+
+    _impTabela([{r:'Data'},{r:'Tipo'},{r:'O que aconteceu'},{r:'Quem'}],
+               linhasAt, 'Nenhuma tratativa registrada.')+
+
+    '<div class="imp-rod">NH Licitações &middot; ficha gerada pelo CRM &middot; uso interno</div>';
+}
+
+function imprimirFicha(){
+  if(!_ldEdit) return alert('Salve o lead antes de imprimir a ficha.');
+  imprimir(fichaImprimivel(_ldEdit));
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -2465,6 +3198,9 @@ function abrirLead(id){
     ? (l.empresa||'') + ' · ' + etapaDe(l.etapa).r
     : 'A empresa que pode virar cliente, e em que pé está a conversa.';
   document.getElementById('ld-excluir').style.display=l?'':'none';
+  /* Só faz sentido imprimir o que já está salvo — a ficha é lida do
+     banco, não do formulário aberto. */
+  document.getElementById('ld-imprimir').style.display=l?'':'none';
 
   var sel=document.getElementById('ld-etapa');
   sel.innerHTML=ETAPAS.map(function(e){ return '<option value="'+e.k+'">'+e.r+'</option>'; }).join('');
@@ -2499,6 +3235,9 @@ function abrirLead(id){
   sv('ld-motivo',l?(l.motivoPerda||''):'');
   sv('ld-proxima', l?(l.proximaAcao||''):'');
   sv('ld-proxdata', l?dISO(l.dataProximaAcao):'');
+  sv('ld-proxhora', l?(l.horaProximaAcao||''):'');
+  sv('ld-link-proposta', l?(l.linkProposta||''):'');
+  sv('ld-link-pasta', l?(l.linkPasta||''):'');
 
   var ed=(l&&l.editalGancho)||null;
   document.getElementById('ld-tem-edital').checked=!!ed;
@@ -2992,6 +3731,14 @@ async function salvarLead(){
     origem:gv('ld-origem'), campanha:gv('ld-campanha'),
     motivoPerda:(etapa==='PERDIDO')?gv('ld-motivo'):'',
     proximaAcao:gv('ld-proxima'), dataProximaAcao:dBR(gv('ld-proxdata')),
+    /* Horário separado da data, e opcional. Guardar "20/08 14:30" num
+       campo só obrigaria a reparsear em todo lugar que já lê a data. */
+    horaProximaAcao:gv('ld-proxhora'),
+    /* Links da proposta e da pasta. `_url` normaliza: o vendedor cola
+       "drive.google.com/..." sem o https e o navegador trataria como
+       caminho relativo, levando a lugar nenhum. */
+    linkProposta:_url(gv('ld-link-proposta')),
+    linkPasta:_url(gv('ld-link-pasta')),
     atualizadoPor:quemSou(), atualizadoEm:new Date().toLocaleString('pt-BR')
   };
 
@@ -3337,6 +4084,10 @@ document.addEventListener('keydown', function(e){
 });
 
 </script>
+
+<!-- Onde o impresso é montado. Invisível na tela; no papel, é a página
+     inteira — todo o resto some pelo CSS de impressão. -->
+<div id="imp"></div>
 </body>
 </html>
 
