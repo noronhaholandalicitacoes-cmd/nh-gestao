@@ -737,7 +737,7 @@ const auth=_viabApp.auth();
    a senha de uma conta já criada no Firebase, cada redefinição cria uma
    conta numa "versão" nova; o cadastro guarda qual está valendo, e por
    isso uma senha antiga é recusada mesmo com a conta velha existindo. */
-var VIAB_MAX_VERSOES = 8;
+var VIAB_MAX_VERSOES = 12;   /* Era 8, e não alcançava quem já teve 9 trocas de senha. */
 function emailFalsoViab(numero, versao) {
   var n = String(numero || '').replace(/\D/g, '');
   return (versao > 1 ? (n + '.r' + versao) : n) + '@nh.interno';
@@ -756,6 +756,102 @@ function _viabDoEmail(email) {
 /* Cadastros feitos antes do controle por sistema não têm o campo
    'acessos'. Nesse caso valem os dois — era o comportamento de então,
    e ninguém pode perder acesso por causa de um campo novo. */
+/* ═════════════════════════════════════════════════
+   A EQUIPE DA NH TAMBÉM ENTRA AQUI — 26/08/2026
+
+   Este arquivo só conhecia UM cadastro: `config/responsaveis`, onde
+   ficam as empresas clientes, com o WhatsApp como chave. A equipe da
+   NH mora no outro — `config/usuarios` — e nunca foi consultada.
+
+   Consequência: colaboradora da NH autenticava e caía fora na linha
+   seguinte. Como quem não está em `responsaveis` fica com "versão 1"
+   por padrão, e a conta dela já estava numa versão maior por causa das
+   trocas de senha, a mensagem que aparecia era "Esta senha foi
+   substituída" — logo depois de receber a senha nova. Era o pior
+   recado possível: acusa a pessoa de usar senha velha quando ela está
+   usando a certa.
+
+   As duas listas são consultadas agora, nesta ordem: cliente primeiro
+   (é o uso mais comum desta tela), equipe depois.
+   ═════════════════════════════════════════════════ */
+
+/** Acha a pessoa em `config/usuarios` tolerando as diferenças de
+ *  gravação que se acumularam: a versão `.rN` no e-mail, o 55 do DDI
+ *  presente ou não, e a caixa. Mesma lógica de `nhAcharUsuario` do
+ *  sistema principal — os arquivos são estáticos e não compartilham
+ *  código, então a cópia é intencional. */
+function acharNaEquipe(U, email) {
+  if (!U) return null;
+  var e = String(email || '').toLowerCase().trim();
+  if (U[e]) return {u: U[e], chave: e};
+
+  var m = e.match(/^(\d+)(?:\.r\d+)?@nh\.interno$/);
+  if (!m) return null;
+
+  var n = m[1];
+  var semDDI = (n.length > 11 && n.indexOf('55') === 0) ? n.substring(2) : n;
+  var comDDI = (n.length <= 11) ? ('55' + n) : n;
+
+  var chaves = [];
+  [semDDI, comDDI].forEach(function(f) {
+    chaves.push(f + '@nh.interno');
+    for (var v = 2; v <= 12; v++) chaves.push(f + '.r' + v + '@nh.interno');
+  });
+  for (var i = 0; i < chaves.length; i++)
+    if (U[chaves[i]]) return {u: U[chaves[i]], chave: chaves[i]};
+  return null;
+}
+
+/** Qual versão de senha está valendo para esta pessoa, olhando os dois
+ *  cadastros. Os nomes dos campos são diferentes em cada um
+ *  (`authVersao` no cliente, `versao` na equipe), e essa divergência já
+ *  fez conserto valer pela metade antes. */
+function versaoVigente(num, lista, equipe, email) {
+  var r = (lista || {})[num];
+  if (r) return parseInt(r.authVersao || 1, 10) || 1;
+  var achado = acharNaEquipe(equipe, email);
+  if (achado) return versaoDoCadastro(achado);
+  /* Quem não está em cadastro nenhum não entra de qualquer forma — a
+     versão aqui é só para não barrar com a mensagem errada. */
+  return null;
+}
+
+/** A versão de um cadastro de equipe. O campo `versao` é a fonte certa,
+ *  mas cadastro antigo — feito quando redefinir senha ainda trocava a
+ *  CHAVE em vez do campo — guarda a versão só no nome da chave. Ler as
+ *  duas evita barrar quem tem a senha certa por causa de um cadastro
+ *  que ninguém reparou ainda. */
+function versaoDoCadastro(achado) {
+  var v = parseInt((achado.u || {}).versao, 10);
+  if (isFinite(v) && v >= 1) return v;
+  var m = String(achado.chave || '').match(/\.r(\d+)@nh\.interno$/);
+  return m ? parseInt(m[1], 10) : 1;
+}
+
+/** Perfil de quem é da NH. Equipe vê todas as empresas: é a assessoria,
+ *  este é o instrumento de trabalho dela. Quem foi marcado como
+ *  `tipo: 'empresa'` na tela de Acessos é tratado como cliente, com a
+ *  lista dele — a mesma distinção que o Portal de Licitações faz. */
+function resolverPerfilEquipe(num, u) {
+  if (u.ativo === false)
+    return {ok: false, motivo: 'Seu acesso está desativado. Fale com a NH.'};
+
+  var ehEmpresa = String(u.tipo || '').toLowerCase() === 'empresa';
+  if (ehEmpresa && !(u.empresas || []).length)
+    return {ok: false, motivo: 'Seu acesso ainda não tem empresa vinculada. Fale com a NH.'};
+
+  return {ok: true, sessao: {
+    num: num, nome: u.nome || '',
+    empresas: ehEmpresa ? (u.empresas || []) : [],
+    empresasNomes: ehEmpresa ? (u.empresasNomes || []) : [],
+    todas: !ehEmpresa,
+    /* Escopo por empresa, nunca 'meus': o nome de quem opera na NH
+       aparece em edital de várias empresas, e limitar por nome
+       esconderia justamente o trabalho dela. */
+    escopo: 'empresa'
+  }};
+}
+
 function resolverPerfilResponsavel(num, lista) {
   var r = (lista || {})[num];
   if (!r) return {ok: false, motivo: 'Seu acesso não está mais disponível. Fale com a NH.'};
@@ -1924,7 +2020,9 @@ async function nhQuemSou(email){
   try{
     var du=await db.collection('config').doc('usuarios').get();
     var lu=(du.exists&&du.data()&&du.data().lista)||{};
-    var u=lu[em];
+    /* Mesma busca tolerante da porta: sem ela o crachá fica em branco
+       justamente para quem teve a senha redefinida. */
+    var _q=acharNaEquipe(lu, em); var u=_q&&_q.u;
     if(u&&u.nome){
       var p=String(u.role||'');
       return {nome:u.nome, papel:(p==='socio'||p==='admin')?'Sócio':'Colaborador'};
@@ -1972,19 +2070,39 @@ auth.onAuthStateChanged(async function(user){
   if(!user){SESSAO=null;iniciarAcesso();return;}
   var _id=_viabDoEmail(user.email);
   var num=_id.num;
-  var lista={};
+  var lista={}, equipe={}, leuAlgum=false;
+  /* Os dois cadastros, e basta UM responder. Quem é da equipe pode não
+     ter permissão de ler a lista de clientes, e vice-versa: exigir os
+     dois transformaria uma permissão negada em "sem internet". */
   try{
     var snap=await db.collection('config').doc('responsaveis').get();
-    lista=(snap.exists&&snap.data()&&snap.data().lista)||{};
-  }catch(e){lgErro('Não consegui conectar. Verifique a internet e tente de novo.');await auth.signOut();return;}
+    lista=(snap.exists&&snap.data()&&snap.data().lista)||{}; leuAlgum=true;
+  }catch(e){}
+  try{
+    var snapU=await db.collection('config').doc('usuarios').get();
+    equipe=(snapU.exists&&snapU.data()&&snapU.data().lista)||{}; leuAlgum=true;
+  }catch(e){}
+  if(!leuAlgum){
+    lgErro('Não consegui conectar. Verifique a internet e tente de novo.');
+    await auth.signOut();return;
+  }
+
   /* Senha antiga não vale: a conta velha continua no Firebase, mas o
      cadastro diz qual versão está valendo. */
-  var _vAtual=parseInt((lista[num]||{}).authVersao||1,10);
-  if(_id.versao!==_vAtual){
+  var _vAtual=versaoVigente(num,lista,equipe,user.email);
+  if(_vAtual!==null && _id.versao!==_vAtual){
     lgErro('Esta senha foi substituída. Use a senha mais recente que a NH enviou.');
     await auth.signOut();return;
   }
-  var r=resolverPerfilResponsavel(num,lista);
+
+  /* Cliente primeiro; equipe da NH depois. */
+  var r;
+  if(lista[num]) r=resolverPerfilResponsavel(num,lista);
+  else{
+    var achado=acharNaEquipe(equipe,user.email);
+    r = achado ? resolverPerfilEquipe(num,achado.u)
+          : {ok:false, motivo:'Seu acesso não está mais disponível. Fale com a NH.'};
+  }
   if(!r.ok){lgErro(r.motivo);await auth.signOut();return;}
   SESSAO=r.sessao;
   try{localStorage.setItem('nh_viab_num',num);}catch(e){}
