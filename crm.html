@@ -3961,7 +3961,9 @@ async function nhQuemSou(email){
   try{
     var du=await db.collection('config').doc('usuarios').get();
     var lu=(du.exists&&du.data()&&du.data().lista)||{};
-    var u=lu[em];
+    /* Mesma busca tolerante da porta: sem ela o crachá fica em branco
+       justamente para quem teve a senha redefinida. */
+    var _q=nhAcharNaEquipe(lu, em); var u=_q&&_q.u;
     if(u&&u.nome){
       var p=String(u.role||'');
       return {nome:u.nome, papel:(p==='socio'||p==='admin')?'Sócio':'Colaborador'};
@@ -4005,6 +4007,43 @@ try{
   });
 }catch(_q){}
 
+
+/* ═════════════════════════════════════════════════
+   ACHAR A PESSOA NO CADASTRO DA EQUIPE — 26/08/2026
+
+   A chave de `config/usuarios` e o e-mail do token deixaram de casar
+   letra por letra em três situações, todas reais:
+
+     · versão — redefinir senha cria a conta `numero.r9@nh.interno`,
+       mas o cadastro continua em `numero@nh.interno`
+     · DDI    — parte dos cadastros tem o 55 na frente, parte não
+     · caixa  — e-mail real gravado com maiúscula
+
+   Comparar direto barrava a pessoa com a senha CERTA, e piorava a cada
+   troca de senha. Mesma lógica de `nhAcharUsuario` do sistema
+   principal — os arquivos são estáticos e não compartilham código,
+   então a cópia é intencional. */
+function nhAcharNaEquipe(U, email){
+  if(!U) return null;
+  var e=String(email||'').toLowerCase().trim();
+  if(U[e]) return {u:U[e], chave:e};
+
+  var m=e.match(/^(\d+)(?:\.r\d+)?@nh\.interno$/);
+  if(!m) return null;
+
+  var n=m[1];
+  var semDDI=(n.length>11 && n.indexOf('55')===0)?n.substring(2):n;
+  var comDDI=(n.length<=11)?('55'+n):n;
+
+  var chaves=[];
+  [semDDI,comDDI].forEach(function(f){
+    chaves.push(f+'@nh.interno');
+    for(var v=2;v<=12;v++) chaves.push(f+'.r'+v+'@nh.interno');
+  });
+  for(var i=0;i<chaves.length;i++)
+    if(U[chaves[i]]) return {u:U[chaves[i]], chave:chaves[i]};
+  return null;
+}
 auth.onAuthStateChanged(async function(u){
   var acesso=document.getElementById('tela-acesso');
   var btn=document.getElementById('ac-btn');
@@ -4039,7 +4078,8 @@ auth.onAuthStateChanged(async function(u){
   try{
     var d=await db.collection('config').doc('usuarios').get();
     var lista=(d.exists && d.data() && d.data().lista) || {};
-    var reg=lista[String(u.email||'').toLowerCase()];
+    var _ach=nhAcharNaEquipe(lista, u.email);
+    var reg=_ach&&_ach.u;
     var _ehWpp=/@nh\.interno$/i.test(String(u.email||''));
     if(ADMINS.indexOf(String(u.email||'').toLowerCase())>=0) podeCrm=true;
     else if(!reg) motivo = _ehWpp
