@@ -1940,7 +1940,7 @@ var EMP_NOME_POR_CNPJ = {};
    redefinição cria uma conta numa "versão" nova. O login procura a
    versão certa, e o cadastro guarda qual é a vigente — por isso uma
    senha antiga é recusada mesmo que a conta velha ainda exista. */
-var PORTAL_MAX_VERSOES = 8;
+var PORTAL_MAX_VERSOES = 12;  /* Era 8, e não alcançava quem já teve 9 trocas de senha. */
 function emailFalsoPortal(numero, versao) {
   var n = String(numero || '').replace(/\D/g, '');
   return (versao > 1 ? (n + '.r' + versao) : n) + '@nh.interno';
@@ -1983,6 +1983,98 @@ function vMascaraPortal(el){
  *   - mais de uma (responsável comum, não conta mestra): precisa
  *     escolher qual ver — nunca vê duas misturadas, nunca ganha
  *     poder de excluir contrato. */
+/* ═════════════════════════════════════════════════
+   A EQUIPE DA NH TAMBÉM ENTRA AQUI — 26/08/2026
+
+   Mesmo defeito que estava no Viabilidade: este arquivo só conhecia
+   `config/responsaveis` (as empresas clientes, com o WhatsApp como
+   chave). A equipe da NH mora em `config/usuarios` e nunca era
+   consultada — colaborador autenticava e caía fora na linha seguinte,
+   levando "Esta senha foi substituída" logo depois de receber a senha
+   nova, porque quem não está em `responsaveis` fica com "versão 1" por
+   padrão e a conta dele já estava numa versão maior.
+   ═════════════════════════════════════════════════ */
+
+/** Acha a pessoa em `config/usuarios` tolerando as diferenças de
+ *  gravação acumuladas: a versão `.rN` no e-mail, o 55 do DDI presente
+ *  ou não, e a caixa. Cópia intencional de `nhAcharUsuario` do sistema
+ *  principal — estes arquivos são estáticos e não compartilham código. */
+function acharNaEquipe(U, email) {
+  if (!U) return null;
+  var e = String(email || '').toLowerCase().trim();
+  if (U[e]) return {u: U[e], chave: e};
+
+  var m = e.match(/^(\d+)(?:\.r\d+)?@nh\.interno$/);
+  if (!m) return null;
+
+  var n = m[1];
+  var semDDI = (n.length > 11 && n.indexOf('55') === 0) ? n.substring(2) : n;
+  var comDDI = (n.length <= 11) ? ('55' + n) : n;
+
+  var chaves = [];
+  [semDDI, comDDI].forEach(function(f) {
+    chaves.push(f + '@nh.interno');
+    for (var v = 2; v <= 12; v++) chaves.push(f + '.r' + v + '@nh.interno');
+  });
+  for (var i = 0; i < chaves.length; i++)
+    if (U[chaves[i]]) return {u: U[chaves[i]], chave: chaves[i]};
+  return null;
+}
+
+/** Versão de senha vigente, olhando os dois cadastros. Os campos têm
+ *  nomes diferentes em cada um: `authVersao` no cliente, `versao` na
+ *  equipe. */
+function versaoVigentePortal(num, lista, equipe, email) {
+  var r = (lista || {})[num];
+  if (r) return parseInt(r.authVersao || 1, 10) || 1;
+  var achado = acharNaEquipe(equipe, email);
+  if (achado) return versaoDoCadastro(achado);
+  return null;
+}
+
+/** A versão de um cadastro de equipe. O campo `versao` é a fonte certa,
+ *  mas cadastro antigo — feito quando redefinir senha ainda trocava a
+ *  CHAVE em vez do campo — guarda a versão só no nome da chave. Ler as
+ *  duas evita barrar quem tem a senha certa por causa de um cadastro
+ *  que ninguém reparou ainda. */
+function versaoDoCadastro(achado) {
+  var v = parseInt((achado.u || {}).versao, 10);
+  if (isFinite(v) && v >= 1) return v;
+  var m = String(achado.chave || '').match(/\.r(\d+)@nh\.interno$/);
+  return m ? parseInt(m[1], 10) : 1;
+}
+
+/** Perfil de quem é da NH. Equipe entra como conta mestra: enxerga
+ *  todos os contratos, que é o que a assessoria administra. Quem foi
+ *  marcado `tipo: 'empresa'` na tela de Acessos é tratado como cliente,
+ *  com a lista dele. */
+function resolverPerfilEquipePortal(u, cnpjParaNome) {
+  if (u.ativo === false)
+    return {ok: false, motivo: 'Seu acesso está desativado. Fale com a NH.'};
+
+  var ehEmpresa = String(u.tipo || '').toLowerCase() === 'empresa';
+  var mapa = cnpjParaNome || {};
+  var nomes;
+  if (ehEmpresa) {
+    nomes = (u.empresas || []).map(function(v) {
+      var limpo = String(v || '').replace(/\D/g, '');
+      return (limpo && mapa[limpo]) || String(v || '').trim().toUpperCase();
+    }).filter(function(n, i, arr) { return n && arr.indexOf(n) === i; });
+  } else {
+    nomes = Object.keys(mapa).map(function(c) { return mapa[c]; })
+      .filter(function(n, i, arr) { return n && arr.indexOf(n) === i; });
+  }
+
+  if (!nomes.length)
+    return {ok: false, motivo: 'Seu acesso ainda não tem empresa vinculada. Fale com a NH.'};
+
+  /* `mestra` só para quem é equipe de verdade. Colaborador marcado como
+     empresa continua vendo só a dele — e um só cai no modo direto. */
+  if (!ehEmpresa) return {ok: true, modo: 'mestra', nome: u.nome || '', empresas: nomes};
+  if (1 === nomes.length) return {ok: true, modo: 'direto', nome: u.nome || '', empresa: nomes[0]};
+  return {ok: true, modo: 'escolher', nome: u.nome || '', empresas: nomes};
+}
+
 function resolverPerfilPortal(num, lista, cnpjParaNome) {
   var r = (lista || {})[num];
   if (!r) return {ok: false, motivo: 'Seu acesso não está mais disponível. Fale com a NH.'};
@@ -6520,7 +6612,9 @@ async function nhQuemSou(email){
   try{
     var du=await db.collection('config').doc('usuarios').get();
     var lu=(du.exists&&du.data()&&du.data().lista)||{};
-    var u=lu[em];
+    /* Mesma busca tolerante da porta: sem ela o crachá fica em branco
+       justamente para quem teve a senha redefinida. */
+    var _q=acharNaEquipe(lu, em); var u=_q&&_q.u;
     if(u&&u.nome){
       var p=String(u.role||'');
       return {nome:u.nome, papel:(p==='socio'||p==='admin')?'Sócio':'Colaborador'};
@@ -6602,11 +6696,19 @@ auth.onAuthStateChanged(async function(user){
     }
     var _id=_portalDoEmail(user.email);
     var num=_id.num;
-    var lista={};
+    var lista={}, equipe={}, leuAlgum=false;
+    /* Os dois cadastros, e basta UM responder. Quem é da equipe pode
+       não ter permissão de ler a lista de clientes, e vice-versa:
+       exigir os dois transforma permissão negada em "sem internet". */
     try{
       var snap=await db.collection('config').doc('responsaveis').get();
-      lista=(snap.exists&&snap.data()&&snap.data().lista)||{};
-    }catch(e){
+      lista=(snap.exists&&snap.data()&&snap.data().lista)||{}; leuAlgum=true;
+    }catch(e){}
+    try{
+      var snapU=await db.collection('config').doc('usuarios').get();
+      equipe=(snapU.exists&&snapU.data()&&snapU.data().lista)||{}; leuAlgum=true;
+    }catch(e){}
+    if(!leuAlgum){
       document.getElementById('login-err').textContent='Não consegui conectar. Verifique a internet e tente de novo.';
       document.getElementById('login-err').style.display='block';
       await auth.signOut();
@@ -6619,8 +6721,8 @@ auth.onAuthStateChanged(async function(user){
     /* Senha antiga não vale: a conta velha continua existindo no
        Firebase, mas o cadastro diz qual versão está valendo. Se a
        pessoa entrou por uma versão vencida, cai fora aqui. */
-    var _vAtual=parseInt((lista[num]||{}).authVersao||1,10);
-    if(_id.versao!==_vAtual){
+    var _vAtual=versaoVigentePortal(num,lista,equipe,user.email);
+    if(_vAtual!==null && _id.versao!==_vAtual){
       document.getElementById('login-err').textContent='Esta senha foi substituída. Use a senha mais recente que a NH enviou.';
       document.getElementById('login-err').style.display='block';
       document.getElementById('btn-login').disabled=false;
@@ -6629,7 +6731,14 @@ auth.onAuthStateChanged(async function(user){
       return;
     }
     try{ await carregarCoresEmpresas(); }catch(e){}
-    var perfil=resolverPerfilPortal(num,lista,EMP_NOME_POR_CNPJ);
+    /* Cliente primeiro; equipe da NH depois. */
+    var perfil;
+    if(lista[num]) perfil=resolverPerfilPortal(num,lista,EMP_NOME_POR_CNPJ);
+    else{
+      var _achado=acharNaEquipe(equipe,user.email);
+      perfil = _achado ? resolverPerfilEquipePortal(_achado.u,EMP_NOME_POR_CNPJ)
+                  : {ok:false, motivo:'Seu acesso não está mais disponível. Fale com a NH.'};
+    }
     if(!perfil.ok){
       document.getElementById('login-err').textContent=perfil.motivo;
       document.getElementById('login-err').style.display='block';
