@@ -4876,7 +4876,7 @@ function acTrocarTema(){acAplicarTema(!document.body.classList.contains('light-t
    o sistema tenta da versão mais nova para a mais antiga, igual ao
    Portal de Contratos faz.
    ══════════════════════════════════════════════════════════════════ */
-var LOGIN_MAX_VERSOES = 8;
+var LOGIN_MAX_VERSOES = 14;  /* só para a varredura de reserva, quando o servidor não responde */
 
 /** O que foi digitado é e-mail ou WhatsApp? Tem "@" é e-mail; o resto,
  *  se sobrar dígito suficiente, é telefone. */
@@ -4958,10 +4958,37 @@ async function loginEmailSenha(){
   var _formas=(_comDDI===_semDDI)?[_comDDI]:[_semDDI,_comDDI];
   /* Equipe primeiro: esta tela é da equipe. Cliente entra pelo portal. */
 
+  /* ⚠️ ESTA TELA ADIVINHAVA A VERSÃO — 27/08/2026.
+
+     Montava até 16 tentativas (2 formas × 8 versões) e começava pela
+     versão 1. O Firebase bloqueia a conta por excesso de tentativas na
+     sexta, mais ou menos — ou seja, quem já teve algumas trocas de
+     senha nunca chegava na conta certa: levava "Muitas tentativas
+     seguidas" e ficava sem entrar, mesmo digitando a senha certa.
+
+     Os dois portais já perguntavam a versão ao servidor antes de
+     tentar. Esta tela ficou para trás, e por isso o mesmo problema
+     continuava aparecendo aqui.
+
+     Agora pergunta primeiro e tenta 2 (uma por forma de número). Se a
+     consulta falhar, cai na varredura antiga — ruim, mas ninguém fica
+     de fora porque o servidor piscou. */
+  var _vAlvo=null;
+  try{
+    var _rv=await fetch('https://nhlicitacoes.noronhaholanda.com.br/api/acesso/versao?wpp='+
+                        encodeURIComponent(_cru));
+    if(_rv.ok){ var _jv=await _rv.json(); var _n=parseInt(_jv&&_jv.versao,10);
+      if(isFinite(_n)&&_n>=1) _vAlvo=_n; }
+  }catch(e){}
+
   var _tentativas=[];
-  _formas.forEach(function(f){ _tentativas.push(emailFalsoResp(f,1)); });
-  for(var _v=LOGIN_MAX_VERSOES; _v>=2; _v--){
-    _formas.forEach(function(f){ _tentativas.push(emailFalsoResp(f,_v)); });
+  if(_vAlvo!==null){
+    _formas.forEach(function(f){ _tentativas.push(emailFalsoResp(f,_vAlvo)); });
+  }else{
+    _formas.forEach(function(f){ _tentativas.push(emailFalsoResp(f,1)); });
+    for(var _v=LOGIN_MAX_VERSOES; _v>=2; _v--){
+      _formas.forEach(function(f){ _tentativas.push(emailFalsoResp(f,_v)); });
+    }
   }
 
   var erroRede=null, entrou=false;
@@ -5465,21 +5492,58 @@ async function eqNovo(){
 
   var socio=confirm('Papel de '+nome+':\n\nOK = SÓCIO (vê Financeiro, apaga da lixeira, entra em Configurações)\nCancelar = COLABORADOR (opera, mas nada do que faz é irreversível)');
 
-  var aviso='';
-  try{
-    await _authSecundario.createUserWithEmailAndPassword(chave,senha);
-    try{ await _authSecundario.signOut(); }catch(e2){}
-  }catch(err){
-    try{ await _authSecundario.signOut(); }catch(e2){}
-    var c=String(err&&err.code||'');
-    if(c.indexOf('email-already-in-use')>=0){ aviso=' (o login já existia — a senha continua a antiga)'; }
-    else { toast('Não consegui criar o login: '+(err&&err.message||c),'err'); return; }
+  /* ⚠️ RECADASTRAR JOGAVA A SENHA NOVA FORA — 27/08/2026.
+
+     Excluir alguém aqui apaga o CADASTRO. Não apaga a conta do
+     Firebase Auth: o navegador não tem poder para isso, e as contas de
+     todas as versões (`numero`, `numero.r2`, …) continuam lá.
+
+     Então, ao recadastrar a mesma pessoa, este bloco tentava criar
+     `numero@nh.interno`, tomava `email-already-in-use`, e SEGUIA EM
+     FRENTE guardando o cadastro na versão 1 — apontando para a conta
+     original, cuja senha é a primeira de todas, de meses atrás.
+
+     O aviso entre parênteses ("a senha continua a antiga") dizia a
+     verdade, mas ninguém lê um parêntese num toast como "a senha que
+     você acabou de digitar foi descartada". Na prática: a pessoa
+     recebia uma senha que nunca funcionou, e o sistema respondia
+     "WhatsApp ou senha incorretos" — sem nenhuma pista de que o
+     problema era o cadastro, não a digitação.
+
+     Agora faz o mesmo que a redefinição de senha já fazia: sobe a
+     versão até achar uma conta livre, cria com a senha DIGITADA e
+     grava a versão no cadastro. A senha que a pessoa recebe é sempre a
+     que foi digitada aqui. */
+  var vNova=1, chaveAuth=null, ultimoErro='';
+  for(var iv=0; iv<14; iv++){
+    var tentativa=emailFalsoResp(num,vNova);
+    try{
+      await _authSecundario.createUserWithEmailAndPassword(tentativa,senha);
+      try{ await _authSecundario.signOut(); }catch(e2){}
+      chaveAuth=tentativa; break;
+    }catch(err){
+      try{ await _authSecundario.signOut(); }catch(e2){}
+      var c=String(err&&err.code||'');
+      if(c.indexOf('email-already-in-use')>=0){ vNova++; continue; }
+      ultimoErro=(err&&err.message)||c;
+      break;
+    }
+  }
+  if(!chaveAuth){
+    toast(ultimoErro
+      ? 'Não consegui criar o login: '+ultimoErro
+      : 'Não consegui criar o login: todas as versões deste número já estão em uso.','err');
+    return;
   }
 
   USUARIOS=USUARIOS||{};
+  /* A chave é sempre a identidade da pessoa, sem a versão — é assim
+     que o resolveAcesso, o firestore.rules e o servidor a encontram. A
+     versão vive no campo, e é ela que o login consulta. */
   USUARIOS[chave]={nome:nome, telefone:num, role:(socio?'socio':'colaborador'),
-                   ativo:true, sos:true,
+                   ativo:true, sos:true, versao:vNova,
                    criadoPor:meuNome(), criadoEm:Date.now()};
+  var aviso=(vNova>1)?' (este número já tinha login antes; a senha nova é a que vale)':'';
   salvarUsuarios(); eqRender();
   try{ if(window.NHAudit&&NHAudit.pronto()) NHAudit.registrar({acao:'criou',onde:'config/usuarios',
     alvo:chave, rotulo:'Acesso de '+nome+' ('+(socio?'Sócio':'Colaborador')+')'}); }catch(_a){}
