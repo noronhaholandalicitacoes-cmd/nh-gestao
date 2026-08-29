@@ -4888,6 +4888,64 @@ async function nhDefinirSenha(alvo, senha){
   }
 }
 
+/* ═════════════════════════════════════════════════
+   CONFERIR O ACESSO — 29/08/2026
+
+   Existe porque passei uma semana consertando às cegas. Quando alguém
+   não entrava, a tela dizia "WhatsApp ou senha incorretos" e nenhum de
+   nós sabia qual dos seis elos tinha quebrado: o cadastro, a conta, a
+   versão, a convenção do 55, o papel ou a senha mesmo. Cada rodada
+   custava uma ligação para a pessoa e um dia.
+
+   Agora um clique responde, em português, o que está e o que não está
+   no lugar — inclusive a pergunta que o navegador não consegue fazer:
+   "a conta que o login vai procurar existe de verdade?"
+   ═════════════════════════════════════════════════ */
+async function nhConferirAcesso(numero, nome){
+  var u=auth.currentUser;
+  if(!u) return alert('Faça login de novo e tente outra vez.');
+  try{
+    var res=await fetch(NH_API+'/api/acesso/conferir',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({idToken:await u.getIdToken(), alvo:String(numero||'')})
+    });
+    var j=await res.json().catch(function(){ return {}; });
+    if(!res.ok||!j.ok){
+      return alert('Não consegui conferir: '+((j&&j.erro)||('HTTP '+res.status)));
+    }
+
+    var L=[];
+    L.push('ACESSO DE '+(j.nome||nome||numero));
+    L.push('WhatsApp: '+nhFormataWpp(j.numero));
+    L.push('');
+    L.push(j.onde==='equipe'  ? '✔ Está no cadastro da EQUIPE  ('+j.chave+')'
+         : j.onde==='cliente' ? '✔ Está no cadastro de CLIENTES  (chave '+j.chave+')'
+         : '✖ NÃO está em cadastro nenhum — por isso não entra em lugar algum.');
+    if(j.onde!=='nenhum')
+      L.push(j.ativo ? '✔ Cadastro ativo' : '✖ Cadastro DESATIVADO — reative antes de testar.');
+    L.push('');
+    L.push('O login vai entrar em: '+j.conta);
+    L.push(j.contaExiste
+      ? '✔ Essa conta existe no Firebase.'
+      : '✖ Essa conta NÃO existe. É por isso que a senha nunca funciona —');
+    if(!j.contaExiste) L.push('   clique em "Nova senha" para criá-la com a senha que você definir.');
+    if(j.sobrando&&j.sobrando.length){
+      L.push('');
+      L.push('Contas antigas ainda soltas ('+j.sobrando.length+'), que aceitam senhas velhas:');
+      j.sobrando.forEach(function(c){ L.push('   · '+c); });
+      L.push('Clicar em "Nova senha" apaga todas elas.');
+    }
+    L.push('');
+    L.push(j.contaExiste && j.onde!=='nenhum' && j.ativo
+      ? 'Tudo no lugar. Se ainda não entrar, a senha é que está errada —'+
+        '\nclique em "Nova senha" e envie a que aparecer.'
+      : 'Resolva os ✖ acima e teste de novo.');
+    alert(L.join('\n'));
+  }catch(e){
+    alert('Não consegui falar com o servidor: '+((e&&e.message)||e));
+  }
+}
+
 /** Recado padrão quando o caminho certo não está disponível. Aparece
  *  inteiro na tela porque um sócio precisa saber que caiu no plano B —
  *  e o plano B é o desenho antigo, que já quebrou gente. */
@@ -5062,16 +5120,21 @@ async function loginEmailSenha(ev){
      Agora pergunta primeiro e tenta 2 (uma por forma de número). Se a
      consulta falhar, cai na varredura antiga — ruim, mas ninguém fica
      de fora porque o servidor piscou. */
-  var _vAlvo=null;
+  var _vAlvo=null, _contaAlvo=null;
   try{
     var _rv=await fetch('https://nhlicitacoes.noronhaholanda.com.br/api/acesso/versao?wpp='+
                         encodeURIComponent(_cru));
     if(_rv.ok){ var _jv=await _rv.json(); var _n=parseInt(_jv&&_jv.versao,10);
-      if(isFinite(_n)&&_n>=1) _vAlvo=_n; }
+      if(isFinite(_n)&&_n>=1) _vAlvo=_n;
+      /* `conta` é o endereço exato, tirado do cadastro. Uma tentativa
+         só, e a certa — em vez de montar e-mail no chute. */
+      if(_jv&&typeof _jv.conta==='string'&&/@nh\.interno$/.test(_jv.conta)) _contaAlvo=_jv.conta; }
   }catch(e){}
 
   var _tentativas=[];
-  if(_vAlvo!==null){
+  if(_contaAlvo){
+    _tentativas.push(_contaAlvo);
+  }else if(_vAlvo!==null){
     _formas.forEach(function(f){ _tentativas.push(emailFalsoResp(f,_vAlvo)); });
   }else{
     _formas.forEach(function(f){ _tentativas.push(emailFalsoResp(f,1)); });
@@ -5542,6 +5605,9 @@ function eqRender(){
       '<div class="eq-acts">'+
         '<button class="btn btn-ghost" onclick="eqEditar('+n+')">Editar</button>'+
         '<button class="btn btn-ghost" onclick="eqSenha('+n+')" title="Definir uma senha nova para esta pessoa">Senha</button>'+
+        '<button class="btn btn-ghost" onclick="nhConferirAcesso(\''+esc(tel||String(k).split('@')[0])+'\',\''+
+          esc(String(u.nome||'').replace(/'/g,''))+'\')" '+
+          'title="Diz exatamente o que está e o que não está no lugar neste acesso">Conferir</button>'+
         '<button class="btn btn-ghost" onclick="eqAtivo('+n+')">'+(off?'Reativar':'Desativar')+'</button>'+
         (off?'<button class="btn btn-ghost" style="color:#f87171;border-color:rgba(239,68,68,.3)" onclick="eqRemover('+n+')">Remover</button>':'')+
       '</div></div>';
@@ -6746,6 +6812,9 @@ function acRender(){
         '<div class="ac-acoes">'+
           '<button class="ac-bt" onclick="acEditar(\''+num+'\')">&#9998; Editar</button>'+
           '<button class="ac-bt" onclick="acRedefinir(\''+num+'\')">&#128273; Nova senha</button>'+
+          '<button class="ac-bt" onclick="nhConferirAcesso(\''+num+'\',\''+
+            esc0(String(r.nome||'').replace(/\x27/g,''))+'\')" '+
+            'title="Diz exatamente o que está e o que não está no lugar neste acesso">&#128269; Conferir</button>'+
           '<button class="ac-bt" onclick="acAtivar(\''+num+'\')">'+(r.ativo?'&#9209; Desativar':'&#9654; Reativar')+'</button>'+
           '<button class="ac-bt perigo" onclick="acExcluir(\''+num+'\')">&#128465; Excluir</button>'+
         '</div>'+
