@@ -1133,16 +1133,27 @@ async function entrar(ev){
      Agora pergunta ao servidor do portal e tenta UMA. Se a consulta
      falhar, cai no laço antigo: ruim, mas ninguém fica de fora porque
      o servidor piscou. */
-  var _vAlvo=null;
+  /* ⚠️ E O 55? — 29/08/2026.
+     `vNumero` acrescenta o 55 ao que foi digitado, porque a conta de
+     CLIENTE é gravada assim. A conta da EQUIPE não tem o 55. Por causa
+     disso esta tela procurava, para todo colaborador, uma conta que
+     nunca existiu — e nenhuma troca de senha ia resolver, porque a
+     senha estava na outra conta.
+
+     Agora o servidor devolve o endereço EXATO da conta, tirado do
+     cadastro, e é nele que entramos. Ninguém mais monta e-mail de
+     login por conta própria. */
+  var _vAlvo=null, _contaAlvo=null;
   try{
     var _rv=await fetch('https://nhlicitacoes.noronhaholanda.com.br/api/acesso/versao?wpp='+encodeURIComponent(num));
     if(_rv.ok){ var _jv=await _rv.json(); var _n=parseInt(_jv&&_jv.versao,10);
-      if(isFinite(_n)&&_n>=1) _vAlvo=_n; }
+      if(isFinite(_n)&&_n>=1) _vAlvo=_n;
+      if(_jv&&typeof _jv.conta==='string'&&/@nh\.interno$/.test(_jv.conta)) _contaAlvo=_jv.conta; }
   }catch(e){}
 
-  if(_vAlvo!==null){
+  if(_contaAlvo||_vAlvo!==null){
     try{
-      await auth.signInWithEmailAndPassword(emailFalsoViab(num,_vAlvo),senha);
+      await auth.signInWithEmailAndPassword(_contaAlvo||emailFalsoViab(num,_vAlvo),senha);
       entrou=true;
     }catch(e){
       /* Credencial errada na versão vigente é credencial errada mesmo —
@@ -1150,9 +1161,23 @@ async function entrar(ev){
       if(credRuim.indexOf(e.code)<0) erroRede=e;
     }
   }else{
-    for(var v=VIAB_MAX_VERSOES; v>=1 && !entrou; v--){
+    /* Reserva, só quando o servidor não responde. Tenta as DUAS formas
+       de número — sem o 55 (equipe) e com o 55 (cliente) —, porque esta
+       tela só tentava a segunda e por isso a equipe nunca entrava.
+       Versão 1 primeiro: depois da migração é onde todo mundo está, e
+       cada tentativa a mais aproxima do bloqueio do Firebase. */
+    var _cru=String(num).replace(/\D/g,'');
+    var _sem=(_cru.length>11&&_cru.indexOf('55')===0)?_cru.substring(2):_cru;
+    var _com=(_cru.length<=11)?('55'+_cru):_cru;
+    var _formas=(_sem===_com)?[_sem]:[_sem,_com];
+    var _tent=[];
+    _formas.forEach(function(f){ _tent.push(emailFalsoViab(f,1)); });
+    for(var v=VIAB_MAX_VERSOES; v>=2; v--){
+      _formas.forEach(function(f){ _tent.push(emailFalsoViab(f,v)); });
+    }
+    for(var i=0;i<_tent.length && !entrou;i++){
       try{
-        await auth.signInWithEmailAndPassword(emailFalsoViab(num,v),senha);
+        await auth.signInWithEmailAndPassword(_tent[i],senha);
         entrou=true;
       }catch(e){
         if(credRuim.indexOf(e.code)<0){ erroRede=e; break; }
