@@ -262,6 +262,13 @@ body.light .ac-orb{opacity:.16}
 .ac-tit{font-size:40px;font-weight:800;text-align:center;line-height:1.1;
   margin-bottom:9px;letter-spacing:-.03em;color:var(--t1)}
 .ac-sub{font-size:13.5px;color:var(--t3);margin-bottom:30px;text-align:center;line-height:1.6}
+/* "Manter-me conectado" — 27/08/2026. Fica entre a senha e o botão
+   porque é ali que a pessoa decide, e não depois de clicar em Entrar. */
+.ac-lembrar{display:flex;align-items:center;gap:9px;margin:14px 2px 4px;
+  font-size:12.5px;color:var(--t2);cursor:pointer;user-select:none}
+.ac-lembrar input{width:16px;height:16px;flex-shrink:0;cursor:pointer;
+  accent-color:var(--nh);margin:0}
+.ac-lembrar:hover{color:var(--t1)}
 .ac-form{width:100%;background:rgba(255,255,255,.035);border:1px solid var(--b1);
   backdrop-filter:blur(20px);border-radius:20px;padding:30px;
   box-shadow:0 24px 70px rgba(0,0,0,.5)}
@@ -305,12 +312,17 @@ body.light .ac-form{background:rgba(255,255,255,.75)}
     </div>
     <div class="ac-tit">NH <span class="grad">Financeiro</span></div>
     <div class="ac-sub">Honorários recebidos e despesas do escritório</div>
-    <div class="ac-form">
-      <div class="campo"><label>E-mail ou WhatsApp</label>
-        <input type="text" id="ac-email" placeholder="seu@email.com ou (83) 99999-9999" autocomplete="username"></div>
-      <div class="campo"><label>Senha</label>
-        <input type="password" id="ac-senha" placeholder="••••••••" autocomplete="current-password"></div>
-      <button class="btn btn-nh" id="ac-btn" style="width:100%;justify-content:center;padding:12px;font-size:14px" onclick="entrar()">Entrar</button>
+    <!-- FORMULÁRIO DE VERDADE — 27/08/2026. Os `autocomplete` já
+         estavam certos, mas sem um <form> o navegador não entende que
+         aquilo é um login e nunca oferece para guardar a senha. -->
+    <form class="ac-form" id="ac-form" onsubmit="entrar(event)" autocomplete="on">
+      <div class="campo"><label for="ac-email">E-mail ou WhatsApp</label>
+        <input type="text" id="ac-email" name="username" placeholder="seu@email.com ou (83) 99999-9999" autocomplete="username"></div>
+      <div class="campo"><label for="ac-senha">Senha</label>
+        <input type="password" id="ac-senha" name="password" placeholder="••••••••" autocomplete="current-password"></div>
+      <label class="ac-lembrar"><input type="checkbox" id="ac-lembrar" checked>
+        <span>Manter-me conectado neste aparelho</span></label>
+      <button class="btn btn-nh" id="ac-btn" type="submit" style="width:100%;justify-content:center;padding:12px;font-size:14px">Entrar</button>
       <div class="msg-erro" id="ac-msg"></div>
       <!-- O texto antigo dizia "acesso da equipe NH, pelo e-mail
            cadastrado no Sistema NH". Estava errado e convidava ao erro:
@@ -321,7 +333,7 @@ body.light .ac-form{background:rgba(255,255,255,.75)}
         Sistema <b style="color:var(--t2)">restrito aos sócios</b>.<br>
         Depois do e-mail e senha, é pedida a <b style="color:var(--t2)">senha do financeiro</b> — que é outra.
       </div>
-    </div>
+    </form>
   </div>
 </div>
 
@@ -2410,10 +2422,22 @@ async function trocarSenhaFinanceiro(){
   }
 }
 
-async function entrar(){
+async function entrar(ev){
+  if(ev&&ev.preventDefault) ev.preventDefault();
   var email=gv('ac-email'), senha=document.getElementById('ac-senha').value;
   var msg=document.getElementById('ac-msg'), btn=document.getElementById('ac-btn');
   if(!email||!senha){ msg.style.display='block'; msg.textContent='Preencha e-mail e senha.'; return; }
+
+  /* "Manter-me conectado" precisa vir ANTES do login: depois de
+     autenticado, trocar a persistência não move a sessão que já
+     existe. LOCAL sobrevive a fechar o navegador; SESSION morre com a
+     aba, que é o certo num computador compartilhado. */
+  try{
+    var _lem=document.getElementById('ac-lembrar');
+    await auth.setPersistence((!_lem||_lem.checked)
+      ? firebase.auth.Auth.Persistence.LOCAL
+      : firebase.auth.Auth.Persistence.SESSION);
+  }catch(e){}
 
   /* ⚠️ 16/08/2026 — o WhatsApp passou a valer aqui.
      Esta tela recusava número, e estava certa enquanto o Financeiro era
