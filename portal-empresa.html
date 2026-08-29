@@ -171,32 +171,34 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
    O desenho é o de lá, de propósito — os dois sistemas são da mesma
    casa e a pessoa não deveria ter de reaprender a navegar.
    ══════════════════════════════════════════════════════════ */
-.topbar-abas{display:flex;align-items:center;gap:2px;margin-left:6px;min-width:0}
+.abas-bar{display:flex;align-items:stretch;gap:4px;padding:0 28px;
+  background:var(--s1);border-bottom:1px solid var(--b1);
+  position:sticky;top:60px;z-index:99;overflow-x:auto;scrollbar-width:none}
+.abas-bar::-webkit-scrollbar{display:none}
 .tb-aba{position:relative;background:none;border:none;font-family:inherit;
-  font-size:13px;font-weight:600;color:var(--t2);padding:7px 13px;border-radius:9px;
-  cursor:pointer;transition:color .18s,background .18s;white-space:nowrap}
+  font-size:14.5px;font-weight:700;color:var(--t3);padding:15px 20px 14px;
+  cursor:pointer;transition:color .18s;white-space:nowrap;letter-spacing:-.01em}
 .tb-aba:hover{color:var(--t1)}
-.tb-aba.on{color:var(--nh);background:rgba(249,115,22,.09)}
-/* O tracinho embaixo é o que diz "você está aqui" sem depender só da
-   cor — quem enxerga mal a diferença de cor continua sabendo. */
-.tb-aba.on::after{content:'';position:absolute;left:50%;transform:translateX(-50%);
-  bottom:-1px;width:16px;height:2px;border-radius:2px;background:var(--nh)}
+.tb-aba.on{color:var(--nh)}
+/* Sublinhado grosso e do tamanho da aba. O anterior tinha 2px e 16px de
+   largura, escondido dentro da barra do topo — o cliente disse que quase
+   não via, e não via mesmo. Isto se enxerga de longe, e não depende só
+   da cor: quem confunde laranja com cinza continua sabendo onde está. */
+.tb-aba::after{content:'';position:absolute;left:12px;right:12px;bottom:0;
+  height:3px;border-radius:3px 3px 0 0;background:transparent;transition:background .18s}
+.tb-aba.on::after{background:var(--nh)}
 /* Contador de avisos: o número que faz a aba valer a pena olhar. */
-.tb-selo{display:inline-block;margin-left:6px;min-width:17px;padding:1px 5px;
-  border-radius:9px;font-size:10px;font-weight:800;line-height:1.5;
+.tb-selo{display:inline-block;margin-left:7px;min-width:19px;padding:2px 6px;
+  border-radius:10px;font-size:11px;font-weight:800;line-height:1.4;
   background:var(--r1);color:#fff;vertical-align:middle}
 @media(max-width:900px){
-  .topbar{padding:0 14px;gap:8px;flex-wrap:wrap;height:auto;padding-top:10px;padding-bottom:0}
-  /* No celular as abas descem para uma faixa própria e rolam de lado,
-     em vez de espremer a marca e o nome da empresa. */
-  .topbar-abas{order:9;width:100%;margin:8px -14px 0;padding:0 14px 2px;
-    overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-  .topbar-abas::-webkit-scrollbar{display:none}
-  .tb-aba{font-size:12.5px;padding:8px 11px;flex-shrink:0}
-  /* A primeira linha precisa caber inteira: com o separador, o
+  .topbar{padding:0 14px;gap:8px}
+  .abas-bar{padding:0 8px;-webkit-overflow-scrolling:touch}
+  .tb-aba{font-size:13.5px;padding:13px 14px 12px;flex-shrink:0}
+  .tb-aba::after{left:8px;right:8px}
+  /* A barra do topo precisa caber numa linha: com o separador, o
      subtítulo e a marca em tamanho de desktop, o botão Sair era
-     empurrado para uma terceira linha só dele — 150px de barra num
-     aparelho de 812px de altura, antes de qualquer conteúdo. */
+     empurrado para uma linha só dele. */
   .topbar-sep{display:none}
   .topbar-sub{display:none}
   .topbar-logo{min-width:0;flex:1 1 auto}
@@ -465,11 +467,10 @@ textarea.mc-input{resize:vertical;min-height:64px}
      abas precisa, porque vem depois do bloco de 900px. Regra curta
      escrita a mais de trezentas linhas de distância da outra que fala
      do mesmo elemento — por isso as duas agora dizem a mesma coisa. */
-  .topbar{padding:10px 16px 0}
-  .topbar-abas{margin-left:-16px;margin-right:-16px;padding-left:16px;padding-right:16px}
+  .topbar{padding:0 16px}
   /* Sem o nome, o ponto colorido não diz nada — some junto com ele, e
      os 46px que ele ocupava são o que faltava para o botão Sair caber
-     na primeira linha em vez de ir para uma linha só dele. */
+     na linha em vez de ir para uma linha só dele. */
   .topbar-emp-name{display:none}
   .topbar-emp{display:none}
   .topbar-titulo{font-size:12.5px}
@@ -1194,6 +1195,55 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
    não leva a lugar nenhum é enfeite.
    ══════════════════════════════════════════════════════════ */
 
+/* ══════════════════════════════════════════════════════════
+   TELA DE AVISOS — 29/08/2026
+
+   Era um bloco recolhível no meio da página de contratos. Virou uma
+   tela, e o cabeçalho de "quadro" com seta de recolher deixou de fazer
+   sentido: recolher existia porque o quadro empurrava os contratos
+   para baixo da dobra, e os contratos foram para outra aba.
+
+   No lugar, o que uma tela de avisos precisa ter: quantos são, do mais
+   grave para o menos, e um jeito de olhar só o que é grave. Com 59
+   avisos em dez grupos, sem o filtro a tela é uma parede.
+   ══════════════════════════════════════════════════════════ */
+.av-topo{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;
+  flex-wrap:wrap;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--b1)}
+.av-topo-txt{min-width:0}
+.av-olho{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;
+  letter-spacing:.09em;text-transform:uppercase;color:var(--t3);margin-bottom:7px}
+.av-tit{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;letter-spacing:-.5px;
+  color:var(--t1);margin:0;line-height:1.1}
+.av-sub{font-size:12.5px;color:var(--t3);margin-top:6px;line-height:1.5}
+.av-niveis{display:flex;gap:8px;flex-wrap:wrap}
+.av-chip{display:inline-flex;align-items:center;gap:7px;background:var(--s2);
+  border:1px solid var(--b1);color:var(--t2);font-family:inherit;font-size:12.5px;
+  font-weight:700;padding:8px 13px;border-radius:9px;cursor:pointer;transition:.15s}
+.av-chip i{width:8px;height:8px;border-radius:50%;background:var(--cn);flex-shrink:0}
+.av-chip b{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;color:var(--t1)}
+.av-chip:hover{border-color:var(--b2);color:var(--t1)}
+/* O fundo vem pronto do JS em `--cnf`, e não de `color-mix`: o
+   viabilidade.html já tinha aprendido essa — color-mix não pega em
+   celular antigo, e o chip ficava sem destaque nenhum justamente em
+   quem mais usa o portal pelo telefone. */
+.av-chip.on{border-color:var(--cn);background:var(--cnf,var(--s3));color:var(--cn)}
+.av-chip.on b{color:var(--cn)}
+
+.av-vazio-tela{text-align:center;padding:64px 20px}
+.av-vazio-ic{width:56px;height:56px;margin:0 auto 16px;border-radius:50%;
+  background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:#22c55e;
+  display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800}
+.av-vazio-t{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--t1)}
+.av-vazio-s{font-size:13px;color:var(--t3);margin-top:8px;max-width:420px;
+  margin-left:auto;margin-right:auto;line-height:1.6}
+
+@media(max-width:640px){
+  .av-topo{align-items:flex-start;gap:14px}
+  .av-tit{font-size:22px}
+  .av-niveis{width:100%}
+  .av-chip{flex:1 1 auto;justify-content:center;padding:9px 10px}
+}
+
 /* ── Boas-vindas ────────────────────────────────────── */
 .pd-bv{background:linear-gradient(135deg,var(--s2) 0%,var(--s1) 100%);
   border:1px solid var(--b1);border-radius:16px;padding:22px 24px;margin-bottom:16px;
@@ -1426,16 +1476,6 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
     </div>
     <div class="topbar-sep"></div>
 
-    <!-- Abas. A ordem é a de leitura: como estamos (Painel), o que
-         exige ação (Avisos), e o acervo (Contratos). Os avisos vêm
-         antes da lista de propósito — é a única parte desta tela que
-         pode custar alguma coisa esta semana. -->
-    <nav class="topbar-abas" id="topbar-abas">
-      <button class="tb-aba on" data-aba="painel"    onclick="pdAba('painel')">Painel</button>
-      <button class="tb-aba"    data-aba="avisos"    onclick="pdAba('avisos')">Avisos<span class="tb-selo" id="selo-avisos" style="display:none"></span></button>
-      <button class="tb-aba"    data-aba="contratos" onclick="pdAba('contratos')">Contratos</button>
-    </nav>
-
     <div class="topbar-emp">
       <div class="topbar-emp-dot" id="emp-dot"></div>
       <div class="topbar-emp-name" id="emp-nome-top"></div>
@@ -1444,6 +1484,19 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
     <button class="topbar-tema" id="btn-tema-app" onclick="acTrocarTema()" title="Alternar tema">◐</button>
     <button class="topbar-logout" onclick="fazerLogout()">Sair</button>
   </div>
+
+  <!-- ⚠️ AS ABAS GANHARAM UMA FAIXA SÓ DELAS — 29/08/2026.
+       Estavam espremidas dentro da barra do topo, entre a marca e os
+       botões, em 13px. O cliente foi direto: "quase não vejo as abas".
+       Tinha razão — ali elas competiam com seis outros elementos e
+       pareciam enfeite, não navegação.
+       Numa faixa própria têm largura, alvo de clique grande e um
+       sublinhado que se enxerga do outro lado da sala. -->
+  <nav class="abas-bar" id="topbar-abas">
+    <button class="tb-aba on" data-aba="painel"    onclick="pdAba('painel')">Painel</button>
+    <button class="tb-aba"    data-aba="avisos"    onclick="pdAba('avisos')">Avisos<span class="tb-selo" id="selo-avisos" style="display:none"></span></button>
+    <button class="tb-aba"    data-aba="contratos" onclick="pdAba('contratos')">Contratos</button>
+  </nav>
 
   <div class="content">
 
@@ -2889,7 +2942,12 @@ async function iniciarPortal(){
   // Topbar
   const cor = CORES[empAtual] || '#f97316';
   document.getElementById('emp-dot').style.background = cor;
-  document.getElementById('emp-nome-top').textContent = empAtual;
+  /* Na conta mestra `empAtual` é vazio, e a barra mostrava um ponto
+     laranja solto, sem nada ao lado — um enfeite que parecia defeito.
+     Agora ela diz em quantas empresas você está. */
+  const _emps = isAdmin ? (CONTA_MESTRA_EMPRESAS || []) : [];
+  document.getElementById('emp-nome-top').textContent = empAtual
+    || (_emps.length ? _emps.length + (_emps.length === 1 ? ' empresa' : ' empresas') : 'Todas as empresas');
 
   await carregarContratos();
 
@@ -3856,36 +3914,69 @@ function renderAvisos(){
 
   if(!total){
     /* Sem aviso n\u00e3o h\u00e1 o que recolher \u2014 cabe\u00e7alho sem seta e sem clique. */
-    box.innerHTML = '<div class="avisos-wrap">'
-      + '<div class="avisos-head">'
-      +   '<span class="avisos-titulo">\ud83d\udd14 Quadro de Avisos</span>'
-      +   '<span class="avisos-badge avisos-badge-ok">Tudo em dia</span>'
-      + '</div>'
-      + '<div class="avisos-vazio">\u2713 Nenhum aviso no momento. Nenhum contrato vencendo nos pr\u00f3ximos 60 dias e nenhum processo em 1\u00aa posi\u00e7\u00e3o aguardando defini\u00e7\u00e3o.</div>'
+    box.innerHTML = '<div class="av-vazio-tela">'
+      + '<div class="av-vazio-ic">\u2713</div>'
+      + '<div class="av-vazio-t">Tudo em dia</div>'
+      + '<div class="av-vazio-s">Nenhum contrato vencendo nos pr\u00f3ximos 60 dias, nenhum prazo de defesa '
+      +   'aberto e nenhum processo em 1\u00aa posi\u00e7\u00e3o aguardando defini\u00e7\u00e3o.</div>'
       + '</div>';
     pdSeloAvisos(0);
     return;
   }
   pdSeloAvisos(total);
 
-  box.innerHTML = '<div class="avisos-wrap'+(avisosRecolhido()?' recolhido':'')+'" id="avisos-wrap">'
-    + '<div class="avisos-head" onclick="avisosAlternar()" title="Clique para recolher ou abrir">'
-    +   '<span class="avisos-titulo">\ud83d\udd14 Quadro de Avisos</span>'
-    +   '<span class="avisos-badge">'+total+' '+(total===1?'aviso':'avisos')+'</span>'
-    +   '<span class="avisos-seta">&#9662;</span>'
-    /* O resumo por gravidade fica no cabeçalho de propósito: é a única
-       parte que sobrevive ao quadro recolhido, e é o que responde "tem
-       algo grave?" sem abrir nada. */
-    +   '<div class="avisos-resumo">'
-    +     grupos.map(function(g){
-            return '<span><i style="background:'+g.cor+'"></i><b>'+g.itens.length+'</b> '
-              + pEsc(String(g.titulo).toLowerCase())+'</span>';
-          }).join('')
+  /* ⚠️ ORDEM POR GRAVIDADE — 29/08/2026.
+
+     Os grupos saíam na ordem em que o código os criava, e o primeiro
+     era "Possíveis contratos" — uma boa notícia. Numa tela de avisos a
+     primeira coisa tem de ser a que dói: contrato vencido ainda ativo,
+     prazo de defesa perdido, fatura vencida sem pagamento.
+
+     A gravidade sai da cor que cada grupo JÁ declarava, então não há
+     uma segunda lista para manter em dia. */
+  var NIVEL = {
+    '#ef4444': {k:'critico', ordem:0},
+    '#f97316': {k:'atencao', ordem:1},
+    '#f59e0b': {k:'atencao', ordem:1},
+    '#eab308': {k:'atencao', ordem:1}
+  };
+  grupos.forEach(function(g){
+    var n = NIVEL[String(g.cor).toLowerCase()] || {k:'info', ordem:2};
+    g.nivel = n.k; g._ord = n.ordem;
+  });
+  grupos.sort(function(a, b){ return a._ord - b._ord; });
+
+  var porNivel = {critico:0, atencao:0, info:0};
+  grupos.forEach(function(g){ porNivel[g.nivel] += g.itens.length; });
+
+  var _chip = function(k, rot, n, cor, fundo){
+    if(!n) return '';
+    return '<button class="av-chip" data-nivel="' + k + '" onclick="avFiltrarNivel(\'' + k + '\')" '
+      + 'style="--cn:' + cor + ';--cnf:' + fundo + '"><i></i>' + rot + '<b>' + n + '</b></button>';
+  };
+
+  /* O quadro deixou de ser um bloco no meio da página e virou uma tela.
+     Some com ele o cabeçalho recolhível: recolher existia porque o
+     quadro empurrava os contratos para baixo da dobra, e agora os
+     contratos estão em outra aba. */
+  box.innerHTML =
+      '<div class="av-topo">'
+    +   '<div class="av-topo-txt">'
+    +     '<div class="av-olho">🔔 O que pede atenção</div>'
+    +     '<h2 class="av-tit">' + total + ' aviso' + (total === 1 ? '' : 's') + '</h2>'
+    +     '<div class="av-sub">Do mais grave para o menos. Clique em qualquer linha para abrir o processo.</div>'
+    +   '</div>'
+    +   '<div class="av-niveis">'
+    +     '<button class="av-chip on" data-nivel="tudo" onclick="avFiltrarNivel(\'tudo\')" '
+    +       'style="--cn:#f97316;--cnf:rgba(249,115,22,.12)"><i></i>Tudo<b>' + total + '</b></button>'
+    +     _chip('critico', 'Crítico',     porNivel.critico, '#ef4444', 'rgba(239,68,68,.12)')
+    +     _chip('atencao', 'Atenção',     porNivel.atencao, '#f97316', 'rgba(249,115,22,.12)')
+    +     _chip('info',    'Informativo', porNivel.info,    '#3b82f6', 'rgba(59,130,246,.12)')
     +   '</div>'
     + '</div>'
-    + '<div class="avisos-grid">'
+    + '<div class="avisos-grid" id="avisos-grid">'
     + grupos.map((g, gi) =>
-        '<div class="aviso-card" style="--ac:'+g.cor+'">'
+        '<div class="aviso-card" data-nivel="'+g.nivel+'" style="--ac:'+g.cor+'">'
         + '<div class="aviso-card-head">'
         +   '<span class="aviso-ic">'+g.icone+'</span>'
         +   '<div><div class="aviso-t">'+g.titulo+'</div><div class="aviso-s">'+g.sub+'</div></div>'
@@ -3899,10 +3990,27 @@ function renderAvisos(){
             : '')
         + '</div>'
       ).join('')
-    + '</div></div>';
+    + '</div>';
 
   /* Guarda para o "ver todos" abrir o grupo inteiro sem recalcular. */
   window._avisosGrupos = grupos;
+}
+
+/** Mostra só os grupos de uma gravidade.
+ *
+ *  Filtro de tela, não de dado: esconde e mostra o que já está montado,
+ *  sem refazer conta nenhuma. Com 59 avisos em dez grupos, poder olhar
+ *  só os três críticos é a diferença entre a tela servir e a tela ser
+ *  uma parede. */
+function avFiltrarNivel(k){
+  var grade = document.getElementById('avisos-grid');
+  if(!grade) return;
+  [].forEach.call(grade.children, function(c){
+    c.style.display = (k === 'tudo' || c.getAttribute('data-nivel') === k) ? '' : 'none';
+  });
+  [].forEach.call(document.querySelectorAll('.av-chip'), function(b){
+    b.classList.toggle('on', b.getAttribute('data-nivel') === k);
+  });
 }
 
 /* Um item da lista. Quando o aviso sabe de qual contrato veio, ele
@@ -3923,16 +4031,12 @@ function _avisoItem(i){
    O quadro é a primeira coisa da tela e, num dia cheio, empurra os
    contratos para baixo da dobra. A escolha fica guardada no navegador:
    quem recolheu quer encontrar recolhido amanhã, não a cada carga. */
-function avisosRecolhido(){
-  try{ return localStorage.getItem('nh_avisos_recolhido')==='1'; }catch(e){ return false; }
-}
-function avisosAlternar(){
-  var w=document.getElementById('avisos-wrap');
-  if(!w) return;
-  var vai = !w.classList.contains('recolhido');
-  w.classList.toggle('recolhido', vai);
-  try{ localStorage.setItem('nh_avisos_recolhido', vai?'1':'0'); }catch(e){}
-}
+/* As duas funções que recolhiam o quadro saíram em 29/08/2026, junto
+   com o cabeçalho que as chamava. Recolher só fazia sentido enquanto o
+   quadro dividia a página com os contratos; agora ele é uma aba, e
+   ninguém recolhe a tela em que acabou de entrar.
+   Quem quer ver menos usa o filtro de gravidade, que responde à
+   pergunta melhor: não é "mostre menos", é "mostre o que é grave". */
 
 /* Mostra o grupo inteiro, sem o corte dos 6 primeiros. */
 function avisosVerTodos(gi, botao){
