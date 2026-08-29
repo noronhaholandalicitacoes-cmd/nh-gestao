@@ -2196,25 +2196,41 @@ async function fazerLogin(ev){
      Agora pergunta ao servidor do portal e tenta UMA. Falhando a
      consulta, cai no laço antigo: ninguém fica de fora porque o
      servidor piscou. */
-  var _vAlvo=null;
+  /* ⚠️ E O 55? — 29/08/2026.
+     `vNumeroPortal` acrescenta o 55, porque a conta de CLIENTE é
+     gravada assim. A conta da EQUIPE não tem o 55, e por isso esta tela
+     procurava, para todo colaborador, uma conta que nunca existiu.
+     Agora o servidor devolve o endereço EXATO, tirado do cadastro. */
+  var _vAlvo=null, _contaAlvo=null;
   try{
     var _rv=await fetch('https://nhlicitacoes.noronhaholanda.com.br/api/acesso/versao?wpp='+encodeURIComponent(num));
     if(_rv.ok){ var _jv=await _rv.json(); var _n=parseInt(_jv&&_jv.versao,10);
-      if(isFinite(_n)&&_n>=1) _vAlvo=_n; }
+      if(isFinite(_n)&&_n>=1) _vAlvo=_n;
+      if(_jv&&typeof _jv.conta==='string'&&/@nh\.interno$/.test(_jv.conta)) _contaAlvo=_jv.conta; }
   }catch(e){}
 
-  if(_vAlvo!==null){
+  if(_contaAlvo||_vAlvo!==null){
     try{
-      await auth.signInWithEmailAndPassword(emailFalsoPortal(num,_vAlvo), senha);
+      await auth.signInWithEmailAndPassword(_contaAlvo||emailFalsoPortal(num,_vAlvo), senha);
       entrou=true;
     }catch(e){
-      /* Credencial errada na versão vigente é credencial errada mesmo. */
+      /* Credencial errada na conta vigente é credencial errada mesmo. */
       if(credRuim.indexOf(e.code)<0) erroRede=e;
     }
   }else{
-    for(var v=PORTAL_MAX_VERSOES; v>=1 && !entrou; v--){
+    /* Reserva: as DUAS formas de número, versão 1 primeiro. */
+    var _cru=String(num).replace(/\D/g,'');
+    var _sem=(_cru.length>11&&_cru.indexOf('55')===0)?_cru.substring(2):_cru;
+    var _com=(_cru.length<=11)?('55'+_cru):_cru;
+    var _formas=(_sem===_com)?[_sem]:[_sem,_com];
+    var _tent=[];
+    _formas.forEach(function(f){ _tent.push(emailFalsoPortal(f,1)); });
+    for(var v=PORTAL_MAX_VERSOES; v>=2; v--){
+      _formas.forEach(function(f){ _tent.push(emailFalsoPortal(f,v)); });
+    }
+    for(var i=0;i<_tent.length && !entrou;i++){
       try{
-        await auth.signInWithEmailAndPassword(emailFalsoPortal(num, v), senha);
+        await auth.signInWithEmailAndPassword(_tent[i], senha);
         entrou=true;   /* onAuthStateChanged assume daqui */
       }catch(e){
         if(credRuim.indexOf(e.code)<0){ erroRede=e; break; }
