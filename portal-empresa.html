@@ -1120,6 +1120,14 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 .ac-err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);
   color:var(--r1);padding:11px 14px;border-radius:9px;font-size:12.5px;font-weight:600;
   margin-bottom:14px;display:none;text-align:center;line-height:1.5}
+/* "Manter-me conectado" — 27/08/2026. Caixa de marcar do login. Fica
+   entre a senha e o botão porque é ali que a pessoa decide, e não
+   depois de já ter clicado em Entrar. */
+.ac-lembrar{display:flex;align-items:center;gap:9px;margin:14px 2px 4px;
+  font-size:12.5px;color:var(--t2);cursor:pointer;user-select:none}
+.ac-lembrar input{width:16px;height:16px;flex-shrink:0;cursor:pointer;
+  accent-color:var(--nh);margin:0}
+.ac-lembrar:hover{color:var(--t1)}
 .ac-rodape{font-size:11.5px;color:var(--t3);text-align:center;margin-top:16px;line-height:1.6}
 
 /* Alternador de tema, no canto */
@@ -1181,13 +1189,23 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
     </div>
     <div class="ac-tit">Portal de <span class="grad">Contratos</span></div>
     <div class="ac-sub">Acesse os contratos das suas empresas com segurança</div>
-    <div class="ac-form">
+    <!-- FORMULÁRIO DE VERDADE — 27/08/2026. Ver a nota igual no
+         viabilidade.html: sem <form> e com `autocomplete="off"`, nenhum
+         navegador oferece para guardar a senha, e todo mundo digitava
+         tudo de novo toda vez. -->
+    <form class="ac-form" id="login-form" onsubmit="fazerLogin(event)" autocomplete="on">
       <div class="ac-err" id="login-err"></div>
-      <div class="ac-campo"><label>WhatsApp</label><input type="tel" id="inp-empresa" placeholder="(83) 99999-9999" autocomplete="off" inputmode="numeric" oninput="vMascaraPortal(this)" onkeydown="if(event.key==='Enter')document.getElementById('inp-senha').focus()"></div>
-      <div class="ac-campo"><label>Senha</label><input type="password" id="inp-senha" placeholder="••••••••" autocomplete="off" onkeydown="if(event.key==='Enter')fazerLogin()"></div>
-      <button class="ac-btn" id="btn-login" onclick="fazerLogin()">Entrar</button>
+      <div class="ac-campo"><label for="inp-empresa">WhatsApp</label>
+        <input type="tel" id="inp-empresa" name="username" placeholder="(83) 99999-9999"
+               autocomplete="username" inputmode="numeric" oninput="vMascaraPortal(this)"></div>
+      <div class="ac-campo"><label for="inp-senha">Senha</label>
+        <input type="password" id="inp-senha" name="password" placeholder="••••••••"
+               autocomplete="current-password"></div>
+      <label class="ac-lembrar"><input type="checkbox" id="inp-lembrar" checked>
+        <span>Manter-me conectado neste aparelho</span></label>
+      <button class="ac-btn" id="btn-login" type="submit">Entrar</button>
       <div class="ac-rodape">Não tem acesso? Fale com a NH Licitações.</div>
-    </div>
+    </form>
   </div>
 </div>
 
@@ -2136,7 +2154,8 @@ function acAplicarTema(claro){
 function acTrocarTema(){acAplicarTema(!document.body.classList.contains('light-theme'));}
 (function(){try{acAplicarTema('claro'===localStorage.getItem('nh_tema'));}catch(e){}})();
 
-async function fazerLogin(){
+async function fazerLogin(ev){
+  if(ev&&ev.preventDefault) ev.preventDefault();
   const num = vNumeroPortal(document.getElementById('inp-empresa').value);
   const senha = document.getElementById('inp-senha').value;
   const err = document.getElementById('login-err');
@@ -2147,6 +2166,17 @@ async function fazerLogin(){
 
   btn.disabled = true;
   btn.textContent = 'Verificando...';
+
+  /* "Manter-me conectado" precisa vir ANTES do login: depois de
+     autenticado, trocar a persistência não move a sessão que já
+     existe. LOCAL sobrevive a fechar o navegador; SESSION morre com a
+     aba, que é o certo num computador compartilhado. */
+  try{
+    const _lem=document.getElementById('inp-lembrar');
+    await auth.setPersistence((!_lem||_lem.checked)
+      ? firebase.auth.Auth.Persistence.LOCAL
+      : firebase.auth.Auth.Persistence.SESSION);
+  }catch(e){}
 
   /* Tenta da versão mais nova para a mais antiga: quem teve a senha
      redefinida entra na primeira tentativa. */
