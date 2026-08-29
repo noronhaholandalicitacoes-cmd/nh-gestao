@@ -1006,7 +1006,15 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
    sistema entendeu e-mail ou WhatsApp — assim ninguém descobre que
    errou só depois de apertar Entrar. */
 .ac-dica{font-size:11.5px;color:var(--t3);margin:-8px 0 4px;min-height:15px;line-height:1.4}
-.ac-dica.ok{color:var(--nh)}.ac-rodape{font-size:11.5px;color:var(--t3);text-align:center;margin-top:16px;line-height:1.6}
+.ac-dica.ok{color:var(--nh)}
+/* "Manter-me conectado" — 27/08/2026. Fica entre a senha e o botão
+   porque é ali que a pessoa decide, e não depois de clicar em Entrar. */
+.ac-lembrar{display:flex;align-items:center;gap:9px;margin:14px 2px 4px;
+  font-size:12.5px;color:var(--t2);cursor:pointer;user-select:none}
+.ac-lembrar input{width:16px;height:16px;flex-shrink:0;cursor:pointer;
+  accent-color:var(--nh);margin:0}
+.ac-lembrar:hover{color:var(--t1)}
+.ac-rodape{font-size:11.5px;color:var(--t3);text-align:center;margin-top:16px;line-height:1.6}
 
 /* Alternador de tema, no canto */
 .ac-tema{position:absolute;top:18px;right:18px;z-index:3;
@@ -3055,19 +3063,28 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
     </div>
     <div class="ac-tit">NH <span class="grad">Licitações</span></div>
     <div class="ac-sub">Sistema de gestão de licitações</div>
-    <div class="ac-form">
+    <!-- FORMULÁRIO DE VERDADE — 27/08/2026. Sem <form> e com
+         `autocomplete="off"`, navegador nenhum oferece para guardar a
+         senha. Era por isso que a equipe redigitava tudo todo dia. -->
+    <form class="ac-form" id="login-form" onsubmit="loginEmailSenha(event)" autocomplete="on">
       <div class="ac-err" id="login-err"></div>
       <!-- Um campo só, e não duas abas: cada pessoa sempre usa a mesma
            coisa (o sócio o e-mail, a equipe o WhatsApp), então escolher
            o tipo seria uma decisão repetida todo dia — e uma chance de
            errar. O sistema descobre pelo que foi digitado: tem "@" é
            e-mail, só números é WhatsApp. -->
-      <div class="ac-campo"><label>E-mail ou WhatsApp</label><input type="text" id="login-email" placeholder="seu@email.com  ou  (83) 9 9999-0000" autocomplete="off" inputmode="email" oninput="loginDica()"></div>
+      <div class="ac-campo"><label for="login-email">E-mail ou WhatsApp</label>
+        <input type="text" id="login-email" name="username" placeholder="seu@email.com  ou  (83) 9 9999-0000"
+               autocomplete="username" inputmode="email" oninput="loginDica()"></div>
       <div class="ac-dica" id="login-dica"></div>
-      <div class="ac-campo"><label>Senha</label><input type="password" id="login-senha" placeholder="••••••••" autocomplete="off" autocomplete="current-password" onkeydown="if(event.key==='Enter')loginEmailSenha()"></div>
-      <button class="ac-btn" id="btn-login" onclick="loginEmailSenha()">Entrar</button>
+      <div class="ac-campo"><label for="login-senha">Senha</label>
+        <input type="password" id="login-senha" name="password" placeholder="••••••••"
+               autocomplete="current-password"></div>
+      <label class="ac-lembrar"><input type="checkbox" id="login-lembrar" checked>
+        <span>Manter-me conectado neste aparelho</span></label>
+      <button class="ac-btn" id="btn-login" type="submit">Entrar</button>
       <div class="ac-rodape">Acesso restrito à equipe NH.<br>S&oacute;cios entram pelo e-mail; a equipe, pelo WhatsApp.</div>
-    </div>
+    </form>
   </div>
 </div>
 
@@ -4823,6 +4840,66 @@ function emailFalsoResp(numero, versao) {
   return (versao > 1 ? (n + '.r' + versao) : n) + '@nh.interno';
 }
 
+/* ═════════════════════════════════════════════════
+   DEFINIR SENHA — o jeito certo, desde 27/08/2026
+
+   Durante meses este sistema não conseguia trocar a senha de ninguém.
+   O Firebase não deixa o navegador fazer isso, e o contorno era criar
+   uma CONTA NOVA a cada redefinição (`numero.r2@nh.interno`, `.r3`…),
+   apontando o cadastro para ela.
+
+   O preço foi alto: a conta velha nunca morria, o número da versão
+   precisava estar em dia em cinco lugares diferentes, e o login — sem
+   saber a versão — passou a adivinhar até o Firebase bloquear por
+   excesso de tentativas. Era a causa de quase todo "troquei a senha e
+   a pessoa não entra mais".
+
+   Agora quem troca é o SERVIDOR, com uma conta de serviço do Google.
+   Ele altera a senha DA CONTA QUE JÁ EXISTE. Nada muda de nome: nem a
+   conta, nem o e-mail, nem a chave do cadastro. Não há versão para
+   sincronizar porque não há mais versão — e o servidor ainda apaga as
+   contas de versão antigas, que continuavam aceitando senhas velhas.
+
+   Uma conta por pessoa, para sempre.
+
+   Se o servidor não responder ou ainda não tiver a conta de serviço,
+   `ok:false` volta com o motivo e quem chamou decide. Nenhuma tela
+   pode dizer "senha trocada" sem que ela tenha sido trocada — foi
+   exatamente esse silêncio que fez a Ana receber três senhas que nunca
+   funcionaram.
+   ═════════════════════════════════════════════════ */
+var NH_API='https://nhlicitacoes.noronhaholanda.com.br';
+
+async function nhDefinirSenha(alvo, senha){
+  try{
+    var u=auth.currentUser;
+    if(!u) return {ok:false, erro:'Faça login de novo e tente outra vez.'};
+    var idToken=await u.getIdToken();
+    var res=await fetch(NH_API+'/api/acesso/senha',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({idToken:idToken, alvo:String(alvo||''), senha:String(senha||'')})
+    });
+    var j=await res.json().catch(function(){ return {}; });
+    if(res.ok && j && j.ok) return {ok:true, conta:j.conta, criada:!!j.criada, limpas:j.limpas||0};
+    return {ok:false, erro:(j&&j.erro)||('HTTP '+res.status), semServico:(j&&j.erro)==='CONTA_DE_SERVICO_AUSENTE'};
+  }catch(e){
+    return {ok:false, erro:'Não consegui falar com o servidor: '+((e&&e.message)||e), rede:true};
+  }
+}
+
+/** Recado padrão quando o caminho certo não está disponível. Aparece
+ *  inteiro na tela porque um sócio precisa saber que caiu no plano B —
+ *  e o plano B é o desenho antigo, que já quebrou gente. */
+function nhAvisoSemServidor(r){
+  if(r.semServico)
+    return 'O servidor ainda não tem a conta de serviço do Firebase configurada, '+
+           'então usei o modo antigo (conta por versão). Configure '+
+           'FIREBASE_SERVICE_ACCOUNT no Railway para isto parar de acontecer.';
+  return 'Não consegui usar o servidor ('+(r.erro||'sem resposta')+'), '+
+         'então usei o modo antigo (conta por versão).';
+}
+
 /** Cria a primeira conta de autenticação de um responsável. Só cria —
  *  nunca tenta trocar senha de conta que já existe (o Firebase não
  *  permite isso pelo navegador, de propósito). Se a conta já existe,
@@ -4905,7 +4982,8 @@ function loginDica(){
   else { el.textContent='Digite o e-mail inteiro ou o WhatsApp com DDD'; el.className='ac-dica'; }
 }
 
-async function loginEmailSenha(){
+async function loginEmailSenha(ev){
+  if(ev&&ev.preventDefault) ev.preventDefault();
   var campo=document.getElementById("login-email").value.trim();
   var senha=document.getElementById("login-senha").value;
   var btn=document.getElementById("btn-login");
@@ -4921,6 +4999,17 @@ async function loginEmailSenha(){
 
   err.style.display="none";
   if(btn){ btn.disabled=true; btn.textContent="Entrando..."; }
+
+  /* "Manter-me conectado" precisa vir ANTES do login: depois de
+     autenticado, trocar a persistência não move a sessão que já existe.
+     LOCAL sobrevive a fechar o navegador; SESSION morre com a aba, que
+     é o certo num computador compartilhado. */
+  try{
+    var _lem=document.getElementById('login-lembrar');
+    await auth.setPersistence((!_lem||_lem.checked)
+      ? firebase.auth.Auth.Persistence.LOCAL
+      : firebase.auth.Auth.Persistence.SESSION);
+  }catch(e){}
 
   /* Erros que significam "credencial não bateu" — nesses vale tentar a
      próxima versão. Qualquer outro é problema de rede ou de conta, e
@@ -5514,6 +5603,24 @@ async function eqNovo(){
      versão até achar uma conta livre, cria com a senha DIGITADA e
      grava a versão no cadastro. A senha que a pessoa recebe é sempre a
      que foi digitada aqui. */
+  /* Caminho certo: o servidor cria a conta — ou troca a senha da que
+     já existe, se este número já teve login antes. Nos dois casos a
+     senha que vale é a que acabou de ser digitada. */
+  var rsn=await nhDefinirSenha(num, senha);
+  if(rsn.ok){
+    USUARIOS=USUARIOS||{};
+    USUARIOS[chave]={nome:nome, telefone:num, role:(socio?'socio':'colaborador'),
+                     ativo:true, sos:true, versao:1,
+                     criadoPor:meuNome(), criadoEm:Date.now()};
+    salvarUsuarios(); eqRender();
+    try{ if(window.NHAudit&&NHAudit.pronto()) NHAudit.registrar({acao:'criou',onde:'config/usuarios',
+      alvo:chave, rotulo:'Acesso de '+nome+' ('+(socio?'Sócio':'Colaborador')+')'}); }catch(_a){}
+    acMostrarSenha(nome, num, senha, true, '', true);
+    if(rsn.limpas) toast('Apaguei '+rsn.limpas+' conta antiga deste número.','ok');
+    return;
+  }
+  toast(nhAvisoSemServidor(rsn),'err');
+
   var vNova=1, chaveAuth=null, ultimoErro='';
   for(var iv=0; iv<14; iv++){
     var tentativa=emailFalsoResp(num,vNova);
@@ -5593,8 +5700,24 @@ async function eqSenha(n){
   s=String(s);
   if(s.length<6){ toast('A senha precisa de 6 caracteres.','err'); return; }
 
+  /* Caminho certo: o servidor troca a senha da conta que já existe. */
+  var rs=await nhDefinirSenha(num, s);
+  if(rs.ok){
+    u.versao=1;                 /* uma conta só, sem versão */
+    USUARIOS[k]=u;
+    if(!(await salvarUsuarios())){ eqRender(); return; }
+    eqRender();
+    try{ if(window.NHAudit&&NHAudit.pronto()) NHAudit.registrar({acao:'alterou',onde:'config/usuarios',
+      alvo:k, rotulo:'Senha de '+(u.nome||num),
+      campos:[{campo:'Senha',de:'anterior',para:'redefinida'}]}); }catch(_a){}
+    acMostrarSenha(u.nome||num, num, s, false, '', true);
+    if(rs.limpas) toast('Senha trocada. Apaguei '+rs.limpas+' conta antiga deste número — as senhas velhas pararam de valer.','ok');
+    return;
+  }
+  toast(nhAvisoSemServidor(rs),'err');
+
   var v=(u.versao||1)+1, chaveNova=null;
-  /* Vai subindo a versão até achar uma livre. */
+  /* Reserva: vai subindo a versão até achar uma livre. */
   for(var i=0;i<12;i++){
     var tent=emailFalsoResp(num,v);
     try{
@@ -6795,6 +6918,16 @@ async function acSalvar(){
        numa versão nova e guardamos qual é a vigente. */
     var authAviso=null;
     if(senhaGerada){
+      /* Caminho certo primeiro: o servidor grava a senha na conta
+         canônica, exista ela ou não. Só cai no modo antigo se ele não
+         responder. */
+      var _rsv=await nhDefinirSenha(num, senhaGerada);
+      if(_rsv.ok){
+        reg.authVersao=1; reg.authMigrado=true;
+        if(_rsv.limpas) toast('Apaguei '+_rsv.limpas+' conta antiga deste número.','ok');
+      }
+      else{
+      toast(nhAvisoSemServidor(_rsv),'err');
       var _vPedida=(reg.authVersao||0)+1;
       var ra=await criarContaAuthResp(num,senhaGerada,_vPedida);
       if(ra.ok){
@@ -6819,6 +6952,7 @@ async function acSalvar(){
         }
       }
       else { authAviso='falhou:'+(ra.erro||''); }
+      }   /* fim do modo antigo (reserva) */
     }
 
     RESPONSAVEIS[num]=reg;
@@ -6842,6 +6976,21 @@ async function acRedefinir(num){
     var nova=nhSenhaSugerida();
     r.temSenha=true;
     r.atualizadoEm=Date.now();
+
+    /* Caminho certo: o servidor troca a senha da conta que já existe.
+       Sem versão nova, sem conta órfã, sem nada para sincronizar. */
+    var rsc=await nhDefinirSenha(num, nova);
+    if(rsc.ok){
+      r.authVersao=1; r.authMigrado=true;
+      RESPONSAVEIS[num]=r;
+      await salvarResponsaveis();
+      acRender();
+      acMostrarSenha(r.nome,num,nova,false,'');
+      if(rsc.limpas) toast('Apaguei '+rsc.limpas+' conta antiga deste número — as senhas velhas pararam de valer.','ok');
+      return;
+    }
+    toast(nhAvisoSemServidor(rsc),'err');
+
     var ra=await criarContaAuthResp(num,nova,(r.authVersao||0)+1);
     var authAviso=null;
     if(ra.ok){ r.authVersao=ra.versao; r.authMigrado=true; }
@@ -6936,8 +7085,12 @@ async function acLimparResponsaveis(){
 }
 
 /* ── Senha gerada ───────────────────────────────────────────────── */
-function acMostrarSenha(nome,num,senha,nova,authAviso){
-  _acCred={nome:nome,num:num,senha:senha};
+function acMostrarSenha(nome,num,senha,nova,authAviso,equipe){
+  /* `equipe` muda só o texto do WhatsApp: colaborador não recebe link
+     de portal de cliente, recebe o do Sistema. Sem esta marca, a
+     mensagem pronta mandava um sócio da NH entrar no portal das
+     empresas. */
+  _acCred={nome:nome,num:num,senha:senha,equipe:!!equipe};
   document.getElementById('ac-sn-tit').textContent=nova?'Acesso criado':'Senha redefinida';
   document.getElementById('ac-sn-wpp').textContent=nhFormataWpp(num);
   document.getElementById('ac-sn-senha').textContent=senha;
@@ -6972,6 +7125,15 @@ function acMostrarSenha(nome,num,senha,nova,authAviso){
 }
 function _acTexto(){
   if(!_acCred)return '';
+  if(_acCred.equipe){
+    return 'Ola, '+(_acCred.nome||'')+'! Segue o seu acesso aos sistemas da NH:\n'+
+      '\nSistema NH (licitacoes):\nhttps://sistemas.noronhaholanda.com.br/gestao.html\n'+
+      '\nAnalise de Viabilidade:\nhttps://sistemas.noronhaholanda.com.br/viabilidade.html\n'+
+      '\nGerenciamento de Contratos:\nhttps://sistemas.noronhaholanda.com.br/portal-empresa.html\n'+
+      '\nEntre com este WhatsApp: '+nhFormataWpp(_acCred.num)+
+      '\nSenha: '+_acCred.senha+
+      '\n\nNa primeira vez, marque "Manter-me conectado" para nao precisar digitar de novo.';
+  }
   var r=acNormaliza(RESPONSAVEIS[_acCred.num]||{});
   var t='Ola, '+(_acCred.nome||'')+'! Segue o seu acesso aos sistemas da NH:\n';
   if(r.acessos.viabilidade)
