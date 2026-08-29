@@ -1123,6 +1123,128 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 /* "Manter-me conectado" — 27/08/2026. Caixa de marcar do login. Fica
    entre a senha e o botão porque é ali que a pessoa decide, e não
    depois de já ter clicado em Entrar. */
+/* ══════════════════════════════════════════════════════════
+   PAINEL DO PORTAL — 29/08/2026
+
+   Uma cliente disse que estava feio, e estava: eram cartões cinzentos
+   de mesmo peso, um do lado do outro, sem dizer o que era importante.
+   Quem abre um portal de contratos quer saber três coisas, nesta
+   ordem: o que está valendo, o que vence, e quanto isso vale.
+
+   A linguagem visual é a da aba Resumo do Sistema NH — a mesma barra
+   de cor à esquerda, o mesmo brilho no topo, o mesmo número grande em
+   fonte de código. São dois produtos da mesma casa e agora se
+   parecem.
+
+   E é interativo: cada indicador e cada barra filtra a lista abaixo,
+   reusando o `setFiltroStatus` que as pastilhas já usavam. Número que
+   não leva a lugar nenhum é enfeite.
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Boas-vindas ────────────────────────────────────── */
+.pd-bv{background:linear-gradient(135deg,var(--s2) 0%,var(--s1) 100%);
+  border:1px solid var(--b1);border-radius:16px;padding:22px 24px;margin-bottom:16px;
+  display:flex;align-items:center;gap:26px;flex-wrap:wrap;position:relative;overflow:hidden}
+.pd-bv::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--nh),transparent)}
+.pd-bv-txt{min-width:0;flex:1 1 300px}
+.pd-olho{display:inline-flex;align-items:center;gap:7px;font-size:10.5px;font-weight:800;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:9px}
+.pd-dot{width:6px;height:6px;border-radius:50%;background:#22c55e;flex-shrink:0;
+  box-shadow:0 0 0 3px rgba(34,197,94,.15)}
+.pd-tit{font-size:27px;font-weight:800;letter-spacing:-.5px;line-height:1.15;margin:0;color:var(--t1)}
+.pd-nome{color:var(--nh)}
+.pd-sub{margin-top:7px;font-size:13px;color:var(--t3)}
+.pd-nums{display:flex;gap:24px;flex-wrap:wrap}
+.pd-num{min-width:78px}
+.pd-num-v{font-size:25px;font-weight:900;line-height:1;color:var(--cc,var(--nh));
+  font-family:'JetBrains Mono',ui-monospace,monospace;letter-spacing:-1px}
+.pd-num-l{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--t3);margin-top:6px}
+
+/* ── Indicadores ────────────────────────────────────── */
+/* Três colunas fixas, e não auto-fit: com auto-fit os seis indicadores
+   entravam numa fila só numa tela larga, ficando achatados e sem
+   hierarquia nenhuma. Em 3x2 cada um respira e o valor em dinheiro
+   cabe inteiro. */
+.pd-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-bottom:16px}
+.pd-kpi{background:var(--s2);border:1px solid var(--b1);border-left:4px solid var(--b2);
+  border-radius:12px;padding:19px 18px;position:relative;overflow:hidden;
+  transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease;text-align:left;
+  font-family:inherit;width:100%;display:block}
+.pd-kpi[data-f]{cursor:pointer}
+.pd-kpi[data-f]:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.pd-kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;opacity:.55}
+.pd-kpi.on{box-shadow:0 0 0 2px var(--kc,var(--nh)) inset,0 8px 24px rgba(0,0,0,.35)}
+.pd-kpi-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;
+  font-weight:700;margin-bottom:9px}
+.pd-kpi-val{font-size:31px;font-weight:800;line-height:1;letter-spacing:-1px;white-space:nowrap;
+  font-family:'JetBrains Mono',ui-monospace,monospace;position:relative;z-index:1}
+.pd-kpi-val.dinheiro{font-size:24px;letter-spacing:-.5px}
+.pd-kpi-sub{font-size:11px;color:var(--t3);margin-top:6px;position:relative;z-index:1;
+  overflow-wrap:anywhere}
+
+/* ── Cartões ────────────────────────────────────────── */
+.pd-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.pd-card{background:var(--s2);border:1px solid var(--b1);border-radius:12px;padding:18px 19px;min-width:0}
+.pd-card-tit{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:700;
+  color:var(--t1);margin-bottom:4px}
+.pd-card-dot{width:3px;height:15px;border-radius:2px;flex-shrink:0}
+.pd-card-sub{font-size:11.5px;color:var(--t3);margin-bottom:14px;line-height:1.5}
+
+/* Linha com barra: o texto diz, a barra compara. */
+.pd-linha{display:block;width:100%;text-align:left;background:none;border:none;padding:8px 0;
+  font-family:inherit;border-bottom:1px solid var(--b1)}
+.pd-linha:last-child{border-bottom:none}
+.pd-linha[data-f]{cursor:pointer}
+.pd-linha[data-f]:hover .pd-linha-k{color:var(--t1)}
+.pd-linha[data-f]:hover .pd-barra-fill{filter:brightness(1.25)}
+.pd-linha-topo{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px}
+.pd-linha-k{font-size:12.5px;color:var(--t2);min-width:0;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;transition:color .15s}
+.pd-linha-v{font-size:12.5px;font-weight:800;flex-shrink:0;
+  font-family:'JetBrains Mono',ui-monospace,monospace}
+.pd-barra{height:6px;border-radius:4px;background:var(--s3);overflow:hidden}
+.pd-barra-fill{height:100%;border-radius:4px;transition:width .5s cubic-bezier(.4,0,.2,1),filter .15s}
+
+/* Vencimentos: a urgência é a cor, e o prazo é a etiqueta. */
+.pd-venc{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--b1)}
+.pd-venc:last-child{border-bottom:none}
+/* `nowrap` porque "9d atrás" e "12 dias" quebravam em duas linhas na
+   coluna estreita do celular, e uma etiqueta de prazo em duas linhas
+   deixa de parecer etiqueta. */
+.pd-venc-tag{flex-shrink:0;white-space:nowrap;font-size:10.5px;font-weight:800;padding:5px 9px;border-radius:7px;
+  min-width:62px;text-align:center;font-family:'JetBrains Mono',ui-monospace,monospace}
+.pd-venc-txt{min-width:0;flex:1}
+.pd-venc-obj{font-size:12.5px;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pd-venc-org{font-size:11px;color:var(--t3);margin-top:2px;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.pd-venc-val{flex-shrink:0;font-size:12px;font-weight:700;color:var(--t2);
+  font-family:'JetBrains Mono',ui-monospace,monospace}
+
+.pd-vazio{font-size:12.5px;color:var(--t3);font-style:italic;padding:14px 0;text-align:center}
+
+@media(max-width:900px){
+  .pd-cards{grid-template-columns:1fr}
+  .pd-bv{padding:18px 18px;gap:18px}
+  .pd-tit{font-size:22px}
+  /* No celular o primeiro indicador é o que responde a pergunta toda,
+     então ele ocupa a linha inteira em vez de virar meio quadradinho. */
+  .pd-kpis{grid-template-columns:1fr 1fr;gap:10px}
+  .pd-kpis .pd-kpi:first-child{grid-column:1/-1}
+  .pd-kpi{padding:15px 14px}
+  .pd-kpi-val{font-size:26px}
+  .pd-kpi-val.dinheiro{font-size:16px}
+  /* A etiqueta encolhe para sobrar largura ao nome do contrato, que é
+     a informação que a pessoa procura na lista. */
+  .pd-venc{gap:9px}
+  .pd-venc-tag{min-width:0;font-size:10px;padding:4px 7px}
+  /* Duas linhas em vez de reticências: num celular, "Manutenção
+     preventiva de ar-cond…" não diz de qual contrato se trata. */
+  .pd-venc-obj{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;
+    -webkit-box-orient:vertical;line-height:1.35}
+}
+
 .ac-lembrar{display:flex;align-items:center;gap:9px;margin:14px 2px 4px;
   font-size:12.5px;color:var(--t2);cursor:pointer;user-select:none}
 .ac-lembrar input{width:16px;height:16px;flex-shrink:0;cursor:pointer;
@@ -2248,7 +2370,13 @@ async function fazerLogin(ev){
 
 /** Aplica a decisão de resolverPerfilPortal — entra direto, abre o
  *  seletor, ou monta o painel agregado da conta mestra. */
+/* Nome de quem entrou. O perfil já trazia, e ninguém guardava — por
+   isso o portal nunca chamava a pessoa pelo nome. É o que dá dono à
+   tela: "Boa tarde, Bruna" em vez de um painel anônimo. */
+var PERFIL_NOME='';
+
 function abrirComPerfil(perfil){
+  PERFIL_NOME=String(perfil.nome||'').trim();
   if('mestra'===perfil.modo){
     isAdmin=true;
     CONTA_MESTRA_EMPRESAS=perfil.empresas.slice();
@@ -3029,296 +3157,258 @@ function fecharGrafico(){
   if(modal){ modal.classList.remove('open'); document.body.style.overflow=''; }
 }
 
+/* ══════════════════════════════════════════════════════════
+   O PAINEL DO PORTAL — refeito em 29/08/2026
+
+   Uma cliente disse que estava feio. Estava, e o problema não era
+   decoração: eram cartões de mesmo peso, um do lado do outro, sem
+   dizer o que importa. Quem abre um portal de contratos quer três
+   respostas, nesta ordem:
+
+     1. o que está valendo agora
+     2. o que vence antes que dê tempo de reagir
+     3. quanto isso tudo vale
+
+   O painel passa a responder nessa ordem, e nada mais. Os gráficos de
+   doze meses saíram: eram bonitos e não respondiam nenhuma das três —
+   contrato de licitação não tem sazonalidade mensal que ajude a
+   decidir alguma coisa.
+
+   A linguagem visual é a da aba Resumo do Sistema NH: mesma barra de
+   cor à esquerda, mesmo brilho no topo, mesmo número grande em fonte
+   de código. São dois produtos da mesma casa.
+
+   E tudo que é número leva a algum lugar: indicador e barra filtram a
+   lista abaixo pelo mesmo `setFiltroStatus` que as pastilhas já usam.
+   Número que não leva a lugar nenhum é enfeite.
+   ══════════════════════════════════════════════════════════ */
 function gerarDashboard(){
   const dash = document.getElementById('dashboard-area');
   if(!dash) return;
 
-  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const empresas = isAdmin ? (CONTA_MESTRA_EMPRESAS || EMPRESAS_SISTEMA) : [empAtual];
 
-  const empresasParaMostrar = isAdmin ? (CONTA_MESTRA_EMPRESAS || EMPRESAS_SISTEMA) : [empAtual];
+  /* Os contratos que este painel resume são exatamente os que a lista
+     abaixo mostra — respeitando o período escolhido. Painel que soma
+     uma coisa e lista que mostra outra é como o sistema mente sem
+     querer, e já aconteceu aqui. */
+  const arrs = dadosGanhas.map(e => e.arr).filter(a => pNoPeriodo(a));
+  const ag   = agregarContratos(arrs);
 
-  // Agrupa por empresa usando a classificação única
-  const _arrsPorEmp = {};
-  empresasParaMostrar.forEach(e => { _arrsPorEmp[e] = []; });
-  const _semEmpresa = [];
-  /* ⚠️ Este casamento era `===` exato, e foi o que sobrou do conserto
-     de 15/08: eu corrigi `carregarContratos()` e esqueci daqui.
-     Resultado: os contratos carregavam, a lista aparecia, e o DASHBOARD
-     — que é o topo da tela — vinha zerado, porque um contrato lançado
-     como "Onlav Serviços" não achava a chave "ONLAV" e caía no balde
-     de descartados. O usuário via "tudo zerado" e a explicação que eu
-     tinha escrito nem aparecia, porque a lista abaixo estava cheia.
+  /* ── 1. Boas-vindas ─────────────────────────────────────
+     A saudação existe para a tela ter dono. Ao lado dela, os três
+     números que respondem "e aí, como estamos?" sem rolar a página. */
+  const h = new Date().getHours();
+  const saud = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
+  const quem = (typeof PERFIL_NOME === 'string' && PERFIL_NOME) ? PERFIL_NOME : '';
+  const ondeEstou = isAdmin
+    ? empresas.length + (empresas.length === 1 ? ' empresa' : ' empresas')
+    : String(empAtual || '');
 
-     Agora usa `mesmaEmpresa()`, o mesmo critério da lista. Um lugar só
-     decidindo o que é a mesma empresa. */
-  dadosGanhas.forEach(({arr}) => {
-    const emp = String(arr[IDX.EMPRESA]||'').trim();
-    const chave = empresasParaMostrar.find(e => mesmaEmpresa(e, emp));
-    if(chave) _arrsPorEmp[chave].push(arr);
-    else _semEmpresa.push(arr);
-  });
-  if(_semEmpresa.length){
-    console.warn('[NH] '+_semEmpresa.length+' contrato(s) com empresa fora da lista do sistema ficam de fora do dashboard:',
-      _semEmpresa.map(a=>'#'+a[IDX.ID]+' ('+(a[IDX.EMPRESA]||'sem empresa')+')').join(', '));
-  }
-
-  const porEmp = {};
-  empresasParaMostrar.forEach(e => {
-    const ag = agregarContratos(_arrsPorEmp[e]);
-    porEmp[e] = {
-      contratos: _arrsPorEmp[e],
-      portfolio: ag.portfolio,
-      ativo:     ag.valAtivo,      // valor dos contratos em execução e no prazo
-      ganhou:    ag.total,
-      recomp:    ag.recomp,
-      vencer30:  ag.prox30,
-      vencer90:  ag.prox90,
-      finalizados: ag.encerrado,
-      vencidos:  ag.vencido,
-      aguard:    ag.aguard,
-      seraEncerrado: ag.seraEncerrado,
-      suspenso:  ag.suspenso,
-      semStatus: ag.semStatus,
-      _ag: ag
-    };
-  });
-
-  const cards = empresasParaMostrar.map(emp => {
-    const d = porEmp[emp] || Object.assign({contratos:[]}, {portfolio:0,ativo:0,ganhou:0,recomp:0,vencer30:0,vencer90:0,finalizados:0,vencidos:0,aguard:0,seraEncerrado:0,suspenso:0,semStatus:0,_ag:agregarContratos([])});
-    const cor = CORES[emp] || '#6b7280';
-    const initials = emp.split(' ').map(w=>w[0]).join('').slice(0,2);
-
-    // Empresa sem contratos: card recolhido, sem bloco vazio de gráficos
-    if(!d.contratos || d.contratos.length===0){
-      return '<div class="emp-vazia" style="border-left:3px solid '+cor+'">'
-        + '<div class="emp-vazia-ini" style="background:'+cor+'22;color:'+cor+'">'+initials+'</div>'
-        + '<div class="emp-vazia-nome">'+emp+'</div>'
-        + '<div class="emp-vazia-tag">sem contratos cadastrados</div>'
-        + '</div>';
-    }
-    const ativos = d._ag ? d._ag.exec : 0;   // em execução E dentro do prazo
-    const taxaAtivo = d.portfolio>0 ? Math.round(d.ativo/d.portfolio*100) : 0;
-
-    // Gráfico 12 meses — maior e mais profissional
-    const meses = [];
-    for(let i=11;i>=0;i--){
-      const ref=new Date(hoje); ref.setMonth(ref.getMonth()-i);
-      meses.push({label:ref.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}),
-                  curto:ref.toLocaleDateString('pt-BR',{month:'short'}).replace('.','').toLowerCase(),
-                  ano2:String(ref.getFullYear()).slice(2),
-                  v:0, valor:0, mes:ref.getMonth(), ano:ref.getFullYear()});
-    }
-    /* Além de contar, soma o valor. Quatro contratos pequenos e um
-       grande contam igual no gráfico de barras, e é a soma que diz se
-       o mês foi bom — por isso ela aparece ao passar o mouse. */
-    d.contratos.forEach(arr=>{
-      const p=String(arr[IDX.DATA]||'').split('/');
-      if(p.length===3){
-        const dt=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
-        meses.forEach(m=>{if(dt.getMonth()===m.mes&&dt.getFullYear()===m.ano){
-          m.v++; m.valor+=parseMoedaV(arr[IDX.VALOR]);
-        }});
-      }
-    });
-
-    const vals=meses.map(function(m){return m.v;});
-    const maxV=Math.max.apply(null,vals.concat([1]));
-    // Dimensões internas do viewBox — proporção 5:1 horizontal
-    const GW=520, GH=90, PAD_L=4, PAD_R=4, PAD_T=20, PAD_B=26;
-    const VW=GW+PAD_L+PAD_R, VH=GH+PAD_T+PAD_B;
-    const xStep = GW/(vals.length-1);
-    const safeEmp=emp.replace(/ /g,'_');
-
-    // Pontos do gráfico (com padding interno)
-    var ptsArr = vals.map(function(v,i){
-      var cx = PAD_L + i*xStep;
-      var cy = PAD_T + GH - (v/maxV)*(GH-4);
-      return {cx:cx.toFixed(1), cy:cy.toFixed(1), v:v};
-    });
-
-    var ptsLine = ptsArr.map(function(p){return p.cx+','+p.cy;}).join(' ');
-    var ptsFill = PAD_L+','+(PAD_T+GH)+' '+ptsLine+' '+(PAD_L+GW)+','+(PAD_T+GH);
-
-    // Grid lines horizontais suaves
-    var gridLines = [0,0.25,0.5,0.75,1].map(function(f){
-      var y = (PAD_T + GH - f*(GH-4)).toFixed(1);
-      var op = f===0?'0.08':'0.04';
-      return '<line x1="'+PAD_L+'" y1="'+y+'" x2="'+(PAD_L+GW)+'" y2="'+y+'" stroke="rgba(255,255,255,'+op+')" stroke-width="1"/>';
-    }).join('');
-
-    // Ticks verticais do eixo X
-    var xTicks = ptsArr.map(function(p){
-      return '<line x1="'+p.cx+'" y1="'+(PAD_T+GH)+'" x2="'+p.cx+'" y2="'+(PAD_T+GH+3)+'" stroke="rgba(255,255,255,.08)" stroke-width="1"/>';
-    }).join('');
-
-    // Labels de todos os 12 meses no eixo X
-    var xLabels = ptsArr.map(function(p,i){
-      var lbl = meses[i].label;
-      var bold = i===0||i===5||i===11 ? ' font-weight="600"' : '';
-      var col = i===0||i===5||i===11 ? 'var(--t3)' : '#5a5a7a';
-      return '<text x="'+p.cx+'" y="'+(PAD_T+GH+16)+'" text-anchor="middle" fill="'+col+'" font-size="7.5"'+bold+'>'+lbl+'</text>';
-    }).join('');
-
-    // Pontos e valores acima
-    var pontos = ptsArr.map(function(p){
-      if(p.v===0) return '';
-      return '<circle cx="'+p.cx+'" cy="'+p.cy+'" r="3.5" fill="#08080f" stroke="'+cor+'" stroke-width="2"/>'+
-        '<text x="'+p.cx+'" y="'+(parseFloat(p.cy)-8)+'" text-anchor="middle" fill="'+cor+'" font-size="9.5" font-weight="800">'+p.v+'</text>';
-    }).join('');
-
-    // Aviso de vencimento removido: já consta no Quadro de Avisos, logo abaixo dos gráficos.
-
-    /* A cor da empresa fica num fio na lateral; o resto do card usa a
-       superfície padrão, como no Portal de Licitações. */
-    return '<div class="emp-card'+(isAdmin?' emp-colapsavel':'')+'" data-emp="'+emp.replace(/ /g,'_')+'" style="border-left:3px solid '+cor+';min-width:0">' +
-
-      // Cabeçalho (clicável no modo admin)
-      '<div class="emp-header"'+(isAdmin?' onclick="toggleEmpresa(this)" style="cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:14px"':' style="display:flex;align-items:center;gap:10px;margin-bottom:14px"')+'>' +
-        '<div style="width:38px;height:38px;border-radius:10px;background:'+cor+'22;border:1px solid '+cor+'44;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:'+cor+';flex-shrink:0">'+initials+'</div>' +
-        '<div style="flex:1">' +
-          '<div style="font-family:\'Syne\',sans-serif;font-size:15px;font-weight:800;color:var(--t1)">'+emp+'</div>' +
-          '<div style="font-size:12px;color:var(--t3);margin-top:2px">'+d.ganhou+' contrato'+(d.ganhou!==1?'s':'')+' · '+ativos+' em execução</div>' +
-        '</div>' +
-        (isAdmin?'<div class="emp-chevron" style="color:'+cor+';font-size:20px;flex-shrink:0;transition:transform .25s ease">▾</div>':'') +
+  const bv =
+    '<div class="pd-bv">' +
+      '<div class="pd-bv-txt">' +
+        '<div class="pd-olho"><span class="pd-dot"></span>Portal de Contratos &middot; ' + pEsc(ondeEstou) + '</div>' +
+        '<h1 class="pd-tit">' + saud + (quem ? ', <span class="pd-nome">' + pEsc(quem) + '</span>' : '') + '</h1>' +
+        /* Maiúscula só na primeira letra, feita aqui e não no CSS: o
+           `capitalize` maiuscula TODA palavra e escreve "Sábado, 29 De
+           Agosto De 2026", que ninguém escreve assim. */
+        '<div class="pd-sub">' + (function(s){ return s.charAt(0).toUpperCase()+s.slice(1); })(
+            new Date().toLocaleDateString('pt-BR',
+              {weekday:'long', day:'numeric', month:'long', year:'numeric'})) + '</div>' +
       '</div>' +
-
-
-      // KPIs portfólio / ativo, com a barra de execução da carteira
-      '<div class="emp-kpis" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">' +
-        '<div class="pk">' +
-          '<div class="pk-lbl">Portfólio Total</div>' +
-          '<div class="pk-val">'+fmtM(d.portfolio)+'</div>' +
-          '<div class="pk-sub">'+d.ganhou+' contrato'+(d.ganhou!==1?'s':'')+'</div>' +
-        '</div>' +
-        '<div class="pk">' +
-          '<div class="pk-lbl">Valor Ativo</div>' +
-          '<div class="pk-val" style="color:'+cor+'">'+fmtM(d.ativo)+'</div>' +
-          '<div class="pk-sub">'+ativos+' em execução</div>' +
-        '</div>' +
+      '<div class="pd-nums">' +
+        pdNum(ag.exec, 'Em execução', '#22c55e') +
+        pdNum(ag.prox30 + ag.prox90, 'Vencem em 90d', (ag.prox30 ? '#ef4444' : ag.prox90 ? '#eab308' : 'var(--t3)')) +
+        pdNum(ag.total, 'No total', 'var(--nh)') +
       '</div>' +
-
-      /* Quanto da carteira ainda está rendendo. O número sozinho não
-         dizia nada; a barra dá a proporção de imediato. */
-      '<div style="margin-bottom:14px">' +
-        '<div class="pbarra"><div class="pbarra-fill" style="width:'+taxaAtivo+'%;background:'+cor+'"></div></div>' +
-        '<div class="pbarra-nota"><span>Carteira ativa</span><span style="color:'+cor+';font-weight:700">'+taxaAtivo+'% do portfólio</span></div>' +
-      '</div>' +
-
-      // KPIs contadores
-      '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">' +
-        '<div class="pcount">' +
-          '<div class="pcount-n" style="color:'+cor+'">'+d.ganhou+'</div>' +
-          '<div class="pcount-l">Total</div>' +
-        '</div>' +
-        '<div class="pcount">' +
-          '<div class="pcount-n" style="color:#22c55e">'+ativos+'</div>' +
-          '<div class="pcount-l">Ativos</div>' +
-        '</div>' +
-        /* A borda colorida só aparece quando há motivo — bloco em zero
-           fica neutro, senão tudo grita e nada chama atenção. */
-        '<div class="pcount"'+(d.vencer30>0?' style="border-color:rgba(239,68,68,.3)"':d.vencer90>0?' style="border-color:rgba(234,179,8,.25)"':'')+'>' +
-          '<div class="pcount-n" style="color:'+(d.vencer30>0?'#f87171':d.vencer90>0?'#facc15':'var(--t3)')+'">'+(d.vencer30+d.vencer90)+'</div>' +
-          '<div class="pcount-l">A Vencer</div>' +
-        '</div>' +
-        '<div class="pcount"'+(d.recomp>0?' style="border-color:rgba(249,115,22,.25)"':'')+'>' +
-          '<div class="pcount-n" style="color:'+(d.recomp>0?'#fb923c':'var(--t3)')+'">'+d.recomp+'</div>' +
-          '<div class="pcount-l">Recomp.</div>' +
-        '</div>' +
-      '</div>' +
-
-      // ── FATURAMENTO CONSOLIDADO ──
-      (function(){
-        var fr=fatResumoEmpresa(d.contratos);
-        if(!fr.qtd)
-          return '<div class="fat-bloco fat-vazio">'+
-            '<div class="fat-tit">💰 Faturamento</div>'+
-            '<div style="font-size:12px;color:var(--t3);line-height:1.6">'+
-              'Nenhum documento fiscal lançado ainda. Abra um contrato, vá em <b>Faturamento</b> '+
-              'e registre o empenho, a ordem de serviço ou a nota — os números desta faixa saem de lá.'+
-            '</div></div>';
-
-        var pctReceb = fr.faturado>0 ? (fr.recebido/fr.faturado)*100 : 0;
-        var bloco=function(rot,val,cor,sub){
-          return '<div class="fat-item">'+
-            '<div class="fat-l">'+rot+'</div>'+
-            '<div class="fat-v" style="color:'+cor+'">'+fmtMoedaP(val)+'</div>'+
-            (sub?'<div class="fat-s">'+sub+'</div>':'')+'</div>';
-        };
-        return '<div class="fat-bloco">'+
-          '<div class="fat-tit">💰 Faturamento<span class="fat-chip">'+fr.qtd+' documento'+(1===fr.qtd?'':'s')+'</span></div>'+
-          '<div class="fat-grade">'+
-            bloco('Autorizado', fr.autorizado, 'var(--t1)', 'empenhos, OS e OC') +
-            bloco('Faturado', fr.faturado, '#3b82f6', pctReceb.toFixed(0)+'% já recebido') +
-            bloco('Recebido', fr.recebido, '#22c55e', '') +
-            bloco('A receber', fr.aReceber, fr.atrasado>0?'#f59e0b':'#94a3b8',
-                  fr.atrasado>0?('<span style="color:#ef4444">'+fmtMoedaP(fr.atrasado)+' vencido</span>'):'em dia') +
-            bloco('A faturar', fr.aFaturar, '#a855f7', 'autorizado e ainda sem nota') +
-            (fr.glosado>0 ? bloco('Glosado', fr.glosado, '#ef4444', 'descontado pelo órgão') : '')+
-          '</div>'+
-          /* Barra de progresso do ciclo: do que o órgão autorizou, quanto
-             virou nota e quanto virou dinheiro. É a leitura que o card de
-             contrato isolado nunca dá. */
-          (fr.autorizado>0 ? '<div class="fat-trilho" title="Autorizado → faturado → recebido">'+
-            '<div class="fat-faixa" style="width:'+Math.min(100,(fr.faturado/fr.autorizado)*100).toFixed(1)+'%;background:rgba(59,130,246,.55)"></div>'+
-            '<div class="fat-faixa" style="width:'+Math.min(100,(fr.recebido/fr.autorizado)*100).toFixed(1)+'%;background:#22c55e"></div>'+
-          '</div>'+
-          '<div class="fat-legenda">'+
-            '<span><i style="background:rgba(255,255,255,.10)"></i>autorizado</span>'+
-            '<span><i style="background:rgba(59,130,246,.55)"></i>faturado</span>'+
-            '<span><i style="background:#22c55e"></i>recebido</span>'+
-          '</div>' : '')+
-        '</div>';
-      })() +
-
-
     '</div>';
-  });
 
-  
-const cols = isAdmin ? 'repeat(auto-fill,minmax(300px,1fr))' : '1fr';  // grade de quadrados no GROWTH
-  /* Cabeçalho no mesmo padrão do Portal de Licitações: sobretítulo
-     miúdo dizendo o assunto, título grande dizendo o quê, e uma linha
-     de apoio dizendo para quê. Antes era um único texto de 14px com
-     uma barrinha ao lado — sem hierarquia nenhuma. */
-  const titulo = isAdmin ? 'Todas as Empresas' : empAtual;
-  const apoio = isAdmin
-    ? 'Carteira, execução e vencimentos de cada empresa do Grupo.'
-    : 'Sua carteira de contratos: o que está ativo, o que vence e o que foi recomposto.';
-  dash.style.display = 'block';
-  /* Contrato que ficou de fora do dashboard costumava ir só para o
-     console — invisível para quem usa. Era assim que "tudo zerado"
-     acontecia sem uma linha de explicação. Agora aparece na tela, com
-     o nome de como o contrato foi lançado, que é o dado necessário
-     para corrigir o cadastro. */
-  var _aviso = '';
-  if(_semEmpresa.length){
-    var _nomes = {};
-    _semEmpresa.forEach(function(a){
-      var n=String(a[IDX.EMPRESA]||'').trim() || '(sem empresa preenchida)';
-      _nomes[n]=(_nomes[n]||0)+1;
+  /* ── 2. Indicadores ─────────────────────────────────────
+     Seis, e cada um com um filtro atrás. O primeiro é o que responde
+     a pergunta inteira, e por isso é o primeiro. */
+  const kpis = [
+    {f:'exec',   cor:'#22c55e', lbl:'Contratos em execução', val:ag.exec,
+     sub:'vigentes e dentro do prazo'},
+    /* Abreviado no número grande e exato embaixo. "R$ 1.840.500,00" em
+       21px não cabe na coluna do celular: quebrava em duas linhas e
+       cortava o final, que é justamente a parte que muda. */
+    {f:'exec',   cor:'#22c55e', lbl:'Valor em execução',     val:fmtM(ag.valAtivo), dinheiro:true,
+     sub:ag.valAtivo > 0 ? fmtMoedaP(ag.valAtivo) : 'nada em execução'},
+    {f:null,     cor:'#f97316', lbl:'Portfólio total',       val:fmtM(ag.portfolio), dinheiro:true,
+     sub:ag.total + ' contrato' + (ag.total !== 1 ? 's' : '') +
+         (ag.portfolio > 0 ? ' &middot; ' + fmtMoedaP(ag.portfolio) : '')},
+    {f:'prox',   cor:(ag.prox30 ? '#ef4444' : '#eab308'), lbl:'Vencem em 90 dias', val:ag.prox30 + ag.prox90,
+     sub:ag.prox30 ? ag.prox30 + ' em menos de 30 dias' : 'nenhum urgente'},
+    {f:'aguard', cor:'#3b82f6', lbl:'Aguardando contrato',   val:ag.aguard,
+     sub:'ganhos, ainda não assinados'},
+    {f:'fin',    cor:'#6b7280', lbl:'Encerrados',            val:ag.encerrado,
+     sub:'concluídos, rescindidos ou cancelados'}
+  ];
+
+  const kpisHTML = '<div class="pd-kpis">' + kpis.map(k => {
+    const clicavel = k.f !== undefined;
+    /* `filtroStatus` marca qual está ligado, para o painel e a lista
+       contarem a mesma história. */
+    const ligado = clicavel && filtroStatus === k.f && k.f !== null;
+    return '<button class="pd-kpi' + (ligado ? ' on' : '') + '" ' +
+      (clicavel ? 'data-f="1" onclick="pdFiltrar(' + (k.f === null ? 'null' : "'" + k.f + "'") + ')" ' : '') +
+      'style="border-left-color:' + k.cor + ';--kc:' + k.cor + '">' +
+      '<span style="position:absolute;top:0;left:0;right:0;height:2px;opacity:.55;' +
+        'background:linear-gradient(90deg,' + k.cor + ',transparent)"></span>' +
+      '<div class="pd-kpi-lbl">' + k.lbl + '</div>' +
+      '<div class="pd-kpi-val' + (k.dinheiro ? ' dinheiro' : '') + '" style="color:' + k.cor + '">' + k.val + '</div>' +
+      '<div class="pd-kpi-sub">' + k.sub + '</div>' +
+    '</button>';
+  }).join('') + '</div>';
+
+  /* ── 3. Situação da carteira ────────────────────────────
+     Barras em vez de rosca: comparar comprimento é mais fácil que
+     comparar fatia, e aqui o que importa é qual grupo é maior. */
+  const situacoes = [
+    {k:'exec',          f:'exec',       rot:'Em execução',   n:ag.exec},
+    {k:'aguard',        f:'aguard',     rot:'Aguardando contrato', n:ag.aguard},
+    {k:'seraEncerrado', f:'encerrando', rot:'Será encerrado', n:ag.seraEncerrado},
+    {k:'suspenso',      f:'susp',       rot:'Suspenso',      n:ag.suspenso},
+    {k:'vencido',       f:'venc',       rot:'Vencido',       n:ag.vencido},
+    {k:'encerrado',     f:'fin',        rot:'Encerrado',     n:ag.encerrado},
+    {k:'semStatus',     f:'semst',      rot:'Sem status',    n:ag.semStatus}
+  ].filter(s => s.n > 0);
+
+  const maiorSit = Math.max.apply(null, situacoes.map(s => s.n).concat([1]));
+  const cardSituacao =
+    '<div class="pd-card">' +
+      '<div class="pd-card-tit"><span class="pd-card-dot" style="background:#22c55e"></span>Situação da carteira</div>' +
+      '<div class="pd-card-sub">Clique em uma linha para ver só esses contratos na lista abaixo.</div>' +
+      (situacoes.length ? situacoes.map(s =>
+        '<button class="pd-linha" data-f="1" onclick="pdFiltrar(\'' + s.f + '\')">' +
+          '<div class="pd-linha-topo">' +
+            '<span class="pd-linha-k">' + s.rot + '</span>' +
+            '<span class="pd-linha-v" style="color:' + CAT_COR[s.k] + '">' + s.n + '</span>' +
+          '</div>' +
+          '<div class="pd-barra"><div class="pd-barra-fill" style="width:' +
+            ((s.n / maiorSit) * 100).toFixed(1) + '%;background:' + CAT_COR[s.k] + '"></div></div>' +
+        '</button>').join('')
+       : '<div class="pd-vazio">Nenhum contrato no período escolhido.</div>') +
+    '</div>';
+
+  /* ── 4. O que vence primeiro ────────────────────────────
+     A lista mais útil da tela: o que exige ação, em ordem de aperto.
+     Vencido entra junto — é o que já passou e ninguém viu. */
+  const vencendo = arrs.map(a => {
+      const c = classificarContrato(a);
+      return {arr:a, dias:c.dias, cat:c.cat, valor:c.valor};
+    })
+    .filter(x => (x.cat === 'exec' || x.cat === 'vencido') && x.dias !== null && x.dias <= 90)
+    .sort((a, b) => a.dias - b.dias)
+    .slice(0, 7);
+
+  const cardVenc =
+    '<div class="pd-card">' +
+      '<div class="pd-card-tit"><span class="pd-card-dot" style="background:#eab308"></span>O que vence primeiro</div>' +
+      '<div class="pd-card-sub">Os próximos 90 dias, do mais apertado para o mais folgado.</div>' +
+      (vencendo.length ? vencendo.map(v => {
+        const cor = v.dias < 0 ? '#ef4444' : v.dias <= 30 ? '#f97316' : '#eab308';
+        const tag = v.dias < 0 ? Math.abs(v.dias) + 'd atrás' : v.dias === 0 ? 'hoje' : v.dias + ' dias';
+        const obj = String(v.arr[IDX.OBJETO] || v.arr[IDX.LICITACAO] || 'Contrato').trim();
+        const org = String(v.arr[IDX.LOCAL] || v.arr[IDX.MUNICIPIO] || '').trim();
+        return '<div class="pd-venc">' +
+          '<span class="pd-venc-tag" style="background:' + cor + '1f;color:' + cor + '">' + tag + '</span>' +
+          '<div class="pd-venc-txt">' +
+            '<div class="pd-venc-obj" title="' + pEsc(obj) + '">' + pEsc(obj) + '</div>' +
+            (org ? '<div class="pd-venc-org">' + pEsc(org) + '</div>' : '') +
+          '</div>' +
+          (v.valor > 0 ? '<span class="pd-venc-val">' + fmtM(v.valor) + '</span>' : '') +
+        '</div>';
+      }).join('')
+       : '<div class="pd-vazio">Nada vencendo nos próximos 90 dias.</div>') +
+    '</div>';
+
+  /* ── 5. Onde está o dinheiro ────────────────────────────
+     Para a empresa, por órgão: diz de quem ela depende. Para a NH,
+     por empresa: diz qual carteira pesa. */
+  let cardTerceiro;
+  if(isAdmin && empresas.length > 1){
+    const porEmp = {};
+    arrs.forEach(a => {
+      const nome = empresas.find(e => mesmaEmpresa(e, String(a[IDX.EMPRESA] || '').trim()));
+      if(!nome) return;
+      if(!porEmp[nome]) porEmp[nome] = {v:0, n:0};
+      porEmp[nome].v += calcValorGanhas(a);
+      porEmp[nome].n++;
     });
-    _aviso =
-      '<div style="background:rgba(234,179,8,.09);border:1px solid rgba(234,179,8,.35);'+
-      'border-left:3px solid #eab308;border-radius:10px;padding:13px 15px;margin-bottom:16px;font-size:12.5px;line-height:1.6;color:var(--t2)">'+
-      '<b style="color:#eab308">'+_semEmpresa.length+' contrato(s) fora deste painel.</b> '+
-      'A empresa deles está escrita de um jeito que não bate com o cadastro: '+
-      Object.keys(_nomes).sort().map(function(n){
-        return '<b>'+pEsc(n)+'</b> ('+_nomes[n]+')'; }).join(', ')+'. '+
-      'Ajuste o campo <b>Empresa</b> desses contratos no Sistema NH, ou o nome em Configurações › Empresas.'+
+    const linhas = Object.keys(porEmp).sort((a, b) => porEmp[b].v - porEmp[a].v);
+    const maior = Math.max.apply(null, linhas.map(k => porEmp[k].v).concat([1]));
+    cardTerceiro =
+      '<div class="pd-card">' +
+        '<div class="pd-card-tit"><span class="pd-card-dot" style="background:var(--nh)"></span>Carteira por empresa</div>' +
+        '<div class="pd-card-sub">Valor contratado de cada uma, no período.</div>' +
+        (linhas.length ? linhas.map(k =>
+          '<div class="pd-linha">' +
+            '<div class="pd-linha-topo">' +
+              '<span class="pd-linha-k">' + pEsc(k) + '<span style="color:var(--t3)"> &middot; ' +
+                porEmp[k].n + '</span></span>' +
+              '<span class="pd-linha-v" style="color:' + (CORES[k] || 'var(--nh)') + '">' + fmtM(porEmp[k].v) + '</span>' +
+            '</div>' +
+            '<div class="pd-barra"><div class="pd-barra-fill" style="width:' +
+              ((porEmp[k].v / maior) * 100).toFixed(1) + '%;background:' + (CORES[k] || 'var(--nh)') + '"></div></div>' +
+          '</div>').join('')
+         : '<div class="pd-vazio">Nenhum contrato no período.</div>') +
+      '</div>';
+  }else{
+    const porOrg = {};
+    arrs.forEach(a => {
+      const org = String(a[IDX.LOCAL] || a[IDX.MUNICIPIO] || '').trim() || '(sem órgão)';
+      if(!porOrg[org]) porOrg[org] = {v:0, n:0};
+      porOrg[org].v += calcValorGanhas(a);
+      porOrg[org].n++;
+    });
+    const linhas = Object.keys(porOrg).sort((a, b) => porOrg[b].v - porOrg[a].v).slice(0, 6);
+    const maior = Math.max.apply(null, linhas.map(k => porOrg[k].v).concat([1]));
+    cardTerceiro =
+      '<div class="pd-card">' +
+        '<div class="pd-card-tit"><span class="pd-card-dot" style="background:#3b82f6"></span>Onde está o contratado</div>' +
+        '<div class="pd-card-sub">Os órgãos que mais pesam na carteira. É deles que a empresa depende.</div>' +
+        (linhas.length ? linhas.map(k =>
+          '<div class="pd-linha">' +
+            '<div class="pd-linha-topo">' +
+              '<span class="pd-linha-k" title="' + pEsc(k) + '">' + pEsc(k) + '<span style="color:var(--t3)"> &middot; ' +
+                porOrg[k].n + '</span></span>' +
+              '<span class="pd-linha-v" style="color:#3b82f6">' + fmtM(porOrg[k].v) + '</span>' +
+            '</div>' +
+            '<div class="pd-barra"><div class="pd-barra-fill" style="width:' +
+              ((porOrg[k].v / maior) * 100).toFixed(1) + '%;background:#3b82f6"></div></div>' +
+          '</div>').join('')
+         : '<div class="pd-vazio">Nenhum contrato no período.</div>') +
       '</div>';
   }
 
-  dash.innerHTML =
-    '<div class="psec">' +
-      '<span class="psec-olho">Visão geral</span>' +
-      '<div class="psec-tit">'+pEsc(titulo)+'</div>' +
-      '<div class="psec-sub">'+apoio+'</div>' +
-    '</div>' + _aviso +
-    '<div class="emp-grid" style="display:grid;grid-template-columns:'+cols+';gap:16px;align-items:start">'+cards.join('')+'</div>' +
-    '<div style="height:1px;background:rgba(255,255,255,.06);margin:22px 0"></div>';
+  dash.innerHTML = bv + kpisHTML +
+    '<div class="pd-cards">' + cardSituacao + cardVenc + '</div>' +
+    '<div class="pd-cards" style="grid-template-columns:1fr">' + cardTerceiro + '</div>';
+  dash.style.display = '';
+}
 
-  // Todos os cards de empresa começam recolhidos no modo GROWTH.
-  // O usuário escolhe qual expandir clicando — nenhuma abre sozinha.
+/** Um número da faixa de boas-vindas. */
+function pdNum(v, rot, cor){
+  return '<div class="pd-num"><div class="pd-num-v" style="--cc:' + cor + '">' + v + '</div>' +
+         '<div class="pd-num-l">' + rot + '</div></div>';
+}
+
+/**
+ * Clicar num indicador filtra a lista. Clicar de novo no mesmo tira o
+ * filtro — sem isso a pessoa fica presa num recorte sem saber como
+ * voltar, que é o defeito clássico de painel clicável.
+ *
+ * Reusa `setFiltroStatus`, o mesmo das pastilhas: um lugar só decide o
+ * que está filtrado, e painel e lista nunca discordam.
+ */
+function pdFiltrar(k){
+  const novo = (filtroStatus === k) ? null : k;
+  setFiltroStatus(novo);
+  gerarDashboard();
+  const lista = document.getElementById('contratos-area');
+  if(lista && novo) lista.scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 
