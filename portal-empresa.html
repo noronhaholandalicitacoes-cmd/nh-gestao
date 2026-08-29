@@ -159,6 +159,49 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
   display:flex;align-items:center;padding:0 28px;gap:16px;
   position:sticky;top:0;z-index:100;
 }
+/* ══════════════════════════════════════════════════════════
+   ABAS — 29/08/2026
+
+   Esta página era uma rolagem só: painel, avisos, filtros, lista e
+   paginação empilhados. Para ver um aviso era preciso passar pelo
+   painel; para chegar na lista, passar pelos dois. O mesmo modelo do
+   Portal de Licitações resolve: cada aba é uma tela, e só a escolhida
+   existe na página.
+
+   O desenho é o de lá, de propósito — os dois sistemas são da mesma
+   casa e a pessoa não deveria ter de reaprender a navegar.
+   ══════════════════════════════════════════════════════════ */
+.topbar-abas{display:flex;align-items:center;gap:2px;margin-left:6px;min-width:0}
+.tb-aba{position:relative;background:none;border:none;font-family:inherit;
+  font-size:13px;font-weight:600;color:var(--t2);padding:7px 13px;border-radius:9px;
+  cursor:pointer;transition:color .18s,background .18s;white-space:nowrap}
+.tb-aba:hover{color:var(--t1)}
+.tb-aba.on{color:var(--nh);background:rgba(249,115,22,.09)}
+/* O tracinho embaixo é o que diz "você está aqui" sem depender só da
+   cor — quem enxerga mal a diferença de cor continua sabendo. */
+.tb-aba.on::after{content:'';position:absolute;left:50%;transform:translateX(-50%);
+  bottom:-1px;width:16px;height:2px;border-radius:2px;background:var(--nh)}
+/* Contador de avisos: o número que faz a aba valer a pena olhar. */
+.tb-selo{display:inline-block;margin-left:6px;min-width:17px;padding:1px 5px;
+  border-radius:9px;font-size:10px;font-weight:800;line-height:1.5;
+  background:var(--r1);color:#fff;vertical-align:middle}
+@media(max-width:900px){
+  .topbar{padding:0 14px;gap:8px;flex-wrap:wrap;height:auto;padding-top:10px;padding-bottom:0}
+  /* No celular as abas descem para uma faixa própria e rolam de lado,
+     em vez de espremer a marca e o nome da empresa. */
+  .topbar-abas{order:9;width:100%;margin:8px -14px 0;padding:0 14px 2px;
+    overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .topbar-abas::-webkit-scrollbar{display:none}
+  .tb-aba{font-size:12.5px;padding:8px 11px;flex-shrink:0}
+  /* A primeira linha precisa caber inteira: com o separador, o
+     subtítulo e a marca em tamanho de desktop, o botão Sair era
+     empurrado para uma terceira linha só dele — 150px de barra num
+     aparelho de 812px de altura, antes de qualquer conteúdo. */
+  .topbar-sep{display:none}
+  .topbar-sub{display:none}
+  .topbar-logo{min-width:0;flex:1 1 auto}
+}
+
 .topbar-logo{display:flex;align-items:center;gap:10px}
 .topbar-lm{width:36px;height:36px;border-radius:9px;background:var(--nh);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;color:#000}
 .topbar-name{font-family:'Syne',sans-serif;font-weight:700;font-size:15px}
@@ -418,8 +461,18 @@ textarea.mc-input{resize:vertical;min-height:64px}
 @media(max-width:640px){
   .content{padding:16px}
   .edit-grid{grid-template-columns:1fr}
-  .topbar{padding:0 16px}
+  /* ⚠️ Este `padding:0 16px` zerava o padding vertical que a barra de
+     abas precisa, porque vem depois do bloco de 900px. Regra curta
+     escrita a mais de trezentas linhas de distância da outra que fala
+     do mesmo elemento — por isso as duas agora dizem a mesma coisa. */
+  .topbar{padding:10px 16px 0}
+  .topbar-abas{margin-left:-16px;margin-right:-16px;padding-left:16px;padding-right:16px}
+  /* Sem o nome, o ponto colorido não diz nada — some junto com ele, e
+     os 46px que ele ocupava são o que faltava para o botão Sair caber
+     na primeira linha em vez de ir para uma linha só dele. */
   .topbar-emp-name{display:none}
+  .topbar-emp{display:none}
+  .topbar-titulo{font-size:12.5px}
 }
 
 .edit-hint{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.28);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:11.5px;color:var(--b_);line-height:1.55}
@@ -1366,12 +1419,23 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
           <span class="nh-marca"></span>
         </span>
         <div>
-          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:var(--t1);line-height:1.1">NH <span style="color:#f97316">Licitações</span></div>
-          <div style="font-size:10px;color:var(--t3);font-weight:600;letter-spacing:.04em">Gerenciamento de Contratos</div>
+          <div class="topbar-titulo" style="font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:var(--t1);line-height:1.1">NH <span style="color:#f97316">Licitações</span></div>
+          <div class="topbar-sub" style="font-size:10px;color:var(--t3);font-weight:600;letter-spacing:.04em">Gerenciamento de Contratos</div>
         </div>
       </div>
     </div>
     <div class="topbar-sep"></div>
+
+    <!-- Abas. A ordem é a de leitura: como estamos (Painel), o que
+         exige ação (Avisos), e o acervo (Contratos). Os avisos vêm
+         antes da lista de propósito — é a única parte desta tela que
+         pode custar alguma coisa esta semana. -->
+    <nav class="topbar-abas" id="topbar-abas">
+      <button class="tb-aba on" data-aba="painel"    onclick="pdAba('painel')">Painel</button>
+      <button class="tb-aba"    data-aba="avisos"    onclick="pdAba('avisos')">Avisos<span class="tb-selo" id="selo-avisos" style="display:none"></span></button>
+      <button class="tb-aba"    data-aba="contratos" onclick="pdAba('contratos')">Contratos</button>
+    </nav>
+
     <div class="topbar-emp">
       <div class="topbar-emp-dot" id="emp-dot"></div>
       <div class="topbar-emp-name" id="emp-nome-top"></div>
@@ -1382,14 +1446,25 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
   </div>
 
   <div class="content">
-    <!-- Stats -->
+
+    <!-- ══ ABA: PAINEL ══════════════════════════════════════ -->
+    <div class="tela" id="tela-painel">
+      <div id="dashboard-area" style="display:none"></div>
+    </div>
+
+    <!-- ══ ABA: AVISOS ══════════════════════════════════════ -->
+    <div class="tela" id="tela-avisos" style="display:none">
+      <div id="avisos-area"></div>
+    </div>
+
+    <!-- ══ ABA: CONTRATOS ═══════════════════════════════════
+         O resumo por situação abre esta aba, e não o Painel: aqui ele
+         serve de contexto para a lista logo abaixo — "vencidos somam
+         R$ X" enquanto se navega pelos contratos. No Painel ele era a
+         segunda fileira de cartões dizendo a mesma coisa da primeira,
+         que foi o que a cliente chamou de feio. -->
+    <div class="tela" id="tela-contratos" style="display:none">
     <div class="stats" id="stats-area"></div>
-
-    <!-- Dashboard GROWTH (gráficos por empresa) -->
-    <div id="dashboard-area" style="display:none;margin-bottom:24px"></div>
-
-    <!-- Quadro de Avisos -->
-    <div id="avisos-area" style="margin-bottom:24px"></div>
 
     <!-- Toolbar: busca + ordenação + imprimir -->
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
@@ -1476,6 +1551,8 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
     </div>
     <!-- Paginação -->
     <div id="pag-contratos" style="display:flex;gap:6px;justify-content:center;margin-top:20px;flex-wrap:wrap"></div>
+    </div><!-- fim da aba Contratos -->
+
   </div>
 </div>
 
@@ -2815,6 +2892,11 @@ async function iniciarPortal(){
   document.getElementById('emp-nome-top').textContent = empAtual;
 
   await carregarContratos();
+
+  /* A aba vem depois dos dados: antes deles o quadro de avisos ainda
+     não existe, e abrir direto em "#avisos" mostraria uma tela vazia
+     por um instante. */
+  pdAba(pdAbaDoEndereco());
 }
 
 // ─── DASHBOARD ───────────────────────────────────────────────────
@@ -3279,7 +3361,7 @@ function gerarDashboard(){
   const cardSituacao =
     '<div class="pd-card">' +
       '<div class="pd-card-tit"><span class="pd-card-dot" style="background:#22c55e"></span>Situação da carteira</div>' +
-      '<div class="pd-card-sub">Clique em uma linha para ver só esses contratos na lista abaixo.</div>' +
+      '<div class="pd-card-sub">Clique em uma linha para abrir só esses contratos na aba <b>Contratos</b>.</div>' +
       (situacoes.length ? situacoes.map(s =>
         '<button class="pd-linha" data-f="1" onclick="pdFiltrar(\'' + s.f + '\')">' +
           '<div class="pd-linha-topo">' +
@@ -3389,6 +3471,76 @@ function gerarDashboard(){
   dash.style.display = '';
 }
 
+/* ═════════════════════════════════════════════════
+   ABAS — 29/08/2026
+
+   Esta página era uma rolagem só: painel, avisos, filtros, lista e
+   paginação empilhados. Para ler um aviso era preciso passar pelo
+   painel; para chegar na lista, passar pelos dois. Agora cada uma é
+   uma tela, e o mesmo modelo do Portal de Licitações — os dois
+   sistemas são da mesma casa e ninguém deveria reaprender a navegar
+   ao trocar de um para o outro.
+
+   As três telas continuam montadas no HTML e só a escolhida aparece.
+   É diferente do Portal de Licitações, onde só a aba ativa existe no
+   DOM: ali cada seção busca os próprios dados, e desmontar economiza
+   requisição. Aqui os contratos são carregados uma vez e as três
+   telas leem a mesma lista, então desmontar não economizaria nada e
+   custaria remontar a lista inteira a cada ida e volta.
+   ═════════════════════════════════════════════════ */
+var PD_ABAS = ['painel', 'avisos', 'contratos'];
+var pdAbaAtual = 'painel';
+
+function pdAba(id){
+  if(PD_ABAS.indexOf(id) < 0) id = 'painel';
+  pdAbaAtual = id;
+
+  PD_ABAS.forEach(function(a){
+    var tela = document.getElementById('tela-' + a);
+    if(tela) tela.style.display = (a === id) ? '' : 'none';
+  });
+  var bts = document.querySelectorAll('.tb-aba');
+  for(var i = 0; i < bts.length; i++){
+    bts[i].classList.toggle('on', bts[i].getAttribute('data-aba') === id);
+  }
+
+  /* O endereço acompanha a aba: link compartilhado abre onde deve, e
+     o Voltar do navegador volta de aba em vez de sair do portal. */
+  if(location.hash !== '#' + id){
+    try{ history.pushState(null, '', '#' + id); }catch(e){ location.hash = id; }
+  }
+
+  /* Sem isto, quem estava no fim da lista de contratos cai no meio da
+     aba seguinte — e "cliquei na aba e não foi para o começo" é
+     exatamente a queixa que as abas vieram resolver. */
+  window.scrollTo(0, 0);
+}
+
+/** O selo vermelho da aba Avisos. Um número na aba é o que faz alguém
+ *  abrir uma tela que, sem ele, ninguém abriria — e o quadro de avisos
+ *  só existe para ser visto no dia em que tem algo dentro.
+ *
+ *  O número vem de quem desenhou o quadro, não de uma contagem própria:
+ *  duas contas para a mesma coisa acabam divergindo, e aí a aba diz 3 e
+ *  a tela mostra 5. */
+function pdSeloAvisos(total){
+  var selo = document.getElementById('selo-avisos');
+  if(!selo) return;
+  var n = parseInt(total, 10) || 0;
+  if(n > 0){ selo.textContent = n > 99 ? '99+' : String(n); selo.style.display = ''; }
+  else selo.style.display = 'none';
+}
+
+/* Abre a aba pedida pelo endereço, e responde ao Voltar do navegador. */
+function pdAbaDoEndereco(){
+  var h = String(location.hash || '').replace('#', '').trim();
+  return PD_ABAS.indexOf(h) >= 0 ? h : 'painel';
+}
+window.addEventListener('popstate', function(){
+  var h = pdAbaDoEndereco();
+  if(h !== pdAbaAtual) pdAba(h);
+});
+
 /** Um número da faixa de boas-vindas. */
 function pdNum(v, rot, cor){
   return '<div class="pd-num"><div class="pd-num-v" style="--cc:' + cor + '">' + v + '</div>' +
@@ -3407,8 +3559,10 @@ function pdFiltrar(k){
   const novo = (filtroStatus === k) ? null : k;
   setFiltroStatus(novo);
   gerarDashboard();
-  const lista = document.getElementById('contratos-area');
-  if(lista && novo) lista.scrollIntoView({behavior:'smooth', block:'start'});
+  /* Filtrar e continuar no Painel não mostraria nada do resultado: a
+     lista mora na outra aba. Clicar num número do painel leva junto
+     para onde o número foi aplicado. */
+  if(novo) pdAba('contratos');
 }
 
 
@@ -3709,8 +3863,10 @@ function renderAvisos(){
       + '</div>'
       + '<div class="avisos-vazio">\u2713 Nenhum aviso no momento. Nenhum contrato vencendo nos pr\u00f3ximos 60 dias e nenhum processo em 1\u00aa posi\u00e7\u00e3o aguardando defini\u00e7\u00e3o.</div>'
       + '</div>';
+    pdSeloAvisos(0);
     return;
   }
+  pdSeloAvisos(total);
 
   box.innerHTML = '<div class="avisos-wrap'+(avisosRecolhido()?' recolhido':'')+'" id="avisos-wrap">'
     + '<div class="avisos-head" onclick="avisosAlternar()" title="Clique para recolher ou abrir">'
