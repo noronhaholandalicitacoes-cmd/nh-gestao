@@ -16808,7 +16808,11 @@ async function nhExtrairItensTR(){
     }
     /* `empresa` no documento é o que a regra do Firestore usa para
        entregar esta planilha só a esta empresa. */
-    var emp = String(linha[2]||'').trim().toUpperCase();
+    /* Mesma normalização que o viabilidade.html usa ao gravar: trim,
+       espaço duplo virando um só, maiúscula. Escrever a empresa de um
+       jeito aqui e de outro lá faz a regra do Firestore não casar, e a
+       planilha some sem erro nenhum na tela. */
+    var emp = String(linha[2]||'').trim().replace(/\s+/g,' ').toUpperCase();
     var doc = {
       empresa: emp, itens: j.itens,
       extraidoEm: new Date().toLocaleString('pt-BR'),
