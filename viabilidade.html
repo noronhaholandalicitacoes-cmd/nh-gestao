@@ -2050,7 +2050,14 @@ function renderCard(d){
   else if(isAnalise(part)) pill='<span class="status-pill s-analise"><span class="dot"></span>Em Análise</span>';
 
   var temPart = part!=='';
-  var justDisabled = !temPart ? 'disabled' : '';
+  /* ⚠️ ESCREVER DEIXOU DE SER PROIBIDO — 30/08/2026.
+     A justificativa vinha `disabled` até alguém votar. A intenção era
+     certa — não existe justificativa sem decisão — mas o efeito era
+     outro: quem estava ANALISANDO o processo, e queria anotar o que
+     achou antes de decidir, batia numa caixa morta.
+     A intenção se preserva travando o SALVAR, não a escrita. Pensar
+     primeiro e decidir depois é a ordem natural. */
+  var justDisabled = '';
 
   /* Preenchidas pelo Sistema NH principal (Parte 3/4) — aqui só leitura.
      analise_viabilidade é gravada com a chave 'e-'+id (mesma convenção
@@ -2116,7 +2123,9 @@ function renderCard(d){
       '<div class="just-wrap">'+
         '<div class="just-label">Justificativa / Observação</div>'+
         '<textarea class="just-area" id="just-'+id+'" '+justDisabled+' '+
-          'placeholder="'+(temPart?'Escreva uma justificativa...':'Selecione SIM, NÃO ou ANÁLISE primeiro')+'">'+esc(just)+'</textarea>'+
+          'oninput="justMudou(\''+id+'\')" '+
+          'placeholder="'+(temPart?'Escreva uma justificativa...'
+                                  :'Pode anotar aqui. Para salvar, escolha SIM, NÃO ou ANÁLISE acima.')+'">'+esc(just)+'</textarea>'+
         '<div class="aviso-salvar" id="aviso-'+id+'">⚠️ Alteração pendente — clique em Salvar</div>'+
         /* A planilha entra depois da justificativa: primeiro se decide
            se vale a pena, depois se coloca preço. E é só um botão —
@@ -2293,6 +2302,14 @@ function renderItens(id){
    A tabela mora aqui porque aqui ela cabe: largura inteira, rolagem
    própria, e o rodapé com os totais fixo enquanto se digita. */
 var _itensAberto = null;
+
+/** Digitou na justificativa: marca alteração pendente, do mesmo jeito
+ *  que trocar o voto marca. Sem isto, quem escreve e sai da tela perde
+ *  o que escreveu sem nenhum aviso. */
+function justMudou(id){
+  var aviso = document.getElementById('aviso-' + id);
+  if(aviso) aviso.style.display = 'block';
+}
 
 function itensAbrir(id){
   var d = ITENS_EDITAL[id];
