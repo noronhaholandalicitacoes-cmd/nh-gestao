@@ -16616,6 +16616,9 @@ if(typeof loadAll==='function'){
   loadAll=async function(){
     await _nhLoadAllViab();
     await nhLoadAnalisesViab();
+    /* A lista de itens do TR: é ela que diz se o botão do card mostra
+       "Itens do TR" ou "Itens (24)". */
+    try{ await nhCarregarItensTR(); }catch(_e){}
     try{if(CUR&&CUR!=='resumo'&&typeof renderTbl==='function')renderTbl(CUR);}catch(_e){}
   };
 }
@@ -16657,6 +16660,188 @@ function _nhPromptViabilidade(ctx,hoje){
   'HISTÓRICO DE PROCESSOS FINALIZADOS NESTE MUNICÍPIO (proxy de concorrência):\n'+JSON.stringify(ctx.historicoMunicipio)+'\n\n'+
   'HISTÓRICO DE PREÇOS PRATICADOS (Banco de Dados — itens semelhantes ou mesmo município):\n'+JSON.stringify(ctx.precos)+'\n\n'+
   'CAPAG DO MUNICÍPIO (capacidade de pagamento oficial do Tesouro Nacional):\n'+(ctx.capag?JSON.stringify(ctx.capag):'não disponível — ainda não importado')+'\n';
+}
+
+/* ═════════════════════════════════════════════════
+   ITENS DO TERMO DE REFERÊNCIA — 30/08/2026
+
+   O que este bloco resolve: a decisão de participar de uma licitação é
+   uma decisão de PREÇO, e o preço estava fora do sistema. A NH mandava
+   o TR por WhatsApp, o responsável respondia com foto de planilha, e
+   alguém aqui redigitava item por item para montar a proposta.
+
+   Agora a IA lê o TR uma vez, aqui, e a planilha aparece pronta no
+   Viabilidade — onde o responsável só preenche o valor mínimo dele.
+
+   A leitura roda no SERVIDOR, não neste navegador, por duas razões:
+   baixar o documento de um site de órgão ou do Drive é bloqueado por
+   CORS, e a chave da IA não pode ir para a tela do cliente.
+   ═════════════════════════════════════════════════ */
+var ITENS_TR = {};          /* chave 'e-123' -> {itens, resposta} */
+var _itensTRCtx = null;
+
+/** A linha do edital, pelo id da chave 'e-123'. */
+function _nhLinhaEdital(chave){
+  var id = String(chave||'').replace(/^e-/,'');
+  return (ALL.editais||[]).find(function(r){ return String(r[0])===id; }) || null;
+}
+
+async function nhCarregarItensTR(){
+  try{
+    var s = await db.collection('itens_edital').get();
+    ITENS_TR = {};
+    s.forEach(function(d){ ITENS_TR[d.id] = d.data()||{}; });
+  }catch(e){ console.warn('[itens_edital]', e.message); ITENS_TR = {}; }
+}
+
+function nhAbrirItensTR(chave, emp, titulo){
+  _itensTRCtx = {chave:chave, emp:emp, titulo:titulo};
+  var m = document.getElementById('nh-itens-modal');
+  if(!m){
+    m = document.createElement('div');
+    m.id = 'nh-itens-modal';
+    m.style.cssText='display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:9000;'+
+      'align-items:center;justify-content:center;padding:16px';
+    m.innerHTML='<div style="background:var(--s1);border:1px solid var(--b1);border-radius:14px;'+
+        'max-width:900px;width:100%;max-height:92vh;display:flex;flex-direction:column;overflow:hidden">'+
+      '<div style="padding:14px 18px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:10px">'+
+        '<b style="color:var(--nh)">📋 Itens do Termo de Referência</b>'+
+        '<span id="nh-itens-sub" style="font-size:12px;color:var(--t3)"></span>'+
+        '<button onclick="document.getElementById(\'nh-itens-modal\').style.display=\'none\'" '+
+          'style="margin-left:auto;background:none;border:none;color:var(--t3);font-size:20px;cursor:pointer">&times;</button>'+
+      '</div>'+
+      '<div style="padding:14px 18px;overflow-y:auto;flex:1" id="nh-itens-body"></div>'+
+      '<div style="padding:12px 18px;border-top:1px solid var(--b1);display:flex;gap:8px;align-items:center;flex-wrap:wrap" id="nh-itens-foot"></div>'+
+    '</div>';
+    document.body.appendChild(m);
+    m.addEventListener('click', function(ev){ if(ev.target===m) m.style.display='none'; });
+  }
+  document.getElementById('nh-itens-sub').textContent = emp + (titulo?' · '+titulo:'');
+  nhPintarItensTR();
+  m.style.display='flex';
+}
+
+function nhPintarItensTR(){
+  var c = _itensTRCtx; if(!c) return;
+  var body = document.getElementById('nh-itens-body');
+  var foot = document.getElementById('nh-itens-foot');
+  var d = ITENS_TR[c.chave] || {};
+  var itens = d.itens || [];
+  var linha = _nhLinhaEdital(c.chave) || [];
+  var link = String(linha[13]||'').trim();
+  var resp = d.resposta || null;
+
+  if(!itens.length){
+    body.innerHTML =
+      '<div style="font-size:13px;color:var(--t2);line-height:1.7">'+
+        'A IA vai ler o documento em <b>Link do Edital</b> e montar a lista de itens.<br>'+
+        '<span style="font-size:11.5px;color:var(--t3);word-break:break-all">'+esc0(link)+'</span>'+
+      '</div>'+
+      '<div style="margin-top:12px;font-size:11.5px;color:var(--t3);line-height:1.6">'+
+        'Depois disso a planilha aparece no Viabilidade e o responsável preenche '+
+        'o valor mínimo dele por item. Se o link for uma página ou um .zip, o sistema avisa — '+
+        'cole o PDF do TR no lugar.'+
+      '</div>'+
+      '<div id="nh-itens-status" style="margin-top:12px;font-size:12.5px"></div>';
+    foot.innerHTML = '<button class="btn btn-nh" id="nh-itens-btn" onclick="nhExtrairItensTR()">🤖 Ler o TR e extrair os itens</button>';
+    return;
+  }
+
+  var totEst = itens.reduce(function(s,it){ return s + (Number(it.vunit)||0)*(Number(it.qtd)||0); },0);
+  body.innerHTML =
+    (resp ? '<div style="background:rgba(34,197,94,.09);border:1px solid rgba(34,197,94,.3);border-radius:9px;'+
+        'padding:10px 13px;margin-bottom:12px;font-size:12.5px;color:#22c55e">'+
+        '✓ O responsável já enviou os valores dele em '+esc0(resp.atualizadoEm||'')+
+        ' — '+Object.keys(resp.valores||{}).length+' de '+itens.length+' itens precificados.</div>' : '')+
+    '<div style="overflow-x:auto"><table style="min-width:0;width:100%;font-size:12.5px">'+
+      '<thead><tr><th style="width:40px">#</th><th>Descrição</th><th style="width:60px">Un.</th>'+
+      '<th class="num" style="width:90px">Qtd</th><th class="num" style="width:110px">Estimado</th>'+
+      (resp?'<th class="num" style="width:120px">Valor do cliente</th>':'')+'</tr></thead><tbody>'+
+      itens.map(function(it,ix){
+        var meu = resp && resp.valores ? Number(resp.valores[String(ix)]||0) : 0;
+        return '<tr><td>'+(it.n||ix+1)+'</td><td>'+esc0(it.desc||'')+'</td><td>'+esc0(it.unid||'un')+'</td>'+
+          '<td class="num">'+(Number(it.qtd)||0).toLocaleString('pt-BR')+'</td>'+
+          '<td class="num">'+fmtMoeda(Number(it.vunit)||0)+'</td>'+
+          (resp?'<td class="num" style="color:'+(meu?'#22c55e':'var(--t3)')+';font-weight:700">'+
+            (meu?fmtMoeda(meu):'—')+'</td>':'')+'</tr>';
+      }).join('')+
+    '</tbody></table></div>'+
+    '<div style="margin-top:10px;font-size:12px;color:var(--t3)">'+
+      itens.length+' itens · estimado total '+fmtMoeda(totEst)+
+      (d.extraidoEm?' · extraído em '+esc0(d.extraidoEm):'')+
+    '</div>'+
+    '<div id="nh-itens-status" style="margin-top:10px;font-size:12.5px"></div>';
+  foot.innerHTML =
+    '<button class="btn btn-ghost" onclick="nhExtrairItensTR()">🔄 Ler o TR de novo</button>'+
+    '<button class="btn btn-ghost" style="color:#f87171;border-color:rgba(239,68,68,.3)" '+
+      'onclick="nhApagarItensTR()">Apagar a lista</button>'+
+    '<span style="margin-left:auto;font-size:11.5px;color:var(--t3)">'+
+      'A planilha já está no Viabilidade desta empresa.</span>';
+}
+
+async function nhExtrairItensTR(){
+  var c = _itensTRCtx; if(!c) return;
+  var linha = _nhLinhaEdital(c.chave);
+  if(!linha) return toast('Não encontrei este edital.','err');
+  var link = String(linha[13]||'').trim();
+  if(!link) return toast('Este edital não tem "Link do Edital" preenchido.','err');
+
+  var st = document.getElementById('nh-itens-status');
+  var bt = document.getElementById('nh-itens-btn');
+  if(bt){ bt.disabled=true; bt.textContent='Lendo o documento…'; }
+  if(st) st.innerHTML='<span style="color:var(--t3)">Baixando e lendo o TR. Documento grande pode levar um minuto…</span>';
+
+  try{
+    var u = auth.currentUser;
+    if(!u) throw new Error('Faça login de novo.');
+    var r = await fetch(NH_API+'/api/edital/itens',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({idToken: await u.getIdToken(), url: link})
+    });
+    var j = await r.json().catch(function(){ return {}; });
+    if(!r.ok || !j.ok){
+      var msg = (j&&j.erro)||('HTTP '+r.status);
+      if(msg==='CHAVE_IA_AUSENTE')
+        msg='Falta a chave da IA no servidor. Configure GEMINI_API_KEY no Railway com a mesma chave que já está aqui em Configurações.';
+      if(st) st.innerHTML='<span style="color:#f87171">'+esc0(msg)+'</span>';
+      return;
+    }
+    /* `empresa` no documento é o que a regra do Firestore usa para
+       entregar esta planilha só a esta empresa. */
+    var emp = String(linha[2]||'').trim().toUpperCase();
+    var doc = {
+      empresa: emp, itens: j.itens,
+      extraidoEm: new Date().toLocaleString('pt-BR'),
+      extraidoPor: (auth.currentUser&&auth.currentUser.email)||''
+    };
+    await db.collection('itens_edital').doc(c.chave).set(doc,{merge:true});
+    ITENS_TR[c.chave] = Object.assign(ITENS_TR[c.chave]||{}, doc);
+    toast(j.total+' itens extraídos','ok');
+    nhPintarItensTR();
+    try{ render('editais'); }catch(_e){}
+  }catch(e){
+    if(st) st.innerHTML='<span style="color:#f87171">'+esc0((e&&e.message)||String(e))+'</span>';
+  }finally{
+    if(bt){ bt.disabled=false; bt.textContent='🤖 Ler o TR e extrair os itens'; }
+  }
+}
+
+async function nhApagarItensTR(){
+  var c = _itensTRCtx; if(!c) return;
+  var d = ITENS_TR[c.chave]||{};
+  /* Apagar a lista some com os valores que o cliente já mandou. Isso
+     tem que ser dito antes, não descoberto depois. */
+  var aviso = (d.resposta && Object.keys(d.resposta.valores||{}).length)
+    ? '\n\nATENÇÃO: o responsável já preencheu os valores dele. Apagar a lista apaga os valores junto.'
+    : '';
+  if(!confirm('Apagar a lista de itens deste edital?'+aviso)) return;
+  try{
+    await db.collection('itens_edital').doc(c.chave).delete();
+    delete ITENS_TR[c.chave];
+    toast('Lista apagada','ok');
+    nhPintarItensTR();
+    try{ render('editais'); }catch(_e){}
+  }catch(e){ toast('Não consegui apagar: '+((e&&e.message)||e),'err'); }
 }
 
 var _viabCtx=null;
@@ -16880,6 +17065,24 @@ if(typeof renderCard==='function'){
             +iaSvg+'Habilita&ccedil;&atilde;o</button>';
         itens+='<button class="nh-btn" onclick="event.stopPropagation();nhAbrirModalViab(\''+chave+'\',\''+emp.replace(/'/g,"\\'")+'\',\''+tit.substring(0,60)+'\')">'
           +iaSvg+(an?'Reavaliar':'Viabilidade')+'</button>';
+
+        /* ── Itens do TR — 30/08/2026 ──────────────────────────
+           A IA lê o Termo de Referência e monta a planilha que o
+           responsável vai precificar no Viabilidade. Antes disso, o
+           preço ia e voltava por WhatsApp em foto de planilha, e
+           alguém aqui redigitava item por item.
+           O link é o mesmo que o Viabilidade já abre em "Consultar
+           Edital" (índice 13), porque é ali que a NH cola o TR. Sem
+           link, o botão nem aparece — não há o que ler. */
+        var _linkTR = String((_nhLinhaEdital(chave)||[])[13]||'').trim();
+        if(_linkTR){
+          var _jaTem = (window.ITENS_TR && ITENS_TR[chave]) ? (ITENS_TR[chave].itens||[]).length : 0;
+          itens+='<button class="nh-btn'+(_jaTem?' nh-btn-ok':'')+'" '
+            +'title="'+(_jaTem?_jaTem+' item(ns) já extraídos — clique para refazer'
+                              :'A IA lê o TR e monta a planilha de itens para o responsável precificar')+'" '
+            +'onclick="event.stopPropagation();nhAbrirItensTR(\''+chave+'\',\''+emp.replace(/'/g,"\\'")+'\',\''+tit.substring(0,60).replace(/'/g,"\\'")+'\')">'
+            +'📋 '+(_jaTem?('Itens ('+_jaTem+')'):'Itens do TR')+'</button>';
+        }
 
         var bloco='<div class="nh-viab-badges nh-bar" onclick="event.stopPropagation()">'+itens+'</div>';
         var pos=html.lastIndexOf('</div>');
