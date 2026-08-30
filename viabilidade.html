@@ -530,6 +530,139 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 .ac-err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);
   color:var(--r1);padding:11px 14px;border-radius:9px;font-size:12.5px;font-weight:600;
   margin-bottom:14px;display:none;text-align:center;line-height:1.5}
+/* ══════════════════════════════════════════════════════════
+   PLANILHA DE ITENS — 29/08/2026
+   O cartão ganha só um botão; a tabela abre em tela cheia.
+   ══════════════════════════════════════════════════════════ */
+.itens-bt{display:flex;align-items:center;gap:11px;width:100%;margin-top:12px;
+  background:var(--s2);border:1px solid var(--b1);border-radius:11px;
+  padding:12px 14px;cursor:pointer;font-family:inherit;text-align:left;
+  transition:border-color .16s,background .16s,transform .16s}
+.itens-bt:hover{border-color:var(--nh);background:rgba(249,115,22,.06);transform:translateY(-1px)}
+.itens-bt.feito{border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.06)}
+.itens-bt-ic{font-size:17px;flex-shrink:0;line-height:1}
+.itens-bt-txt{min-width:0;flex:1;display:block}
+.itens-bt-txt b{display:block;font-size:13px;font-weight:700;color:var(--t1)}
+.itens-bt-txt i{display:block;font-style:normal;font-size:11.5px;color:var(--t3);margin-top:2px}
+.itens-bt.feito .itens-bt-txt i{color:#22c55e}
+.itens-bt-seta{flex-shrink:0;font-size:19px;color:var(--t3);line-height:1}
+
+.it-ov{display:none;position:fixed;inset:0;background:rgba(4,6,12,.82);z-index:700;
+  align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px)}
+.it-modal{background:var(--s1);border:1px solid var(--b2);border-radius:16px;
+  width:100%;max-width:1040px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:0 24px 70px rgba(0,0,0,.6)}
+.it-head{display:flex;align-items:flex-start;gap:14px;padding:18px 22px 15px;
+  border-bottom:1px solid var(--b1);flex-shrink:0}
+.it-head-txt{min-width:0;flex:1}
+.it-olho{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--nh);margin-bottom:5px}
+.it-head h3{margin:0;font-size:16px;font-weight:800;color:var(--t1);line-height:1.25;
+  overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.it-sub{font-size:11.5px;color:var(--t3);margin-top:4px}
+.it-x{flex-shrink:0;width:32px;height:32px;border-radius:9px;background:var(--s2);
+  border:1px solid var(--b1);color:var(--t2);cursor:pointer;font-size:14px;line-height:1}
+.it-x:hover{border-color:var(--r1);color:var(--r1)}
+
+.it-body{padding:16px 22px;overflow-y:auto;flex:1;min-height:0}
+.itens-nota{font-size:12.5px;color:var(--t2);background:rgba(249,115,22,.07);
+  border:1px solid rgba(249,115,22,.22);border-radius:9px;padding:10px 13px;
+  margin-bottom:14px;line-height:1.55}
+.itens-rolo{overflow-x:auto;border:1px solid var(--b1);border-radius:10px}
+.itens-tab{width:100%;border-collapse:collapse;font-size:12.5px;min-width:660px}
+.itens-tab th{background:var(--s2);color:var(--t3);font-size:10px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.05em;padding:9px 10px;text-align:left;
+  position:sticky;top:0;z-index:1;border-bottom:1px solid var(--b1)}
+.itens-tab td{padding:8px 10px;border-bottom:1px solid var(--b1);color:var(--t2);vertical-align:middle}
+.itens-tab tr:last-child td{border-bottom:none}
+.itens-tab tr:hover td{background:rgba(255,255,255,.02)}
+.it-n{width:38px;color:var(--t3);font-variant-numeric:tabular-nums}
+.it-desc{color:var(--t1);min-width:220px;max-width:380px}
+.it-un{width:60px;color:var(--t3)}
+.it-num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.it-est{color:var(--t3)}
+.it-in{width:132px}
+/* O campo é o único lugar da tabela onde se digita — e por isso o
+   único com borda acesa. A pessoa acha onde trabalhar sem procurar. */
+.it-in input{width:100%;background:var(--bg);border:1px solid var(--b2);border-radius:7px;
+  padding:7px 9px;color:var(--t1);font-family:inherit;font-size:12.5px;text-align:right;
+  font-variant-numeric:tabular-nums;transition:border-color .15s}
+.it-in input:focus{outline:none;border-color:var(--nh);box-shadow:0 0 0 3px rgba(249,115,22,.14)}
+.it-tot{color:var(--t1);font-weight:700}
+
+.itens-extra{margin-top:14px}
+.itens-lbl{display:block;font-size:11px;font-weight:700;color:var(--t3);margin-bottom:6px}
+.itens-link{width:100%;background:var(--bg);border:1px solid var(--b1);border-radius:8px;
+  padding:9px 11px;color:var(--t1);font-family:inherit;font-size:12.5px}
+.itens-link:focus{outline:none;border-color:var(--nh)}
+
+.it-foot{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  padding:14px 22px;border-top:1px solid var(--b1);background:var(--s2);flex-shrink:0}
+.it-somas{display:flex;gap:22px;flex-wrap:wrap}
+.it-somas div{display:flex;flex-direction:column;gap:3px}
+.it-somas span{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--t3)}
+.it-somas b{font-size:15px;font-weight:800;color:var(--t1);font-variant-numeric:tabular-nums}
+.it-soma{color:var(--nh)!important}
+.it-dif.abaixo{color:#22c55e!important}
+.it-dif.acima{color:#ef4444!important}
+.it-btns{display:flex;gap:8px;flex-wrap:wrap}
+.it-bt{background:var(--s3);border:1px solid var(--b1);color:var(--t2);font-family:inherit;
+  font-size:12.5px;font-weight:700;padding:9px 14px;border-radius:9px;cursor:pointer;transition:.15s}
+.it-bt:hover{color:var(--t1);border-color:var(--b2)}
+.it-bt.pri{background:var(--nh);border-color:var(--nh);color:#0a0e1a}
+.it-bt.pri:hover{filter:brightness(1.08)}
+.it-bt:disabled{opacity:.6;cursor:default}
+
+@media(max-width:720px){
+  .it-ov{padding:0}
+  .it-modal{max-width:none;max-height:100vh;height:100vh;border-radius:0;border:none}
+  .it-body{padding:14px}
+  .it-head{padding:14px}
+  .it-foot{padding:12px 14px;flex-direction:column;align-items:stretch}
+  .it-somas{justify-content:space-between;gap:10px}
+  .it-somas b{font-size:14px}
+  .it-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .it-bt.pri{grid-column:1/-1}
+
+  /* ── No celular a tabela vira cartão ────────────────────
+     Sete colunas não cabem em 375px, e a saída óbvia — rolar de lado —
+     esconde justamente a coluna onde se digita. A pessoa abriria a
+     planilha, veria descrição e quantidade, e teria de descobrir
+     sozinha que precisa arrastar para achar o campo.
+     Em cartão, o campo fica embaixo da descrição, onde a mão já está. */
+  .itens-rolo{overflow-x:visible;border:none;border-radius:0}
+  .itens-tab{min-width:0;display:block}
+  .itens-tab thead{display:none}
+  .itens-tab tbody,.itens-tab tr{display:block}
+  .itens-tab tr{background:var(--s2);border:1px solid var(--b1);border-radius:11px;
+    padding:12px 13px;margin-bottom:10px;position:relative}
+  .itens-tab tr:hover td{background:transparent}
+  .itens-tab td{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:5px 0;border-bottom:none;text-align:left}
+  .itens-tab td::before{content:attr(data-lbl);font-size:10.5px;font-weight:700;
+    text-transform:uppercase;letter-spacing:.04em;color:var(--t3);flex-shrink:0}
+  /* O número do item vira etiqueta no canto; a descrição ocupa a
+     largura inteira e é o título do cartão.
+     ⚠️ Os seletores levam `.itens-tab` na frente porque `.itens-tab td`
+     tem especificidade maior que `.it-desc` sozinho — sem isso a
+     descrição continuava em flex, encolhia para a direita e ficava por
+     baixo da etiqueta do número. */
+  .itens-tab .it-n{position:absolute;top:11px;right:12px;padding:2px 8px;border-radius:20px;
+    background:var(--s3);font-size:10.5px;font-weight:800;color:var(--t3);
+    display:block;width:auto}
+  .itens-tab .it-n::before{content:'#'}
+  .itens-tab .it-desc{display:block;padding:0 42px 9px 0;font-size:13px;font-weight:600;
+    color:var(--t1);max-width:none;min-width:0;line-height:1.4;
+    white-space:normal;overflow:visible;text-overflow:clip}
+  .itens-tab .it-desc::before{content:none}
+  .itens-tab .it-in{padding-top:9px;margin-top:5px;border-top:1px solid var(--b1)}
+  /* Largura fixa: em `space-between` o campo encolhia até caber só um
+     dígito, e o valor digitado sumia dentro dele. */
+  .itens-tab .it-in input{flex:0 0 148px;width:148px;max-width:148px;
+    font-size:14px;padding:9px 11px}
+  .itens-tab .it-tot{font-size:13px;font-weight:800;color:var(--t1)}
+}
+
 /* "Manter-me conectado" — 27/08/2026. Caixa de marcar do login. Fica
    entre a senha e o botão porque é ali que a pessoa decide, e não
    depois de já ter clicado em Entrar. */
@@ -713,6 +846,41 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- ══ PLANILHA DE ITENS ══════════════════════════════════════
+     Fica fora do cartão de propósito. Uma tabela de sete colunas não
+     se lê espremida na largura de um cartão, e abrir a sanfona lá
+     dentro dobrava a altura de todos os processos da fila.
+     Aqui ela tem a tela: cabeçalho fixo com o processo, corpo que
+     rola, e o rodapé com os totais sempre à vista enquanto se digita
+     — que é o número que decide se vale a pena participar. -->
+<div class="it-ov" id="mo-itens">
+  <div class="it-modal">
+    <div class="it-head">
+      <div class="it-head-txt">
+        <div class="it-olho">Planilha de itens</div>
+        <h3 id="it-titulo">Processo</h3>
+        <div class="it-sub" id="it-sub"></div>
+      </div>
+      <button class="it-x" onclick="itensFechar()" title="Fechar">✕</button>
+    </div>
+
+    <div class="it-body" id="it-corpo"></div>
+
+    <div class="it-foot">
+      <div class="it-somas">
+        <div><span>Estimado do edital</span><b id="it-est">—</b></div>
+        <div><span>Sua proposta</span><b id="it-soma" class="it-soma">—</b></div>
+        <div><span>Diferença</span><b id="it-dif" class="it-dif">—</b></div>
+      </div>
+      <div class="it-btns">
+        <button type="button" class="it-bt" onclick="itensCopiar()">📋 Copiar</button>
+        <button type="button" class="it-bt" onclick="itensExportar()">⬇ Excel</button>
+        <button type="button" class="it-bt pri" id="it-salvar" onclick="itensSalvar()">💾 Enviar valores</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-firestore-compat.js"></script>
@@ -1269,6 +1437,7 @@ async function carregar(){
     await carregarCoresEmpresas();
     await carregarRespsCad();
     await carregarAnalisesViab();
+    await carregarItensEdital();
     /* ══════════════════════════════════════════════════════════════
        PASSO 2 DA SEPARAÇÃO POR EMPRESA — 18/08/2026
 
@@ -1949,6 +2118,10 @@ function renderCard(d){
         '<textarea class="just-area" id="just-'+id+'" '+justDisabled+' '+
           'placeholder="'+(temPart?'Escreva uma justificativa...':'Selecione SIM, NÃO ou ANÁLISE primeiro')+'">'+esc(just)+'</textarea>'+
         '<div class="aviso-salvar" id="aviso-'+id+'">⚠️ Alteração pendente — clique em Salvar</div>'+
+        /* A planilha entra depois da justificativa: primeiro se decide
+           se vale a pena, depois se coloca preço. E é só um botão —
+           a tabela abre em tela cheia, sem inchar o cartão. */
+        renderItens(id)+
         '<button class="btn-salvar'+(temPart?' ativo':'')+'" id="btn-'+id+'" '+(temPart?'':'disabled')+' onclick="salvar(\''+id+'\')">💾 Salvar</button>'+
       '</div>'+
     '</div>'+
@@ -1984,6 +2157,302 @@ function selecionarVoto(id, valor){
   }
   // atualizar borda do card imediatamente
   card.className='card '+(valor==='SIM'?'sim':valor==='NÃO'?'nao':'analise');
+}
+
+/* ═════════════════════════════════════════════════
+   PLANILHA DE ITENS — 29/08/2026
+
+   Até aqui o responsável só respondia SIM ou NÃO. Mas a decisão de
+   participar é uma decisão de PREÇO, e o preço estava fora do sistema:
+   ia e voltava por WhatsApp, em foto de planilha, e a NH redigitava.
+
+   Agora a lista de itens do Termo de Referência chega pronta — a NH
+   extrai uma vez, com a mesma IA que já preenche a proposta na aba
+   Documentos — e o responsável só preenche uma coluna: o valor mínimo
+   que ele aceita por item. O sistema soma, mostra o desconto contra o
+   estimado, e a NH lê isso direto na hora de montar a proposta.
+
+   Por que a extração não roda aqui: a chave da IA vive no navegador de
+   quem é da NH. O cliente não tem, e não deve ter. Ler o TR uma vez do
+   lado certo é mais barato e mais seguro do que uma vez por pessoa.
+   ═════════════════════════════════════════════════ */
+var ITENS_EDITAL = {};      /* id do edital -> {itens, resposta, empresa} */
+var _itensSujos  = {};      /* id -> true, quando há valor digitado sem salvar */
+
+async function carregarItensEdital(){
+  try{
+    var snap = await db.collection('itens_edital').get();
+    ITENS_EDITAL = {};
+    snap.forEach(function(doc){
+      /* Mesma convenção de `analise_viabilidade` e `pendencias`: a chave
+         é 'e-'+id, não o id puro. */
+      ITENS_EDITAL[String(doc.id).replace(/^e-/, '')] = doc.data() || {};
+    });
+  }catch(e){
+    /* Sem itens a tela continua inteira — o voto e a justificativa não
+       dependem deles. Um erro aqui não pode derrubar a página. */
+    console.warn('[Viabilidade] itens_edital:', e.message);
+    ITENS_EDITAL = {};
+  }
+}
+
+function _vNum(v){
+  var s = String(v == null ? '' : v).replace(/R\$\s*/g, '').replace(/\s/g, '').trim();
+  if(!s) return 0;
+  /* O sinal é conferido ANTES de limpar. A checagem `n < 0` no fim não
+     servia para nada: `[^\d.]` já tinha comido o menos, e "-50" virava
+     50 caladinho. Preço negativo é engano de digitação, e engano de
+     digitação em planilha de proposta é caro. */
+  if(s.charAt(0) === '-') return 0;
+  if(s.indexOf(',') !== -1){
+    s = s.replace(/\./g, '').replace(',', '.');
+  }else{
+    /* ⚠️ SÓ PONTO É AMBÍGUO. Quem digita "1.200" quer mil e duzentos;
+       quem digita "8.50" quer oito e cinquenta. O que separa os dois é
+       o tamanho do grupo: milhar vem sempre em blocos de exatamente
+       três dígitos. Sem isto, "1.200" virava 1,2 — e a proposta saía
+       mil vezes menor do que a pessoa quis. */
+    s = s.replace(/[^\d.]/g, '');
+    if(/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, '');
+  }
+  var n = parseFloat(s);
+  return (isNaN(n) || n < 0) ? 0 : n;
+}
+function _vBRL(n){
+  if(!n || isNaN(n)) return 'R$ 0,00';
+  return 'R$ ' + Number(n).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+/** No cartão entra só um BOTÃO — 29/08/2026.
+ *
+ *  A primeira versão abria a tabela dentro do próprio cartão, numa
+ *  sanfona. Ficou errado por dois motivos: o cartão dobrava de altura
+ *  e a fila de processos virava um rolo; e uma tabela de sete colunas
+ *  espremida na largura de um cartão não se lê, ainda menos no
+ *  celular.
+ *
+ *  Aqui fica a linha mínima que responde "tem planilha? já preenchi?".
+ *  O trabalho acontece no modal, onde a tabela tem a tela inteira. */
+function renderItens(id){
+  var d = ITENS_EDITAL[id];
+  var itens = (d && Array.isArray(d.itens)) ? d.itens : [];
+  if(!itens.length) return '';
+
+  var resp = (d && d.resposta) || {};
+  var val  = resp.valores || {};
+  var n    = Object.keys(val).length;
+  var soma = 0;
+  itens.forEach(function(it, ix){
+    var v = _vNum(val[String(ix)]);
+    if(v > 0) soma += v * (_vNum(it.qtd) || 0);
+  });
+
+  return '<button type="button" class="itens-bt'+(n ? ' feito' : '')+'" '+
+      'onclick="itensAbrir(\''+esc(id)+'\')">'+
+    '<span class="itens-bt-ic">📋</span>'+
+    '<span class="itens-bt-txt">'+
+      '<b>Planilha de itens</b>'+
+      '<i>'+ (n
+          ? n + ' de ' + itens.length + ' preenchido' + (n===1?'':'s') + ' · ' + _vBRL(soma)
+          : itens.length + ' ' + (itens.length===1?'item':'itens') + ' para precificar') +'</i>'+
+    '</span>'+
+    '<span class="itens-bt-seta">›</span>'+
+  '</button>';
+}
+
+/* ── O modal ───────────────────────────────────────────────
+   A tabela mora aqui porque aqui ela cabe: largura inteira, rolagem
+   própria, e o rodapé com os totais fixo enquanto se digita. */
+var _itensAberto = null;
+
+function itensAbrir(id){
+  var d = ITENS_EDITAL[id];
+  var itens = (d && d.itens) || [];
+  if(!itens.length) return;
+  _itensAberto = id;
+
+  var proc = TODOS.find(function(x){ return x.id === id; }) || {arr:[]};
+  var resp = (d && d.resposta) || {};
+  var val  = resp.valores || {};
+
+  var linhas = itens.map(function(it, ix){
+    var qtd = _vNum(it.qtd) || 0;
+    var est = _vNum(it.vunit);
+    var meu = _vNum(val[String(ix)]);
+    /* `data-lbl` é o que permite a tabela virar cartão no celular sem
+       um segundo HTML: o CSS usa o rótulo como conteúdo antes da
+       célula quando não há cabeçalho na tela. */
+    return '<tr>'+
+      '<td class="it-n">'+(it.n || (ix+1))+'</td>'+
+      '<td class="it-desc" title="'+esc(it.desc||'')+'">'+esc(it.desc||'')+'</td>'+
+      '<td class="it-un" data-lbl="Unidade">'+esc(it.unid||'un')+'</td>'+
+      '<td class="it-num" data-lbl="Quantidade">'+(qtd ? qtd.toLocaleString('pt-BR') : '—')+'</td>'+
+      '<td class="it-num it-est" data-lbl="Estimado">'+(est ? _vBRL(est) : '—')+'</td>'+
+      '<td class="it-in" data-lbl="Meu valor mín."><input type="text" inputmode="decimal" data-ix="'+ix+'" '+
+        'placeholder="0,00" value="'+(meu > 0 ? _vBRL(meu).replace('R$ ','') : '')+'" '+
+        'oninput="itensRecalcular()"></td>'+
+      '<td class="it-num it-tot" data-lbl="Total" id="ittot-'+ix+'">—</td>'+
+    '</tr>';
+  }).join('');
+
+  var estTotal = itens.reduce(function(s, it){ return s + _vNum(it.vunit)*(_vNum(it.qtd)||0); }, 0);
+
+  document.getElementById('it-titulo').textContent = String(proc.arr[3] || 'Processo');
+  document.getElementById('it-sub').textContent =
+    [proc.arr[2], proc.arr[6]].filter(Boolean).join(' · ') +
+    (resp.atualizadoEm ? '  ·  enviado em ' + resp.atualizadoEm : '');
+  document.getElementById('it-corpo').innerHTML =
+      '<div class="itens-nota">Preencha o <b>menor valor que você aceita</b> por item. '
+    + 'O que ficar em branco a NH entende como “não vou cotar”.</div>'
+    + '<div class="itens-rolo"><table class="itens-tab">'
+    +   '<thead><tr><th>#</th><th>Descrição</th><th>Un.</th><th class="it-num">Qtd</th>'
+    +   '<th class="it-num">Estimado</th><th>Meu valor mín.</th><th class="it-num">Total</th></tr></thead>'
+    +   '<tbody>'+linhas+'</tbody>'
+    + '</table></div>'
+    + '<div class="itens-extra">'
+    +   '<label class="itens-lbl">Link de apoio (planilha, catálogo, e-mail) — opcional</label>'
+    +   '<input type="url" class="itens-link" id="it-link" placeholder="https://…" value="'+esc(resp.link||'')+'">'
+    + '</div>';
+  document.getElementById('it-est').textContent = _vBRL(estTotal);
+  document.getElementById('mo-itens').style.display = 'flex';
+  itensRecalcular();
+}
+
+function itensFechar(){
+  document.getElementById('mo-itens').style.display = 'none';
+  _itensAberto = null;
+}
+
+/** Recalcula os totais a cada tecla. É o que transforma a tabela em
+ *  ferramenta de decisão: dá para ver o efeito de baixar um item antes
+ *  de decidir se vale a pena participar. */
+function itensRecalcular(){
+  var id = _itensAberto;
+  if(!id) return;
+  var d = ITENS_EDITAL[id];
+  var itens = (d && d.itens) || [];
+  var soma = 0, est = 0;
+  itens.forEach(function(it, ix){
+    var qtd = _vNum(it.qtd) || 0;
+    est += _vNum(it.vunit) * qtd;
+    var inp = document.querySelector('#it-corpo input[data-ix="'+ix+'"]');
+    var v = inp ? _vNum(inp.value) : 0;
+    var tot = v * qtd;
+    if(v > 0) soma += tot;
+    var cel = document.getElementById('ittot-'+ix);
+    if(cel) cel.textContent = v > 0 ? _vBRL(tot) : '—';
+  });
+  var elS = document.getElementById('it-soma');
+  if(elS) elS.textContent = soma > 0 ? _vBRL(soma) : '—';
+  var elD = document.getElementById('it-dif');
+  if(elD){
+    if(soma > 0 && est > 0){
+      var dif = soma - est, pct = (dif / est) * 100;
+      elD.textContent = (dif <= 0 ? '−' : '+') + _vBRL(Math.abs(dif)) +
+                        '  (' + Math.abs(pct).toFixed(1).replace('.', ',') + '%)';
+      elD.className = 'it-dif ' + (dif <= 0 ? 'abaixo' : 'acima');
+    } else { elD.textContent = '—'; elD.className = 'it-dif'; }
+  }
+}
+
+/** O que será gravado: só os itens com valor, para a NH não precisar
+ *  distinguir "zero" de "não cotei". */
+function itensColetar(id){
+  var d = ITENS_EDITAL[id];
+  if(!d || !Array.isArray(d.itens) || !d.itens.length) return null;
+  var valores = {};
+  d.itens.forEach(function(_it, ix){
+    var inp = document.querySelector('#it-corpo input[data-ix="'+ix+'"]');
+    var v = inp ? _vNum(inp.value) : 0;
+    if(v > 0) valores[String(ix)] = v;
+  });
+  var lk = document.getElementById('it-link');
+  return {valores: valores, link: lk ? String(lk.value || '').trim() : ''};
+}
+
+async function itensSalvar(){
+  var id = _itensAberto;
+  if(!id) return;
+  var btn = document.getElementById('it-salvar');
+  var dados = itensColetar(id);
+  if(!dados) return;
+
+  if(btn){ btn.disabled = true; btn.textContent = 'Enviando…'; }
+  var d = ITENS_EDITAL[id] || {};
+  var proc = TODOS.find(function(x){ return x.id === id; });
+  var emp = proc ? String(proc.arr[2] || '').trim().toUpperCase() : (d.empresa || '');
+  var resposta = {
+    valores: dados.valores,
+    link: dados.link,
+    atualizadoEm: new Date().toLocaleString('pt-BR'),
+    atualizadoPor: (auth.currentUser && auth.currentUser.email) || ''
+  };
+  try{
+    /* `empresa` no documento é o que a regra do Firestore usa para saber
+       que esta planilha é desta empresa — sem ele, ninguém lê nem grava. */
+    await db.collection('itens_edital').doc('e-' + id)
+      .set({empresa: emp, resposta: resposta}, {merge: true});
+    d.resposta = resposta; d.empresa = emp;
+    ITENS_EDITAL[id] = d;
+    delete _itensSujos[id];
+    toast('Valores enviados para a NH', 'ok');
+    itensFechar();
+    /* O botão do cartão passa a mostrar quantos foram preenchidos. */
+    var card = document.getElementById('card-' + id);
+    if(card){
+      var bt = card.querySelector('.itens-bt');
+      if(bt) bt.outerHTML = renderItens(id);
+    }
+  }catch(e){
+    toast('Não consegui enviar: ' + ((e && e.message) || e), 'err');
+  }finally{
+    if(btn){ btn.disabled = false; btn.textContent = '💾 Enviar valores'; }
+  }
+}
+
+/** Copiar cola a tabela no Excel com as colunas separadas — é tabulação
+ *  entre células, que é o que o Excel entende ao colar. */
+function itensCopiar(){
+  var linhas = _itensLinhas(_itensAberto);
+  if(!linhas) return;
+  var txt = linhas.map(function(l){ return l.join('\t'); }).join('\n');
+  try{
+    navigator.clipboard.writeText(txt);
+    toast('Tabela copiada — cole no Excel', 'ok');
+  }catch(e){ toast('Não consegui copiar neste navegador', 'err'); }
+}
+
+function itensExportar(){
+  var id = _itensAberto;
+  var linhas = _itensLinhas(id);
+  if(!linhas) return;
+  var csv = linhas.map(function(l){
+    return l.map(function(c){
+      var s = String(c == null ? '' : c);
+      return /[";\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    }).join(';');
+  }).join('\r\n');
+  /* BOM: sem ele o Excel em português abre "Descrição" como "DescriÃ§Ã£o". */
+  var blob = new Blob(['﻿' + csv], {type: 'text/csv;charset=utf-8;'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'itens-' + id + '.csv';
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 800);
+}
+
+function _itensLinhas(id){
+  var d = ITENS_EDITAL[id];
+  if(!d || !Array.isArray(d.itens) || !d.itens.length) return null;
+  var out = [['#','Descrição','Unidade','Qtd','Valor estimado','Meu valor mínimo','Total']];
+  d.itens.forEach(function(it, ix){
+    var qtd = _vNum(it.qtd) || 0;
+    var inp = document.querySelector('#it-corpo input[data-ix="'+ix+'"]');
+    var v = inp ? _vNum(inp.value) : 0;
+    out.push([ it.n || (ix+1), it.desc || '', it.unid || 'un',
+               qtd || '', _vNum(it.vunit) || '', v || '', v > 0 ? (v*qtd) : '' ]);
+  });
+  return out;
 }
 
 async function salvar(id){
