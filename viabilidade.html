@@ -2179,10 +2179,38 @@ function selecionarVoto(id, valor){
 var ITENS_EDITAL = {};      /* id do edital -> {itens, resposta, empresa} */
 var _itensSujos  = {};      /* id -> true, quando há valor digitado sem salvar */
 
+/* ⚠️ A CONSULTA PRECISA DO `.where` — 30/08/2026.
+
+   Regra do Firestore NÃO FILTRA: ela aprova ou nega. A regra de
+   `itens_edital` exige `empresa in minhasEmpresas()` por documento,
+   então pedir a coleção inteira com `.get()` é negado por completo —
+   não vem "só o que eu posso ver", não vem nada.
+
+   Foi exatamente isso que aconteceu: a NH extraiu os itens, o
+   documento estava lá, e o Viabilidade não mostrava o botão. O
+   `catch` engolia a recusa e a tela ficava igualzinha a "ainda não
+   extraíram" — o pior tipo de defeito, o que não deixa rastro.
+
+   Agora a consulta declara a empresa, que é o que a regra confere.
+   Quem vê todas (equipe da NH) pede a coleção inteira, e para essa a
+   regra libera por `ehOperacao()`. */
 async function carregarItensEdital(){
+  ITENS_EDITAL = {};
   try{
-    var snap = await db.collection('itens_edital').get();
-    ITENS_EDITAL = {};
+    var q = db.collection('itens_edital');
+    if(!(SESSAO && SESSAO.todas)){
+      var nomes = ((SESSAO && SESSAO.empresasNomes) || [])
+        .map(function(n){ return String(n||'').trim().toUpperCase(); })
+        .filter(Boolean);
+      /* Sem empresa na sessão não há o que consultar — e `in` com lista
+         vazia é erro no Firestore, não lista vazia. */
+      if(!nomes.length) return;
+      /* `in` aceita no máximo 30 valores. Ninguém representa 30
+         empresas, mas cortar é melhor do que a consulta inteira falhar
+         e o botão sumir de novo sem explicação. */
+      q = q.where('empresa', 'in', nomes.slice(0, 30));
+    }
+    var snap = await q.get();
     snap.forEach(function(doc){
       /* Mesma convenção de `analise_viabilidade` e `pendencias`: a chave
          é 'e-'+id, não o id puro. */
@@ -2190,8 +2218,9 @@ async function carregarItensEdital(){
     });
   }catch(e){
     /* Sem itens a tela continua inteira — o voto e a justificativa não
-       dependem deles. Um erro aqui não pode derrubar a página. */
-    console.warn('[Viabilidade] itens_edital:', e.message);
+       dependem deles. Mas o motivo vai para o console: foi o silêncio
+       aqui que escondeu o defeito por uma rodada inteira. */
+    console.warn('[Viabilidade] itens_edital:', e.code || '', e.message);
     ITENS_EDITAL = {};
   }
 }
@@ -2380,7 +2409,12 @@ async function itensSalvar(){
   if(btn){ btn.disabled = true; btn.textContent = 'Enviando…'; }
   var d = ITENS_EDITAL[id] || {};
   var proc = TODOS.find(function(x){ return x.id === id; });
-  var emp = proc ? String(proc.arr[2] || '').trim().toUpperCase() : (d.empresa || '');
+  /* Mesma normalização do `salvar()` logo abaixo — trim, espaço duplo
+     virando um só, maiúscula. Se os dois lados escreverem a empresa de
+     jeitos diferentes, a regra do Firestore não casa e a planilha
+     desaparece sem dizer por quê. */
+  var emp = proc ? String(proc.arr[2] || '').trim().replace(/\s+/g,' ').toUpperCase()
+                 : (d.empresa || '');
   var resposta = {
     valores: dados.valores,
     link: dados.link,
