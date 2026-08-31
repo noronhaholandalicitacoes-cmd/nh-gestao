@@ -367,6 +367,7 @@ body.light .ac-form{background:rgba(255,255,255,.75)}
     <button class="aba" data-a="receber" onclick="trocarAba('receber',this)">A Receber</button>
     <button class="aba" data-a="exitos" onclick="trocarAba('exitos',this)">Êxitos a Cobrar <span id="selo-exitos"></span></button>
     <button class="aba" data-a="despesas" onclick="trocarAba('despesas',this)">Despesas</button>
+    <button class="aba" data-a="caixa" onclick="trocarAba('caixa',this)">Caixa e Contas</button>
     <button class="aba" data-a="contratos" onclick="trocarAba('contratos',this)">Contratos de Honorários</button>
   </div>
   <div id="painel"></div>
@@ -390,8 +391,11 @@ body.light .ac-form{background:rgba(255,255,255,.75)}
       <div class="campo"><label>Situação</label><select id="dp-status"></select></div>
       <div class="campo"><label>Fornecedor</label>
         <input type="text" id="dp-forn" placeholder="Quem recebeu"></div>
-      <div class="campo"><label>Conta / forma</label>
-        <input type="text" id="dp-conta" placeholder="Ex: Itaú PJ, PIX, cartão"></div>
+      <!-- Passou de texto livre para lista: enquanto "Itaú PJ", "itau pj"
+           e "Itaú" eram três contas diferentes para o computador, não
+           havia como somar saldo nenhum. -->
+      <div class="campo"><label>Saiu de qual conta</label>
+        <select id="dp-conta"></select></div>
       <!-- Despesa quase sempre é da NH. Vincular a uma empresa serve
            para o custo que existe por causa de um cliente específico —
            certificado digital, cadastro num portal. -->
@@ -405,6 +409,83 @@ body.light .ac-form{background:rgba(255,255,255,.75)}
     <div class="mf">
       <button class="btn" onclick="fecharModal('ov-despesa')">Cancelar</button>
       <button class="btn btn-nh" id="dp-salvar" onclick="salvarDespesa()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ENTRADA MANUAL -->
+<div class="ov" id="ov-entrada">
+  <div class="modal">
+    <div class="mh">
+      <div><h3 id="en-titulo">Nova entrada</h3>
+        <p>Dinheiro que entrou e não nasce de uma cobrança do sistema — aporte, reembolso, rendimento, honorário pago por fora.</p></div>
+      <button class="btn" onclick="fecharModal('ov-entrada')" style="padding:5px 10px">×</button>
+    </div>
+    <div class="mb">
+      <div class="campo"><label>Data *</label><input type="date" id="en-data"></div>
+      <div class="campo"><label>Valor *</label>
+        <input type="text" id="en-valor" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
+      <div class="campo full"><label>Descrição *</label>
+        <input type="text" id="en-desc" placeholder="Ex: Aporte do sócio — reforço de caixa"></div>
+      <div class="campo"><label>Categoria</label><select id="en-cat"></select></div>
+      <div class="campo"><label>Entrou em qual conta *</label><select id="en-conta"></select></div>
+      <div class="campo full"><label>Vincular a uma empresa</label>
+        <select id="en-empresa"></select>
+        <div style="font-size:10.5px;color:var(--t3);line-height:1.5">Só quando a entrada existe por causa de um cliente. Cobrança de cliente com contrato deve ser lançada em <b>A Receber</b>, não aqui.</div></div>
+      <div class="campo full"><label>Observações</label>
+        <textarea id="en-obs" placeholder="De onde veio, quem depositou, nº do comprovante"></textarea></div>
+      <div class="erro" id="en-erro"></div>
+    </div>
+    <div class="mf">
+      <button class="btn" onclick="fecharModal('ov-entrada')">Cancelar</button>
+      <button class="btn btn-nh" id="en-salvar" onclick="salvarEntrada()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONTA / CAIXA -->
+<div class="ov" id="ov-conta">
+  <div class="modal">
+    <div class="mh">
+      <div><h3 id="co-titulo">Nova conta ou caixa</h3>
+        <p>Onde o dinheiro fica. O saldo é calculado a partir do que você declarar aqui mais os lançamentos.</p></div>
+      <button class="btn" onclick="fecharModal('ov-conta')" style="padding:5px 10px">×</button>
+    </div>
+    <div class="mb">
+      <div class="campo"><label>Nome *</label>
+        <input type="text" id="co-nome" placeholder="Ex: Itaú PJ, Caixa do setor"></div>
+      <div class="campo"><label>Tipo</label>
+        <select id="co-tipo">
+          <option value="BANCO">Conta bancária</option>
+          <option value="CAIXA">Caixa (dinheiro em espécie)</option>
+          <option value="APLICACAO">Aplicação / reserva</option>
+        </select></div>
+      <div class="campo full"><label>Identificação (opcional)</label>
+        <input type="text" id="co-ident" placeholder="Ag. 1234 · C/C 56789-0"></div>
+      <!-- Saldo inicial com data é o que faz a conta fechar com o
+           extrato do banco. A data é um corte: lançamento anterior a
+           ela já está dentro do saldo declarado e não é somado de
+           novo — sem isso, o dinheiro apareceria em dobro. -->
+      <div class="campo"><label>Saldo inicial</label>
+        <input type="text" id="co-saldo" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
+      <div class="campo"><label>Saldo nesta data</label>
+        <input type="date" id="co-saldodata"></div>
+      <div class="campo full">
+        <div style="font-size:10.5px;color:var(--t3);line-height:1.55">
+          Informe o saldo que a conta tinha na data escolhida — o extrato do dia, ou o dinheiro contado na gaveta.
+          Movimentos <b>anteriores</b> a essa data não são somados: entende-se que já estão dentro do saldo declarado.</div></div>
+      <div class="campo"><label>Situação</label>
+        <select id="co-ativo">
+          <option value="1">Ativa</option>
+          <option value="0">Arquivada</option>
+        </select></div>
+      <div class="campo full"><label>Observações</label><textarea id="co-obs"></textarea></div>
+      <div class="erro" id="co-erro"></div>
+    </div>
+    <div class="mf">
+      <button class="btn" id="co-excluir" onclick="excluirConta()" style="margin-right:auto;display:none">Excluir</button>
+      <button class="btn" onclick="fecharModal('ov-conta')">Cancelar</button>
+      <button class="btn btn-nh" id="co-salvar" onclick="salvarConta()">Salvar</button>
     </div>
   </div>
 </div>
@@ -529,6 +610,11 @@ body.light .ac-form{background:rgba(255,255,255,.75)}
       <div class="campo" id="cx-recdata" style="display:none"><label>Recebida em</label><input type="date" id="rc-dtreceb"></div>
       <div class="campo" id="cx-recvalor" style="display:none"><label>Valor recebido</label>
         <input type="text" id="rc-vlreceb" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
+      <!-- Sem dizer ONDE entrou, o recebimento soma no resultado do mês
+           mas não aparece em conta nenhuma — e o saldo do caixa fica
+           menor do que o dinheiro que existe de verdade. -->
+      <div class="campo full" id="cx-recconta" style="display:none"><label>Entrou em qual conta</label>
+        <select id="rc-conta"></select></div>
       <div class="campo"><label>Nota fiscal</label><input type="text" id="rc-nf" placeholder="Nº"></div>
       <div class="campo"><label>Link</label><input type="text" id="rc-link" placeholder="https://…"></div>
       <div class="erro" id="rc-erro"></div>
@@ -569,6 +655,8 @@ var EMPRESAS=[];        /* {nome, cnpj} de config/empresas   */
 var CONTRATOS=[];       /* nh_contratos_honorarios           */
 var RECEITAS=[];        /* nh_receitas                       */
 var DESPESAS=[];        /* coleção `financeiro`, que já existe */
+var ENTRADAS=[];        /* nh_entradas — entradas manuais          */
+var CONTAS=[];          /* config/contas_financeiro — contas/caixas */
 var GANHAS=[];          /* licitações ganhas, do Sistema NH  */
 var EMPENHOS=[];        /* empenhos, do Portal de Contratos  */
 
@@ -757,8 +845,19 @@ function resumoDoMes(){
     return !!(d && d.getMonth()===MES && d.getFullYear()===ANO);
   }).reduce(function(s,a){ return s+num(a[4]); },0);
 
+  /* Entradas manuais: dinheiro que entrou sem cobrança por trás. Não
+     mexem em "previsto" — nunca foram previstas — mas entram no que
+     realmente sobrou no mês, senão o resultado mente para baixo. */
+  var entradasMes=ENTRADAS.filter(function(e){
+    var d=dData(e.data);
+    return !!(d && d.getMonth()===MES && d.getFullYear()===ANO);
+  });
+  var entradas=entradasMes.reduce(function(s,e){ return s+num(e.valor); },0);
+
   return {previsto:previsto, recebido:recebido, aReceber:aReceber, emAtraso:emAtraso,
-          despesas:despesas, resultado:recebido-despesas, qtd:doMes.length, doMes:doMes};
+          despesas:despesas, entradas:entradas, qtdEntradas:entradasMes.length,
+          entrou:recebido+entradas, resultado:(recebido+entradas)-despesas,
+          qtd:doMes.length, doMes:doMes};
 }
 
 /* Os doze meses do ano corrente, para o gráfico. Mesma regra de
@@ -788,13 +887,18 @@ async function carregarTudo(){
      São leitura apenas — o financeiro nunca escreve neles. É assim que
      "interligado, mas independente" se sustenta: se essas coleções não
      existirem, o resto continua funcionando e só some a sugestão. */
-  var [emp, ct, rc, dp, gn, fat] = await Promise.all([
+  var [emp, ct, rc, dp, gn, fat, en, co] = await Promise.all([
     db.collection('config').doc('empresas').get(),
     db.collection('nh_contratos_honorarios').get(),
     db.collection('nh_receitas').get(),
     db.collection('financeiro').get(),
     db.collection('ganhas').get().catch(function(){ return {docs:[]}; }),
-    db.collection('contrato_faturamento').get().catch(function(){ return {docs:[]}; })
+    db.collection('contrato_faturamento').get().catch(function(){ return {docs:[]}; }),
+    /* Coleções novas: se as regras ainda não estiverem publicadas, o
+       resto do sistema continua de pé e só a aba Caixa fica vazia —
+       melhor que a tela inteira morrer numa permissão. */
+    db.collection('nh_entradas').get().catch(function(e){ _erroCaixa=e; return {docs:[]}; }),
+    db.collection('config').doc('contas_financeiro').get().catch(function(e){ _erroCaixa=e; return {exists:false}; })
   ]);
   GANHAS=(gn.docs||[]).map(function(d){
     return {id:d.id, arr:(d.data()||{})._arr||[]};
@@ -815,6 +919,13 @@ async function carregarTudo(){
     a._id=d.id;
     return a;
   });
+  ENTRADAS=(en.docs||[]).map(function(d){ return Object.assign({id:d.id}, d.data()); });
+  CONTAS=((co.exists?(co.data().lista||[]):[])||[]).map(function(c){
+    return {nome:String(c.nome||'').trim(), tipo:String(c.tipo||'BANCO'),
+            identificacao:String(c.identificacao||''), saldoInicial:num(c.saldoInicial),
+            dataSaldoInicial:String(c.dataSaldoInicial||''), ativo:c.ativo!==false,
+            obs:String(c.obs||'')};
+  }).filter(function(c){ return c.nome; });
   pintar();
 }
 
@@ -839,7 +950,8 @@ function pintar(){
       '<div class="fin-hero-sub">'+frase+'</div>'+
     '</div>'+
     '<div class="fin-hero-lado">'+
-      '<div><div class="fin-mini-l">Entrou</div><div class="fin-mini-v" style="color:var(--g1)">'+brl(r.recebido)+'</div></div>'+
+      '<div><div class="fin-mini-l">Entrou</div><div class="fin-mini-v" style="color:var(--g1)">'+brl(r.entrou)+'</div>'+
+        (r.entradas>0?'<div style="font-size:10px;color:var(--t3);margin-top:2px">'+brl(r.recebido)+' de cobranças + '+brl(r.entradas)+' de outras entradas</div>':'')+'</div>'+
       '<div><div class="fin-mini-l">Saiu</div><div class="fin-mini-v" style="color:var(--y1)">'+brl(r.despesas)+'</div></div>'+
       '<div><div class="fin-mini-l">Em aberto</div><div class="fin-mini-v" style="color:var(--b_)">'+brl(r.aReceber)+'</div></div>'+
     '</div>';
@@ -856,8 +968,14 @@ function pintar(){
     kpi('Recebido', brl(r.recebido), 'var(--g1)', pctReceb.toFixed(0)+'% do previsto', 'receber') +
     kpi('A receber', brl(r.aReceber), 'var(--b_)', 'ainda em aberto', 'receber') +
     (r.emAtraso>0 ? kpi('Em atraso', brl(r.emAtraso), 'var(--r1)', 'vencidas sem pagamento', 'receber') : '') +
-    kpi('Despesas', brl(r.despesas), 'var(--y1)', 'lançadas no Sistema NH', '') +
-    kpi('Resultado', brl(r.resultado), corRes, 'recebido − despesas', '');
+    (r.entradas>0 ? kpi('Outras entradas', brl(r.entradas), 'var(--g1)', r.qtdEntradas+' lançamento(s) manual(is)', 'caixa') : '') +
+    kpi('Despesas', brl(r.despesas), 'var(--y1)', 'lançadas no Sistema NH', 'despesas') +
+    kpi('Resultado', brl(r.resultado), corRes, 'entrou − despesas', '') +
+    /* Saldo é o número que ninguém tinha: quanto existe AGORA, somando
+       banco e caixa. O resultado do mês responde "como foi o mês"; o
+       saldo responde "dá para pagar a folha na sexta". */
+    kpi('Saldo em conta e caixa', brl(_saldoTotal()), 'var(--b_)',
+        CONTAS.length?'em '+contasAtivas().length+' conta(s)':'nenhuma conta cadastrada', 'caixa');
 
   /* O selo na aba: quantos êxitos já podem ser cobrados e ninguém
      cobrou. É o dinheiro que costuma ficar para trás. */
@@ -872,7 +990,8 @@ function pintar(){
     ABA==='visao'    ? painelVisao(r, pend) :
     ABA==='receber'  ? painelReceber(r) :
     ABA==='exitos'   ? painelExitos(pend) :
-    ABA==='despesas' ? painelDespesas() : painelContratos();
+    ABA==='despesas' ? painelDespesas() :
+    ABA==='caixa'    ? painelCaixa() : painelContratos();
 }
 
 /* ── Aging: a idade da dívida ──────────────────────────────────────
@@ -1476,6 +1595,7 @@ function rcAoTrocarStatus(){
   var mostra=(st==='RECEBIDA');
   document.getElementById('cx-recdata').style.display=mostra?'':'none';
   document.getElementById('cx-recvalor').style.display=mostra?'':'none';
+  document.getElementById('cx-recconta').style.display=mostra?'':'none';
 }
 function abrirReceita(id){
   _rcEdit=id||null;
@@ -1491,6 +1611,7 @@ function abrirReceita(id){
   sv('rc-status', r?(r.status||'PREVISTA'):'PREVISTA');
   sv('rc-dtreceb', r?dISO(r.dataRecebimento):'');
   sv('rc-vlreceb', r&&num(r.valorRecebido)>0?brl(num(r.valorRecebido)):'');
+  opcoesConta('rc-conta', r?(r.contaRecebimento||''):'', '— não informar —');
   sv('rc-nf', r?(r.notaFiscal||''):'');
   sv('rc-link', r?(r.link||''):'');
   /* Monta a lista de processos da empresa e, se a cobrança já estava
@@ -1638,6 +1759,7 @@ async function salvarReceita(){
     valor: valor, dataVencimento: dBR(venc),
     dataRecebimento: (st==='RECEBIDA')?dBR(gv('rc-dtreceb')):'',
     valorRecebido: recebido, status: st,
+    contaRecebimento: (st==='RECEBIDA')?gv('rc-conta'):'',
     notaFiscal: gv('rc-nf'), link: gv('rc-link'),
     atualizadoPor: (auth.currentUser&&auth.currentUser.email)||'', atualizadoEm: new Date().toLocaleString('pt-BR')
   };
@@ -1838,6 +1960,7 @@ function imprimirRelatorio(){
     '<div class="card"><div class="lbl">Recebido</div><div class="num" style="color:#16a34a">'+brl(r.recebido)+'</div></div>'+
     '<div class="card"><div class="lbl">A receber</div><div class="num" style="color:#2563eb">'+brl(r.aReceber)+'</div></div>'+
     (r.emAtraso>0?'<div class="card"><div class="lbl">Em atraso</div><div class="num" style="color:#dc2626">'+brl(r.emAtraso)+'</div></div>':'')+
+    (r.entradas>0?'<div class="card"><div class="lbl">Outras entradas</div><div class="num" style="color:#16a34a">'+brl(r.entradas)+'</div></div>':'')+
     '<div class="card"><div class="lbl">Despesas</div><div class="num" style="color:#ca8a04">'+brl(r.despesas)+'</div></div>'+
     '<div class="card"><div class="lbl">Resultado</div><div class="num" style="color:'+(r.resultado>=0?'#16a34a':'#dc2626')+'">'+brl(r.resultado)+'</div></div>'+
   '</div>';
@@ -1872,6 +1995,34 @@ function imprimirRelatorio(){
     });
     h+='<tr class="tot"><td colspan="5">Total</td><td class="num">'+brl(r.despesas)+'</td></tr></table>';
   } else h+='<div class="vazio">Nenhuma despesa lançada neste mês.</div>';
+
+  var em=entradasDoMes();
+  if(em.length){
+    h+='<h2>Outras entradas do mês ('+em.length+')</h2>';
+    h+='<table><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Conta</th><th class="num">Valor</th></tr>';
+    em.forEach(function(x){
+      h+='<tr><td>'+esc(x.data||'—')+'</td><td>'+esc(x.descricao||'—')+'</td>'+
+         '<td>'+esc(x.categoria||'—')+'</td><td>'+esc(x.conta||'—')+'</td>'+
+         '<td class="num">'+brl(num(x.valor))+'</td></tr>';
+    });
+    h+='<tr class="tot"><td colspan="4">Total</td><td class="num">'+brl(r.entradas)+'</td></tr></table>';
+  }
+
+  /* Saldo é foto do dia da impressão, não do mês escolhido — e o
+     relatório precisa dizer isso, senão quem lê em janeiro acha que
+     aquele era o saldo de janeiro. */
+  var sc=saldoContas();
+  if(sc.contas.length){
+    h+='<h2>Saldo em conta e caixa <span style="font-weight:400;font-size:11px">'+
+       '(posição de '+new Date().toLocaleDateString('pt-BR')+')</span></h2>';
+    h+='<table><tr><th>Conta</th><th>Tipo</th><th class="num">Saldo</th></tr>';
+    sc.contas.forEach(function(x){
+      h+='<tr><td>'+esc(x.nome)+'</td>'+
+         '<td>'+(x.tipo==='CAIXA'?'Caixa':x.tipo==='APLICACAO'?'Aplicação':'Conta bancária')+'</td>'+
+         '<td class="num">'+brl(x.saldo)+'</td></tr>';
+    });
+    h+='<tr class="tot"><td colspan="2">Total</td><td class="num">'+brl(sc.total)+'</td></tr></table>';
+  }
 
   if(a.total>0){
     h+='<h2>Idade do que está em aberto</h2><table>'+
@@ -2074,7 +2225,7 @@ function abrirDespesa(id){
   sv('dp-desc', a?(a[2]||''):'');
   sv('dp-valor', a&&num(a[4])>0?brl(num(a[4])):'');
   sv('dp-forn', a?(a[3]||''):'');
-  sv('dp-conta', a?(a[6]||''):'');
+  opcoesConta('dp-conta', a?(a[6]||''):'', '— não informar —');
   sv('dp-obs', a?(a[7]||''):'');
   var sc=document.getElementById('dp-cat');
   sc.innerHTML=DESP_CATEGORIAS.map(function(c){ return '<option value="'+esc(c)+'">'+esc(c)+'</option>'; }).join('');
@@ -2125,6 +2276,414 @@ async function excluirDespesa(id){
   if(!confirm('Excluir a despesa "'+(a[2]||'sem descrição')+'" de '+brl(num(a[4]))+'?\n\nIsso não volta.')) return;
   try{ await db.collection('financeiro').doc(id).delete(); await carregarTudo(); }
   catch(e){ alert(msgErro(e)); }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   CAIXA E CONTAS — o dinheiro que existe
+
+   O sistema sabia responder "quanto a NH tem a receber" e "quanto
+   gastou". Não sabia responder a pergunta mais simples de todas:
+   QUANTO TEM. Faltavam duas coisas, e uma sem a outra não resolve.
+
+   1. Um lugar onde o dinheiro fica. Conta bancária, caixa do setor,
+      aplicação. Antes, "conta" era um texto solto na despesa — bom
+      para lembrar, inútil para somar.
+
+   2. Entrada que não é cobrança. Aporte de sócio, reembolso,
+      rendimento, honorário que o cliente pagou em espécie. Tudo isso
+      é dinheiro que entra e que o sistema não tinha como registrar:
+      só existia receita amarrada a empresa, contrato e vencimento.
+
+   A regra que dá sentido ao saldo: só é caixa o que já ACONTECEU.
+   Cobrança recebida, entrada manual e despesa PAGA entram na conta.
+   Previsão e conta a pagar ficam de fora — elas dizem o que vai
+   acontecer, não o que existe na gaveta.
+   ════════════════════════════════════════════════════════════════ */
+
+var ENT_CATEGORIAS=['Aporte dos sócios','Reembolso','Rendimento de aplicação',
+  'Honorário recebido por fora','Venda de bem','Restituição de imposto',
+  'Empréstimo recebido','Ajuste de saldo','Outros'];
+var _enEdit=null, _coEdit=null, _erroCaixa=null;
+
+function contasAtivas(){ return CONTAS.filter(function(c){ return c.ativo!==false; }); }
+
+function acharConta(nome){
+  var k=String(nome||'').trim().toUpperCase();
+  if(!k) return null;
+  return CONTAS.filter(function(c){ return c.nome.trim().toUpperCase()===k; })[0]||null;
+}
+
+/** Preenche um <select> de conta. Valor antigo que não está mais na
+    lista entra como opção mesmo assim: editar um lançamento não pode
+    apagar em silêncio a conta que ele já tinha. */
+function opcoesConta(id, atual, rotuloVazio){
+  var s=document.getElementById(id); if(!s) return;
+  var v=String(atual||'').trim();
+  var itens=contasAtivas().map(function(c){ return c.nome; });
+  if(v && !itens.filter(function(n){ return n.toUpperCase()===v.toUpperCase(); }).length) itens.push(v);
+  s.innerHTML='<option value="">'+(rotuloVazio||'— não informar —')+'</option>'+
+    itens.map(function(n){ return '<option value="'+esc(n)+'">'+esc(n)+'</option>'; }).join('');
+  s.value=v;
+}
+
+/** Todo movimento de dinheiro que já aconteceu, de todas as origens,
+    numa lista só. É a base do saldo e do extrato. */
+function movimentos(){
+  var out=[];
+  ENTRADAS.forEach(function(e){
+    var v=num(e.valor); if(v<=0) return;
+    out.push({data:e.data||'', conta:String(e.conta||''), valor:v, sinal:1,
+      desc:e.descricao||'(sem descrição)', fonte:e.categoria||'Entrada manual', id:e.id, tipo:'ENTRADA'});
+  });
+  RECEITAS.filter(valida).forEach(function(r){
+    var v=num(r.valorRecebido); if(v<=0) return;
+    out.push({data:r.dataRecebimento||r.dataVencimento||'', conta:String(r.contaRecebimento||''),
+      valor:v, sinal:1, desc:(r.descricao||r.tipo||'Cobrança')+(r.empresa?' · '+r.empresa:''),
+      fonte:'Cobrança recebida', id:r.id, tipo:'RECEITA'});
+  });
+  DESPESAS.forEach(function(a){
+    if(String(a[5]||'').toUpperCase()!=='PAGA') return;   /* a pagar não saiu do caixa */
+    var v=num(a[4]); if(v<=0) return;
+    out.push({data:a[0]||'', conta:String(a[6]||''), valor:v, sinal:-1,
+      desc:a[2]||'(sem descrição)', fonte:a[1]||'Despesa paga', id:a._id, tipo:'DESPESA'});
+  });
+  return out;
+}
+
+/** Saldo de cada conta e do conjunto. */
+function saldoContas(){
+  var mapa={}, ordem=[];
+  contasAtivas().forEach(function(c){
+    var k=c.nome.trim().toUpperCase();
+    mapa[k]={conta:c, nome:c.nome, tipo:c.tipo||'BANCO', inicial:num(c.saldoInicial),
+             entrou:0, saiu:0, mesEntrou:0, mesSaiu:0, qtd:0};
+    ordem.push(k);
+  });
+  /* Lançamento com conta em branco ou apontando para conta que não
+     existe mais. Não some da conta geral, mas também não pode entrar
+     no saldo de ninguém — vira um aviso para ser corrigido. */
+  var sem={nome:'(sem conta informada)', inicial:0, entrou:0, saiu:0, mesEntrou:0, mesSaiu:0, qtd:0};
+
+  movimentos().forEach(function(m){
+    var alvo=mapa[String(m.conta||'').trim().toUpperCase()]||sem;
+    var d=dData(m.data);
+    /* Corte do saldo inicial: o que é anterior à data declarada já
+       está dentro dela. Somar seria contar o mesmo dinheiro duas
+       vezes — o erro clássico de quem importa saldo. */
+    if(alvo!==sem && alvo.conta.dataSaldoInicial){
+      var ini=dData(alvo.conta.dataSaldoInicial);
+      if(ini && d && d<ini) return;
+    }
+    if(m.sinal>0) alvo.entrou+=m.valor; else alvo.saiu+=m.valor;
+    alvo.qtd++;
+    if(d && d.getMonth()===MES && d.getFullYear()===ANO){
+      if(m.sinal>0) alvo.mesEntrou+=m.valor; else alvo.mesSaiu+=m.valor;
+    }
+  });
+
+  var lista=ordem.map(function(k){ var x=mapa[k]; x.saldo=x.inicial+x.entrou-x.saiu; return x; });
+  sem.saldo=sem.entrou-sem.saiu;
+  return {contas:lista, semConta:sem,
+    total:lista.reduce(function(s,x){ return s+x.saldo; },0)};
+}
+
+function _saldoTotal(){ try{ return saldoContas().total; }catch(e){ return 0; } }
+
+function entradasDoMes(){
+  return ENTRADAS.filter(function(e){
+    var d=dData(e.data);
+    return !!(d && d.getMonth()===MES && d.getFullYear()===ANO);
+  }).sort(function(x,y){
+    var dx=dData(x.data), dy=dData(y.data);
+    return (dy?dy.getTime():0)-(dx?dx.getTime():0);
+  });
+}
+
+function painelCaixa(){
+  var s=saldoContas();
+  var lista=entradasDoMes();
+  var totalEnt=lista.reduce(function(a,e){ return a+num(e.valor); },0);
+
+  var topo='<div style="display:flex;gap:9px;margin-bottom:14px;flex-wrap:wrap;align-items:center">'+
+    '<button class="btn btn-nh" onclick="abrirEntrada()">+ Nova entrada</button>'+
+    '<button class="btn" onclick="abrirConta()">+ Nova conta ou caixa</button>'+
+    '<div style="margin-left:auto;font-size:12px;color:var(--t2)">Saldo somado: '+
+      '<b style="color:'+(s.total>=0?'var(--g1)':'var(--r1)')+'">'+brl(s.total)+'</b></div>'+
+    '</div>';
+
+  if(_erroCaixa)
+    topo+='<div class="kpi" style="padding:14px;margin-bottom:14px;border-left-color:var(--r1)">'+
+      '<div style="font-size:12.5px;color:var(--t2)">Não consegui ler as contas e entradas: '+
+      esc(msgErro(_erroCaixa))+'<br>Publique as regras de <b>nh_entradas</b> e de <b>config/contas_financeiro</b> '+
+      'no Firestore e recarregue.</div></div>';
+
+  if(!CONTAS.length)
+    return topo+'<div class="kpi" style="padding:26px;text-align:center">'+
+      '<div style="font-size:14px;font-weight:700;margin-bottom:6px">Nenhuma conta cadastrada ainda</div>'+
+      '<div style="font-size:12.5px;color:var(--t2);line-height:1.6;max-width:520px;margin:0 auto">'+
+        'Cadastre a conta do banco e o caixa do setor, informando quanto cada um tem hoje. '+
+        'A partir daí o saldo se move sozinho: cobrança recebida e entrada manual somam, despesa paga subtrai.'+
+      '</div>'+
+      '<div style="margin-top:14px"><button class="btn btn-nh" onclick="abrirConta()">Cadastrar a primeira conta</button></div>'+
+      '</div>';
+
+  var cartao=function(x){
+    var cor = x.saldo<0 ? 'var(--r1)' : x.saldo>0 ? 'var(--g1)' : 'var(--t2)';
+    var rot = x.tipo==='CAIXA' ? 'Caixa' : x.tipo==='APLICACAO' ? 'Aplicação' : 'Conta bancária';
+    return '<div class="kpi" style="padding:17px 18px">'+
+      '<div class="kpi-fio" style="background:linear-gradient(90deg,'+cor+',transparent)"></div>'+
+      '<div class="kpi-l" style="margin-top:4px">'+esc(x.nome)+'</div>'+
+      '<div class="kpi-v" style="color:'+cor+'">'+brl(x.saldo)+'</div>'+
+      '<div class="kpi-s">'+rot+
+        (x.conta.identificacao?' · '+esc(x.conta.identificacao):'')+'<br>'+
+        'Em '+MESES[MES]+': <b style="color:var(--g1)">+'+brl(x.mesEntrou)+'</b> · '+
+        '<b style="color:var(--y1)">−'+brl(x.mesSaiu)+'</b>'+
+        (x.inicial||x.conta.dataSaldoInicial
+          ? '<br><span style="color:var(--t3)">Partiu de '+brl(x.inicial)+
+            (x.conta.dataSaldoInicial?' em '+esc(x.conta.dataSaldoInicial):'')+'</span>'
+          : '')+
+        '<div style="margin-top:8px"><button class="btn" style="padding:3px 9px;font-size:11px" '+
+          'onclick="abrirConta(\''+esc(x.nome)+'\')">ajustar</button></div>'+
+      '</div></div>';
+  };
+
+  var cartoes='<div class="kpis">'+s.contas.map(cartao).join('')+'</div>';
+
+  var aviso = s.semConta.qtd
+    ? '<div class="kpi" style="padding:16px;margin-bottom:14px;border-left-color:var(--y1)">'+
+        '<div class="kpi-l" style="margin-top:4px">Fora de qualquer conta</div>'+
+        '<div class="kpi-v" style="color:var(--y1)">'+brl(Math.abs(s.semConta.saldo))+'</div>'+
+        '<div class="kpi-s">'+s.semConta.qtd+' lançamento(s) sem conta informada — entraram no resultado do mês, '+
+          'mas não somam em conta nenhuma. Abra cada um e diga de onde saiu ou onde entrou.</div>'+
+      '</div>'
+    : '';
+
+  var linhasEnt = lista.length
+    ? lista.map(function(e){
+        return '<tr>'+
+          '<td style="white-space:nowrap">'+esc(e.data||'—')+'</td>'+
+          '<td><b>'+esc(e.descricao||'(sem descrição)')+'</b>'+
+            '<div class="sub">'+esc(e.categoria||'sem categoria')+
+            (e.conta?' · '+esc(e.conta):' · <span style="color:var(--y1)">sem conta</span>')+
+            (e.empresa?' · '+esc(e.empresa):'')+'</div></td>'+
+          '<td class="num" style="white-space:nowrap"><b style="color:var(--g1)">'+brl(num(e.valor))+'</b></td>'+
+          '<td style="white-space:nowrap">'+
+            '<button class="btn" style="padding:3px 9px;font-size:11px" onclick="abrirEntrada(\''+e.id+'\')">editar</button> '+
+            '<button class="btn" style="padding:3px 9px;font-size:11px" onclick="excluirEntrada(\''+e.id+'\')">excluir</button>'+
+          '</td></tr>';
+      }).join('')
+    : '<tr><td colspan="4" style="text-align:center;color:var(--t3);padding:18px">'+
+      'Nenhuma entrada manual em '+MESES[MES]+'.</td></tr>';
+
+  /* Extrato: tudo que mexeu no caixa neste mês, de qualquer origem.
+     É onde se confere o saldo contra o extrato do banco. */
+  var mv=movimentos().filter(function(m){
+    var d=dData(m.data);
+    return !!(d && d.getMonth()===MES && d.getFullYear()===ANO);
+  }).sort(function(x,y){
+    var dx=dData(x.data), dy=dData(y.data);
+    return (dy?dy.getTime():0)-(dx?dx.getTime():0);
+  });
+
+  var linhasMv = mv.length
+    ? mv.map(function(m){
+        return '<tr>'+
+          '<td style="white-space:nowrap">'+esc(m.data||'—')+'</td>'+
+          '<td>'+esc(m.desc)+'<div class="sub">'+esc(m.fonte)+
+            (m.conta?' · '+esc(m.conta):' · <span style="color:var(--y1)">sem conta</span>')+'</div></td>'+
+          '<td class="num" style="white-space:nowrap;color:'+(m.sinal>0?'var(--g1)':'var(--y1)')+'"><b>'+
+            (m.sinal>0?'+':'−')+brl(m.valor)+'</b></td>'+
+        '</tr>';
+      }).join('')
+    : '<tr><td colspan="3" style="text-align:center;color:var(--t3);padding:18px">Nenhum movimento em '+MESES[MES]+'.</td></tr>';
+
+  return topo+cartoes+aviso+
+    '<div class="fin-duplo" style="align-items:start">'+
+      '<div class="kpi" style="padding:0;overflow:hidden">'+
+        '<div class="kpi-l" style="padding:16px 16px 10px;margin:0">Entradas manuais de '+MESES[MES]+
+          (totalEnt>0?' · <span style="color:var(--g1)">'+brl(totalEnt)+'</span>':'')+'</div>'+
+        '<div style="overflow-x:auto"><table style="min-width:0">'+
+          '<thead><tr><th>Data</th><th>Descrição</th><th class="num">Valor</th><th></th></tr></thead>'+
+          '<tbody>'+linhasEnt+'</tbody></table></div>'+
+      '</div>'+
+      '<div class="kpi" style="padding:0;overflow:hidden">'+
+        '<div class="kpi-l" style="padding:16px 16px 10px;margin:0">Extrato de '+MESES[MES]+' — tudo que mexeu no caixa</div>'+
+        '<div style="overflow-x:auto"><table style="min-width:0">'+
+          '<thead><tr><th>Data</th><th>Movimento</th><th class="num">Valor</th></tr></thead>'+
+          '<tbody>'+linhasMv+'</tbody></table></div>'+
+      '</div>'+
+    '</div>';
+}
+
+/* ── Entrada manual ────────────────────────────────────────────── */
+function abrirEntrada(id){
+  _enEdit=id||null;
+  var e=id?ENTRADAS.filter(function(x){ return x.id===id; })[0]:null;
+  document.getElementById('en-titulo').textContent=id?'Editar entrada':'Nova entrada';
+  /* Mesmo cuidado da despesa: a data padrão fica dentro do mês que
+     está aberto, senão o lançamento nasce fora da tela. */
+  var hj=new Date();
+  var padrao=(hj.getMonth()===MES&&hj.getFullYear()===ANO)?hj:new Date(ANO,MES,1);
+  sv('en-data', e?dISO(e.data):padrao.toISOString().slice(0,10));
+  sv('en-desc', e?(e.descricao||''):'');
+  sv('en-valor', e&&num(e.valor)>0?brl(num(e.valor)):'');
+  sv('en-obs', e?(e.obs||''):'');
+  var sc=document.getElementById('en-cat');
+  sc.innerHTML=ENT_CATEGORIAS.map(function(c){ return '<option value="'+esc(c)+'">'+esc(c)+'</option>'; }).join('');
+  sc.value=(e&&e.categoria)||'Outros';
+  /* Conta única cadastrada: já vem escolhida — não faz sentido pedir
+     que a pessoa selecione a única opção existente. */
+  var ativas=contasAtivas();
+  opcoesConta('en-conta', e?(e.conta||''):(ativas.length===1?ativas[0].nome:''), '— escolha a conta —');
+  var se=document.getElementById('en-empresa');
+  se.innerHTML='<option value="">— entrada da NH —</option>'+
+    EMPRESAS.map(function(x){ return '<option value="'+esc(x.nome)+'">'+esc(x.nome)+'</option>'; }).join('');
+  se.value=(e&&e.empresa)||'';
+  erro('en-erro','');
+  document.getElementById('ov-entrada').classList.add('on');
+}
+
+async function salvarEntrada(){
+  var data=gv('en-data'), desc=gv('en-desc').trim(), valor=num(gv('en-valor')), conta=gv('en-conta');
+  if(!data) return erro('en-erro','Informe a data em que o dinheiro entrou.');
+  if(!desc) return erro('en-erro','Descreva a entrada — é por ela que você reconhece o lançamento depois.');
+  if(!(valor>0)) return erro('en-erro','Informe um valor maior que zero.');
+  if(!conta) return erro('en-erro','Escolha a conta ou o caixa onde o dinheiro entrou. Sem isso a entrada soma no mês, mas não aparece em saldo nenhum.');
+  erro('en-erro','');
+
+  var quem=(auth.currentUser&&auth.currentUser.email)||'';
+  var agora=new Date().toLocaleString('pt-BR');
+  var dados={data:dBR(data), descricao:desc, categoria:gv('en-cat'), valor:valor,
+    conta:conta, empresa:gv('en-empresa'), obs:gv('en-obs').trim(),
+    atualizadoPor:quem, atualizadoEm:agora};
+
+  var btn=document.getElementById('en-salvar');
+  btn.disabled=true; btn.textContent='Salvando…';
+  try{
+    if(_enEdit) await db.collection('nh_entradas').doc(_enEdit).update(dados);
+    else { dados.criadoPor=quem; dados.criadoEm=agora; dados._createdAt=Date.now();
+           await db.collection('nh_entradas').add(dados); }
+    fecharModal('ov-entrada');
+    await carregarTudo();
+  }catch(e){ erro('en-erro', msgErro(e)); }
+  finally{ btn.disabled=false; btn.textContent='Salvar'; }
+}
+
+async function excluirEntrada(id){
+  var e=ENTRADAS.filter(function(x){ return x.id===id; })[0];
+  if(!e) return;
+  if(!confirm('Excluir a entrada "'+(e.descricao||'sem descrição')+'" de '+brl(num(e.valor))+'?\n\nIsso não volta.')) return;
+  try{ await db.collection('nh_entradas').doc(id).delete(); await carregarTudo(); }
+  catch(err){ alert(msgErro(err)); }
+}
+
+/* ── Conta / caixa ─────────────────────────────────────────────── */
+function abrirConta(nome){
+  _coEdit=nome||null;
+  var c=nome?acharConta(nome):null;
+  document.getElementById('co-titulo').textContent=c?'Ajustar conta':'Nova conta ou caixa';
+  sv('co-nome', c?c.nome:'');
+  sv('co-tipo', c?(c.tipo||'BANCO'):'BANCO');
+  sv('co-ident', c?(c.identificacao||''):'');
+  sv('co-saldo', c&&num(c.saldoInicial)>0?brl(num(c.saldoInicial)):'');
+  sv('co-saldodata', c&&c.dataSaldoInicial?dISO(c.dataSaldoInicial):new Date().toISOString().slice(0,10));
+  sv('co-ativo', c?(c.ativo===false?'0':'1'):'1');
+  sv('co-obs', c?(c.obs||''):'');
+  document.getElementById('co-excluir').style.display=c?'':'none';
+  erro('co-erro','');
+  document.getElementById('ov-conta').classList.add('on');
+}
+
+async function _gravarContas(lista){
+  await db.collection('config').doc('contas_financeiro').set({
+    lista:lista,
+    atualizadoPor:(auth.currentUser&&auth.currentUser.email)||'',
+    atualizadoEm:new Date().toLocaleString('pt-BR')
+  }, {merge:true});
+}
+
+/** Renomear uma conta é renomear o vínculo de todo lançamento que
+    aponta para ela. Sem esta varredura, mudar "Itaú" para "Itaú PJ"
+    faria o saldo zerar e os lançamentos irem todos para o balde de
+    "sem conta" — o usuário só veria o dinheiro sumir. */
+async function _renomearConta(antigo, novo){
+  var lote=db.batch(), n=0;
+  ENTRADAS.forEach(function(e){
+    if(String(e.conta||'').trim().toUpperCase()===antigo.trim().toUpperCase()){
+      lote.update(db.collection('nh_entradas').doc(e.id), {conta:novo}); n++;
+    }
+  });
+  RECEITAS.forEach(function(r){
+    if(String(r.contaRecebimento||'').trim().toUpperCase()===antigo.trim().toUpperCase()){
+      lote.update(db.collection('nh_receitas').doc(r.id), {contaRecebimento:novo}); n++;
+    }
+  });
+  DESPESAS.forEach(function(a){
+    if(String(a[6]||'').trim().toUpperCase()===antigo.trim().toUpperCase()){
+      var arr=a.slice(); arr[6]=novo;
+      lote.update(db.collection('financeiro').doc(a._id), {_arr:arr}); n++;
+    }
+  });
+  if(n) await lote.commit();
+  return n;
+}
+
+async function salvarConta(){
+  var nome=gv('co-nome').trim();
+  if(!nome) return erro('co-erro','Dê um nome à conta — é por ele que os lançamentos a encontram.');
+  var jaExiste=CONTAS.filter(function(c){
+    return c.nome.trim().toUpperCase()===nome.toUpperCase()
+        && (!_coEdit || c.nome.trim().toUpperCase()!==_coEdit.trim().toUpperCase());
+  }).length;
+  if(jaExiste) return erro('co-erro','Já existe uma conta com esse nome.');
+  erro('co-erro','');
+
+  var reg={nome:nome, tipo:gv('co-tipo'), identificacao:gv('co-ident').trim(),
+    saldoInicial:num(gv('co-saldo')), dataSaldoInicial:dBR(gv('co-saldodata')),
+    ativo:gv('co-ativo')==='1', obs:gv('co-obs').trim()};
+
+  var btn=document.getElementById('co-salvar');
+  btn.disabled=true; btn.textContent='Salvando…';
+  try{
+    var lista=CONTAS.map(function(c){ return Object.assign({}, c); });
+    if(_coEdit){
+      var i=-1;
+      lista.forEach(function(c,k){ if(c.nome.trim().toUpperCase()===_coEdit.trim().toUpperCase()) i=k; });
+      if(i<0) lista.push(reg); else lista[i]=reg;
+      await _gravarContas(lista);
+      if(_coEdit.trim().toUpperCase()!==nome.toUpperCase()){
+        var qtd=await _renomearConta(_coEdit, nome);
+        if(qtd) console.info('Conta renomeada — '+qtd+' lançamento(s) atualizado(s).');
+      }
+    }else{
+      lista.push(reg);
+      await _gravarContas(lista);
+    }
+    fecharModal('ov-conta');
+    await carregarTudo();
+  }catch(e){ erro('co-erro', msgErro(e)); }
+  finally{ btn.disabled=false; btn.textContent='Salvar'; }
+}
+
+/** Conta com histórico não se apaga: apagar deixaria os lançamentos
+    apontando para o vazio e o saldo deles sumiria da soma. Arquiva. */
+async function excluirConta(){
+  if(!_coEdit) return;
+  var usos=movimentos().filter(function(m){
+    return String(m.conta||'').trim().toUpperCase()===_coEdit.trim().toUpperCase();
+  }).length;
+  if(usos){
+    return erro('co-erro','Esta conta tem '+usos+' lançamento(s) e não pode ser excluída — '+
+      'o histórico ficaria órfão. Mude a Situação para <b>Arquivada</b>: ela some das listas novas e o saldo continua somando.');
+  }
+  if(!confirm('Excluir a conta "'+_coEdit+'"?\n\nEla não tem lançamentos. Isso não volta.')) return;
+  try{
+    await _gravarContas(CONTAS.filter(function(c){
+      return c.nome.trim().toUpperCase()!==_coEdit.trim().toUpperCase();
+    }).map(function(c){ return Object.assign({}, c); }));
+    fecharModal('ov-conta');
+    await carregarTudo();
+  }catch(e){ erro('co-erro', msgErro(e)); }
 }
 
 /* Adesão pendente: contrato ativo, com adesão contratada, cuja
