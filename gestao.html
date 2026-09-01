@@ -1971,6 +1971,17 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
 .nh-btn-key:hover{background:var(--nh);color:#fff;border-color:var(--nh)}
 .nh-btn-key:hover svg{stroke:#fff}
 .nh-btn-ic{padding:0 8px}
+/* ── Feito x por fazer — 30/08/2026 ──────────────────────────
+   Botão aceso = essa etapa já rodou. Apagado = falta. Numa fila de
+   dezenas de editais é o que evita clicar para descobrir. O verde não
+   é decoração: é o mesmo verde de "em execução" no resto da casa. */
+.nh-btn-ok{border-color:rgba(34,197,94,.4);color:#22c55e;background:rgba(34,197,94,.09)}
+.nh-btn-ok:hover{border-color:#22c55e;background:rgba(34,197,94,.16);color:#22c55e}
+/* Prioridade marcada pelo cliente. Vem antes dos botões e não é
+   clicável: é recado, não ação. */
+.nh-tag-prio{font-weight:800}
+.nh-tag-prio.alta{border-color:rgba(239,68,68,.45);color:#f87171;background:rgba(239,68,68,.1)}
+.nh-tag-prio.media{border-color:rgba(234,179,8,.4);color:#eab308;background:rgba(234,179,8,.09)}
 
 .nh-aviso{margin-top:10px;border-radius:8px;border:1px solid var(--b1);
   border-left:3px solid var(--nh);background:var(--s2);padding:9px 12px;font-size:11.5px;line-height:1.55}
@@ -15513,7 +15524,21 @@ async function preencherComIA(){var key=localStorage.getItem("nh_gemini_key");if
         }catch(e){bodyEl.innerHTML='<div style="color:#ef4444">Erro: '+e.message+"</div>"}}
 
 async function chamarGemini(key,parts,temp,maxTok){
-  var modelos=["gemini-2.5-flash","gemini-2.0-flash","gemini-2.0-flash-lite"];
+  /* ⚠️ MODELO APOSENTADO — 30/08/2026.
+     O Google desligou `gemini-2.0-flash-lite` e a análise passou a
+     falhar com "no longer available". A lista tem fallback, mas todos
+     os três eram da mesma geração, então caíram juntos.
+     `gemini-3.5-flash-lite` é o substituto que a própria mensagem de
+     erro do Google indicou. Os antigos ficam no fim: se um deles ainda
+     responder em algum projeto, continua servindo; se não, só custa uma
+     tentativa que falha rápido. */
+  var modelos=["gemini-3.5-flash-lite","gemini-2.5-flash","gemini-2.0-flash"];
+  /* O que já funcionou da última vez vai na frente. Quem descobre é o
+     bloco de fallback no fim desta função. */
+  try{
+    var _mSalvo=localStorage.getItem("nh_gemini_modelo");
+    if(_mSalvo && modelos.indexOf(_mSalvo)<0) modelos.unshift(_mSalvo);
+  }catch(_e){}
   for(var m=0;m<modelos.length;m++){
     try{
       var r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+modelos[m]+":generateContent?key="+key,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts:parts}],generationConfig:{temperature:temp||0.3,maxOutputTokens:maxTok||4000}})});
@@ -15557,6 +15582,42 @@ async function chamarGemini(key,parts,temp,maxTok){
       continue;
     }
   }
+  /* ── Último recurso: PERGUNTAR ao Google quais modelos existem ──
+     Nomes de modelo mudam sozinhos — foi o que aconteceu quando o
+     `gemini-2.0-flash-lite` saiu do ar e derrubou a análise inteira.
+     Em vez de eu adivinhar o nome novo a cada troca do Google, aqui o
+     código lista o que a chave enxerga e usa o primeiro que gera
+     conteúdo. O que funcionar fica guardado e passa a ser tentado
+     primeiro na próxima vez. */
+  try{
+    var rl=await fetch("https://generativelanguage.googleapis.com/v1beta/models?key="+key);
+    if(rl.ok){
+      var jl=await rl.json();
+      var disp=(jl.models||[])
+        .filter(function(m){ return (m.supportedGenerationMethods||[]).indexOf("generateContent")>=0; })
+        .map(function(m){ return String(m.name||"").replace(/^models\//,""); })
+        /* Flash antes de Pro: mais barato e rápido, e é o que estas
+           análises pedem. */
+        .sort(function(a,b){ return (a.indexOf("flash")<0?1:0)-(b.indexOf("flash")<0?1:0); });
+      for(var d=0;d<disp.length && d<4;d++){
+        if(modelos.indexOf(disp[d])>=0) continue;   /* já tentei */
+        try{
+          var rd=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+disp[d]+":generateContent?key="+key,
+            {method:"POST",headers:{"Content-Type":"application/json"},
+             body:JSON.stringify({contents:[{parts:parts}],
+               generationConfig:{temperature:temp||0,maxOutputTokens:maxTok||8000}})});
+          if(rd.ok){
+            var jd=await rd.json();
+            if(jd.candidates&&jd.candidates[0]){
+              try{ localStorage.setItem("nh_gemini_modelo",disp[d]); }catch(_ls){}
+              toast("Modelo atualizado para "+disp[d],"ok");
+              return jd;
+            }
+          }
+        }catch(_ed){}
+      }
+    }
+  }catch(_el){}
   throw new Error("Todos os modelos Gemini indisponíveis. Verifique sua API Key.");
 }
 
@@ -16619,6 +16680,8 @@ if(typeof loadAll==='function'){
     /* A lista de itens do TR: é ela que diz se o botão do card mostra
        "Itens do TR" ou "Itens (24)". */
     try{ await nhCarregarItensTR(); }catch(_e){}
+    /* E a prioridade que o cliente marcou no Viabilidade. */
+    try{ await nhCarregarDocsEditais(); }catch(_e){}
     try{if(CUR&&CUR!=='resumo'&&typeof renderTbl==='function')renderTbl(CUR);}catch(_e){}
   };
 }
@@ -16685,6 +16748,26 @@ function _nhLinhaEdital(chave){
   var id = String(chave||'').replace(/^e-/,'');
   return (ALL.editais||[]).find(function(r){ return String(r[0])===id; }) || null;
 }
+
+/* ── Campos de TOPO do edital ──────────────────────────────────
+   `prioridade` é gravada pelo Viabilidade como campo do documento, não
+   dentro do `_arr`. Como `ALL.editais` guarda só os arrays, esse dado
+   não chegava à tela — o cliente marcava prioridade alta e a NH nunca
+   ficava sabendo.
+   Um documento por edital é leitura barata e só acontece uma vez por
+   carga. */
+var DOC_EDITAL = {};
+async function nhCarregarDocsEditais(){
+  try{
+    var s = await db.collection('editais').get();
+    DOC_EDITAL = {};
+    s.forEach(function(d){
+      var x = d.data() || {};
+      if(x.prioridade) DOC_EDITAL['e-' + d.id] = {prioridade: x.prioridade};
+    });
+  }catch(e){ console.warn('[editais topo]', e.code||'', e.message); }
+}
+function _nhDocEdital(chave){ return DOC_EDITAL[chave] || null; }
 
 async function nhCarregarItensTR(){
   try{
@@ -16822,7 +16905,11 @@ async function nhExtrairItensTR(){
     ITENS_TR[c.chave] = Object.assign(ITENS_TR[c.chave]||{}, doc);
     toast(j.total+' itens extraídos','ok');
     nhPintarItensTR();
-    try{ render('editais'); }catch(_e){}
+    /* `renderTbl`, e não `render`: a primeira versão chamava uma função
+       que não existe. O `catch` engolia o erro e o card só mostrava o
+       resultado depois de recarregar a página — que foi exatamente a
+       queixa. Catch mudo esconde defeito. */
+    try{ if(CUR==='editais' && typeof renderTbl==='function') renderTbl('editais'); }catch(_e){}
   }catch(e){
     if(st) st.innerHTML='<span style="color:#f87171">'+esc0((e&&e.message)||String(e))+'</span>';
   }finally{
@@ -16844,7 +16931,11 @@ async function nhApagarItensTR(){
     delete ITENS_TR[c.chave];
     toast('Lista apagada','ok');
     nhPintarItensTR();
-    try{ render('editais'); }catch(_e){}
+    /* `renderTbl`, e não `render`: a primeira versão chamava uma função
+       que não existe. O `catch` engolia o erro e o card só mostrava o
+       resultado depois de recarregar a página — que foi exatamente a
+       queixa. Catch mudo esconde defeito. */
+    try{ if(CUR==='editais' && typeof renderTbl==='function') renderTbl('editais'); }catch(_e){}
   }catch(e){ toast('Não consegui apagar: '+((e&&e.message)||e),'err'); }
 }
 
@@ -17062,13 +17153,42 @@ if(typeof renderCard==='function'){
             +esc0(portalNome)+'<span class="nh-tag-sep"></span><span style="color:#eab308">sem endere&ccedil;o</span></span>';
         }
 
+        /* ── Prioridade que o CLIENTE marcou no Viabilidade ──────
+           Ela já era gravada no documento do edital, e ninguém deste
+           lado via. O responsável marcava "alta" e a informação morria
+           ali — que é o oposto do que uma marcação de prioridade
+           serve. Agora ela abre a fileira, porque é o que mais muda a
+           ordem do dia. */
+        var _prio = String((_nhDocEdital(chave)||{}).prioridade||'').toLowerCase();
+        if(_prio==='alta' || _prio==='media' || _prio==='média'){
+          var _pAlta = _prio==='alta';
+          itens+='<span class="nh-tag nh-tag-prio'+(_pAlta?' alta':' media')+'" '
+            +'title="'+esc0(emp)+' marcou este processo como prioridade '+(_pAlta?'ALTA':'média')+' no Viabilidade">'
+            +(_pAlta?'🔴':'🟡')+' Prioridade '+(_pAlta?'alta':'média')
+            +'<span class="nh-tag-sep"></span><span style="opacity:.75">cliente</span></span>';
+        }
+
         var iaSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3m0 12v3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1M3 12h3m12 0h3M5.6 18.4l2.1-2.1m8.6-8.6 2.1-2.1"/><circle cx="12" cy="12" r="3.2"/></svg>';
+        /* ⚠️ FEITO x POR FAZER — 30/08/2026.
+           Os três botões de IA saíam todos com a mesma cara, e a única
+           forma de saber se a análise já tinha rodado era clicar e ver.
+           Numa fila de 40 editais isso é trabalho perdido todo dia.
+           Agora quem já rodou fica aceso; quem falta fica apagado. A
+           barra vira um mapa do andamento em vez de uma fileira de
+           botões iguais. */
         if(!temPendA&&emp)
           itens+='<button class="nh-btn" title="A IA confere se a documentação da empresa atende ao edital" '
             +'onclick="event.stopPropagation();nhAbrirAnaliseCard(\''+chave+'\',\''+emp.replace(/'/g,"\\'")+'\',\''+tit.substring(0,60)+'\')">'
             +iaSvg+'Habilita&ccedil;&atilde;o</button>';
-        itens+='<button class="nh-btn" onclick="event.stopPropagation();nhAbrirModalViab(\''+chave+'\',\''+emp.replace(/'/g,"\\'")+'\',\''+tit.substring(0,60)+'\')">'
-          +iaSvg+(an?'Reavaliar':'Viabilidade')+'</button>';
+        else if(emp)
+          itens+='<button class="nh-btn nh-btn-ok" title="Habilitação já analisada — clique para ver de novo" '
+            +'onclick="event.stopPropagation();nhAbrirAnaliseCard(\''+chave+'\',\''+emp.replace(/'/g,"\\'")+'\',\''+tit.substring(0,60)+'\')">'
+            +'✓ Habilita&ccedil;&atilde;o</button>';
+
+        itens+='<button class="nh-btn'+(an?' nh-btn-ok':'')+'" '
+          +'title="'+(an?'Nota de viabilidade já calculada — clique para reavaliar':'A IA calcula a nota de viabilidade deste processo')+'" '
+          +'onclick="event.stopPropagation();nhAbrirModalViab(\''+chave+'\',\''+emp.replace(/'/g,"\\'")+'\',\''+tit.substring(0,60)+'\')">'
+          +(an?'✓ ':iaSvg)+(an?'Viabilidade':'Viabilidade')+'</button>';
 
         /* ── Itens do TR — 30/08/2026 ──────────────────────────
            A IA lê o Termo de Referência e monta a planilha que o
