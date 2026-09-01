@@ -16871,6 +16871,7 @@ async function nhExtrairItensTR(){
 
   var st = document.getElementById('nh-itens-status');
   var bt = document.getElementById('nh-itens-btn');
+  var foot = document.getElementById('nh-itens-foot');
   if(bt){ bt.disabled=true; bt.textContent='Lendo o documento…'; }
   if(st) st.innerHTML='<span style="color:var(--t3)">Baixando e lendo o TR. Documento grande pode levar um minuto…</span>';
 
@@ -16901,7 +16902,27 @@ async function nhExtrairItensTR(){
       extraidoEm: new Date().toLocaleString('pt-BR'),
       extraidoPor: (auth.currentUser&&auth.currentUser.email)||''
     };
-    await db.collection('itens_edital').doc(c.chave).set(doc,{merge:true});
+    /* ⚠️ A LISTA NÃO SE PERDE SE A GRAVAÇÃO FALHAR — 30/08/2026.
+       A leitura do TR custa uma chamada de IA e até um minuto. Quando o
+       `set` falhava (regra do Firestore não publicada, por exemplo), o
+       catch mostrava o erro e a lista ia embora junto — refazer era
+       pagar de novo pelo mesmo trabalho.
+       Agora ela fica guardada e o botão vira "tentar gravar de novo". */
+    _itensTRCtx.pendente = doc;
+    try{
+      await db.collection('itens_edital').doc(c.chave).set(doc,{merge:true});
+    }catch(errGravar){
+      var m = String(errGravar && (errGravar.code||errGravar.message) || errGravar);
+      if(st) st.innerHTML='<span style="color:#f87171">Li o TR e achei '+j.total+' itens, '+
+        'mas não consegui gravar: '+esc0(m)+'.<br>'+
+        (m.indexOf('permission')>=0
+          ? 'A coleção <b>itens_edital</b> precisa estar no firestore.rules publicado.'
+          : '')+
+        '</span>';
+      if(foot) foot.innerHTML='<button class="btn btn-nh" onclick="nhRegravarItensTR()">💾 Tentar gravar de novo</button>';
+      return;
+    }
+    _itensTRCtx.pendente = null;
     ITENS_TR[c.chave] = Object.assign(ITENS_TR[c.chave]||{}, doc);
     toast(j.total+' itens extraídos','ok');
     nhPintarItensTR();
@@ -16914,6 +16935,27 @@ async function nhExtrairItensTR(){
     if(st) st.innerHTML='<span style="color:#f87171">'+esc0((e&&e.message)||String(e))+'</span>';
   }finally{
     if(bt){ bt.disabled=false; bt.textContent='🤖 Ler o TR e extrair os itens'; }
+  }
+}
+
+/** Grava de novo a lista que a IA já leu, sem gastar outra chamada.
+ *  Serve para o caso mais comum de falha: a regra do Firestore ainda
+ *  não estava publicada quando a extração rodou. */
+async function nhRegravarItensTR(){
+  var c = _itensTRCtx;
+  if(!c || !c.pendente) return toast('Não há lista pendente para gravar.','err');
+  var st = document.getElementById('nh-itens-status');
+  if(st) st.innerHTML='<span style="color:var(--t3)">Gravando…</span>';
+  try{
+    await db.collection('itens_edital').doc(c.chave).set(c.pendente,{merge:true});
+    ITENS_TR[c.chave] = Object.assign(ITENS_TR[c.chave]||{}, c.pendente);
+    c.pendente = null;
+    toast('Lista gravada','ok');
+    nhPintarItensTR();
+    try{ if(CUR==='editais' && typeof renderTbl==='function') renderTbl('editais'); }catch(_e){}
+  }catch(e){
+    var m = String(e && (e.code||e.message) || e);
+    if(st) st.innerHTML='<span style="color:#f87171">Ainda não deu: '+esc0(m)+'</span>';
   }
 }
 
