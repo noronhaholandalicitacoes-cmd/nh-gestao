@@ -1438,6 +1438,9 @@ async function carregar(){
     await carregarRespsCad();
     await carregarAnalisesViab();
     await carregarItensEdital();
+    /* Falhou? A pessoa fica sabendo. Silêncio aqui já custou duas
+       rodadas de "não aparece e ninguém sabe por quê". */
+    if(_itensErro) setTimeout(function(){ toast(_itensErro, 'err'); }, 1200);
     /* ══════════════════════════════════════════════════════════════
        PASSO 2 DA SEPARAÇÃO POR EMPRESA — 18/08/2026
 
@@ -2205,6 +2208,10 @@ var _itensSujos  = {};      /* id -> true, quando há valor digitado sem salvar 
    regra libera por `ehOperacao()`. */
 async function carregarItensEdital(){
   ITENS_EDITAL = {};
+  /* Zera o recado antes de tentar: sem isto, um erro de uma carga
+     anterior sobreviveria a uma carga bem-sucedida e a tela acusaria
+     um problema que já passou. */
+  _itensErro = '';
   try{
     var q = db.collection('itens_edital');
     if(!(SESSAO && SESSAO.todas)){
@@ -2226,13 +2233,23 @@ async function carregarItensEdital(){
       ITENS_EDITAL[String(doc.id).replace(/^e-/, '')] = doc.data() || {};
     });
   }catch(e){
-    /* Sem itens a tela continua inteira — o voto e a justificativa não
-       dependem deles. Mas o motivo vai para o console: foi o silêncio
-       aqui que escondeu o defeito por uma rodada inteira. */
+    /* ⚠️ ERRO AQUI PRECISA APARECER — 01/09/2026.
+       Duas rodadas se perderam porque esta falha só ia para o console:
+       a tela ficava idêntica a "a NH ainda não extraiu os itens", e não
+       havia como distinguir. O voto e a justificativa continuam
+       funcionando — por isso não é um erro que trava a página —, mas
+       quem está esperando a planilha precisa saber que ela falhou. */
     console.warn('[Viabilidade] itens_edital:', e.code || '', e.message);
     ITENS_EDITAL = {};
+    _itensErro = (e.code === 'permission-denied')
+      ? 'As planilhas de itens não carregaram: o acesso a elas foi negado. Avise a NH.'
+      : 'As planilhas de itens não carregaram: ' + (e.message || e);
   }
 }
+
+/* Guardado para a tela poder dizer o que houve, em vez de fingir que
+   simplesmente não existe planilha nenhuma. */
+var _itensErro = '';
 
 function _vNum(v){
   var s = String(v == null ? '' : v).replace(/R\$\s*/g, '').replace(/\s/g, '').trim();
