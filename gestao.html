@@ -4021,6 +4021,16 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
     <div id="ia-arquivos-lista" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px"></div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
       <button onclick="preencherComIA()" style="background:var(--nh);color:#000;border:none;padding:6px 14px;border-radius:6px;font-weight:700;font-size:11px;cursor:pointer;font-family:Outfit,sans-serif">Preencher com IA</button>
+      <!-- ⚠️ A PONTE QUE FALTAVA — 01/09/2026.
+           O responsável precificava a planilha no Viabilidade e os
+           valores morriam lá: para montar a proposta, alguém aqui
+           reabria a planilha e redigitava item por item — exatamente o
+           trabalho que a planilha veio eliminar.
+           Este botão traz a lista e os valores que o cliente enviou
+           direto para a tabela da proposta. -->
+      <button id="btn-itens-cliente" onclick="usarPlanilhaDoCliente()"
+        style="background:rgba(34,197,94,.14);border:1px solid rgba(34,197,94,.4);color:#22c55e;padding:6px 14px;border-radius:6px;font-weight:700;font-size:11px;cursor:pointer;font-family:Outfit,sans-serif"
+        title="Traz os itens do TR e os valores mínimos que o cliente preencheu no Viabilidade">📋 Usar a planilha do cliente</button>
       <button onclick="analisarIA('resumo')" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:6px 12px;border-radius:6px;font-weight:600;font-size:11px;cursor:pointer;font-family:Outfit,sans-serif">Resumo</button>
       <button onclick="analisarIA('requisitos')" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:6px 12px;border-radius:6px;font-weight:600;font-size:11px;cursor:pointer;font-family:Outfit,sans-serif">Requisitos</button>
       <button onclick="analisarIA('habilitacao')" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:6px 12px;border-radius:6px;font-weight:600;font-size:11px;cursor:pointer;font-family:Outfit,sans-serif">Habilitação</button><select id="ia-emp-aderencia" onfocus="popularEmpAderencia()" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:6px 10px;border-radius:6px;font-size:11px;font-family:Outfit,sans-serif;cursor:pointer"><option value="">Empresa...</option></select><button onclick="analisarAderencia()" title="Cruza os requisitos do edital com o dossiê de documentação da empresa" style="background:linear-gradient(135deg,#059669,#22c55e);color:#fff;border:none;padding:6px 14px;border-radius:6px;font-weight:700;font-size:11px;cursor:pointer;font-family:Outfit,sans-serif">✓ Aderência da Empresa</button>
@@ -16777,8 +16787,19 @@ async function nhCarregarItensTR(){
   }catch(e){ console.warn('[itens_edital]', e.message); ITENS_TR = {}; }
 }
 
-function nhAbrirItensTR(chave, emp, titulo){
+async function nhAbrirItensTR(chave, emp, titulo){
   _itensTRCtx = {chave:chave, emp:emp, titulo:titulo};
+  /* ⚠️ RELÊ ANTES DE MOSTRAR — 01/09/2026.
+     A lista era carregada uma vez, ao abrir o sistema. Quem estava com
+     a página aberta quando o cliente enviou os preços não via nada, e
+     não tinha como saber que bastava dar F5 — parecia que o cliente
+     não tinha respondido.
+     Um documento é leitura barata, e acontece só quando alguém abre
+     este quadro de propósito. */
+  try{
+    var _s = await db.collection('itens_edital').doc(chave).get();
+    if(_s.exists) ITENS_TR[chave] = _s.data() || {};
+  }catch(_e){ /* segue com o que já estava em memória */ }
   var m = document.getElementById('nh-itens-modal');
   if(!m){
     m = document.createElement('div');
@@ -16941,6 +16962,75 @@ async function nhExtrairItensTR(){
 /** Grava de novo a lista que a IA já leu, sem gastar outra chamada.
  *  Serve para o caso mais comum de falha: a regra do Firestore ainda
  *  não estava publicada quando a extração rodou. */
+/* ═════════════════════════════════════════════════
+   DA PLANILHA DO CLIENTE PARA A PROPOSTA — 01/09/2026
+
+   Faltava o último elo. O ciclo era: a NH extrai os itens do TR → o
+   responsável precifica no Viabilidade → e aí alguém aqui reabria a
+   planilha e redigitava item por item para montar a proposta. O
+   trabalho que a planilha veio eliminar voltava no fim da fila.
+
+   O seletor de processo desta aba já usa `e-{id}` como valor — a mesma
+   chave da coleção de planilhas. Então a ponte é literalmente ler a
+   planilha daquele processo e jogar na tabela que já existe.
+
+   O valor que entra é o MÍNIMO que o cliente aceita. Não é a proposta:
+   é o piso a partir do qual o analista decide. Por isso a tela diz
+   isso em vez de deixar parecer que o preço já está fechado.
+   ═════════════════════════════════════════════════ */
+function usarPlanilhaDoCliente(){
+  var sel = document.getElementById('doc-processo-sel');
+  var chave = sel ? String(sel.value||'').trim() : '';
+  if(!chave) return toast('Escolha o processo primeiro, ali em cima.','err');
+  if(chave.indexOf('e-') !== 0)
+    return toast('A planilha de itens existe para processos de Editais Capturados.','err');
+
+  var d = ITENS_TR[chave];
+  var itens = (d && d.itens) || [];
+  if(!itens.length)
+    return toast('Este processo ainda não tem planilha. Extraia os itens do TR no card do edital.','err');
+
+  var resp = d.resposta || null;
+  var val = (resp && resp.valores) || {};
+  var comValor = 0;
+
+  var arr = itens.map(function(it, ix){
+    var v = Number(val[String(ix)] || 0);
+    if(v > 0) comValor++;
+    return {
+      item: it.n || (ix+1),
+      desc: it.desc || '',
+      unid: it.unid || 'un',
+      qtd:  it.qtd || 1,
+      /* Preferência pelo valor do CLIENTE. Sem ele, cai no estimado do
+         edital, que ao menos é um ponto de partida — melhor do que
+         célula vazia numa planilha de 200 linhas. */
+      valor_unit: v > 0 ? v : (Number(it.vunit) || '')
+    };
+  });
+
+  /* `preencherTabelaComIA` avisa "N itens extraídos" — frase certa para
+     o fluxo da IA e errada aqui: nada foi extraído agora, veio pronto
+     da planilha. Dois avisos empilhados dizendo coisas diferentes sobre
+     o mesmo clique é ruído, então silencio o de dentro e digo o que
+     realmente aconteceu. */
+  var _toast = window.toast;
+  try{
+    window.toast = function(){};
+    preencherTabelaComIA(arr);
+  } finally {
+    window.toast = _toast;
+  }
+
+  if(!resp){
+    toast(itens.length+' itens carregados com o valor ESTIMADO do edital — '+
+          'o cliente ainda não enviou os preços dele.','ok');
+  }else{
+    toast(itens.length+' itens carregados · '+comValor+' com o valor mínimo do cliente'+
+          (comValor<itens.length ? ' · os demais ficaram com o estimado do edital' : ''),'ok');
+  }
+}
+
 async function nhRegravarItensTR(){
   var c = _itensTRCtx;
   if(!c || !c.pendente) return toast('Não há lista pendente para gravar.','err');
