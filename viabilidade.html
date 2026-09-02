@@ -540,6 +540,10 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
   transition:border-color .16s,background .16s,transform .16s}
 .itens-bt:hover{border-color:var(--nh);background:rgba(249,115,22,.06);transform:translateY(-1px)}
 .itens-bt.feito{border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.06)}
+/* Estado "ainda não tem": não é botão, é recado. Sem cursor de clique
+   e sem realce, para ninguém tentar abrir o que não existe. */
+.itens-bt.itens-vazio{cursor:default;opacity:.6;border-style:dashed}
+.itens-bt.itens-vazio:hover{border-color:var(--b1);background:var(--s2);transform:none}
 .itens-bt-ic{font-size:17px;flex-shrink:0;line-height:1}
 .itens-bt-txt{min-width:0;flex:1;display:block}
 .itens-bt-txt b{display:block;font-size:13px;font-weight:700;color:var(--t1)}
@@ -1441,6 +1445,16 @@ async function carregar(){
     /* Falhou? A pessoa fica sabendo. Silêncio aqui já custou duas
        rodadas de "não aparece e ninguém sabe por quê". */
     if(_itensErro) setTimeout(function(){ toast(_itensErro, 'err'); }, 1200);
+    else {
+      /* Quantas vieram, e com que empresa cada uma foi gravada. Vai
+         para o console mesmo dando certo: quando a planilha não
+         aparece, a primeira pergunta é "chegou alguma?", e essa
+         resposta não deveria custar uma rodada de conversa. */
+      var _ks = Object.keys(ITENS_EDITAL);
+      console.log('[Viabilidade] planilhas carregadas:', _ks.length,
+        _ks.map(function(k){ return k + '→' + (ITENS_EDITAL[k].empresa||'?') +
+          ' (' + ((ITENS_EDITAL[k].itens||[]).length) + ' itens)'; }).join(', ') || '(nenhuma)');
+    }
     /* ══════════════════════════════════════════════════════════════
        PASSO 2 DA SEPARAÇÃO POR EMPRESA — 18/08/2026
 
@@ -2291,7 +2305,26 @@ function _vBRL(n){
 function renderItens(id){
   var d = ITENS_EDITAL[id];
   var itens = (d && Array.isArray(d.itens)) ? d.itens : [];
-  if(!itens.length) return '';
+
+  /* ⚠️ SEM PLANILHA, DIGA QUE NÃO HÁ — 01/09/2026.
+     Antes isto devolvia '' e o cartão ficava idêntico ao de um processo
+     que nem TR tem. Custou três rodadas de "não aparece e ninguém sabe
+     por quê": eu procurando defeito em permissão e consulta, e a
+     resposta podendo ser simplesmente "a lista não chegou aqui".
+     Agora, quando o processo TEM link de TR mas não tem planilha, o
+     cartão diz isso. Para o responsável é informação verdadeira — a NH
+     ainda não preparou; para quem é da NH, é o diagnóstico na cara. */
+  if(!itens.length){
+    var proc = TODOS.find(function(x){ return x.id === id; });
+    var temTR = proc && String(proc.arr[13]||'').trim();
+    if(!temTR) return '';
+    return '<div class="itens-bt itens-vazio" title="Processo '+esc(String(id))+
+        ' — nenhuma planilha de itens gravada para ele">'+
+      '<span class="itens-bt-ic">📋</span>'+
+      '<span class="itens-bt-txt"><b>Planilha de itens</b>'+
+        '<i>ainda não preparada pela NH</i></span>'+
+    '</div>';
+  }
 
   var resp = (d && d.resposta) || {};
   var val  = resp.valores || {};
