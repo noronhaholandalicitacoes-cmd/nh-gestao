@@ -16875,12 +16875,129 @@ function nhPintarItensTR(){
       (d.extraidoEm?' · extraído em '+esc0(d.extraidoEm):'')+
     '</div>'+
     '<div id="nh-itens-status" style="margin-top:10px;font-size:12.5px"></div>';
+  /* Rodapé em duas metades: à esquerda o que a NH faz com a lista
+     (reler, apagar), à direita o que se leva dela para fora. Sem essa
+     separação a pessoa lê seis botões iguais e clica no errado. */
   foot.innerHTML =
     '<button class="btn btn-ghost" onclick="nhExtrairItensTR()">🔄 Ler o TR de novo</button>'+
     '<button class="btn btn-ghost" style="color:#f87171;border-color:rgba(239,68,68,.3)" '+
       'onclick="nhApagarItensTR()">Apagar a lista</button>'+
-    '<span style="margin-left:auto;font-size:11.5px;color:var(--t3)">'+
-      'A planilha já está no Viabilidade desta empresa.</span>';
+    '<span style="margin-left:auto;display:flex;gap:8px;align-items:center">'+
+      '<span style="font-size:11.5px;color:var(--t3)">Levar esta tabela:</span>'+
+      '<button class="btn btn-ghost" onclick="nhItensExcel()" title="Baixa a tabela em .xlsx">📊 Excel</button>'+
+      '<button class="btn btn-ghost" onclick="nhItensImprimir(true)" title="Abre a versão para impressão — escolha Salvar como PDF">📄 PDF</button>'+
+      '<button class="btn btn-ghost" onclick="nhItensImprimir(false)" title="Imprimir a tabela">🖨️ Imprimir</button>'+
+    '</span>';
+}
+
+
+/* ═══ Tirar os itens de dentro do sistema — 03/09/2026 ═══
+   Quando o cliente manda os valores mínimos, eles ficavam presos nesta
+   janela: dava para ver, não dava para levar para a proposta, para o
+   e-mail, para a reunião. Três saídas, uma matriz só — a planilha, o
+   PDF e o papel têm de dizer a mesma coisa, sempre. */
+
+/** A tabela como dados, não como HTML. Tudo abaixo lê daqui. */
+function _nhItensMatriz(){
+  var c = _itensTRCtx; if(!c) return null;
+  var d = ITENS_TR[c.chave] || {};
+  var itens = d.itens || [];
+  if(!itens.length) return null;
+  var resp = d.resposta || null;
+  var temCli = !!(resp && resp.valores);
+
+  var cab = ['#','Descrição','Unidade','Qtd','Valor estimado','Total estimado'];
+  if(temCli) cab = cab.concat(['Valor mínimo do cliente','Total pelo mínimo']);
+
+  var linhas = [cab];
+  itens.forEach(function(it, ix){
+    var qtd  = Number(it.qtd) || 0;
+    var vest = Number(it.vunit) || 0;
+    var l = [ it.n || (ix+1), it.desc || '', it.unid || 'un',
+              qtd || '', vest || '', (vest && qtd) ? vest*qtd : '' ];
+    if(temCli){
+      var meu = Number(resp.valores[String(ix)] || 0);
+      /* Vazio, e não zero: item sem preço do cliente é item que ele não
+         respondeu. Zero seria uma resposta — e uma resposta errada. */
+      l.push(meu || '', (meu && qtd) ? meu*qtd : '');
+    }
+    linhas.push(l);
+  });
+  return {linhas:linhas, temCli:temCli, itens:itens, resp:resp,
+          titulo:(c.emp||'') + (c.titulo ? ' · ' + c.titulo : ''),
+          arquivo: _nhNomeArquivo(c)};
+}
+
+/** Nome que a pessoa reconhece na pasta de Downloads seis meses depois. */
+function _nhNomeArquivo(c){
+  var s = (String(c.emp||'') + '-' + String(c.titulo||c.chave||''))
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-zA-Z0-9]+/g,'-').replace(/^-+|-+$/g,'').toLowerCase();
+  return ('itens-' + (s || 'tr')).slice(0, 90);
+}
+
+function nhItensExcel(){
+  var m = _nhItensMatriz();
+  if(!m) return toast('Não há itens para exportar.','err');
+  try{
+    var ws = XLSX.utils.aoa_to_sheet(m.linhas);
+    /* Larguras: sem isto a descrição sai cortada e a primeira coisa que
+       a pessoa faz ao abrir é arrastar coluna. */
+    ws['!cols'] = [{wch:5},{wch:58},{wch:9},{wch:10},{wch:15},{wch:16}]
+      .concat(m.temCli ? [{wch:19},{wch:17}] : []);
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Itens do TR');
+    XLSX.writeFile(wb, m.arquivo + '.xlsx');
+  }catch(e){
+    console.warn('[itens excel]', e);
+    toast('Não consegui gerar o Excel: ' + e.message, 'err');
+  }
+}
+
+/** PDF e impressão usam a mesma janela — no diálogo, "Salvar como PDF"
+ *  é um destino. Uma biblioteca de PDF aqui seria peso para repetir o
+ *  que o navegador já faz melhor. */
+function nhItensImprimir(paraPdf){
+  var m = _nhItensMatriz();
+  if(!m) return toast('Não há itens para imprimir.','err');
+
+  var somaEst = 0, somaCli = 0;
+  m.itens.forEach(function(it, ix){
+    var q = Number(it.qtd)||0;
+    somaEst += (Number(it.vunit)||0) * q;
+    if(m.temCli) somaCli += (Number(m.resp.valores[String(ix)]||0)) * q;
+  });
+
+  var corpo =
+    '<table><thead><tr>' +
+      m.linhas[0].map(function(h,i){
+        return '<th' + (i>=3 ? ' style="text-align:right"' : '') + '>' + esc0(h) + '</th>';
+      }).join('') +
+    '</tr></thead><tbody>' +
+    m.linhas.slice(1).map(function(l){
+      return '<tr>' + l.map(function(v,i){
+        var txt = (i>=4 && v !== '') ? fmtMoeda(Number(v))
+                : (i===3 && v !== '') ? Number(v).toLocaleString('pt-BR')
+                : esc0(v === '' ? '—' : v);
+        return '<td' + (i>=3 ? ' style="text-align:right;white-space:nowrap"' : '') + '>' + txt + '</td>';
+      }).join('') + '</tr>';
+    }).join('') +
+    '</tbody><tfoot><tr>' +
+      '<td colspan="5" style="text-align:right"><b>Total estimado</b></td>' +
+      '<td style="text-align:right"><b>' + fmtMoeda(somaEst) + '</b></td>' +
+      (m.temCli ? '<td></td><td style="text-align:right"><b>' + fmtMoeda(somaCli) + '</b></td>' : '') +
+    '</tr></tfoot></table>' +
+    '<div style="margin-top:10px;font-size:10px;color:#71717a">' +
+      m.itens.length + ' itens' +
+      (m.temCli ? ' · valores mínimos enviados pelo responsável em ' + esc0(m.resp.atualizadoEm||'') : '') +
+    '</div>';
+
+  var sub = 'Empresa: <b>' + esc0(m.titulo) + '</b>' +
+    (m.temCli ? '<br>Com os valores mínimos informados pelo cliente.'
+              : '<br>Valores estimados do Termo de Referência. O cliente ainda não enviou os mínimos.');
+
+  _nhJanelaImpressao('Itens do Termo de Referência', sub, corpo);
+  if(paraPdf) toast('Na janela de impressão, escolha "Salvar como PDF" no destino.','ok');
 }
 
 async function nhExtrairItensTR(){
