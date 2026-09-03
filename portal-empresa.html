@@ -1550,9 +1550,9 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
             <option value="todos">Todo o período</option>
           </select>
           <div class="per-datas" id="periodo-custom">
-            <input type="date" id="inp-de" onchange="renderContratos()" title="De">
+            <input type="date" id="inp-de" onchange="renderContratos();redesenharResumos()" title="De">
             <span style="color:var(--t3);font-size:11px">até</span>
-            <input type="date" id="inp-ate" onchange="renderContratos()" title="Até">
+            <input type="date" id="inp-ate" onchange="renderContratos();redesenharResumos()" title="Até">
           </div>
           <div class="per-nota" id="per-nota"></div>
           <button class="per-limpar" onclick="pLimparPeriodo()">Limpar filtro</button>
@@ -3332,7 +3332,10 @@ function gerarDashboard(){
      abaixo mostra — respeitando o período escolhido. Painel que soma
      uma coisa e lista que mostra outra é como o sistema mente sem
      querer, e já aconteceu aqui. */
-  const arrs = dadosGanhas.map(e => e.arr).filter(a => pNoPeriodo(a));
+  /* Mesmo escopo do resumo da aba Contratos: empresa + período. Antes
+     o painel seguia só o período, então filtrar por uma empresa mudava
+     a lista e não mudava o painel. */
+  const arrs = contratosNoEscopo();
   const ag   = agregarContratos(arrs);
 
   /* ── 1. Boas-vindas ─────────────────────────────────────
@@ -3348,7 +3351,12 @@ function gerarDashboard(){
   const bv =
     '<div class="pd-bv">' +
       '<div class="pd-bv-txt">' +
-        '<div class="pd-olho"><span class="pd-dot"></span>Portal de Contratos &middot; ' + pEsc(ondeEstou) + '</div>' +
+        '<div class="pd-olho"><span class="pd-dot"></span>Portal de Contratos &middot; ' + pEsc(ondeEstou) +
+          /* Filtro ligado tem de se anunciar. Sem isto, alguém filtra
+             por uma empresa, esquece, e lê os números do dia seguinte
+             achando que são da carteira toda. */
+          (textoDoEscopo() ? ' &middot; <b style="color:var(--nh)">' + pEsc(textoDoEscopo()) + '</b>' : '') +
+        '</div>' +
         '<h1 class="pd-tit">' + saud + (quem ? ', <span class="pd-nome">' + pEsc(quem) + '</span>' : '') + '</h1>' +
         /* Maiúscula só na primeira letra, feita aqui e não no CSS: o
            `capitalize` maiuscula TODA palavra e escreve "Sábado, 29 De
@@ -4275,11 +4283,51 @@ function fmtM(v){
   return 'R$ '+v.toFixed(2).replace('.',',');
 }
 
+/* ═════════════════════════════════════════════════
+   O ESCOPO — 02/09/2026
+
+   Os cartões de resumo somavam SEMPRE a carteira inteira, enquanto a
+   lista embaixo respeitava empresa e período. Duas verdades na mesma
+   tela: você filtrava por uma empresa, a lista encolhia e os números
+   em cima continuavam os mesmos. Não dá para decidir assim.
+
+   Escopo = empresa + período. São os dois filtros que dizem "sobre o
+   que estamos falando".
+
+   O que NÃO entra aqui, de propósito:
+     · status — as pastilhas de status são CONTADAS a partir destes
+       números. Se o resumo seguisse o status, clicar em "Vencidos"
+       faria todos os cartões mostrarem só vencidos, e a pastilha
+       passaria a contar a si mesma.
+     · busca — é para achar um contrato, não para recortar a carteira.
+   ═════════════════════════════════════════════════ */
+function contratosNoEscopo(){
+  return dadosGanhas
+    .map(e => e.arr)
+    .filter(a => pNoPeriodo(a))
+    .filter(a => !filtroEmpresa ||
+      String(a[IDX.EMPRESA]||'').trim().toUpperCase() === filtroEmpresa);
+}
+
+/** Diz em uma linha o que está sendo somado — porque número que
+ *  encolheu sem explicação é o sistema mentindo sem querer. */
+function textoDoEscopo(){
+  const p = [];
+  if(filtroEmpresa) p.push(filtroEmpresa);
+  /* O rótulo do período já está montado no botão de filtro — ler de lá
+     evita uma segunda regra que traduz período em texto e que, com o
+     tempo, discordaria da primeira. "Período" é o estado neutro. */
+  const el = document.getElementById('per-lbl');
+  const r = el ? String(el.textContent||'').trim() : '';
+  if(r && r !== 'Período') p.push(r.toLowerCase());
+  return p.join(' · ');
+}
+
 function renderStats(){
   const el = document.getElementById('stats-area');
   if(!el) return;
   const hoje = new Date(); hoje.setHours(0,0,0,0);
-  const rows = dadosGanhas.map(e=>e.arr);
+  const rows = contratosNoEscopo();
 
   const _ag = agregarContratos(rows);
   let total=_ag.total, emExec=_ag.exec, valExec=_ag.val_exec,
@@ -4377,7 +4425,11 @@ function renderStatusPills(){
   const el = document.getElementById('filtros-area');
   if(!el) return;
   const hoje = new Date(); hoje.setHours(0,0,0,0);
-  const rows = dadosGanhas.map(e=>e.arr);
+  /* Mesmo escopo do resumo: empresa + periodo. A pastilha nao conta o
+     proprio status (senao contaria a si mesma), mas conta dentro do
+     recorte escolhido -- senao ela diria "Em Execucao 40" com cinco
+     contratos na lista. */
+  const rows = contratosNoEscopo();
 
   const _ag = agregarContratos(rows);
   const cnt = {
@@ -4429,6 +4481,18 @@ function filtrarEmpresa(emp, btn){
   document.querySelectorAll('#filtros-empresa-area .filtro-btn').forEach(b=>b.classList.remove('on'));
   if(filtroEmpresa) btn.classList.add('on');
   renderContratos();
+  /* O resumo e o painel acompanham. Sem isto a lista encolhia e os
+     números em cima continuavam os da carteira inteira — duas verdades
+     na mesma tela. */
+  redesenharResumos();
+}
+
+/** Redesenha tudo que depende do escopo. Um lugar só, para não haver
+ *  a próxima tela que esquece de acompanhar o filtro. */
+function redesenharResumos(){
+  try{ renderStats(); }catch(e){ console.warn('[resumo]', e.message); }
+  try{ gerarDashboard(); }catch(e){ console.warn('[painel]', e.message); }
+  try{ renderStatusPills(); }catch(e){}
 }
 
 function parseDateBR(s){if(!s)return null;const t=String(s).trim().split(' ')[0];const p=t.split('/');if(p.length!==3)return null;const dt=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));return isNaN(dt.getTime())?null:dt;}
@@ -6691,7 +6755,7 @@ function pPopularPeriodos(){
   if(anterior && sel.querySelector('option[value="'+anterior.replace(/"/g,'')+'"]')) sel.value = anterior;
 }
 
-function pAoTrocarCampoData(){ pPopularPeriodos(); renderContratos(); }
+function pAoTrocarCampoData(){ pPopularPeriodos(); renderContratos(); redesenharResumos(); }
 
 function pLimparPeriodo(){
   var sel = document.getElementById('sel-periodo');
@@ -6703,6 +6767,7 @@ function pLimparPeriodo(){
   var pop = document.getElementById('per-pop');
   if(pop) pop.classList.remove('open');
   renderContratos();
+  redesenharResumos();
 }
 
 function pAoTrocarPeriodo(){
@@ -6710,6 +6775,7 @@ function pAoTrocarPeriodo(){
   var box = document.getElementById('periodo-custom');
   if(box) box.classList.toggle('on', !!(sel && sel.value === 'custom'));
   renderContratos();
+  redesenharResumos();
 }
 
 function pTogglePop(ev){
