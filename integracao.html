@@ -59,8 +59,23 @@ h1 em,h2 em{font-style:normal;color:var(--flame)}
 .card h3,.set h3{font-family:Archivo,sans-serif;font-weight:700;font-stretch:104%;font-size:19px;margin-bottom:9px;letter-spacing:-.015em}
 .card p,.set p{font-size:14.5px;line-height:1.55;color:var(--steel)}
 .set p{margin-bottom:14px}
+.canal{margin-top:26px;border:1px solid rgba(255,106,19,.35);border-radius:20px;padding:28px;
+  background:linear-gradient(165deg,rgba(255,106,19,.12),rgba(255,106,19,.02))}
+.canal h3{font-family:Archivo,sans-serif;font-weight:800;font-stretch:106%;font-size:clamp(19px,2.8vw,25px);
+  letter-spacing:-.02em;margin:10px 0 10px}
+.canal p{font-size:14.5px;line-height:1.6;color:var(--steel);max-width:66ch}
+.canal p b{color:var(--paper);font-weight:600}
+.cnote{margin-top:18px;padding:15px 17px;border-radius:12px;background:rgba(0,0,0,.28);border:1px solid var(--line);
+  font-size:13px;line-height:1.55;color:var(--steel)}
+.sethead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.tagset{font-family:"JetBrains Mono",monospace;font-size:8px;letter-spacing:.14em;text-transform:uppercase;
+  padding:5px 10px;border-radius:999px;white-space:nowrap}
+.tagset.fixo{background:rgba(75,217,139,.14);color:var(--green);border:1px solid rgba(75,217,139,.35)}
+.tagset.acionado{background:rgba(255,255,255,.05);color:var(--steel);border:1px solid var(--line2)}
 .sicon{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;margin-bottom:15px;background:rgba(255,106,19,.13);border:1px solid rgba(255,106,19,.35);color:var(--flame)}
 .sicon svg{width:20px;height:20px}
+.set .sicon{margin-bottom:0}
+.set h3{margin-top:15px}
 ul.tick{list-style:none;display:flex;flex-direction:column;gap:8px}
 ul.tick li{font-size:14px;display:flex;gap:10px;align-items:flex-start;line-height:1.45}
 ul.tick li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--flame);margin-top:7px;flex:none}
@@ -460,7 +475,8 @@ html:not(.js) .rev,html:not(.js) .kw{opacity:1;transform:none}
           <ul class="tick"><li>O portal e como se localizar dentro dele</li>
           <li>Como ler a análise de viabilidade</li>
           <li>Como lançar o valor mínimo na planilha</li>
-          <li>Como acompanhar contratos e prazos</li></ul></div>
+          <li>Como acompanhar contratos e prazos</li>
+          <li>Criamos o grupo de WhatsApp da sua conta</li></ul></div>
         <div><span>Quem deve participar</span>
           <ul class="tick"><li>Quem vai decidir se participa dos certames</li>
           <li>Quem cuida da documentação da empresa</li>
@@ -477,17 +493,34 @@ html:not(.js) .rev,html:not(.js) .kw{opacity:1;transform:none}
     <div class="eyebrow rev"><i></i>Com quem você fala</div>
     <h2 class="rev">Quatro frentes, <em>contato direto.</em></h2>
     <p class="lead rev">Você não passa por atendimento genérico. Cada assunto tem um time responsável, e todos estão na mesma casa.</p>
+    <div class="canal rev">
+      <span class="uilab">Como funciona o seu canal</span>
+      <h3>Um grupo de WhatsApp só da sua empresa.</h3>
+      <p>Criado no treinamento. Nele ficam a sua equipe, o <b>comercial</b> e o <b>analista responsável pela sua conta</b>,
+      que é quem responde no dia a dia. Quando o caso exige <b>jurídico</b> ou <b>gestão contratual</b>, o time é acionado
+      e entra na conversa na hora, sem você precisar procurar ninguém.</p>
+      <div class="cnote">Para o que não é urgente, use o Portal: a solicitação fica registrada, com assunto e responsável,
+      e o time certo é notificado sem depender de alguém estar com o aplicativo aberto.</div>
+    </div>
     <div class="g2"><article class="set rev">
-  <div class="sicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg></div><h3>Comercial e relacionamento</h3><p>Sua porta de entrada. Contrato, escopo, cobrança e tudo que não couber nos outros times.</p>
-  <ul class="tick"><li>Ampliação de escopo e renegociação</li><li>Dúvidas sobre proposta e contrato</li><li>Reuniões de acompanhamento</li></ul>
-</article><article class="set rev">
-  <div class="sicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 15l4-5 3 3 5-7"/></svg></div><h3>Análise e certames</h3><p>Quem lê o edital, monta o preço e conduz a sessão. É com eles que sua operação fala todo dia.</p>
+  <div class="sethead"><div class="sicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 15l4-5 3 3 5-7"/></svg></div>
+    <span class="tagset fixo">No seu grupo</span></div>
+  <h3>Análise e certames</h3><p>Quem lê o edital, monta o preço e conduz a sessão. Está no seu grupo todos os dias e é quem responde primeiro.</p>
   <ul class="tick"><li>Viabilidade e leitura de edital</li><li>Formação de preço e planilha</li><li>Condução da disputa e lances</li></ul>
 </article><article class="set rev">
-  <div class="sicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 7h14M7 7l-3 7a3.5 3.5 0 0 0 6 0L7 7ZM17 7l-3 7a3.5 3.5 0 0 0 6 0l-3-7Z"/></svg></div><h3>Jurídico</h3><p>Advogados de licitação dentro de casa. Entram quando o prazo é curto e a peça precisa ser protocolada.</p>
+  <div class="sethead"><div class="sicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg></div>
+    <span class="tagset fixo">No seu grupo</span></div>
+  <h3>Comercial e relacionamento</h3><p>Sua porta de entrada. Contrato, escopo, cobrança e tudo que não couber nos outros times.</p>
+  <ul class="tick"><li>Ampliação de escopo e renegociação</li><li>Dúvidas sobre proposta e contrato</li><li>Reuniões de acompanhamento</li></ul>
+</article><article class="set rev">
+  <div class="sethead"><div class="sicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 7h14M7 7l-3 7a3.5 3.5 0 0 0 6 0L7 7ZM17 7l-3 7a3.5 3.5 0 0 0 6 0l-3-7Z"/></svg></div>
+    <span class="tagset acionado">Acionado quando precisa</span></div>
+  <h3>Jurídico</h3><p>Advogados de licitação dentro de casa. Entram na conversa no momento em que o caso exige peça e prazo.</p>
   <ul class="tick"><li>Impugnação e esclarecimento</li><li>Recurso e contrarrazões</li><li>Defesa administrativa e representação</li></ul>
 </article><article class="set rev">
-  <div class="sicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg></div><h3>Contratos e atestados</h3><p>Depois da assinatura o contrato não fica sozinho. Este time sustenta a receita até o encerramento.</p>
+  <div class="sethead"><div class="sicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg></div>
+    <span class="tagset acionado">Acionado quando precisa</span></div>
+  <h3>Contratos e atestados</h3><p>Depois da assinatura o contrato não fica sozinho. Este time é chamado quando há prazo, aditivo ou atestado em jogo.</p>
   <ul class="tick"><li>Prazos, aditivos e prorrogação</li><li>Reajuste e reequilíbrio</li><li>Emissão e controle de atestados</li></ul>
 </article></div>
   </div>
