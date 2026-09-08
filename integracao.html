@@ -172,6 +172,12 @@ ul.tick li::before{content:"";width:6px;height:6px;border-radius:50%;background:
 .ptot b{font-family:Archivo,sans-serif;font-weight:800;font-size:19px;color:var(--flame)}
 .phint{font-size:10px;color:var(--steel2);margin-top:8px;line-height:1.4}
 
+.vobs{margin-bottom:12px}
+.vobs span{display:block;font-family:"JetBrains Mono",monospace;font-size:7.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--flame);margin-bottom:6px}
+.vobs textarea{width:100%;padding:9px 11px;border-radius:9px;border:1px solid var(--line2);background:rgba(0,0,0,.35);
+  color:var(--paper);font-family:inherit;font-size:11.5px;line-height:1.45;resize:none}
+.vobs textarea:focus{outline:none;border-color:var(--flame);box-shadow:0 0 0 3px rgba(255,106,19,.18)}
 .vbtns{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px}
 .vb{padding:13px 6px;border-radius:10px;border:1px solid var(--line2);background:transparent;color:var(--steel);
   font-family:Archivo,sans-serif;font-weight:800;font-size:12px;letter-spacing:.04em;cursor:pointer;min-height:44px;transition:.2s}
@@ -420,6 +426,10 @@ html:not(.js) .rev,html:not(.js) .kw{opacity:1;transform:none}
         <p class="phint">Abaixo desse valor a NH não dá lance. É o seu limite, registrado com data e hora.</p>
       </div>
 
+      <div class="vobs">
+        <span>Observação para a equipe</span>
+        <textarea rows="2" placeholder="Ex.: só participo se a entrega for parcelada. Fica anexado a este processo."></textarea>
+      </div>
       <div class="vbtns">
         <button class="vb yes" data-v="yes">SIM, PARTICIPAR</button>
         <button class="vb no" data-v="no">NÃO</button>
@@ -429,7 +439,7 @@ html:not(.js) .rev,html:not(.js) .kw{opacity:1;transform:none}
     </div>
   </div>
 </div></div><div class="spane" data-p="contr">
-  <div class="sphead"><h3>Gerenciamento de Contratos</h3><p>A vida do contrato depois da assinatura: vencimentos, aditivos, reajuste, atestados e alerta antes do prazo.</p></div>
+  <div class="sphead"><h3>Gerenciamento de Contratos</h3><p>A vida do contrato depois da assinatura: vencimentos, aditivos, reajuste, atestados e alerta antes do prazo. Cada contrato tem campo de observação para você registrar o que a equipe precisa saber.</p></div>
 <div class="ui">
   <div class="uibar">
     <span class="uilogo"></span><b>Gerenciamento de Contratos</b>
@@ -453,7 +463,7 @@ html:not(.js) .rev,html:not(.js) .kw{opacity:1;transform:none}
       <div class="cit b"><span class="cid">#06</span><span class="cdt">20/07/2026</span>
         <b>Ata de registro de preços · Órgão estadual</b><i class="cst b">Aguardando contrato</i></div>
     </div>
-    <div class="calert"><b>Alerta automático</b><span>2 contratos entram na janela de prorrogação nos próximos 90 dias. A NH já iniciou a instrução do aditivo.</span></div>
+    <div class="calert"><b>Alerta automático</b><span>2 contratos entram na janela de prorrogação nos próximos 90 dias. A NH já iniciou a instrução do aditivo. Você pode deixar uma observação dentro de cada contrato, e ela fica registrada ali.</span></div>
   </div>
 </div></div></div>
   </div>
@@ -499,8 +509,10 @@ html:not(.js) .rev,html:not(.js) .kw{opacity:1;transform:none}
       <p>Criado no treinamento. Nele ficam a sua equipe, o <b>comercial</b> e o <b>analista responsável pela sua conta</b>,
       que é quem responde no dia a dia. Quando o caso exige <b>jurídico</b> ou <b>gestão contratual</b>, o time é acionado
       e entra na conversa na hora, sem você precisar procurar ninguém.</p>
-      <div class="cnote">Para o que não é urgente, use o Portal: a solicitação fica registrada, com assunto e responsável,
-      e o time certo é notificado sem depender de alguém estar com o aplicativo aberto.</div>
+      <div class="cnote"><b>Observação sobre um processo específico não precisa ir para o grupo.</b>
+      Dentro do Sistema de Viabilidade e do Gerenciamento de Contratos existe um campo de observação em cada processo
+      e em cada contrato. O que você escrever ali fica anexado àquele item, e a equipe lê junto com ele, sem risco de
+      a informação se perder no meio da conversa. O grupo fica para o que é geral ou urgente.</div>
     </div>
     <div class="g2"><article class="set rev">
   <div class="sethead"><div class="sicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 15l4-5 3 3 5-7"/></svg></div>
