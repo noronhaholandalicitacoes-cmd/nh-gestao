@@ -1355,6 +1355,20 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 .ac-lembrar:hover{color:var(--t1)}
 .ac-rodape{font-size:11.5px;color:var(--t3);text-align:center;margin-top:16px;line-height:1.6}
 
+/* ── Botão de ajuda do login ──────────────────────────────────────
+   Verde do WhatsApp, mas discreto: contorno em vez de preenchido. Ele
+   não pode competir com o "Entrar" — quem sabe a senha tem que bater o
+   olho e entrar. Quem não sabe estava sem saída nenhuma até aqui. */
+.ac-ajuda{display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;margin-top:12px;padding:11px 14px;border-radius:12px;cursor:pointer;
+  font-family:inherit;font-size:13px;font-weight:600;
+  color:#25d366;background:rgba(37,211,102,.08);
+  border:1px solid rgba(37,211,102,.32);
+  transition:background .18s,border-color .18s,transform .12s}
+.ac-ajuda:hover{background:rgba(37,211,102,.16);border-color:rgba(37,211,102,.55)}
+.ac-ajuda:active{transform:scale(.985)}
+.ac-ajuda svg{flex-shrink:0}
+
 /* Alternador de tema, no canto */
 .ac-tema{position:absolute;top:18px;right:18px;z-index:3;
   width:38px;height:38px;border-radius:12px;cursor:pointer;
@@ -1429,6 +1443,18 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
       <label class="ac-lembrar"><input type="checkbox" id="inp-lembrar" checked>
         <span>Manter-me conectado neste aparelho</span></label>
       <button class="ac-btn" id="btn-login" type="submit">Entrar</button>
+      <!-- Botão de ajuda — 08/09/2026.
+           Aqui havia só a frase "Fale com a NH Licitações", que informa
+           e não resolve: quem esqueceu a senha ficava na tela de login
+           sem um caminho. Agora o caminho é um toque, e a mensagem já
+           vai escrita — a pessoa não precisa explicar o que quer, e do
+           nosso lado chega sempre no mesmo formato. -->
+      <button type="button" class="ac-ajuda" onclick="portalAjudaWhatsApp()">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2Zm0 18.15h-.01a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.22 8.22 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.25-8.24 2.2 0 4.27.86 5.83 2.42a8.2 8.2 0 0 1 2.41 5.83c0 4.54-3.7 8.23-8.24 8.23Zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.24-.64.8-.79.97-.14.16-.29.19-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.5.11-.11.25-.29.37-.43.13-.15.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.13-.56-1.35-.77-1.84-.2-.49-.4-.42-.56-.43h-.47c-.17 0-.43.06-.66.31-.22.25-.87.85-.87 2.07s.9 2.4 1.02 2.56c.12.17 1.75 2.67 4.25 3.75.59.25 1.06.4 1.42.52.6.19 1.14.16 1.57.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.14-1.18-.06-.11-.22-.17-.47-.29Z"/>
+        </svg>
+        Não consigo entrar — falar no WhatsApp
+      </button>
       <div class="ac-rodape">Não tem acesso? Fale com a NH Licitações.</div>
     </form>
   </div>
@@ -2160,6 +2186,21 @@ let filtroAtual = 'todos';
 let _pgAtual = 1;
 const PS_PORTAL = 20; // registros por página
 const EMPRESAS_SISTEMA = ['VISE','SOS','SOS FILIAL','SAUTEC','ONLAV','ENGEMED'];
+
+/* ══════════════════════════════════════════════════════════════════
+   O WHATSAPP DA NH — o número que o botão "Não consigo entrar" abre
+   na tela de login.
+
+   Formato: código do país + DDD + número, só dígitos, sem +, espaço,
+   parêntese ou traço. 55 = Brasil, 83 = DDD.
+   Hoje: (83) 99691-8832.
+
+   Para trocar, basta editar a linha abaixo. Se ficar vazio, curto
+   demais ou de volta no exemplo antigo, o botão se esconde sozinho
+   (ver `pAjustarBotaoAjuda`) — melhor não haver botão do que haver um
+   que joga o cliente numa conversa com um desconhecido.
+   ══════════════════════════════════════════════════════════════════ */
+const NH_WHATSAPP_SUPORTE = '5583996918832';
 const auth = _portalApp.auth();
 var CONTA_MESTRA_EMPRESAS = null; // travado no login da conta mestra — nunca cresce sozinho
 
@@ -2405,6 +2446,51 @@ function acAplicarTema(claro){
   if('function'==typeof _atualizarIconeTema)_atualizarIconeTema();}
 function acTrocarTema(){acAplicarTema(!document.body.classList.contains('light-theme'));}
 (function(){try{acAplicarTema('claro'===localStorage.getItem('nh_tema'));}catch(e){}})();
+
+/* ── "Não consigo entrar" ──────────────────────────────────────────
+   Abre o WhatsApp da NH com a mensagem já escrita. Duas decisões:
+
+   1. O número que a pessoa digitou vai junto, quando ela já tiver
+      digitado algum. É por ele que a NH acha o cadastro — sem isso a
+      conversa começa com "qual é o seu número?", que é justamente o
+      que ela acabou de tentar informar.
+      A SENHA nunca vai junto, nem em parte: senha não trafega por
+      mensagem, e ninguém deve se acostumar a mandar a sua.
+
+   2. Sem número de suporte configurado, o botão não existe (ver
+      `pAjustarBotaoAjuda`). Botão que abre conversa com desconhecido é
+      pior que botão nenhum. */
+function portalAjudaWhatsApp(){
+  var num = String(NH_WHATSAPP_SUPORTE || '').replace(/\D/g, '');
+  if(num.length < 12) return;   /* não configurado — o botão nem aparece */
+
+  var digitado = '';
+  try{
+    var el = document.getElementById('inp-empresa');
+    digitado = el ? String(el.value || '').replace(/\D/g, '') : '';
+  }catch(e){}
+
+  var msg = 'Olá! Preciso de ajuda para acessar o Portal de Contratos da NH. '
+    + 'Não estou conseguindo entrar com o meu login e senha.'
+    + (digitado.length >= 10 ? '\n\nMeu WhatsApp de acesso: ' + digitado : '');
+
+  window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(msg), '_blank');
+}
+
+/* Esconde o botão de ajuda enquanto o número for o de exemplo. Roda no
+   carregamento, antes de a tela de login aparecer. */
+function pAjustarBotaoAjuda(){
+  var btn = document.querySelector('.ac-ajuda');
+  if(!btn) return;
+  var num = String(NH_WHATSAPP_SUPORTE || '').replace(/\D/g, '');
+  var valido = num.length >= 12 && !/^5583999999999$/.test(num);
+  btn.style.display = valido ? '' : 'none';
+  if(!valido){
+    console.warn('[Portal] Botão de ajuda escondido: preencha NH_WHATSAPP_SUPORTE '
+      + 'com o WhatsApp real da NH (só dígitos, com 55 e DDD).');
+  }
+}
+document.addEventListener('DOMContentLoaded', pAjustarBotaoAjuda);
 
 async function fazerLogin(ev){
   if(ev&&ev.preventDefault) ev.preventDefault();
@@ -3335,8 +3421,26 @@ function gerarDashboard(){
   /* Mesmo escopo do resumo da aba Contratos: empresa + período. Antes
      o painel seguia só o período, então filtrar por uma empresa mudava
      a lista e não mudava o painel. */
-  const arrs = contratosNoEscopo();
+  const ents = entradasNoEscopo();
+  const arrs = ents.map(e => e.arr);
   const ag   = agregarContratos(arrs);
+
+  /* ── O faturamento REAL ─────────────────────────────────
+     Tudo que este painel mostrava era valor CONTRATADO — quanto a
+     carteira vale no papel. O que a empresa chama de "meu faturamento"
+     é outra coisa: o que virou nota. Os dois números convivem e não se
+     substituem (um contrato de R$ 1 mi com R$ 200 mil faturados são as
+     duas verdades ao mesmo tempo), e faltava a segunda.
+
+     Sai de `contrato_faturamento`, a mesma coleção que o módulo de
+     execução alimenta em Gerenciamento de Contratos. Uma fonte só:
+     assim o portal não pode discordar do que a equipe lançou. */
+  const fx = fatResumoEmpresa(ents);
+  /* Só aparece quando existe lançamento. Antes de a equipe começar a
+     usar o módulo, uma fila de zeros diria "esta empresa não faturou
+     nada" — que é bem diferente de "ainda não lançamos nada aqui". */
+  const temFat = fx.faturado > 0 || fx.autorizado > 0 || fx.recebido > 0;
+  const pctFat = ag.portfolio > 0 ? Math.min(100, (fx.faturado / ag.portfolio) * 100) : 0;
 
   /* ── 1. Boas-vindas ─────────────────────────────────────
      A saudação existe para a tela ter dono. Ao lado dela, os três
@@ -3393,6 +3497,24 @@ function gerarDashboard(){
     {f:'fin',    cor:'#6b7280', lbl:'Encerrados',            val:ag.encerrado,
      sub:'concluídos, rescindidos ou cancelados'}
   ];
+
+  /* Faturado e Recebido entram logo depois do Portfólio, porque a
+     leitura natural é "contratei tanto → faturei tanto → recebi tanto".
+     Separados do bloco de contagem de contratos, esses dois são
+     dinheiro que existe, não promessa. Não filtram a lista: não há
+     recorte de contrato que corresponda a "o que foi faturado". */
+  if(temFat){
+    kpis.splice(3, 0,
+      {cor:'#a855f7', lbl:'Faturado (real)', val:fmtM(fx.faturado), dinheiro:true,
+       sub:(ag.portfolio > 0
+              ? pctFat.toFixed(0) + '% do contratado'
+              : (fmtMoedaP(fx.faturado) || 'nada lançado'))},
+      {cor:'#14b8a6', lbl:'Recebido', val:fmtM(fx.recebido), dinheiro:true,
+       sub:(fx.aReceber > 0
+              ? fmtMoedaP(fx.aReceber) + ' ainda a receber'
+              : 'nada pendente de recebimento')}
+    );
+  }
 
   const kpisHTML = '<div class="pd-kpis">' + kpis.map(k => {
     const clicavel = k.f !== undefined;
@@ -3531,8 +3653,114 @@ function gerarDashboard(){
       '</div>';
   }
 
+  /* ── 6. Faturamento real ────────────────────────────────
+     Os cartões acima falam de vigência e de valor contratado. Este fala
+     do dinheiro: o que virou nota, o que já entrou, o que o órgão está
+     devendo e o que foi glosado. É o cartão que responde "e o meu
+     faturamento?" — a pergunta que o painel não respondia.
+
+     Nada aqui é clicável de propósito: não existe recorte da lista de
+     contratos que signifique "o que foi faturado", e indicador que
+     promete um filtro inexistente é pior que indicador parado. */
+  let cardFaturamento = '';
+  if(temFat){
+    const pctRec = fx.faturado > 0 ? Math.min(100, (fx.recebido / fx.faturado) * 100) : 0;
+
+    const linhasFat = [
+      {rot:'Recebido',  v:fx.recebido, cor:'#22c55e',
+       sub:fx.faturado > 0 ? pctRec.toFixed(0) + '% do faturado' : ''},
+      {rot:'A receber', v:fx.aReceber, cor:'#3b82f6', sub:'faturado, ainda não pago'},
+      {rot:'Em atraso', v:fx.atrasado, cor:'#ef4444',
+       sub:fx.qtdAtrasadas ? fx.qtdAtrasadas + ' documento(s) vencido(s)' : 'vencidas sem pagamento'},
+      {rot:'Glosado',   v:fx.glosado,  cor:'#eab308', sub:'descontado pelo órgão'},
+      {rot:'A faturar', v:fx.aFaturar, cor:'#a855f7', sub:'autorizado, ainda sem nota'}
+    ].filter(l => l.v > 0);
+    const maiorFat = Math.max.apply(null, linhasFat.map(l => l.v).concat([1]));
+
+    /* Para a NH, com mais de uma empresa na tela, o total não basta: a
+       pergunta é qual carteira está faturando e qual parou. */
+    let porEmpFat = '';
+    if(isAdmin && empresas.length > 1){
+      const mapa = {};
+      ents.forEach(e => {
+        const nome = empresas.find(x => mesmaEmpresa(x, String(e.arr[IDX.EMPRESA] || '').trim()));
+        if(!nome) return;
+        if(!mapa[nome]) mapa[nome] = {fat:0, rec:0};
+        const r = fatResumo(String(e.id), e.arr);
+        mapa[nome].fat += r.faturado;
+        mapa[nome].rec += r.recebido;
+      });
+      const chaves = Object.keys(mapa).filter(k => mapa[k].fat > 0)
+        .sort((a, b) => mapa[b].fat - mapa[a].fat);
+      const maiorE = Math.max.apply(null, chaves.map(k => mapa[k].fat).concat([1]));
+      if(chaves.length){
+        porEmpFat =
+          '<div class="pd-card-sub" style="margin:14px 0 6px;font-weight:700;color:var(--t2)">Faturado por empresa</div>' +
+          chaves.map(k =>
+            '<div class="pd-linha" style="cursor:default">' +
+              '<div class="pd-linha-topo">' +
+                '<span class="pd-linha-k">' + pEsc(k) +
+                  '<span style="color:var(--t3)"> · recebido ' + fmtM(mapa[k].rec) + '</span></span>' +
+                '<span class="pd-linha-v" style="color:' + (CORES[k] || '#a855f7') + '">' +
+                  fmtM(mapa[k].fat) + '</span>' +
+              '</div>' +
+              '<div class="pd-barra"><div class="pd-barra-fill" style="width:' +
+                ((mapa[k].fat / maiorE) * 100).toFixed(1) + '%;background:' +
+                (CORES[k] || '#a855f7') + '"></div></div>' +
+            '</div>').join('');
+      }
+    }
+
+    cardFaturamento =
+      '<div class="pd-card">' +
+        '<div class="pd-card-tit"><span class="pd-card-dot" style="background:#a855f7"></span>Faturamento real</div>' +
+        '<div class="pd-card-sub">O que foi lançado como faturamento no Gerenciamento de Contratos — nota emitida, não valor contratado.</div>' +
+
+        '<div class="pd-linha" style="cursor:default">' +
+          '<div class="pd-linha-topo">' +
+            '<span class="pd-linha-k">Faturado' +
+              (ag.portfolio > 0
+                ? '<span style="color:var(--t3)"> · de ' + fmtM(ag.portfolio) + ' contratado</span>'
+                : '') +
+            '</span>' +
+            '<span class="pd-linha-v" style="color:#a855f7">' +
+              (fmtMoedaP(fx.faturado) || 'R$ 0,00') + '</span>' +
+          '</div>' +
+          '<div class="pd-barra"><div class="pd-barra-fill" style="width:' +
+            pctFat.toFixed(1) + '%;background:#a855f7"></div></div>' +
+          (ag.portfolio > 0
+            ? '<div style="font-size:11px;color:var(--t3);margin-top:4px">' +
+              pctFat.toFixed(0) + '% da carteira já virou nota</div>'
+            : '') +
+        '</div>' +
+
+        linhasFat.map(l =>
+          '<div class="pd-linha" style="cursor:default">' +
+            '<div class="pd-linha-topo">' +
+              '<span class="pd-linha-k">' + l.rot +
+                (l.sub ? '<span style="color:var(--t3)"> · ' + l.sub + '</span>' : '') + '</span>' +
+              '<span class="pd-linha-v" style="color:' + l.cor + '">' +
+                (fmtMoedaP(l.v) || 'R$ 0,00') + '</span>' +
+            '</div>' +
+            '<div class="pd-barra"><div class="pd-barra-fill" style="width:' +
+              ((l.v / maiorFat) * 100).toFixed(1) + '%;background:' + l.cor + '"></div></div>' +
+          '</div>').join('') +
+
+        porEmpFat +
+
+        (fx.semLancamento > 0
+          ? '<div class="pd-card-sub" style="margin:10px 0 0">' + fx.semLancamento +
+            ' contrato' + (fx.semLancamento !== 1 ? 's' : '') +
+            ' em aberto ainda sem nenhum lançamento de faturamento.</div>'
+          : '') +
+      '</div>';
+  }
+
   dash.innerHTML = bv + kpisHTML +
     '<div class="pd-cards">' + cardSituacao + cardVenc + '</div>' +
+    (cardFaturamento
+      ? '<div class="pd-cards" style="grid-template-columns:1fr">' + cardFaturamento + '</div>'
+      : '') +
     '<div class="pd-cards" style="grid-template-columns:1fr">' + cardTerceiro + '</div>';
   dash.style.display = '';
 }
@@ -3761,28 +3989,74 @@ function _pDias(v){
   return Math.round((dt-h)/86400000);
 }
 
+/* ── Quem está em 1ª posição ────────────────────────────────────────
+   O aviso "Possíveis contratos" nascia zerado com processos em 1º
+   lugar cadastrados. Eram duas regras estreitas demais no mesmo lugar:
+
+     1. `classif.startsWith('1 ')` — exigia o espaço depois do 1. Casa
+        com "1 posição", que é o que o <select> do Sistema NH grava
+        hoje, e não casa com nada do que veio antes ou de importação:
+        "1º", "1ª posição", "1o lugar", "primeiro".
+     2. `status === 'em andamento'` — mas um processo em 1ª posição
+        continua sendo um contrato provável enquanto está EM DISPUTA,
+        AGUARDANDO, ADIADO, SUSPENSO ou em RECURSO. Deixa de ser só
+        quando é ADJUDICADO (aí virou contrato e vive na aba Ganhas) ou
+        quando o processo morre.
+
+   A regra de classificação é a mesma do Sistema NH (`is1Posicao`), de
+   propósito: as duas telas contam a mesma coisa, e discordarem era
+   exatamente o defeito que trouxe isto aqui. */
+function pIs1Posicao(v){
+  var s = String(v||'').toLowerCase().trim();
+  if(!s) return false;
+  return /^1[o°ºª]?$/.test(s)
+      || /^1[o°ºª]?\s*[-.]?\s*posi/.test(s)
+      || /^1[o°ºª]?\s*[-.]?\s*lugar/.test(s)
+      || /^primeir[oa]/.test(s);
+}
+
+/* A lista é do que ENCERRA o processo, não do que o mantém aberto: um
+   status novo no cadastro entra como aberto, que é o lado seguro —
+   aviso a mais alguém dispensa, aviso a menos ninguém vê. */
+var P_STATUS_ENCERRA = ['adjudicado','cancelado','desclassificado',
+                        'inabilitado','ganha','finalizado','perdido','deserto','fracassado'];
+function pProcessoAtivo(v){
+  return P_STATUS_ENCERRA.indexOf(String(v||'').toLowerCase().trim()) < 0;
+}
+
+/* ADJU = sim é o carimbo que o Sistema NH usa para copiar a linha para
+   Finalizados e tirá-la de Andamento. Já é contrato: sai do aviso de
+   "possível" mesmo que o campo Status não tenha sido atualizado junto. */
+function pJaAdjudicado(arr){
+  return String((arr||[])[16]||'').toLowerCase().trim() === 'sim';
+}
+
 function renderAvisos(){
   const box = document.getElementById('avisos-area');
   if(!box) return;
 
   const grupos = [];
 
-  // 1) Possíveis contratos (1ª posição, em andamento)
-  const possiveis = dadosAndamento.filter(({arr})=>{
-    const classif = String(arr[11]||'').trim().toLowerCase();
-    const status  = String(arr[12]||'').trim().toLowerCase();
-    return classif.startsWith('1 ') && status === 'em andamento';
-  });
+  // 1) Possíveis contratos (1ª posição, processo ainda aberto)
+  const possiveis = dadosAndamento.filter(({arr})=>
+    pIs1Posicao(arr[11]) && pProcessoAtivo(arr[12]) && !pJaAdjudicado(arr));
   if(possiveis.length){
     grupos.push({
       icone:'\ud83c\udfc6', cor:'#22c55e', titulo:'Poss\u00edveis contratos',
-      sub:'Processo em 1\u00aa posi\u00e7\u00e3o, ainda em andamento',
-      itens: possiveis.map(({arr})=>({
-        principal: pEsc(arr[3]||'Sem identifica\u00e7\u00e3o'),
-        secundario: pEsc([arr[2], arr[6]].filter(Boolean).join(' \u00b7 ')),
-        extra: arr[8] ? 'Valor final: '+fmtMoedaP(parseMoedaV(arr[8])) : '',
-        link: String(arr[19]||'').trim()
-      }))
+      sub:'Processo em 1\u00aa posi\u00e7\u00e3o, ainda sem desfecho',
+      itens: possiveis.map(({arr})=>{
+        /* O status vai junto: "1\u00aa posi\u00e7\u00e3o em recurso" e "1\u00aa posi\u00e7\u00e3o em
+           disputa" pedem coisas diferentes de quem l\u00ea, e agora os dois
+           aparecem na mesma lista. */
+        const st  = String(arr[12]||'').trim();
+        const val = arr[8] ? fmtMoedaP(parseMoedaV(arr[8])) : '';
+        return {
+          principal: pEsc(arr[3]||'Sem identifica\u00e7\u00e3o'),
+          secundario: pEsc([arr[2], arr[6]].filter(Boolean).join(' \u00b7 ')),
+          extra: pEsc([st, val ? 'Valor final: '+val : ''].filter(Boolean).join(' \u00b7 ')),
+          link: String(arr[19]||'').trim()
+        };
+      })
     });
   }
 
@@ -4301,12 +4575,28 @@ function fmtM(v){
        passaria a contar a si mesma.
      · busca — é para achar um contrato, não para recortar a carteira.
    ═════════════════════════════════════════════════ */
-function contratosNoEscopo(){
+/* O filtro de empresa comparava `.trim().toUpperCase()` contra o rótulo
+   do botão. Bastava o cadastro trazer acento, dois espaços ou caixa
+   diferente para o contrato sumir do recorte — e sumia só aqui, porque
+   o login e os listeners de execução já comparavam com `_normEmp`.
+   Três telas, duas regras: é assim que o painel zera com a lista cheia. */
+function _mesmoFiltroEmpresa(v){
+  return _normEmp(v) === _normEmp(filtroEmpresa);
+}
+
+/* O escopo em ENTRADAS ({id, arr}), não só em arrays.
+   O painel só precisava dos arrays enquanto somava contrato; agora ele
+   também soma faturamento, e o faturamento é indexado pelo id do
+   documento — que só existe na entrada. Uma regra de escopo só, e as
+   duas leituras saem dela. */
+function entradasNoEscopo(){
   return dadosGanhas
-    .map(e => e.arr)
-    .filter(a => pNoPeriodo(a))
-    .filter(a => !filtroEmpresa ||
-      String(a[IDX.EMPRESA]||'').trim().toUpperCase() === filtroEmpresa);
+    .filter(e => pNoPeriodo(e.arr))
+    .filter(e => !filtroEmpresa || _mesmoFiltroEmpresa(e.arr[IDX.EMPRESA]));
+}
+
+function contratosNoEscopo(){
+  return entradasNoEscopo().map(e => e.arr);
 }
 
 /** Diz em uma linha o que está sendo somado — porque número que
@@ -4573,7 +4863,7 @@ function renderContratos(){
 
   // Filtro empresa (GROWTH)
   if(filtroEmpresa){
-    lista = lista.filter(({arr})=>String(arr[IDX.EMPRESA]||'').trim().toUpperCase()===filtroEmpresa);
+    lista = lista.filter(({arr})=>_mesmoFiltroEmpresa(arr[IDX.EMPRESA]));
   }
 
   // Busca — todos os campos (igual ao sistema)
@@ -4845,12 +5135,26 @@ function fatValido(f){ return f && String(f.status||'').toUpperCase() !== 'CANCE
    resposta de cima — "quanto essa empresa faturou", "quanto ainda tem
    para faturar", "quanto o órgão está devendo". Era preciso abrir
    contrato por contrato e somar de cabeça. */
-function fatResumoEmpresa(contratos){
-  var t={autorizado:0, faturado:0, recebido:0, glosado:0, aReceber:0, atrasado:0, qtd:0, qtdAtrasadas:0};
-  (contratos||[]).forEach(function(arr){
-    var r=fatResumo(String(arr[IDX.ID]), arr);
+/* Recebe ENTRADAS ({id, arr}), não arrays.
+   Antes recebia arrays e chamava `fatResumo(String(arr[IDX.ID]), arr)`
+   — mas `arr[IDX.ID]` é o "#" sequencial do cadastro, e `FAT` é
+   indexado pelo id do documento no Firestore, que é o que todo o resto
+   do portal usa. As duas chaves nunca se encontram: a função devolvia
+   zero para qualquer carteira. Não aparecia porque ninguém a chamava;
+   agora o painel chama. */
+function fatResumoEmpresa(entradas){
+  var t={autorizado:0, faturado:0, recebido:0, glosado:0, aReceber:0, atrasado:0, qtd:0, qtdAtrasadas:0,
+         valorContrato:0, semLancamento:0};
+  (entradas||[]).forEach(function(e){
+    if(!e) return;
+    var r=fatResumo(String(e.id), e.arr);
     ['autorizado','faturado','recebido','glosado','aReceber','atrasado','qtd','qtdAtrasadas']
       .forEach(function(k){ t[k]+=r[k]||0; });
+    t.valorContrato += r.valorContrato||0;
+    /* Contrato encerrado sem lançamento não é pendência — é histórico
+       de antes do módulo existir, e contá-lo faria o aviso nascer
+       velho e nunca zerar. */
+    if(!r.qtd && !rpEncerrado(e.arr)) t.semLancamento += 1;
   });
   /* O que foi autorizado (empenho/OS/OC) e ainda não virou nota. É o
      estoque de faturamento — dinheiro já garantido que não entrou. */
@@ -4996,6 +5300,11 @@ function _execAgendarRedesenho(){
     });
     try{ renderStats(); }catch(_e){}
     try{ renderAvisos(); }catch(_e){}
+    /* O painel também soma faturamento agora. Sem isto o cartão
+       "Faturamento real" só apareceria na primeira troca de filtro:
+       quem abrisse o portal direto no Painel veria a carteira sem o
+       dinheiro, e um lançamento novo não mexeria em nada na tela. */
+    try{ gerarDashboard(); }catch(_e){}
   }, 400);
 }
 
@@ -6887,7 +7196,7 @@ function getListaFiltrada(){
       return true;
     });
   }
-  if(filtroEmpresa) lista=lista.filter(({arr})=>String(arr[IDX.EMPRESA]||'').trim().toUpperCase()===filtroEmpresa);
+  if(filtroEmpresa) lista=lista.filter(({arr})=>_mesmoFiltroEmpresa(arr[IDX.EMPRESA]));
   const busca=(document.getElementById('inp-busca')?.value||'').toLowerCase().trim();
   if(busca) lista=lista.filter(({arr})=>arr.some(v=>String(v||'').toLowerCase().includes(busca)));
   return lista;
