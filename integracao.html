@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#05070F">
+<script>document.documentElement.className+=' js';</script>
+<title>Integração do cliente | NH Licitações</title>
+<meta name="description" content="Central de integração: seus acessos, sua equipe, os primeiros 30 dias e o cadastro da empresa.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#05070F;--line:rgba(255,255,255,.09);--line2:rgba(255,255,255,.16);
+  --flame:#FF6A13;--ember:#FFA857;--steel:#8A97AF;--steel2:#5E6B83;--paper:#EDF2FA;
+  --green:#4BD98B;--yellow:#FFC53D;--red:#FF6B81;--blue:#5B9DFF;--purple:#A78BFA;
+  --rail:linear-gradient(90deg,#FF6A13,#FF3D6E 38%,#7B4DFF 70%,#2E7DFF);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{background:var(--ink);color:var(--paper);font-family:"Inter Tight",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.rail{position:fixed;top:0;left:0;right:0;height:3px;background:var(--rail);z-index:60}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+section{padding:60px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.eyebrow{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:var(--flame);display:flex;align-items:center;gap:9px;margin-bottom:14px}
+.eyebrow i{width:5px;height:5px;border-radius:50%;background:var(--flame);animation:pulse 2.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 3px rgba(255,106,19,.22)}50%{box-shadow:0 0 0 8px rgba(255,106,19,0)}}
+h1{font-family:Archivo,sans-serif;font-weight:800;font-stretch:110%;font-size:clamp(34px,7vw,72px);line-height:.98;letter-spacing:-.035em}
+h2{font-family:Archivo,sans-serif;font-weight:800;font-stretch:108%;font-size:clamp(24px,3.6vw,38px);letter-spacing:-.03em;line-height:1.06}
+h1 em,h2 em{font-style:normal;color:var(--flame)}
+.lead{font-size:clamp(15px,1.7vw,18px);line-height:1.6;color:var(--steel);margin-top:14px;max-width:64ch}
+
+.hero{position:relative;min-height:100svh;display:flex;flex-direction:column;justify-content:center;text-align:center;overflow:hidden;padding:70px 0}
+.hero::before{content:"";position:absolute;width:1000px;height:1000px;border-radius:50%;left:50%;top:-40%;transform:translateX(-50%);
+  background:radial-gradient(circle,rgba(255,106,19,.22),rgba(255,106,19,0) 62%);animation:breathe 9s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.12)}}
+.hero>*{position:relative;z-index:2}
+.logo{width:120px;height:120px;margin:0 auto 26px}
+.logo svg{width:100%;height:100%;overflow:visible}
+.welcome{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--flame);margin-bottom:22px}
+.hero h1 span{display:block}
+.hero h1 .nome{color:var(--flame);margin-top:6px;font-size:clamp(30px,6vw,62px)}
+.subhero{font-size:clamp(15px,1.8vw,19px);color:var(--steel);margin:22px auto 0;max-width:52ch;line-height:1.6}
+.sign{display:inline-flex;align-items:center;gap:11px;margin-top:26px;padding:11px 20px;border-radius:999px;border:1px solid rgba(75,217,139,.4);background:rgba(75,217,139,.10);
+  font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--green)}
+.sign b{width:7px;height:7px;border-radius:50%;background:var(--green)}
+.scrolld{margin-top:44px;font-family:"JetBrains Mono",monospace;font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--steel2);display:flex;flex-direction:column;align-items:center;gap:10px}
+.scrolld svg{animation:bob 2.2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(6px);opacity:1}}
+.kw{display:inline-block}
+.js .kw{opacity:0;transform:translateY(.4em)}
+.js .kw.go{animation:kin .75s cubic-bezier(.2,.8,.25,1) forwards}
+@keyframes kin{to{opacity:1;transform:none}}
+
+.g4{display:grid;grid-template-columns:repeat(auto-fit,minmax(212px,1fr));gap:14px;margin-top:30px}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-top:30px}
+.card,.set,.fase{border:1px solid var(--line);border-radius:18px;padding:23px;background:linear-gradient(170deg,rgba(255,255,255,.055),rgba(255,255,255,.012))}
+.card h3,.set h3{font-family:Archivo,sans-serif;font-weight:700;font-stretch:104%;font-size:19px;margin-bottom:9px;letter-spacing:-.015em}
+.card p,.set p{font-size:14.5px;line-height:1.55;color:var(--steel)}
+.set p{margin-bottom:14px}
+.sicon{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;margin-bottom:15px;background:rgba(255,106,19,.13);border:1px solid rgba(255,106,19,.35);color:var(--flame)}
+.sicon svg{width:20px;height:20px}
+ul.tick{list-style:none;display:flex;flex-direction:column;gap:8px}
+ul.tick li{font-size:14px;display:flex;gap:10px;align-items:flex-start;line-height:1.45}
+ul.tick li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--flame);margin-top:7px;flex:none}
+.fases{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:14px;margin-top:30px}
+.fp{display:inline-block;font-family:"JetBrains Mono",monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#0A0F1C;background:var(--flame);padding:5px 10px;border-radius:6px;margin-bottom:13px;font-weight:700}
+.fase h3{font-family:Archivo,sans-serif;font-weight:700;font-stretch:104%;font-size:18px;margin-bottom:8px}
+.fase p{font-size:13.5px;line-height:1.5;color:var(--steel)}
+
+.portalbox{margin-top:26px;border:1px solid rgba(255,106,19,.35);border-radius:20px;padding:28px;
+  background:linear-gradient(165deg,rgba(255,106,19,.12),rgba(255,106,19,.02))}
+.purl{display:inline-block;margin:10px 0 14px;font-family:Archivo,sans-serif;font-weight:800;font-stretch:106%;
+  font-size:clamp(19px,3.4vw,30px);letter-spacing:-.02em;color:var(--flame);text-decoration:none;word-break:break-all;
+  border-bottom:2px solid rgba(255,106,19,.4);padding-bottom:4px}
+.portalbox p{font-size:14.5px;line-height:1.6;color:var(--steel);max-width:64ch}
+.pnote{margin-top:18px;padding:15px 17px;border-radius:12px;background:rgba(0,0,0,.28);border:1px solid var(--line);
+  font-size:13.5px;line-height:1.55;color:var(--steel)}
+.pnote b{color:var(--paper)}
+.stabs{display:flex;gap:9px;flex-wrap:wrap;margin-top:26px}
+.stab{padding:12px 18px;border-radius:12px;border:1px solid var(--line2);background:transparent;color:var(--steel);
+  font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;cursor:pointer;transition:.25s;min-height:44px}
+.stab.on{background:rgba(255,106,19,.13);border-color:var(--flame);color:var(--flame)}
+.spane{display:none;margin-top:18px}
+.spane.on{display:block;animation:pop .5s cubic-bezier(.2,.8,.25,1) both}
+@keyframes pop{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.sphead{margin-bottom:16px}
+.sphead h3{font-family:Archivo,sans-serif;font-weight:800;font-stretch:106%;font-size:23px;letter-spacing:-.02em;margin-bottom:8px}
+.sphead p{font-size:15px;line-height:1.55;color:var(--steel);max-width:62ch}
+
+.ui{border:1px solid var(--line2);border-radius:16px;overflow:hidden;background:linear-gradient(170deg,#0C1526,#06090F);box-shadow:0 30px 70px rgba(0,0,0,.55)}
+.uibar{display:flex;align-items:center;gap:12px;padding:11px 15px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.03);flex-wrap:wrap}
+.uilogo{width:20px;height:20px;border-radius:6px;background:linear-gradient(150deg,#FF8A3D,#F0510A);flex:none}
+.uibar b{font-family:Archivo,sans-serif;font-weight:700;font-size:12.5px}
+.uinav{display:flex;gap:14px;margin-left:14px;flex-wrap:wrap}
+.uinav i{font-style:normal;font-size:10.5px;color:var(--steel2)}
+.uinav i.on{color:var(--flame)}
+.uiuser{margin-left:auto;font-family:"JetBrains Mono",monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--steel);
+  border:1px solid var(--line);padding:5px 10px;border-radius:999px;white-space:nowrap;max-width:190px;overflow:hidden;text-overflow:ellipsis}
+.uitick{display:flex;gap:20px;padding:8px 15px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.uitick span{font-family:"JetBrains Mono",monospace;font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--steel2);white-space:nowrap}
+.uibody{padding:16px}
+.uihero{text-align:center;padding:14px 0 20px}
+.uitag{font-family:"JetBrains Mono",monospace;font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--flame)}
+.uihero h4{font-family:Archivo,sans-serif;font-weight:800;font-stretch:106%;font-size:clamp(19px,3.2vw,27px);margin:9px 0 6px;letter-spacing:-.02em}
+.uihero h4 em{font-style:normal;color:var(--flame)}
+.uihero p{font-size:11.5px;color:var(--steel)}
+.uikpi4{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:9px}
+.uikpi4>div{border:1px solid var(--line);border-top:2px solid var(--flame);border-radius:11px;padding:12px;background:rgba(255,255,255,.03)}
+.uikpi4 span{display:block;font-family:"JetBrains Mono",monospace;font-size:7.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--steel2)}
+.uikpi4 b{display:block;margin-top:5px;font-family:Archivo,sans-serif;font-weight:800;font-size:22px;letter-spacing:-.02em}
+.uikpi4 b.o{color:var(--flame)}.uikpi4 b.p{color:var(--purple)}.uikpi4 b.g{color:var(--green)}
+.uikpi4 i{display:block;font-style:normal;margin-top:3px;font-size:9.5px;color:var(--steel)}
+.uifun{margin-top:12px;border:1px solid var(--line);border-radius:12px;padding:14px;background:rgba(255,255,255,.02)}
+.uilab{font-family:"JetBrains Mono",monospace;font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--flame)}
+.funs{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:9px;margin-top:11px}
+.funs>div{border:1px solid var(--line);border-radius:10px;padding:11px;background:rgba(255,255,255,.03)}
+.funs span{display:block;font-family:"JetBrains Mono",monospace;font-size:7px;letter-spacing:.13em;text-transform:uppercase;color:var(--steel2)}
+.funs b{display:block;margin-top:4px;font-family:Archivo,sans-serif;font-weight:800;font-size:20px}
+.funs i{display:block;font-style:normal;font-size:9px;color:var(--steel2);margin-top:2px}
+.funs .win{border-color:rgba(75,217,139,.4);background:rgba(75,217,139,.08)}
+.funs .win b{color:var(--green)}
+
+.uistrip{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:14px}
+.uistrip>div{border:1px solid var(--line);border-radius:10px;padding:10px 5px;text-align:center;background:rgba(255,255,255,.03)}
+.uistrip span{display:block;font-family:"JetBrains Mono",monospace;font-size:6.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--steel2)}
+.uistrip b{display:block;margin-top:4px;font-family:Archivo,sans-serif;font-weight:800;font-size:17px}
+.uistrip .o{color:var(--flame)}.uistrip .y{color:var(--yellow)}.uistrip .g{color:var(--green)}.uistrip .r{color:var(--red)}
+
+.viab{border:1px solid var(--line2);border-radius:14px;padding:16px;background:linear-gradient(165deg,#16223A,#0B1220);position:relative;overflow:hidden}
+.viab::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:var(--rail)}
+.vtop{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.vbadges{display:flex;gap:6px}
+.bd{font-style:normal;font-family:"JetBrains Mono",monospace;font-size:7.5px;letter-spacing:.1em;text-transform:uppercase;padding:4px 9px;border-radius:999px;border:1px solid var(--line2);color:var(--steel)}
+.bd.y{background:rgba(255,197,61,.14);color:var(--yellow);border-color:rgba(255,197,61,.35)}
+.viab h4{font-family:Archivo,sans-serif;font-weight:700;font-stretch:104%;font-size:15px;margin:12px 0 12px}
+.vmeta{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:9px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.vmeta span{display:block;font-family:"JetBrains Mono",monospace;font-size:7px;letter-spacing:.13em;text-transform:uppercase;color:var(--flame)}
+.vmeta b{display:block;margin-top:3px;font-size:12px;font-weight:600}
+.vobj{font-size:11.5px;color:var(--steel);line-height:1.5;margin:12px 0;border:1px solid var(--line);border-radius:9px;padding:11px}
+.vscore{display:flex;gap:12px;align-items:center;margin-bottom:14px}
+.vring{width:46px;height:46px;border-radius:50%;flex:none;display:grid;place-items:center;background:conic-gradient(var(--flame) 0 87%,rgba(255,255,255,.09) 87% 100%)}
+.vring i{width:36px;height:36px;border-radius:50%;background:#0F1829;display:grid;place-items:center;font-family:Archivo,sans-serif;font-style:normal;font-weight:800;font-size:13px}
+.vscore p{font-size:11px;color:var(--steel);line-height:1.45}
+
+.planilha{border:1px solid rgba(255,106,19,.3);border-radius:11px;padding:13px;background:rgba(255,106,19,.05);margin-bottom:14px}
+.phead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:11px}
+.phead b{font-family:Archivo,sans-serif;font-weight:700;font-size:13px}
+.phead span{font-family:"JetBrains Mono",monospace;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--flame)}
+.prow{display:grid;grid-template-columns:1.3fr .6fr .8fr 1fr;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:11.5px}
+.prow.phd{font-family:"JetBrains Mono",monospace;font-size:7px;letter-spacing:.12em;text-transform:uppercase;color:var(--steel2);border-bottom:1px solid var(--line)}
+.prow input{width:100%;padding:7px 9px;border-radius:8px;border:1px solid var(--line2);background:rgba(0,0,0,.35);color:var(--paper);font-family:inherit;font-size:12px}
+.prow input:focus{outline:none;border-color:var(--flame);box-shadow:0 0 0 3px rgba(255,106,19,.18)}
+.ptot{display:flex;justify-content:space-between;align-items:center;margin-top:11px;padding-top:10px;border-top:1px solid var(--line);gap:10px}
+.ptot span{font-family:"JetBrains Mono",monospace;font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--steel2)}
+.ptot b{font-family:Archivo,sans-serif;font-weight:800;font-size:19px;color:var(--flame)}
+.phint{font-size:10px;color:var(--steel2);margin-top:8px;line-height:1.4}
+
+.vbtns{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px}
+.vb{padding:13px 6px;border-radius:10px;border:1px solid var(--line2);background:transparent;color:var(--steel);
+  font-family:Archivo,sans-serif;font-weight:800;font-size:12px;letter-spacing:.04em;cursor:pointer;min-height:44px;transition:.2s}
+.vb.yes{background:linear-gradient(120deg,#FF8A3D,#F0510A);color:#140A03;border:0}
+.vb:active{transform:scale(.97)}
+.vresp{display:none;margin-top:12px;padding:14px;border-radius:11px;font-size:12.5px;line-height:1.5}
+.vresp.on{display:block;animation:pop .4s both}
+.vresp.ok{background:rgba(255,106,19,.12);border:1px solid rgba(255,106,19,.4)}
+.vresp.skip{background:rgba(255,255,255,.05);border:1px solid var(--line2);color:var(--steel)}
+.vresp b{display:block;font-family:Archivo,sans-serif;font-size:14px;margin-bottom:5px}
+
+.uicards{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:9px;margin-bottom:13px}
+.uc{border:1px solid var(--line);border-left-width:3px;border-radius:10px;padding:11px;background:rgba(255,255,255,.03)}
+.uc span{display:block;font-family:"JetBrains Mono",monospace;font-size:7px;letter-spacing:.12em;text-transform:uppercase;color:var(--steel2)}
+.uc b{display:block;margin-top:4px;font-family:Archivo,sans-serif;font-weight:800;font-size:20px}
+.uc i{display:block;font-style:normal;font-size:9px;color:var(--steel);margin-top:2px}
+.uc.o{border-left-color:var(--flame)}.uc.o b{color:var(--flame)}
+.uc.g{border-left-color:var(--green)}.uc.g b{color:var(--green)}
+.uc.b{border-left-color:var(--blue)}.uc.b b{color:var(--blue)}
+.uc.r{border-left-color:var(--red)}.uc.r b{color:var(--red)}
+.uc.y{border-left-color:var(--yellow)}.uc.y b{color:var(--yellow)}
+.uc.p{border-left-color:var(--purple)}.uc.p b{color:var(--purple)}
+.uifilters{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:11px}
+.uifilters i{font-style:normal;font-family:"JetBrains Mono",monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;
+  border:1px solid var(--line);padding:6px 11px;border-radius:999px;color:var(--steel2)}
+.uifilters i.on{border-color:var(--flame);color:var(--flame);background:rgba(255,106,19,.09)}
+.clist{display:flex;flex-direction:column;gap:8px}
+.cit{border:1px solid var(--line);border-left-width:3px;border-radius:10px;padding:12px;background:rgba(255,255,255,.03);display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.cit.g{border-left-color:var(--green)}.cit.y{border-left-color:var(--yellow)}.cit.b{border-left-color:var(--blue)}
+.cid{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--green);border:1px solid rgba(75,217,139,.35);padding:3px 7px;border-radius:5px}
+.cdt{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--steel2)}
+.cit b{flex:1;min-width:180px;font-size:12.5px;font-weight:600}
+.cst{font-style:normal;font-family:"JetBrains Mono",monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:4px 9px;border-radius:999px}
+.cst.g{background:rgba(75,217,139,.14);color:var(--green)}
+.cst.y{background:rgba(255,197,61,.14);color:var(--yellow)}
+.cst.b{background:rgba(91,157,255,.14);color:var(--blue)}
+.calert{margin-top:12px;border:1px solid rgba(255,106,19,.3);background:rgba(255,106,19,.07);border-radius:11px;padding:13px}
+.calert b{display:block;font-family:Archivo,sans-serif;font-size:12.5px;margin-bottom:4px;color:var(--flame)}
+.calert span{font-size:11.5px;color:var(--steel);line-height:1.5}
+
+.train{margin-top:28px;border:1px solid var(--line2);border-radius:20px;padding:30px;
+  background:linear-gradient(165deg,#111C30,#070C16);box-shadow:0 30px 70px rgba(0,0,0,.5)}
+.tico{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;margin-bottom:18px;
+  background:rgba(255,106,19,.16);border:1px solid rgba(255,106,19,.4);color:var(--flame)}
+.tico svg{width:24px;height:24px}
+.train h3{font-family:Archivo,sans-serif;font-weight:800;font-stretch:106%;font-size:23px;margin-bottom:10px;letter-spacing:-.02em}
+.train>p{font-size:14.5px;line-height:1.6;color:var(--steel);max-width:62ch}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:18px;margin:24px 0 4px}
+.tgrid>div{border:1px solid var(--line);border-radius:14px;padding:19px;background:rgba(255,255,255,.03)}
+.tgrid span{display:block;font-family:"JetBrains Mono",monospace;font-size:8.5px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--flame);margin-bottom:12px}
+.tnote{margin-top:16px;font-size:12.5px;color:var(--steel2);line-height:1.5}
+.cad{border:1px solid rgba(255,106,19,.35);border-radius:20px;padding:30px;margin-top:28px;
+  background:linear-gradient(165deg,rgba(255,106,19,.13),rgba(255,106,19,.02))}
+.cadico{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;margin-bottom:18px;background:rgba(255,106,19,.18);border:1px solid rgba(255,106,19,.4);color:var(--flame)}
+.cadico svg{width:24px;height:24px}
+.cad h3{font-family:Archivo,sans-serif;font-weight:800;font-stretch:106%;font-size:24px;margin-bottom:10px;letter-spacing:-.02em}
+.cad p{font-size:15px;line-height:1.6;color:var(--steel);max-width:60ch}
+.cadbtn{display:inline-flex;align-items:center;gap:11px;margin-top:22px;padding:17px 30px;border-radius:14px;
+  background:linear-gradient(120deg,#FF8A3D,#EE3E12);color:#160903;text-decoration:none;
+  font-family:Archivo,sans-serif;font-weight:800;font-stretch:106%;font-size:15px;box-shadow:0 16px 40px rgba(255,106,19,.34)}
+.cadlist{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:9px;margin-top:24px}
+.cadlist div{font-size:13px;color:var(--steel);display:flex;gap:9px;align-items:flex-start;line-height:1.45}
+.cadlist div::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--flame);margin-top:7px;flex:none}
+
+.cta{text-align:center;padding:70px 0}
+.wpp{display:inline-flex;align-items:center;gap:15px;margin-top:26px;padding:20px 38px;border-radius:18px;
+  background:linear-gradient(120deg,#FF8A3D,#EE3E12);color:#160903;text-decoration:none;box-shadow:0 20px 50px rgba(255,106,19,.36)}
+.wpp small{display:block;font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.2em;opacity:.72;margin-bottom:4px}
+.wpp b{font-family:Archivo,sans-serif;font-weight:800;font-stretch:108%;font-size:28px;letter-spacing:-.02em;line-height:1}
+.mail{display:block;margin-top:16px;font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--steel);text-decoration:none}
+.foot{margin-top:34px;font-family:"JetBrains Mono",monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--steel2);line-height:2}
+
+.rev{opacity:0;transform:translateY(20px)}
+.js .rev.seen{opacity:1;transform:none;transition:opacity .7s cubic-bezier(.2,.8,.25,1),transform .7s cubic-bezier(.2,.8,.25,1)}
+html:not(.js) .rev,html:not(.js) .kw{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rev,.kw{opacity:1!important;transform:none!important}}
+@media (max-width:560px){
+  .uistrip{grid-template-columns:repeat(3,1fr)}
+  .prow{grid-template-columns:1.2fr .5fr .7fr 1fr;font-size:10.5px}
+  .vbtns{grid-template-columns:1fr}
+  .uinav{display:none}
+}
+</style>
+</head>
+<body>
+<div class="rail"></div>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="logo"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+<defs><linearGradient id="ig" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#FFA355"/><stop offset=".55" stop-color="#FF7A1F"/><stop offset="1" stop-color="#E85305"/>
+</linearGradient></defs>
+<g fill="none" stroke="#7B4DFF" stroke-width="2" stroke-linecap="round" opacity=".5">
+<animateTransform attributeName="transform" type="rotate" from="360 100 100" to="0 100 100" dur="44s" repeatCount="indefinite"/>
+<circle cx="100" cy="100" r="90" stroke-dasharray="96 470"/><circle cx="100" cy="100" r="90" stroke-dasharray="30 536" stroke-dashoffset="-300"/></g>
+<g fill="none" stroke="#FF6A13" stroke-width="2.6" stroke-linecap="round" opacity=".8">
+<animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="30s" repeatCount="indefinite"/>
+<circle cx="100" cy="100" r="78" stroke-dasharray="120 370"/><circle cx="100" cy="100" r="78" stroke-dasharray="44 446" stroke-dashoffset="-252"/></g>
+<circle cx="100" cy="100" r="62" fill="url(#ig)"/>
+<g fill="#11161F" transform="translate(100,100) scale(0.115) translate(-612.5,-457.5)">
+<path d="M310 585 V330 A105 105 0 0 1 415 225 H665 V690 H540 V360 A30 30 0 0 0 510 330 H450 A30 30 0 0 0 420 360 V690 H415 A105 105 0 0 1 310 585 Z"/>
+<path d="M790 225 H810 A105 105 0 0 1 915 330 V690 H790 V490 H665 V380 H790 Z"/></g></svg></div>
+    <p class="welcome" id="welc">Sua operação começa agora</p>
+    <h1><span id="h1a">Bem-vindo à</span><span class="nome" id="h1b">operação NH.</span></h1>
+    <p class="subhero">A partir de hoje a sua empresa tem radar rodando, equipe dedicada, jurídico próprio
+    e sistema com login seu. Esta página é o mapa de tudo o que passa a ser seu.</p>
+    <div class="sign"><b></b>Contrato ativo · integração iniciada</div>
+    <div class="scrolld">Role para conhecer
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF6A13" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow rev"><i></i>O que muda a partir de hoje</div>
+    <h2 class="rev">Você para de procurar edital<br>e passa a <em>decidir sobre eles.</em></h2>
+    <div class="g4">
+      <div class="card rev"><h3>Ninguém mais garimpa</h3><p>A varredura dos portais passa a ser nossa. Sua equipe não abre mais site de licitação.</p></div>
+      <div class="card rev"><h3>Documento vigiado</h3><p>Certidão vencida deixa de ser descoberta na habilitação. O sistema avisa antes.</p></div>
+      <div class="card rev"><h3>Preço com piso</h3><p>Nenhum lance é dado abaixo do mínimo que você definiu na planilha do sistema.</p></div>
+      <div class="card rev"><h3>Contrato acompanhado</h3><p>Depois de ganhar, prazo, aditivo e atestado continuam sendo responsabilidade nossa.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow rev"><i></i>Seus acessos</div>
+    <h2 class="rev">Três sistemas. <em>Um login seu.</em></h2>
+    <p class="lead rev">Tudo começa por um endereço só. Os três sistemas ficam dentro do portal: você entra uma vez e abre o que precisar.</p>
+    <div class="portalbox rev">
+      <span class="uilab">Endereço do seu portal</span>
+      <a class="purl" href="https://nhlicitacoes.noronhaholanda.com.br" target="_blank" rel="noopener">nhlicitacoes.noronhaholanda.com.br</a>
+      <p>Salve nos favoritos do computador e adicione à tela de início do celular. É por ali que a sua empresa acompanha
+      a operação e acessa o Sistema de Viabilidade e o Gerenciamento de Contratos, sem precisar guardar outros endereços.</p>
+      <div class="pnote"><b>Sobre login e senha.</b> Cada pessoa da sua equipe recebe um acesso individual. As credenciais são
+      entregues ao longo dos primeiros trinta dias, conforme o cadastro da empresa e a organização dos documentos avançam.</div>
+    </div>
+    <p class="lead rev" style="margin-top:34px">Abaixo, as telas que você vai usar por dentro. Pode tocar e experimentar aqui mesmo: os números são de exemplo.</p>
+    <div class="stabs rev" id="stabs"><button class="stab on" data-t="portal">Portal do Cliente</button><button class="stab" data-t="viab">Sistema de Viabilidade</button><button class="stab" data-t="contr">Gerenciamento de Contratos</button></div>
+    <div id="spanes" class="rev"><div class="spane on" data-p="portal">
+  <div class="sphead"><h3>Portal do Cliente</h3><p>O seu painel central, aberto vinte e quatro horas. Números da operação, agenda das sessões e acesso aos demais sistemas.</p></div>
+<div class="ui">
+  <div class="uibar">
+    <span class="uilogo"></span><b>NH Licitações</b>
+    <nav class="uinav"><i class="on">Painel</i><i>Certames</i><i>Agenda</i><i>Sistemas</i><i>Certidões</i></nav>
+    <span class="uiuser">Sua empresa</span>
+  </div>
+  <div class="uitick"><span>142 editais captados</span><span>atualizado às 08:53</span><span>6 processos em andamento</span><span>11 licitações ganhas</span></div>
+  <div class="uibody">
+    <div class="uihero">
+      <span class="uitag">Portal de licitações</span>
+      <h4>Que bom te ver, <em>Sua empresa</em></h4>
+      <p>Editais, disputas, contratos e agenda da sua empresa, em um só lugar.</p>
+    </div>
+    <div class="uikpi4">
+      <div><span>Contratos ativos</span><b>8</b><i>R$ 4,2 mi em execução</i></div>
+      <div><span>Portfólio total</span><b class="o">R$ 6,7M</b><i>11 contratos ganhos</i></div>
+      <div><span>Faturamento ativo</span><b class="p">R$ 4,2M</b><i>8 contratos vigentes</i></div>
+      <div><span>Taxa de conversão</span><b class="g">26%</b><i>11 de 42 disputas</i></div>
+    </div>
+    <div class="uifun">
+      <span class="uilab">Do edital ao contrato</span>
+      <div class="funs">
+        <div><span>Captados</span><b>142</b></div>
+        <div><span>Decidiu participar</span><b>52</b><i>37% da etapa</i></div>
+        <div><span>Disputou</span><b>42</b><i>81% da etapa</i></div>
+        <div class="win"><span>Ganhou</span><b>11</b><i>26% da etapa</i></div>
+      </div>
+    </div>
+  </div>
+</div></div><div class="spane" data-p="viab">
+  <div class="sphead"><h3>Sistema de Viabilidade</h3><p>É aqui que a sua empresa decide. O edital chega lido, com risco, nota e a planilha onde você define o preço mínimo.</p></div>
+<div class="ui">
+  <div class="uibar">
+    <span class="uilogo"></span><b>Análise de Viabilidade</b>
+    <span class="uiuser">Sua empresa</span>
+  </div>
+  <div class="uibody">
+    <div class="uistrip">
+      <div><span>Total</span><b class="o">142</b></div>
+      <div><span>Pendentes</span><b>3</b></div>
+      <div><span>Em análise</span><b class="y">1</b></div>
+      <div><span>Participar</span><b class="g">52</b></div>
+      <div><span>Recusados</span><b class="r">86</b></div>
+    </div>
+    <div class="viab" id="viab">
+      <div class="vtop"><span class="uilab">Análise de viabilidade</span>
+        <span class="vbadges"><i class="bd y">Risco médio</i><i class="bd">CAPAG: B</i></span></div>
+      <h4>PE 00.2026 · Órgão municipal · sessão em 4 dias</h4>
+      <div class="vmeta">
+        <div><span>Município</span><b>Interior do estado</b></div>
+        <div><span>Valor estimado</span><b>R$ 785.000,00</b></div>
+        <div><span>Prazo de entrega</span><b>Cronograma semanal</b></div>
+      </div>
+      <p class="vobj">Contratação de empresa para fornecimento contínuo dos itens descritos no termo de referência, com entrega programada nas unidades indicadas pelo órgão.</p>
+      <div class="vscore"><div class="vring"><i>8,7</i></div>
+        <p>Nota calculada sobre exigências do edital, concorrência prevista e histórico de preços do órgão. Análise feita pela equipe da NH.</p></div>
+
+      <div class="planilha">
+        <div class="phead"><b>Planilha de itens</b><span>defina o seu valor mínimo</span></div>
+        <div class="prow phd"><span>Item</span><span>Qtd.</span><span>Ref. órgão</span><span>Seu mínimo</span></div>
+        <div class="prow"><span>Item A</span><span>1.200</span><span>R$ 4,20</span>
+          <span><input type="number" step="0.01" placeholder="0,00" data-min data-q="1200"></span></div>
+        <div class="prow"><span>Item B</span><span>800</span><span>R$ 6,50</span>
+          <span><input type="number" step="0.01" placeholder="0,00" data-min data-q="800"></span></div>
+        <div class="prow"><span>Item C</span><span>350</span><span>R$ 12,90</span>
+          <span><input type="number" step="0.01" placeholder="0,00" data-min data-q="350"></span></div>
+        <div class="ptot"><span>Seu piso total para a disputa</span><b id="ptot">R$ 0,00</b></div>
+        <p class="phint">Abaixo desse valor a NH não dá lance. É o seu limite, registrado com data e hora.</p>
+      </div>
+
+      <div class="vbtns">
+        <button class="vb yes" data-v="yes">SIM, PARTICIPAR</button>
+        <button class="vb no" data-v="no">NÃO</button>
+        <button class="vb an" data-v="an">ANÁLISE</button>
+      </div>
+      <div class="vresp" id="vresp"></div>
+    </div>
+  </div>
+</div></div><div class="spane" data-p="contr">
+  <div class="sphead"><h3>Gerenciamento de Contratos</h3><p>A vida do contrato depois da assinatura: vencimentos, aditivos, reajuste, atestados e alerta antes do prazo.</p></div>
+<div class="ui">
+  <div class="uibar">
+    <span class="uilogo"></span><b>Gerenciamento de Contratos</b>
+    <span class="uiuser">Sua empresa</span>
+  </div>
+  <div class="uibody">
+    <div class="uicards">
+      <div class="uc o"><span>Total</span><b>11</b><i>R$ 6,7 mi</i></div>
+      <div class="uc g"><span>Em execução</span><b>8</b><i>R$ 4,2 mi</i></div>
+      <div class="uc b"><span>Aguardando</span><b>1</b><i>R$ 180 mil</i></div>
+      <div class="uc r"><span>Vencidos</span><b>0</b><i>nada em atraso</i></div>
+      <div class="uc y"><span>Próx. vencer 90d</span><b>2</b><i>R$ 640 mil</i></div>
+      <div class="uc p"><span>Atestados</span><b>4</b><i>de 8 registrados</i></div>
+    </div>
+    <div class="uifilters"><i class="on">Todos (11)</i><i>Em execução (8)</i><i>Aguardando (1)</i><i>Próx. vencer (2)</i></div>
+    <div class="clist">
+      <div class="cit g"><span class="cid">#08</span><span class="cdt">30/07/2026</span>
+        <b>Registro de preços · Secretaria municipal · entrega programada</b><i class="cst g">Em execução</i></div>
+      <div class="cit y"><span class="cid">#07</span><span class="cdt">22/07/2026</span>
+        <b>Fornecimento contínuo · Unidade de saúde · 12 meses</b><i class="cst y">Vence em 64 dias</i></div>
+      <div class="cit b"><span class="cid">#06</span><span class="cdt">20/07/2026</span>
+        <b>Ata de registro de preços · Órgão estadual</b><i class="cst b">Aguardando contrato</i></div>
+    </div>
+    <div class="calert"><b>Alerta automático</b><span>2 contratos entram na janela de prorrogação nos próximos 90 dias. A NH já iniciou a instrução do aditivo.</span></div>
+  </div>
+</div></div></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow rev"><i></i>Treinamento</div>
+    <h2 class="rev">Ninguém aprende sistema<br><em>lendo manual.</em></h2>
+    <p class="lead rev">Por isso a NH marca uma videochamada com a sua equipe. Alguém do nosso time abre os sistemas,
+    percorre tela por tela e responde na hora. É uma data marcada na agenda, não um vídeo gravado que ninguém assiste.</p>
+    <div class="train rev">
+      <div class="tico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7Z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
+      <h3>Treinamento ao vivo, por videochamada</h3>
+      <p>Agendado nos primeiros dias, em horário combinado com você. A reunião só termina quando a sua equipe
+      souber entrar, encontrar a oportunidade, definir o valor mínimo e decidir sozinha.</p>
+      <div class="tgrid">
+        <div><span>O que a gente percorre</span>
+          <ul class="tick"><li>O portal e como se localizar dentro dele</li>
+          <li>Como ler a análise de viabilidade</li>
+          <li>Como lançar o valor mínimo na planilha</li>
+          <li>Como acompanhar contratos e prazos</li></ul></div>
+        <div><span>Quem deve participar</span>
+          <ul class="tick"><li>Quem vai decidir se participa dos certames</li>
+          <li>Quem cuida da documentação da empresa</li>
+          <li>Quem acompanha entrega e faturamento</li></ul></div>
+      </div>
+      <a class="cadbtn" href="https://wa.me/5583999691071" target="_blank" rel="noopener">Marcar o meu treinamento</a>
+      <p class="tnote">Precisando, remarcamos ou repetimos com quem entrar depois na sua equipe. Pessoa nova não fica sem treinamento.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow rev"><i></i>Com quem você fala</div>
+    <h2 class="rev">Quatro frentes, <em>contato direto.</em></h2>
+    <p class="lead rev">Você não passa por atendimento genérico. Cada assunto tem um time responsável, e todos estão na mesma casa.</p>
+    <div class="g2"><article class="set rev">
+  <div class="sicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg></div><h3>Comercial e relacionamento</h3><p>Sua porta de entrada. Contrato, escopo, cobrança e tudo que não couber nos outros times.</p>
+  <ul class="tick"><li>Ampliação de escopo e renegociação</li><li>Dúvidas sobre proposta e contrato</li><li>Reuniões de acompanhamento</li></ul>
+</article><article class="set rev">
+  <div class="sicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 15l4-5 3 3 5-7"/></svg></div><h3>Análise e certames</h3><p>Quem lê o edital, monta o preço e conduz a sessão. É com eles que sua operação fala todo dia.</p>
+  <ul class="tick"><li>Viabilidade e leitura de edital</li><li>Formação de preço e planilha</li><li>Condução da disputa e lances</li></ul>
+</article><article class="set rev">
+  <div class="sicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 7h14M7 7l-3 7a3.5 3.5 0 0 0 6 0L7 7ZM17 7l-3 7a3.5 3.5 0 0 0 6 0l-3-7Z"/></svg></div><h3>Jurídico</h3><p>Advogados de licitação dentro de casa. Entram quando o prazo é curto e a peça precisa ser protocolada.</p>
+  <ul class="tick"><li>Impugnação e esclarecimento</li><li>Recurso e contrarrazões</li><li>Defesa administrativa e representação</li></ul>
+</article><article class="set rev">
+  <div class="sicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg></div><h3>Contratos e atestados</h3><p>Depois da assinatura o contrato não fica sozinho. Este time sustenta a receita até o encerramento.</p>
+  <ul class="tick"><li>Prazos, aditivos e prorrogação</li><li>Reajuste e reequilíbrio</li><li>Emissão e controle de atestados</li></ul>
+</article></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow rev"><i></i>Seus primeiros 30 dias</div>
+    <h2 class="rev">O que acontece <em>a partir de agora.</em></h2>
+    <div class="fases"><div class="fase rev"><span class="fp">Dias 1 a 5</span><h3>Reunião técnica</h3><p>Mapeamos produtos, território, capacidade de entrega e margem. É a conversa que calibra todo o resto.</p></div><div class="fase rev"><span class="fp">Dias 6 a 10</span><h3>Cadastro e treinamento</h3><p>Você preenche o cadastro, anexa os documentos e a gente marca a videochamada de treinamento da sua equipe.</p></div><div class="fase rev"><span class="fp">Dias 11 a 20</span><h3>Primeiras oportunidades</h3><p>O radar roda e as primeiras análises de viabilidade chegam para a sua decisão.</p></div><div class="fase rev"><span class="fp">Dias 21 a 30</span><h3>Calibragem</h3><p>Ajustamos palavras-chave e prioridades com base no que você aceitou e no que recusou.</p></div></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow rev"><i></i>O primeiro passo é seu</div>
+    <h2 class="rev">Cadastre a empresa e <em>anexe os documentos.</em></h2>
+    <div class="cad rev">
+      <div class="cadico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5M12 3v12"/></svg></div>
+      <h3>Cadastro de Empresas</h3>
+      <p>Um formulário aberto, sem senha. Você preenche os dados da empresa e anexa os documentos direto por lá.
+      É o que libera o diagnóstico documental e faz o radar começar a rodar. Leva poucos minutos.</p>
+      <a class="cadbtn" href="#" target="_blank" rel="noopener">Abrir o cadastro</a>
+      <div class="cadlist">
+        <div>Contrato social e última alteração</div>
+        <div>Cartão CNPJ atualizado</div>
+        <div>Certidões negativas em vigor</div>
+        <div>Balanço do último exercício</div>
+        <div>Documentos de quem assina pela empresa</div>
+        <div>Certificado digital</div>
+        <div>Atestados de capacidade técnica, se houver</div>
+        <div>Licenças e alvarás da atividade</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="wrap">
+    <div class="eyebrow rev" style="justify-content:center"><i></i>Qualquer dúvida</div>
+    <h2 class="rev">Fale direto com o<br><em>comercial da NH.</em></h2>
+    <a class="wpp rev" href="https://wa.me/5583999691071" target="_blank" rel="noopener">
+      <span><small>Consultor comercial</small><b>(83) 99969-1071</b></span>
+    </a>
+    <a class="mail rev" href="mailto:comercial.nhlicitacoes@gmail.com">comercial.nhlicitacoes@gmail.com</a>
+    <p class="foot rev">NH Licitações · Soluções em vendas públicas<br>Braço de licitações da NH Advogados · Cabedelo/PB</p>
+  </div>
+</section>
+
+<script>
+(function(){
+  function each(l,f){ [].slice.call(l).forEach(f); }
+  function safe(f){ try{ f(); }catch(e){} }
+
+  safe(function(){
+    var alvos=[document.getElementById('welc'),document.getElementById('h1a'),
+               document.getElementById('h1b')];
+    var d=200;
+    alvos.forEach(function(el){
+      if(!el) return;
+      var t=el.textContent, sp=[];
+      el.innerHTML='';
+      t.split(' ').forEach(function(w){
+        var s=document.createElement('span'); s.className='kw'; s.textContent=w;
+        el.appendChild(s); el.appendChild(document.createTextNode(' ')); sp.push(s);
+      });
+      sp.forEach(function(s){ setTimeout(function(){ s.className='kw go'; }, d); d+=95; });
+    });
+  });
+
+  var revs=[].slice.call(document.querySelectorAll('.rev'));
+  revs.forEach(function(el,k){ el.style.transitionDelay=((k%5)*70)+'ms'; });
+  function reveal(){
+    var vh=window.innerHeight||document.documentElement.clientHeight;
+    revs.forEach(function(el){
+      var r=el.getBoundingClientRect();
+      if(r.top<vh*0.9 && r.bottom>0 && el.className.indexOf('seen')<0) el.className+=' seen';
+    });
+  }
+  addEventListener('scroll',reveal,{passive:true});
+  addEventListener('resize',reveal);
+  reveal(); setTimeout(reveal,150); setTimeout(reveal,700);
+
+  function tap(el,fn){
+    if(!el) return; var t=0;
+    el.addEventListener('touchend',function(e){ t=Date.now(); fn(e); },{passive:true});
+    el.addEventListener('click',function(e){ if(Date.now()-t<600) return; fn(e); });
+  }
+
+  var st=document.getElementById('stabs');
+  tap(st,function(e){
+    var b=e.target.closest('.stab'); if(!b) return;
+    var k=b.getAttribute('data-t');
+    each(st.children,function(x){ x.className='stab'+(x===b?' on':''); });
+    each(document.querySelectorAll('.spane'),function(p){
+      p.className='spane'+(p.getAttribute('data-p')===k?' on':'');
+    });
+  });
+
+  var tot=document.getElementById('ptot');
+  function soma(){
+    var s=0;
+    each(document.querySelectorAll('[data-min]'),function(i){
+      var v=parseFloat(String(i.value).replace(',','.'))||0;
+      s += v * (parseFloat(i.getAttribute('data-q'))||0);
+    });
+    if(tot) tot.textContent='R$ '+s.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  }
+  each(document.querySelectorAll('[data-min]'),function(i){ i.addEventListener('input',soma); });
+  safe(soma);
+
+  var vb=document.getElementById('viab'), vr=document.getElementById('vresp');
+  if(vb) tap(vb,function(e){
+    var b=e.target.closest('.vb'); if(!b||!vr) return;
+    var v=b.getAttribute('data-v');
+    if(v==='yes'){ vr.className='vresp ok on';
+      vr.innerHTML='<b>Participação confirmada</b>A NH assume daqui: proposta, habilitação e condução da sessão, respeitando o piso que você definiu na planilha. Fica registrado quem decidiu, com data e hora.'; }
+    if(v==='no'){ vr.className='vresp skip on';
+      vr.innerHTML='<b>Processo recusado</b>Some da sua fila e o motivo fica registrado. Nenhuma cobrança e nenhum lembrete. A próxima oportunidade continua chegando.'; }
+    if(v==='an'){ vr.className='vresp skip on';
+      vr.innerHTML='<b>Enviado para análise</b>A equipe da NH revisa os pontos de atenção e devolve com recomendação antes do prazo da sessão.'; }
+  });
+})();
+</script>
+</body>
+</html>
