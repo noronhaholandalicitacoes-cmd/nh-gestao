@@ -209,6 +209,13 @@ ul.tick li::before{content:"";width:6px;height:6px;border-radius:50%;background:
 .tgrid span{display:block;font-family:"JetBrains Mono",monospace;font-size:8.5px;letter-spacing:.18em;
   text-transform:uppercase;color:var(--flame);margin-bottom:12px}
 .tnote{margin-top:16px;font-size:12.5px;color:var(--steel2);line-height:1.5}
+.lembrete{display:flex;gap:24px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+  border:1px solid rgba(255,106,19,.35);border-radius:20px;padding:28px;
+  background:linear-gradient(120deg,rgba(255,106,19,.13),rgba(255,106,19,.02))}
+.lembrete h3{font-family:Archivo,sans-serif;font-weight:800;font-stretch:106%;font-size:clamp(19px,2.6vw,25px);
+  letter-spacing:-.02em;margin:9px 0 7px}
+.lembrete p{font-size:14px;color:var(--steel);line-height:1.5}
+.lembrete .cadbtn{margin-top:0;flex:none}
 .cad{border:1px solid rgba(255,106,19,.35);border-radius:20px;padding:30px;margin-top:28px;
   background:linear-gradient(165deg,rgba(255,106,19,.13),rgba(255,106,19,.02))}
 .cadico{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;margin-bottom:18px;background:rgba(255,106,19,.18);border:1px solid rgba(255,106,19,.4);color:var(--flame)}
@@ -271,6 +278,32 @@ html:not(.js) .rev,html:not(.js) .kw{opacity:1;transform:none}
     </div>
   </div>
 </header>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow rev"><i></i>Comece por aqui</div>
+    <h2 class="rev">Antes de tudo: cadastre<br>a empresa e <em>anexe os documentos.</em></h2>
+    <p class="lead rev">Esta é a única tarefa que depende de você, e ela destrava todo o resto. Sem os documentos,
+    o diagnóstico não começa e o radar não roda. Leva poucos minutos e pode ser feito agora, do celular.</p>
+    <div class="cad rev">
+      <div class="cadico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5M12 3v12"/></svg></div>
+      <h3>Cadastro de Empresas</h3>
+      <p>Um formulário aberto, sem senha. Você preenche os dados da empresa e anexa os documentos direto por lá.
+      É o que libera o diagnóstico documental e faz o radar começar a rodar. Leva poucos minutos.</p>
+      <a class="cadbtn" href="https://sistemas.noronhaholanda.com.br/cadastro-empresa.html" target="_blank" rel="noopener">Abrir o cadastro</a>
+      <div class="cadlist">
+        <div>Contrato social e última alteração</div>
+        <div>Cartão CNPJ atualizado</div>
+        <div>Certidões negativas em vigor</div>
+        <div>Balanço do último exercício</div>
+        <div>Documentos de quem assina pela empresa</div>
+        <div>Certificado digital</div>
+        <div>Atestados de capacidade técnica, se houver</div>
+        <div>Licenças e alvarás da atividade</div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <section>
   <div class="wrap">
@@ -470,24 +503,13 @@ html:not(.js) .rev,html:not(.js) .kw{opacity:1;transform:none}
 
 <section>
   <div class="wrap">
-    <div class="eyebrow rev"><i></i>O primeiro passo é seu</div>
-    <h2 class="rev">Cadastre a empresa e <em>anexe os documentos.</em></h2>
-    <div class="cad rev">
-      <div class="cadico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5M12 3v12"/></svg></div>
-      <h3>Cadastro de Empresas</h3>
-      <p>Um formulário aberto, sem senha. Você preenche os dados da empresa e anexa os documentos direto por lá.
-      É o que libera o diagnóstico documental e faz o radar começar a rodar. Leva poucos minutos.</p>
-      <a class="cadbtn" href="#" target="_blank" rel="noopener">Abrir o cadastro</a>
-      <div class="cadlist">
-        <div>Contrato social e última alteração</div>
-        <div>Cartão CNPJ atualizado</div>
-        <div>Certidões negativas em vigor</div>
-        <div>Balanço do último exercício</div>
-        <div>Documentos de quem assina pela empresa</div>
-        <div>Certificado digital</div>
-        <div>Atestados de capacidade técnica, se houver</div>
-        <div>Licenças e alvarás da atividade</div>
+    <div class="lembrete rev">
+      <div>
+        <span class="uilab">Ainda não cadastrou?</span>
+        <h3>O radar só começa a rodar depois do cadastro.</h3>
+        <p>Se você chegou até aqui e ainda não enviou os documentos, este é o momento.</p>
       </div>
+      <a class="cadbtn" href="https://sistemas.noronhaholanda.com.br/cadastro-empresa.html" target="_blank" rel="noopener">Abrir o cadastro</a>
     </div>
   </div>
 </section>
