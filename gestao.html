@@ -14808,6 +14808,9 @@ async function nhConfirmarCaptura(){
   toast(falhou?('Capturados '+ok+', com '+falhou+' erro(s)'):('✅ '+ok+' edital(is) em Editais Capturados!'),falhou?'err':'ok');
   /* A nota de viabilidade sai sozinha logo depois da captura. */
   nhFilaViabilidade(_viabNovos);
+  /* E a planilha de itens junto — mesma fila em serie, para nao sairem
+     vinte leituras de PDF ao mesmo tempo. */
+  try{nhFilaItensTR(_viabNovos);}catch(e){console.error('itens do TR na captura',e);}
 }
 
 /* ── Exportar para Excel ────────────────────────────────────────── */
@@ -16857,6 +16860,16 @@ async function nhAbrirItensTR(chave, emp, titulo){
   m.style.display='flex';
 }
 
+/* Colunas a mais que a natureza do objeto exige (marca/modelo numa
+   locação, por exemplo). Vêm da leitura do TR e valem para os dois
+   lados: aqui a NH preenche pelo telefone, no Viabilidade o cliente
+   preenche sozinho. */
+function _nhColunasDoDoc(d){
+  return (d && Array.isArray(d.colunas)) ? d.colunas.filter(function(c){
+    return c && c.id && c.rot;
+  }) : [];
+}
+
 function nhPintarItensTR(){
   var c = _itensTRCtx; if(!c) return;
   var body = document.getElementById('nh-itens-body');
@@ -16876,41 +16889,91 @@ function nhPintarItensTR(){
       '<div style="margin-top:12px;font-size:11.5px;color:var(--t3);line-height:1.6">'+
         'Depois disso a planilha aparece no Viabilidade e o responsável preenche '+
         'o valor mínimo dele por item. Se o link for uma página ou um .zip, o sistema avisa — '+
-        'cole o PDF do TR no lugar.'+
+        'cole o PDF do TR no lugar. Documentos de até 30 MB.'+
       '</div>'+
       '<div id="nh-itens-status" style="margin-top:12px;font-size:12.5px"></div>';
     foot.innerHTML = '<button class="btn btn-nh" id="nh-itens-btn" onclick="nhExtrairItensTR()">🤖 Ler o TR e extrair os itens</button>';
     return;
   }
 
+  var cols = _nhColunasDoDoc(d);
+  var vals = (resp && resp.valores) || {};
+  var extras = (resp && resp.extras) || {};
   var totEst = itens.reduce(function(s,it){ return s + (Number(it.vunit)||0)*(Number(it.qtd)||0); },0);
-  body.innerHTML =
-    (resp ? '<div style="background:rgba(34,197,94,.09);border:1px solid rgba(34,197,94,.3);border-radius:9px;'+
-        'padding:10px 13px;margin-bottom:12px;font-size:12.5px;color:#22c55e">'+
-        '✓ O responsável já enviou os valores dele em '+esc0(resp.atualizadoEm||'')+
-        ' — '+Object.keys(resp.valores||{}).length+' de '+itens.length+' itens precificados.</div>' : '')+
+
+  var faixa = '';
+  if(resp && resp.atualizadoEm){
+    faixa += '<div style="background:rgba(34,197,94,.09);border:1px solid rgba(34,197,94,.3);border-radius:9px;'+
+      'padding:10px 13px;margin-bottom:10px;font-size:12.5px;color:#22c55e">'+
+      '✓ O responsável enviou os valores dele em '+esc0(resp.atualizadoEm)+
+      ' — '+Object.keys(vals).length+' de '+itens.length+' itens precificados.</div>';
+  }
+  /* O carimbo da NH é SEPARADO do carimbo do cliente. Sobrescrever o
+     dele quando a gente digita um valor que ele passou por telefone
+     apagaria a única prova de que ele respondeu. */
+  if(resp && resp.nhAtualizadoEm){
+    faixa += '<div style="background:var(--nha);border:1px solid var(--nh);border-radius:9px;'+
+      'padding:9px 13px;margin-bottom:10px;font-size:12px;color:var(--nh)">'+
+      '✎ A NH ajustou valores aqui em '+esc0(resp.nhAtualizadoEm)+
+      (resp.nhAtualizadoPor ? ' · '+esc0(resp.nhAtualizadoPor) : '')+'</div>';
+  }
+  if(cols.length){
+    faixa += '<div style="background:var(--s2);border:1px solid var(--b1);border-radius:9px;'+
+      'padding:9px 13px;margin-bottom:10px;font-size:12px;color:var(--t2)">'+
+      '🏷️ A IA classificou como <b>'+esc0(_nhRotuloNatureza(d.natureza))+'</b>, então a planilha pede também '+
+      '<b>'+esc0(cols.map(function(x){return x.rot;}).join('</b> e <b>'))+'</b>.</div>';
+  }
+
+  body.innerHTML = faixa +
     '<div style="overflow-x:auto"><table style="min-width:0;width:100%;font-size:12.5px">'+
-      '<thead><tr><th style="width:40px">#</th><th>Descrição</th><th style="width:60px">Un.</th>'+
-      '<th class="num" style="width:90px">Qtd</th><th class="num" style="width:110px">Estimado</th>'+
-      (resp?'<th class="num" style="width:120px">Valor do cliente</th>':'')+'</tr></thead><tbody>'+
+      '<thead><tr><th style="width:40px">#</th><th>Descrição</th><th style="width:56px">Un.</th>'+
+      '<th class="num" style="width:80px">Qtd</th><th class="num" style="width:100px">Estimado</th>'+
+      cols.map(function(x){ return '<th style="width:140px">'+esc0(x.rot)+'</th>'; }).join('')+
+      '<th class="num" style="width:120px">Valor mínimo</th>'+
+      '<th class="num" style="width:110px">Total</th></tr></thead><tbody>'+
       itens.map(function(it,ix){
-        var meu = resp && resp.valores ? Number(resp.valores[String(ix)]||0) : 0;
+        var meu = Number(vals[String(ix)]||0);
+        var ex  = extras[String(ix)] || {};
+        var qtd = Number(it.qtd)||0;
         return '<tr><td>'+(it.n||ix+1)+'</td><td>'+esc0(it.desc||'')+'</td><td>'+esc0(it.unid||'un')+'</td>'+
-          '<td class="num">'+(Number(it.qtd)||0).toLocaleString('pt-BR')+'</td>'+
+          '<td class="num">'+qtd.toLocaleString('pt-BR')+'</td>'+
           '<td class="num">'+fmtMoeda(Number(it.vunit)||0)+'</td>'+
-          (resp?'<td class="num" style="color:'+(meu?'#22c55e':'var(--t3)')+';font-weight:700">'+
-            (meu?fmtMoeda(meu):'—')+'</td>':'')+'</tr>';
+          cols.map(function(x){
+            return '<td><input type="text" class="nh-it-ex" data-ix="'+ix+'" data-col="'+esc0(x.id)+'" '+
+              'value="'+esc0(ex[x.id]||'')+'" placeholder="—" oninput="nhItensMexeu()" '+
+              'style="width:100%;background:var(--s1);border:1px solid var(--b1);border-radius:6px;'+
+              'padding:4px 7px;color:var(--t1);font-size:12px"></td>';
+          }).join('')+
+          /* ⚠️ EDITÁVEL AQUI TAMBÉM — 10/09/2026.
+             Metade dos valores chega por telefone: a gente liga, o
+             cliente fala, e antes disso não havia onde escrever sem
+             pedir que ele mesmo entrasse no Viabilidade. */
+          '<td class="num"><input type="text" inputmode="decimal" class="nh-it-vl" data-ix="'+ix+'" '+
+            'value="'+(meu>0 ? fmtMoeda(meu).replace(/^R\$\s*/,'') : '')+'" placeholder="0,00" '+
+            'oninput="nhItensMexeu()" style="width:100%;text-align:right;background:var(--s1);'+
+            'border:1px solid '+(meu>0?'rgba(34,197,94,.4)':'var(--b1)')+';border-radius:6px;'+
+            'padding:4px 7px;color:'+(meu>0?'#22c55e':'var(--t1)')+';font-weight:700;font-size:12px"></td>'+
+          '<td class="num" id="nhittot-'+ix+'" style="color:var(--t3)">'+
+            (meu>0 ? fmtMoeda(meu*qtd) : '—')+'</td>'+
+        '</tr>';
       }).join('')+
     '</tbody></table></div>'+
     '<div style="margin-top:10px;font-size:12px;color:var(--t3)">'+
       itens.length+' itens · estimado total '+fmtMoeda(totEst)+
+      ' · <b id="nh-it-soma" style="color:var(--t2)">mínimo total '+
+        fmtMoeda(itens.reduce(function(s,it,ix){
+          return s + (Number(vals[String(ix)]||0)*(Number(it.qtd)||0));
+        },0))+'</b>'+
       (d.extraidoEm?' · extraído em '+esc0(d.extraidoEm):'')+
     '</div>'+
     '<div id="nh-itens-status" style="margin-top:10px;font-size:12.5px"></div>';
+
   /* Rodapé em duas metades: à esquerda o que a NH faz com a lista
      (reler, apagar), à direita o que se leva dela para fora. Sem essa
      separação a pessoa lê seis botões iguais e clica no errado. */
   foot.innerHTML =
+    '<button class="btn btn-nh" id="nh-it-salvar" onclick="nhItensSalvarValores()" disabled '+
+      'title="Grava os valores que você digitou aqui">💾 Salvar valores</button>'+
     '<button class="btn btn-ghost" onclick="nhExtrairItensTR()">🔄 Ler o TR de novo</button>'+
     '<button class="btn btn-ghost" style="color:#f87171;border-color:rgba(239,68,68,.3)" '+
       'onclick="nhApagarItensTR()">Apagar a lista</button>'+
@@ -16920,6 +16983,98 @@ function nhPintarItensTR(){
       '<button class="btn btn-ghost" onclick="nhItensImprimir(true)" title="Abre a versão para impressão — escolha Salvar como PDF">📄 PDF</button>'+
       '<button class="btn btn-ghost" onclick="nhItensImprimir(false)" title="Imprimir a tabela">🖨️ Imprimir</button>'+
     '</span>';
+}
+
+function _nhRotuloNatureza(n){
+  return ({locacao:'locação', aquisicao:'aquisição', servico:'serviço', obra:'obra',
+           servico_continuado:'serviço continuado', software:'software'})[String(n||'')] || 'objeto';
+}
+
+/** Liga o botão de salvar e refaz os totais a cada tecla. O total ao
+ *  vivo é o que deixa ver o efeito de um valor antes de gravar. */
+function nhItensMexeu(){
+  var bt = document.getElementById('nh-it-salvar');
+  if(bt) bt.disabled = false;
+  var c = _itensTRCtx; if(!c) return;
+  var itens = (ITENS_TR[c.chave]||{}).itens || [];
+  var soma = 0;
+  itens.forEach(function(it, ix){
+    var inp = document.querySelector('#nh-itens-body .nh-it-vl[data-ix="'+ix+'"]');
+    var v = inp ? _nhValor(inp.value) : 0;
+    var qtd = Number(it.qtd)||0;
+    if(v>0) soma += v*qtd;
+    var cel = document.getElementById('nhittot-'+ix);
+    if(cel) cel.textContent = v>0 ? fmtMoeda(v*qtd) : '—';
+  });
+  var el = document.getElementById('nh-it-soma');
+  if(el) el.textContent = 'mínimo total '+fmtMoeda(soma);
+}
+
+/** ⚠️ "1.200" é mil e duzentos; "8.50" é oito e cinquenta. A diferença
+ *  está no tamanho dos grupos — milhar vem sempre em blocos de três.
+ *  Mesma regra do servidor e do Viabilidade: errar aqui estraga o
+ *  preço, e três leituras diferentes do mesmo número seria pior. */
+function _nhValor(v){
+  var s = String(v==null?'':v).replace(/R\$\s*/gi,'').replace(/\s/g,'').trim();
+  if(!s) return 0;
+  if(s.charAt(0)==='-') return 0;
+  if(s.indexOf(',')>=0){ s = s.replace(/\./g,'').replace(',','.'); }
+  else { s = s.replace(/[^\d.]/g,''); if(/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g,''); }
+  var n = parseFloat(s);
+  return (isFinite(n) && n>=0) ? n : 0;
+}
+
+/** Grava o que a NH digitou, SEM encostar na lista de itens nem no
+ *  carimbo do cliente. O que ele mandou continua sendo dele; o que a
+ *  gente anotou por telefone fica marcado como nosso. */
+async function nhItensSalvarValores(){
+  var c = _itensTRCtx; if(!c) return;
+  var d = ITENS_TR[c.chave] || {};
+  var itens = d.itens || [];
+  if(!itens.length) return;
+  var bt = document.getElementById('nh-it-salvar');
+  var st = document.getElementById('nh-itens-status');
+  if(bt){ bt.disabled = true; bt.textContent = 'Salvando…'; }
+
+  var valores = {}, extras = {};
+  itens.forEach(function(_it, ix){
+    var inp = document.querySelector('#nh-itens-body .nh-it-vl[data-ix="'+ix+'"]');
+    var v = inp ? _nhValor(inp.value) : 0;
+    /* Só o que tem valor entra: em branco quer dizer "não vou cotar",
+       e zero seria uma resposta — uma resposta errada. */
+    if(v>0) valores[String(ix)] = v;
+    var linha = {};
+    document.querySelectorAll('#nh-itens-body .nh-it-ex[data-ix="'+ix+'"]').forEach(function(e){
+      var t = String(e.value||'').trim();
+      if(t) linha[e.getAttribute('data-col')] = t.slice(0,120);
+    });
+    if(Object.keys(linha).length) extras[String(ix)] = linha;
+  });
+
+  var antes = d.resposta || {};
+  var resposta = {
+    valores: valores,
+    extras: extras,
+    link: antes.link || '',
+    /* Preserva o que o cliente carimbou. */
+    atualizadoEm: antes.atualizadoEm || '',
+    atualizadoPor: antes.atualizadoPor || '',
+    nhAtualizadoEm: new Date().toLocaleString('pt-BR'),
+    nhAtualizadoPor: (auth.currentUser && auth.currentUser.email) || ''
+  };
+  try{
+    await db.collection('itens_edital').doc(c.chave)
+      .set({empresa: d.empresa || '', resposta: resposta}, {merge:true});
+    d.resposta = resposta;
+    ITENS_TR[c.chave] = d;
+    toast('Valores salvos — o cliente vê isso no Viabilidade','ok');
+    nhPintarItensTR();
+    try{ if(CUR==='editais' && typeof renderTbl==='function') renderTbl('editais'); }catch(_e){}
+  }catch(e){
+    var m = (e && (e.message||e.code)) || String(e);
+    if(st) st.innerHTML = '<span style="color:#f87171">Não consegui salvar: '+esc0(m)+'</span>';
+    if(bt){ bt.disabled = false; bt.textContent = '💾 Salvar valores'; }
+  }
 }
 
 
@@ -16937,9 +17092,26 @@ function _nhItensMatriz(){
   if(!itens.length) return null;
   var resp = d.resposta || null;
   var temCli = !!(resp && resp.valores);
+  /* As colunas da natureza do objeto (marca/modelo e afins) vão junto
+     em TODAS as saídas. A planilha que a NH manda por e-mail tem de
+     dizer o mesmo que a tela; se a marca só aparecesse aqui dentro,
+     ela voltaria a ser pedida por WhatsApp. */
+  var cols = _nhColunasDoDoc(d);
+  var extras = (resp && resp.extras) || {};
 
   var cab = ['#','Descrição','Unidade','Qtd','Valor estimado','Total estimado'];
-  if(temCli) cab = cab.concat(['Valor mínimo do cliente','Total pelo mínimo']);
+  /* ⚠️ O TIPO DE CADA COLUNA VIAJA COM A MATRIZ — 10/09/2026.
+     O Excel e a impressão alinhavam e formatavam por POSIÇÃO fixa
+     ("da quinta em diante é dinheiro"). Bastou a marca/modelo entrar no
+     meio para "Marca / Modelo" virar R$ 0,00 na impressão. Agora quem
+     monta a linha diz o que ela é, e as saídas obedecem. */
+  var tipos = ['txt','txt','txt','num','din','din'];
+  var larg  = [5, 58, 9, 10, 15, 16];
+  cols.forEach(function(x){ cab.push(x.rot); tipos.push('txt'); larg.push(20); });
+  if(temCli){
+    cab = cab.concat(['Valor mínimo do cliente','Total pelo mínimo']);
+    tipos.push('din','din'); larg.push(19, 17);
+  }
 
   var linhas = [cab];
   itens.forEach(function(it, ix){
@@ -16947,6 +17119,8 @@ function _nhItensMatriz(){
     var vest = Number(it.vunit) || 0;
     var l = [ it.n || (ix+1), it.desc || '', it.unid || 'un',
               qtd || '', vest || '', (vest && qtd) ? vest*qtd : '' ];
+    var ex = extras[String(ix)] || {};
+    cols.forEach(function(x){ l.push(ex[x.id] || ''); });
     if(temCli){
       var meu = Number(resp.valores[String(ix)] || 0);
       /* Vazio, e não zero: item sem preço do cliente é item que ele não
@@ -16955,7 +17129,8 @@ function _nhItensMatriz(){
     }
     linhas.push(l);
   });
-  return {linhas:linhas, temCli:temCli, itens:itens, resp:resp,
+  return {linhas:linhas, temCli:temCli, itens:itens, resp:resp, cols:cols, extras:extras,
+          tipos:tipos, larg:larg,
           titulo:(c.emp||'') + (c.titulo ? ' · ' + c.titulo : ''),
           arquivo: _nhNomeArquivo(c)};
 }
@@ -16975,8 +17150,7 @@ function nhItensExcel(){
     var ws = XLSX.utils.aoa_to_sheet(m.linhas);
     /* Larguras: sem isto a descrição sai cortada e a primeira coisa que
        a pessoa faz ao abrir é arrastar coluna. */
-    ws['!cols'] = [{wch:5},{wch:58},{wch:9},{wch:10},{wch:15},{wch:16}]
-      .concat(m.temCli ? [{wch:19},{wch:17}] : []);
+    ws['!cols'] = m.larg.map(function(w){ return {wch:w}; });
     var wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Itens do TR');
     XLSX.writeFile(wb, m.arquivo + '.xlsx');
@@ -17003,20 +17177,25 @@ function nhItensImprimir(paraPdf){
   var corpo =
     '<table><thead><tr>' +
       m.linhas[0].map(function(h,i){
-        return '<th' + (i>=3 ? ' style="text-align:right"' : '') + '>' + esc0(h) + '</th>';
+        return '<th' + (m.tipos[i]!=='txt' ? ' style="text-align:right"' : '') + '>' + esc0(h) + '</th>';
       }).join('') +
     '</tr></thead><tbody>' +
     m.linhas.slice(1).map(function(l){
       return '<tr>' + l.map(function(v,i){
-        var txt = (i>=4 && v !== '') ? fmtMoeda(Number(v))
-                : (i===3 && v !== '') ? Number(v).toLocaleString('pt-BR')
+        var t = m.tipos[i];
+        var txt = (t==='din' && v !== '') ? fmtMoeda(Number(v))
+                : (t==='num' && v !== '') ? Number(v).toLocaleString('pt-BR')
                 : esc0(v === '' ? '—' : v);
-        return '<td' + (i>=3 ? ' style="text-align:right;white-space:nowrap"' : '') + '>' + txt + '</td>';
+        return '<td' + (t!=='txt' ? ' style="text-align:right;white-space:nowrap"' : '') + '>' + txt + '</td>';
       }).join('') + '</tr>';
     }).join('') +
     '</tbody><tfoot><tr>' +
       '<td colspan="5" style="text-align:right"><b>Total estimado</b></td>' +
       '<td style="text-align:right"><b>' + fmtMoeda(somaEst) + '</b></td>' +
+      /* As colunas da natureza do objeto entram AQUI, entre o total
+         estimado e o do cliente. Sem estas células vazias o rodapé
+         escorrega e o total do cliente cai debaixo de "Marca / Modelo". */
+      m.cols.map(function(){ return '<td></td>'; }).join('') +
       (m.temCli ? '<td></td><td style="text-align:right"><b>' + fmtMoeda(somaCli) + '</b></td>' : '') +
     '</tr></tfoot></table>' +
     '<div style="margin-top:10px;font-size:10px;color:#71717a">' +
@@ -17032,12 +17211,64 @@ function nhItensImprimir(paraPdf){
   if(paraPdf) toast('Na janela de impressão, escolha "Salvar como PDF" no destino.','ok');
 }
 
+/* ═══ UM CAMINHO SÓ PARA LER O TR — 10/09/2026 ═══
+   A leitura passou a acontecer em dois momentos: no botão, quando
+   alguém abre a janela de itens, e sozinha, assim que um edital novo
+   entra. Se cada um tivesse o seu código, um dia iam divergir — e o
+   automático, que ninguém fica olhando, seria o que apodreceria calado.
+   Então o miolo é este, sem nenhum toque em tela; quem chama é que
+   cuida da parte visual. */
+async function _nhLerTRParaChave(chave){
+  var linha = _nhLinhaEdital(chave);
+  if(!linha) return {ok:false, erro:'Não encontrei este edital.'};
+  var link = String(linha[13]||'').trim();
+  if(!link) return {ok:false, erro:'Este edital não tem "Link do Edital" preenchido.', semLink:true};
+
+  var u = auth.currentUser;
+  if(!u) return {ok:false, erro:'Faça login de novo.'};
+
+  var r = await fetch(NH_API+'/api/edital/itens',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({idToken: await u.getIdToken(), url: link})
+  });
+  var j = await r.json().catch(function(){ return {}; });
+  if(!r.ok || !j.ok){
+    var msg = (j&&j.erro)||('HTTP '+r.status);
+    if(msg==='CHAVE_IA_AUSENTE')
+      msg='Falta a chave da IA no servidor. Configure GEMINI_API_KEY no Railway com a mesma chave que já está aqui em Configurações.';
+    return {ok:false, erro:msg, motivo:(j&&j.motivo)||''};
+  }
+
+  /* `empresa` no documento é o que a regra do Firestore usa para
+     entregar esta planilha só a esta empresa. */
+  /* Mesma normalização que o viabilidade.html usa ao gravar: trim,
+     espaço duplo virando um só, maiúscula. Escrever a empresa de um
+     jeito aqui e de outro lá faz a regra do Firestore não casar, e a
+     planilha some sem erro nenhum na tela. */
+  var emp = String(linha[2]||'').trim().replace(/\s+/g,' ').toUpperCase();
+  var doc = {
+    empresa: emp, itens: j.itens,
+    /* A natureza e as colunas a mais vêm da mesma leitura. Guardadas
+       aqui, o Viabilidade sabe que aquela planilha pede marca/modelo
+       sem precisar perguntar nada de novo à IA. */
+    natureza: String(j.natureza||''),
+    colunas: Array.isArray(j.colunas) ? j.colunas : [],
+    extraidoEm: new Date().toLocaleString('pt-BR'),
+    extraidoPor: (auth.currentUser&&auth.currentUser.email)||''
+  };
+  return {ok:true, doc:doc, total:j.total||j.itens.length};
+}
+
+/** Grava a lista lida. Separado da leitura porque a leitura custa uma
+ *  chamada de IA e até um minuto: quando a gravação falha, o que já foi
+ *  lido tem de sobreviver para o "tentar gravar de novo". */
+async function _nhGravarItensTR(chave, doc){
+  await db.collection('itens_edital').doc(chave).set(doc,{merge:true});
+  ITENS_TR[chave] = Object.assign(ITENS_TR[chave]||{}, doc);
+}
+
 async function nhExtrairItensTR(){
   var c = _itensTRCtx; if(!c) return;
-  var linha = _nhLinhaEdital(c.chave);
-  if(!linha) return toast('Não encontrei este edital.','err');
-  var link = String(linha[13]||'').trim();
-  if(!link) return toast('Este edital não tem "Link do Edital" preenchido.','err');
 
   var st = document.getElementById('nh-itens-status');
   var bt = document.getElementById('nh-itens-btn');
@@ -17046,44 +17277,22 @@ async function nhExtrairItensTR(){
   if(st) st.innerHTML='<span style="color:var(--t3)">Baixando e lendo o TR. Documento grande pode levar um minuto…</span>';
 
   try{
-    var u = auth.currentUser;
-    if(!u) throw new Error('Faça login de novo.');
-    var r = await fetch(NH_API+'/api/edital/itens',{
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({idToken: await u.getIdToken(), url: link})
-    });
-    var j = await r.json().catch(function(){ return {}; });
-    if(!r.ok || !j.ok){
-      var msg = (j&&j.erro)||('HTTP '+r.status);
-      if(msg==='CHAVE_IA_AUSENTE')
-        msg='Falta a chave da IA no servidor. Configure GEMINI_API_KEY no Railway com a mesma chave que já está aqui em Configurações.';
-      if(st) st.innerHTML='<span style="color:#f87171">'+esc0(msg)+'</span>';
+    var r = await _nhLerTRParaChave(c.chave);
+    if(!r.ok){
+      if(st) st.innerHTML='<span style="color:#f87171">'+esc0(r.erro)+'</span>';
       return;
     }
-    /* `empresa` no documento é o que a regra do Firestore usa para
-       entregar esta planilha só a esta empresa. */
-    /* Mesma normalização que o viabilidade.html usa ao gravar: trim,
-       espaço duplo virando um só, maiúscula. Escrever a empresa de um
-       jeito aqui e de outro lá faz a regra do Firestore não casar, e a
-       planilha some sem erro nenhum na tela. */
-    var emp = String(linha[2]||'').trim().replace(/\s+/g,' ').toUpperCase();
-    var doc = {
-      empresa: emp, itens: j.itens,
-      extraidoEm: new Date().toLocaleString('pt-BR'),
-      extraidoPor: (auth.currentUser&&auth.currentUser.email)||''
-    };
     /* ⚠️ A LISTA NÃO SE PERDE SE A GRAVAÇÃO FALHAR — 30/08/2026.
-       A leitura do TR custa uma chamada de IA e até um minuto. Quando o
-       `set` falhava (regra do Firestore não publicada, por exemplo), o
-       catch mostrava o erro e a lista ia embora junto — refazer era
-       pagar de novo pelo mesmo trabalho.
+       Quando o `set` falhava (regra do Firestore não publicada, por
+       exemplo), o catch mostrava o erro e a lista ia embora junto —
+       refazer era pagar de novo pelo mesmo trabalho.
        Agora ela fica guardada e o botão vira "tentar gravar de novo". */
-    _itensTRCtx.pendente = doc;
+    _itensTRCtx.pendente = r.doc;
     try{
-      await db.collection('itens_edital').doc(c.chave).set(doc,{merge:true});
+      await _nhGravarItensTR(c.chave, r.doc);
     }catch(errGravar){
       var m = String(errGravar && (errGravar.code||errGravar.message) || errGravar);
-      if(st) st.innerHTML='<span style="color:#f87171">Li o TR e achei '+j.total+' itens, '+
+      if(st) st.innerHTML='<span style="color:#f87171">Li o TR e achei '+r.total+' itens, '+
         'mas não consegui gravar: '+esc0(m)+'.<br>'+
         (m.indexOf('permission')>=0
           ? 'A coleção <b>itens_edital</b> precisa estar no firestore.rules publicado.'
@@ -17093,8 +17302,10 @@ async function nhExtrairItensTR(){
       return;
     }
     _itensTRCtx.pendente = null;
-    ITENS_TR[c.chave] = Object.assign(ITENS_TR[c.chave]||{}, doc);
-    toast(j.total+' itens extraídos','ok');
+    var extra = (r.doc.colunas||[]).length
+      ? ' · pede ' + r.doc.colunas.map(function(x){return x.rot;}).join(' e ')
+      : '';
+    toast(r.total+' itens extraídos'+extra,'ok');
     nhPintarItensTR();
     /* `renderTbl`, e não `render`: a primeira versão chamava uma função
        que não existe. O `catch` engolia o erro e o card só mostrava o
@@ -17106,6 +17317,85 @@ async function nhExtrairItensTR(){
   }finally{
     if(bt){ bt.disabled=false; bt.textContent='🤖 Ler o TR e extrair os itens'; }
   }
+}
+
+/* ═══ LEITURA AUTOMÁTICA DO TR — 10/09/2026 ═══
+   A nota de viabilidade já saía sozinha assim que o edital entrava; a
+   lista de itens, não — alguém precisava lembrar de abrir a janela e
+   clicar. Quem não lembrava, o cliente ficava sem a planilha.
+   Mesma forma da fila de viabilidade, e pelo mesmo motivo: numa captura
+   de lote seriam vinte chamadas de IA ao mesmo tempo, cada uma baixando
+   um PDF de dezenas de MB. Uma de cada vez, com respiro entre elas. */
+var _itFila=[], _itRodando=false;
+
+function nhFilaItensTR(ids){
+  (ids||[]).forEach(function(id){
+    id = String(id||'').trim();
+    if(!id) return;
+    var chave = 'e-'+id;
+    /* Já tem lista: não gasta chamada de novo. Quem quiser refazer usa
+       o "Ler o TR de novo" na janela. */
+    if(ITENS_TR[chave] && (ITENS_TR[chave].itens||[]).length) return;
+    if(_itFila.indexOf(chave) >= 0) return;
+    /* Sem link não há o que ler — e avisar isso na captura seria ruído:
+       muito edital entra antes de o TR ser anexado. */
+    var linha = _nhLinhaEdital(chave);
+    if(!linha || !String(linha[13]||'').trim()) return;
+    _itFila.push(chave);
+  });
+  _itProcessarFila();
+}
+
+async function _itProcessarFila(){
+  if(_itRodando || !_itFila.length) return;
+  _itRodando = true;
+  var total=_itFila.length, ok=0, erro=0, ultimo='';
+  if(total>1) toast('📋 Lendo o TR de '+total+' edital(is) em segundo plano…','info');
+  while(_itFila.length){
+    var chave = _itFila.shift();
+    try{
+      var r = await _nhLerTRParaChave(chave);
+      if(!r.ok){
+        /* Silêncio nos dois casos em que "falhou" quer dizer apenas
+           "ainda não é hora": edital sem link, e link que aponta para a
+           página do PNCP em vez do PDF do TR — que é como TODO edital
+           capturado nasce, porque o TR só é anexado depois.
+           Sem isto, toda captura terminaria com um erro por edital, e
+           aviso que aparece sempre é aviso que se aprende a ignorar. */
+        if(!r.semLink && r.motivo !== 'NAO_E_DOCUMENTO'){ erro++; ultimo = r.erro; }
+      }else{
+        await _nhGravarItensTR(chave, r.doc);
+        ok++;
+        if(total===1){
+          var extra = (r.doc.colunas||[]).length
+            ? ' — a planilha vai pedir ' + r.doc.colunas.map(function(x){return x.rot;}).join(' e ')
+            : '';
+          toast('📋 TR lido: '+r.total+' itens já estão no Viabilidade'+extra,'ok');
+        }
+      }
+    }catch(e){
+      erro++; ultimo = (e&&e.message)||String(e);
+      console.error('itens automáticos '+chave, e);
+    }
+    /* O card precisa mostrar o selo de itens sem esperar um F5 — foi
+       exatamente esta a queixa quando a análise do TR era manual. */
+    try{ if(CUR==='editais' && typeof renderTbl==='function') renderTbl('editais'); }catch(_e){}
+    try{ if(_itensTRCtx && _itensTRCtx.chave===chave) nhPintarItensTR(); }catch(_e){}
+    if(_itFila.length) await new Promise(function(r){ setTimeout(r, 1500); });
+  }
+  /* Três desfechos, e o terceiro é o que faltava: nada lido e nada
+     falhado quer dizer que nenhum edital tinha o PDF do TR ainda. Aí o
+     certo é não dizer nada — anunciar "0 lido, planilhas prontas" seria
+     o sistema mentindo com boa educação. */
+  if(erro) toast(total===1
+      /* O `\.` na expressão não é enfeite: sem a barra, `.` casa
+         qualquer caractere e a mensagem perde a última letra. */
+      ? ("Não consegui ler o TR agora: "+String(ultimo).replace(/\.$/,"")+". O botão na janela de itens continua valendo.")
+      : ('TR: '+ok+' lido(s), '+erro+' falhou(aram) — '+ultimo),
+    total===1 ? 'info' : 'err');
+  else if(ok && total>1)
+    toast('📋 TR de '+ok+' edital(is) lido — planilhas prontas no Viabilidade','ok');
+  _itRodando = false;
 }
 
 /** Grava de novo a lista que a IA já leu, sem gastar outra chamada.
@@ -17276,7 +17566,12 @@ var _viabFila=[],_viabRodando=false;
 var _vbPend=null;
 function _vbDisparar(){
   var id=_vbPend;_vbPend=null;
-  if(id)try{nhFilaViabilidade([id]);}catch(e){console.error('viabilidade automática',e);}
+  if(!id) return;
+  try{nhFilaViabilidade([id]);}catch(e){console.error('viabilidade automática',e);}
+  /* A lista de itens sai junto com a nota, pelo mesmo motivo: se
+     depender de alguém lembrar de clicar, um dia não vai sair, e o
+     cliente fica sem a planilha no Viabilidade sem ninguem perceber. */
+  try{nhFilaItensTR([id]);}catch(e){console.error('itens do TR automáticos',e);}
 }
 
 async function nhAnalisarViabilidadeAuto(edId,forcar){
