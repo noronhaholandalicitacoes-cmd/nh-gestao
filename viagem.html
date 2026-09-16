@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aventura dos Soares · 18/09 a 01/10</title>
+<meta name="theme-color" content="#13823F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Aventura Soares">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style id="app-style">
+:root{
+  --paper:#F3F6FC; --card:#FFFFFF; --ink:#2439A8; --ink-soft:#5A6BC6; --ink-wash:#E7ECFB;
+  --green:#13823F; --yellow:#F2C200; --sea:#0B7F90; --sea-wash:#DDF2F4;
+  --text:#1B2133; --muted:#5F677C; --line:#DCE1EE; --warn:#B45309; --warn-wash:#FDF1DC;
+  --good:#13823F; --good-wash:#E0F3E7; --danger:#B42318;
+  --hand:"Caveat", "Segoe Print", "Bradley Hand", cursive;
+  --sans:"Figtree", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1328; --card:#171C36; --ink:#9FB1FF; --ink-soft:#7F91E6; --ink-wash:#232A52;
+    --green:#3DBB6B; --yellow:#F2C200; --sea:#4CC3D2; --sea-wash:#143540;
+    --text:#E7EAF4; --muted:#9AA2BC; --line:#2B3259; --warn:#F2B35A; --warn-wash:#3A2A12;
+    --good:#5BD088; --good-wash:#16341F; --danger:#FF8A80;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1328; --card:#171C36; --ink:#9FB1FF; --ink-soft:#7F91E6; --ink-wash:#232A52;
+  --green:#3DBB6B; --yellow:#F2C200; --sea:#4CC3D2; --sea-wash:#143540;
+  --text:#E7EAF4; --muted:#9AA2BC; --line:#2B3259; --warn:#F2B35A; --warn-wash:#3A2A12;
+  --good:#5BD088; --good-wash:#16341F; --danger:#FF8A80;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:84px}
+img{max-width:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--yellow);outline-offset:2px;border-radius:6px}
+
+/* Cabeçalho: faixa verde com losango amarelo, como a toalha da foto */
+.hero{position:relative;overflow:hidden;background:#13823F;color:#fff;padding:28px 20px 34px}
+.hero::before{content:"";position:absolute;width:520px;height:520px;background:#F2C200;transform:rotate(45deg);left:-330px;top:40px;opacity:.95}
+.hero-inner{position:relative;max-width:760px;margin:0 auto}
+.note{background:#fff;color:#2439A8;border-radius:4px 4px 10px 4px;padding:14px 18px 16px;box-shadow:0 10px 24px rgba(0,0,0,.18);transform:rotate(-1.2deg);max-width:440px;margin-left:auto}
+.note h1{font-family:var(--hand);font-weight:700;font-size:2.6rem;line-height:1;margin:0 0 4px}
+.note p{font-family:var(--hand);font-size:1.45rem;margin:0;line-height:1.15}
+.count{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.pill{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.35);color:#fff;padding:4px 12px;border-radius:999px;font-size:.88rem;font-weight:600}
+.theme-btn{position:absolute;left:0;top:0;background:rgba(0,0,0,.25);border:0;color:#fff;border-radius:999px;padding:6px 12px;font-size:.85rem}
+
+main{max-width:760px;margin:0 auto;padding:18px 16px 0}
+.view{display:none}
+.view.on{display:block}
+h2.section{font-family:var(--hand);font-size:2.1rem;color:var(--ink);margin:10px 0 6px;font-weight:700;line-height:1.1}
+.lead{color:var(--muted);margin:0 0 16px;max-width:62ch}
+
+/* Linha do tempo */
+.day{position:relative;background:var(--card);border:1px solid var(--line);border-radius:14px;margin:0 0 12px;overflow:hidden}
+.day-head{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;width:100%;background:none;border:0;text-align:left;padding:12px 14px}
+.date{text-align:center;border-right:2px dashed var(--line);padding-right:10px}
+.date b{display:block;font-family:var(--hand);font-size:2rem;line-height:.9;color:var(--ink)}
+.date span{font-size:.75rem;color:var(--muted);font-weight:600}
+.day-title{font-weight:700;font-size:1.05rem;line-height:1.25}
+.day-sub{color:var(--muted);font-size:.86rem;margin-top:2px}
+.star{color:var(--ink);font-family:var(--hand);font-size:1.6rem;line-height:1}
+.chev{transition:transform .2s;color:var(--muted)}
+.day.open .chev{transform:rotate(180deg)}
+.day{border-left-width:6px}
+.day.st-done{border-left-color:var(--green);background:var(--good-wash)}
+.day.st-now{border-left-color:var(--yellow);background:var(--warn-wash);box-shadow:0 0 0 2px var(--yellow)}
+.day.st-next{border-left-color:var(--ink)}
+.day.st-done .day-title{color:var(--good)}
+.tag.s-done{background:var(--green);color:#fff}
+.tag.s-now{background:var(--yellow);color:#3A2A00}
+.tag.s-next{background:var(--ink-wash);color:var(--ink)}
+.tag.rem,.tag.obs{background:var(--paper);color:var(--muted);border:1px solid var(--line)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.82rem;color:var(--muted);margin:0 0 12px}
+.legend span{display:flex;align-items:center;gap:6px}
+.lg{width:14px;height:14px;border-radius:4px;display:inline-block}
+.lg.done{background:var(--green)} .lg.now{background:var(--yellow)} .lg.next{background:var(--ink)}
+.rem-panel h4{margin:0 0 6px;color:var(--ink)}
+.rem-item{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;padding:7px 0;border-bottom:1px dashed var(--line)}
+.rem-item:last-child{border-bottom:0}
+.rem-item b{color:var(--ink);font-variant-numeric:tabular-nums}
+.rem-item small{grid-column:2;color:var(--muted)}
+.rem-item.soon{background:var(--warn-wash);border-radius:8px;padding:7px 8px}
+.rem-item.soon b{color:var(--warn)}
+.rem-item.past{opacity:.55}
+.rem-box,.obs-box{background:var(--card);border:1px solid var(--line)}
+.rem-box h4,.obs-box h4{color:var(--ink)}
+.rem-ul{list-style:none;margin:4px 0 0;padding:0}
+.rem-li{display:grid;grid-template-columns:52px 1fr auto auto;gap:6px;align-items:center;padding:5px 0;border-bottom:1px dashed var(--line)}
+.rem-li .t{font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.mini{background:none;border:1px solid var(--line);border-radius:8px;padding:2px 6px}
+.obs-box textarea{min-height:80px;width:100%;border:1px solid var(--line);background:var(--paper);border-radius:10px;padding:9px 10px}
+.day-body{display:none;padding:0 14px 16px;border-top:1px solid var(--line)}
+.day.open .day-body{display:block}
+.tag{display:inline-block;font-size:.75rem;font-weight:700;padding:2px 8px;border-radius:999px;margin-right:6px;margin-top:6px}
+.tag.home{background:var(--good-wash);color:var(--good)}
+.tag.road{background:var(--ink-wash);color:var(--ink)}
+.tag.faith{background:var(--warn-wash);color:var(--warn)}
+
+.stops{list-style:none;margin:12px 0 0;padding:0}
+.stop{display:grid;grid-template-columns:26px 58px 1fr 30px;gap:6px;align-items:start;padding:8px 0;border-bottom:1px dashed var(--line)}
+.stop input[type=checkbox]{width:20px;height:20px;margin-top:2px;accent-color:var(--green)}
+.stop .t{font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;font-size:.92rem;padding-top:1px}
+.stop.done .txt{text-decoration:line-through;color:var(--muted)}
+.stop.special{background:var(--warn-wash);border-radius:10px;padding:10px 8px;border-bottom:0;margin:6px 0}
+.stop.special .t{color:var(--warn)}
+.del{background:none;border:0;color:var(--muted);font-size:1.1rem;line-height:1;padding:4px}
+.del:hover{color:var(--danger)}
+.rename{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0 4px;align-items:end}
+.rename label{display:flex;flex-direction:column;font-size:.78rem;color:var(--muted);font-weight:600;gap:3px}
+.rename input{border:1px solid var(--line);background:var(--paper);border-radius:10px;padding:8px 10px;min-width:0;font-weight:500;color:var(--text);font-size:.95rem}
+.rename .btn{grid-column:1/-1;justify-self:start}
+@media (max-width:420px){.rename{grid-template-columns:1fr}}
+.add-row{display:grid;grid-template-columns:88px 1fr auto;gap:8px;margin-top:10px}
+.add-row input{border:1px solid var(--line);background:var(--paper);border-radius:10px;padding:8px 10px;min-width:0}
+.btn{background:var(--ink);color:#fff;border:0;border-radius:10px;padding:8px 14px;font-weight:600}
+:root[data-theme="dark"] .btn{color:#0F1328}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn{color:#0F1328}}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+
+.box{border-radius:12px;padding:10px 12px;margin-top:12px;font-size:.93rem}
+.box h4{margin:0 0 4px;font-size:.9rem}
+.box.sea{background:var(--sea-wash)}
+.box.sea h4{color:var(--sea)}
+.box.sun{background:var(--warn-wash)}
+.box.sun h4{color:var(--warn)}
+.box.ink{background:var(--ink-wash)}
+.box.ink h4{color:var(--ink)}
+.box ul{margin:4px 0 0;padding-left:18px}
+.box li{margin:2px 0}
+
+/* Marés */
+.tide-svg{width:100%;height:auto;display:block;margin-top:6px}
+.tide-list{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.tide-chip{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:3px 8px;font-size:.82rem;font-variant-numeric:tabular-nums}
+.tide-chip.low{border-color:var(--sea);color:var(--sea);font-weight:700}
+.verdict{font-weight:600;margin-top:6px}
+.verdict.good{color:var(--good)} .verdict.bad{color:var(--warn)}
+.tide-table{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums}
+.tide-table th,.tide-table td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+.tide-table th{color:var(--muted);font-weight:600;font-size:.8rem}
+.scroll{overflow-x:auto}
+.bar{height:8px;border-radius:4px;background:var(--line);position:relative;min-width:80px}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:var(--sea)}
+
+/* Dicas */
+.city{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:12px}
+.city h3{font-family:var(--hand);font-size:1.9rem;color:var(--ink);margin:0;line-height:1}
+.city .when{color:var(--muted);font-size:.85rem;margin:2px 0 8px}
+.place{padding:8px 0;border-top:1px dashed var(--line)}
+.place b{display:block}
+.place span{color:var(--muted);font-size:.9rem}
+.weather-row{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 4px}
+.wx{background:var(--paper);border-radius:10px;padding:6px 10px;font-size:.85rem}
+.wx b{color:var(--text)}
+a{color:var(--ink)}
+.filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.filter button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 12px;font-size:.85rem}
+.filter button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+
+/* Mala e gastos */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin-bottom:12px}
+.check{display:flex;gap:10px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line)}
+.check:last-child{border-bottom:0}
+.check input{width:20px;height:20px;accent-color:var(--green)}
+.check.done span{text-decoration:line-through;color:var(--muted)}
+.check span{flex:1}
+.progress{height:10px;background:var(--line);border-radius:6px;overflow:hidden;margin:6px 0 12px}
+.progress i{display:block;height:100%;background:var(--green);transition:width .3s}
+.form{display:grid;grid-template-columns:1fr 110px;gap:8px}
+.form input,.form select,textarea{border:1px solid var(--line);background:var(--paper);border-radius:10px;padding:9px 10px;min-width:0;width:100%}
+.form .full{grid-column:1/-1}
+.total{font-family:var(--hand);font-size:2.4rem;color:var(--ink);line-height:1}
+.exp{display:grid;grid-template-columns:1fr auto 30px;gap:8px;padding:8px 0;border-bottom:1px dashed var(--line);align-items:center}
+.exp small{display:block;color:var(--muted)}
+.cats{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.cats span{background:var(--paper);border-radius:8px;padding:3px 8px;font-size:.82rem}
+textarea{min-height:140px;resize:vertical;line-height:1.5}
+.empty{color:var(--muted);font-style:italic;padding:8px 0}
+
+/* Navegação inferior */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:center;padding:6px 6px calc(6px + env(safe-area-inset-bottom));z-index:10}
+nav.tabs .wrap{display:flex;max-width:760px;width:100%}
+nav.tabs button{flex:1;background:none;border:0;padding:6px 2px;border-radius:10px;color:var(--muted);font-size:.74rem;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:1px}
+nav.tabs button .ic{font-size:1.25rem;line-height:1.2}
+nav.tabs button[aria-selected="true"]{color:var(--ink);background:var(--ink-wash)}
+.status{font-size:.78rem;color:var(--muted);text-align:center;margin:14px 0 6px;min-height:1.2em}
+.src{font-size:.78rem;color:var(--muted);margin-top:10px}
+@media (max-width:420px){
+  .note h1{font-size:2.2rem}
+  .stop{grid-template-columns:24px 50px 1fr 26px}
+  .add-row{grid-template-columns:76px 1fr auto}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="application/json" id="saved">{}</script>
+<script id="app">
+(function(){
+"use strict";
+
+/* ---------- Dados fixos da viagem ---------- */
+var HEAD_META = '<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Aventura dos Soares · 18/09 a 01/10</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">';
+
+var WD = ["dom","seg","ter","qua","qui","sex","sáb"];
+
+// Marés do Porto de Maceió (18–21/09: Tábua da Marinha/CHM; demais dias: previsão TemperaturaDoMar).
+// L = baixa-mar, H = preamar. Altura em metros.
+var TIDES = {
+ "2026-09-18":[["01:55",0.75,"L"],["08:16",1.41,"H"],["14:31",0.86,"L"],["20:47",1.43,"H"]],
+ "2026-09-19":[["03:31",0.82,"L"],["09:55",1.33,"H"],["16:12",0.90,"L"],["22:21",1.41,"H"]],
+ "2026-09-20":[["05:14",0.78,"L"],["11:42",1.38,"H"],["17:47",0.84,"L"],["23:47",1.49,"H"]],
+ "2026-09-21":[["06:27",0.67,"L"],["12:42",1.51,"H"],["18:46",0.73,"L"]],
+ "2026-09-22":[["00:46",1.79,"H"],["07:13",0.65,"L"],["13:20",1.83,"H"],["19:27",0.72,"L"]],
+ "2026-09-23":[["01:26",1.96,"H"],["07:49",0.52,"L"],["13:55",1.97,"H"],["20:00",0.59,"L"]],
+ "2026-09-24":[["02:01",2.11,"H"],["08:21",0.40,"L"],["14:26",2.10,"H"],["20:31",0.48,"L"]],
+ "2026-09-25":[["02:34",2.24,"H"],["08:52",0.31,"L"],["14:57",2.21,"H"],["21:02",0.38,"L"]],
+ "2026-09-26":[["03:07",2.34,"H"],["09:23",0.25,"L"],["15:28",2.28,"H"],["21:34",0.30,"L"]],
+ "2026-09-27":[["03:41",2.38,"H"],["09:55",0.23,"L"],["16:01",2.30,"H"],["22:08",0.26,"L"]],
+ "2026-09-28":[["04:17",2.37,"H"],["10:29",0.26,"L"],["16:35",2.27,"H"],["22:44",0.26,"L"]],
+ "2026-09-29":[["04:56",2.29,"H"],["11:06",0.35,"L"],["17:12",2.18,"H"],["23:23",0.33,"L"]],
+ "2026-09-30":[["05:38",2.15,"H"],["11:46",0.48,"L"],["17:54",2.05,"H"]],
+ "2026-10-01":[["00:08",0.44,"L"],["06:27",1.98,"H"],["12:33",0.65,"L"],["18:43",1.90,"H"]]
+};
+
+var CLIMATE = {
+ maceio:{name:"Maceió",max:"28–29°C",min:"23°C",sea:"~27°C",rain:"Mês seco; pancadas rápidas, mais de madrugada",sun:"nascer 5h20 · pôr 17h20",link:"https://www.climatempo.com.br/previsao-do-tempo/15-dias/cidade/8/maceio-al"},
+ pe:{name:"Litoral de PE (Carneiros, Porto, Recife, Olinda)",max:"28–29°C",min:"22–23°C",sea:"~27°C",rain:"Fim da estação chuvosa; chuviscos rápidos possíveis",sun:"nascer 5h15 · pôr 17h15",link:"https://www.google.com/search?q=previs%C3%A3o+do+tempo+Porto+de+Galinhas"},
+ jp:{name:"João Pessoa",max:"29°C",min:"23°C",sea:"~27°C",rain:"Poucas chuvas; vento constante",sun:"nascer 5h10 · pôr 17h15",link:"https://www.google.com/search?q=previs%C3%A3o+do+tempo+Jo%C3%A3o+Pessoa"},
+ rn:{name:"Natal / RN",max:"29–30°C",min:"23°C",sea:"~27°C",rain:"Seco, bastante vento",sun:"nascer 5h15 · pôr 17h25",link:"https://www.google.com/search?q=previs%C3%A3o+do+tempo+Natal+RN"},
+ ce:{name:"Fortaleza",max:"30–31°C",min:"24–25°C",sea:"~28°C",rain:"Auge da seca; chuva rara, vento forte à tarde",sun:"nascer 5h30 · pôr 17h35",link:"https://www.google.com/search?q=previs%C3%A3o+do+tempo+Fortaleza"}
+};
+
+// Roteiro base (o que está no papel + sugestões marcadas como "sugestão")
+function S(t,x,special){return {id:uid(),t:t||"",x:x,done:false,special:!!special};}
+var uidN=0; function uid(){uidN++;return "s"+Date.now().toString(36)+uidN;}
+
+function baseDays(){
+ return [
+ {d:"2026-09-18",title:"Maceió",sub:"1º destino · sexta-feira",star:true,wx:"maceio",tags:["road"],
+  stops:[S("","Chegada em Maceió"),S("16:30","Orla de Pajuçara e Ponta Verde no fim da tarde (sugestão)"),S("18:30","Feirinha de artesanato da Pajuçara (sugestão)"),S("20:00","Jantar com sururu ou peixe na orla (sugestão)")],
+  tips:["As piscinas naturais da Pajuçara dependem de maré até ~0,5 m. Hoje a baixa-mar fica em 0,86 m: deixe esse passeio para o dia 30.","Se sobrar tempo, a Massagueira (Marechal Deodoro, ~20 min) é famosa pelos restaurantes na lagoa."]},
+ {d:"2026-09-19",title:"Maragogi · Praia dos Carneiros · Porto de Galinhas",sub:"2º · sábado · dia de estrada pelo litoral",wx:"pe",tags:["road"],
+  stops:[S("06:30","Sair de Maceió pela Rota Ecológica (AL-101 norte)"),S("08:30","Maragogi: praias de Antunes e Burgalhau"),S("11:30","Praia dos Carneiros: Igrejinha de São Benedito e almoço"),S("15:30","Porto de Galinhas: vila e esculturas de galinhas"),S("17:00","Pôr do sol no Pontal de Maracaípe (sugestão)"),S("","Pernoite (a definir)")],
+  tips:["Maré de quadratura (lua quarto crescente): a baixa-mar mínima é 0,90 m às 16h12. Os passeios às Galés de Maragogi e às piscinas de Porto de Galinhas costumam ser suspensos ou ficam bem fracos. Troque por praia, banho de argila em Carneiros ou passeio de buggy.","Distâncias aproximadas: Maceió → Maragogi 130 km; Maragogi → Carneiros 50 km; Carneiros → Porto de Galinhas 50 km.","Leve dinheiro trocado: muitas barracas e taxas de estacionamento só aceitam Pix ou espécie."]},
+ {d:"2026-09-20",title:"Recife e Olinda → João Pessoa",sub:"3º · domingo · cidade velha, almoço e estrada",star:true,wx:"pe",tags:["road"],
+  stops:[S("08:30","Olinda: Alto da Sé e cidade velha (sugestão de horário)"),S("10:30","Recife Antigo: Marco Zero e Rua do Bom Jesus"),S("12:30","Almoço"),S("14:30","Depois do almoço: seguir para João Pessoa (~120 km, cerca de 2 h)"),S("17:00","Chegada: pousada / em casa")],
+  tips:["Domingo é dia da feirinha de artesanato na Rua do Bom Jesus, no Recife Antigo.","Em Olinda, a tapioca do Alto da Sé e o bolo de rolo são clássicos. Vá cedo: depois das 11h o sol castiga nas ladeiras.","Museus como o Paço do Frevo e a Embaixada dos Bonecos Gigantes costumam abrir aos domingos; confira o horário antes."]},
+ {d:"2026-09-21",title:"João Pessoa",sub:"segunda-feira · descanso",wx:"jp",tags:[],
+  stops:[S("","Descanso em João Pessoa"),S("17:00","Pôr do sol na Praia do Jacaré, com o Bolero de Ravel (sugestão)")],
+  tips:["Bom dia para lavar roupa e reorganizar a mala antes da segunda etapa."]},
+ {d:"2026-09-22",title:"João Pessoa",sub:"terça-feira",wx:"jp",tags:[],
+  stops:[S("","Dia livre"),S("16:00","Estação Cabo Branco e Ponta do Seixas (sugestão)")],
+  tips:["A Ponta do Seixas é o ponto mais oriental das Américas; a Estação Cabo Branco fica ao lado."]},
+ {d:"2026-09-23",title:"João Pessoa",sub:"quarta-feira · noite de culto",wx:"jp",tags:["faith"],
+  stops:[S("07:00","Piscinas naturais do Picãozinho, maré 0,52 m às 07h49 (sugestão, confirmar com a operadora)"),S("19:00","Culto de gratidão (19:00 às 21:00)",true)],
+  tips:["Separe a roupa do culto de manhã e deixe a mala da viagem pronta: amanhã a saída é cedo."]},
+ {d:"2026-09-24",title:"Rio Grande do Norte",sub:"quinta-feira · rumo a Natal",star:true,wx:"rn",tags:["road"],
+  stops:[S("06:30","Café da manhã (anotação: \u201ccafé em …\u201d, confirmar o local)"),S("07:30","Sair de João Pessoa (~185 km até Natal)"),S("10:00","Parada: Cajueiro de Pirangi ou praia de Pipa (sugestão)"),S("16:00","Natal: Ponte Newton Navarro e Forte dos Reis Magos"),S("17:15","Pôr do sol em Ponta Negra, vista do Morro do Careca")],
+  tips:["O Maior Cajueiro do Mundo (Pirangi) fica praticamente no caminho, a uns 25 km de Natal.","Maré baixa de 0,40 m às 08h21: boa para os parrachos (Pirangi/Maracajaú), se der tempo."]},
+ {d:"2026-09-25",title:"Fortaleza",sub:"sexta-feira · chegada ao Ceará",star:true,wx:"ce",tags:["road"],
+  stops:[S("06:00","Natal → Fortaleza (~530 km, 7 a 8 h de estrada)"),S("12:00","Almoço na estrada, região de Mossoró ou Aracati"),S("19:00","Feirinha da Avenida Beira-Mar (sugestão)")],
+  tips:["Viagem longa: reveze motoristas e pare a cada 2 h.","Se quiser quebrar a viagem, Canoa Quebrada fica a ~10 km de Aracati."]},
+ {d:"2026-09-26",title:"Fortaleza",sub:"sábado · cidade e Praia do Futuro",wx:"ce",tags:[],
+  stops:[S("09:00","Mercado Central e Catedral (sugestão)"),S("11:00","Centro Dragão do Mar (sugestão)"),S("13:00","Praia do Futuro: almoço em barraca e caranguejo (sugestão)")],
+  tips:["O Theatro José de Alencar é pertinho do centro e costuma ter visita guiada."]},
+ {d:"2026-09-27",title:"Fortaleza",sub:"domingo · passeio de dia inteiro",wx:"ce",tags:[],
+  stops:[S("08:00","Opção 1: Beach Park, em Aquiraz (~30 km)"),S("08:00","Opção 2: Morro Branco e Praia das Fontes, em Beberibe (~85 km)")],
+  tips:["Lua cheia e maré de sizígia (baixa de 0,23 m perto das 10h): ótimo para caminhar nas falésias de Morro Branco na maré baixa.","Protetor solar reforçado: o índice UV passa de 11 nessa época."]},
+ {d:"2026-09-28",title:"Fortaleza",sub:"segunda-feira · Cumbuco",wx:"ce",tags:[],
+  stops:[S("08:30","Cumbuco: passeio de buggy e Lagoa do Parnamirim (sugestão)"),S("17:00","Pôr do sol na Ponte dos Ingleses (sugestão)")],
+  tips:["O vento forte da tarde faz do Cumbuco um dos melhores pontos de kitesurf do Brasil; o passeio de buggy rende mais pela manhã.","Muitos museus de Fortaleza fecham às segundas."]},
+ {d:"2026-09-29",title:"Voltando · Maceió",sub:"terça-feira · retorno",star:true,wx:"maceio",tags:["road"],
+  stops:[S("","Viagem de volta para Maceió")],
+  tips:["Por estrada, Fortaleza → Maceió passa de 1.000 km (14 a 15 h). Vale considerar voo ou dividir em dois dias.","Maré baixa de 0,35 m às 11h06 em Maceió: se chegar cedo, dá para as piscinas naturais."]},
+ {d:"2026-09-30",title:"Maceió",sub:"quarta-feira",wx:"maceio",tags:[],
+  stops:[S("10:30","Piscinas naturais da Pajuçara, de jangada (maré 0,48 m às 11h46)"),S("15:00","Praia do Francês ou do Gunga (sugestão)")],
+  tips:["As jangadas saem da orla da Pajuçara cerca de 1 h antes da maré mínima. Leve sapatilha e não pise nos corais."]},
+ {d:"2026-10-01",title:"Ida",sub:"quinta-feira · fim da viagem",wx:"maceio",tags:["road"],
+  stops:[S("","Partida (conforme anotação \u201cida\u201d)")],
+  tips:["Faça o check-out cedo e confira documentos e carregadores."]}
+ ];
+}
+
+var PACK = ["Documentos (RG/CNH) e documento do carro","Cartões e dinheiro trocado / Pix","Protetor solar e protetor labial","Repelente","Óculos de sol e chapéu","Sapatilha para piscinas naturais","Bolsa estanque para celular","Roupa de banho (2 ou 3)","Canga ou toalha de praia","Roupa para o culto de gratidão","Carregadores e power bank","Remédios de uso contínuo","Kit de primeiros socorros","Garrafa de água reutilizável","Sacola para roupa suja"];
+
+/* ---------- Estado ---------- */
+var saved = {};
+try{ saved = JSON.parse(document.getElementById("saved").textContent || "{}"); }catch(e){ saved = {}; }
+var local = null;
+try{ local = JSON.parse(localStorage.getItem("viagem-ne-2026") || "null"); }catch(e){ local = null; }
+var state = (local && (!saved.updatedAt || local.updatedAt > saved.updatedAt)) ? local : saved;
+if(!state.days){ state.days = baseDays().map(function(x){return {d:x.d,stops:x.stops};}); }
+if(!state.pack){ state.pack = PACK.map(function(p){return {id:uid(),x:p,done:false};}); }
+if(!state.exp){ state.exp = []; }
+if(typeof state.notes!=="string"){ state.notes = ""; }
+if(typeof state.heroLine!=="string"){ state.heroLine = "Maceió · Maragogi · Carneiros · Porto de Galinhas · Recife · Olinda · João Pessoa · Natal · Fortaleza"; }
+var DAYS = baseDays();
+DAYS.forEach(function(day){
+  day.obs=""; day.rem=[]; day.doneManual=false;
+  var st = state.days.filter(function(s){return s.d===day.d;})[0];
+  if(st){ day.stops = st.stops; if(st.title) day.title = st.title; if(st.sub) day.sub = st.sub; day.obs = st.obs||""; day.rem = st.rem||[]; day.doneManual = !!st.doneManual; } else state.days.push({d:day.d,stops:day.stops});
+});
+if((state.v||1)<2){
+  DAYS.forEach(function(day){
+    if(["2026-09-21","2026-09-22","2026-09-23"].indexOf(day.d)<0) return;
+    day.title=day.title.replace(" · em casa","");
+    day.stops.forEach(function(x){ x.x=x.x.replace("Culto de ação de graças","Culto de gratidão").replace("Descanso em casa","Descanso em João Pessoa"); });
+  });
+  state.pack.forEach(function(x){ x.x=x.x.replace("culto de ação de graças","culto de gratidão"); });
+  state.v=2;
+}
+var ui = {tab:"roteiro", open:{}, cityFilter:"all"};
+
+var artifactApi = null, writable = true, pubTimer = null, dlApi = null;
+try{
+  if(window.claude && window.claude.use){
+    window.claude.use("artifact").then(function(a){ artifactApi = a; }).catch(function(){});
+    window.claude.use("downloads").then(function(d){ if(d){ dlApi = d; render(); } }).catch(function(){});
+  }
+}catch(e){}
+
+function persist(){
+  state.updatedAt = Date.now();
+  state.days = DAYS.map(function(d){return {d:d.d,stops:d.stops,title:d.title,sub:d.sub,obs:d.obs,rem:d.rem,doneManual:d.doneManual};});
+  try{ localStorage.setItem("viagem-ne-2026", JSON.stringify(state)); }catch(e){}
+  setStatus(artifactApi && writable ? "Alteração salva, sincronizando em instantes…" : "Salvo neste aparelho");
+  if(artifactApi && writable){
+    clearTimeout(pubTimer);
+    pubTimer = setTimeout(function(){ pubTimer=null; publishNow(); }, 3000);
+  }
+}
+function buildDoc(){
+  var json = JSON.stringify(state).replace(/</g,"\\u003c");
+  var css = document.getElementById("app-style").textContent;
+  var js = document.getElementById("app").textContent;
+  var endS = "</scr"+"ipt>";
+  return "<!doctype html>\n<html lang=\"pt-BR\">\n<head>"+HEAD_META+"<style id=\"app-style\">"+css+"</style></head>\n<body>\n<div id=\"root\"></div>\n<script type=\"application/json\" id=\"saved\">"+json+endS+"\n<script id=\"app\">"+js+endS+"\n</body>\n</html>";
+}
+function publishNow(){
+  if(!artifactApi || !writable) return;
+  try{ sessionStorage.setItem("viagem-ne-ui", JSON.stringify(ui)); }catch(e){}
+  setStatus("Sincronizando…");
+  artifactApi.publish(buildDoc()).then(function(){
+    setStatus("Tudo salvo ✓");
+  }).catch(function(err){
+    var c = err && err.code;
+    if(c==="not_writer" || c==="not_granted"){ writable=false; setStatus("Somente leitura: suas alterações ficam salvas só neste aparelho"); }
+    else if(c==="conflict"){ setStatus("Atualizando para a versão mais recente…"); }
+    else if(c==="rate_limited"){ setStatus("Muitas alterações seguidas; salvo neste aparelho"); }
+    else { setStatus("Salvo neste aparelho (sincronização indisponível agora)"); }
+  });
+}
+function setStatusSoon(t){ setTimeout(function(){ if(!(artifactApi&&writable)) setStatus(t+" ✓"); },0); }
+function setStatus(t){ var el=document.getElementById("status"); if(el) el.textContent=t; }
+
+/* ---------- Utilidades ---------- */
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];});}
+function parseDate(iso){var p=iso.split("-");return new Date(+p[0],+p[1]-1,+p[2]);}
+function todayISO(){var n=new Date();return n.getFullYear()+"-"+String(n.getMonth()+1).padStart(2,"0")+"-"+String(n.getDate()).padStart(2,"0");}
+function toMin(t){var p=t.split(":");return +p[0]*60+ +p[1];}
+function brl(v){return v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});}
+function fmtH(h){return h.toFixed(2).replace(".",",")+" m";}
+
+/* ---------- Marés ---------- */
+function tidePoints(iso){
+  var arr = (TIDES[iso]||[]).map(function(r){return {m:toMin(r[0]),h:r[1],k:r[2]};});
+  if(arr.length<2) return arr;
+  var first=arr[0], second=arr[1], last=arr[arr.length-1], pen=arr[arr.length-2];
+  arr.unshift({m:first.m-372,h:second.h,k:second.k,v:true});
+  arr.push({m:last.m+372,h:pen.h,k:pen.k,v:true});
+  return arr;
+}
+function levelAt(pts,m){
+  for(var i=0;i<pts.length-1;i++){
+    var a=pts[i],b=pts[i+1];
+    if(m>=a.m && m<=b.m){
+      var f=(m-a.m)/(b.m-a.m);
+      return a.h+(b.h-a.h)*(1-Math.cos(Math.PI*f))/2;
+    }
+  }
+  return null;
+}
+function tideSVG(iso){
+  var pts=tidePoints(iso); if(!pts.length) return "";
+  var W=320,H=96,top=10,bot=74,maxH=2.5;
+  function y(h){return bot-(h/maxH)*(bot-top);}
+  var d="",area="";
+  for(var m=0;m<=1440;m+=15){
+    var h=levelAt(pts,m); if(h===null) continue;
+    var x=(m/1440)*W;
+    d+=(d?"L":"M")+x.toFixed(1)+" "+y(h).toFixed(1);
+  }
+  area=d+"L"+W+" "+bot+"L0 "+bot+"Z";
+  var marks="";
+  pts.forEach(function(p){
+    if(p.v||p.m<0||p.m>1440) return;
+    var x=(p.m/1440)*W;
+    marks+='<circle cx="'+x.toFixed(1)+'" cy="'+y(p.h).toFixed(1)+'" r="3.2" fill="'+(p.k==="L"?"var(--sea)":"var(--ink)")+'"/>';
+  });
+  var now=new Date(), nowM=now.getHours()*60+now.getMinutes(), nowLine="";
+  if(iso===todayISO()){ var nx=(nowM/1440)*W; nowLine='<line x1="'+nx+'" x2="'+nx+'" y1="'+top+'" y2="'+bot+'" stroke="var(--warn)" stroke-width="1.5" stroke-dasharray="3 3"/>'; }
+  var ticks="";
+  [0,6,12,18,24].forEach(function(hh){var x=(hh*60/1440)*W;ticks+='<text x="'+Math.min(Math.max(x,8),W-10)+'" y="'+(H-6)+'" font-size="10" text-anchor="middle" fill="var(--muted)">'+hh+'h</text>';});
+  var lim='<line x1="0" x2="'+W+'" y1="'+y(0.5)+'" y2="'+y(0.5)+'" stroke="var(--good)" stroke-width="1" stroke-dasharray="2 4" opacity=".7"/>';
+  return '<svg class="tide-svg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Curva da maré do dia"><path d="'+area+'" fill="var(--sea)" opacity=".14"/><path d="'+d+'" fill="none" stroke="var(--sea)" stroke-width="2"/>'+lim+nowLine+marks+ticks+'</svg>';
+}
+function tideVerdict(iso){
+  var lows=(TIDES[iso]||[]).filter(function(r){return r[2]==="L";});
+  var day=lows.filter(function(r){var m=toMin(r[0]);return m>=360&&m<=960;});
+  if(!day.length) return {ok:false,txt:"Sem baixa-mar durante o dia."};
+  var best=day.reduce(function(a,b){return b[1]<a[1]?b:a;});
+  var m=toMin(best[0]);
+  function hm(x){return String(Math.floor(x/60)).padStart(2,"0")+":"+String(x%60).padStart(2,"0");}
+  if(best[1]<=0.5) return {ok:true,txt:"Boa para piscinas naturais: "+hm(m-60)+" às "+hm(m+60)+" (mínima "+fmtH(best[1])+" às "+best[0]+")."};
+  if(best[1]<=0.7) return {ok:false,txt:"Maré no limite ("+fmtH(best[1])+" às "+best[0]+"): piscinas rasas podem não formar bem."};
+  return {ok:false,txt:"Maré de quadratura ("+fmtH(best[1])+" às "+best[0]+"): piscinas naturais provavelmente não formam."};
+}
+function tideBox(iso,wx){
+  if(!TIDES[iso]) return "";
+  var v=tideVerdict(iso);
+  var chips=TIDES[iso].map(function(r){return '<span class="tide-chip '+(r[2]==="L"?"low":"")+'">'+(r[2]==="L"?"▼ ":"▲ ")+r[0]+" · "+fmtH(r[1])+"</span>";}).join("");
+  var ref = wx==="ce" ? "Referência: Porto de Maceió. Em Fortaleza os horários mudam; confira a tábua local antes de sair." : "Referência: Porto de Maceió (no litoral de AL a RN a diferença costuma ser de poucos minutos).";
+  return '<div class="box sea"><h4>Maré</h4>'+tideSVG(iso)+'<div class="tide-list">'+chips+'</div><div class="verdict '+(v.ok?"good":"bad")+'">'+v.txt+'</div><div class="src">'+ref+'</div></div>';
+}
+function wxBox(k){
+  var c=CLIMATE[k]; if(!c) return "";
+  return '<div class="box sun"><h4>Tempo esperado · '+esc(c.name)+'</h4><div class="weather-row"><span class="wx">Máx <b>'+c.max+'</b></span><span class="wx">Mín <b>'+c.min+'</b></span><span class="wx">Mar <b>'+c.sea+'</b></span></div><div>'+esc(c.rain)+'. '+esc(c.sun)+'.</div><div class="src"><a href="'+c.link+'" target="_blank" rel="noopener">Ver previsão atualizada</a></div></div>';
+}
+
+function dayStatus(day){
+  var t=todayISO();
+  if(day.doneManual || day.d<t) return "done";
+  if(day.d===t) return "now";
+  return "next";
+}
+function statusBadge(day,stt){
+  if(stt==="done") return '<span class="tag s-done">Concluído ✓</span>';
+  if(stt==="now") return '<span class="tag s-now">Em andamento</span>';
+  var n=Math.round((parseDate(day.d)-parseDate(todayISO()))/86400000);
+  return '<span class="tag s-next">'+(n===1?"Amanhã":"Em "+n+" dias")+'</span>';
+}
+function legendHtml(){
+  return '<div class="legend"><span><i class="lg done"></i>Concluído</span><span><i class="lg now"></i>Em andamento</span><span><i class="lg next"></i>Próximos dias</span></div>';
+}
+function remindersPanel(){
+  var t=todayISO(), now=new Date(), nowM=now.getHours()*60+now.getMinutes(), all=[];
+  DAYS.forEach(function(d){ d.rem.forEach(function(r){ if(d.d>=t) all.push({day:d,r:r}); }); });
+  all.sort(function(a,b){ var ka=a.day.d+(a.r.t||"99"), kb=b.day.d+(b.r.t||"99"); return ka<kb?-1:1; });
+  var items=all.slice(0,6).map(function(o){
+    var dt=parseDate(o.day.d), soon=false, past=false;
+    if(o.day.d===t && o.r.t){ var m=toMin(o.r.t); soon=m>=nowM && m-nowM<=120; past=m<nowM; }
+    return '<div class="rem-item'+(soon?" soon":"")+(past?" past":"")+'"><b>'+dt.getDate()+'/'+(dt.getMonth()+1)+(o.r.t?' · '+esc(o.r.t):'')+'</b><span>'+esc(o.r.x)+'</span><small>'+esc(o.day.title)+(soon?' · em breve':'')+'</small></div>';
+  }).join("");
+  return '<div class="panel rem-panel"><h4>⏰ Próximos lembretes</h4>'+(items||'<div class="empty">Nenhum lembrete ainda. Abra um dia e crie o primeiro.</div>')+'</div>';
+}
+function dayExtras(day,stt){
+  var rems=day.rem.slice().sort(function(a,b){return (a.t||"99")<(b.t||"99")?-1:1;}).map(function(r){
+    return '<li class="rem-li"><span class="t">'+(r.t?esc(r.t):"—")+'</span><span>'+esc(r.x)+'</span>'
+      +(true?'<button class="mini" data-act="ics" data-d="'+day.d+'" data-id="'+r.id+'" title="Salvar na agenda do celular" aria-label="Salvar na agenda">📅</button>':'<span></span>')
+      +'<button class="del" data-act="rdel" data-d="'+day.d+'" data-id="'+r.id+'" aria-label="Remover lembrete">×</button></li>';
+  }).join("");
+  var doneBtn = day.d<todayISO() ? '' : '<button class="btn ghost" data-act="daydone" data-d="'+day.d+'">'+(day.doneManual?"Desmarcar dia concluído":"Marcar dia como concluído")+'</button>';
+  return '<div class="box rem-box"><h4>⏰ Lembretes</h4>'
+    +(rems?'<ul class="rem-ul">'+rems+'</ul>':'<div class="empty">Sem lembretes para este dia.</div>')
+    +'<div class="add-row"><input type="time" id="rmt-'+day.d+'" aria-label="Horário do lembrete"><input type="text" id="rmx-'+day.d+'" placeholder="Ex.: ligar para a pousada" aria-label="Novo lembrete"><button class="btn" data-act="radd" data-d="'+day.d+'">Criar</button></div></div>'
+    +'<div class="box obs-box"><h4>📝 Observações</h4><textarea class="obs" data-obs="'+day.d+'" placeholder="Escreva aqui o que quiser lembrar deste dia…">'+esc(day.obs)+'</textarea></div>'
+    +'<div style="margin-top:12px">'+doneBtn+'</div>';
+}
+function icsFor(day,r){
+  var p=day.d.replace(/-/g,""), t=(r.t||"09:00").replace(":","")+"00";
+  var h=+t.slice(0,2), end=String(Math.min(h+1,23)).padStart(2,"0")+t.slice(2);
+  function e(x){return String(x).replace(/[\\,;]/g,function(c){return "\\"+c;});}
+  return ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Aventura dos Soares//PT","BEGIN:VEVENT","UID:"+r.id+"@aventura-soares",
+    "DTSTAMP:"+new Date().toISOString().replace(/[-:]/g,"").slice(0,15)+"Z",
+    "DTSTART:"+p+"T"+t,"DTEND:"+p+"T"+end,
+    "SUMMARY:"+e(r.x),"DESCRIPTION:"+e("Aventura dos Soares - "+day.title),
+    "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+e(r.x),"TRIGGER:-PT30M","END:VALARM","END:VEVENT","END:VCALENDAR"].join("\r\n");
+}
+
+/* ---------- Telas ---------- */
+function renderRoteiro(){
+  var t=todayISO();
+  var html='<h2 class="section">Roteiro dia a dia</h2><p class="lead">Tudo o que estava no papel, com sugestões extras. Abra um dia para mudar o nome da cidade, marcar o que já fez, criar lembretes e escrever observações.</p>'+legendHtml()+remindersPanel();
+  DAYS.forEach(function(day){
+    var dt=parseDate(day.d), isToday=day.d===t, stt=dayStatus(day), open=ui.open[day.d]!==undefined?ui.open[day.d]:isToday;
+    var tags=(day.tags||[]).map(function(g){return g==="home"?'<span class="tag home">em casa</span>':g==="road"?'<span class="tag road">deslocamento</span>':'<span class="tag faith">culto</span>';}).join("");
+    var stops=day.stops.slice().sort(function(a,b){return (a.t||"99")<(b.t||"99")?-1:1;}).map(function(s){
+      return '<li class="stop'+(s.done?" done":"")+(s.special?" special":"")+'"><input type="checkbox" data-act="tog" data-d="'+day.d+'" data-id="'+s.id+'" '+(s.done?"checked":"")+' aria-label="Concluído"><span class="t">'+(s.t?esc(s.t):"—")+'</span><span class="txt">'+esc(s.x)+'</span><button class="del" data-act="del" data-d="'+day.d+'" data-id="'+s.id+'" aria-label="Remover">×</button></li>';
+    }).join("");
+    var tips=day.tips&&day.tips.length?'<div class="box ink"><h4>Dicas do dia</h4><ul>'+day.tips.map(function(x){return "<li>"+esc(x)+"</li>";}).join("")+'</ul></div>':"";
+    html+='<article class="day st-'+stt+(open?" open":"")+'" id="day-'+day.d+'">'
+      +'<button class="day-head" data-act="open" data-d="'+day.d+'" aria-expanded="'+open+'">'
+      +'<div class="date"><b>'+dt.getDate()+'/'+(dt.getMonth()+1)+'</b><span>'+WD[dt.getDay()]+'</span></div>'
+      +'<div><div class="day-title">'+(day.star?'<span class="star" aria-label="destaque">✱</span> ':"")+esc(day.title)+'</div><div class="day-sub">'+esc(day.sub)+'</div>'+statusBadge(day,stt)+tags+(day.rem.length?'<span class="tag rem">⏰ '+day.rem.length+'</span>':'')+(day.obs?'<span class="tag obs">📝 obs.</span>':'')+'</div>'
+      +'<span class="chev" aria-hidden="true">▾</span></button>'
+      +'<div class="day-body"><div class="rename"><label>Nome do dia<input type="text" id="rt-'+day.d+'" value="'+esc(day.title)+'"></label><label>Descrição<input type="text" id="rs-'+day.d+'" value="'+esc(day.sub)+'"></label><button class="btn ghost" data-act="rename" data-d="'+day.d+'">Salvar nome</button></div><ul class="stops">'+stops+'</ul>'
+      +'<div class="add-row"><input type="time" id="nt-'+day.d+'" aria-label="Horário"><input type="text" id="nx-'+day.d+'" placeholder="Novo compromisso" aria-label="Novo compromisso"><button class="btn" data-act="add" data-d="'+day.d+'">Adicionar</button></div>'
+      +dayExtras(day,stt)
+      +tips+tideBox(day.d,day.wx)+wxBox(day.wx)+'</div></article>';
+  });
+  return html;
+}
+
+function renderMares(){
+  var rows=DAYS.map(function(day){
+    var r=TIDES[day.d]||[]; var dt=parseDate(day.d); var v=tideVerdict(day.d);
+    var lows=r.filter(function(x){return x[2]==="L";}).map(function(x){return x[0]+" ("+fmtH(x[1])+")";}).join("<br>");
+    var highs=r.filter(function(x){return x[2]==="H";}).map(function(x){return x[0]+" ("+fmtH(x[1])+")";}).join("<br>");
+    var minL=r.filter(function(x){return x[2]==="L";}).reduce(function(a,b){return Math.min(a,b[1]);},9);
+    var pct=Math.max(6,Math.min(100,(1-minL/1.1)*100));
+    return '<tr><td><b>'+dt.getDate()+'/'+(dt.getMonth()+1)+'</b> '+WD[dt.getDay()]+'<br><span style="color:var(--muted);font-size:.8rem">'+esc(day.title)+'</span></td><td>'+lows+'</td><td>'+highs+'</td><td><div class="bar" title="Quanto mais cheia, melhor para piscinas naturais"><i style="width:'+pct.toFixed(0)+'%"></i></div><div class="verdict '+(v.ok?"good":"bad")+'" style="font-size:.78rem;font-weight:600">'+(v.ok?"Boa":"Fraca")+'</div></td></tr>';
+  }).join("");
+  return '<h2 class="section">Tábua de marés</h2><p class="lead">Piscinas naturais (Pajuçara, Galés, Porto de Galinhas, Picãozinho) aparecem com a maré abaixo de ~0,5 m. De 18 a 21/09 a lua está em quarto crescente e as marés ficam fracas; a partir de 24/09 melhoram, com o auge perto da lua cheia (26 a 28/09).</p>'
+   +'<div class="panel scroll"><table class="tide-table"><thead><tr><th>Dia</th><th>Baixa-mar</th><th>Preamar</th><th>Piscinas</th></tr></thead><tbody>'+rows+'</tbody></table></div>'
+   +'<p class="src">Fonte: Porto de Maceió. 18–21/09 pela Tábua de Marés da Marinha do Brasil (CHM); demais dias pela previsão do TemperaturaDoMar. Não serve para navegação. Para Fortaleza, confira a tábua local.</p>'
+   +'<div class="box sea"><h4>Como aproveitar</h4><ul><li>Os passeios de jangada saem cerca de 1 h antes da maré mínima.</li><li>Use sapatilha, não pise nos corais e não alimente os peixes.</li><li>Confirme sempre com a operadora no dia anterior: vento e chuva também cancelam passeios.</li></ul></div>';
+}
+
+var CITIES = [
+ {k:"maceio",name:"Maceió",when:"18/09 · 29 e 30/09",places:[
+  ["Piscinas naturais da Pajuçara","De jangada, a 2 km da orla. Só com maré baixa (dia 30 é o melhor)."],
+  ["Praia do Gunga","Coqueiral e falésias; mirante antes da descida. ~30 km ao sul."],
+  ["Praia do Francês","Mar calmo de um lado, ondas do outro. Boa estrutura de barracas."],
+  ["Rota Ecológica (Milagres e Patacho)","No caminho para Maragogi; praias tranquilas e piscinas na maré baixa."],
+  ["Orla e feirinha da Pajuçara","Artesanato, rendas e a vista das jangadas ao entardecer."],
+  ["Massagueira","Restaurantes à beira da lagoa, famosos pelo sururu."]]},
+ {k:"pe",name:"Maragogi e Carneiros",when:"19/09",places:[
+  ["Galés de Maragogi","Piscinas em alto-mar, de catamarã. Dependem de maré bem baixa."],
+  ["Praia de Antunes","Areia clara e coqueiros, mais sossegada."],
+  ["Igrejinha de São Benedito","Cartão-postal da Praia dos Carneiros, na beira do mar."],
+  ["Passeio de catamarã no Rio Formoso","Inclui banho de argila e bancos de areia."]]},
+ {k:"pe",name:"Porto de Galinhas",when:"19/09",places:[
+  ["Vila de Porto","Lojinhas, tapioca e as esculturas de galinhas espalhadas pelas ruas."],
+  ["Pontal de Maracaípe","Encontro do rio com o mar, cavalos-marinhos e um belo pôr do sol."],
+  ["Muro Alto","Lagoa de água morna formada pelos arrecifes."],
+  ["Passeio de buggy","Roteiro pelas praias do litoral sul; boa alternativa em maré alta."]]},
+ {k:"pe",name:"Recife e Olinda",when:"20/09",places:[
+  ["Alto da Sé (Olinda)","Vista do Recife, tapiocas e artesanato."],
+  ["Mosteiro de São Bento e Igreja do Carmo","Igrejas históricas da cidade velha de Olinda."],
+  ["Marco Zero e Rua do Bom Jesus","Coração do Recife Antigo, com feira aos domingos."],
+  ["Paço do Frevo e Cais do Sertão","Museus interativos no Recife Antigo."],
+  ["Oficina Brennand","Obras de Francisco Brennand em meio à mata; confira horários."]]},
+ {k:"jp",name:"João Pessoa",when:"20 a 23/09",places:[
+  ["Picãozinho","Piscinas naturais de lancha ou catamarã, na maré baixa."],
+  ["Areia Vermelha (Cabedelo)","Banco de areia que surge no meio do mar na maré baixa."],
+  ["Praia do Jacaré","Pôr do sol ao som do Bolero de Ravel."],
+  ["Ponta do Seixas e Estação Cabo Branco","Extremo oriental das Américas e centro cultural."],
+  ["Centro Histórico","Igreja e Convento de São Francisco."],
+  ["Coqueirinho e Tambaba","Litoral sul, falésias e piscinas naturais."]]},
+ {k:"rn",name:"Rio Grande do Norte",when:"24/09",places:[
+  ["Maior Cajueiro do Mundo (Pirangi)","Um único cajueiro que ocupa um quarteirão."],
+  ["Praia da Pipa","Falésias, Baía dos Golfinhos e vila animada."],
+  ["Ponte Newton Navarro e Forte dos Reis Magos","Cartões-postais de Natal."],
+  ["Ponta Negra e Morro do Careca","Orla com boa estrutura e pôr do sol."],
+  ["Dunas de Genipabu","Buggy e dromedários, ao norte de Natal."]]},
+ {k:"ce",name:"Fortaleza",when:"25 a 28/09",places:[
+  ["Feirinha da Beira-Mar","Artesanato à noite, na avenida à beira-mar."],
+  ["Mercado Central","Castanha, rendas, redes e cachaças."],
+  ["Praia do Futuro","Barracas grandes, caranguejo e mar aberto."],
+  ["Centro Dragão do Mar","Museus, cinema e bares."],
+  ["Beach Park","Parque aquático em Aquiraz."],
+  ["Cumbuco e Lagoa do Parnamirim","Buggy, kitesurf e esquibunda."],
+  ["Morro Branco (Beberibe)","Labirinto de falésias coloridas."],
+  ["Canoa Quebrada","Falésias vermelhas, a ~160 km."]]}
+];
+function renderDicas(){
+  var f=ui.cityFilter;
+  var btns=[["all","Todos"],["maceio","Maceió"],["pe","Pernambuco"],["jp","João Pessoa"],["rn","RN"],["ce","Fortaleza"]].map(function(b){return '<button data-act="filter" data-k="'+b[0]+'" aria-pressed="'+(f===b[0])+'">'+b[1]+'</button>';}).join("");
+  var cards=CITIES.filter(function(c){return f==="all"||c.k===f;}).map(function(c){
+    var cl=CLIMATE[c.k];
+    return '<section class="city"><h3>'+esc(c.name)+'</h3><div class="when">'+esc(c.when)+'</div>'
+      +'<div class="weather-row"><span class="wx">Máx <b>'+cl.max+'</b></span><span class="wx">Mín <b>'+cl.min+'</b></span><span class="wx">Mar <b>'+cl.sea+'</b></span><a class="wx" href="'+cl.link+'" target="_blank" rel="noopener">Previsão atual</a></div>'
+      +c.places.map(function(p){return '<div class="place"><b>'+esc(p[0])+'</b><span>'+esc(p[1])+'</span></div>';}).join("")+'</section>';
+  }).join("");
+  return '<h2 class="section">Passeios e pontos turísticos</h2><p class="lead">Sugestões por destino. Horários e preços mudam: confirme antes de ir.</p><div class="filter">'+btns+'</div>'+cards
+   +'<div class="box ink"><h4>Estrada</h4><ul><li>Maceió → Maragogi: ~130 km</li><li>Porto de Galinhas → Recife: ~60 km</li><li>Recife → João Pessoa: ~120 km</li><li>João Pessoa → Natal: ~185 km</li><li>Natal → Fortaleza: ~530 km</li><li>Fortaleza → Maceió: ~1.050 km</li></ul></div>';
+}
+
+function renderMala(){
+  var done=state.pack.filter(function(p){return p.done;}).length, tot=state.pack.length;
+  var items=state.pack.map(function(p){return '<label class="check'+(p.done?" done":"")+'"><input type="checkbox" data-act="ptog" data-id="'+p.id+'" '+(p.done?"checked":"")+'><span>'+esc(p.x)+'</span><button class="del" data-act="pdel" data-id="'+p.id+'" aria-label="Remover">×</button></label>';}).join("") || '<div class="empty">Lista vazia. Adicione o primeiro item abaixo.</div>';
+  return '<h2 class="section">Mala</h2><p class="lead">'+done+' de '+tot+' itens separados.</p><div class="progress"><i style="width:'+(tot?done/tot*100:0)+'%"></i></div>'
+   +'<div class="panel">'+items+'<div class="add-row" style="grid-template-columns:1fr auto"><input type="text" id="pnew" placeholder="Novo item" aria-label="Novo item"><button class="btn" data-act="padd">Adicionar</button></div></div>'
+   +'<h2 class="section">Anotações</h2><div class="panel"><textarea id="notes" placeholder="Reservas, telefones de pousadas, endereços…">'+esc(state.notes)+'</textarea></div>';
+}
+
+function renderGastos(){
+  var total=state.exp.reduce(function(a,e){return a+e.v;},0);
+  var cats={}; state.exp.forEach(function(e){cats[e.c]=(cats[e.c]||0)+e.v;});
+  var catHtml=Object.keys(cats).map(function(k){return '<span>'+esc(k)+': <b>'+brl(cats[k])+'</b></span>';}).join("");
+  var list=state.exp.slice().reverse().map(function(e){return '<div class="exp"><div>'+esc(e.x)+'<small>'+esc(e.c)+' · '+esc(e.d)+'</small></div><b>'+brl(e.v)+'</b><button class="del" data-act="edel" data-id="'+e.id+'" aria-label="Remover">×</button></div>';}).join("") || '<div class="empty">Nenhum gasto ainda. Registre o primeiro acima.</div>';
+  var dayOpts=DAYS.map(function(d){var dt=parseDate(d.d);return '<option value="'+dt.getDate()+'/'+(dt.getMonth()+1)+'">'+dt.getDate()+'/'+(dt.getMonth()+1)+' · '+esc(d.title)+'</option>';}).join("");
+  return '<h2 class="section">Gastos</h2><div class="panel"><div style="color:var(--muted);font-size:.85rem">Total da viagem</div><div class="total">'+brl(total)+'</div><div class="cats">'+catHtml+'</div></div>'
+   +'<div class="panel"><div class="form"><input id="ex" placeholder="Descrição (ex.: jangada)" aria-label="Descrição"><input id="ev" type="number" inputmode="decimal" step="0.01" min="0" placeholder="R$" aria-label="Valor">'
+   +'<select id="ec" aria-label="Categoria"><option>Alimentação</option><option>Combustível</option><option>Hospedagem</option><option>Passeios</option><option>Compras</option><option>Pedágio/Estacionamento</option><option>Outros</option></select>'
+   +'<select id="ed" aria-label="Dia">'+dayOpts+'</select><button class="btn full" data-act="eadd">Registrar gasto</button></div></div>'
+   +'<div class="panel">'+list+'</div>';
+}
+
+/* ---------- Montagem ---------- */
+function daysUntil(){
+  var s=parseDate("2026-09-18"), n=parseDate(todayISO());
+  return Math.round((s-n)/86400000);
+}
+function heroPill(){
+  var du=daysUntil(), end=parseDate("2026-10-01"), n=parseDate(todayISO());
+  if(du>1) return "Faltam "+du+" dias";
+  if(du===1) return "É amanhã!";
+  if(n<=end){ var d=DAYS.filter(function(x){return x.d===todayISO();})[0]; return d?"Hoje: "+d.title:"Viagem em andamento"; }
+  return "Viagem concluída";
+}
+function render(){
+  var root=document.getElementById("root");
+  var tabs=[["roteiro","Roteiro","🗓️"],["mares","Marés","🌊"],["dicas","Passeios","🧭"],["mala","Mala","🎒"],["gastos","Gastos","💰"]];
+  var views={roteiro:renderRoteiro,mares:renderMares,dicas:renderDicas,mala:renderMala,gastos:renderGastos};
+  root.innerHTML='<header class="hero"><div class="hero-inner"><button class="theme-btn" data-act="theme">Tema</button><div class="note"><h1>Aventura dos Soares</h1><p>Nossa viagem pelo Nordeste</p></div><div class="count"><span class="pill">18/09 a 01/10/2026</span><button class="pill" data-act="savenow" style="cursor:pointer">Salvar agora</button><span class="pill">'+esc(heroPill())+'</span></div></div></header>'
+   +'<main><section class="view on">'+views[ui.tab]()+'</section><div class="status" id="status" aria-live="polite"></div></main>'
+   +'<nav class="tabs" aria-label="Seções"><div class="wrap" role="tablist">'+tabs.map(function(t){return '<button role="tab" data-act="tab" data-k="'+t[0]+'" aria-selected="'+(ui.tab===t[0])+'"><span class="ic" aria-hidden="true">'+t[2]+'</span>'+t[1]+'</button>';}).join("")+'</div></nav>';
+}
+function findDay(d){return DAYS.filter(function(x){return x.d===d;})[0];}
+
+document.addEventListener("click",function(ev){
+  var el=ev.target.closest("[data-act]"); if(!el) return;
+  var a=el.dataset.act, d=el.dataset.d, id=el.dataset.id;
+  if(a==="savenow"){ clearTimeout(pubTimer); pubTimer=null; persist(); clearTimeout(pubTimer); pubTimer=null; if(artifactApi&&writable){publishNow();}else{setStatus("Salvo neste aparelho ✓");} return; }
+  if(a==="rename"){var rd=findDay(d);var nt=document.getElementById("rt-"+d).value.trim();var ns=document.getElementById("rs-"+d).value.trim();if(!nt){document.getElementById("rt-"+d).focus();return;}rd.title=nt;rd.sub=ns;ui.open[d]=true;persist();render();setStatusSoon("Nome salvo");return;}
+  if(a==="herosave"){var hl=document.getElementById("heroline").value.trim();if(!hl)return;state.heroLine=hl;persist();render();setStatusSoon("Cidades do topo salvas");return;}
+  if(a==="radd"){var tx2=document.getElementById("rmx-"+d),tt2=document.getElementById("rmt-"+d);if(!tx2.value.trim()){tx2.focus();return;}findDay(d).rem.push({id:uid(),t:tt2.value,x:tx2.value.trim()});ui.open[d]=true;persist();render();return;}
+  if(a==="rdel"){var rd2=findDay(d);rd2.rem=rd2.rem.filter(function(r){return r.id!==id;});persist();render();return;}
+  if(a==="daydone"){var dd=findDay(d);dd.doneManual=!dd.doneManual;ui.open[d]=true;persist();render();return;}
+  if(a==="ics"){var dy3=findDay(d),r3=dy3.rem.filter(function(r){return r.id===id;})[0];if(!r3)return;
+    if(!dlApi){try{var bl=new Blob([icsFor(dy3,r3)],{type:"text/calendar"});var au=URL.createObjectURL(bl);var an=document.createElement("a");an.href=au;an.download="lembrete-"+d+".ics";document.body.appendChild(an);an.click();an.remove();setTimeout(function(){URL.revokeObjectURL(au);},4000);setStatus("Lembrete baixado ✓ Abra o arquivo para adicionar à agenda.");}catch(e){setStatus("Não foi possível baixar o lembrete neste navegador");}return;}
+    dlApi.save({filename:"lembrete-"+d+".ics",data:icsFor(dy3,r3)}).then(function(){setStatus("Lembrete baixado ✓ Abra o arquivo para adicionar à agenda.");}).catch(function(err){var c=err&&err.code;setStatus(c==="declined"?"Download cancelado":"Não foi possível baixar o lembrete agora");});return;}
+  if(a==="tab"){ui.tab=el.dataset.k;render();window.scrollTo(0,0);return;}
+  if(a==="open"){var day=document.getElementById("day-"+d);var o=!day.classList.contains("open");ui.open[d]=o;day.classList.toggle("open",o);el.setAttribute("aria-expanded",o);return;}
+  if(a==="filter"){ui.cityFilter=el.dataset.k;render();return;}
+  if(a==="theme"){var r=document.documentElement;var cur=r.getAttribute("data-theme");var dark=cur?cur==="dark":window.matchMedia("(prefers-color-scheme: dark)").matches;r.setAttribute("data-theme",dark?"light":"dark");try{localStorage.setItem("viagem-ne-theme",dark?"light":"dark");}catch(e){}return;}
+  if(a==="del"){var dy=findDay(d);dy.stops=dy.stops.filter(function(s){return s.id!==id;});persist();render();return;}
+  if(a==="add"){
+    var tx=document.getElementById("nx-"+d), tt=document.getElementById("nt-"+d);
+    if(!tx.value.trim()){tx.focus();return;}
+    findDay(d).stops.push(S(tt.value,tx.value.trim()));ui.open[d]=true;persist();render();
+    var n=document.getElementById("nx-"+d); if(n) n.focus(); return;
+  }
+  if(a==="pdel"){ev.preventDefault();state.pack=state.pack.filter(function(p){return p.id!==id;});persist();render();return;}
+  if(a==="padd"){var pn=document.getElementById("pnew");if(!pn.value.trim()){pn.focus();return;}state.pack.push({id:uid(),x:pn.value.trim(),done:false});persist();render();document.getElementById("pnew").focus();return;}
+  if(a==="edel"){state.exp=state.exp.filter(function(e){return e.id!==id;});persist();render();return;}
+  if(a==="eadd"){
+    var ex=document.getElementById("ex"), evv=document.getElementById("ev");
+    var v=parseFloat(String(evv.value).replace(",","."));
+    if(!ex.value.trim()){ex.focus();return;} if(!(v>0)){evv.focus();return;}
+    state.exp.push({id:uid(),x:ex.value.trim(),v:v,c:document.getElementById("ec").value,d:document.getElementById("ed").value});
+    persist();render();return;
+  }
+});
+document.addEventListener("change",function(ev){
+  var el=ev.target; var a=el.dataset&&el.dataset.act;
+  if(a==="tog"){var dy=findDay(el.dataset.d);dy.stops.forEach(function(s){if(s.id===el.dataset.id)s.done=el.checked;});persist();render();}
+  if(a==="ptog"){state.pack.forEach(function(p){if(p.id===el.dataset.id)p.done=el.checked;});persist();render();}
+  if(el.id==="notes"){state.notes=el.value;persist();}
+});
+var noteTimer=null;
+document.addEventListener("input",function(ev){
+  var od=ev.target.dataset&&ev.target.dataset.obs;
+  if(od){ findDay(od).obs=ev.target.value; clearTimeout(noteTimer); noteTimer=setTimeout(persist,800); return; }
+  if(ev.target.id!=="notes") return;
+  state.notes=ev.target.value;
+  clearTimeout(noteTimer);
+  noteTimer=setTimeout(persist,800);
+});
+document.addEventListener("keydown",function(ev){
+  if(ev.key!=="Enter"||!ev.target.id) return;
+  var id=ev.target.id;
+  if(id.indexOf("nx-")===0){var b=document.querySelector('[data-act="add"][data-d="'+id.slice(3)+'"]');if(b)b.click();}
+  if(id.indexOf("rt-")===0||id.indexOf("rs-")===0){var rb=document.querySelector('[data-act="rename"][data-d="'+id.slice(3)+'"]');if(rb)rb.click();}
+  if(id.indexOf("rmx-")===0){var rb2=document.querySelector('[data-act="radd"][data-d="'+id.slice(4)+'"]');if(rb2)rb2.click();}
+  if(id==="pnew"){document.querySelector('[data-act="padd"]').click();}
+});
+
+try{var th=localStorage.getItem("viagem-ne-theme");if(th)document.documentElement.setAttribute("data-theme",th);}catch(e){}
+try{var su=JSON.parse(sessionStorage.getItem("viagem-ne-ui")||"null");if(su){ui=su;}sessionStorage.removeItem("viagem-ne-ui");}catch(e){}
+window.addEventListener("beforeunload",function(){ if(pubTimer){ clearTimeout(pubTimer); publishNow(); } });
+document.addEventListener("visibilitychange",function(){ if(document.visibilityState==="hidden" && pubTimer){ clearTimeout(pubTimer); pubTimer=null; publishNow(); } });
+render();
+})();
+</script>
+</body>
+</html>
