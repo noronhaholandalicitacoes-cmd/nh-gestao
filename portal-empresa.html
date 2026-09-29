@@ -1405,6 +1405,147 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 .nh-quem-nm{font-size:12.5px;font-weight:700;max-width:130px;
   overflow:hidden;text-overflow:ellipsis}
 @media(max-width:620px){ .nh-quem-nm{display:none} .nh-quem{padding:4px} }
+/* ══ Gestão de contratos — 2ª leva (29/09/2026) ══════════════════════
+   Usa os tokens do portal (--s1, --b1, --t1…) para as telas novas não
+   parecerem coladas de outro sistema. A cor de cada bloco entra por
+   `--gc`, definida no HTML conforme a situação — verde em dia, âmbar
+   perto do prazo, vermelho vencido. */
+.gc-bloco{background:var(--s1);border:1px solid var(--b1);border-left:3px solid var(--gc,var(--nh));
+  border-radius:12px;padding:14px 16px;margin-bottom:12px}
+.gc-bloco-cab{display:flex;align-items:baseline;flex-wrap:wrap;gap:10px;margin-bottom:10px}
+.gc-bloco-t{font-size:13px;font-weight:800;color:var(--t1);letter-spacing:-.01em}
+.gc-bloco-n{font-size:11px;color:var(--t3);margin-left:auto}
+.gc-linhas{display:grid;gap:6px;margin-bottom:10px}
+.gc-item{display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+  font-size:12.5px;color:var(--t2)}
+.gc-item b{color:var(--t1);font-weight:700;text-align:right}
+.gc-item i{font-style:normal;font-size:11.5px;font-weight:700}
+
+.gc-nota{font-size:11.5px;line-height:1.6;color:var(--t3);margin-top:8px}
+.gc-nota b{color:var(--t2)}
+/* Alerta é vermelho porque custa dinheiro; `info` é laranja porque é
+   preparo, não emergência. Se tudo fosse vermelho, nada seria. */
+.gc-alerta{margin-top:10px;padding:10px 13px;border-radius:9px;font-size:12.5px;line-height:1.6;
+  color:#fca5a5;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3)}
+.gc-alerta.info{color:var(--nh);background:var(--nha);border-color:rgba(249,115,22,.3)}
+.gc-alerta b{font-weight:800}
+
+.gc-vazio-acao{padding:16px 18px;border-radius:12px;background:var(--s2);
+  border:1px dashed var(--b2);font-size:13px;line-height:1.7;color:var(--t2)}
+.gc-vazio-acao b{color:var(--t1)}
+
+.gc-bt{display:inline-flex;align-items:center;gap:6px;margin:8px 8px 0 0;
+  padding:8px 14px;border-radius:9px;cursor:pointer;font:inherit;font-size:12px;font-weight:700;
+  background:var(--nh);border:1px solid var(--nh);color:#fff}
+.gc-bt:hover{filter:brightness(1.08)}
+.gc-bt.ghost{background:transparent;color:var(--t2);border-color:var(--b2)}
+.gc-bt.ghost:hover{color:var(--t1);border-color:var(--nh)}
+.gc-bt:disabled{opacity:.6;cursor:default}
+
+.gc-tab{width:100%;border-collapse:collapse;margin-top:10px;font-size:12px}
+.gc-tab th{text-align:left;font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--t3);padding:6px 8px;border-bottom:1px solid var(--b1)}
+.gc-tab td{padding:7px 8px;border-bottom:1px solid var(--b1);color:var(--t2);vertical-align:top}
+.gc-tab .num{text-align:right;white-space:nowrap}
+.gc-tab tr:last-child td{border-bottom:none}
+.gc-cancelado td{opacity:.45;text-decoration:line-through}
+/* A de cobrança tem sete colunas e não cabe em tela estreita: rola
+   dentro de si, e não empurra a página inteira para o lado. */
+.gc-tab-larga{display:block;overflow-x:auto;white-space:nowrap}
+.gc-sub{display:block;font-style:normal;font-size:10.5px;color:var(--t3);margin-top:2px;
+  white-space:normal}
+
+.gc-fase{display:inline-block;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:999px;
+  color:var(--f);background:color-mix(in srgb, var(--f) 15%, transparent);
+  border:1px solid color-mix(in srgb, var(--f) 38%, transparent)}
+
+.gc-resumo{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:12px}
+.gc-kpi{background:var(--s1);border:1px solid var(--b1);border-radius:11px;padding:11px 13px;
+  display:flex;flex-direction:column;gap:2px}
+.gc-kpi span{font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--t3)}
+.gc-kpi b{font-size:17px;font-weight:800;color:var(--t1);letter-spacing:-.01em}
+.gc-kpi i{font-style:normal;font-size:11px;color:var(--t3)}
+
+/* Barras do limite de aditivos: a régua é o teto legal, não o maior
+   valor — o que importa é quanto falta para estourar o art. 125. */
+.gc-barras{display:grid;gap:9px;margin:4px 0 8px}
+.gc-barra{display:grid;grid-template-columns:96px 1fr;gap:4px 11px;align-items:center}
+.gc-barra-r{font-size:11.5px;font-weight:700;color:var(--t3)}
+.gc-barra-t{height:9px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden;min-width:0}
+.gc-barra-t i{display:block;height:100%;border-radius:999px}
+.gc-barra-v{grid-column:2;font-size:11.5px;font-weight:800;color:var(--t1)}
+.gc-barra-v i{font-style:normal;font-weight:600;color:var(--t3)}
+
+.gc-escada{margin-top:14px;padding:13px 15px;border-radius:12px;background:var(--s2);border:1px solid var(--b1)}
+.gc-escada-t{font-size:11px;font-weight:900;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--t2);margin-bottom:10px}
+.gc-degrau{border-left:3px solid var(--gc);padding:6px 0 8px 11px;margin-bottom:6px}
+.gc-degrau b{display:block;font-size:12px;font-weight:800;color:var(--gc);margin-bottom:2px}
+.gc-degrau span{font-size:11.5px;line-height:1.55;color:var(--t3)}
+
+/* ── Modal dos cadastros ── */
+.gc-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:9200;
+  align-items:center;justify-content:center;padding:16px}
+.gc-modal-cx{background:var(--s1);border:1px solid var(--b2);border-radius:14px;
+  max-width:560px;width:100%;max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
+.gc-modal-cab{display:flex;align-items:center;gap:10px;padding:14px 18px;
+  border-bottom:1px solid var(--b1);background:var(--s2)}
+.gc-modal-cab b{font-size:14px;font-weight:800;color:var(--t1)}
+.gc-modal-cab button{margin-left:auto;background:none;border:none;color:var(--t3);
+  font-size:22px;line-height:1;cursor:pointer;padding:0 4px}
+.gc-modal-cab button:hover{color:var(--t1)}
+.gc-modal-corpo{padding:15px 18px;overflow-y:auto;flex:1}
+.gc-modal-pe{display:flex;align-items:center;gap:9px;padding:12px 18px;border-top:1px solid var(--b1)}
+.gc-modal-pe #gc-modal-erro{flex:1;font-size:11.5px;color:#fca5a5}
+.gc-lb{display:block;font-size:11px;font-weight:700;color:var(--t3);margin:11px 0 4px}
+.gc-lb:first-child{margin-top:0}
+.gc-in{width:100%;background:var(--s2);border:1px solid var(--b1);border-radius:8px;
+  padding:8px 11px;color:var(--t1);font-family:inherit;font-size:12.5px}
+.gc-in:focus{outline:none;border-color:var(--nh)}
+textarea.gc-in{resize:vertical}
+
+.gc-resultado{display:grid;gap:7px;margin-bottom:12px}
+.gc-res-linha{display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+  padding:9px 12px;border-radius:9px;background:var(--s2);border:1px solid var(--b1);font-size:12.5px;color:var(--t2)}
+.gc-res-linha b{font-size:14px;font-weight:800;color:var(--t1)}
+.gc-res-linha.destaque{background:var(--nha);border-color:rgba(249,115,22,.35)}
+.gc-res-linha.destaque b{color:var(--nh);font-size:16px}
+
+@media (max-width:560px){
+  .gc-barra{grid-template-columns:1fr}
+  .gc-barra-t,.gc-barra-v{grid-column:1}
+  .gc-item{flex-direction:column;gap:2px}
+  .gc-item b{text-align:left}
+}
+/* Indicadores: a cor está na BORDA e não no número. Nove números
+   coloridos lado a lado viram um semáforo quebrado; a borda diz se
+   bateu a meta sem competir com o valor pela atenção. */
+.gc-inds{display:grid;gap:9px;grid-template-columns:repeat(auto-fit,minmax(168px,1fr))}
+.gc-ind{background:var(--s2);border:1px solid var(--b1);border-left:3px solid var(--b2);
+  border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:1px}
+.gc-ind.bom{border-left-color:var(--g1)}
+.gc-ind.ruim{border-left-color:var(--r1)}
+.gc-ind-r{font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--t3)}
+.gc-ind-v{font-size:19px;font-weight:800;color:var(--t1);letter-spacing:-.02em;line-height:1.2}
+.gc-ind-m{font-style:normal;font-size:10.5px;color:var(--t3)}
+
+.gc-destinos{display:grid;gap:9px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));margin-bottom:4px}
+.gc-destino{background:var(--s2);border:1px solid var(--b1);border-top:3px solid var(--gc);
+  border-radius:10px;padding:11px 13px;display:flex;flex-direction:column;gap:2px}
+.gc-destino b{font-size:22px;font-weight:800;color:var(--gc);line-height:1.1}
+.gc-destino span{font-size:11.5px;font-weight:700;color:var(--t1)}
+.gc-destino i{font-style:normal;font-size:11px;color:var(--t2)}
+.gc-destino i.risco{font-size:10.5px;color:var(--t3)}
+
+/* Botão de consulta rápida: fica no topo, fora de qualquer contrato,
+   porque a tabela de prazos serve para todos. */
+.gc-bt-prazos{position:fixed;right:16px;bottom:16px;z-index:900;
+  display:inline-flex;align-items:center;gap:7px;padding:10px 15px;border-radius:999px;
+  background:var(--s1);border:1px solid var(--b2);color:var(--t2);
+  font:inherit;font-size:12px;font-weight:700;cursor:pointer;
+  box-shadow:0 6px 20px -6px rgba(0,0,0,.5)}
+.gc-bt-prazos:hover{color:var(--nh);border-color:var(--nh)}
+@media (max-width:560px){ .gc-bt-prazos{right:10px;bottom:10px;padding:9px 12px;font-size:11px} }
 </style>
 </head>
 <body>
@@ -1916,6 +2057,44 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
       <div class="mc-field"><label class="mc-label">Ata · Carona já cedida</label>
         <input type="text" id="mc-atacarona" class="mc-input" placeholder="R$ 0,00" oninput="mcMascara(this);mcCalcAta()"></div>
       <div class="mc-field"><div id="mc-ata-calc" class="mc-ata-calc"></div></div>
+
+      <!-- Ficha do contrato: o que faz o reajuste e a garantia saírem
+           sozinhos do sistema. Mora em contrato_ficha, não no array. -->
+      <div style="grid-column:1/-1;margin-top:6px">
+        <div class="mc-sec-title">📐 Reajuste e garantia</div>
+      </div>
+      <div class="mc-field">
+        <label class="mc-label">Data-base do reajuste
+          <span title="É a data do ORÇAMENTO ESTIMADO do órgão — não a da proposta. Mudou na Lei 14.133 (art. 25, §7º) e é o erro mais comum. Está no processo da licitação." style="cursor:help;color:var(--nh)">ⓘ</span>
+        </label>
+        <input type="date" id="mc-database" class="mc-input"></div>
+      <div class="mc-field"><label class="mc-label">Índice do reajuste</label>
+        <select id="mc-indice" class="mc-input">
+          <option value="">— não definido —</option>
+          <option>IPCA</option><option>INPC</option><option>IGP-M</option>
+          <option>INCC</option><option>IPA</option><option>SINAPI</option>
+          <option>SICRO</option><option>Outro (ver contrato)</option>
+        </select></div>
+      <div class="mc-field"><label class="mc-label">Valor inicial do contrato
+          <span title="Base de cálculo do limite de 25%/50% dos aditivos (art. 125). Se ficar vazio, o sistema usa o valor do contrato." style="cursor:help;color:var(--nh)">ⓘ</span>
+        </label>
+        <input type="text" id="mc-valorinicial" class="mc-input" placeholder="R$ 0,00" oninput="mcMascara(this)"></div>
+      <div class="mc-field"><label class="mc-label">É reforma de edifício/equipamento?
+          <span title="Só na reforma o limite de acréscimo sobe para 50% (art. 125, §2º)." style="cursor:help;color:var(--nh)">ⓘ</span>
+        </label>
+        <select id="mc-reforma" class="mc-input"><option value="">Não</option><option>SIM</option></select></div>
+      <div class="mc-field"><label class="mc-label">Garantia · valor</label>
+        <input type="text" id="mc-gar-valor" class="mc-input" placeholder="R$ 0,00" oninput="mcMascara(this)"></div>
+      <div class="mc-field"><label class="mc-label">Garantia · modalidade</label>
+        <select id="mc-gar-modo" class="mc-input">
+          <option value="">— sem garantia —</option>
+          <option>Caução em dinheiro</option><option>Título da dívida pública</option>
+          <option>Seguro-garantia</option><option>Fiança bancária</option>
+        </select></div>
+      <div class="mc-field"><label class="mc-label">Garantia · validade até</label>
+        <input type="date" id="mc-gar-val" class="mc-input"></div>
+      <div class="mc-field"><label class="mc-label">Atestado de capacidade técnica obtido?</label>
+        <select id="mc-atestado" class="mc-input"><option value="">Ainda não</option><option>SIM</option></select></div>
 
       <!-- Linha 8 -->
       <div class="mc-field" style="grid-column:1/-1">
@@ -2678,7 +2857,10 @@ function abrirModalContrato(entry){
   // Limpar todos os campos
   ['mc-data','mc-empresa','mc-licit','mc-objeto','mc-local','mc-mun','mc-valor',
    'mc-contrato','mc-status','mc-vig','mc-dtcont','mc-venc','mc-link','mc-obs',
-   'mc-situacao','mc-proxacao','mc-srp','mc-atatotal','mc-atacons','mc-atacarona','mc-atavig'].forEach(id=>{
+   'mc-situacao','mc-proxacao','mc-srp','mc-atatotal','mc-atacons','mc-atacarona','mc-atavig',
+   /* Ficha: vivem em contrato_ficha, mas o formulario e o mesmo. */
+   'mc-database','mc-indice','mc-valorinicial','mc-reforma',
+   'mc-gar-valor','mc-gar-modo','mc-gar-val','mc-atestado'].forEach(id=>{
     var el=document.getElementById(id);
     if(el){if(el.tagName==='SELECT')el.selectedIndex=0;else el.value='';}
   });
@@ -2707,6 +2889,13 @@ function abrirModalContrato(entry){
     mcSv('mc-srp',arr[IDX.SRP]||''); mcSv('mc-atatotal',arr[IDX.ATA_TOTAL]||'');
     mcSv('mc-atacons',arr[IDX.ATA_CONSUMIDO]||''); mcSv('mc-atacarona',arr[IDX.ATA_CARONA]||'');
     mcSv('mc-atavig',arr[IDX.ATA_VIGENCIA]||'');
+    /* A ficha vem de outra coleção — o formulário é um só, mas o
+       destino do que se digita não. */
+    var _fi = FICHA[String(arr[IDX.ID])] || {};
+    mcSv('mc-database', _fi.dataBase||''); mcSv('mc-indice', _fi.indice||'');
+    mcSv('mc-valorinicial', _fi.valorInicial||''); mcSv('mc-reforma', _fi.reforma||'');
+    mcSv('mc-gar-valor', _fi.garantiaValor||''); mcSv('mc-gar-modo', _fi.garantiaModalidade||'');
+    mcSv('mc-gar-val', _fi.garantiaValidade||''); mcSv('mc-atestado', _fi.atestadoObtido||'');
     mcCalcAta();
     // Recomposições
     var rIdxs=RECOMP_IDX;
@@ -2916,6 +3105,37 @@ async function mcSalvar(){
         _portalUltimaEdicao: autor+' ('+empAtual+') em '+_agora,
         _portalLog: [logEntryN]
       });
+    }
+    /* A ficha vai para a coleção própria, com o mesmo `contratoId` das
+       outras de execução. Falha aqui não derruba o salvamento do
+       contrato — o que a pessoa digitou no formulário principal já
+       está gravado, e perder isso por causa de um campo acessório
+       seria o pior dos dois mundos. */
+    try{
+      var _cid = String(_mcEditId || nextId || arr[0] || '');
+      if(_cid){
+        var _ficha = {
+          contratoId: _cid,
+          empresa: nhEmpresaDoArr(arr),
+          contratoNum: arr[IDX.CONTRATO] || '',
+          licitacao: arr[IDX.LICITACAO] || '',
+          dataBase: mcGvDate('mc-database'),
+          indice: mcGv('mc-indice'),
+          valorInicial: mcGv('mc-valorinicial'),
+          reforma: mcGv('mc-reforma'),
+          garantiaValor: mcGv('mc-gar-valor'),
+          garantiaModalidade: mcGv('mc-gar-modo'),
+          garantiaValidade: mcGvDate('mc-gar-val'),
+          atestadoObtido: mcGv('mc-atestado'),
+          atualizadoPor: autor,
+          atualizadoEm: _agora
+        };
+        await db.collection('contrato_ficha').doc(_cid).set(_ficha, {merge:true});
+        FICHA[_cid] = Object.assign(FICHA[_cid]||{}, _ficha);
+      }
+    }catch(_ef){
+      console.warn('[ficha]', _ef.message);
+      portalToast('O contrato foi salvo, mas a ficha de reajuste/garantia não: '+_ef.message, 'err');
     }
     fecharModalContrato();
     await carregarContratos();
@@ -3761,6 +3981,10 @@ function gerarDashboard(){
     (cardFaturamento
       ? '<div class="pd-cards" style="grid-template-columns:1fr">' + cardFaturamento + '</div>'
       : '') +
+    /* Fim de exercício só de setembro a março: fora dessa janela é
+       ruído, e bloco que aparece o ano inteiro deixa de ser lido. */
+    (gcJanelaFimExercicio() ? gcBlocoFimExercicio(arrs) : '') +
+    gcBlocoIndicadores(arrs) +
     '<div class="pd-cards" style="grid-template-columns:1fr">' + cardTerceiro + '</div>';
   dash.style.display = '';
 }
@@ -4192,6 +4416,78 @@ function renderAvisos(){
       });
     });
 
+
+  /* ── Avisos da 2ª leva (29/09/2026) ──────────────────────────────
+     Estes três não existiam e são os que mais custam: reajuste que
+     ninguém pede, garantia que vence e pedido que o órgão engavetou
+     além do prazo do art. 123. Entram aqui porque é nesta tela que as
+     pessoas olham — cálculo que fica escondido numa aba interna não
+     muda comportamento. */
+  var _gcAniv = [], _gcGar = [], _gcPle = [];
+  dadosGanhas.forEach(function(e){
+    var id = String(e.id), arr = e.arr;
+    var st = String(arr[IDX.STATUS]||'').toUpperCase();
+    /* Contrato encerrado não gera cobrança de reajuste. */
+    if(st.indexOf('FINALIZ') === 0 || st.indexOf('RESCIND') === 0) return;
+    var fi = FICHA[id] || {};
+
+    var an = gcAniversario(fi.dataBase);
+    if(an){
+      var pedido = an.ultimo && (PLEITOS[id]||[]).some(function(p){
+        var dp = _gcData(p.dataProtocolo);
+        return dp && dp >= an.ultimo && (p.tipo === 'REAJUSTE' || p.tipo === 'REPACTUACAO');
+      });
+      if(an.vencidos > 0 && !pedido){
+        _gcAniv.push({
+          principal: pEsc(arr[IDX.LICITACAO]||'Sem identificação'),
+          secundario: _idContrato(e), ct: id,
+          extra: 'Aniversário em ' + _gcFmt(an.ultimo) + ' — sem pedido protocolado. '
+               + 'O direito preclui se a prorrogação for assinada sem ressalva.'
+        });
+      } else if(an.diasParaProximo !== null && an.diasParaProximo >= 0 && an.diasParaProximo <= 60){
+        _gcAniv.push({
+          principal: pEsc(arr[IDX.LICITACAO]||'Sem identificação'),
+          secundario: _idContrato(e), ct: id,
+          extra: 'Aniversário em ' + _gcFmt(an.proximo) + ' (faltam ' + an.diasParaProximo + ' dias) — prepare o pedido'
+        });
+      }
+    }
+
+    var gv = _gcData(fi.garantiaValidade);
+    if(gv){
+      var dg = _gcDias(hoje, gv);
+      if(dg !== null && dg <= 60){
+        _gcGar.push({
+          principal: pEsc(arr[IDX.LICITACAO]||'Sem identificação'),
+          secundario: _idContrato(e), ct: id,
+          extra: (dg < 0 ? 'Garantia VENCIDA há ' + (-dg) + ' dias' : 'Garantia vence em ' + dg + ' dias')
+               + ' · ' + pEsc(fi.garantiaModalidade || 'modalidade não informada')
+        });
+      }
+    }
+
+    (PLEITOS[id]||[]).forEach(function(p){
+      if(p.status) return;
+      var dp = _gcData(p.dataProtocolo);
+      if(!dp) return;
+      var lim = _gcSomaMeses(dp, 1);
+      if(lim && lim < hoje){
+        _gcPle.push({
+          principal: pEsc(arr[IDX.LICITACAO]||'Sem identificação'),
+          secundario: _idContrato(e), ct: id,
+          extra: (GC_TIPOS_PLEITO[p.tipo]||'Pedido') + ' protocolado em ' + pEsc(p.dataProtocolo)
+               + ' — o prazo do art. 123 venceu em ' + _gcFmt(lim) + '. Cabe reiteração à autoridade.'
+        });
+      }
+    });
+  });
+  if(_gcAniv.length) grupos.push({icone:'📈', cor:'#f59e0b', titulo:'Reajuste a pedir',
+    sub:'Aniversário da data-base vencido ou nos próximos 60 dias', itens:_gcAniv});
+  if(_gcGar.length) grupos.push({icone:'🛡️', cor:'#ef4444', titulo:'Garantia contratual',
+    sub:'Vencida ou vencendo em até 60 dias', itens:_gcGar});
+  if(_gcPle.length) grupos.push({icone:'⏳', cor:'#a855f7', titulo:'Pedidos sem resposta',
+    sub:'Passou o prazo do órgão para decidir (art. 123)', itens:_gcPle});
+
   const total = grupos.reduce((s,g)=>s+g.itens.length,0);
 
   if(!total){
@@ -4513,6 +4809,9 @@ async function carregarContratos(){
        pessoa: o listener filtra por empresa, e antes disto `empAtual`
        ainda está vazio. */
     execIniciar();
+    /* As quatro coleções da 2ª leva sobem junto: o selo da aba e os
+       avisos de aniversário dependem delas já carregadas. */
+    gcIniciar();
     /* Os anos do filtro saem dos dados, então só dá para montar a
        lista depois de carregá-los. */
     pPopularPeriodos();
@@ -5418,12 +5717,20 @@ function execMontarAbas(id, arr, geralHTML, histHTML){
          merece lugar fixo em vez de virar mais uma linha. O selo conta
          os pendentes, que é a única parte acionável. */
       '<button class="exec-aba" data-aba="atest" onclick="execTrocarAba(\''+id+'\',\'atest\',this)">Atestados'+selo(atestResumo(arr).pendentes,'#a855f7')+'</button>' +
+      /* Recomposição e Cobrança entram ANTES do Histórico: são o que
+         se faz com o contrato, e histórico é o que já foi feito. O
+         selo da primeira conta o que está vencido ou a vencer — é o
+         número que faz alguém clicar. */
+      '<button class="exec-aba" data-aba="recomp" onclick="execTrocarAba(\''+id+'\',\'recomp\',this)">Recomposição'+selo(gcSeloRecomp(id,arr),'#f59e0b')+'</button>' +
+      '<button class="exec-aba" data-aba="cobr" onclick="execTrocarAba(\''+id+'\',\'cobr\',this)">Cobrança'+selo(gcSeloCobranca(id),'#ef4444')+'</button>' +
       '<button class="exec-aba" data-aba="hist" onclick="execTrocarAba(\''+id+'\',\'hist\',this)">Histórico</button>' +
     '</div>' +
     '<div class="exec-painel" id="aba-geral-'+id+'">' + geralHTML + '</div>' +
     '<div class="exec-painel" id="aba-fat-'+id+'" style="display:none">' + execAbaFaturamento(id, arr) + '</div>' +
     '<div class="exec-painel" id="aba-not-'+id+'" style="display:none">' + execAbaNotificacoes(id, arr) + '</div>' +
     '<div class="exec-painel" id="aba-atest-'+id+'" style="display:none">' + execAbaAtestados(arr) + '</div>' +
+    '<div class="exec-painel" id="aba-recomp-'+id+'" style="display:none">' + execAbaRecomposicao(id, arr) + '</div>' +
+    '<div class="exec-painel" id="aba-cobr-'+id+'" style="display:none">' + execAbaCobranca(id, arr) + '</div>' +
     '<div class="exec-painel" id="aba-hist-'+id+'" style="display:none">' +
       (histHTML || '<div class="exec-vazio">Nenhuma alteração registrada ainda.</div>') + '</div>';
 }
@@ -5491,7 +5798,7 @@ function execTrocarAba(id, aba, btn){
      acrescentar 'atest' em 18/08/2026 eu esqueci desta linha primeiro:
      a aba nova abria e as outras não fechavam, empilhando dois painéis.
      Se acrescentar outra, é aqui também. */
-  ['geral','fat','not','atest','hist'].forEach(function(a){
+  ['geral','fat','not','atest','recomp','cobr','hist'].forEach(function(a){
     var el = document.getElementById('aba-'+a+'-'+id);
     if(el) el.style.display = (a === aba) ? '' : 'none';
   });
@@ -7519,6 +7826,1151 @@ auth.onAuthStateChanged(async function(user){
     abrirComPerfil(perfil);
   });
 });
+/* ══════════════════════════════════════════════════════════════════
+   GESTÃO DE CONTRATOS — 2ª LEVA (29/09/2026)
+
+   Base: apostila "Gestão de Contratos Públicos", edição 2026, e a Lei
+   14.133/2021. O portal já cobria vigência, faturamento (empenho → OS →
+   medição → NF → pagamento), notificações e atestados. O que entra aqui
+   é o que ficava de fora e custava dinheiro em silêncio:
+
+     1. Aniversário de reajuste       §10.2 · arts. 25 §7º e 92 §§3º-4º
+     2. Recebíveis por fase           §11.10
+     3. Encargos moratórios           §13.3 · art. 92, V
+     4. Escada da cobrança            §13.2 · arts. 123, 137 §2º
+     5. Garantia contratual           §4.6 e 12.5 · arts. 96 a 99
+     6. Ocorrências contra o órgão    §7.3
+     7. Aditivos com limite 25%/50%   §9.2 · art. 125
+     8. Indicadores de gestão         §18.3
+     9. Fim de exercício              §14 · Lei 4.320, arts. 35 a 37
+    10. Tabela mestra de prazos       Anexo C
+
+   Nada disso vira posição nova no array de `ganhas`: ele já vai ao
+   índice 49 e é compartilhado byte a byte com o Sistema NH. Coleções
+   próprias com `contratoId`, como já foi feito em contrato_faturamento.
+   ══════════════════════════════════════════════════════════════════ */
+
+var FICHA = {};    /* contratoId -> ficha (1 por contrato)  */
+var PLEITOS = {};  /* contratoId -> [pleitos]               */
+var OCOR = {};     /* contratoId -> [ocorrências]           */
+var ADIT = {};     /* contratoId -> [aditivos e apostilas]  */
+
+/* ── Datas ──────────────────────────────────────────────────────────
+   O sistema inteiro fala DD/MM/AAAA. Estas funções são a fronteira. */
+
+function _gcData(s){ return parseDateBR(s); }
+
+function _gcHoje(){ var d = new Date(); d.setHours(0,0,0,0); return d; }
+
+function _gcFmt(d){
+  if(!d) return '';
+  return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear();
+}
+
+/** Dias corridos entre duas datas (b − a). */
+function _gcDias(a, b){
+  if(!a || !b) return null;
+  return Math.round((b.getTime() - a.getTime()) / 86400000);
+}
+
+/**
+ * Soma meses preservando o dia — e é aqui que mora a armadilha.
+ * `setMonth(+12)` em 31/03 devolve 01/05, porque abril não tem 31.
+ * Num aniversário de reajuste isso joga a data para o mês seguinte e a
+ * empresa protocola atrasada. Quando o dia não existe no mês de
+ * destino, o certo é o ÚLTIMO dia daquele mês.
+ */
+function _gcSomaMeses(d, n){
+  if(!d) return null;
+  var dia = d.getDate();
+  var alvo = new Date(d.getFullYear(), d.getMonth() + n, 1);
+  var ultimo = new Date(alvo.getFullYear(), alvo.getMonth() + 1, 0).getDate();
+  alvo.setDate(Math.min(dia, ultimo));
+  alvo.setHours(0,0,0,0);
+  return alvo;
+}
+
+/* ── 1. Aniversário de reajuste ─────────────────────────────────────
+   §10.2: a data-base é a data do ORÇAMENTO ESTIMADO do órgão — não a
+   da proposta, que era a regra da 8.666 e ainda é o erro mais comum.
+   O primeiro reajuste vence 12 meses depois; os seguintes, a cada 12
+   meses do anterior. */
+
+/** Quantos aniversários já passaram e qual é o próximo. */
+function gcAniversario(dataBaseStr, hoje){
+  var base = _gcData(dataBaseStr);
+  if(!base) return null;
+  hoje = hoje || _gcHoje();
+  base.setHours(0,0,0,0);
+
+  var n = 0, prox = _gcSomaMeses(base, 12);
+  /* Teto de 20 voltas: contrato público não passa de 10 anos (art. 107)
+     e um laço sem limite numa data maluca trava a tela. */
+  while(prox && prox.getTime() <= hoje.getTime() && n < 20){
+    n++; prox = _gcSomaMeses(base, 12 * (n + 1));
+  }
+  var ultimo = n > 0 ? _gcSomaMeses(base, 12 * n) : null;
+  return {
+    base: base,
+    vencidos: n,                       /* aniversários já completados  */
+    ultimo: ultimo,                    /* o mais recente já vencido    */
+    proximo: prox,
+    diasParaProximo: _gcDias(hoje, prox)
+  };
+}
+
+/**
+ * Fórmula do reajuste (§10.2): R = V × (I − I₀) / I₀.
+ * `I₀` é o número-índice do mês da data-base; `I`, o do aniversário.
+ * Devolve também o retroativo, que é o que a maioria esquece de cobrar:
+ * se o órgão só apostilar meses depois, as diferenças do período são
+ * devidas e vão em nota complementar.
+ */
+function gcCalcularReajuste(valor, i0, i1, mesesRetroativos){
+  var V = Number(valor)||0, I0 = Number(i0)||0, I1 = Number(i1)||0;
+  if(!V || !I0) return null;
+  var variacao = (I1 - I0) / I0;
+  var R = V * variacao;
+  var m = Math.max(0, Number(mesesRetroativos)||0);
+  return {
+    variacao: variacao,
+    pct: variacao * 100,
+    reajuste: R,
+    novoValor: V + R,
+    /* Índice negativo reduz o preço: o reajuste é "para mais ou para
+       menos" (§10.2). Não é erro de conta. */
+    negativo: variacao < 0,
+    retroativo: R * m,
+    meses: m
+  };
+}
+
+/* ── 2 e 3. Recebíveis por fase e encargos moratórios ───────────────
+   §11.10: saber que atrasou não basta; é preciso saber ONDE travou,
+   porque cada fase tem um responsável diferente — fiscal (ateste),
+   gestor (liquidação), ordenador (pagamento). */
+
+var GC_FASES = [
+  {id:'emitida',    rot:'Emitida',              cor:'#667085', quem:''},
+  {id:'protocolo',  rot:'Protocolada',          cor:'#3b82f6', quem:'aguarda ateste do fiscal'},
+  {id:'ateste',     rot:'Recebida em definitivo', cor:'#a855f7', quem:'aguarda liquidação do gestor'},
+  {id:'liquidada',  rot:'Liquidada',            cor:'#f59e0b', quem:'aguarda pagamento do ordenador'},
+  {id:'paga',       rot:'Paga',                 cor:'#22c55e', quem:''}
+];
+
+/** Em que fase a nota está, e há quantos dias ela não anda. */
+function gcFaseDaNota(f){
+  var hoje = _gcHoje();
+  var fase = 'emitida', desde = _gcData(f.dataEmissao);
+  if(f.dataProtocolo){ fase = 'protocolo';  desde = _gcData(f.dataProtocolo) || desde; }
+  if(f.dataAteste){    fase = 'ateste';     desde = _gcData(f.dataAteste) || desde; }
+  if(f.dataLiquidacao){fase = 'liquidada';  desde = _gcData(f.dataLiquidacao) || desde; }
+  if(f.dataPagto){     fase = 'paga';       desde = _gcData(f.dataPagto) || desde; }
+  var def = GC_FASES.filter(function(x){ return x.id === fase; })[0] || GC_FASES[0];
+  return {
+    id: fase, rot: def.rot, cor: def.cor, quem: def.quem,
+    desde: desde,
+    diasNaFase: fase === 'paga' ? 0 : _gcDias(desde, hoje),
+    /* Dias corridos do protocolo ao pagamento — é o indicador de prazo
+       médio de recebimento do §18.3. */
+    diasTotais: _gcDias(_gcData(f.dataProtocolo) || _gcData(f.dataEmissao),
+                        _gcData(f.dataPagto) || hoje)
+  };
+}
+
+/**
+ * Encargos moratórios (§13.3): EM = I × N × VP.
+ * `I` é o índice de compensação financeira — com 6% ao ano, a fórmula
+ * usual dos contratos federais dá (6/100)/365 = 0,00016438.
+ * O que a empresa costuma perder aqui não é a conta, é a lembrança de
+ * fazê-la: o diagnóstico da apostila achou R$ 38 mil nunca cobrados.
+ */
+function gcEncargos(valorParcela, dataPrevista, dataPagamento, taxaAnual){
+  var VP = Number(valorParcela)||0;
+  var prev = _gcData(dataPrevista);
+  if(!VP || !prev) return null;
+  var fim = _gcData(dataPagamento) || _gcHoje();
+  var N = _gcDias(prev, fim);
+  if(N === null || N <= 0) return null;
+  var taxa = Number(taxaAnual);
+  if(!isFinite(taxa) || taxa <= 0) taxa = 6;
+  var I = (taxa/100) / 365;
+  return {
+    dias: N, taxaAnual: taxa, indice: I, valorParcela: VP,
+    encargos: I * N * VP,
+    aindaAberta: !dataPagamento
+  };
+}
+
+/* ── 4. Escada da cobrança ──────────────────────────────────────────
+   §13.2: um degrau por vez, sempre com registro. Cobrança não é
+   ameaça — notificação agressiva no primeiro dia destrói a relação e
+   não acelera nada; meses de telefonema sem registro deixam a empresa
+   sem prova. */
+
+var GC_ESCADA = [
+  {d:1,  rot:'Contato cordial',        cor:'#3b82f6',
+   oque:'E-mail ao gestor e ao fiscal com a lista de notas vencidas, pedindo previsão. Telefone para entender o problema real — às vezes falta um documento.'},
+  {d:10, rot:'Ofício de cobrança',     cor:'#06b6d4',
+   oque:'Documento formal, numerado e protocolado, com planilha das notas e prazo certo, informando que serão devidos atualização monetária e encargos.'},
+  {d:30, rot:'Reiteração à autoridade', cor:'#f59e0b',
+   oque:'Ofício ao ordenador de despesas citando o dever de decidir (art. 123) e a ordem cronológica (art. 141). Em paralelo, pedido via LAI da ordem cronológica.'},
+  {d:45, rot:'Notificação formal',     cor:'#f97316',
+   oque:'Quantifica os encargos, fixa prazo e anuncia as consequências: direito de suspender ou pedir extinção (art. 137, §§2º e 3º), representação e medidas judiciais.'},
+  {d:60, rot:'Órgãos de controle',     cor:'#ef4444',
+   oque:'Ouvidoria (Fala.BR), controle interno e tribunal de contas (representação, art. 170, §4º). Eficaz sobretudo quando houve fura-fila na ordem cronológica.'},
+  {d:90, rot:'Medidas fortes',         cor:'#991b1b',
+   oque:'Suspensão ou extinção do contrato, meios alternativos de solução e ação judicial.'}
+];
+
+/** Em que degrau esta nota está, e qual é o próximo. */
+function gcDegrau(dataVenc, hoje){
+  var v = _gcData(dataVenc);
+  if(!v) return null;
+  hoje = hoje || _gcHoje();
+  var atraso = _gcDias(v, hoje);
+  if(atraso === null || atraso < 1) return null;
+  var atual = null, prox = null;
+  GC_ESCADA.forEach(function(e){
+    if(atraso >= e.d) atual = e;
+    else if(!prox) prox = e;
+  });
+  return {
+    atraso: atraso, atual: atual, proximo: prox,
+    diasParaProximo: prox ? (prox.d - atraso) : null
+  };
+}
+
+/**
+ * O direito que nasce sozinho e quase ninguém cobra (art. 137, §2º, IV):
+ * atraso de mais de 2 MESES **contado da emissão da nota fiscal** — e
+ * não do vencimento — dá à empresa o direito de suspender a execução ou
+ * pedir a extinção do contrato.
+ * A contagem pela emissão é o detalhe que muda a data em semanas.
+ */
+function gcDireitoDeSuspender(dataEmissao, dataPagto, hoje){
+  if(dataPagto) return null;
+  var e = _gcData(dataEmissao);
+  if(!e) return null;
+  hoje = hoje || _gcHoje();
+  var limite = _gcSomaMeses(e, 2);
+  var dias = _gcDias(hoje, limite);
+  return {
+    limite: limite,
+    jaVenceu: limite.getTime() < hoje.getTime(),
+    diasParaVencer: dias
+  };
+}
+
+/* ── 7. Aditivos: o limite do art. 125 ──────────────────────────────
+   25% para acréscimo ou supressão; 50% para acréscimo em reforma de
+   edifício ou equipamento. Base: o valor inicial ATUALIZADO.
+   ⚠️ Acréscimos e supressões NÃO se compensam — 10% a mais e 10% a
+   menos não voltam a zero, cada lado corre por si. Somar os dois num
+   saldo só é o erro que faz a empresa achar que ainda tem folga. */
+function gcLimiteAditivos(contratoId, valorInicial, ehReforma){
+  var lista = ADIT[contratoId] || [];
+  var acres = 0, supr = 0;
+  lista.forEach(function(a){
+    if(String(a.status||a.situacao||"").toUpperCase() === "CANCELADO") return;
+    /* parseMoedaPortal, e nao Number: o valor chega como "R$ 100.000,00"
+       e Number disso e NaN. O limite do art. 125 ficava eternamente em
+       zero, dizendo que havia folga quando nao havia. */
+    var v = Math.abs(parseMoedaPortal(a.valor)||0);
+    if(a.especie === 'ACRESCIMO') acres += v;
+    else if(a.especie === 'SUPRESSAO') supr += v;
+  });
+  var base = Number(valorInicial)||0;
+  var tetoAcres = ehReforma ? 0.50 : 0.25;
+  return {
+    base: base, acrescimos: acres, supressoes: supr,
+    tetoAcrescimo: tetoAcres, tetoSupressao: 0.25,
+    pctAcrescimo: base ? (acres / base) : 0,
+    pctSupressao: base ? (supr / base) : 0,
+    folgaAcrescimo: base ? (base * tetoAcres - acres) : 0,
+    folgaSupressao: base ? (base * 0.25 - supr) : 0,
+    estourouAcrescimo: base ? (acres > base * tetoAcres + 0.005) : false,
+    estourouSupressao: base ? (supr > base * 0.25 + 0.005) : false
+  };
+}
+
+/* ── 9. Fim de exercício ────────────────────────────────────────────
+   §14: em 31/12 cada nota cai num de três destinos. O do meio é
+   confortável, o último é o perigoso — resto a pagar NÃO processado
+   pode ser cancelado, e aí o direito continua existindo mas o caminho
+   vira despesa de exercícios anteriores, muito mais lento. */
+var GC_DESTINOS = {
+  PAGA:     {rot:'Paga no exercício',       cor:'#22c55e', risco:'nenhum'},
+  RP_PROC:  {rot:'Resto a pagar processado',cor:'#f59e0b', risco:'baixo — o direito já está reconhecido, depende de caixa'},
+  RP_NPROC: {rot:'Resto a pagar NÃO processado', cor:'#ef4444', risco:'alto — pode ser cancelado se não liquidado no prazo do ente'}
+};
+
+function gcDestinoFimDeAno(f){
+  if(f.dataPagto) return 'PAGA';
+  if(f.dataLiquidacao) return 'RP_PROC';
+  return 'RP_NPROC';
+}
+
+/** Estamos na janela em que o fim de exercício importa? (set a mar) */
+function gcJanelaFimExercicio(hoje){
+  var m = (hoje || _gcHoje()).getMonth();   /* 0 = jan */
+  return m >= 8 || m <= 2;
+}
+
+/* ── 10. Tabela mestra de prazos (Anexo C) ──────────────────────────
+   Não é enfeite de tela: é o que o sistema usa para CALCULAR datas em
+   vez de alguém consultar uma apostila. Prazo em dias úteis está
+   marcado, porque contar corrido onde a lei diz útil perde defesa. */
+var GC_PRAZOS = [
+  {tema:'Defesa em processo de multa',            prazo:15, uteis:true,  base:'Art. 157'},
+  {tema:'Defesa (impedimento/inidoneidade)',      prazo:15, uteis:true,  base:'Art. 158'},
+  {tema:'Recurso contra advertência/multa',       prazo:15, uteis:true,  base:'Art. 166'},
+  {tema:'Pedido de reconsideração',               prazo:5,  uteis:true,  base:'Art. 166'},
+  {tema:'Dever de decidir pedido do contratado',  prazo:30, uteis:false, base:'Art. 123 (1 mês, prorrogável)'},
+  {tema:'Resposta a pedido de repactuação',       prazo:30, uteis:false, base:'Art. 92, §6º'},
+  {tema:'Liquidação e pagamento (federal)',       prazo:20, uteis:true,  base:'IN SEGES/ME 77/2022 (10+10)'},
+  {tema:'Atraso que autoriza suspender/extinguir',prazo:60, uteis:false, base:'Art. 137, §2º, IV (2 meses da NF)'},
+  {tema:'Formalizar aditivo com efeitos antecipados', prazo:30, uteis:false, base:'Art. 132 (1 mês)'},
+  {tema:'Divulgação do contrato no PNCP',         prazo:20, uteis:true,  base:'Art. 94 (10 úteis na contratação direta)'},
+  {tema:'Prescrição de créditos contra a Fazenda',prazo:1825, uteis:false, base:'Decreto 20.910/1932 (5 anos)'},
+  {tema:'Mandado de segurança',                   prazo:120, uteis:false, base:'Lei 12.016/2009, art. 23'},
+  {tema:'Pedido via LAI',                         prazo:20, uteis:false, base:'Lei 12.527/2011, art. 11'}
+];
+
+var GC_VALORES_2026 = [
+  {tema:'Dispensa por valor — obras e engenharia', valor:130984.20, base:'Art. 75, I · Decreto 12.807/2025'},
+  {tema:'Dispensa por valor — compras e serviços', valor:65492.11,  base:'Art. 75, II · Decreto 12.807/2025'},
+  {tema:'Contrato verbal (pronto pagamento)',      valor:13098.41,  base:'Art. 95, §2º'},
+  {tema:'Obra de grande vulto',                    valor:261968421.04, base:'Art. 6º, XXII'},
+  {tema:'Garantia contratual',                     texto:'Até 5% do valor (10% se justificado); grande vulto: seguro com retomada até 30%', base:'Arts. 98 e 99'},
+  {tema:'Multa',                                   texto:'0,5% a 30% do valor do contrato', base:'Art. 156, §3º'},
+  {tema:'Limite de alteração unilateral',          texto:'25% (acréscimo ou supressão) · 50% (acréscimo em reforma)', base:'Art. 125'},
+  {tema:'Vigência de contratos contínuos',         texto:'Até 5 anos; prorrogações até 10 anos', base:'Arts. 106 e 107'}
+];
+
+/** Soma dias ÚTEIS (só exclui fim de semana — feriado depende do ente,
+ *  e chutar feriado municipal daria uma data errada com cara de certa). */
+function gcSomaDiasUteis(d, n){
+  if(!d) return null;
+  var r = new Date(d.getTime()), c = 0;
+  while(c < n){
+    r.setDate(r.getDate() + 1);
+    var s = r.getDay();
+    if(s !== 0 && s !== 6) c++;
+  }
+  r.setHours(0,0,0,0);
+  return r;
+}
+
+function gcPrazoFinal(inicioStr, item){
+  var i = _gcData(inicioStr);
+  if(!i) return null;
+  return item.uteis ? gcSomaDiasUteis(i, item.prazo) : _gcSomaMeses(i, 0) && new Date(i.getTime() + item.prazo*86400000);
+}
+
+/* ── 8. Indicadores de gestão contratual (§18.3) ────────────────────
+   Nove números com meta. É o relatório mensal que a NH entrega — e o
+   que mostra, sem discussão, se a carteira está sendo cuidada. */
+function gcIndicadores(arrs){
+  var hoje = _gcHoje();
+  var ini = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+
+  var somaDias = 0, nPagas = 0;
+  var faturadoPeriodo = 0, vencidoAberto = 0;
+  var aniversariantes = 0, aniversariantesComPleito = 0;
+  var recuperado = 0, pleitosDecididos = 0, pleitosDeferidos = 0;
+  var notifTotal = 0, notifNoPrazo = 0;
+  var sancoes = 0, valorSancoes = 0;
+  var comDoc = 0, totalContratos = 0;
+  var encerradosComAtestado = 0, encerrados = 0;
+
+  (arrs||[]).forEach(function(arr){
+    var id = String(arr[IDX.ID]);
+    totalContratos++;
+
+    (FAT[id]||[]).forEach(function(f){
+      if(!fatValido(f)) return;
+      var tipo = String(f.tipo||'');
+      if(tipo !== 'NF' && tipo !== 'MEDICAO' && tipo !== 'RECIBO') return;
+      /* parseMoedaPortal, e nao Number: o valor vem como "R$ 10.000,00"
+         e Number disso e NaN. Com zero em tudo, "Carteira em atraso"
+         sumia da tela em vez de acusar o atraso. */
+      var v = parseMoedaPortal(f.valor)||0;
+      var emi = _gcData(f.dataEmissao);
+      if(emi && emi >= ini) faturadoPeriodo += v;
+      if(f.dataPagto){
+        var fase = gcFaseDaNota(f);
+        if(fase.diasTotais !== null){ somaDias += fase.diasTotais; nPagas++; }
+      } else {
+        var venc = _gcData(f.dataVenc);
+        if(venc && venc < hoje) vencidoAberto += v;
+      }
+    });
+
+    var fi = FICHA[id] || {};
+    var an = gcAniversario(fi.dataBase);
+    /* "Aniversariante" = o aniversário cai nos próximos 90 dias ou já
+       passou sem pleito — é exatamente o contrato que faz a empresa
+       perder dinheiro calada. */
+    if(an && an.proximo && an.diasParaProximo !== null && an.diasParaProximo <= 90){
+      aniversariantes++;
+      var temPleito = (PLEITOS[id]||[]).some(function(p){
+        var dp = _gcData(p.dataProtocolo);
+        return dp && an.ultimo && dp >= an.ultimo;
+      });
+      if(temPleito) aniversariantesComPleito++;
+    }
+
+    (PLEITOS[id]||[]).forEach(function(p){
+      var st = String(p.status||'');
+      if(st === 'DEFERIDO' || st === 'INDEFERIDO'){
+        pleitosDecididos++;
+        if(st === 'DEFERIDO'){ pleitosDeferidos++; recuperado += parseMoedaPortal(p.valorObtido||p.valor)||0; }
+      }
+    });
+
+    (NOT[id]||[]).forEach(function(n){
+      notifTotal++;
+      var pr = _gcData(n.prazoResposta), rs = _gcData(n.dataResposta);
+      if(rs && pr && rs <= pr) notifNoPrazo++;
+      /* _fatNum e a leitura que o resto do portal ja usa para este
+         campo: uma terceira forma de ler o mesmo dado seria a proxima
+         a divergir. */
+      var mult = _fatNum(n.valorMulta);
+      if(mult > 0){ sancoes++; valorSancoes += mult; }
+    });
+
+    var fichaOk = fi.garantiaValidade ? (_gcData(fi.garantiaValidade) >= hoje) : true;
+    if(fichaOk) comDoc++;
+
+    var st = String(arr[IDX.STATUS]||'').toUpperCase();
+    if(st.indexOf('FINALIZ') === 0 || st.indexOf('ENCERR') === 0){
+      encerrados++;
+      if(fi.atestadoObtido) encerradosComAtestado++;
+    }
+  });
+
+  var pct = function(a, b){ return b ? (a/b)*100 : null; };
+  return [
+    {rot:'Prazo médio de recebimento', val: nPagas ? Math.round(somaDias/nPagas) : null,
+     un:'dias', meta:'próximo do prazo contratual', bom: nPagas ? (somaDias/nPagas) <= 45 : null},
+    {rot:'Carteira em atraso', val: pct(vencidoAberto, faturadoPeriodo || vencidoAberto),
+     un:'%', meta:'< 10%', bom: pct(vencidoAberto, faturadoPeriodo || vencidoAberto) < 10},
+    {rot:'Recomposição em dia', val: pct(aniversariantesComPleito, aniversariantes),
+     un:'%', meta:'100%', bom: aniversariantes === 0 || aniversariantesComPleito === aniversariantes},
+    {rot:'Valor recuperado', val: recuperado, un:'R$', meta:'crescente', bom: recuperado > 0},
+    {rot:'Êxito em pleitos', val: pct(pleitosDeferidos, pleitosDecididos),
+     un:'%', meta:'> 70%', bom: pct(pleitosDeferidos, pleitosDecididos) > 70},
+    {rot:'Notificações no prazo', val: pct(notifNoPrazo, notifTotal),
+     un:'%', meta:'100%', bom: notifTotal === 0 || notifNoPrazo === notifTotal},
+    {rot:'Sanções', val: sancoes, un:'', meta:'zero', bom: sancoes === 0, extra: valorSancoes},
+    {rot:'Conformidade documental', val: pct(comDoc, totalContratos),
+     un:'%', meta:'100%', bom: comDoc === totalContratos},
+    {rot:'Atestados obtidos', val: pct(encerradosComAtestado, encerrados),
+     un:'%', meta:'100%', bom: encerrados === 0 || encerradosComAtestado === encerrados}
+  ];
+}
+
+/* ── Carregamento ───────────────────────────────────────────────────
+   Mesmo padrão de `_execOuvir`: escuta ao vivo, e a empresa cliente só
+   guarda em memória o que é dela. O corte de verdade é a regra do
+   Firestore — isto evita carregar o que não vai ser mostrado. */
+function _gcOuvir(colecao, destino, umPorContrato){
+  return _pQuery(colecao).onSnapshot(function(snap){
+    var novo = {};
+    snap.forEach(function(doc){
+      var d = doc.data() || {};
+      var cid = d.contratoId;
+      if(!cid) return;
+      if(!isAdmin && !mesmaEmpresa(d.empresa, empAtual)) return;
+      var reg = Object.assign({id:doc.id}, d);
+      if(umPorContrato) novo[cid] = reg;
+      else (novo[cid] = novo[cid] || []).push(reg);
+    });
+    if(!umPorContrato){
+      Object.keys(novo).forEach(function(cid){
+        novo[cid].sort(function(a,b){
+          var da = _gcData(a.data || a.dataProtocolo || a.dataOcorrencia);
+          var db_ = _gcData(b.data || b.dataProtocolo || b.dataOcorrencia);
+          return (db_?db_.getTime():0) - (da?da.getTime():0);
+        });
+      });
+    }
+    if(destino === 'FICHA') FICHA = novo;
+    else if(destino === 'PLEITOS') PLEITOS = novo;
+    else if(destino === 'OCOR') OCOR = novo;
+    else ADIT = novo;
+    _execAgendarRedesenho();
+  }, function(err){
+    console.warn('[gestão] ' + colecao + ':', err.message);
+    if(String(err.code||'') === 'permission-denied'){
+      portalToast('As regras do Firestore ainda não liberam ' + colecao + '. Publique o firestore.rules.', 'err');
+    }
+  });
+}
+
+var _gcLigado = false;
+function gcIniciar(){
+  if(_gcLigado) return;
+  _gcLigado = true;
+  _gcOuvir('contrato_ficha',       'FICHA',   true);
+  _gcOuvir('contrato_pleitos',     'PLEITOS', false);
+  _gcOuvir('contrato_ocorrencias', 'OCOR',    false);
+  _gcOuvir('contrato_aditivos',    'ADIT',    false);
+}
+
+/* ══ TELAS ══════════════════════════════════════════════════════════
+   Duas abas novas por contrato. Não subiram para a barra principal de
+   propósito: são coisas DE UM contrato, e a barra de cima é da
+   carteira. Misturar os dois níveis foi o que já deixou esta tela
+   confusa uma vez. */
+
+function _gcEsc(s){ return pEsc(String(s==null?'':s)); }
+function _gcMoeda(v){ return fmtMoedaP(Number(v)||0) || 'R$ 0,00'; }
+function _gcPct(v){ return (Number(v)||0).toFixed(1).replace('.', ',') + '%'; }
+
+/* ── Aba Recomposição ───────────────────────────────────────────────
+   O aniversário primeiro, porque é o que tem data e vence. */
+
+/* ── Selos das abas novas ───────────────────────────────────────────
+   O selo só existe para uma coisa: fazer alguém clicar no que está
+   vencendo. Por isso conta o acionável, não o total — um "12" que
+   inclui o que já foi resolvido ensina a ignorar o número. */
+
+/* ── Indicadores de gestão contratual (§18.3) ───────────────────────
+   Nove números com meta. É o relatório mensal que a NH entrega ao
+   cliente — e o que mostra, sem discussão, se a carteira está sendo
+   cuidada ou só arquivada. */
+function gcBlocoIndicadores(arrs){
+  var ind = gcIndicadores(arrs || []);
+  /* Indicador sem dado não vira zero: zero é uma afirmação, e afirmar
+     "0% de êxito" quando não houve pleito nenhum é mentira com cara
+     de número. Some da tela. */
+  var vis = ind.filter(function(i){ return i.val !== null && i.val !== undefined && !isNaN(i.val); });
+  if(!vis.length) return '';
+  return '<div class="pd-cards" style="grid-template-columns:1fr"><div class="pd-card">' +
+    '<div class="pd-card-cab"><span class="pd-card-t">📊 Indicadores de gestão</span>' +
+    '<span class="pd-card-sub">metas da apostila · §18.3</span></div>' +
+    '<div class="gc-inds">' + vis.map(function(i){
+      var txt = i.un === 'R$' ? _gcMoeda(i.val)
+              : i.un === '%'  ? _gcPct(i.val)
+              : String(Math.round(i.val)) + (i.un ? ' ' + i.un : '');
+      return '<div class="gc-ind' + (i.bom === false ? ' ruim' : (i.bom === true ? ' bom' : '')) + '">' +
+        '<span class="gc-ind-r">' + _gcEsc(i.rot) + '</span>' +
+        '<b class="gc-ind-v">' + txt + '</b>' +
+        '<i class="gc-ind-m">meta: ' + _gcEsc(i.meta) + '</i>' +
+        (i.extra ? '<i class="gc-ind-m">' + _gcMoeda(i.extra) + '</i>' : '') +
+        '</div>';
+    }).join('') + '</div></div></div>';
+}
+
+/* ── Fim de exercício (§14) ─────────────────────────────────────────
+   Em 31/12 cada nota cai num de três destinos. O do meio é confortável
+   (o direito já está reconhecido, falta caixa); o último é o perigoso,
+   porque resto a pagar NÃO processado pode ser cancelado — e aí o
+   caminho vira despesa de exercícios anteriores, muito mais lento. */
+function gcBlocoFimExercicio(arrs){
+  var proc = 0, nproc = 0, vproc = 0, vnproc = 0, paga = 0, vpaga = 0;
+  var ano = _gcHoje().getFullYear();
+  (arrs||[]).forEach(function(arr){
+    (FAT[String(arr[IDX.ID])] || []).forEach(function(f){
+      if(!fatValido(f)) return;
+      var t = String(f.tipo||'');
+      if(t !== 'NF' && t !== 'MEDICAO' && t !== 'RECIBO') return;
+      var emi = _gcData(f.dataEmissao);
+      /* Só o exercício corrente: nota de ano anterior já teve o seu
+         31/12 e não entra nesta conta. */
+      if(!emi || emi.getFullYear() !== ano) return;
+      var v = parseMoedaPortal(f.valor) || 0;
+      var d = gcDestinoFimDeAno(f);
+      if(d === 'PAGA'){ paga++; vpaga += v; }
+      else if(d === 'RP_PROC'){ proc++; vproc += v; }
+      else { nproc++; vnproc += v; }
+    });
+  });
+  if(!paga && !proc && !nproc) return '';
+  var mes = _gcHoje().getMonth();
+  var recado = (mes >= 8 && mes <= 10)
+      ? 'Setembro a novembro: protocole TODAS as notas já executadas e cobre os atestes pendentes — nota atestada vira resto a pagar processado, que é o destino seguro.'
+    : (mes === 11)
+      ? 'Dezembro: a nota de novembro vai nos primeiros dias. Nenhuma nota sem execução, nem para "não perder o empenho" — pagamento antecipado é proibido (art. 145).'
+      : 'Janeiro a março: confirme a inscrição em restos a pagar, exija o novo empenho ANTES de executar e cobre os RP processados.';
+  return '<div class="pd-cards" style="grid-template-columns:1fr"><div class="pd-card">' +
+    '<div class="pd-card-cab"><span class="pd-card-t">📅 Fim de exercício ' + ano + '</span>' +
+    '<span class="pd-card-sub">o que acontece com cada nota em 31/12</span></div>' +
+    '<div class="gc-destinos">' +
+      _gcDestino('PAGA', paga, vpaga) +
+      _gcDestino('RP_PROC', proc, vproc) +
+      _gcDestino('RP_NPROC', nproc, vnproc) +
+    '</div>' +
+    '<div class="gc-alerta info">' + recado + '</div>' +
+    (nproc ? '<div class="gc-nota">⚠️ Resto a pagar cancelado <b>não apaga a dívida</b>: a execução comprovada ' +
+      'continua devida e pode ser paga como despesa de exercícios anteriores (art. 37 da Lei 4.320), dentro do ' +
+      'prazo de prescrição. O problema é que o caminho fica muito mais lento.</div>' : '') +
+    '</div></div>';
+}
+
+function _gcDestino(k, qtd, valor){
+  var d = GC_DESTINOS[k];
+  return '<div class="gc-destino" style="--gc:' + d.cor + '">' +
+    '<b>' + qtd + '</b><span>' + d.rot + '</span>' +
+    '<i>' + _gcMoeda(valor) + '</i><i class="risco">risco: ' + d.risco + '</i></div>';
+}
+
+/* ── Tabela mestra de prazos (Anexo C) ──────────────────────────────
+   Consulta rápida, com a conta já feita: quem digita a data de
+   recebimento vê o prazo final em dias ÚTEIS onde a lei diz úteis. */
+function gcAbrirPrazos(){
+  var m = document.getElementById('gc-modal');
+  if(!m){ _gcModal('', [], function(){}); m = document.getElementById('gc-modal'); }
+  _gcForm = null;
+  document.getElementById('gc-modal-t').textContent = 'Prazos e valores da Lei 14.133';
+  document.getElementById('gc-modal-corpo').innerHTML =
+    '<label class="gc-lb">Contar a partir de</label>' +
+    '<input class="gc-in" type="date" id="gc-prazo-de" onchange="gcRecalcPrazos()">' +
+    '<div id="gc-prazos-lista"></div>' +
+    '<div class="gc-bloco-t" style="margin:16px 0 6px">Valores de 2026</div>' +
+    '<table class="gc-tab"><tbody>' +
+      GC_VALORES_2026.map(function(v){
+        return '<tr><td>' + _gcEsc(v.tema) + '</td><td class="num">' +
+          (v.valor ? _gcMoeda(v.valor) : _gcEsc(v.texto||'')) + '</td>' +
+          '<td style="color:var(--t3);font-size:11px">' + _gcEsc(v.base) + '</td></tr>';
+      }).join('') + '</tbody></table>';
+  document.getElementById('gc-modal-ok').textContent = 'Fechar';
+  document.getElementById('gc-modal-ok').onclick = gcFecharModal;
+  gcRecalcPrazos();
+  m.style.display = 'flex';
+}
+
+function gcRecalcPrazos(){
+  var el = document.getElementById('gc-prazos-lista');
+  if(!el) return;
+  var v = (document.getElementById('gc-prazo-de')||{}).value || '';
+  var de = '';
+  if(v){ var p = v.split('-'); if(p.length === 3) de = p[2] + '/' + p[1] + '/' + p[0]; }
+  el.innerHTML = '<table class="gc-tab"><thead><tr><th>Tema</th><th class="num">Prazo</th>' +
+    (de ? '<th class="num">Vence em</th>' : '') + '<th>Base</th></tr></thead><tbody>' +
+    GC_PRAZOS.map(function(x){
+      var fim = de ? gcPrazoFinal(de, x) : null;
+      return '<tr><td>' + _gcEsc(x.tema) + '</td>' +
+        '<td class="num">' + x.prazo + (x.uteis ? ' dias úteis' : ' dias') + '</td>' +
+        (de ? '<td class="num"><b>' + (fim ? _gcFmt(fim) : '—') + '</b></td>' : '') +
+        '<td style="color:var(--t3);font-size:11px">' + _gcEsc(x.base) + '</td></tr>';
+    }).join('') + '</tbody></table>' +
+    '<div class="gc-nota">Dias úteis contam só de segunda a sexta: feriado depende do ente, e chutar ' +
+    'feriado municipal daria uma data errada com cara de certa. Confira o calendário do órgão.</div>';
+}
+function gcSeloRecomp(id, arr){
+  var n = 0;
+  var fi = FICHA[id] || {};
+  var an = gcAniversario(fi.dataBase);
+  if(an){
+    var pedido = an.ultimo && (PLEITOS[id]||[]).some(function(p){
+      var dp = _gcData(p.dataProtocolo);
+      return dp && dp >= an.ultimo && (p.tipo === 'REAJUSTE' || p.tipo === 'REPACTUACAO');
+    });
+    /* Aniversário vencido sem pedido, ou chegando em 60 dias. */
+    if(an.vencidos > 0 && !pedido) n++;
+    else if(an.diasParaProximo !== null && an.diasParaProximo <= 60) n++;
+  }
+  /* Garantia vencida ou vencendo. */
+  var gv = _gcData(fi.garantiaValidade);
+  if(gv){ var d = _gcDias(_gcHoje(), gv); if(d !== null && d <= 60) n++; }
+  /* Pleito parado além do prazo do art. 123. */
+  (PLEITOS[id]||[]).forEach(function(p){
+    if(p.status) return;
+    var dp = _gcData(p.dataProtocolo);
+    if(dp && _gcSomaMeses(dp, 1) < _gcHoje()) n++;
+  });
+  /* Limite de aditivos estourado. */
+  var base = parseMoedaPortal(fi.valorInicial) || parseMoedaPortal(arr[IDX.VALOR]) || 0;
+  var lim = gcLimiteAditivos(id, base, String(fi.reforma||'') === 'SIM');
+  if(lim.estourouAcrescimo || lim.estourouSupressao) n++;
+  return n;
+}
+
+function gcSeloCobranca(id){
+  var hoje = _gcHoje();
+  return (FAT[id] || []).filter(function(f){
+    if(!fatValido(f) || f.dataPagto) return false;
+    var t = String(f.tipo||'');
+    if(t !== 'NF' && t !== 'MEDICAO' && t !== 'RECIBO') return false;
+    var v = _gcData(f.dataVenc);
+    return v && v < hoje;
+  }).length;
+}
+function execAbaRecomposicao(id, arr){
+  var fi = FICHA[id] || {};
+  var an = gcAniversario(fi.dataBase);
+  var valor = parseMoedaPortal(arr[IDX.VALOR]) || 0;
+  var base = parseMoedaPortal(fi.valorInicial) || valor;
+  var lim = gcLimiteAditivos(id, base, String(fi.reforma||'') === 'SIM');
+  var pleitos = PLEITOS[id] || [];
+  var ocor = OCOR[id] || [];
+  var h = '';
+
+  /* 1. Aniversário do reajuste */
+  if(!fi.dataBase){
+    h += '<div class="gc-vazio-acao">' +
+      '<b>Este contrato não tem data-base cadastrada.</b><br>' +
+      'Sem ela o sistema não sabe quando o reajuste vence — e reajuste que ninguém pede é dinheiro que ' +
+      'a empresa deixa de receber todo mês, em silêncio.<br>' +
+      '<span class="gc-nota">A data-base é a do <b>orçamento estimado do órgão</b>, não a da proposta ' +
+      '(art. 25, §7º). Ela está no processo da licitação.</span><br>' +
+      '<button class="gc-bt" onclick="gcEditarFicha(\''+id+'\')">Cadastrar data-base</button></div>';
+  } else {
+    var dias = an.diasParaProximo;
+    var urgente = dias !== null && dias <= 60;
+    var cor = urgente ? '#f59e0b' : '#22c55e';
+    /* Pleito protocolado DEPOIS do último aniversário = está em dia.
+       Sem essa checagem o sistema cobraria de novo algo já pedido. */
+    var pedido = an.ultimo && pleitos.some(function(p){
+      var dp = _gcData(p.dataProtocolo);
+      return dp && dp >= an.ultimo && (p.tipo === 'REAJUSTE' || p.tipo === 'REPACTUACAO');
+    });
+    h += '<div class="gc-bloco" style="--gc:'+cor+'">' +
+      '<div class="gc-bloco-cab"><span class="gc-bloco-t">Reajuste</span>' +
+        '<span class="gc-bloco-n">data-base ' + _gcEsc(fi.dataBase) +
+        (fi.indice ? ' · índice ' + _gcEsc(fi.indice) : ' · <b style="color:#f59e0b">índice não definido</b>') + '</span></div>' +
+      '<div class="gc-linhas">' +
+        '<div class="gc-item"><span>Aniversários já completados</span><b>' + an.vencidos + '</b></div>' +
+        (an.ultimo ? '<div class="gc-item"><span>Último aniversário</span><b>' + _gcFmt(an.ultimo) + '</b></div>' : '') +
+        '<div class="gc-item"><span>Próximo aniversário</span><b>' + _gcFmt(an.proximo) +
+          (dias !== null ? ' <i style="color:'+cor+'">(em ' + dias + ' dias)</i>' : '') + '</b></div>' +
+      '</div>';
+
+    if(an.vencidos > 0 && !pedido){
+      h += '<div class="gc-alerta">⚠️ O aniversário de <b>' + _gcFmt(an.ultimo) + '</b> passou e não há ' +
+        'pedido protocolado depois dele. Cada mês sem pedir é diferença que deixa de ser faturada — e, ' +
+        'pior, o direito <b>preclui</b> se a prorrogação for assinada sem ressalva (art. 131, § único).</div>';
+    } else if(urgente && dias >= 0){
+      h += '<div class="gc-alerta info">📌 Faltam <b>' + dias + ' dias</b> para o aniversário. ' +
+        'A apostila manda preparar o pedido com 60 dias e protocolar no próprio dia — ' +
+        'mesmo quando o contrato diz que o reajuste é automático, porque isso afasta discussão de preclusão.</div>';
+    }
+    h += '<button class="gc-bt" onclick="gcAbrirCalculadora(\''+id+'\')">🧮 Calcular o reajuste</button>' +
+      '<button class="gc-bt ghost" onclick="gcNovoPleito(\''+id+'\',\'REAJUSTE\')">+ Registrar pedido</button>' +
+      '</div>';
+  }
+
+  /* 2. Garantia */
+  if(fi.garantiaValidade || fi.garantiaValor){
+    var gv = _gcData(fi.garantiaValidade);
+    var dg = gv ? _gcDias(_gcHoje(), gv) : null;
+    var corG = dg === null ? '#667085' : (dg < 0 ? '#ef4444' : (dg <= 60 ? '#f59e0b' : '#22c55e'));
+    h += '<div class="gc-bloco" style="--gc:'+corG+'">' +
+      '<div class="gc-bloco-cab"><span class="gc-bloco-t">Garantia contratual</span>' +
+      '<span class="gc-bloco-n">' + _gcEsc(fi.garantiaModalidade || 'modalidade não informada') + '</span></div>' +
+      '<div class="gc-linhas">' +
+        (fi.garantiaValor ? '<div class="gc-item"><span>Valor</span><b>' + _gcEsc(fi.garantiaValor) + '</b></div>' : '') +
+        (gv ? '<div class="gc-item"><span>Validade</span><b>' + _gcFmt(gv) +
+          (dg !== null ? ' <i style="color:'+corG+'">(' + (dg < 0 ? 'vencida há ' + (-dg) : 'faltam ' + dg) + ' dias)</i>' : '') +
+          '</b></div>' : '') +
+      '</div>' +
+      (dg !== null && dg < 0
+        ? '<div class="gc-alerta">⚠️ Garantia vencida é descumprimento de cláusula contratual (art. 92, XVI) e ' +
+          'pode travar o pagamento. Renove e protocole o comprovante.</div>'
+        : (dg !== null && dg <= 60
+          ? '<div class="gc-alerta info">A apostila manda tratar a renovação com 60 dias de antecedência. ' +
+            'Todo aditivo de valor ou prazo obriga a reforçar a garantia.</div>' : '')) +
+      '</div>';
+  }
+
+  /* 3. Aditivos e o limite do art. 125 */
+  var aditivos = ADIT[id] || [];
+  h += '<div class="gc-bloco" style="--gc:' + (lim.estourouAcrescimo || lim.estourouSupressao ? '#ef4444' : '#3b82f6') + '">' +
+    '<div class="gc-bloco-cab"><span class="gc-bloco-t">Aditivos e apostilas</span>' +
+    '<span class="gc-bloco-n">limite sobre ' + _gcMoeda(lim.base) +
+    (String(fi.reforma||'') === 'SIM' ? ' · reforma (50%)' : ' · 25%') + '</span></div>';
+  if(!lim.base){
+    h += '<div class="gc-nota">Sem valor inicial cadastrado não dá para calcular o limite. ' +
+      'Preencha "Valor inicial do contrato" na ficha.</div>';
+  } else {
+    h += '<div class="gc-barras">' +
+      _gcBarraLimite('Acréscimos', lim.acrescimos, lim.base * lim.tetoAcrescimo, lim.pctAcrescimo * 100, lim.tetoAcrescimo * 100) +
+      _gcBarraLimite('Supressões', lim.supressoes, lim.base * 0.25, lim.pctSupressao * 100, 25) +
+      '</div>' +
+      '<div class="gc-nota">⚠️ Acréscimos e supressões <b>não se compensam</b>: 10% a mais e 10% a menos ' +
+      'não voltam a zero, cada lado corre contra o seu próprio teto (art. 125).</div>';
+    if(lim.estourouAcrescimo || lim.estourouSupressao){
+      h += '<div class="gc-alerta">⚠️ O limite legal foi ultrapassado. Acima do teto a alteração só se ' +
+        'sustenta por acordo entre as partes e com justificativa no processo — confira antes de executar.</div>';
+    }
+  }
+  h += (aditivos.length
+    ? '<table class="gc-tab"><thead><tr><th>Data</th><th>Tipo</th><th>Espécie</th><th>Objeto</th><th class="num">Valor</th></tr></thead><tbody>' +
+      aditivos.map(function(a){
+        return '<tr' + (String(a.situacao||'')==='CANCELADO' ? ' class="gc-cancelado"' : '') + '>' +
+          '<td>' + _gcEsc(a.data||'') + '</td>' +
+          '<td>' + _gcEsc(a.tipo === 'APOSTILA' ? 'Apostila' : 'Aditivo') + '</td>' +
+          '<td>' + _gcEsc(GC_ESPECIES[a.especie] || a.especie || '') + '</td>' +
+          '<td>' + _gcEsc(a.descricao||'') + '</td>' +
+          '<td class="num">' + (a.valor ? _gcEsc(a.valor) : '—') + '</td></tr>';
+      }).join('') + '</tbody></table>'
+    : '<div class="gc-nota">Nenhum aditivo ou apostila registrado.</div>') +
+    '<button class="gc-bt ghost" onclick="gcNovoAditivo(\''+id+'\')">+ Registrar aditivo ou apostila</button>' +
+    '</div>';
+
+  /* 4. Pleitos protocolados */
+  h += '<div class="gc-bloco" style="--gc:#a855f7">' +
+    '<div class="gc-bloco-cab"><span class="gc-bloco-t">Pedidos protocolados</span>' +
+    '<span class="gc-bloco-n">' + pleitos.length + ' registro' + (pleitos.length===1?'':'s') + '</span></div>' +
+    (pleitos.length
+      ? '<table class="gc-tab"><thead><tr><th>Protocolo</th><th>Tipo</th><th>Situação</th><th class="num">Valor</th><th>Prazo do órgão</th></tr></thead><tbody>' +
+        pleitos.map(function(p){
+          /* Art. 123: o órgão tem 1 mês para decidir, prorrogável por
+             igual período. Passou disso, cabe reiteração. */
+          var dp = _gcData(p.dataProtocolo);
+          var lim30 = dp ? _gcSomaMeses(dp, 1) : null;
+          var venceu = lim30 && lim30 < _gcHoje() && !p.status;
+          return '<tr><td>' + _gcEsc(p.dataProtocolo||'') + '</td>' +
+            '<td>' + _gcEsc(GC_TIPOS_PLEITO[p.tipo] || p.tipo || '') + '</td>' +
+            '<td>' + _gcEsc(GC_STATUS_PLEITO[p.status] || 'Aguardando decisão') + '</td>' +
+            '<td class="num">' + (p.valor ? _gcEsc(p.valor) : '—') + '</td>' +
+            '<td>' + (lim30 ? _gcFmt(lim30) + (venceu ? ' <b style="color:#ef4444">venceu</b>' : '') : '—') + '</td></tr>';
+        }).join('') + '</tbody></table>'
+      : '<div class="gc-nota">Nenhum pedido registrado. Reajuste, repactuação, reequilíbrio e cobrança de ' +
+        'encargos entram aqui — é este registro que prova, na prorrogação, que o direito foi pedido a tempo.</div>') +
+    '<button class="gc-bt ghost" onclick="gcNovoPleito(\''+id+'\',\'\')">+ Registrar pedido</button>' +
+    '</div>';
+
+  /* 5. Ocorrências contra o órgão */
+  h += '<div class="gc-bloco" style="--gc:#f59e0b">' +
+    '<div class="gc-bloco-cab"><span class="gc-bloco-t">Ocorrências</span>' +
+    '<span class="gc-bloco-n">o que o órgão fez e atrapalhou a execução</span></div>' +
+    (ocor.length
+      ? '<table class="gc-tab"><thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Protocolado</th></tr></thead><tbody>' +
+        ocor.map(function(o){
+          return '<tr><td>' + _gcEsc(o.dataOcorrencia||'') + '</td>' +
+            '<td>' + _gcEsc(GC_TIPOS_OCOR[o.tipo] || o.tipo || '') + '</td>' +
+            '<td>' + _gcEsc(o.descricao||'') + '</td>' +
+            '<td>' + (o.protocolo ? _gcEsc(o.protocolo) : '<b style="color:#f59e0b">não protocolada</b>') + '</td></tr>';
+        }).join('') + '</tbody></table>'
+      : '<div class="gc-nota">O fiscal registra as ocorrências contra a empresa; quase ninguém registra as ' +
+        'do outro lado. Atraso na liberação do local, ordem verbal fora do escopo, material que era do órgão ' +
+        'e não veio — é daqui que saem o reequilíbrio, a defesa de multa e a cobrança, anos depois.</div>') +
+    '<button class="gc-bt ghost" onclick="gcNovaOcorrencia(\''+id+'\')">+ Registrar ocorrência</button>' +
+    '</div>';
+
+  return h;
+}
+
+var GC_ESPECIES = {ACRESCIMO:'Acréscimo', SUPRESSAO:'Supressão', PRAZO:'Prazo', REAJUSTE:'Reajuste',
+                   REPACTUACAO:'Repactuação', REEQUILIBRIO:'Reequilíbrio', EMPENHO:'Empenho', OUTRO:'Outro'};
+var GC_TIPOS_PLEITO = {REAJUSTE:'Reajuste', REPACTUACAO:'Repactuação', REEQUILIBRIO:'Reequilíbrio',
+                       ENCARGOS:'Encargos moratórios', PRORROGACAO:'Prorrogação', OUTRO:'Outro'};
+var GC_STATUS_PLEITO = {DEFERIDO:'Deferido', INDEFERIDO:'Indeferido', PARCIAL:'Deferido em parte'};
+var GC_TIPOS_OCOR = {LOCAL:'Atraso na liberação de local/acesso', ORDEM:'Ordem verbal fora do escopo',
+                     MATERIAL:'Falta de material do órgão', SUSPENSAO:'Suspensão ou paralisação',
+                     ESPEC:'Mudança de especificação', PAGAMENTO:'Atraso de pagamento', OUTRO:'Outro'};
+
+function _gcBarraLimite(rot, usado, teto, pct, tetoPct){
+  var largura = Math.min(100, teto ? (usado/teto)*100 : 0);
+  var cor = largura >= 100 ? '#ef4444' : (largura >= 80 ? '#f59e0b' : '#3b82f6');
+  return '<div class="gc-barra">' +
+    '<span class="gc-barra-r">' + rot + '</span>' +
+    '<span class="gc-barra-t"><i style="width:' + largura.toFixed(1) + '%;background:' + cor + '"></i></span>' +
+    '<span class="gc-barra-v">' + _gcMoeda(usado) + ' <i>de ' + _gcMoeda(teto) + ' (' + _gcPct(pct) + ' de ' + tetoPct + '%)</i></span>' +
+    '</div>';
+}
+
+/* ── Aba Cobrança ───────────────────────────────────────────────────
+   §11.10 e §13.2. O portal já dizia que a nota atrasou; o que faltava
+   era dizer ONDE ela travou e QUAL é o próximo passo — porque cada
+   fase tem um responsável diferente dentro do órgão. */
+function execAbaCobranca(id, arr){
+  var lista = (FAT[id] || []).filter(function(f){
+    if(!fatValido(f)) return false;
+    var t = String(f.tipo||'');
+    return t === 'NF' || t === 'MEDICAO' || t === 'RECIBO';
+  });
+  if(!lista.length){
+    return '<div class="exec-vazio">Nenhuma nota, medição ou recibo lançado neste contrato ainda.<br>' +
+      '<span style="font-size:11.5px;opacity:.8">Assim que houver, esta aba mostra em que fase cada um está, ' +
+      'quanto já se deve de encargos e qual é o próximo degrau da cobrança.</span></div>';
+  }
+
+  var abertas = lista.filter(function(f){ return !f.dataPagto; });
+  var totalAberto = abertas.reduce(function(s,f){ return s + (Number(parseMoedaPortal(f.valor))||0); }, 0);
+  var encargosTotal = 0, comDireito = 0;
+  abertas.forEach(function(f){
+    var e = gcEncargos(parseMoedaPortal(f.valor), f.dataVenc, null, f.taxaMora);
+    if(e) encargosTotal += e.encargos;
+    var d = gcDireitoDeSuspender(f.dataEmissao, f.dataPagto);
+    if(d && d.jaVenceu) comDireito++;
+  });
+
+  var h = '<div class="gc-resumo">' +
+    '<div class="gc-kpi"><span>Em aberto</span><b>' + _gcMoeda(totalAberto) + '</b><i>' + abertas.length + ' documento(s)</i></div>' +
+    '<div class="gc-kpi"><span>Encargos acumulados</span><b style="color:#f59e0b">' + _gcMoeda(encargosTotal) + '</b>' +
+      '<i>não cobrados ainda</i></div>' +
+    (comDireito ? '<div class="gc-kpi"><span>Direito de suspender</span><b style="color:#ef4444">' + comDireito + '</b>' +
+      '<i>nota(s) com +2 meses da emissão</i></div>' : '') +
+    '</div>';
+
+  if(encargosTotal > 0){
+    h += '<div class="gc-alerta info">Os encargos acima são devidos por lei mesmo quando o contrato é omisso ' +
+      '(art. 92, V) — o que a empresa costuma perder aqui não é a conta, é a lembrança de fazê-la. ' +
+      'Nunca dê quitação sem ressalva: ao receber o principal, protocole ofício ressalvando os encargos.</div>';
+  }
+
+  h += '<table class="gc-tab gc-tab-larga"><thead><tr>' +
+    '<th>Documento</th><th>Compet.</th><th class="num">Valor</th><th>Fase</th>' +
+    '<th class="num">Dias</th><th class="num">Encargos</th><th>Próximo passo</th></tr></thead><tbody>';
+
+  lista.forEach(function(f){
+    var fase = gcFaseDaNota(f);
+    var enc = f.dataPagto ? null : gcEncargos(parseMoedaPortal(f.valor), f.dataVenc, null, f.taxaMora);
+    var deg = f.dataPagto ? null : gcDegrau(f.dataVenc);
+    var sus = gcDireitoDeSuspender(f.dataEmissao, f.dataPagto);
+    var passo = '—';
+    if(deg && deg.atual){
+      passo = '<b style="color:' + deg.atual.cor + '">' + deg.atual.rot + '</b>' +
+        (deg.proximo ? '<i class="gc-sub">próximo em ' + deg.diasParaProximo + 'd: ' + deg.proximo.rot + '</i>' : '');
+    } else if(!f.dataPagto){
+      passo = '<span class="gc-sub">no prazo</span>';
+    }
+    h += '<tr>' +
+      '<td>' + _gcEsc((FAT_TIPOS[f.tipo] ? FAT_TIPOS[f.tipo].curto : f.tipo) + ' ' + (f.numero||'')) + '</td>' +
+      '<td>' + _gcEsc(f.competencia||'') + '</td>' +
+      '<td class="num">' + _gcEsc(f.valor||'') + '</td>' +
+      '<td><span class="gc-fase" style="--f:' + fase.cor + '">' + fase.rot + '</span>' +
+        (fase.quem ? '<i class="gc-sub">' + fase.quem + '</i>' : '') + '</td>' +
+      '<td class="num">' + (fase.diasNaFase !== null && !f.dataPagto ? fase.diasNaFase : (fase.diasTotais !== null ? fase.diasTotais : '—')) + '</td>' +
+      '<td class="num">' + (enc && enc.encargos > 0 ? '<b style="color:#f59e0b">' + _gcMoeda(enc.encargos) + '</b><i class="gc-sub">' + enc.dias + ' dias</i>' : '—') + '</td>' +
+      '<td>' + passo + (sus && sus.jaVenceu ? '<i class="gc-sub" style="color:#ef4444">+2 meses da emissão: cabe suspender ou pedir extinção (art. 137, §2º, IV)</i>' : '') + '</td>' +
+      '</tr>';
+  });
+  h += '</tbody></table>';
+
+  h += '<div class="gc-escada"><div class="gc-escada-t">A escada da cobrança</div>' +
+    GC_ESCADA.map(function(e){
+      return '<div class="gc-degrau" style="--gc:' + e.cor + '"><b>D+' + e.d + ' · ' + e.rot + '</b>' +
+        '<span>' + e.oque + '</span></div>';
+    }).join('') +
+    '<div class="gc-nota">Um degrau por vez, sempre com registro. Notificação agressiva no primeiro dia ' +
+    'destrói a relação e não acelera nada; meses de telefonema sem registro deixam a empresa sem prova.</div>' +
+    '</div>';
+  return h;
+}
+
+/* ── Formulários ────────────────────────────────────────────────────
+   Um modal genérico: os quatro cadastros novos têm a mesma forma
+   (campos → grava → redesenha), e três modais quase iguais seria o
+   tipo de repetição que envelhece mal. */
+var _gcForm = null;
+
+function _gcModal(titulo, campos, aoSalvar, ajuda){
+  _gcForm = {campos:campos, aoSalvar:aoSalvar};
+  var m = document.getElementById('gc-modal');
+  if(!m){
+    m = document.createElement('div');
+    m.id = 'gc-modal'; m.className = 'gc-modal';
+    m.innerHTML = '<div class="gc-modal-cx"><div class="gc-modal-cab">' +
+      '<b id="gc-modal-t"></b><button onclick="gcFecharModal()" aria-label="Fechar">&times;</button></div>' +
+      '<div class="gc-modal-corpo" id="gc-modal-corpo"></div>' +
+      '<div class="gc-modal-pe"><span id="gc-modal-erro"></span>' +
+      '<button class="gc-bt ghost" onclick="gcFecharModal()">Cancelar</button>' +
+      '<button class="gc-bt" id="gc-modal-ok" onclick="gcSalvarForm()">Salvar</button></div></div>';
+    document.body.appendChild(m);
+    m.addEventListener('click', function(ev){ if(ev.target === m) gcFecharModal(); });
+  }
+  document.getElementById('gc-modal-t').textContent = titulo;
+  document.getElementById('gc-modal-erro').textContent = '';
+  document.getElementById('gc-modal-corpo').innerHTML =
+    (ajuda ? '<div class="gc-nota">' + ajuda + '</div>' : '') +
+    campos.map(function(c){
+      if(c.tipo === 'select'){
+        return '<label class="gc-lb">' + _gcEsc(c.rot) + '</label><select class="gc-in" id="gcf-' + c.id + '">' +
+          c.ops.map(function(o){
+            var v = (typeof o === 'string') ? o : o.v, r = (typeof o === 'string') ? o : o.r;
+            return '<option value="' + _gcEsc(v) + '"' + (c.val === v ? ' selected' : '') + '>' + _gcEsc(r) + '</option>';
+          }).join('') + '</select>';
+      }
+      if(c.tipo === 'textarea'){
+        return '<label class="gc-lb">' + _gcEsc(c.rot) + '</label><textarea class="gc-in" id="gcf-' + c.id +
+          '" rows="3">' + _gcEsc(c.val||'') + '</textarea>';
+      }
+      return '<label class="gc-lb">' + _gcEsc(c.rot) + '</label><input class="gc-in" id="gcf-' + c.id +
+        '" type="' + (c.tipo || 'text') + '" value="' + _gcEsc(c.val||'') + '"' +
+        (c.dica ? ' placeholder="' + _gcEsc(c.dica) + '"' : '') + '>';
+    }).join('');
+  m.style.display = 'flex';
+}
+
+function gcFecharModal(){
+  var m = document.getElementById('gc-modal');
+  if(m) m.style.display = 'none';
+  _gcForm = null;
+}
+
+async function gcSalvarForm(){
+  if(!_gcForm) return;
+  var bt = document.getElementById('gc-modal-ok');
+  var err = document.getElementById('gc-modal-erro');
+  var dados = {};
+  _gcForm.campos.forEach(function(c){
+    var el = document.getElementById('gcf-' + c.id);
+    var v = el ? String(el.value||'').trim() : '';
+    /* ⚠️ `<input type="date">` devolve AAAA-MM-DD; o sistema inteiro
+       grava DD/MM/AAAA e o `parseDateBR` só entende esse formato.
+       Sem esta conversão a data era gravada em ISO e toda conta feita
+       em cima dela — prazo do art. 123, aniversário, atraso — voltava
+       nula, sem erro nenhum na tela. É a mesma regra do `mcGvDate`. */
+    if(c.tipo === 'date' && v){
+      var p = v.split('-');
+      if(p.length === 3) v = p[2] + '/' + p[1] + '/' + p[0];
+    }
+    dados[c.id] = v;
+  });
+  var falta = _gcForm.campos.filter(function(c){ return c.obrig && !dados[c.id]; });
+  if(falta.length){ err.textContent = 'Preencha: ' + falta.map(function(c){ return c.rot; }).join(', '); return; }
+  bt.disabled = true; bt.textContent = 'Salvando…';
+  try{
+    await _gcForm.aoSalvar(dados);
+    gcFecharModal();
+    portalToast('Registrado.', 'ok');
+  }catch(e){
+    err.textContent = 'Não consegui salvar: ' + (e.message || e);
+  }
+  bt.disabled = false; bt.textContent = 'Salvar';
+}
+
+/** Dados que todo registro carrega, para a regra do Firestore e os
+ *  filtros por empresa funcionarem igual aos das outras coleções. */
+function _gcComuns(id){
+  var e = dadosGanhas.find(function(x){ return String(x.id) === String(id); });
+  var arr = e ? e.arr : [];
+  return {
+    contratoId: String(id),
+    empresa: nhEmpresaDoArr ? nhEmpresaDoArr(arr) : String(arr[IDX.EMPRESA]||''),
+    contratoNum: String(arr[IDX.CONTRATO]||''),
+    licitacao: String(arr[IDX.LICITACAO]||''),
+    criadoPor: (localStorage.getItem('nh_portal_autor')||''),
+    criadoEm: new Date().toLocaleString('pt-BR')
+  };
+}
+
+function gcNovoPleito(id, tipo){
+  _gcModal('Registrar pedido ao órgão', [
+    {id:'tipo', rot:'Tipo do pedido', tipo:'select', val:tipo,
+     ops:[{v:'REAJUSTE',r:'Reajuste'},{v:'REPACTUACAO',r:'Repactuação'},{v:'REEQUILIBRIO',r:'Reequilíbrio'},
+          {v:'ENCARGOS',r:'Encargos moratórios'},{v:'PRORROGACAO',r:'Prorrogação'},{v:'OUTRO',r:'Outro'}]},
+    {id:'dataProtocolo', rot:'Data do protocolo', tipo:'date', obrig:true},
+    {id:'numero', rot:'Nº do ofício / protocolo', dica:'Of. 012/2026-CT045'},
+    {id:'valor', rot:'Valor pedido', dica:'R$ 0,00'},
+    {id:'status', rot:'Situação', tipo:'select',
+     ops:[{v:'',r:'Aguardando decisão'},{v:'DEFERIDO',r:'Deferido'},{v:'PARCIAL',r:'Deferido em parte'},{v:'INDEFERIDO',r:'Indeferido'}]},
+    {id:'valorObtido', rot:'Valor obtido (se decidido)', dica:'R$ 0,00'},
+    {id:'descricao', rot:'Resumo', tipo:'textarea'}
+  ], async function(d){
+    await db.collection('contrato_pleitos').add(Object.assign(_gcComuns(id), d));
+  }, 'O que prova, na hora da prorrogação, que o direito foi pedido a tempo é o <b>protocolo</b>. ' +
+     'Sem ele, o pleito preclui (art. 131, § único). O órgão tem 1 mês para decidir, prorrogável por igual período (art. 123).');
+}
+
+function gcNovoAditivo(id){
+  _gcModal('Registrar aditivo ou apostila', [
+    {id:'tipo', rot:'Instrumento', tipo:'select',
+     ops:[{v:'ADITIVO',r:'Termo aditivo'},{v:'APOSTILA',r:'Apostilamento'}]},
+    {id:'especie', rot:'O que muda', tipo:'select',
+     ops:[{v:'ACRESCIMO',r:'Acréscimo de valor/quantidade'},{v:'SUPRESSAO',r:'Supressão'},
+          {v:'PRAZO',r:'Prazo'},{v:'REAJUSTE',r:'Reajuste'},{v:'REPACTUACAO',r:'Repactuação'},
+          {v:'REEQUILIBRIO',r:'Reequilíbrio'},{v:'EMPENHO',r:'Empenho'},{v:'OUTRO',r:'Outro'}]},
+    {id:'data', rot:'Data', tipo:'date', obrig:true},
+    {id:'numero', rot:'Número'},
+    {id:'valor', rot:'Valor (só acréscimo ou supressão)', dica:'R$ 0,00'},
+    {id:'descricao', rot:'Objeto', tipo:'textarea'}
+  ], async function(d){
+    await db.collection('contrato_aditivos').add(Object.assign(_gcComuns(id), d));
+  }, 'Reajuste, repactuação, razão social e empenho vão por <b>apostila</b> — não precisam de aditivo (art. 136). ' +
+     'Acréscimo só com aditivo assinado ANTES da execução; ordem justificada exige formalização em 1 mês (art. 132).');
+}
+
+function gcNovaOcorrencia(id){
+  _gcModal('Registrar ocorrência', [
+    {id:'tipo', rot:'Tipo', tipo:'select',
+     ops:[{v:'LOCAL',r:'Atraso na liberação de local/acesso'},{v:'ORDEM',r:'Ordem verbal fora do escopo'},
+          {v:'MATERIAL',r:'Falta de material do órgão'},{v:'SUSPENSAO',r:'Suspensão ou paralisação'},
+          {v:'ESPEC',r:'Mudança de especificação'},{v:'PAGAMENTO',r:'Atraso de pagamento'},{v:'OUTRO',r:'Outro'}]},
+    {id:'dataOcorrencia', rot:'Data', tipo:'date', obrig:true},
+    {id:'descricao', rot:'O que aconteceu', tipo:'textarea', obrig:true},
+    {id:'impacto', rot:'Impacto (dias, custo, o que ficou parado)'},
+    {id:'protocolo', rot:'Protocolo no órgão', dica:'SEI, ofício, e-mail com confirmação'}
+  ], async function(d){
+    await db.collection('contrato_ocorrencias').add(Object.assign(_gcComuns(id), d));
+  }, 'Registre <b>no dia</b> e protocole. Este registro é a matéria-prima de três coisas futuras: o pedido de ' +
+     'reequilíbrio, a defesa contra multa e a cobrança. Se não está escrito, não aconteceu.');
+}
+
+function gcEditarFicha(id){
+  var e = dadosGanhas.find(function(x){ return String(x.id) === String(id); });
+  if(e && typeof abrirModalContrato === 'function') abrirModalContrato(e);
+}
+
+/* ── Calculadora do reajuste ────────────────────────────────────────
+   Os números-índice são digitados por quem consulta a série oficial
+   (IBGE, FGV). O sistema não busca sozinho de propósito: série errada
+   dá conta errada com cara de certa, e o pedido vai assinado. */
+function gcAbrirCalculadora(id){
+  var fi = FICHA[id] || {};
+  var e = dadosGanhas.find(function(x){ return String(x.id) === String(id); });
+  var arr = e ? e.arr : [];
+  var an = gcAniversario(fi.dataBase);
+  var valor = parseMoedaPortal(arr[IDX.VALOR]) || 0;
+  var mesesRetro = 0;
+  if(an && an.ultimo){
+    var hoje = _gcHoje();
+    mesesRetro = Math.max(0, (hoje.getFullYear() - an.ultimo.getFullYear())*12 + (hoje.getMonth() - an.ultimo.getMonth()));
+  }
+  _gcModal('Calcular o reajuste', [
+    {id:'valor', rot:'Valor a reajustar', val: valor ? _gcMoeda(valor) : '', obrig:true},
+    {id:'i0', rot:'Número-índice da data-base' + (fi.dataBase ? ' (' + fi.dataBase + ')' : ''), obrig:true, dica:'7150,20'},
+    {id:'i1', rot:'Número-índice do aniversário' + (an && an.ultimo ? ' (' + _gcFmt(an.ultimo) + ')' : ''), obrig:true, dica:'7479,11'},
+    {id:'meses', rot:'Meses a retroagir', val:String(mesesRetro),
+     dica:'quantos meses já se passaram desde o aniversário'}
+  ], async function(d){
+    var r = gcCalcularReajuste(parseMoedaPortal(d.valor), parseMoedaPortal(d.i0), parseMoedaPortal(d.i1), Number(d.meses)||0);
+    if(!r) throw new Error('confira o valor e o índice da data-base');
+    gcMostrarResultado(id, fi, r, d);
+  }, 'Fórmula do §10.2: <b>R = V × (I − I₀) / I₀</b>. Os números-índice vêm da série oficial indicada no ' +
+     'contrato (IBGE para IPCA/INPC, FGV para IGP-M). Índice negativo reduz o preço — o reajuste é para mais ou para menos.');
+}
+
+function gcMostrarResultado(id, fi, r, d){
+  var txt =
+    'MEMÓRIA DE CÁLCULO — REAJUSTE\n' +
+    'Data-base: ' + (fi.dataBase||'—') + '   Índice: ' + (fi.indice||'—') + '\n' +
+    'Fórmula: R = V × (I − I₀) / I₀\n' +
+    'V  (valor a reajustar) = ' + _gcMoeda(parseMoedaPortal(d.valor)) + '\n' +
+    'I₀ (índice da data-base) = ' + d.i0 + '\n' +
+    'I  (índice do aniversário) = ' + d.i1 + '\n' +
+    'Variação = (' + d.i1 + ' − ' + d.i0 + ') / ' + d.i0 + ' = ' + _gcPct(r.pct) + '\n' +
+    'R = ' + _gcMoeda(r.reajuste) + '\n' +
+    'Novo valor = ' + _gcMoeda(r.novoValor) + '\n' +
+    (r.meses ? 'Retroativo (' + r.meses + ' meses) = ' + _gcMoeda(r.retroativo) + '\n' : '');
+  var m = document.getElementById('gc-modal');
+  _gcForm = null;
+  document.getElementById('gc-modal-t').textContent = 'Resultado do reajuste';
+  document.getElementById('gc-modal-corpo').innerHTML =
+    '<div class="gc-resultado">' +
+      '<div class="gc-res-linha"><span>Variação</span><b style="color:' + (r.negativo?'#ef4444':'#22c55e') + '">' + _gcPct(r.pct) + '</b></div>' +
+      '<div class="gc-res-linha"><span>Reajuste</span><b>' + _gcMoeda(r.reajuste) + '</b></div>' +
+      '<div class="gc-res-linha destaque"><span>Novo valor</span><b>' + _gcMoeda(r.novoValor) + '</b></div>' +
+      (r.meses ? '<div class="gc-res-linha"><span>Retroativo (' + r.meses + ' meses)</span><b style="color:#f59e0b">' + _gcMoeda(r.retroativo) + '</b></div>' : '') +
+    '</div>' +
+    (r.meses ? '<div class="gc-alerta info">O retroativo é devido e vai em <b>nota complementar</b>: se o órgão ' +
+      'só apostilar depois, as diferenças do período continuam sendo da empresa.</div>' : '') +
+    '<textarea class="gc-in" rows="10" id="gc-memoria" readonly>' + _gcEsc(txt) + '</textarea>';
+  document.getElementById('gc-modal-ok').textContent = 'Copiar memória';
+  document.getElementById('gc-modal-ok').onclick = function(){
+    var ta = document.getElementById('gc-memoria');
+    ta.select();
+    try{ document.execCommand('copy'); portalToast('Memória de cálculo copiada.','ok'); }
+    catch(e){ portalToast('Selecione e copie o texto.','info'); }
+  };
+  m.style.display = 'flex';
+}
 </script>
 
 <script>
@@ -7584,6 +9036,7 @@ auth.onAuthStateChanged(async function(user){
   else iniciar();
 })();
 </script>
+<button class="gc-bt-prazos" onclick="gcAbrirPrazos()" title="Prazos e valores da Lei 14.133 — Anexo C da apostila">⏱️ Prazos da lei</button>
 </body>
 </html>
 
