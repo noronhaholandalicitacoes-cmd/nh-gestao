@@ -17309,6 +17309,10 @@ window.addEventListener('message', function(e){
 function chatIniciar(){
   if(_chatIniciado || typeof db === 'undefined') return;
   _chatIniciado = true;
+  /* O botão aparece já, sem esperar o Firestore: se a regra ainda não
+     estiver publicada, a leitura falha — e a porta de entrada não pode
+     sumir junto. */
+  _chatAtualizarFlutuante();
   db.collection('chat_monitor').onSnapshot(function(s){
     var novo = {};
     s.forEach(function(d){ var x = d.data()||{}; x.ids = _chatIdsEmpresa(x.empresa); novo[d.id] = x; });
@@ -17691,7 +17695,11 @@ function chatPintarPainel(){
 function _chatAtualizarFlutuante(){
   var chaves = Object.keys(CHAT_MON);
   var b = document.getElementById('nh-chat-flut');
-  if(!chaves.length){ if(b) b.style.display = 'none'; return; }
+  /* ⚠️ SEMPRE VISÍVEL — 01/10/2026.
+     A primeira versão escondia o botão até existir um pregão monitorado,
+     e com isso não havia por onde chegar ao painel: a pergunta "onde
+     está o monitoramento?" veio no mesmo dia. Porta de entrada não pode
+     depender de já ter entrado. */
   if(!b){
     b = document.createElement('button'); b.id = 'nh-chat-flut'; b.className = 'chat-flut';
     b.onclick = function(){ chatAbrirPainel(); };
@@ -17700,8 +17708,9 @@ function _chatAtualizarFlutuante(){
   var ativos = chaves.filter(function(k){ return CHAT_MON[k].ativo; }).length;
   var nl = 0, mc = 0;
   chaves.forEach(function(k){ var r = chatResumo(k); nl += r.naoLidas; if(r.naoLidas) mc += r.mencoes; });
-  b.innerHTML = '💬 Chats <b>' + ativos + '</b>' + (nl ? '<em class="' + (mc ? 'vermelho' : '') + '">' + nl + '</em>' : '');
-  b.title = ativos + ' pregão(ões) monitorado(s)' + (nl ? ' · ' + nl + ' mensagem(ns) não lida(s)' : '');
+  b.innerHTML = '💬 Chats' + (ativos ? ' <b>' + ativos + '</b>' : '') + (nl ? '<em class="' + (mc ? 'vermelho' : '') + '">' + nl + '</em>' : '');
+  b.title = ativos ? (ativos + ' pregão(ões) monitorado(s)' + (nl ? ' · ' + nl + ' mensagem(ns) não lida(s)' : ''))
+                   : 'Monitor de chat dos pregões — ative pelo botão 💬 no card de Editais Capturados ou Em Andamento';
   b.style.display = '';
 }
 
@@ -17723,6 +17732,246 @@ function toggleChat(btn){
   var id = String(btn.getAttribute('data-chat-key')||'').replace(/^chat_/, '');
   var row = (ALL.andamento||[]).find(function(r){ return String(r[0]) === id; }) || [];
   nhChatMonitorar('a-' + id, String(row[2]||'').trim(), String(row[3]||'').trim(), String(row[9]||'').trim());
+}
+
+/* ═══ CARDS MAIS LIMPOS — 01/10/2026 ════════════════════════════════════
+   Queixa: "o sistema está muito poluído, com letras e campos pequenos".
+   Tinha razão: o card fechado mostrava sete botões de 11px na barra de
+   baixo e quatro ícones apagados no topo, e o rótulo dos campos era de
+   9,5px. Tudo estava ali — e por isso nada se lia primeiro.
+
+   O que muda, sem tirar nenhuma função:
+   1. Topo do card: fica só o lápis (editar) e, em Em Andamento, o chat.
+      O resto vai para o menu "⋯". Estado LIGADO não some: proposta
+      cadastrada e robô viram um selo pequeno ao lado do título.
+   2. Barra de ferramentas (Editais Capturados): recolhida por padrão.
+      No lugar dela, uma linha de situação que diz o que já foi feito
+      (✓ verde) e o que falta (○ cinza). "Ferramentas" abre os botões.
+   3. Letras e campos maiores — na camada de estilo "legibilidade".
+
+   Feito por cima do render que já existe (mesmo padrão do embrulho de
+   renderCard da viabilidade): os botões originais são MOVIDOS, não
+   recriados, então os onclick de sempre continuam valendo.
+   ════════════════════════════════════════════════════════════════════ */
+
+var _kcFerrAbertas = {};   /* 'aba|id' -> true: ferramentas abertas nesta sessão */
+
+function nhLimparCards(tab){
+  var area = document.getElementById('tbl-' + tab);
+  if(!area) return;
+  area.querySelectorAll('.kcard').forEach(function(card){
+    if(card.getAttribute('data-limpo')) return;
+    card.setAttribute('data-limpo', '1');
+    try{ _kcMenuAcoes(card, tab); }catch(e){ console.warn('[cards] menu', e); }
+    try{ if(tab === 'editais') _kcFerramentas(card, tab); }catch(e){ console.warn('[cards] ferramentas', e); }
+  });
+}
+
+/* ── 1. Topo: lápis à vista, o resto no "⋯" ─────────────────────────── */
+function _kcMenuAcoes(card, tab){
+  var acoes = card.querySelector('.kcard-top > div:last-child');
+  if(!acoes) return;
+  var botoes = Array.prototype.slice.call(acoes.querySelectorAll(':scope > button'));
+  var fica = [], vai = [], excluir = null;
+  botoes.forEach(function(b){
+    if(b.classList.contains('btn-edit-card')) fica.push(b);
+    /* O chat fica à vista em Em Andamento: é onde a sessão acontece, e
+       foi exatamente ele que a equipe não achou da primeira vez. */
+    else if(b.hasAttribute('data-chat-key')) fica.push(b);
+    else if(b.classList.contains('btn-del')) excluir = b;
+    else vai.push(b);
+  });
+  if(!vai.length && !excluir) return;
+
+  /* O separador vertical só fazia sentido entre os ícones soltos. */
+  acoes.querySelectorAll(':scope > span').forEach(function(s){ s.style.display = 'none'; });
+
+  var wrap = document.createElement('div');
+  wrap.className = 'kc-menu-wrap';
+  var gatilho = document.createElement('button');
+  gatilho.type = 'button';
+  gatilho.className = 'kc-mais';
+  gatilho.title = 'Mais ações';
+  gatilho.setAttribute('aria-label', 'Mais ações');
+  gatilho.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>';
+  var menu = document.createElement('div');
+  menu.className = 'kc-menu';
+  gatilho.addEventListener('click', function(ev){
+    ev.stopPropagation();
+    var abrir = !menu.classList.contains('on');
+    _kcFecharMenus();
+    if(abrir) menu.classList.add('on');
+  });
+
+  vai.forEach(function(b){ menu.appendChild(_kcItemMenu(b)); });
+  if(excluir){
+    var sep = document.createElement('div'); sep.className = 'kc-menu-sep'; menu.appendChild(sep);
+    var it = _kcItemMenu(excluir); it.classList.add('perigo'); menu.appendChild(it);
+  }
+  /* Na fase de captura, para fechar mesmo quando o onclick original
+     chama stopPropagation — que todos chamam. Depois do clique, o selo
+     de estado é refeito: marcar "proposta cadastrada" pelo menu tem de
+     aparecer no card na hora. */
+  menu.addEventListener('click', function(){
+    menu.classList.remove('on');
+    setTimeout(function(){ _kcSelos(card); }, 0);
+  }, true);
+
+  wrap.appendChild(gatilho);
+  wrap.appendChild(menu);
+  acoes.appendChild(wrap);
+  fica.forEach(function(b){
+    b.classList.add('kc-visivel');
+    /* O chat ganha nome escrito: só o ícone, apagado, foi o que fez a
+       equipe perguntar onde estava o monitoramento. */
+    if(b.hasAttribute('data-chat-key') && !b.querySelector('.kc-chat-t')){
+      var ligado = /monitoramento/i.test(b.getAttribute('title') || '');
+      var s = document.createElement('span');
+      s.className = 'kc-chat-t';
+      s.textContent = ligado ? 'Chat ●' : 'Chat';
+      b.appendChild(s);
+      b.classList.add('kc-chat');
+      b.classList.toggle('ligado', ligado);
+    }
+  });
+  _kcSelos(card);
+}
+
+function _kcItemMenu(b){
+  b.classList.add('kc-item');
+  b.style.opacity = '';
+  var t = String(b.getAttribute('title') || '').trim();
+  /* O ícone sozinho era a única pista do que o botão fazia. No menu,
+     ganha o nome por escrito — que já estava no title. */
+  if(!b.querySelector('.kc-item-t')){
+    var s = document.createElement('span');
+    s.className = 'kc-item-t';
+    s.textContent = t.replace(/\s*\(clique para desmarcar\)\s*/i, '') || 'Ação';
+    b.appendChild(s);
+  }
+  return b;
+}
+
+function _kcFecharMenus(){
+  document.querySelectorAll('.kc-menu.on').forEach(function(m){ m.classList.remove('on'); });
+}
+document.addEventListener('click', _kcFecharMenus);
+document.addEventListener('keydown', function(e){ if(e.key === 'Escape') _kcFecharMenus(); });
+
+/** Estado ligado vira selo ao lado do título — o botão foi para o menu,
+ *  a informação não. */
+function _kcSelos(card){
+  var top = card.querySelector('.kcard-top');
+  if(!top) return;
+  var alvo = top.querySelector('.kc-selos');
+  if(!alvo){
+    alvo = document.createElement('span');
+    alvo.className = 'kc-selos';
+    var id = top.querySelector('.kcard-id');
+    var linha = id ? id.parentElement : null;
+    if(linha) linha.appendChild(alvo); else return;
+  }
+  var selos = [];
+  var prop = card.querySelector('[data-proposta]');
+  if(prop && prop.getAttribute('data-proposta') === '1') selos.push(['ok', '✓ Proposta cadastrada']);
+  var robo = card.querySelector('[data-robo-key]');
+  if(robo && /Lance via Rob/i.test(robo.getAttribute('title') || '')) selos.push(['robo', '🤖 Robô']);
+  alvo.innerHTML = selos.map(function(s){ return '<span class="kc-selo ' + s[0] + '">' + s[1] + '</span>'; }).join('');
+}
+
+/* ── 2. Ferramentas recolhidas, situação à vista ────────────────────── */
+function _kcFerramentas(card, tab){
+  var bar = card.querySelector('.nh-viab-badges.nh-bar');
+  if(!bar || bar.getAttribute('data-limpo')) return;
+  bar.setAttribute('data-limpo', '1');
+
+  var idEl = card.querySelector('.kcard-id');
+  var chaveCard = tab + '|' + (idEl ? idEl.textContent.replace(/\D/g, '') : '');
+
+  var tags = Array.prototype.slice.call(bar.querySelectorAll(':scope > .nh-tag'));
+  var botoes = Array.prototype.slice.call(bar.querySelectorAll(':scope > button'));
+
+  var resumo = document.createElement('div');
+  resumo.className = 'kc-resumo';
+  var ferr = document.createElement('div');
+  ferr.className = 'kc-ferr';
+
+  var partes = [];
+  tags.forEach(function(t){
+    var titulo = t.getAttribute('title') || '';
+    /* "Portal sem endereço" é aviso de cadastro, não situação do edital:
+       vai para dentro das ferramentas, junto do botão do portal. */
+    if(/Configura/.test(titulo)){ ferr.appendChild(t); return; }
+    /* O separador da etiqueta antiga é um <span> vazio: com textContent
+       puro, "Risco baixo" e "8,2" grudavam. Cada pedaço vira texto
+       separado por " · ". */
+    var txt = Array.prototype.map.call(t.childNodes, function(n){ return n.textContent.trim(); })
+      .filter(Boolean).join(' · ');
+    var dot = t.querySelector('.nh-dot');
+    var cor = dot ? dot.style.background : '';
+    if(t.classList.contains('nh-tag-prio')) partes.push('<span class="kc-st prio' + (t.classList.contains('alta') ? ' alta' : '') + '">' + _kcEsc(txt.replace(/\s*cliente$/, '')) + '</span>');
+    else if(/^CAPAG/.test(txt)){
+      var nota = t.querySelector('b');
+      partes.push('<span class="kc-st">CAPAG <b style="color:' + (nota ? nota.style.color : '') + '">' + _kcEsc(nota ? nota.textContent : '—') + '</b></span>');
+    }
+    else partes.push('<span class="kc-st">' + (cor ? '<i class="kc-dot" style="background:' + cor + '"></i>' : '') + _kcEsc(txt) + '</span>');
+  });
+
+  botoes.forEach(function(b){
+    ferr.appendChild(b);
+    /* Botão do portal e de copiar senha são atalhos, não etapas. */
+    if(b.classList.contains('nh-btn-key') || b.classList.contains('nh-btn-ic')) return;
+    var ok = b.classList.contains('nh-btn-ok');
+    /* Ordem importa: tira primeiro o ícone, depois o verbo — senão o
+       "💬" na frente impede de achar o "Monitorar". */
+    var curto = b.textContent.replace(/\s+/g, ' ').trim()
+      .replace(/^[✓✔]\s*/, '').replace(/^📋\s*/, '').replace(/^💬\s*/, '')
+      .replace(/^Monitorar\s+/i, '').trim();
+    partes.push('<span class="kc-st' + (ok ? ' feito' : '') + '" title="' + _kcEsc(b.getAttribute('title') || '') + '">' +
+      (ok ? '✓ ' : '○ ') + _kcEsc(curto.charAt(0).toUpperCase() + curto.slice(1)) + '</span>');
+  });
+
+  resumo.innerHTML = '<span class="kc-sts">' + partes.join('') + '</span>';
+  var bt = document.createElement('button');
+  bt.type = 'button';
+  bt.className = 'kc-ferr-bt';
+  resumo.appendChild(bt);
+
+  function pintar(){
+    var aberto = !!_kcFerrAbertas[chaveCard];
+    ferr.style.display = aberto ? '' : 'none';
+    bt.innerHTML = aberto ? 'Recolher <span>▴</span>' : 'Ferramentas <span>▾</span>';
+    bt.setAttribute('aria-expanded', aberto ? 'true' : 'false');
+    card.classList.toggle('kc-ferr-aberta', aberto);
+  }
+  bt.addEventListener('click', function(ev){
+    ev.stopPropagation();
+    _kcFerrAbertas[chaveCard] = !_kcFerrAbertas[chaveCard];
+    pintar();
+  });
+
+  bar.innerHTML = '';
+  bar.appendChild(resumo);
+  bar.appendChild(ferr);
+  pintar();
+}
+
+function _kcEsc(s){
+  return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){
+    return {'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;'}[c];
+  });
+}
+
+/* Liga no render existente. `renderTbl` é chamado pelo nome no código
+   todo, então trocar a função global pega todas as chamadas. */
+if(typeof renderTbl === 'function' && !renderTbl.__kcLimpo){
+  var _kcRenderTblOriginal = renderTbl;
+  renderTbl = function(e){
+    var r = _kcRenderTblOriginal.apply(this, arguments);
+    try{ nhLimparCards(e); }catch(err){ console.warn('[cards]', err); }
+    return r;
+  };
+  renderTbl.__kcLimpo = true;
 }
 
 function _nhColunasDoDoc(d){
@@ -21503,6 +21752,169 @@ if('function'===typeof nhCertFechar){
   };
 });
 </script>
+<style id="nh-legibilidade">
+/* ═══ LEGIBILIDADE — 01/10/2026 ══════════════════════════════════════════
+   Pedido: "letras e campos pequenos, os outros sistemas têm campos maiores
+   e letras grandes". Medido antes de mexer: rótulo de campo em 9,5–10px,
+   valor em 13px, botões de 11px com 26px de altura, ícones de 14px.
+   Aqui o piso sobe: rótulo 12px, valor 15px, campo com 44px, botão com
+   34px. Fica no FIM da página de propósito, para valer por cima das
+   regras antigas sem precisar de !important em tudo.
+   As cores vêm das variáveis do tema, então vale no claro e no escuro. */
+
+body{font-size:15px}
+
+/* ── Menu lateral e topo ── */
+#sb .sb-item{font-size:14.5px;min-height:40px}
+.topbar-title{font-size:19px}
+.topbar-info{font-size:13px}
+
+/* ── Barra de ferramentas da página (Novo, busca, Imprimir, Excel…) ── */
+.toolbar{gap:10px}
+/* As setas ↑↓ são botões redondos de ícone (width:34px no elemento):
+   padding lateral neles espreme o ícone até sumir. Ficam de fora da
+   regra dos botões de texto e só crescem no tamanho. */
+.toolbar .btn,.toolbar>button:not([style*="border-radius:50%"]){font-size:13.5px;min-height:40px;padding:0 15px;border-radius:10px}
+.toolbar>button[style*="border-radius:50%"]{width:40px!important;height:40px!important;padding:0!important}
+.toolbar button[onclick^="sortBy"] svg{width:17px;height:17px}
+#busca-global{font-size:14px!important;padding:9px 12px 9px 34px!important}
+
+/* Buscador: os pares de campos (datas, valores) passavam 25px da coluna.
+   `1fr` não encolhe abaixo do tamanho natural de um campo de data;
+   `minmax(0,1fr)` encolhe. Já era assim antes desta revisão. */
+.bsc-duo{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.bsc-duo input,.bsc-duo select{min-width:0;width:100%;box-sizing:border-box}
+.toolbar .search input,.search input{font-size:15px;height:44px}
+.btn{font-size:13px}
+
+/* ── Formulários dos modais ── */
+.modal .fg label{font-size:12.5px;letter-spacing:.03em;color:var(--t2);font-weight:700}
+.modal .fg input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]),
+.modal .fg select,.modal .fg textarea{font-size:15px;min-height:46px;padding:11px 14px;border-radius:10px}
+.modal .fg textarea{min-height:96px;line-height:1.55}
+.modal .fsec{font-size:13px}
+.modal .mbd{gap:16px}
+
+/* ── Card: título e identificação ── */
+.kcard .kcard-licit,.kcard .kcard-licit input{font-size:17.5px;font-weight:800;line-height:1.35}
+.kcard .kcard-id{font-size:13px}
+.kcard .emp-badge{font-size:12.5px}
+.kcard .kcard-obj,.kcard .kcard-obj textarea{font-size:15px;line-height:1.6}
+
+/* Linha de informações (local, município, valor…): o rótulo laranja em
+   caixa alta competia com o valor. Agora o rótulo é discreto e o VALOR
+   é o que se lê. */
+.kcard .kmeta-lbl{font-size:12px;color:var(--t3);letter-spacing:.03em}
+.kcard .kmeta-val{font-size:15px}
+.kcard .kmeta-val.hl{font-size:18px}
+
+/* ── Card: campos ── */
+.kcard .kfield-lbl{font-size:12px;letter-spacing:.04em;color:var(--t2);margin-bottom:6px}
+/* Antes uns campos tinham caixa e outros só uma linha embaixo — o olho
+   não sabia onde se digita. Todos ganham a mesma caixa. */
+.kcard .kcard-body input:not([type=checkbox]):not([type=radio]):not([type=color]),
+.kcard .kcard-body select{font-size:15px;min-height:44px;padding:10px 13px;
+  background:var(--s2);border:1px solid var(--b1);border-radius:10px;color:var(--t1)}
+.kcard .kcard-body textarea{font-size:15px;padding:11px 13px;border-radius:10px;line-height:1.55}
+/* Alguns campos do card (o "Link da pasta", por exemplo) nascem com estilo
+   escrito no próprio elemento — fonte 11px, sem borda, só uma linha
+   embaixo. Estilo no elemento vence a folha, então aqui precisa de
+   !important; sem isso esses campos ficariam do jeito antigo, lado a lado
+   com os novos. */
+.kcard .kcard-body input:not([type=checkbox]):not([type=radio]):not([type=color]){
+  font-size:15px!important;min-height:44px!important;padding:10px 13px!important;
+  background:var(--s2)!important;border:1px solid var(--b1)!important;border-radius:10px!important;
+  color:var(--t1)!important;box-sizing:border-box}
+.kcard .kcard-obj textarea{font-size:15px!important;color:var(--t2)!important}
+/* Hora ao lado da data (Data da disputa, Reabertura): nasce com 60px no
+   elemento, e com a letra maior o "09:30" virava "09:3". */
+.kcard .kcard-body input[placeholder="HH:MM"]{width:96px!important;min-width:96px;
+  padding:10px 6px!important;text-align:center}
+
+/* Diário do card (justificativa, resumo do andamento) */
+.kcard .nhj-count{font-size:12px}
+.kcard .nhj-empty{font-size:13.5px}
+.kcard .nhj-add{font-size:13.5px;min-height:44px}
+.kcard .nhj-new textarea{font-size:15px!important;line-height:1.55}
+.kcard .nhj-list{font-size:14.5px}
+.kcard .kcard-body input:focus,.kcard .kcard-body select:focus,.kcard .kcard-body textarea:focus{
+  border-color:var(--nh);outline:none}
+body:not(.compact) .kcard .kcard-body{gap:18px 26px}
+
+/* ── Card: topo (lápis, chat e o menu "⋯") ── */
+.kcard-top .btn-edit-card,.kcard-top .kc-visivel,.kc-mais{min-width:38px;min-height:38px;border-radius:10px}
+.kcard-top .btn-edit-card svg,.kcard-top .kc-visivel svg{width:18px;height:18px}
+.kcard-top .kc-visivel{opacity:1}
+.kcard-top .kc-visivel[data-chat="0"],.kcard-top .kc-visivel[style*="opacity:.3"],
+.kcard-top .kc-visivel[style*="opacity: 0.3"]{opacity:.55!important}
+
+.kcard-top .kc-chat{display:inline-flex!important;align-items:center;gap:6px;padding:0 13px!important;
+  border:1px solid var(--b1)!important;border-radius:10px;background:transparent;opacity:1!important;
+  color:var(--t2);font:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
+.kcard-top .kc-chat:hover{border-color:var(--nh)!important;color:var(--t1)}
+/* Vence a regra de transparência do ícone desligado: este botão
+   precisa ser achado, ligado ou não. */
+.kcard-top button.kc-chat.kc-visivel{opacity:1!important}
+.kcard-top .kc-chat svg path{fill:currentColor}
+.kcard-top .kc-chat.ligado{color:#3b82f6;border-color:rgba(59,130,246,.45)!important;background:rgba(59,130,246,.1)}
+.kcard-top .kc-chat svg{width:17px;height:17px}
+.kc-menu-wrap{position:relative;display:inline-flex}
+.kc-mais{display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
+  background:transparent;border:1px solid var(--b1);color:var(--t2)}
+.kc-mais:hover{color:var(--t1);border-color:var(--b2);background:var(--s2)}
+.kc-mais svg{width:18px;height:18px}
+.kc-menu{display:none;position:absolute;right:0;top:calc(100% + 6px);z-index:60;min-width:250px;
+  padding:6px;border-radius:12px;background:var(--s1);border:1px solid var(--b2);
+  box-shadow:0 14px 34px -10px rgba(0,0,0,.55)}
+.kc-menu.on{display:block}
+.kc-menu .kc-item{display:flex!important;align-items:center;gap:11px;width:100%;
+  padding:10px 12px!important;border-radius:8px;border:none!important;background:transparent!important;
+  color:var(--t1)!important;font:inherit;font-size:14px;text-align:left;cursor:pointer;opacity:1!important}
+.kc-menu .kc-item:hover{background:var(--s2)!important}
+.kc-menu .kc-item svg{width:17px!important;height:17px!important;flex-shrink:0}
+.kc-menu .kc-item.perigo,.kc-menu .kc-item.perigo .kc-item-t{color:#f87171!important}
+.kc-menu-sep{height:1px;margin:5px 4px;background:var(--b1)}
+.kc-item-t{white-space:nowrap}
+
+.kc-selos{display:inline-flex;gap:6px;margin-left:8px;vertical-align:middle}
+.kc-selo{font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.kc-selo.ok{color:#22c55e;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3)}
+.kc-selo.robo{color:#a78bfa;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.3)}
+
+/* ── Card: situação + ferramentas recolhidas ── */
+.kc-resumo{display:flex;align-items:center;gap:10px;width:100%;flex-wrap:wrap}
+.kc-sts{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;flex:1;min-width:0}
+.kc-st{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;color:var(--t3);white-space:nowrap}
+.kc-st b{font-weight:800}
+.kc-st.feito{color:#22c55e}
+.kc-st.prio{color:#f59e0b;font-weight:700}
+.kc-st.prio.alta{color:#f87171}
+.kc-dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.kc-ferr-bt{margin-left:auto;display:inline-flex;align-items:center;gap:7px;cursor:pointer;
+  font:inherit;font-size:13.5px;font-weight:700;padding:8px 15px;border-radius:10px;
+  background:var(--s2);border:1px solid var(--b1);color:var(--t1)}
+.kc-ferr-bt:hover{border-color:var(--nh);color:var(--nh)}
+.kc-ferr-bt span{font-size:11px;opacity:.8}
+.kc-ferr{display:flex;flex-wrap:wrap;gap:8px;width:100%;margin-top:12px;padding-top:12px;border-top:1px dashed var(--b1)}
+.kc-ferr .nh-btn,.kc-ferr .nh-tag{height:38px;font-size:13.5px;padding:0 15px;border-radius:10px}
+.kc-ferr .nh-btn svg{width:16px;height:16px}
+.nh-viab-badges.nh-bar[data-limpo]{display:block;margin-top:14px}
+
+@media(max-width:640px){
+  .kc-ferr-bt{width:100%;justify-content:center;margin-left:0}
+  .kc-sts{gap:6px 12px}
+  .kc-menu{right:-6px;min-width:230px}
+}
+
+/* Modo compacto: quem escolheu ver mais coisas na tela continua vendo. */
+body.compact .kcard .kcard-licit,body.compact .kcard .kcard-licit input{font-size:15.5px}
+body.compact .kcard .kcard-body input:not([type=checkbox]),body.compact .kcard .kcard-body select{min-height:38px;font-size:14px}
+
+/* Impressão não herda nada disto: o papel tem regras próprias. */
+@media print{
+  .kc-mais,.kc-menu,.kc-ferr-bt,.kc-ferr{display:none!important}
+}
+</style>
 </body>
 </html>
 
