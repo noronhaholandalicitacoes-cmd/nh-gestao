@@ -17230,6 +17230,7 @@ var _chatExt = null;        /* {versao} quando a extensão responde         */
 var _chatReq = 0, _chatEspera = {};
 var _chatPainelChave = null, _chatFiltro = 'todos', _chatBusca = '';
 var _chatIniciado = false;
+var _chatAlertados = {};    /* 'chave|id' -> 1: já apitou neste navegador   */
 
 /* Palavras que pedem atenção mesmo sem citar a empresa. Ficam no nível
    "importante" (destaque e contagem), não no "menção" (que apita):
@@ -17325,11 +17326,29 @@ function chatIniciar(){
      ler a coleção inteira para sempre é o que já estourou a cota uma
      vez. */
   var desde = Date.now() - 30*86400000;
+  var primeiraFoto = true;
   db.collection('chat_mensagens').where('ts', '>=', desde).orderBy('ts', 'desc').limit(3000)
     .onSnapshot(function(s){
       var novo = {};
       s.forEach(function(d){ var x = d.data()||{}; (novo[x.chave] = novo[x.chave] || []).push(x); });
       CHAT_MSG = novo;
+      /* O alarme sai DAQUI, e não de quem gravou: assim toca para toda a
+         equipe com o gestão aberto, venha a mensagem da leitura direta,
+         da extensão ou do computador de outra pessoa. A primeira foto é
+         o que já existia — não é notícia. */
+      if(!primeiraFoto){
+        var agora = Date.now(), novas = [];
+        s.docChanges().forEach(function(c){
+          if(c.type !== 'added') return;
+          var x = c.doc.data()||{}, k = x.chave + '|' + x.id;
+          if(x.historico || x.nivel === 'normal' || _chatAlertados[k]) return;
+          if(agora - (x.capturadoEm||0) > 15*60000) return;
+          _chatAlertados[k] = 1;
+          novas.push(x);
+        });
+        if(novas.length) _chatAlertar(novas);
+      }
+      primeiraFoto = false;
       _chatAtualizarFlutuante();
       if(_chatPainelChave !== null) chatPintarPainel();
       /* Os cards NÃO são redesenhados aqui de propósito: o card tem
@@ -17339,18 +17358,20 @@ function chatIniciar(){
     }, function(err){ console.warn('[chat_mensagens]', err.message); });
 
   _chatPedir('ping').then(function(r){ if(r && r.ok) _chatExt = {versao: r.versao}; _chatAtualizarFlutuante(); });
+  chatDiretoLigar();
 }
 
-/** Mensagens chegando da extensão. Grava só o que ainda não está aqui
- *  (o id é o mesmo hash dos dois lados, então gravar duas vezes cai no
- *  mesmo documento) e confirma para a extensão tirar da fila. */
-async function chatReceber(itens){
+/** Mensagens chegando da extensão ou da leitura direta. Grava só o que
+ *  ainda não está aqui (o id é um hash do conteúdo, então gravar duas
+ *  vezes — dois computadores lendo o mesmo pregão — cai no mesmo
+ *  documento) e confirma para a extensão tirar da fila.
+ *  O alarme não sai daqui: sai do onSnapshot, para tocar para todos. */
+async function chatReceber(itens, opc){
   if(!itens.length || typeof db === 'undefined') return;
   var conhecidos = {};
   Object.keys(CHAT_MSG).forEach(function(k){ CHAT_MSG[k].forEach(function(m){ conhecidos[k+'|'+m.id] = 1; }); });
   var novos = itens.filter(function(i){ return !conhecidos[i.chave+'|'+i.id]; });
   var quem = (auth.currentUser && auth.currentUser.email) || '';
-  var alertas = [];
   try{
     for(var i = 0; i < novos.length; i += 400){
       var lote = db.batch();
@@ -17364,11 +17385,10 @@ async function chatReceber(itens){
           gravadoPor: quem, url: n.url || ''
         };
         lote.set(db.collection('chat_mensagens').doc(n.chave + '__' + n.id), doc, {merge:true});
-        if(!n.historico && nivel !== 'normal') alertas.push(doc);
       });
       await lote.commit();
     }
-    _chatPedir('confirmar', {ids: itens.map(function(i){ return i.chave + '|' + i.id; })});
+    if(!(opc && opc.direto)) _chatPedir('confirmar', {ids: itens.map(function(i){ return i.chave + '|' + i.id; })});
   }catch(err){
     /* Sem confirmar, a extensão manda de novo na próxima volta —
        nada se perde por causa de uma falha de rede. */
@@ -17377,7 +17397,6 @@ async function chatReceber(itens){
       toast('As regras do Firestore ainda não liberam o chat. Publique o firestore.rules.', 'err');
     return;
   }
-  if(alertas.length) _chatAlertar(alertas);
 }
 
 /* ── Alerta ────────────────────────────────────────────────────────── */
@@ -17509,24 +17528,42 @@ function nhChatMonitorar(chave, emp, titulo, portal){
   m.style.display = 'flex';
   document.getElementById('chat-ativar-ok').onclick = function(){ _chatAtivar(chave, emp, titulo, portal); };
 
-  _chatPedir('ping').then(function(r){
-    var el = document.getElementById('chat-ext-st'); if(!el) return;
-    if(r && r.ok){
-      _chatExt = {versao: r.versao};
-      el.innerHTML = '<div class="chat-ok">✓ Extensão NH Monitor de Chat ativa neste navegador (v' + esc0(r.versao) + ')</div>';
-    } else {
-      el.innerHTML = '<div class="chat-aviso"><b>A extensão "NH Monitor de Chat" não está instalada neste navegador.</b><br>' +
-        'É ela que lê o chat na aba do portal — sem ela o monitoramento fica registrado aqui, mas ninguém lê o chat.<br>' +
-        '<a href="#" onclick="chatComoInstalar();return false">Como instalar (2 minutos)</a></div>';
-    }
-  });
+  var campo = document.getElementById('chat-url');
+  campo.addEventListener('input', _chatPintarModo);
+  _chatPintarModo();
   _chatAcharLink(chave).then(function(u){
     var i = document.getElementById('chat-url'), n = document.getElementById('chat-url-nota');
     if(!i) return;
     i.placeholder = 'https://…';
-    if(u){ i.value = u; if(n) n.textContent = '✓ Link encontrado. Confira se é o processo certo.'; }
-    else if(n) n.textContent = 'Não achei o link automaticamente. Cole aqui o endereço do processo no portal ' +
+    if(u && !i.value){ i.value = u; if(n) n.textContent = '✓ Link encontrado. Confira se é o processo certo.'; }
+    else if(!u && n) n.textContent = 'Não achei o link automaticamente. Cole aqui o endereço do processo no portal ' +
       '(ou deixe em branco, abra o chat você mesmo e use o ícone da extensão para vincular a aba).';
+    _chatPintarModo();
+  });
+}
+
+/** Diz, antes de ativar, COMO aquele chat vai ser lido: direto pelo
+ *  sistema (nada a instalar) ou pela extensão (portais com captcha). */
+function _chatPintarModo(){
+  var el = document.getElementById('chat-ext-st'), i = document.getElementById('chat-url');
+  if(!el || !i) return;
+  var dir = chatLeitorDireto(i.value);
+  if(dir){
+    el.innerHTML = '<div class="chat-ok">✓ <b>' + esc0(dir.leitor.nome) + '</b>: o chat é lido direto pelo sistema. ' +
+      'Não precisa instalar nada nem deixar o portal aberto — basta o gestão estar aberto em algum computador da equipe.</div>';
+    return;
+  }
+  _chatPedir('ping').then(function(r){
+    var el2 = document.getElementById('chat-ext-st'); if(!el2) return;
+    if(chatLeitorDireto((document.getElementById('chat-url')||{}).value)) return;
+    if(r && r.ok){
+      _chatExt = {versao: r.versao};
+      el2.innerHTML = '<div class="chat-ok">✓ Extensão NH Monitor de Chat ativa neste navegador (v' + esc0(r.versao) + ')</div>';
+    } else {
+      el2.innerHTML = '<div class="chat-aviso"><b>Este portal protege o chat com captcha</b> (Compras.gov.br, BLL, BNC e outros). ' +
+        'Para ele, quem lê é a extensão "NH Monitor de Chat", na aba em que você entrou no portal.<br>' +
+        '<a href="#" onclick="chatComoInstalar();return false">' + (NH_EXT_LOJA ? 'Instalar com 1 clique' : 'Como instalar') + '</a></div>';
+    }
   });
 }
 
@@ -17552,6 +17589,15 @@ async function _chatAtivar(chave, emp, titulo, portal){
   }
   CHAT_MON[chave] = Object.assign({}, doc, {ids: ids});
   try{ localStorage.setItem('chat_' + chave.replace(/^[ea]-/, ''), '1'); }catch(_e){}
+  try{ if(window.Notification && Notification.permission === 'default') Notification.requestPermission(); }catch(_e){}
+  /* Portal de leitura direta: não abre aba nem chama a extensão. */
+  if(chatLeitorDireto(url)){
+    document.getElementById('nh-chat-ativar').style.display = 'none';
+    toast('💬 Monitorando direto pelo sistema. Não precisa abrir o portal.', 'ok');
+    chatAbrirPainel(chave);
+    _chatDiretoLer(chave);
+    return;
+  }
   /* A extensão recebe a empresa e o CNPJ junto com as palavras: com o
      gestão fechado, é ela quem decide se vale a notificação do Windows. */
   var r = await _chatPedir('monitorar', {chave: chave, url: url, titulo: (emp ? emp + ' · ' : '') + (titulo||''),
@@ -17583,7 +17629,13 @@ function chatReabrirAba(chave){
     .then(function(r){ if(!r) toast('A extensão não respondeu. Ela está instalada neste navegador?', 'err'); });
 }
 
+/* Endereço da extensão na Chrome Web Store. Quando ela for publicada,
+   basta colar o link aqui: o "Como instalar" vira "Instalar com 1
+   clique" em todo o sistema, sem pasta e sem modo do desenvolvedor. */
+var NH_EXT_LOJA = '';
+
 function chatComoInstalar(){
+  if(NH_EXT_LOJA){ window.open(NH_EXT_LOJA, '_blank', 'noopener'); return; }
   alert('Instalar a extensão NH Monitor de Chat (uma vez por computador):\n\n' +
     '1. Copie a pasta "extensao-chat" para o computador (ela vem junto com os arquivos do sistema).\n' +
     '2. No Chrome, abra chrome://extensions\n' +
@@ -17650,13 +17702,19 @@ function chatPintarPainel(){
     var mon = CHAT_MON[sel], msgs = (CHAT_MSG[sel]||[]).slice();
     if(_chatFiltro === 'importantes') msgs = msgs.filter(function(x){ return x.nivel !== 'normal'; });
     var lido = _chatLido(sel);
+    var direto = chatLeitorDireto(mon.url), dst = _chatDiretoSt[sel] || {};
+    var estado = !mon.ativo ? '<i>parado</i>'
+      : !direto ? '<i class="verde">● monitorando</i>'
+      : dst.erro ? '<i style="color:#f59e0b">● lido direto · falhou às ' + esc0(dst.erroHora||'') + ', tentando de novo</i>'
+      : '<i class="verde">● lido direto pelo sistema' + (dst.hora ? ' · última leitura ' + esc0(dst.hora) : '') + '</i>';
     dir = '<div class="chat-dir-cab">' +
         '<div><b>' + esc0(mon.titulo || sel) + '</b>' +
           '<span>' + esc0(mon.empresa||'') + (mon.portal ? ' · ' + esc0(mon.portal) : '') +
-          ' · ' + (mon.ativo ? '<i class="verde">● monitorando</i>' : '<i>parado</i>') + '</span></div>' +
+          ' · ' + estado + '</span></div>' +
         '<div class="chat-dir-bts">' +
           (mon.url ? '<a class="btn btn-ghost" href="' + esc0(mon.url) + '" target="_blank" rel="noopener">Portal ↗</a>' : '') +
-          (mon.ativo ? '<button class="btn btn-ghost" onclick="chatReabrirAba(\'' + sel + '\')" title="Abre ou traz para frente a aba monitorada">Aba do chat</button>' +
+          (mon.ativo ? (direto ? '<button class="btn btn-ghost" onclick="_chatDiretoLer(\'' + sel + '\',true)" title="Lê o chat agora">Atualizar</button>'
+                               : '<button class="btn btn-ghost" onclick="chatReabrirAba(\'' + sel + '\')" title="Abre ou traz para frente a aba monitorada">Aba do chat</button>') +
                        '<button class="btn btn-ghost" style="color:#f87171" onclick="chatParar(\'' + sel + '\')">Parar</button>'
                      : '<button class="btn btn-nh" onclick="chatRetomar(\'' + sel + '\')">Retomar</button>') +
         '</div></div>' +
@@ -17666,15 +17724,18 @@ function chatPintarPainel(){
             (x.nivel === 'mencao' ? '<span class="tag-m">citou a empresa</span>' : (x.nivel === 'importante' ? '<span class="tag-i">importante</span>' : '')) +
             '<i>' + esc0(x.data) + ' | ' + esc0(String(x.hora).slice(0,5)) + '</i></div>' +
           '<div class="chat-msg-t">' + esc0(x.texto) + '</div></div>';
-      }).join('') : '<div class="chat-vazio">' + (mon.ativo ?
-          'Nenhuma mensagem capturada ainda.<br>Confira se a aba do chat está aberta e se você entrou no portal.' :
+      }).join('') : '<div class="chat-vazio">' + (mon.ativo ? (direto ?
+          'O chat deste pregão ainda está vazio.<br>Assim que o pregoeiro ou o sistema do portal escrever, aparece aqui.' :
+          'Nenhuma mensagem capturada ainda.<br>Confira se a aba do chat está aberta e se você entrou no portal.') :
           'Sem mensagens.') + '</div>') + '</div>';
     _chatMarcarLido(sel);
   }
 
   m.innerHTML = '<div class="chat-cx chat-painel">' +
     '<div class="chat-cab"><b>💬 Chat dos pregões</b>' +
-      '<span class="chat-ext">' + (_chatExt ? '✓ extensão ativa' : '<a href="#" onclick="chatComoInstalar();return false">extensão não detectada</a>') + '</span>' +
+      '<span class="chat-ext">' + (_chatExt ? '✓ extensão ativa'
+        : chaves.some(function(k){ return CHAT_MON[k].ativo && !chatLeitorDireto(CHAT_MON[k].url); })
+          ? '<a href="#" onclick="chatComoInstalar();return false">extensão não detectada</a>' : '') + '</span>' +
       '<button onclick="chatFecharPainel()">&times;</button></div>' +
     '<div class="chat-grid">' +
       '<div class="chat-esq">' +
@@ -17732,6 +17793,140 @@ function toggleChat(btn){
   var id = String(btn.getAttribute('data-chat-key')||'').replace(/^chat_/, '');
   var row = (ALL.andamento||[]).find(function(r){ return String(r[0]) === id; }) || [];
   nhChatMonitorar('a-' + id, String(row[2]||'').trim(), String(row[3]||'').trim(), String(row[9]||'').trim());
+}
+
+/* ═══ LEITURA DIRETA — SEM EXTENSÃO — 02/10/2026 ═══════════════════════
+   Pedido: "não faz sentido ter que instalar extensão em cada PC,
+   imagina se eu for vender o sistema".
+   Verificado portal por portal (02/10/2026):
+   · Portal de Compras Públicas — o chat é PÚBLICO: a própria página do
+     processo, sem login, busca em compras.api.portaldecompraspublicas
+     .com.br/v1/licitacao/{código}/chat. Responde JSON, sem captcha e
+     com CORS liberado. Então o próprio gestão lê, de qualquer
+     computador, sem instalar nada. É o 2º portal em volume no PNCP.
+   · Compras.gov.br, BLL e BNC — o chat público fica atrás de captcha
+     (hCaptcha/reCAPTCHA) e o Compras.gov.br completo só logado. Captcha
+     não se derruba aqui: para esses, continua a extensão.
+   Para incluir outro portal aberto, é só acrescentar um leitor na
+   lista: `casa` tira o código do link, `ler` devolve as mensagens.
+   ═══════════════════════════════════════════════════════════════════ */
+
+var CHAT_LEITORES = [
+  {
+    nome: 'Portal de Compras Públicas',
+    /* .../processos/MG/Fundacao-...-3328/PE-PE105-2026-2026-514581 → 514581 */
+    casa: function(url){
+      var m = String(url||'').match(/portaldecompraspublicas\.com\.br\/processos\/[^?#]*-(\d{4,9})\/?(?:[?#]|$)/i);
+      return m ? m[1] : '';
+    },
+    ler: async function(cod, pagina){
+      var r = await fetch('https://compras.api.portaldecompraspublicas.com.br/v1/licitacao/' +
+        encodeURIComponent(cod) + '/chat?pagina=' + (pagina||1), {cache: 'no-store'});
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      var j = await r.json();
+      return (j && j.frasesChat || []).map(function(f){
+        var d = new Date(f.dataHoraFrase);
+        var p = function(n){ return String(n).padStart(2, '0'); };
+        return {
+          data: p(d.getDate()) + '/' + p(d.getMonth()+1) + '/' + d.getFullYear(),
+          hora: p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()),
+          autor: String(f.apelido||''),
+          texto: String(f.frase||'').replace(/\s+/g, ' ').trim(),
+          bruto: String(f.dataHoraFrase||'')
+        };
+      }).filter(function(m){ return m.texto; });
+    },
+    porPagina: 50
+  }
+];
+
+var _chatDiretoSt = {};      /* chave -> {hora, erro, erroHora, completo} */
+var _chatDiretoRodando = {}; /* chave -> true enquanto lê                */
+var _chatDiretoTimer = null;
+
+function chatLeitorDireto(url){
+  for(var i = 0; i < CHAT_LEITORES.length; i++){
+    var cod = CHAT_LEITORES[i].casa(url);
+    if(cod) return {leitor: CHAT_LEITORES[i], cod: cod};
+  }
+  return null;
+}
+
+/* Mesmo texto, mesma hora, mesmo autor = mesma mensagem, em qualquer
+   computador. É isso que deixa dois gestões abertos gravarem sem
+   duplicar. */
+function _chatHash(s){
+  var h1 = 5381, h2 = 52711;
+  for(var i = 0; i < s.length; i++){ var c = s.charCodeAt(i); h1 = Math.imul(h1, 33) ^ c; h2 = Math.imul(h2, 31) ^ c; }
+  return (h1 >>> 0).toString(36) + (h2 >>> 0).toString(36);
+}
+
+async function _chatDiretoLer(chave, manual){
+  var mon = CHAT_MON[chave];
+  if(!mon || !mon.ativo || _chatDiretoRodando[chave]) return;
+  var dir = chatLeitorDireto(mon.url);
+  if(!dir) return;
+  _chatDiretoRodando[chave] = true;
+  var st = _chatDiretoSt[chave] = _chatDiretoSt[chave] || {};
+  try{
+    /* Primeira leitura: o chat inteiro (até 20 páginas). Depois, só a
+       página mais recente — e a seguinte, se a primeira veio toda nova
+       (sessão de disputa agitada). */
+    var conhecidos = {};
+    (CHAT_MSG[chave]||[]).forEach(function(m){ conhecidos[m.id] = 1; });
+    var limite = st.completo ? 5 : 20, todas = [];
+    for(var pg = 1; pg <= limite; pg++){
+      var lote = await dir.leitor.ler(dir.cod, pg);
+      todas = todas.concat(lote);
+      if(lote.length < dir.leitor.porPagina) break;
+      if(st.completo){
+        var novasNaPagina = lote.filter(function(m){
+          return !conhecidos['d' + _chatHash(m.bruto + '|' + m.autor + '|' + m.texto)];
+        }).length;
+        if(novasNaPagina < lote.length) break;
+      }
+    }
+    var inicio = mon.iniciadoEm || 0, agora = Date.now();
+    var itens = todas.map(function(m){
+      var ts = _chatTs(m.data, m.hora);
+      return {
+        chave: chave, id: 'd' + _chatHash(m.bruto + '|' + m.autor + '|' + m.texto),
+        data: m.data, hora: m.hora, autor: m.autor, texto: m.texto,
+        /* O que foi escrito antes de ligar o monitoramento entra como
+           histórico: fica guardado, mas não apita. */
+        historico: ts < inicio - 60000,
+        url: mon.url, capturadoEm: agora
+      };
+    });
+    if(itens.length) await chatReceber(itens, {direto: true});
+    st.completo = true;
+    st.erro = '';
+    st.hora = new Date().toTimeString().slice(0, 5);
+    if(manual) toast('Chat atualizado.', 'ok');
+  }catch(e){
+    st.erro = String(e && e.message || e);
+    st.erroHora = new Date().toTimeString().slice(0, 5);
+    console.warn('[chat direto]', chave, st.erro);
+    if(manual) toast('Não consegui ler o chat agora: ' + st.erro, 'err');
+  }finally{
+    delete _chatDiretoRodando[chave];
+    if(_chatPainelChave === chave) chatPintarPainel();
+  }
+}
+
+/** Volta de 20 s pelos pregões ativos de leitura direta. Com a aba do
+ *  gestão em segundo plano o Chrome espaça a volta para ~1 min — ainda
+ *  bem mais rápido que o e-mail diário da ConLicitação. */
+function chatDiretoLigar(){
+  if(_chatDiretoTimer) return;
+  var volta = async function(){
+    var chaves = Object.keys(CHAT_MON).filter(function(k){
+      return CHAT_MON[k].ativo && chatLeitorDireto(CHAT_MON[k].url);
+    });
+    for(var i = 0; i < chaves.length; i++) await _chatDiretoLer(chaves[i]);
+  };
+  _chatDiretoTimer = setInterval(volta, 20000);
+  setTimeout(volta, 3000);
 }
 
 /* ═══ CARDS MAIS LIMPOS — 01/10/2026 ════════════════════════════════════
