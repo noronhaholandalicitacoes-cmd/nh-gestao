@@ -17325,12 +17325,19 @@ function chatIniciar(){
   /* 30 dias bastam: chat de pregão encerrado não é mais notícia, e
      ler a coleção inteira para sempre é o que já estourou a cota uma
      vez. */
+  /* O corte de 30 dias é pela data em que a mensagem CHEGOU aqui, não
+     pela data em que foi escrita no portal. Pela data do portal, o
+     histórico de um pregão de julho monitorado em outubro nunca aparecia
+     (Bodó/SOS, 03/10/2026) — e, como não aparecia, a leitura direta
+     regravava as mesmas 14 mensagens a cada 20 s. */
   var desde = Date.now() - 30*86400000;
   var primeiraFoto = true;
-  db.collection('chat_mensagens').where('ts', '>=', desde).orderBy('ts', 'desc').limit(3000)
+  db.collection('chat_mensagens').where('capturadoEm', '>=', desde).orderBy('capturadoEm', 'desc').limit(3000)
     .onSnapshot(function(s){
       var novo = {};
       s.forEach(function(d){ var x = d.data()||{}; (novo[x.chave] = novo[x.chave] || []).push(x); });
+      /* O painel e os contadores esperam a mais recente primeiro. */
+      Object.keys(novo).forEach(function(k){ novo[k].sort(function(a, b){ return (b.ts||0) - (a.ts||0); }); });
       CHAT_MSG = novo;
       /* O alarme sai DAQUI, e não de quem gravou: assim toca para toda a
          equipe com o gestão aberto, venha a mensagem da leitura direta,
@@ -17371,6 +17378,12 @@ async function chatReceber(itens, opc){
   var conhecidos = {};
   Object.keys(CHAT_MSG).forEach(function(k){ CHAT_MSG[k].forEach(function(m){ conhecidos[k+'|'+m.id] = 1; }); });
   var novos = itens.filter(function(i){ return !conhecidos[i.chave+'|'+i.id]; });
+  /* Leitura direta que estava em andamento quando alguém excluiu a
+     conversa: não ressuscita as mensagens apagadas. */
+  if(opc && opc.direto){
+    novos = novos.filter(function(i){ return CHAT_MON[i.chave]; });
+    if(!novos.length) return;
+  }
   var quem = (auth.currentUser && auth.currentUser.email) || '';
   try{
     for(var i = 0; i < novos.length; i += 400){
@@ -17497,8 +17510,33 @@ async function _chatAcharLink(chave){
 }
 
 /* ── Ativar o monitoramento ────────────────────────────────────────── */
+/* Um pregão, uma conversa. O mesmo pregão existe como card em Editais
+   Capturados (e-ID) e em Em Andamento (a-ID), com ids diferentes; ligar
+   o chat pelos dois criava duas conversas iguais. Os dois cards se
+   reconhecem pelo título, e vale a chave que já estiver monitorada —
+   na dúvida, a de Editais Capturados. */
+function _chatChaveCanonica(chave){
+  var mesmo = function(a, b){ return String(a||'').trim().toLowerCase() === String(b||'').trim().toLowerCase(); };
+  var eKey = '', aKey = '';
+  if(chave.indexOf('e-') === 0){
+    eKey = chave;
+    var l = _nhLinhaEdital(chave) || [];
+    var a = l[3] ? (ALL.andamento||[]).find(function(r){ return mesmo(r[3], l[3]); }) : null;
+    if(a) aKey = 'a-' + a[0];
+  } else if(chave.indexOf('a-') === 0){
+    aKey = chave;
+    var an = (ALL.andamento||[]).find(function(r){ return String(r[0]) === chave.slice(2); }) || [];
+    var e = an[3] ? (ALL.editais||[]).find(function(r){ return mesmo(r[3], an[3]); }) : null;
+    if(e) eKey = 'e-' + e[0];
+  } else return chave;
+  if(eKey && CHAT_MON[eKey]) return eKey;
+  if(aKey && CHAT_MON[aKey]) return aKey;
+  return eKey || aKey || chave;
+}
+
 function nhChatMonitorar(chave, emp, titulo, portal){
   chatIniciar();
+  chave = _chatChaveCanonica(chave);
   var mon = CHAT_MON[chave];
   if(mon && mon.ativo){ chatAbrirPainel(chave); return; }
 
@@ -17636,6 +17674,33 @@ async function _chatAtivar(chave, emp, titulo, portal){
   chatAbrirPainel(chave);
 }
 
+/** Apaga a conversa inteira: o monitoramento e as mensagens guardadas. */
+async function chatExcluir(chave){
+  var mon = CHAT_MON[chave] || {};
+  var n = (CHAT_MSG[chave]||[]).length;
+  if(!confirm('Excluir a conversa de "' + (mon.titulo || chave) + '"?\n\n' +
+    'Para de monitorar e apaga ' + (n ? 'as ' + n + ' mensagens guardadas' : 'o registro') + '. Não dá para desfazer.')) return;
+  try{
+    var s = await db.collection('chat_mensagens').where('chave', '==', chave).get();
+    for(var i = 0; i < s.docs.length; i += 400){
+      var lote = db.batch();
+      s.docs.slice(i, i+400).forEach(function(d){ lote.delete(d.ref); });
+      await lote.commit();
+    }
+    await db.collection('chat_monitor').doc(chave).delete();
+  }catch(e){
+    toast('Não consegui excluir: ' + (e.message||e), 'err');
+    return;
+  }
+  _chatPedir('parar', {chave: chave});
+  try{ localStorage.setItem('chat_' + chave.replace(/^[ea]-/, ''), '0'); localStorage.removeItem('nh_chat_lido_' + chave); }catch(_e){}
+  delete CHAT_MON[chave]; delete CHAT_MSG[chave]; delete _chatDiretoSt[chave];
+  if(_chatPainelChave === chave) _chatPainelChave = '';
+  chatPintarPainel();
+  _chatAtualizarFlutuante();
+  toast('Conversa excluída.', 'ok');
+}
+
 async function chatParar(chave){
   if(!confirm('Parar de monitorar o chat deste pregão? As mensagens já capturadas continuam guardadas.')) return;
   try{ await db.collection('chat_monitor').doc(chave).set({ativo:false, paradoEm: Date.now()}, {merge:true}); }
@@ -17740,6 +17805,7 @@ function chatPintarPainel(){
                                : '<button class="btn btn-ghost" onclick="chatReabrirAba(\'' + sel + '\')" title="Abre ou traz para frente a aba monitorada">Aba do chat</button>') +
                        '<button class="btn btn-ghost" style="color:#f87171" onclick="chatParar(\'' + sel + '\')">Parar</button>'
                      : '<button class="btn btn-nh" onclick="chatRetomar(\'' + sel + '\')">Retomar</button>') +
+          '<button class="btn btn-ghost" style="color:#f87171" onclick="chatExcluir(\'' + sel + '\')" title="Apaga a conversa e as mensagens guardadas">🗑 Excluir</button>' +
         '</div></div>' +
       (mon.ativo && !direto && (!mon.url || _chatEhPCP(mon.portal)) ? '<div class="chat-aviso" style="margin:10px 16px 0">' +
         (_chatEhPCP(mon.portal)
