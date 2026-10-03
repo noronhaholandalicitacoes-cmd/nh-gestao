@@ -275,7 +275,15 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
 .btn-salvar:disabled{cursor:not-allowed}
 
 /* Decisão que grava na hora — 03/10/2026 */
-.card-acoes .itens-bt{margin:0 0 14px}
+.card-links{display:flex;flex-wrap:wrap;align-items:stretch;gap:8px;width:100%}
+.card-links .itens-bt{width:auto;flex:1 1 220px;margin-top:0;padding-top:6px;padding-bottom:6px}
+.viab-mais{display:block;margin-top:8px;font-family:Outfit,sans-serif;font-size:13px;font-weight:800;cursor:pointer;
+  background:none;border:none;padding:0;color:var(--nh)}
+.viab-completa{margin:-6px 18px 14px 22px;padding:14px 16px;background:var(--bg);border:1px solid var(--line);border-radius:14px;font-size:14px;line-height:1.65;color:var(--txt2)}
+.vc-dados{display:flex;flex-direction:column;gap:4px;padding-bottom:10px;margin-bottom:10px;border-bottom:1px dashed var(--line)}
+.vc-dados b,.vc-texto strong,.vc-h{color:var(--txt)}
+.vc-h{display:block;margin:8px 0 2px}
+.vc-li{display:block;padding-left:8px}
 .btn-part:disabled{opacity:.7;cursor:progress}
 .voto-status{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;
   margin:-4px 0 16px;font-size:13.5px;min-height:24px}
@@ -1984,6 +1992,38 @@ function labelRisco(risco){
 function iconeRisco(risco){
   return risco==='baixo'?'🟢':risco==='medio'?'🟡':risco==='alto'?'🔴':'⚪';
 }
+/* Análise completa da IA (03/10/2026) — o mesmo texto que o Sistema NH
+   mostra. Escapada primeiro, formatada depois: vem da IA, não é HTML. */
+function _viabFmt(t){
+  return esc(t).replace(/^#{1,4} (.+)$/gm,'<b class="vc-h">$1</b>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/^[-•] (.+)$/gm,'<span class="vc-li">• $1</span>')
+    /* Título e item já são bloco: a quebra de linha depois deles
+       dobraria o espaço. */
+    .replace(/(<\/b>|<\/span>)\n+/g,'$1')
+    .replace(/\n{2,}/g,'<br><br>').replace(/\n/g,'<br>');
+}
+function _viabCompletaHtml(an){
+  var c = an.contexto || {};
+  var linhas = [];
+  if(typeof an.nota==='number') linhas.push('Nota <b>'+an.nota.toFixed(1).replace('.',',')+' / 10</b> · '+labelRisco(an.risco));
+  if(c.municipio) linhas.push('Município: <b>'+esc(c.municipio)+'</b>');
+  if(c.finalizadosMunicipio!==undefined) linhas.push('Processos já finalizados no município: <b>'+c.finalizadosMunicipio+'</b>');
+  if(c.registrosPreco!==undefined) linhas.push('Registros de preço comparados: <b>'+c.registrosPreco+'</b>');
+  var cap = c.capag || (an.capag && an.capag.nota) || '';
+  linhas.push('CAPAG do município: <b>'+(cap?esc(cap):'não disponível')+'</b>');
+  return '<div class="vc-dados">'+linhas.map(function(l){return '<span>'+l+'</span>';}).join('')+'</div>'+
+    (an.relatorio ? '<div class="vc-texto">'+_viabFmt(an.relatorio)+'</div>'
+                  : '<div class="vc-texto">'+(an.motivo?esc(an.motivo)+'<br><br>':'')+
+                    '<i>A análise detalhada aparece aqui a partir da próxima análise feita pela NH.</i></div>');
+}
+function viabExpandir(id, bt){
+  var el = document.getElementById('viabc-'+id); if(!el) return;
+  var abrir = el.style.display === 'none';
+  el.style.display = abrir ? 'block' : 'none';
+  bt.textContent = abrir ? 'Recolher análise ▴' : 'Ver análise completa ▾';
+}
+
 function renderBadgeRisco(an){
   var risco = an&&an.risco ? an.risco : null;
   var cls = risco==='baixo'?'r-baixo':risco==='medio'?'r-medio':risco==='alto'?'r-alto':'r-sem';
@@ -2154,12 +2194,20 @@ function renderCard(d){
     '<div class="card-meta">'+
       (obj?'<span class="meta-tag obj">'+esc(obj.substring(0,180))+(obj.length>180?'…':'')+'</span>':'')+
       (local&&local!==mun?'<span class="meta-tag">📍 '+esc(local)+'</span>':'')+
-      (linkPub?'<a href="'+esc(linkPub)+'" target="_blank" rel="noopener" class="meta-link" onclick="event.stopPropagation()">📄 Consultar Edital / TR</a>':'')+
+      /* Edital e planilha lado a lado (03/10/2026): os dois são "o que
+         preciso ler/preencher antes de decidir". */
+      '<div class="card-links">'+
+        (linkPub?'<a href="'+esc(linkPub)+'" target="_blank" rel="noopener" class="meta-link" onclick="event.stopPropagation()">📄 Consultar Edital / TR</a>':'')+
+        renderItens(id)+
+      '</div>'+
     '</div>'+
     '<div class="score-wrap">'+
       renderGaugeViab(an)+
-      '<div class="score-txt">'+(an&&an.motivo?esc(an.motivo):'Nota calculada sobre exigências, concorrência prevista e histórico de preços do órgão. Analise pelo Sistema NH.')+'</div>'+
+      '<div class="score-txt">'+(an&&an.motivo?esc(an.motivo):'Nota calculada sobre exigências, concorrência prevista e histórico de preços do órgão. Analise pelo Sistema NH.')+
+        (an?'<button type="button" class="viab-mais" onclick="viabExpandir(\''+id+'\',this)">Ver análise completa ▾</button>':'')+
+      '</div>'+
     '</div>'+
+    (an?'<div class="viab-completa" id="viabc-'+id+'" style="display:none">'+_viabCompletaHtml(an)+'</div>':'')+
     /* ⚠️ DECISÃO SEM "SALVAR" — 03/10/2026.
        Pedido do cliente: "a pessoa clica em participar, depois na
        planilha e depois salvar". Eram três passos para uma decisão, e
@@ -2169,7 +2217,6 @@ function renderCard(d){
        traz "Desfazer", e clicar de novo no botão marcado volta para
        pendente; (4) a observação se salva sozinha enquanto se escreve. */
     '<div class="card-acoes">'+
-      renderItens(id)+
       '<div class="btns-part">'+
         '<button class="btn-part'+(isSim(part)?' on-sim':'')+'" onclick="selecionarVoto(\''+id+'\',\'SIM\')">'+
           (isSim(part)?'✅ VOU PARTICIPAR':'✅ SIM, PARTICIPAR')+'</button>'+

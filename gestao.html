@@ -19298,7 +19298,22 @@ function nhAbrirModalViab(chave,emp,titulo){
     m.addEventListener('click',function(ev){if(ev.target===m)m.style.display='none';});
   }
   document.getElementById('nh-viab-sub').textContent=emp+' · processo #'+_viabCtx.edId+(titulo?' · '+titulo:'');
-  document.getElementById('nh-viab-result').innerHTML='';
+  /* Reabrir mostra a última análise salva — antes vinha em branco e
+     era preciso gastar outra chamada da IA para rever o que ela disse. */
+  var _salva=ANALISES_VIAB[_viabCtx.chave];
+  if(_salva&&typeof _salva.nota==='number'){
+    var _cr=_salva.risco==='baixo'?'#22c55e':_salva.risco==='alto'?'#ef4444':'#eab308';
+    var _rl={baixo:'Baixo',medio:'Médio',alto:'Alto'}[_salva.risco]||_salva.risco;
+    var _dt=_salva.criadoEm?new Date(_salva.criadoEm).toLocaleDateString('pt-BR'):'';
+    document.getElementById('nh-viab-result').innerHTML=
+      '<div style="background:var(--s2);border:1px solid '+_cr+'55;border-left:4px solid '+_cr+';border-radius:8px;padding:10px 12px;margin-bottom:12px">'+
+        '<b style="color:'+_cr+';font-size:16px">Nota: '+_salva.nota.toFixed(1).replace('.',',')+' / 10 — Risco '+_rl+'</b>'+
+        '<div style="font-size:11.5px;color:var(--t3);margin-top:6px">Última análise'+(_dt?' em '+_dt:'')+(_salva.automatica?' (automática)':'')+' — rode de novo para atualizar.</div>'+
+      '</div>'+
+      (_salva.relatorio?formatarRespostaIA(esc0(_salva.relatorio)):(_salva.motivo?'<p>'+esc0(_salva.motivo)+'</p>':''));
+  } else {
+    document.getElementById('nh-viab-result').innerHTML='';
+  }
   var ctx=_nhContextoViabilidade(_viabCtx.edId);
   var resumoEl=document.getElementById('nh-viab-resumo');
   if(!ctx){
@@ -19335,6 +19350,30 @@ function _vbDisparar(){
   try{nhFilaItensTR([id]);}catch(e){console.error('itens do TR automáticos',e);}
 }
 
+/* ⚠️ O RELATÓRIO PASSA A SER GUARDADO — 03/10/2026.
+   A análise completa da IA aparecia aqui, no modal, e morria quando o
+   modal fechava: só nota, risco e a frase curta iam para o banco. Por
+   isso o Viabilidade, que lê do banco, só tinha o resumo — e o cliente
+   pediu a análise completa lá também, com opção de expandir.
+   Agora vão junto o texto inteiro da IA e o contexto em que ela se
+   baseou (só contagens e o CAPAG; nada de preço de concorrente). */
+function _nhViabRelatorio(resp, vm){
+  var t = String(resp||'');
+  if(vm && vm[0]) t = t.replace(vm[0], '');
+  return t.trim().slice(0, 20000);
+}
+function _nhViabContexto(d){
+  if(!d) return null;
+  var h = d.historicoMunicipio || {};
+  return {
+    municipio: d.municipio || '',
+    valor: d.valor || 0,
+    finalizadosMunicipio: h.total || 0,
+    registrosPreco: (d.precos || []).length,
+    capag: d.capag ? (d.capag.nota || '') : ''
+  };
+}
+
 async function nhAnalisarViabilidadeAuto(edId,forcar){
   var chave='e-'+String(edId||'').trim();
   if(!chave||'e-'===chave)return null;
@@ -19353,7 +19392,8 @@ async function nhAnalisarViabilidadeAuto(edId,forcar){
   if(vm){try{viab=JSON.parse(vm[1].replace(/```json/gi,'').replace(/```/g,'').trim());}catch(_e){}}
   if(!viab||typeof viab.nota!=='number')throw new Error('IA não retornou nota válida');
   var reg={nota:viab.nota,risco:viab.risco||'medio',motivo:viab.motivo||'',
-           capag:dados.capag||null,criadoEm:Date.now(),automatica:true};
+           capag:dados.capag||null,criadoEm:Date.now(),automatica:true,
+           relatorio:_nhViabRelatorio(resp,vm),contexto:_nhViabContexto(dados)};
   await fbSave('analise_viabilidade',chave,reg);
   ANALISES_VIAB[chave]=reg;
   return reg;
@@ -19425,7 +19465,8 @@ async function nhRodarAnaliseViabilidade(){
       out.innerHTML='<div style="color:#ef4444">❌ A IA não retornou uma nota válida. Tente novamente.</div>'+formatarRespostaIA(resp);
       return;
     }
-    var reg={nota:viab.nota,risco:viab.risco||'medio',motivo:viab.motivo||'',capag:dados.capag||null,criadoEm:Date.now()};
+    var reg={nota:viab.nota,risco:viab.risco||'medio',motivo:viab.motivo||'',capag:dados.capag||null,criadoEm:Date.now(),
+             relatorio:String(resp||'').trim().slice(0,20000),contexto:_nhViabContexto(dados)};
     await fbSave('analise_viabilidade',ctx.chave,reg);
     ANALISES_VIAB[ctx.chave]=reg;
     var corRisco=reg.risco==='baixo'?'#22c55e':reg.risco==='alto'?'#ef4444':'#eab308';
