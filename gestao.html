@@ -17509,7 +17509,9 @@ function nhChatMonitorar(chave, emp, titulo, portal){
     m.addEventListener('click', function(ev){ if(ev.target === m) m.style.display = 'none'; });
   }
   var ids = _chatIdsEmpresa(emp);
+  if(!portal) portal = _chatPortalDaChave(chave).portal;
   m.setAttribute('data-portal', portal || '');
+  m.setAttribute('data-buscando', '1');
   m.innerHTML = '<div class="chat-cx" style="max-width:560px">' +
     '<div class="chat-cab"><b>💬 Monitorar o chat do pregão</b>' +
       '<button onclick="document.getElementById(\'nh-chat-ativar\').style.display=\'none\'">&times;</button></div>' +
@@ -17540,6 +17542,7 @@ function nhChatMonitorar(chave, emp, titulo, portal){
   _chatPintarModo();
   _chatAcharLink(chave).then(function(u){
     var i = document.getElementById('chat-url'), n = document.getElementById('chat-url-nota');
+    m.removeAttribute('data-buscando');
     if(!i) return;
     i.placeholder = 'https://…';
     if(u && !i.value){ i.value = u; if(n) n.textContent = '✓ Link encontrado. Confira se é o processo certo.'; }
@@ -17561,6 +17564,10 @@ function _chatPintarModo(){
     return;
   }
   var cx = document.getElementById('nh-chat-ativar');
+  if(cx && cx.getAttribute('data-buscando') && !i.value.trim()){
+    el.innerHTML = '<div class="chat-nota" style="padding:10px 0">🔎 Procurando o processo no portal…</div>';
+    return;
+  }
   if(cx && _chatEhPCP(cx.getAttribute('data-portal'))){
     el.innerHTML = '<div class="chat-ok">✓ <b>Portal de Compras Públicas</b>: lido direto pelo sistema, sem extensão. ' +
       (i.value.trim() ? 'Mas este link não é de um processo do portal — ' : 'Não achei o processo pelo título do card — ') +
@@ -17588,6 +17595,8 @@ async function _chatAtivar(chave, emp, titulo, portal){
   var err = document.getElementById('chat-ativar-erro');
   if(url && !/^https:\/\//i.test(url)){ err.textContent = 'O link precisa começar com https://'; return; }
   var ids = _chatIdsEmpresa(emp);
+  portal = portal || _chatPortalDaChave(chave).portal;
+  if(!portal && chatLeitorDireto(url)) portal = chatLeitorDireto(url).leitor.nome;
   var doc = {
     chave: chave, empresa: emp||'', titulo: titulo||'', portal: portal||'', url: url,
     palavras: extras, ativo: true,
@@ -17947,16 +17956,37 @@ async function _chatBuscarPCP(titulo){
  *  leitura direta. Hoje só o Portal de Compras Públicas. */
 async function _chatAcharLinkPortal(chave, urlCard){
   if(chatLeitorDireto(urlCard)) return urlCard;
+  var info = _chatPortalDaChave(chave);
+  /* Portal de outro sistema (BNC, BLL…): nem procura. Portal em branco
+     — comum em Editais Capturados (o #617 de Bodó estava assim) —
+     procura mesmo assim: número + ano + cidade batendo é o mesmo
+     processo. */
+  if(info.portal && !_chatEhPCP(info.portal)) return '';
+  try{ return await _chatBuscarPCP(info.titulo); }catch(_e){ return ''; }
+}
+
+/** Portal e título de um card. O portal às vezes só foi preenchido numa
+ *  das abas (Editais Capturados ou Em Andamento): procura nas duas,
+ *  casando pelo título. */
+function _chatPortalDaChave(chave){
   var portal = '', titulo = '';
+  var mesmo = function(a, b){ return String(a||'').trim().toLowerCase() === String(b||'').trim().toLowerCase(); };
   if(chave.indexOf('e-') === 0){
     var l = _nhLinhaEdital(chave) || [];
-    portal = l[15]; titulo = l[3];
+    portal = String(l[15]||'').trim(); titulo = String(l[3]||'').trim();
+    if(!portal){
+      var a1 = (ALL.andamento||[]).find(function(r){ return mesmo(r[3], titulo); });
+      if(a1) portal = String(a1[9]||'').trim();
+    }
   } else if(chave.indexOf('a-') === 0){
     var a = (ALL.andamento||[]).find(function(r){ return String(r[0]) === chave.slice(2); }) || [];
-    portal = a[9]; titulo = a[3];
+    portal = String(a[9]||'').trim(); titulo = String(a[3]||'').trim();
+    if(!portal){
+      var e1 = (ALL.editais||[]).find(function(r){ return mesmo(r[3], titulo); });
+      if(e1) portal = String(e1[15]||'').trim();
+    }
   }
-  if(!_chatEhPCP(portal)) return '';
-  try{ return await _chatBuscarPCP(titulo); }catch(_e){ return ''; }
+  return {portal: portal, titulo: titulo};
 }
 
 function _chatEhPCP(portal){ return /compras\s*p[uú]blicas|portaldecompraspublicas/i.test(String(portal||'')); }
@@ -18055,7 +18085,7 @@ var _chatLinkTentado = {};
 async function _chatConsertarLinks(){
   var faltam = Object.keys(CHAT_MON).filter(function(k){
     var m = CHAT_MON[k];
-    return m.ativo && !m.url && _chatEhPCP(m.portal) && !_chatLinkTentado[k];
+    return m.ativo && !m.url && (!m.portal || _chatEhPCP(m.portal)) && !_chatLinkTentado[k];
   });
   for(var i = 0; i < faltam.length; i++){
     _chatLinkTentado[faltam[i]] = 1;
