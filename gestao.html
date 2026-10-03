@@ -17466,6 +17466,12 @@ async function _chatAcharLink(chave){
     }
   }
   var url = linha ? String(linha[13]||'').trim() : '';
+  /* Na prática o link do card é o PDF do edital no Drive (conferido em
+     03/10/2026: os 37 editais do Portal de Compras Públicas eram todos
+     Drive). Então, sem link de portal, procura o processo no próprio
+     portal pelo título do card. */
+  var direto = await _chatAcharLinkPortal(chave, url);
+  if(direto) return direto;
   if(!url) return '';
   /* Dois formatos de endereço do PNCP, com ano e sequencial em ordens
      diferentes. Cada um tem a sua regex — adivinhar pela posição trocaria
@@ -17503,6 +17509,7 @@ function nhChatMonitorar(chave, emp, titulo, portal){
     m.addEventListener('click', function(ev){ if(ev.target === m) m.style.display = 'none'; });
   }
   var ids = _chatIdsEmpresa(emp);
+  m.setAttribute('data-portal', portal || '');
   m.innerHTML = '<div class="chat-cx" style="max-width:560px">' +
     '<div class="chat-cab"><b>💬 Monitorar o chat do pregão</b>' +
       '<button onclick="document.getElementById(\'nh-chat-ativar\').style.display=\'none\'">&times;</button></div>' +
@@ -17511,8 +17518,8 @@ function nhChatMonitorar(chave, emp, titulo, portal){
       '<div class="chat-sub">' + esc0(emp||'') + (portal ? ' · ' + esc0(portal) : '') + '</div>' +
       '<div id="chat-ext-st"></div>' +
       '<label class="chat-lb">Link do processo no portal</label>' +
-      '<input id="chat-url" class="chat-in" placeholder="Procurando no PNCP…">' +
-      '<div class="chat-nota" id="chat-url-nota">O sistema tenta achar sozinho pelo PNCP. Se não achar, cole o link do processo no portal.</div>' +
+      '<input id="chat-url" class="chat-in" placeholder="Procurando o processo…">' +
+      '<div class="chat-nota" id="chat-url-nota">O sistema tenta achar sozinho. Se não achar, cole o link do processo no portal.</div>' +
       '<label class="chat-lb">O alarme toca quando o pregoeiro citar</label>' +
       '<div class="chat-chips">' + ids.termos.map(function(t){ return '<span>' + esc0(t) + '</span>'; }).join('') +
         (ids.cnpj ? '<span>CNPJ ' + esc0(ids.cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')) + '</span>' : '') + '</div>' +
@@ -17551,6 +17558,13 @@ function _chatPintarModo(){
   if(dir){
     el.innerHTML = '<div class="chat-ok">✓ <b>' + esc0(dir.leitor.nome) + '</b>: o chat é lido direto pelo sistema. ' +
       'Não precisa instalar nada nem deixar o portal aberto — basta o gestão estar aberto em algum computador da equipe.</div>';
+    return;
+  }
+  var cx = document.getElementById('nh-chat-ativar');
+  if(cx && _chatEhPCP(cx.getAttribute('data-portal'))){
+    el.innerHTML = '<div class="chat-ok">✓ <b>Portal de Compras Públicas</b>: lido direto pelo sistema, sem extensão. ' +
+      (i.value.trim() ? 'Mas este link não é de um processo do portal — ' : 'Não achei o processo pelo título do card — ') +
+      'abra o processo em portaldecompraspublicas.com.br, copie o endereço da página e cole abaixo.</div>';
     return;
   }
   _chatPedir('ping').then(function(r){
@@ -17718,6 +17732,13 @@ function chatPintarPainel(){
                        '<button class="btn btn-ghost" style="color:#f87171" onclick="chatParar(\'' + sel + '\')">Parar</button>'
                      : '<button class="btn btn-nh" onclick="chatRetomar(\'' + sel + '\')">Retomar</button>') +
         '</div></div>' +
+      (mon.ativo && !direto && (!mon.url || _chatEhPCP(mon.portal)) ? '<div class="chat-aviso" style="margin:10px 16px 0">' +
+        (_chatEhPCP(mon.portal)
+          ? '<b>Falta o link do processo.</b> No Portal de Compras Públicas o sistema lê o chat sozinho, sem extensão — ' +
+            'abra o processo em portaldecompraspublicas.com.br, copie o endereço da página e cole aqui:'
+          : (mon.url ? 'Quer trocar o link do processo? Cole o novo aqui:' : '<b>Falta o link do processo.</b> Cole aqui o endereço do processo no portal:')) +
+        '<div style="display:flex;gap:8px;margin-top:8px"><input id="chat-link-painel" class="chat-in" style="flex:1" placeholder="https://…" value="' + esc0(mon.url||'') + '">' +
+        '<button class="btn btn-nh" onclick="chatSalvarLink(\'' + sel + '\')">Salvar link</button></div></div>' : '') +
       '<div class="chat-msgs">' + (msgs.length ? msgs.map(function(x){
         return '<div class="chat-msg ' + x.nivel + (x.ts > lido && !x.historico ? ' nova' : '') + '">' +
           '<div class="chat-msg-cab"><b>' + esc0(x.autor || 'Pregoeiro') + '</b>' +
@@ -17844,6 +17865,102 @@ var _chatDiretoSt = {};      /* chave -> {hora, erro, erroHora, completo} */
 var _chatDiretoRodando = {}; /* chave -> true enquanto lê                */
 var _chatDiretoTimer = null;
 
+/* ── Achar o processo no Portal de Compras Públicas pelo título ────────
+   O título do card segue o padrão da equipe: "DL 28.2026 - Bodó - RN -
+   30.07.2026 as 09h" ou "PE - 38.2026 - Congo PB - 25.09.26". Dele saem
+   número, ano, cidade e UF; a busca pública do portal filtra por número
+   e UF, e aqui se confere a cidade. Testado em 03/10/2026 com o DL
+   28/2026 de Bodó (SOS): achou o processo 498598 e leu o chat. */
+var PCP_UF = {AC:100112,AL:100127,AM:100113,AP:100116,BA:100129,CE:100123,DF:100153,ES:100132,
+  GO:100152,MA:100121,MG:100131,MS:100150,MT:100151,PA:100115,PB:100125,PE:100126,PI:100122,
+  PR:100141,RJ:100133,RN:100124,RO:100111,RR:100114,RS:100143,SC:100142,SE:100128,SP:100135,TO:100117};
+
+function _chatLerTitulo(t){
+  t = String(t||'');
+  var m = t.match(/(\d{1,5})\s*[.\/]\s*(20\d\d)/);
+  if(!m) return null;
+  var resto = t.slice(m.index + m[0].length).split(/\s+[-–]\s+/).map(function(s){ return s.trim(); }).filter(Boolean);
+  var uf = '', cid = '';
+  for(var i = 0; i < resto.length; i++){
+    var x = resto[i], mm = x.match(/^(.*?)[\s\/-]+([A-Z]{2})$/);
+    if(/^[A-Z]{2}$/.test(x) && PCP_UF[x]){ uf = x; cid = resto[i-1] || ''; break; }
+    if(mm && PCP_UF[mm[2]]){ uf = mm[2]; cid = mm[1]; break; }
+  }
+  var d = t.match(/(\d{2})[.\/](\d{2})[.\/](\d{2,4})\s*(?:as|às|-)/i);
+  return {n: +m[1], ano: m[2], uf: uf, cid: cid,
+          mod: (t.match(/^\s*([A-Za-z]{2,4})\b/) || [,''])[1].toUpperCase(),
+          dia: d ? d[1] + '/' + d[2] : ''};
+}
+
+/* "São Paulo do Pontengi" no card, "São Paulo do Potengi" no portal:
+   erro de digitação de uma ou duas letras não pode impedir de achar.
+   Nomes curtos toleram só uma, para "Mari" não virar "Mauri". */
+function _chatMesmaCidade(a, b){
+  a = _chatSemAcento(a).replace(/[^a-z0-9]/g, ''); b = _chatSemAcento(b).replace(/[^a-z0-9]/g, '');
+  if(!a || !b) return false;
+  if(a === b) return true;
+  var lim = Math.min(a.length, b.length) >= 8 ? 2 : (Math.min(a.length, b.length) >= 5 ? 1 : 0);
+  if(!lim || Math.abs(a.length - b.length) > lim) return false;
+  var ant = []; for(var j = 0; j <= b.length; j++) ant[j] = j;
+  for(var i = 1; i <= a.length; i++){
+    var cur = [i];
+    for(j = 1; j <= b.length; j++)
+      cur[j] = Math.min(ant[j] + 1, cur[j-1] + 1, ant[j-1] + (a[i-1] === b[j-1] ? 0 : 1));
+    ant = cur;
+  }
+  return ant[b.length] <= lim;
+}
+
+async function _chatBuscarPCP(titulo){
+  var p = _chatLerTitulo(titulo);
+  if(!p || !p.uf || !p.cid) return '';
+  var r = await fetch('https://compras.api.portaldecompraspublicas.com.br/v2/licitacao/processos?limitePagina=50&pagina=1' +
+    '&processo=' + encodeURIComponent(p.n + '/' + p.ano) + '&codigoUf=' + PCP_UF[p.uf], {cache: 'no-store'});
+  if(!r.ok) return '';
+  var j = await r.json();
+  var numero = new RegExp('(^|\\D)0*' + p.n + '\\s*/\\s*' + p.ano);
+  var cands = (j && j.result || []).filter(function(x){
+    if(!_chatMesmaCidade((x.unidadeCompradora||{}).cidade, p.cid)) return false;
+    return numero.test(String(x.numero||'')) || numero.test(String(x.identificacao||''));
+  });
+  if(cands.length > 1){
+    /* Mesma cidade, mesmo número (um PE e uma DL 28/2026, por exemplo):
+       desempata pela modalidade no endereço e pela data da sessão. */
+    var slug = {DL:/\/de-|\/dl-/, DE:/\/de-/, PE:/\/r?pe[a-z]*-/, CC:/\/cp|\/cc/, CP:/\/cp/}[p.mod];
+    var pont = function(x){
+      var s = 0, ref = String(x.urlReferencia||'').toLowerCase();
+      if(slug && slug.test(ref)) s += 2;
+      if(p.dia && x.dataHoraInicioLances){
+        var dt = new Date(x.dataHoraInicioLances);
+        if(String(dt.getDate()).padStart(2,'0') + '/' + String(dt.getMonth()+1).padStart(2,'0') === p.dia) s += 1;
+      }
+      return s;
+    };
+    cands.sort(function(a, b){ return pont(b) - pont(a); });
+    if(pont(cands[0]) === pont(cands[1])) return '';   /* empate: melhor pedir o link do que ler o pregão errado */
+  }
+  if(!cands.length || !cands[0].urlReferencia) return '';
+  return 'https://www.portaldecompraspublicas.com.br/processos' + cands[0].urlReferencia;
+}
+
+/** Portal do card + título → link do processo, para os portais de
+ *  leitura direta. Hoje só o Portal de Compras Públicas. */
+async function _chatAcharLinkPortal(chave, urlCard){
+  if(chatLeitorDireto(urlCard)) return urlCard;
+  var portal = '', titulo = '';
+  if(chave.indexOf('e-') === 0){
+    var l = _nhLinhaEdital(chave) || [];
+    portal = l[15]; titulo = l[3];
+  } else if(chave.indexOf('a-') === 0){
+    var a = (ALL.andamento||[]).find(function(r){ return String(r[0]) === chave.slice(2); }) || [];
+    portal = a[9]; titulo = a[3];
+  }
+  if(!_chatEhPCP(portal)) return '';
+  try{ return await _chatBuscarPCP(titulo); }catch(_e){ return ''; }
+}
+
+function _chatEhPCP(portal){ return /compras\s*p[uú]blicas|portaldecompraspublicas/i.test(String(portal||'')); }
+
 function chatLeitorDireto(url){
   for(var i = 0; i < CHAT_LEITORES.length; i++){
     var cod = CHAT_LEITORES[i].casa(url);
@@ -17914,12 +18031,46 @@ async function _chatDiretoLer(chave, manual){
   }
 }
 
+/** Link colado no painel (monitoramento já ativo sem link, ou link errado). */
+async function chatSalvarLink(chave){
+  var i = document.getElementById('chat-link-painel');
+  var url = String(i && i.value || '').trim();
+  if(!/^https:\/\//i.test(url)){ toast('O link precisa começar com https://', 'err'); return; }
+  await _chatGravarLink(chave, url);
+  toast(chatLeitorDireto(url) ? '💬 Link salvo — o chat já está sendo lido direto pelo sistema.' : 'Link salvo.', 'ok');
+}
+
+async function _chatGravarLink(chave, url){
+  try{ await db.collection('chat_monitor').doc(chave).set({url: url}, {merge:true}); }
+  catch(e){ toast('Não consegui salvar o link: ' + (e.message||e), 'err'); return; }
+  if(CHAT_MON[chave]) CHAT_MON[chave].url = url;
+  if(_chatPainelChave === chave) chatPintarPainel();
+  if(chatLeitorDireto(url)) _chatDiretoLer(chave);
+}
+
+/* Monitoramentos ligados antes da busca pelo título existir ficaram sem
+   link (o card só tinha o PDF do Drive). Uma tentativa por sessão de
+   achar o processo sozinho; achou, grava, e a leitura começa. */
+var _chatLinkTentado = {};
+async function _chatConsertarLinks(){
+  var faltam = Object.keys(CHAT_MON).filter(function(k){
+    var m = CHAT_MON[k];
+    return m.ativo && !m.url && _chatEhPCP(m.portal) && !_chatLinkTentado[k];
+  });
+  for(var i = 0; i < faltam.length; i++){
+    _chatLinkTentado[faltam[i]] = 1;
+    var u = await _chatAcharLinkPortal(faltam[i], '');
+    if(u) await _chatGravarLink(faltam[i], u);
+  }
+}
+
 /** Volta de 20 s pelos pregões ativos de leitura direta. Com a aba do
  *  gestão em segundo plano o Chrome espaça a volta para ~1 min — ainda
  *  bem mais rápido que o e-mail diário da ConLicitação. */
 function chatDiretoLigar(){
   if(_chatDiretoTimer) return;
   var volta = async function(){
+    try{ await _chatConsertarLinks(); }catch(_e){}
     var chaves = Object.keys(CHAT_MON).filter(function(k){
       return CHAT_MON[k].ativo && chatLeitorDireto(CHAT_MON[k].url);
     });
