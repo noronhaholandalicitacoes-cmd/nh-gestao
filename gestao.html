@@ -3172,6 +3172,62 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
   .chat-esq{border-right:none;border-bottom:1px solid var(--b1);max-height:38vh}
   .chat-dir-cab{flex-wrap:wrap}
 }
+
+/* ── Painel do chat maior e ajustável — 03/10/2026 ──────────────────────
+   Pedido: "a tela ficou pequena, as letras são pequenas". O texto da
+   mensagem estava em 13px e o resto em 10–12px. Agora tudo sai de
+   --cz (tamanho escolhido em A−/A+, lembrado no navegador) e a base já
+   começa maior: mensagem em 16px, títulos em 15–17px. "Tela cheia"
+   ocupa a janela inteira. */
+.chat-painel{--cz:1;max-width:1400px;width:96vw;height:90vh}
+.chat-modal.cheia{padding:0}
+.chat-modal.cheia .chat-painel{max-width:none;width:100vw;height:100vh;max-height:100vh;border-radius:0;border:none}
+.chat-painel .chat-cab{padding:14px 20px}
+.chat-painel .chat-cab b{font-size:calc(17px*var(--cz))}
+.chat-painel .chat-cab .chat-ext{font-size:calc(13px*var(--cz))}
+.chat-zoom{display:inline-flex;gap:6px;margin-left:auto}
+.chat-zoom button{font:inherit;font-size:14px;font-weight:800;min-width:40px;height:36px;padding:0 11px;border-radius:9px;cursor:pointer;
+  background:var(--s1);border:1px solid var(--b2);color:var(--t1)}
+.chat-zoom button:hover{border-color:var(--nh);color:var(--nh)}
+.chat-zoom + button{margin-left:6px!important}
+.chat-painel .chat-grid{grid-template-columns:min(calc(360px*var(--cz)),42%) 1fr}
+.chat-painel .chat-esq{padding:14px}
+.chat-painel .chat-in{font-size:calc(14.5px*var(--cz));padding:10px 13px}
+.chat-painel .chat-filtros button{font-size:calc(13px*var(--cz));padding:7px 12px}
+.chat-painel .chat-lista{grid-template-columns:minmax(0,1fr);overflow-x:hidden}
+.chat-painel .chat-item{padding:12px 13px;gap:5px;min-width:0}
+.chat-painel .chat-item-top b{font-size:calc(14.5px*var(--cz))}
+.chat-painel .chat-item-top i{font-size:calc(12px*var(--cz))}
+.chat-painel .chat-item-top em{font-size:calc(12px*var(--cz))}
+.chat-painel .chat-item-emp{font-size:calc(13px*var(--cz))}
+.chat-painel .chat-item-tags span{font-size:calc(11.5px*var(--cz));padding:2px 8px}
+.chat-painel .chat-dir-cab{padding:14px 20px}
+.chat-painel .chat-dir-cab b{font-size:calc(16.5px*var(--cz))}
+.chat-painel .chat-dir-cab span{font-size:calc(13px*var(--cz))}
+.chat-painel .chat-dir-bts .btn{font-size:calc(13px*var(--cz));padding:8px 13px}
+.chat-painel .chat-aviso{font-size:calc(13.5px*var(--cz))}
+.chat-painel .chat-msgs{padding:16px 20px;gap:11px}
+.chat-painel .chat-msg{padding:12px 15px;border-radius:11px}
+.chat-painel .chat-msg-cab{margin-bottom:6px}
+.chat-painel .chat-msg-cab b{font-size:calc(14px*var(--cz))}
+.chat-painel .chat-msg-cab i{font-size:calc(13px*var(--cz))}
+.chat-painel .chat-msg-cab .tag-m,.chat-painel .chat-msg-cab .tag-i{font-size:calc(11.5px*var(--cz));padding:2px 8px}
+.chat-painel .chat-msg-t{font-size:calc(16px*var(--cz));line-height:1.6}
+.chat-painel .chat-vazio{font-size:calc(14.5px*var(--cz))}
+/* Tela de ativar: mesma régua, sem ajuste. */
+.chat-cx .chat-tit{font-size:16px}
+.chat-cx .chat-sub{font-size:13.5px}
+.chat-cx .chat-lb{font-size:12.5px}
+.chat-cx .chat-in{font-size:15px;padding:10px 13px}
+.chat-cx .chat-nota{font-size:13px}
+.chat-cx .chat-ok,.chat-cx .chat-aviso{font-size:13.5px}
+.chat-cx .chat-chips span{font-size:13px}
+.chat-cab b{font-size:16px}
+.chat-flut{font-size:14px;padding:11px 17px}
+@media (max-width:760px){
+  .chat-painel{width:100vw;height:100vh;max-height:100vh;border-radius:0}
+  .chat-painel .chat-grid{grid-template-columns:1fr}
+}
 </style>
   <!-- Firebase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js"></script>
@@ -17792,9 +17848,11 @@ function chatPintarPainel(){
     var lido = _chatLido(sel);
     var direto = chatLeitorDireto(mon.url), dst = _chatDiretoSt[sel] || {};
     var estado = !mon.ativo ? '<i>parado</i>'
+      : (!direto && !mon.url && (!mon.portal || _chatEhPCP(mon.portal))) ? '<i style="color:#f59e0b">● falta o link do processo — ainda não está lendo</i>'
       : !direto ? '<i class="verde">● monitorando</i>'
       : dst.erro ? '<i style="color:#f59e0b">● lido direto · falhou às ' + esc0(dst.erroHora||'') + ', tentando de novo</i>'
-      : '<i class="verde">● lido direto pelo sistema' + (dst.hora ? ' · última leitura ' + esc0(dst.hora) : '') + '</i>';
+      : '<i class="verde">● lido direto pelo sistema' + (dst.hora ? ' · última leitura ' + esc0(dst.hora) : '') +
+          (dst.intervalo >= 2*60000 ? ' · pregão encerrado, confere a cada 2 min' : ' · confere a cada 15 s') + '</i>';
     dir = '<div class="chat-dir-cab">' +
         '<div><b>' + esc0(mon.titulo || sel) + '</b>' +
           '<span>' + esc0(mon.empresa||'') + (mon.portal ? ' · ' + esc0(mon.portal) : '') +
@@ -17827,11 +17885,33 @@ function chatPintarPainel(){
     _chatMarcarLido(sel);
   }
 
+  /* O painel é redesenhado a cada leitura (20 s) e a cada mensagem nova.
+     Sem guardar o estado, quem lia mensagens antigas voltava para o
+     topo, e o link que estava sendo colado sumia. */
+  var antes = null;
+  if(m.firstChild){
+    var foco = document.activeElement;
+    antes = {
+      sel: m.getAttribute('data-sel'),
+      msgs: (m.querySelector('.chat-msgs')||{}).scrollTop || 0,
+      lista: (m.querySelector('.chat-lista')||{}).scrollTop || 0,
+      link: (document.getElementById('chat-link-painel')||{}).value,
+      foco: foco && m.contains(foco) ? (foco.id || (foco.classList.contains('chat-in') ? 'busca' : '')) : '',
+      ini: foco && 'selectionStart' in foco ? foco.selectionStart : null
+    };
+  }
+  m.setAttribute('data-sel', sel || '');
+
   m.innerHTML = '<div class="chat-cx chat-painel">' +
     '<div class="chat-cab"><b>💬 Chat dos pregões</b>' +
       '<span class="chat-ext">' + (_chatExt ? '✓ extensão ativa'
         : chaves.some(function(k){ return CHAT_MON[k].ativo && !chatLeitorDireto(CHAT_MON[k].url); })
           ? '<a href="#" onclick="chatComoInstalar();return false">extensão não detectada</a>' : '') + '</span>' +
+      '<span class="chat-zoom">' +
+        '<button onclick="chatZoom(-1)" title="Diminuir as letras">A−</button>' +
+        '<button onclick="chatZoom(1)" title="Aumentar as letras">A+</button>' +
+        '<button onclick="chatTelaCheia()" title="Ocupar a tela inteira / voltar">' + (_chatCheia() ? '⤡ Janela' : '⛶ Tela cheia') + '</button>' +
+      '</span>' +
       '<button onclick="chatFecharPainel()">&times;</button></div>' +
     '<div class="chat-grid">' +
       '<div class="chat-esq">' +
@@ -17845,7 +17925,86 @@ function chatPintarPainel(){
       '</div>' +
       '<div class="chat-dir">' + (dir || '<div class="chat-vazio">Escolha um pregão à esquerda.</div>') + '</div>' +
     '</div></div>';
+  if(antes){
+    var l = m.querySelector('.chat-lista'); if(l) l.scrollTop = antes.lista;
+    if(antes.sel === (sel || '')){
+      var ms = m.querySelector('.chat-msgs'); if(ms) ms.scrollTop = antes.msgs;
+      var lk = document.getElementById('chat-link-painel');
+      if(lk && antes.link !== undefined && antes.link !== lk.value) lk.value = antes.link;
+    }
+    var alvo = antes.foco === 'busca' ? m.querySelector('.chat-esq .chat-in') : (antes.foco ? document.getElementById(antes.foco) : null);
+    if(alvo){
+      alvo.focus();
+      if(antes.ini !== null) try{ alvo.setSelectionRange(antes.ini, antes.ini); }catch(_e){}
+    }
+  }
   _chatAtualizarFlutuante();
+  _chatAplicarTamanho();
+}
+
+/* ── Cards: o botão de chat acompanha o monitoramento, ao vivo ─────────
+   O card não é redesenhado quando chega mensagem (tem campo de texto
+   aberto), então só os botões de chat são atualizados no lugar. Vale
+   para os dois cards do mesmo pregão (Editais Capturados e Em
+   Andamento), pela chave canônica. */
+function _chatAtualizarCards(){
+  document.querySelectorAll('button[onclick*="nhChatDoEdital(\'"]').forEach(function(b){
+    var m = String(b.getAttribute('onclick')).match(/nhChatDoEdital\('([^']+)'\)/);
+    if(m) _chatPintarBotao(b, _chatChaveCanonica(m[1]), true);
+  });
+  document.querySelectorAll('button[data-chat-key]').forEach(function(b){
+    var id = String(b.getAttribute('data-chat-key')).replace(/^chat_/, '');
+    _chatPintarBotao(b, _chatChaveCanonica('a-' + id), false);
+  });
+}
+
+function _chatPintarBotao(b, chave, chip){
+  var mon = CHAT_MON[chave], ligado = !!(mon && mon.ativo);
+  var r = mon ? chatResumo(chave) : null;
+  var nl = r && r.naoLidas ? ' (' + r.naoLidas + ')' : '';
+  b.title = ligado ? 'Chat do pregão em monitoramento' + (nl ? ' —' + nl + ' não lida(s)' : '') + ' — clique para ver'
+                   : 'Monitorar o chat do pregoeiro no portal';
+  if(chip){
+    b.classList.toggle('nh-btn-ok', ligado);
+    b.innerHTML = '💬 ' + (ligado ? 'Chat' : 'Monitorar chat') +
+      (nl ? ' <b style="color:' + (r.mencoes ? '#ef4444' : '#3b82f6') + '">' + nl.trim() + '</b>' : '');
+    /* A linha de situação do card (quando as ferramentas estão
+       recolhidas) também diz se o chat está ligado. */
+    var card = b.closest('.kcard'), st = card && card.querySelector('.kc-st[data-chat]');
+    if(st){
+      st.classList.toggle('feito', ligado);
+      st.textContent = (ligado ? '✓ ' : '○ ') + 'Chat' + nl;
+    }
+  } else {
+    b.style.opacity = ligado ? '1' : '';
+    var t = b.querySelector('.kc-chat-t');
+    if(t) t.textContent = ligado ? 'Chat ●' + nl : 'Chat';
+    b.classList.toggle('ligado', ligado);
+  }
+}
+
+/* ── Tamanho do painel: letras (A−/A+) e tela cheia ─────────────────── */
+var CHAT_ZOOMS = [0.9, 1, 1.15, 1.3, 1.5];
+function _chatZoomAtual(){
+  try{ var z = parseFloat(localStorage.getItem('nh_chat_zoom')); if(CHAT_ZOOMS.indexOf(z) >= 0) return z; }catch(_e){}
+  return 1;
+}
+function _chatCheia(){ try{ return localStorage.getItem('nh_chat_cheia') === '1'; }catch(_e){ return false; } }
+function _chatAplicarTamanho(){
+  var m = document.getElementById('nh-chat-painel'); if(!m) return;
+  var cx = m.querySelector('.chat-painel');
+  if(cx) cx.style.setProperty('--cz', String(_chatZoomAtual()));
+  m.classList.toggle('cheia', _chatCheia());
+}
+function chatZoom(passo){
+  var i = CHAT_ZOOMS.indexOf(_chatZoomAtual()) + passo;
+  i = Math.max(0, Math.min(CHAT_ZOOMS.length - 1, i));
+  try{ localStorage.setItem('nh_chat_zoom', String(CHAT_ZOOMS[i])); }catch(_e){}
+  _chatAplicarTamanho();
+}
+function chatTelaCheia(){
+  try{ localStorage.setItem('nh_chat_cheia', _chatCheia() ? '0' : '1'); }catch(_e){}
+  chatPintarPainel();
 }
 
 /* ── Botão flutuante: aparece quando há algo monitorado ─────────────── */
@@ -17869,7 +18028,18 @@ function _chatAtualizarFlutuante(){
   b.title = ativos ? (ativos + ' pregão(ões) monitorado(s)' + (nl ? ' · ' + nl + ' mensagem(ns) não lida(s)' : ''))
                    : 'Monitor de chat dos pregões — ative pelo botão 💬 no card de Editais Capturados ou Em Andamento';
   b.style.display = '';
+  try{ _chatAtualizarCards(); }catch(_e){}
 }
+
+/* Esc fecha o que estiver aberto do chat: primeiro a tela de ativar,
+   depois o painel. */
+document.addEventListener('keydown', function(e){
+  if(e.key !== 'Escape') return;
+  var at = document.getElementById('nh-chat-ativar');
+  if(at && at.style.display !== 'none' && at.style.display !== ''){ at.style.display = 'none'; return; }
+  var p = document.getElementById('nh-chat-painel');
+  if(p && p.style.display !== 'none' && p.style.display !== '') chatFecharPainel();
+});
 
 /* Os botões só passam a CHAVE; o resto vem do cadastro. Passar nome de
    empresa dentro de onclick quebra no primeiro apóstrofo ("D'Ávila"). */
@@ -18112,6 +18282,17 @@ async function _chatDiretoLer(chave, manual){
       };
     });
     if(itens.length) await chatReceber(itens, {direto: true});
+    /* Ritmo da leitura. REGRA DO CLIENTE (03/10/2026): "a atualização
+       tem que ser instantânea para a gente não perder o prazo". Então
+       todo pregão vivo é lido a cada 15 s — inclusive o parado há dias
+       (suspenso volta com convocação de prazo curto) e o de sessão
+       finalizada (ainda corre prazo de recurso). Só o que acabou de vez
+       — homologado, fracassado, deserto, revogado, anulado, cancelado —
+       vai para 2 min, porque ali não há mais prazo da empresa no chat. */
+    var ultima = itens.reduce(function(a, i){ var t = _chatTs(i.data, i.hora); return t > a.ts ? {ts: t, texto: i.texto} : a; }, {ts: 0, texto: ''});
+    var acabou = /homologad|fracassad|desert[oa]|revogad|anulad|cancelad/i.test(ultima.texto);
+    st.intervalo = acabou ? 2*60000 : 15000;
+    st.proxima = Date.now() + st.intervalo;
     st.completo = true;
     st.erro = '';
     st.hora = new Date().toTimeString().slice(0, 5);
@@ -18119,6 +18300,7 @@ async function _chatDiretoLer(chave, manual){
   }catch(e){
     st.erro = String(e && e.message || e);
     st.erroHora = new Date().toTimeString().slice(0, 5);
+    st.proxima = Date.now() + 15000;      /* portal fora do ar: tenta de novo na próxima vez, sem martelar */
     console.warn('[chat direto]', chave, st.erro);
     if(manual) toast('Não consegui ler o chat agora: ' + st.erro, 'err');
   }finally{
@@ -18160,20 +18342,38 @@ async function _chatConsertarLinks(){
   }
 }
 
-/** Volta de 20 s pelos pregões ativos de leitura direta. Com a aba do
- *  gestão em segundo plano o Chrome espaça a volta para ~1 min — ainda
- *  bem mais rápido que o e-mail diário da ConLicitação. */
+/** O relógio da leitura direta.
+ *  Bate a cada 3 s e lê cada pregão quando chega a vez dele (15 s, ou
+ *  2 min se já acabou).
+ *  ⚠️ O relógio roda num Worker, não num setInterval da página: com a
+ *  aba do gestão em segundo plano (a pessoa no WhatsApp, no portal…) o
+ *  Chrome segura os timers da página para 1 vez por minuto — e prazo de
+ *  pregão não espera um minuto. Timer de Worker não sofre essa trava. */
+var _chatVoltando = false;
 function chatDiretoLigar(){
   if(_chatDiretoTimer) return;
   var volta = async function(){
-    try{ await _chatConsertarLinks(); }catch(_e){}
-    var chaves = Object.keys(CHAT_MON).filter(function(k){
-      return CHAT_MON[k].ativo && chatLeitorDireto(CHAT_MON[k].url);
-    });
-    for(var i = 0; i < chaves.length; i++) await _chatDiretoLer(chaves[i]);
+    if(_chatVoltando) return;
+    _chatVoltando = true;
+    try{
+      try{ await _chatConsertarLinks(); }catch(_e){}
+      var agora = Date.now();
+      var chaves = Object.keys(CHAT_MON).filter(function(k){
+        var st = _chatDiretoSt[k];
+        return CHAT_MON[k].ativo && chatLeitorDireto(CHAT_MON[k].url) && !(st && st.proxima > agora);
+      });
+      for(var i = 0; i < chaves.length; i++) await _chatDiretoLer(chaves[i]);
+    } finally { _chatVoltando = false; }
   };
-  _chatDiretoTimer = setInterval(volta, 20000);
-  setTimeout(volta, 3000);
+  try{
+    var src = 'setInterval(function(){ postMessage(1); }, 3000);';
+    var w = new Worker(URL.createObjectURL(new Blob([src], {type: 'text/javascript'})));
+    w.onmessage = volta;
+    _chatDiretoTimer = w;
+  }catch(_e){
+    _chatDiretoTimer = setInterval(volta, 3000);     /* sem Worker: melhor que nada */
+  }
+  setTimeout(volta, 2000);
 }
 
 /* ═══ CARDS MAIS LIMPOS — 01/10/2026 ════════════════════════════════════
@@ -18207,6 +18407,7 @@ function nhLimparCards(tab){
     try{ _kcMenuAcoes(card, tab); }catch(e){ console.warn('[cards] menu', e); }
     try{ if(tab === 'editais') _kcFerramentas(card, tab); }catch(e){ console.warn('[cards] ferramentas', e); }
   });
+  try{ if(typeof _chatAtualizarCards === 'function') _chatAtualizarCards(); }catch(_e){}
 }
 
 /* ── 1. Topo: lápis à vista, o resto no "⋯" ─────────────────────────── */
@@ -18369,7 +18570,8 @@ function _kcFerramentas(card, tab){
     var curto = b.textContent.replace(/\s+/g, ' ').trim()
       .replace(/^[✓✔]\s*/, '').replace(/^📋\s*/, '').replace(/^💬\s*/, '')
       .replace(/^Monitorar\s+/i, '').trim();
-    partes.push('<span class="kc-st' + (ok ? ' feito' : '') + '" title="' + _kcEsc(b.getAttribute('title') || '') + '">' +
+    var ehChat = /nhChatDoEdital/.test(b.getAttribute('onclick') || '');
+    partes.push('<span class="kc-st' + (ok ? ' feito' : '') + '"' + (ehChat ? ' data-chat="1"' : '') + ' title="' + _kcEsc(b.getAttribute('title') || '') + '">' +
       (ok ? '✓ ' : '○ ') + _kcEsc(curto.charAt(0).toUpperCase() + curto.slice(1)) + '</span>');
   });
 
