@@ -275,6 +275,53 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
 .btn-salvar:disabled{cursor:not-allowed}
 
 /* Decisão que grava na hora — 03/10/2026 */
+/* ── Cartão reorganizado — 03/10/2026 ─────────────────────────────── */
+.vc-topo{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.card .card-licit{font-size:18px;font-weight:800;line-height:1.4;letter-spacing:-.015em}
+.status-pill{margin-left:auto;padding:7px 14px;font-size:13.5px;font-weight:800;border:1px solid transparent}
+.status-pill.s-sim{border-color:rgba(34,197,94,.45)}
+.status-pill.s-nao{background:rgba(239,68,68,.14);color:var(--nao);border-color:rgba(239,68,68,.45)}
+.status-pill.s-analise{border-color:rgba(234,179,8,.45)}
+.status-pill.s-pend{background:rgba(234,179,8,.12);color:#fbbf24;border:1px solid rgba(234,179,8,.5)}
+.status-pill .dot{width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block}
+.status-pill.s-pend .dot{animation:pulse 1.6s ease-in-out infinite}
+.vc-fatos{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;padding:2px 18px 14px 22px}
+.vc-fato{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 13px;min-width:0}
+.vc-fato span{display:block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--txt3);margin-bottom:5px}
+.vc-fato b{display:block;font-size:15px;font-weight:800;color:var(--txt);overflow:hidden;text-overflow:ellipsis}
+.vc-fato.destaque{border-color:rgba(249,115,22,.35);background:rgba(249,115,22,.06)}
+.vc-fato.destaque b{color:var(--nh2);font-size:17px}
+.vc-fato .tag-resp{margin:0}
+.vc-obj{padding:0 18px 12px 22px}
+.vc-obj > span{display:block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--txt3);margin-bottom:4px}
+.vc-obj p{margin:0;font-size:14.5px;line-height:1.6;color:var(--txt2)}
+.vc-obj p.vc-local{margin-top:6px;font-size:13.5px;color:var(--txt3)}
+.vc-links{padding:0 18px 14px 22px}
+.score-cab{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;margin-bottom:6px}
+.score-cab b{font-size:12.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--txt)}
+.score-cab .badge-risco,.score-cab .badge-capag{padding:3px 10px;font-size:11.5px}
+.score-txt{font-size:13.5px}
+.dec-cab{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
+  padding-top:14px;margin-bottom:12px;border-top:1px solid var(--line)}
+.dec-cab > b{font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--txt)}
+.v-prio-seg{display:inline-flex;align-items:center;gap:4px;padding:3px;border-radius:12px;
+  background:var(--bg);border:1px solid var(--line)}
+.v-prio-seg .vps-rot{font-size:12px;font-weight:700;color:var(--txt3);padding:0 8px 0 6px}
+.v-prio-seg button{font-family:Outfit,sans-serif;font-size:13px;font-weight:700;cursor:pointer;
+  padding:6px 11px;border-radius:9px;border:1px solid transparent;background:transparent;color:var(--txt2)}
+.v-prio-seg button:hover{color:var(--txt);background:var(--surf2)}
+.v-prio-seg button.on.vps-nenhuma{background:var(--surf2);color:var(--txt);border-color:var(--line2)}
+.v-prio-seg button.on.vps-media{background:rgba(234,179,8,.16);color:#fbbf24;border-color:rgba(234,179,8,.5)}
+.v-prio-seg button.on.vps-alta{background:rgba(239,68,68,.16);color:#f87171;border-color:rgba(239,68,68,.5)}
+/* Três botões do mesmo tamanho: o "SIM" ocupava a largura inteira e
+   parecia a única resposta possível. A cor de destaque continua nele. */
+.btns-part{flex-wrap:nowrap}
+.btns-part .btn-part,.btns-part .btn-part:first-child{flex:1 1 0;min-width:0;padding:12px 8px;font-size:14px;border-radius:12px}
+@media (max-width:480px){
+  .btns-part .btn-part,.btns-part .btn-part:first-child{font-size:13.5px;padding:12px 4px;white-space:nowrap}
+  .btns-part .bp-longo{display:none}
+}
+
 .card-links{display:flex;flex-wrap:wrap;align-items:stretch;gap:8px;width:100%}
 .card-links .itens-bt{width:auto;flex:1 1 220px;margin-top:0;padding-top:6px;padding-bottom:6px}
 .viab-mais{display:block;margin-top:8px;font-family:Outfit,sans-serif;font-size:13px;font-weight:800;cursor:pointer;
@@ -1870,37 +1917,50 @@ function setFiltroPrio(f,btn){
 }
 
 async function togglePrioridade(id,ev){
+  var d=TODOS.find(function(x){return x.id===id;});
+  if(!d) return;
+  return definirPrioridade(id, PRIO_CICLO[d.prio||''], ev);
+}
+
+/* ⚠️ 03/10/2026 — a prioridade era uma pílula de 11px que alternava a
+   cada clique ("○ Prioridade"): quase invisível, e para chegar em
+   "média" era preciso passar por "alta". Agora é um seletor com as três
+   opções à vista, ao lado do título "Sua decisão". */
+function _prioSegHtml(id, prio){
+  var op = [['', 'Nenhuma'], ['media', '🟡 Média'], ['alta', '🔴 Alta']];
+  return '<span class="vps-rot">Prioridade</span>' + op.map(function(o){
+    return '<button type="button" class="vps-' + (o[0] || 'nenhuma') + (prio === o[0] ? ' on' : '') + '" ' +
+      'onclick="definirPrioridade(\'' + id + '\',\'' + o[0] + '\',event)">' + o[1] + '</button>';
+  }).join('');
+}
+
+function _pintarPrio(id, p){
+  var seg = document.getElementById('prio-' + id);
+  if(seg) seg.innerHTML = _prioSegHtml(id, p || '');
+  var card = document.getElementById('card-' + id);
+  if(card){
+    card.classList.remove('prio-alta','prio-media');
+    if(p) card.classList.add('prio-' + p);
+  }
+}
+
+async function definirPrioridade(id, novo, ev){
   if(ev) ev.stopPropagation();
   var d=TODOS.find(function(x){return x.id===id;});
   if(!d) return;
-  var novo=PRIO_CICLO[d.prio||''];
-  var btn=document.getElementById('prio-'+id);
+  novo = novo || '';
+  if((d.prio||'') === novo) return;
   /* Pinta antes de gravar: é uma marcação pessoal de triagem, e
      esperar a rede para ver a cor mudar faz o botão parecer travado.
      Se a gravação falhar, volta ao que era e avisa. */
   var antes=d.prio;
   d.prio=novo;
-  if(btn){
-    btn.className='v-prio'+(novo?' '+novo:'');
-    btn.textContent=PRIO_ROTULO[novo];
-  }
-  var card=document.getElementById('card-'+id);
-  if(card){
-    card.classList.remove('prio-alta','prio-media');
-    if(novo) card.classList.add('prio-'+novo);
-  }
+  _pintarPrio(id, novo);
   try{
     await db.collection('editais').doc(id).set({prioridade:novo},{merge:true});
   }catch(e){
     d.prio=antes;
-    if(btn){
-      btn.className='v-prio'+(antes?' '+antes:'');
-      btn.textContent=PRIO_ROTULO[antes||''];
-    }
-    if(card){
-      card.classList.remove('prio-alta','prio-media');
-      if(antes) card.classList.add('prio-'+antes);
-    }
+    _pintarPrio(id, antes);
     toast('Não consegui salvar a prioridade: '+e.message,'err');
     return;
   }
@@ -2130,10 +2190,7 @@ function renderCard(d){
 
   var tagResp=tagResponsavel(arr[9]);
 
-  var pill='<span class="status-pill s-pend">— Pendente</span>';
-  if(isSim(part)) pill='<span class="status-pill s-sim">✓ Participar</span>';
-  else if(isNao(part)) pill='<span class="status-pill s-nao">✕ Recusado</span>';
-  else if(isAnalise(part)) pill='<span class="status-pill s-analise"><span class="dot"></span>Em Análise</span>';
+  var pill=_pillHtml(part);
 
   var temPart = part!=='';
   /* ⚠️ ESCREVER DEIXOU DE SER PROIBIDO — 30/08/2026.
@@ -2166,44 +2223,46 @@ function renderCard(d){
     tagPrazo='<span class="prazo-tag '+cls+'" title="Sessão em '+dd+hr+'">'+txt+' · '+dd+'</span>';
   }
 
+  /* ⚠️ CARTÃO REORGANIZADO — 03/10/2026.
+     Queixa: "Pendente e Prioridade sem destaque, muita informação
+     perdida, botão SIM muito grande". O cartão tinha seis faixas no
+     mesmo peso visual. Agora a leitura segue a ordem da decisão:
+       1. quem / quando / status (status em pílula forte, à direita)
+       2. o processo (título)
+       3. três números-chave em quadros: valor, município, responsável
+       4. o objeto, e logo abaixo edital + planilha
+       5. a análise da IA, com risco e CAPAG JUNTO da nota
+       6. "Sua decisão": prioridade à vista + três botões iguais */
+  var fato = function(rot, valor, cls){
+    return '<div class="vc-fato' + (cls ? ' ' + cls : '') + '"><span>' + rot + '</span><b>' + valor + '</b></div>';
+  };
   return '<div class="card '+cardCls+'" id="card-'+id+'">'+
     '<div class="card-head">'+
-      '<div class="card-eyebrow-row">'+
-        '<span class="card-eyebrow">Análise de Viabilidade</span>'+
-        '<div class="badges-top">'+renderBadgeRisco(an)+renderBadgeCapag(cap)+'</div>'+
+      '<div class="vc-topo">'+
+        '<span class="card-emp" style="background:'+empCor+'22;color:'+empCor+';border:1px solid '+empCor+'44">'+esc(emp)+'</span>'+
+        tagPrazo+
+        pill+
       '</div>'+
       '<div class="card-licit">'+esc(licit)+'</div>'+
-      '<div class="card-tags-row">'+
-        tagPrazo+
-        '<span class="card-emp" style="background:'+empCor+'22;color:'+empCor+';border:1px solid '+empCor+'44">'+esc(emp)+'</span>'+
-        tagResp+
-        pill+
-        /* Fica na mesma linha das tags, e não junto dos botões de voto:
-           marcar prioridade é triagem, não decisão — misturar os dois
-           convida a clicar em SIM sem querer. */
-        '<button type="button" class="v-prio'+(prio?' '+prio:'')+'" id="prio-'+id+'" '+
-          'title="Prioridade — clique para alternar entre alta, média e nenhuma" '+
-          'onclick="togglePrioridade(\''+id+'\',event)">'+PRIO_ROTULO[prio]+'</button>'+
-      '</div>'+
     '</div>'+
-    '<div class="card-info">'+
-      (mun?'<div class="info-row"><span class="lbl">Município/UF</span><span class="val">'+esc(mun)+'</span></div>':'')+
-      (val>0?'<div class="info-row"><span class="lbl">Valor Estimado</span><span class="val">'+fmtMoeda(val)+'</span></div>':'')+
-      (resp?'<div class="info-row"><span class="lbl">Responsável</span><span class="val">'+esc(resp)+'</span></div>':'')+
+    '<div class="vc-fatos">'+
+      fato('Valor estimado', val>0?fmtMoeda(val):'Não informado', 'destaque')+
+      fato('Município / UF', mun?esc(mun):'—')+
+      fato('Responsável', resp?esc(resp):'—')+
     '</div>'+
-    '<div class="card-meta">'+
-      (obj?'<span class="meta-tag obj">'+esc(obj.substring(0,180))+(obj.length>180?'…':'')+'</span>':'')+
-      (local&&local!==mun?'<span class="meta-tag">📍 '+esc(local)+'</span>':'')+
-      /* Edital e planilha lado a lado (03/10/2026): os dois são "o que
-         preciso ler/preencher antes de decidir". */
-      '<div class="card-links">'+
-        (linkPub?'<a href="'+esc(linkPub)+'" target="_blank" rel="noopener" class="meta-link" onclick="event.stopPropagation()">📄 Consultar Edital / TR</a>':'')+
-        renderItens(id)+
-      '</div>'+
+    (obj?'<div class="vc-obj"><span>Objeto</span><p>'+esc(obj.substring(0,320))+(obj.length>320?'…':'')+'</p>'+
+      (local&&local!==mun?'<p class="vc-local">📍 Execução/entrega: '+esc(local)+'</p>':'')+'</div>':'')+
+    /* Edital e planilha lado a lado: os dois são "o que preciso
+       ler/preencher antes de decidir". */
+    '<div class="vc-links card-links">'+
+      (linkPub?'<a href="'+esc(linkPub)+'" target="_blank" rel="noopener" class="meta-link" onclick="event.stopPropagation()">📄 Consultar Edital / TR</a>':'')+
+      renderItens(id)+
     '</div>'+
     '<div class="score-wrap">'+
       renderGaugeViab(an)+
-      '<div class="score-txt">'+(an&&an.motivo?esc(an.motivo):'Nota calculada sobre exigências, concorrência prevista e histórico de preços do órgão. Analise pelo Sistema NH.')+
+      '<div class="score-txt">'+
+        '<div class="score-cab"><b>Análise da IA</b>'+renderBadgeRisco(an)+renderBadgeCapag(cap)+'</div>'+
+        (an&&an.motivo?esc(an.motivo):'Nota calculada sobre exigências, concorrência prevista e histórico de preços do órgão. Analise pelo Sistema NH.')+
         (an?'<button type="button" class="viab-mais" onclick="viabExpandir(\''+id+'\',this)">Ver análise completa ▾</button>':'')+
       '</div>'+
     '</div>'+
@@ -2217,11 +2276,14 @@ function renderCard(d){
        traz "Desfazer", e clicar de novo no botão marcado volta para
        pendente; (4) a observação se salva sozinha enquanto se escreve. */
     '<div class="card-acoes">'+
+      '<div class="dec-cab"><b>Sua decisão</b>'+
+        '<div class="v-prio-seg" id="prio-'+id+'" role="group" aria-label="Prioridade">'+_prioSegHtml(id, prio)+'</div>'+
+      '</div>'+
       '<div class="btns-part">'+
         '<button class="btn-part'+(isSim(part)?' on-sim':'')+'" onclick="selecionarVoto(\''+id+'\',\'SIM\')">'+
-          (isSim(part)?'✅ VOU PARTICIPAR':'✅ SIM, PARTICIPAR')+'</button>'+
-        '<button class="btn-part'+(isNao(part)?' on-nao':'')+'" onclick="selecionarVoto(\''+id+'\',\'NÃO\')">❌ NÃO</button>'+
-        '<button class="btn-part'+(isAnalise(part)?' on-analise':'')+'" style="font-size:12px" onclick="selecionarVoto(\''+id+'\',\'EM ANÁLISE\')">🔍 ANÁLISE</button>'+
+          (isSim(part)?'✅ Vou participar':'✅ Participar')+'</button>'+
+        '<button class="btn-part'+(isNao(part)?' on-nao':'')+'" onclick="selecionarVoto(\''+id+'\',\'NÃO\')">❌ Não<span class="bp-longo">&nbsp;participar</span></button>'+
+        '<button class="btn-part'+(isAnalise(part)?' on-analise':'')+'" onclick="selecionarVoto(\''+id+'\',\'EM ANÁLISE\')">🔍 <span class="bp-longo">Em&nbsp;</span>análise</button>'+
       '</div>'+
       '<div class="voto-status" id="vst-'+id+'">'+_votoStatusHtml(id, part)+'</div>'+
       '<div class="just-wrap">'+
@@ -2246,6 +2308,15 @@ function renderCard(d){
    voto e observação gravados quase juntos não podem um apagar o outro. */
 var _filaGravacao = {};     /* id -> Promise da última gravação */
 var _justTimer = {};
+
+/* Selo de status do cartão. "Pendente" era cinza e pequeno — e é
+   justamente o que pede ação. Agora diz o que falta, em âmbar. */
+function _pillHtml(part){
+  if(isSim(part)) return '<span class="status-pill s-sim">✓ Vou participar</span>';
+  if(isNao(part)) return '<span class="status-pill s-nao">✕ Não vou participar</span>';
+  if(isAnalise(part)) return '<span class="status-pill s-analise"><span class="dot"></span>Em análise</span>';
+  return '<span class="status-pill s-pend"><span class="dot"></span>Aguardando sua decisão</span>';
+}
 
 function _rotuloVoto(p){
   return isSim(p) ? 'Vou participar' : isNao(p) ? 'Não vou participar' : isAnalise(p) ? 'Em análise' : 'Pendente';
@@ -2290,15 +2361,10 @@ function _pintarVoto(id, valor){
   if(isSim(valor)) bts[0].classList.add('on-sim');
   else if(isNao(valor)) bts[1].classList.add('on-nao');
   else if(isAnalise(valor)) bts[2].classList.add('on-analise');
-  if(bts[0]) bts[0].textContent = isSim(valor) ? '✅ VOU PARTICIPAR' : '✅ SIM, PARTICIPAR';
+  if(bts[0]) bts[0].textContent = isSim(valor) ? '✅ Vou participar' : '✅ Participar';
 
   var pill = card.querySelector('.status-pill');
-  if(pill){
-    if(isSim(valor)) pill.outerHTML = '<span class="status-pill s-sim">✓ Participar</span>';
-    else if(isNao(valor)) pill.outerHTML = '<span class="status-pill s-nao">✕ Recusado</span>';
-    else if(isAnalise(valor)) pill.outerHTML = '<span class="status-pill s-analise"><span class="dot"></span>Em Análise</span>';
-    else pill.outerHTML = '<span class="status-pill s-pend">— Pendente</span>';
-  }
+  if(pill) pill.outerHTML = _pillHtml(valor);
   /* Mantém a prioridade (prio-alta/media) na classe do cartão. */
   var prio = (card.className.match(/\bprio-\w+/) || [''])[0];
   card.className = 'card ' + (isSim(valor) ? 'sim' : isNao(valor) ? 'nao' : isAnalise(valor) ? 'analise' : '') + (prio ? ' ' + prio : '');
