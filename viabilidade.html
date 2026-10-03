@@ -2354,13 +2354,9 @@ function renderCard(d){
         '<button class="btn-part'+(isAnalise(part)?' on-analise':'')+'" onclick="selecionarVoto(\''+id+'\',\'EM ANÁLISE\')">🔍 <span class="bp-longo">Em&nbsp;</span>análise</button>'+
       '</div>'+
       '<div class="voto-status" id="vst-'+id+'">'+_votoStatusHtml(id, part)+'</div>'+
-      '<div class="just-wrap">'+
-        '<div class="just-label">Justificativa / Observação <span class="just-salvo" id="jsv-'+id+'"></span></div>'+
-        '<textarea class="just-area" id="just-'+id+'" '+justDisabled+' '+
-          'oninput="justMudou(\''+id+'\')" onblur="justSalvarAgora(\''+id+'\')" '+
-          'placeholder="Anote o motivo da decisão ou o que precisa ser visto. Salva sozinho.">'+esc(just)+'</textarea>'+
-      '</div>'+
-      '<div class="perg" id="perg-'+id+'">'+_perguntaHtml(id, false)+'</div>'+
+      /* Justificativa e "Dúvida para a NH" eram dois campos para a mesma
+         coisa — falar com a NH. Viraram um só (03/10/2026). */
+      '<div class="perg" id="perg-'+id+'">'+_perguntaHtml(id, true)+'</div>'+
     '</div>'+
   '</div>';
 }
@@ -2549,24 +2545,33 @@ function _pergVistoEm(id){ try{ return +localStorage.getItem('nh_perg_visto_' + 
 
 function _perguntaHtml(id, aberto){
   var d = TODOS.find(function(x){ return x.id === id; }) || {};
-  var msgs = d.conversa || [];
+  var msgs = (d.conversa || []).slice();
+  /* A justificativa de antes (campo próprio, índice 12) entra como a
+     primeira mensagem, para não sumir de quem já tinha escrito. */
+  var antiga = String((d.arr || [])[12] || '').trim();
+  if(antiga && !msgs.some(function(m){ return m.de !== 'nh' && String(m.texto || '').trim() === antiga; }))
+    msgs.unshift({de: 'cliente', nome: 'Justificativa registrada', texto: antiga, em: 0});
+  /* Em ordem de tempo; a justificativa antiga (sem data real) fica no topo. */
+  msgs.sort(function(a, b){ return (a.em || 0) - (b.em || 0); });
   var ultNh = msgs.filter(function(m){ return m.de === 'nh'; }).pop();
   var novaResposta = ultNh && (ultNh.em || 0) > _pergVistoEm(id);
-  var aguardando = msgs.length && msgs[msgs.length - 1].de === 'cliente';
-  var cab = '<button type="button" class="perg-cab" onclick="pergAlternar(\'' + id + '\')">' +
-      '<span>❓ Dúvida para a NH' + (msgs.length ? ' <i>(' + msgs.length + ')</i>' : '') + '</span>' +
+  var aguardando = (d.conversa || []).length && d.conversa[d.conversa.length - 1].de === 'cliente';
+  var cab = '<div class="perg-cab">' +
+      '<span>💬 Mensagem para a NH</span>' +
       (novaResposta ? '<em class="perg-selo nova">NH respondeu</em>' : aguardando ? '<em class="perg-selo esp">aguardando resposta</em>' : '') +
-      '<span class="perg-seta">' + (aberto ? '▴' : '▾') + '</span></button>';
-  if(!aberto) return cab;
-  var lista = msgs.length ? msgs.map(function(m){
+    '</div>';
+  var lista = msgs.map(function(m){
     return '<div class="perg-msg ' + (m.de === 'nh' ? 'nh' : 'cli') + '">' +
       '<div class="perg-msg-cab"><b>' + esc(m.de === 'nh' ? (m.nome ? m.nome + ' · NH' : 'NH Licitações') : (m.nome || 'Você')) + '</b>' +
-      '<i>' + _fmtQuando(m.em) + '</i></div>' +
+      (m.em > 1e11 ? '<i>' + _fmtQuando(m.em) + '</i>' : '') + '</div>' +
       '<div class="perg-msg-t">' + esc(m.texto) + '</div></div>';
-  }).join('') : '<p class="perg-vazio">Tem alguma dúvida sobre este processo? Pergunte aqui — a NH responde neste mesmo lugar.</p>';
-  return cab + '<div class="perg-corpo"><div class="perg-lista">' + lista + '</div>' +
-    '<textarea class="just-area perg-in" id="perg-in-' + id + '" placeholder="Escreva sua pergunta para a NH..."></textarea>' +
-    '<button type="button" class="perg-enviar" onclick="enviarPergunta(\'' + id + '\')">Enviar pergunta</button></div>';
+  }).join('');
+  /* Ao ver a conversa, a resposta da NH conta como lida. */
+  if(ultNh) try{ localStorage.setItem('nh_perg_visto_' + id, String(Date.now())); }catch(_e){}
+  return cab + '<div class="perg-corpo">' + (lista ? '<div class="perg-lista">' + lista + '</div>' : '') +
+    '<textarea class="just-area perg-in" id="perg-in-' + id + '" ' +
+      'placeholder="Justifique sua decisão ou tire uma dúvida — a NH recebe na hora e responde aqui."></textarea>' +
+    '<button type="button" class="perg-enviar" onclick="enviarPergunta(\'' + id + '\')">Enviar para a NH</button></div>';
 }
 
 async function pergAlternar(id){
@@ -2589,22 +2594,34 @@ async function pergAlternar(id){
 async function enviarPergunta(id){
   var ta = document.getElementById('perg-in-' + id);
   var texto = String(ta && ta.value || '').trim();
-  if(!texto){ toast('Escreva a pergunta antes de enviar.', 'err'); return; }
+  if(!texto){ toast('Escreva a mensagem antes de enviar.', 'err'); return; }
   var d = TODOS.find(function(x){ return x.id === id; });
   if(!d) return;
   var msg = {de: 'cliente', nome: window._euNome || (SESSAO && SESSAO.nome) || '', texto: texto.slice(0, 2000), em: Date.now()};
+  /* A justificativa antiga (índice 12) vai ser trocada pela mensagem
+     nova logo abaixo — antes disso, ela entra na conversa para não se
+     perder. */
+  var novas = [msg];
+  var antiga = String((d.arr || [])[12] || '').trim();
+  if(antiga && !(d.conversa || []).some(function(m){ return m.de !== 'nh' && String(m.texto || '').trim() === antiga; }))
+    novas.unshift({de: 'cliente', nome: 'Justificativa registrada', texto: antiga, em: 1});
   var bt = document.querySelector('#perg-' + id + ' .perg-enviar');
   if(bt){ bt.disabled = true; bt.textContent = 'Enviando...'; }
   try{
+    var FV = firebase.firestore.FieldValue;
     await db.collection('editais').doc(id).set({
-      conversa: firebase.firestore.FieldValue.arrayUnion(msg),
+      conversa: FV.arrayUnion.apply(FV, novas),
       perguntaAberta: true, perguntaEm: msg.em
     }, {merge: true});
-    d.conversa = (d.conversa || []).concat([msg]);
+    d.conversa = (d.conversa || []).concat(novas);
+    /* A última mensagem também vai para a coluna Justificativa do edital
+       (índice 12), que o Sistema NH já mostra. Falhar aqui não desfaz o
+       envio: a mensagem já está na conversa. */
+    try{ await _gravarEdital(id, {12: msg.texto}); }catch(_e){}
     document.getElementById('perg-' + id).innerHTML = _perguntaHtml(id, true);
-    toast('✅ Pergunta enviada para a NH', 'ok');
+    toast('✅ Mensagem enviada para a NH', 'ok');
   }catch(e){
-    if(bt){ bt.disabled = false; bt.textContent = 'Enviar pergunta'; }
+    if(bt){ bt.disabled = false; bt.textContent = 'Enviar para a NH'; }
     toast('Não consegui enviar: ' + (e.message || e), 'err');
   }
 }

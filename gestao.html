@@ -17016,7 +17016,10 @@ async function nhCarregarDocsEditais(){
     DOC_EDITAL = {};
     s.forEach(function(d){
       var x = d.data() || {};
-      if(x.prioridade) DOC_EDITAL['e-' + d.id] = {prioridade: x.prioridade};
+      /* A conversa com o cliente (Viabilidade) fica registrada no edital
+         e pode ser revista a qualquer momento pelo card — 03/10/2026. */
+      var conv = Array.isArray(x.conversa) ? x.conversa : [];
+      if(x.prioridade || conv.length) DOC_EDITAL['e-' + d.id] = {prioridade: x.prioridade || '', conversa: conv};
     });
   }catch(e){ console.warn('[editais topo]', e.code||'', e.message); }
 }
@@ -17039,13 +17042,15 @@ function nhOuvirPerguntas(){
     s.forEach(function(d){
       var x = d.data() || {};
       novo['e-' + d.id] = {id: d.id, conversa: Array.isArray(x.conversa) ? x.conversa : [], arr: x._arr || []};
+      /* Mantém o histórico do card em dia. */
+      DOC_EDITAL['e-' + d.id] = Object.assign({}, DOC_EDITAL['e-' + d.id] || {}, {conversa: novo['e-' + d.id].conversa});
     });
     if(!_pergPrimeira){
       Object.keys(novo).forEach(function(k){
         var antes = PERGUNTAS[k], n = novo[k];
         if(!antes || (antes.conversa || []).length < n.conversa.length){
           var ult = n.conversa[n.conversa.length - 1] || {};
-          toast('❓ Pergunta de ' + (ult.nome || 'cliente') + ' (' + String(n.arr[2] || '') + '): ' + String(ult.texto || '').slice(0, 120), 'info');
+          toast('💬 Mensagem de ' + (ult.nome || 'cliente') + ' (' + String(n.arr[2] || '') + '): ' + String(ult.texto || '').slice(0, 120), 'info');
           try{ if(typeof _chatBip === 'function') _chatBip(false); }catch(_e){}
         }
       });
@@ -17068,8 +17073,8 @@ function _pergPintarBotao(){
     document.body.appendChild(b);
   }
   b.style.display = n ? '' : 'none';
-  b.innerHTML = '❓ Perguntas de clientes <em>' + n + '</em>';
-  b.title = n + ' pergunta(s) do Viabilidade esperando resposta';
+  b.innerHTML = '💬 Mensagens de clientes <em>' + n + '</em>';
+  b.title = n + ' mensagem(ns) do Viabilidade esperando a NH';
 }
 
 function nhAbrirPerguntas(){
@@ -17081,24 +17086,24 @@ function nhAbrirPerguntas(){
     document.body.appendChild(m);
   }
   var chaves = Object.keys(PERGUNTAS);
-  var fmt = function(ts){ if(!ts) return ''; var d = new Date(ts); return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); };
+  var fmt = function(ts){ if(!ts || ts < 1e11) return ''; var d = new Date(ts); return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); };
   var corpo = chaves.length ? chaves.map(function(k){
     var p = PERGUNTAS[k];
     return '<div class="perg-item">' +
       '<div class="perg-item-cab"><b>' + esc0(String(p.arr[3] || 'Processo #' + p.id)) + '</b>' +
         '<span>' + esc0(String(p.arr[2] || '')) + '</span></div>' +
-      '<div class="perg-thread">' + p.conversa.map(function(c){
+      '<div class="perg-thread">' + p.conversa.slice().sort(function(a, b){ return (a.em || 0) - (b.em || 0); }).map(function(c){
         return '<div class="perg-m ' + (c.de === 'nh' ? 'nh' : 'cli') + '"><b>' + esc0(c.de === 'nh' ? (c.nome || 'NH') : (c.nome || 'Cliente')) +
           '</b> <i>' + fmt(c.em) + '</i><div>' + esc0(c.texto || '') + '</div></div>';
       }).join('') + '</div>' +
       '<textarea class="chat-in perg-resp" id="perg-resp-' + p.id + '" placeholder="Responder ao cliente..."></textarea>' +
       '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">' +
-        '<button class="btn btn-ghost" onclick="nhPerguntaFechar(\'' + p.id + '\')" title="Marca como resolvida sem responder por aqui">Marcar como resolvida</button>' +
+        '<button class="btn btn-ghost" onclick="nhPerguntaFechar(\'' + p.id + '\')" title="Tira da lista sem responder por aqui">Marcar como lida</button>' +
         '<button class="btn btn-nh" onclick="nhResponderPergunta(\'' + p.id + '\')">Enviar resposta</button>' +
       '</div></div>';
-  }).join('') : '<div class="chat-vazio">Nenhuma pergunta esperando resposta. 👍</div>';
+  }).join('') : '<div class="chat-vazio">Nenhuma mensagem esperando a NH. 👍</div>';
   m.innerHTML = '<div class="chat-cx" style="max-width:760px;max-height:90vh">' +
-    '<div class="chat-cab"><b>❓ Perguntas dos clientes</b>' +
+    '<div class="chat-cab"><b>💬 Mensagens dos clientes</b>' +
       '<button onclick="document.getElementById(\'nh-perg-modal\').style.display=\'none\'">&times;</button></div>' +
     '<div class="chat-corpo" style="overflow-y:auto">' + corpo + '</div></div>';
   m.style.display = 'flex';
@@ -17113,8 +17118,51 @@ async function nhResponderPergunta(id){
     await db.collection('editais').doc(String(id)).set({
       conversa: firebase.firestore.FieldValue.arrayUnion(msg), perguntaAberta: false, respondidaEm: msg.em
     }, {merge: true});
+    var k = 'e-' + id, de = DOC_EDITAL[k] || (DOC_EDITAL[k] = {prioridade: '', conversa: []});
+    de.conversa = (de.conversa || []).concat([msg]);
     toast('✅ Resposta enviada — o cliente vê no card do Viabilidade.', 'ok');
+    var cv = document.getElementById('nh-conv-modal');
+    if(cv && cv.style.display === 'flex' && cv.getAttribute('data-id') === String(id)) nhAbrirConversa(k);
+    _convPintarBotoes(k);
   }catch(e){ toast('Não consegui enviar: ' + (e.message || e), 'err'); }
+}
+
+/* ── Histórico completo da conversa de um edital ─────────────────────
+   Aberto pelo botão do card, a qualquer momento — respondida ou não. A
+   conversa é só acrescentada (arrayUnion): ninguém edita nem apaga. */
+function nhAbrirConversa(chave){
+  var id = String(chave).replace(/^e-/, '');
+  var conv = ((DOC_EDITAL[chave] || {}).conversa || []).slice().sort(function(a, b){ return (a.em || 0) - (b.em || 0); });
+  var l = _nhLinhaEdital(chave) || [];
+  var fmt = function(ts){ if(!ts || ts < 1e11) return ''; var d = new Date(ts); return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear()+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); };
+  var m = document.getElementById('nh-conv-modal');
+  if(!m){
+    m = document.createElement('div'); m.id = 'nh-conv-modal'; m.className = 'chat-modal';
+    m.addEventListener('click', function(ev){ if(ev.target === m) m.style.display = 'none'; });
+    document.body.appendChild(m);
+  }
+  m.setAttribute('data-id', id);
+  m.innerHTML = '<div class="chat-cx" style="max-width:720px;max-height:90vh">' +
+    '<div class="chat-cab"><b>💬 Conversa com o cliente</b>' +
+      '<button onclick="document.getElementById(\'nh-conv-modal\').style.display=\'none\'">&times;</button></div>' +
+    '<div class="chat-corpo" style="overflow-y:auto">' +
+      '<div class="perg-item-cab"><b>' + esc0(String(l[3] || 'Processo #' + id)) + '</b><span>' + esc0(String(l[2] || '')) + '</span></div>' +
+      '<div class="perg-thread">' + (conv.length ? conv.map(function(c){
+        return '<div class="perg-m ' + (c.de === 'nh' ? 'nh' : 'cli') + '"><b>' + esc0(c.de === 'nh' ? (c.nome || 'NH') : (c.nome || 'Cliente')) +
+          '</b> <i>' + fmt(c.em) + '</i><div>' + esc0(c.texto || '') + '</div></div>';
+      }).join('') : '<div class="chat-vazio">Nenhuma mensagem ainda.</div>') + '</div>' +
+      '<textarea class="chat-in perg-resp" id="perg-resp-' + id + '" placeholder="Escrever ao cliente..."></textarea>' +
+      '<div style="display:flex;justify-content:flex-end;margin-top:8px">' +
+        '<button class="btn btn-nh" onclick="nhResponderPergunta(\'' + id + '\')">Enviar</button></div>' +
+    '</div></div>';
+  m.style.display = 'flex';
+}
+
+function _convPintarBotoes(chave){
+  var n = ((DOC_EDITAL[chave] || {}).conversa || []).length;
+  document.querySelectorAll('[data-conv-chave="' + chave + '"]').forEach(function(b){
+    b.innerHTML = '💬 Conversa com o cliente (' + n + ')';
+  });
 }
 
 async function nhPerguntaFechar(id){
@@ -19766,6 +19814,15 @@ if(typeof renderCard==='function'){
           itens+='<button class="nh-btn'+_ic.cls+'" data-itens-chave="'+chave+'" title="'+esc0(_ic.title)+'" '
             +'onclick="event.stopPropagation();nhAbrirItensTR(\''+chave+'\',\''+emp.replace(/'/g,"\\'")+'\',\''+tit.substring(0,60).replace(/'/g,"\\'")+'\')">'
             +_ic.txt+'</button>';
+        }
+        /* Conversa com o cliente (Viabilidade): só aparece quando existe,
+           e abre o histórico inteiro — 03/10/2026. */
+        var _cv = (typeof DOC_EDITAL !== 'undefined' && DOC_EDITAL[chave] && DOC_EDITAL[chave].conversa) || [];
+        if(_cv.length){
+          var _aberta = typeof PERGUNTAS !== 'undefined' && PERGUNTAS[chave];
+          itens+='<button class="nh-btn'+(_aberta?' nh-btn-parcial':'')+'" data-conv-chave="'+chave+'" '
+            +'title="'+(_aberta?'O cliente mandou mensagem e espera a NH':'Histórico da conversa com o cliente')+'" '
+            +'onclick="event.stopPropagation();nhAbrirConversa(\''+chave+'\')">💬 Conversa com o cliente ('+_cv.length+')</button>';
         }
 
         /* ── Chat do pregão — 01/10/2026 ───────────────────────────
