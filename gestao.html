@@ -1977,6 +1977,9 @@ textarea{resize:vertical;min-height:70px;line-height:1.6}
    é decoração: é o mesmo verde de "em execução" no resto da casa. */
 .nh-btn-ok{border-color:rgba(34,197,94,.4);color:#22c55e;background:rgba(34,197,94,.09)}
 .nh-btn-ok:hover{border-color:#22c55e;background:rgba(34,197,94,.16);color:#22c55e}
+.nh-btn-espera{border-color:rgba(148,163,184,.35);color:var(--t2)}
+.nh-btn-parcial{border-color:rgba(234,179,8,.45);color:#eab308;background:rgba(234,179,8,.09)}
+.nh-btn-parcial:hover{border-color:#eab308;background:rgba(234,179,8,.16);color:#eab308}
 /* Prioridade marcada pelo cliente. Vem antes dos botões e não é
    clicável: é recado, não ação. */
 .nh-tag-prio{font-weight:800}
@@ -3228,6 +3231,22 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
   .chat-painel{width:100vw;height:100vh;max-height:100vh;border-radius:0}
   .chat-painel .chat-grid{grid-template-columns:1fr}
 }
+/* Perguntas dos clientes (Viabilidade) — 03/10/2026 */
+.perg-flut{position:fixed;left:16px;bottom:72px;z-index:9000;display:inline-flex;align-items:center;gap:8px;
+  padding:11px 17px;border-radius:999px;font:inherit;font-size:14px;font-weight:800;cursor:pointer;
+  background:#1d4ed8;border:1px solid #3b82f6;color:#fff;box-shadow:0 10px 26px -8px rgba(29,78,216,.7)}
+.perg-flut em{font-style:normal;font-size:12px;font-weight:900;padding:1px 8px;border-radius:999px;background:#fff;color:#1d4ed8}
+.perg-item{padding:14px 0;border-bottom:1px solid var(--b1)}
+.perg-item:last-child{border-bottom:0}
+.perg-item-cab{display:flex;justify-content:space-between;gap:10px;margin-bottom:8px}
+.perg-item-cab b{font-size:15px;color:var(--t1)}
+.perg-item-cab span{font-size:13px;font-weight:700;color:var(--nh);white-space:nowrap}
+.perg-thread{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.perg-m{padding:9px 12px;border-radius:10px;font-size:14px;line-height:1.5;max-width:92%}
+.perg-m i{font-style:normal;font-size:12px;color:var(--t3)}
+.perg-m.cli{align-self:flex-start;background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.3)}
+.perg-m.nh{align-self:flex-end;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.3)}
+.perg-resp{min-height:70px}
 </style>
   <!-- Firebase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js"></script>
@@ -16912,6 +16931,8 @@ if(typeof loadAll==='function'){
     /* O monitor de chat sobe junto: o botao flutuante e o alarme
        precisam estar ouvindo antes de alguem abrir qualquer card. */
     try{ chatIniciar(); }catch(_e){}
+    /* Dúvidas que os clientes mandam pelo Viabilidade — ao vivo. */
+    try{ nhOuvirPerguntas(); }catch(_e){}
     /* E a prioridade que o cliente marcou no Viabilidade. */
     try{ await nhCarregarDocsEditais(); }catch(_e){}
     try{if(CUR&&CUR!=='resumo'&&typeof renderTbl==='function')renderTbl(CUR);}catch(_e){}
@@ -17001,12 +17022,169 @@ async function nhCarregarDocsEditais(){
 }
 function _nhDocEdital(chave){ return DOC_EDITAL[chave] || null; }
 
+/* ═══ DÚVIDAS DOS CLIENTES (Viabilidade) — 03/10/2026 ══════════════════
+   O cliente pergunta dentro do card do processo, no Viabilidade, em vez
+   de mandar WhatsApp. A pergunta entra no campo `conversa` do edital e
+   marca `perguntaAberta: true`. Aqui um ouvinte AO VIVO pega só esses
+   editais (consulta pequena, não a coleção inteira), avisa a equipe e
+   abre a conversa para responder. Responder fecha a pendência. */
+var PERGUNTAS = {};            /* 'e-ID' -> {id, conversa, arr} */
+var _pergOuvindo = false, _pergPrimeira = true;
+
+function nhOuvirPerguntas(){
+  if(_pergOuvindo || typeof db === 'undefined') return;
+  _pergOuvindo = true;
+  db.collection('editais').where('perguntaAberta', '==', true).onSnapshot(function(s){
+    var novo = {};
+    s.forEach(function(d){
+      var x = d.data() || {};
+      novo['e-' + d.id] = {id: d.id, conversa: Array.isArray(x.conversa) ? x.conversa : [], arr: x._arr || []};
+    });
+    if(!_pergPrimeira){
+      Object.keys(novo).forEach(function(k){
+        var antes = PERGUNTAS[k], n = novo[k];
+        if(!antes || (antes.conversa || []).length < n.conversa.length){
+          var ult = n.conversa[n.conversa.length - 1] || {};
+          toast('❓ Pergunta de ' + (ult.nome || 'cliente') + ' (' + String(n.arr[2] || '') + '): ' + String(ult.texto || '').slice(0, 120), 'info');
+          try{ if(typeof _chatBip === 'function') _chatBip(false); }catch(_e){}
+        }
+      });
+    }
+    _pergPrimeira = false;
+    PERGUNTAS = novo;
+    _pergPintarBotao();
+    var m = document.getElementById('nh-perg-modal');
+    if(m && m.style.display === 'flex') nhAbrirPerguntas();
+  }, function(err){ console.warn('[perguntas]', err.code || '', err.message); });
+}
+
+function _pergPintarBotao(){
+  var n = Object.keys(PERGUNTAS).length;
+  var b = document.getElementById('nh-perg-flut');
+  if(!b){
+    b = document.createElement('button');
+    b.id = 'nh-perg-flut'; b.className = 'perg-flut';
+    b.onclick = nhAbrirPerguntas;
+    document.body.appendChild(b);
+  }
+  b.style.display = n ? '' : 'none';
+  b.innerHTML = '❓ Perguntas de clientes <em>' + n + '</em>';
+  b.title = n + ' pergunta(s) do Viabilidade esperando resposta';
+}
+
+function nhAbrirPerguntas(){
+  var m = document.getElementById('nh-perg-modal');
+  if(!m){
+    m = document.createElement('div');
+    m.id = 'nh-perg-modal'; m.className = 'chat-modal';
+    m.addEventListener('click', function(ev){ if(ev.target === m) m.style.display = 'none'; });
+    document.body.appendChild(m);
+  }
+  var chaves = Object.keys(PERGUNTAS);
+  var fmt = function(ts){ if(!ts) return ''; var d = new Date(ts); return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); };
+  var corpo = chaves.length ? chaves.map(function(k){
+    var p = PERGUNTAS[k];
+    return '<div class="perg-item">' +
+      '<div class="perg-item-cab"><b>' + esc0(String(p.arr[3] || 'Processo #' + p.id)) + '</b>' +
+        '<span>' + esc0(String(p.arr[2] || '')) + '</span></div>' +
+      '<div class="perg-thread">' + p.conversa.map(function(c){
+        return '<div class="perg-m ' + (c.de === 'nh' ? 'nh' : 'cli') + '"><b>' + esc0(c.de === 'nh' ? (c.nome || 'NH') : (c.nome || 'Cliente')) +
+          '</b> <i>' + fmt(c.em) + '</i><div>' + esc0(c.texto || '') + '</div></div>';
+      }).join('') + '</div>' +
+      '<textarea class="chat-in perg-resp" id="perg-resp-' + p.id + '" placeholder="Responder ao cliente..."></textarea>' +
+      '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">' +
+        '<button class="btn btn-ghost" onclick="nhPerguntaFechar(\'' + p.id + '\')" title="Marca como resolvida sem responder por aqui">Marcar como resolvida</button>' +
+        '<button class="btn btn-nh" onclick="nhResponderPergunta(\'' + p.id + '\')">Enviar resposta</button>' +
+      '</div></div>';
+  }).join('') : '<div class="chat-vazio">Nenhuma pergunta esperando resposta. 👍</div>';
+  m.innerHTML = '<div class="chat-cx" style="max-width:760px;max-height:90vh">' +
+    '<div class="chat-cab"><b>❓ Perguntas dos clientes</b>' +
+      '<button onclick="document.getElementById(\'nh-perg-modal\').style.display=\'none\'">&times;</button></div>' +
+    '<div class="chat-corpo" style="overflow-y:auto">' + corpo + '</div></div>';
+  m.style.display = 'flex';
+}
+
+async function nhResponderPergunta(id){
+  var ta = document.getElementById('perg-resp-' + id);
+  var texto = String(ta && ta.value || '').trim();
+  if(!texto){ toast('Escreva a resposta antes de enviar.', 'err'); return; }
+  var msg = {de: 'nh', nome: meuPrimeiroNome() || meuNome() || 'NH', texto: texto.slice(0, 3000), em: Date.now()};
+  try{
+    await db.collection('editais').doc(String(id)).set({
+      conversa: firebase.firestore.FieldValue.arrayUnion(msg), perguntaAberta: false, respondidaEm: msg.em
+    }, {merge: true});
+    toast('✅ Resposta enviada — o cliente vê no card do Viabilidade.', 'ok');
+  }catch(e){ toast('Não consegui enviar: ' + (e.message || e), 'err'); }
+}
+
+async function nhPerguntaFechar(id){
+  try{ await db.collection('editais').doc(String(id)).set({perguntaAberta: false}, {merge: true}); }
+  catch(e){ toast('Não consegui marcar: ' + (e.message || e), 'err'); }
+}
+
 async function nhCarregarItensTR(){
   try{
     var s = await db.collection('itens_edital').get();
     ITENS_TR = {};
     s.forEach(function(d){ ITENS_TR[d.id] = d.data()||{}; });
   }catch(e){ console.warn('[itens_edital]', e.message); ITENS_TR = {}; }
+  _itensOuvir();
+}
+
+/* ── Situação dos preços do cliente — 03/10/2026 ──────────────────── */
+function _itensChip(chave){
+  var d = (window.ITENS_TR && ITENS_TR[chave]) || null;
+  var itens = (d && Array.isArray(d.itens)) ? d.itens : [];
+  var total = itens.length;
+  if(!total) return {cls: '', txt: '📋 Itens do TR', title: 'A IA lê o TR e monta a lista de itens para o cliente informar os preços mínimos'};
+  var r = (d && d.resposta) || {};
+  var val = r.valores || {};
+  var n = 0;
+  itens.forEach(function(_it, ix){ if(parseMoeda(val[ix]) > 0) n++; });
+  var doCliente = !!r.atualizadoEm;
+  if(!doCliente || !n)
+    return {cls: ' nh-btn-espera', txt: '📋 Itens (' + total + ') · aguardando cliente',
+            title: total + ' item(ns) lidos do TR — o cliente ainda não enviou os preços mínimos pelo Viabilidade'};
+  var tudo = n >= total;
+  return {cls: tudo ? ' nh-btn-ok' : ' nh-btn-parcial',
+          txt: (tudo ? '✅ Preços recebidos (' : '💰 Preços recebidos (') + n + '/' + total + ')',
+          title: 'O cliente enviou ' + n + ' de ' + total + ' preços em ' + r.atualizadoEm +
+                 (tudo ? '' : ' — faltam ' + (total - n) + ' item(ns)') + '. Clique para ver.'};
+}
+
+/* Ao vivo: quando o cliente envia os preços pelo Viabilidade, o botão do
+   card muda na hora e a equipe recebe um aviso — sem F5. O botão é
+   trocado no lugar, sem redesenhar o card (ele tem campo de texto). */
+var _itensOuvindo = false;
+function _itensOuvir(){
+  if(_itensOuvindo || typeof db === 'undefined') return;
+  _itensOuvindo = true;
+  var primeira = true;
+  db.collection('itens_edital').onSnapshot(function(s){
+    s.docChanges().forEach(function(c){
+      var k = c.doc.id, novo = c.doc.data() || {};
+      var antes = ITENS_TR[k] || {};
+      var eraEm = antes.resposta && antes.resposta.atualizadoEm, agoraEm = novo.resposta && novo.resposta.atualizadoEm;
+      ITENS_TR[k] = novo;
+      if(!primeira && agoraEm && agoraEm !== eraEm){
+        var l = _nhLinhaEdital(k) || [];
+        toast('💰 ' + (String(l[2]||'') || 'Cliente') + ' enviou os preços mínimos — ' + String(l[3]||k).slice(0, 70), 'ok');
+      }
+      var ic = _itensChip(k);
+      document.querySelectorAll('[data-itens-chave="' + k + '"]').forEach(function(b){
+        b.className = 'nh-btn' + ic.cls; b.title = ic.title; b.innerHTML = ic.txt;
+      });
+      /* E a linha de situação do card, quando as ferramentas estão recolhidas. */
+      document.querySelectorAll('.kc-st[data-itens="' + k + '"]').forEach(function(st){
+        var ok = /nh-btn-ok/.test(ic.cls);
+        var t = ic.txt.replace(/^(📋|💬|✅|💰)\s*/, '');
+        st.classList.toggle('feito', ok);
+        st.textContent = (ok ? '✓ ' : '○ ') + t;
+        st.title = ic.title;
+      });
+    });
+    primeira = false;
+  }, function(err){ console.warn('[itens_edital ao vivo]', err.code || '', err.message); });
 }
 
 async function nhAbrirItensTR(chave, emp, titulo){
@@ -18572,10 +18750,12 @@ function _kcFerramentas(card, tab){
     /* Ordem importa: tira primeiro o ícone, depois o verbo — senão o
        "💬" na frente impede de achar o "Monitorar". */
     var curto = b.textContent.replace(/\s+/g, ' ').trim()
-      .replace(/^[✓✔]\s*/, '').replace(/^📋\s*/, '').replace(/^💬\s*/, '')
+      .replace(/^[✓✔]\s*/, '').replace(/^(📋|💬|✅|💰)\s*/, '')
       .replace(/^Monitorar\s+/i, '').trim();
     var ehChat = /nhChatDoEdital/.test(b.getAttribute('onclick') || '');
-    partes.push('<span class="kc-st' + (ok ? ' feito' : '') + '"' + (ehChat ? ' data-chat="1"' : '') + ' title="' + _kcEsc(b.getAttribute('title') || '') + '">' +
+    var itK = b.getAttribute('data-itens-chave');
+    partes.push('<span class="kc-st' + (ok ? ' feito' : '') + '"' + (ehChat ? ' data-chat="1"' : '') +
+      (itK ? ' data-itens="' + itK + '"' : '') + ' title="' + _kcEsc(b.getAttribute('title') || '') + '">' +
       (ok ? '✓ ' : '○ ') + _kcEsc(curto.charAt(0).toUpperCase() + curto.slice(1)) + '</span>');
   });
 
@@ -19578,12 +19758,14 @@ if(typeof renderCard==='function'){
            link, o botão nem aparece — não há o que ler. */
         var _linkTR = String((_nhLinhaEdital(chave)||[])[13]||'').trim();
         if(_linkTR){
-          var _jaTem = (window.ITENS_TR && ITENS_TR[chave]) ? (ITENS_TR[chave].itens||[]).length : 0;
-          itens+='<button class="nh-btn'+(_jaTem?' nh-btn-ok':'')+'" '
-            +'title="'+(_jaTem?_jaTem+' item(ns) já extraídos — clique para refazer'
-                              :'A IA lê o TR e monta a planilha de itens para o responsável precificar')+'" '
+          /* Três situações (03/10/2026): lista não lida · lida e
+             aguardando o cliente · preços recebidos (todos ou parte).
+             Antes o verde só dizia "a IA leu o TR" — a NH não sabia, sem
+             abrir, se o cliente já tinha respondido. */
+          var _ic = _itensChip(chave);
+          itens+='<button class="nh-btn'+_ic.cls+'" data-itens-chave="'+chave+'" title="'+esc0(_ic.title)+'" '
             +'onclick="event.stopPropagation();nhAbrirItensTR(\''+chave+'\',\''+emp.replace(/'/g,"\\'")+'\',\''+tit.substring(0,60).replace(/'/g,"\\'")+'\')">'
-            +'📋 '+(_jaTem?('Itens ('+_jaTem+')'):'Itens do TR')+'</button>';
+            +_ic.txt+'</button>';
         }
 
         /* ── Chat do pregão — 01/10/2026 ───────────────────────────

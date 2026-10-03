@@ -292,10 +292,57 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
 .vc-fato.destaque{border-color:rgba(249,115,22,.35);background:rgba(249,115,22,.06)}
 .vc-fato.destaque b{color:var(--nh2);font-size:17px}
 .vc-fato .tag-resp{margin:0}
-.vc-obj{padding:0 18px 12px 22px}
-.vc-obj > span{display:block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--txt3);margin-bottom:4px}
-.vc-obj p{margin:0;font-size:14.5px;line-height:1.6;color:var(--txt2)}
-.vc-obj p.vc-local{margin-top:6px;font-size:13.5px;color:var(--txt3)}
+.vc-obj{margin:0 18px 14px 22px;padding:14px 16px;border-radius:14px;
+  background:linear-gradient(135deg,rgba(59,130,246,.07),rgba(168,85,247,.05));
+  border:1px solid rgba(96,165,250,.22);border-left:3px solid #60a5fa}
+.vc-obj-cab{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;letter-spacing:.07em;
+  text-transform:uppercase;color:#93c5fd;margin-bottom:8px}
+.vc-obj-ic{font-size:15px;line-height:1}
+.vc-obj-txt{margin:0;font-size:15.5px;line-height:1.62;color:var(--txt);font-weight:500}
+.vc-obj-txt.longo{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.vc-obj-mais{margin-top:6px;padding:0;background:none;border:0;cursor:pointer;font-family:Outfit,sans-serif;
+  font-size:13px;font-weight:800;color:#60a5fa}
+.vc-obj-local{display:flex;align-items:flex-start;gap:10px;margin-top:12px;padding:10px 12px;border-radius:11px;
+  background:rgba(10,14,26,.35);border:1px solid var(--line)}
+.vc-obj-local i{display:block;font-style:normal;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--txt3)}
+.vc-obj-local b{display:block;font-size:14.5px;font-weight:700;color:var(--txt);margin-top:2px}
+body.light-theme .vc-obj-cab,body.light-theme .vc-obj-mais{color:#2563eb}
+
+/* Prazo de resposta, aviso de planilha e dúvida para a NH (03/10/2026) */
+.prazo-resp{margin:-2px 0 12px;padding:10px 13px;border-radius:11px;font-size:14px;font-weight:700;border:1px solid}
+.prazo-resp.ok{color:var(--txt2);background:var(--bg);border-color:var(--line)}
+.prazo-resp.perto{color:#fbbf24;background:rgba(234,179,8,.1);border-color:rgba(234,179,8,.45)}
+.prazo-resp.urgente{color:#f87171;background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.5)}
+.prazo-resp.vencido{color:#fff;background:rgba(239,68,68,.75);border-color:#ef4444}
+.vs-alerta{flex-basis:100%;display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:4px;padding:11px 13px;border-radius:11px;
+  font-size:13.5px;line-height:1.5;color:#fbbf24;background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.45)}
+.vs-alerta b{color:#fde68a}
+.vs-alerta-t{flex:1 1 260px;min-width:0}
+.vs-alerta button{margin-left:auto;font-family:Outfit,sans-serif;font-size:13.5px;font-weight:800;cursor:pointer;
+  padding:8px 14px;border-radius:9px;border:none;color:#000;background:#fbbf24}
+.perg{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px}
+.perg-cab{width:100%;display:flex;align-items:center;gap:10px;background:none;border:0;padding:4px 0;cursor:pointer;
+  font-family:Outfit,sans-serif;font-size:14.5px;font-weight:800;color:var(--txt);text-align:left}
+.perg-cab i{font-style:normal;color:var(--txt3);font-weight:700}
+.perg-seta{margin-left:auto;color:var(--txt3)}
+.perg-selo{font-style:normal;font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:99px}
+.perg-selo.nova{color:#fff;background:#3b82f6}
+.perg-selo.esp{color:#fbbf24;background:rgba(234,179,8,.14)}
+.perg-corpo{margin-top:10px}
+.perg-lista{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.perg-msg{padding:10px 13px;border-radius:12px;border:1px solid var(--line);max-width:92%}
+.perg-msg.cli{align-self:flex-end;background:rgba(249,115,22,.08);border-color:rgba(249,115,22,.3)}
+.perg-msg.nh{align-self:flex-start;background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.3)}
+.perg-msg-cab{display:flex;gap:10px;align-items:baseline;font-size:12.5px;margin-bottom:3px}
+.perg-msg-cab b{color:var(--txt)}
+.perg-msg-cab i{font-style:normal;color:var(--txt3);margin-left:auto}
+.perg-msg-t{font-size:14.5px;line-height:1.55;color:var(--txt);white-space:pre-wrap;word-break:break-word}
+.perg-vazio{margin:0 0 10px;font-size:13.5px;color:var(--txt3)}
+.perg-in{min-height:70px}
+.perg-enviar{margin-top:8px;font-family:Outfit,sans-serif;font-size:14px;font-weight:800;cursor:pointer;
+  padding:10px 18px;border-radius:10px;border:none;color:#000;background:linear-gradient(135deg,var(--nh2),#ea580c)}
+.perg-enviar:disabled{opacity:.6;cursor:progress}
+body.light-theme .vc-obj-local{background:rgba(255,255,255,.6)}
 .vc-links{padding:0 18px 14px 22px}
 .score-cab{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;margin-bottom:6px}
 .score-cab b{font-size:12.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--txt)}
@@ -628,6 +675,8 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 .itens-bt-txt b{display:block;font-size:13px;font-weight:700;color:var(--t1)}
 .itens-bt-txt i{display:block;font-style:normal;font-size:11.5px;color:var(--t3);margin-top:2px}
 .itens-bt.feito .itens-bt-txt i{color:#22c55e}
+.itens-bt.parcial{border-color:rgba(234,179,8,.45);background:rgba(234,179,8,.07)}
+.itens-bt.parcial .itens-bt-txt i{color:#eab308}
 .itens-bt-seta{flex-shrink:0;font-size:19px;color:var(--t3);line-height:1}
 
 .it-ov{display:none;position:fixed;inset:0;background:rgba(4,6,12,.82);z-index:700;
@@ -946,7 +995,7 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
   <div class="it-modal">
     <div class="it-head">
       <div class="it-head-txt">
-        <div class="it-olho">Planilha de itens</div>
+        <div class="it-olho">Preços mínimos por item</div>
         <h3 id="it-titulo">Processo</h3>
         <div class="it-sub" id="it-sub"></div>
       </div>
@@ -1588,7 +1637,10 @@ async function carregar(){
       /* `prioridade` é campo de primeiro nível, não posição do `_arr`:
          o array é o mesmo schema do Sistema NH, e esticá-lo aqui
          obrigaria a mexer nos dois lados a cada mudança. */
-      TODOS.push({id:doc.id,_id:d._id,arr:d._arr,prio:String(d.prioridade||'')});
+      TODOS.push({id:doc.id,_id:d._id,arr:d._arr,prio:String(d.prioridade||''),
+        /* A conversa com a NH (03/10/2026) — também campo de primeiro
+           nível, pelo mesmo motivo. */
+        conversa:Array.isArray(d.conversa)?d.conversa:[]});
     });
     TODOS.sort(function(a,b){return b._id-a._id;});
     _canon=null;
@@ -2077,6 +2129,13 @@ function _viabCompletaHtml(an){
                   : '<div class="vc-texto">'+(an.motivo?esc(an.motivo)+'<br><br>':'')+
                     '<i>A análise detalhada aparece aqui a partir da próxima análise feita pela NH.</i></div>');
 }
+function vcObjeto(id, bt){
+  var p = document.getElementById('vobj-' + id); if(!p) return;
+  var abrir = p.classList.contains('longo');
+  p.classList.toggle('longo', !abrir);
+  bt.textContent = abrir ? 'Recolher ▴' : 'Ver objeto completo ▾';
+}
+
 function viabExpandir(id, bt){
   var el = document.getElementById('viabc-'+id); if(!el) return;
   var abrir = el.style.display === 'none';
@@ -2250,8 +2309,16 @@ function renderCard(d){
       fato('Município / UF', mun?esc(mun):'—')+
       fato('Responsável', resp?esc(resp):'—')+
     '</div>'+
-    (obj?'<div class="vc-obj"><span>Objeto</span><p>'+esc(obj.substring(0,320))+(obj.length>320?'…':'')+'</p>'+
-      (local&&local!==mun?'<p class="vc-local">📍 Execução/entrega: '+esc(local)+'</p>':'')+'</div>':'')+
+    /* Objeto com corpo próprio (03/10/2026): era texto cinza solto entre
+       os quadros e os botões — "perdido, sem vida". Agora é um bloco com
+       título, texto legível, "ver tudo" para objeto longo e o local de
+       execução num selo, onde o olho encontra. */
+    ((obj||(local&&local!==mun))?'<div class="vc-obj">'+
+      '<div class="vc-obj-cab"><span class="vc-obj-ic">📦</span>Objeto da licitação</div>'+
+      (obj?'<p class="vc-obj-txt'+(obj.length>220?' longo':'')+'" id="vobj-'+id+'">'+esc(obj)+'</p>'+
+        (obj.length>220?'<button type="button" class="vc-obj-mais" onclick="vcObjeto(\''+id+'\',this)">Ver objeto completo ▾</button>':''):'')+
+      (local&&local!==mun?'<div class="vc-obj-local"><span class="vc-obj-ic">📍</span><span><i>Local de execução / entrega</i><b>'+esc(local)+'</b></span></div>':'')+
+    '</div>':'')+
     /* Edital e planilha lado a lado: os dois são "o que preciso
        ler/preencher antes de decidir". */
     '<div class="vc-links card-links">'+
@@ -2279,6 +2346,7 @@ function renderCard(d){
       '<div class="dec-cab"><b>Sua decisão</b>'+
         '<div class="v-prio-seg" id="prio-'+id+'" role="group" aria-label="Prioridade">'+_prioSegHtml(id, prio)+'</div>'+
       '</div>'+
+      '<div id="prz-'+id+'">'+_prazoRespostaHtml(arr, part)+'</div>'+
       '<div class="btns-part">'+
         '<button class="btn-part'+(isSim(part)?' on-sim':'')+'" onclick="selecionarVoto(\''+id+'\',\'SIM\')">'+
           (isSim(part)?'✅ Vou participar':'✅ Participar')+'</button>'+
@@ -2292,6 +2360,7 @@ function renderCard(d){
           'oninput="justMudou(\''+id+'\')" onblur="justSalvarAgora(\''+id+'\')" '+
           'placeholder="Anote o motivo da decisão ou o que precisa ser visto. Salva sozinho.">'+esc(just)+'</textarea>'+
       '</div>'+
+      '<div class="perg" id="perg-'+id+'">'+_perguntaHtml(id, false)+'</div>'+
     '</div>'+
   '</div>';
 }
@@ -2322,13 +2391,82 @@ function _rotuloVoto(p){
   return isSim(p) ? 'Vou participar' : isNao(p) ? 'Não vou participar' : isAnalise(p) ? 'Em análise' : 'Pendente';
 }
 
-function _votoStatusHtml(id, part){
-  if(!String(part||'').trim()) return '<span class="vs-pend">Escolha uma opção — a decisão é salva na hora.</span>';
-  return '<span class="vs-ok">✓ Decisão salva: <b>' + esc(_rotuloVoto(part)) + '</b></span>' +
-    '<button type="button" class="vs-voltar" onclick="voltarParaPendente(\'' + id + '\')">↩ Mudei de ideia — voltar para pendente</button>';
+/* ═══ PRAZO, AUTORIA E PLANILHA — 03/10/2026 ════════════════════════════
+   (1) Prazo para responder à NH: a NH precisa da decisão com folga para
+       montar proposta e documentos. Regra: PRAZO_RESPOSTA_DIAS_UTEIS dias
+       úteis antes da sessão, ao meio-dia. Ajuste aqui se a NH combinar
+       outro prazo.
+   (3) Participar com planilha vazia: o cartão avisa e oferece abrir. */
+var PRAZO_RESPOSTA_DIAS_UTEIS = 2;
+
+function _prazoResposta(arr){
+  var s = dataSessao(arr);
+  if(!s) return null;
+  var d = new Date(s.getFullYear(), s.getMonth(), s.getDate(), 12, 0, 0, 0);
+  var n = PRAZO_RESPOSTA_DIAS_UTEIS;
+  while(n > 0){
+    d.setDate(d.getDate() - 1);
+    var w = d.getDay();
+    if(w !== 0 && w !== 6) n--;
+  }
+  return d;
 }
 
-function _gravarEdital(id, mudancas){
+function _prazoRespostaHtml(arr, part){
+  if(String(part||'').trim()) return '';            /* já decidiu: o prazo não importa mais */
+  var p = _prazoResposta(arr);
+  if(!p) return '';
+  var dias = ['dom.','seg.','ter.','qua.','qui.','sex.','sáb.'];
+  var quando = dias[p.getDay()] + ', ' + ('0'+p.getDate()).slice(-2) + '/' + ('0'+(p.getMonth()+1)).slice(-2) + ' às 12h';
+  var horas = (p.getTime() - Date.now()) / 3600000;
+  var cls = horas < 0 ? 'vencido' : horas <= 24 ? 'urgente' : horas <= 72 ? 'perto' : 'ok';
+  var txt = horas < 0 ? '⚠ Prazo de resposta vencido (' + quando + ') — responda o quanto antes'
+                      : '⏰ Responda até ' + quando;
+  return '<div class="prazo-resp ' + cls + '" title="A NH precisa da sua decisão ' + PRAZO_RESPOSTA_DIAS_UTEIS +
+    ' dias úteis antes da sessão para preparar proposta e documentos.">' + txt + '</div>';
+}
+
+function _planilhaVazia(id){
+  var d = ITENS_EDITAL[id];
+  var itens = (d && Array.isArray(d.itens)) ? d.itens : [];
+  if(!itens.length) return false;
+  var val = (d.resposta && d.resposta.valores) || {};
+  return !Object.keys(val).some(function(k){ return _vNum(val[k]) > 0; });
+}
+
+function _fmtQuando(ts){
+  if(!ts) return '';
+  var d = new Date(ts);
+  return ('0'+d.getDate()).slice(-2) + '/' + ('0'+(d.getMonth()+1)).slice(-2) + ' às ' +
+         ('0'+d.getHours()).slice(-2) + ':' + ('0'+d.getMinutes()).slice(-2);
+}
+
+/* Item (4) retirado a pedido do cliente (03/10/2026): cada pessoa tem o
+   próprio login, e a trilha do login já diz quem mexeu. Nada extra é
+   gravado com o voto. */
+function _extrasDecisao(valor){ return null; }
+
+function _votoStatusHtml(id, part){
+  var d = TODOS.find(function(x){ return x.id === id; }) || {};
+  if(!String(part||'').trim()) return '<span class="vs-pend">Escolha uma opção — a decisão é salva na hora.</span>';
+  var quem = '';
+  var aviso = (isSim(part) && _planilhaVazia(id))
+    ? '<div class="vs-alerta"><span class="vs-alerta-t">⚠ Você marcou <b>Participar</b>, mas os preços mínimos por item ainda não foram preenchidos — a NH precisa deles para montar a proposta.</span>' +
+      '<button type="button" onclick="itensAbrir(\'' + id + '\')">📋 Preencher agora</button></div>'
+    : '';
+  return '<span class="vs-ok">✓ Decisão salva: <b>' + esc(_rotuloVoto(part)) + '</b>' + quem + '</span>' +
+    '<button type="button" class="vs-voltar" onclick="voltarParaPendente(\'' + id + '\')">↩ Mudei de ideia — voltar para pendente</button>' +
+    aviso;
+}
+
+/** Repinta só a linha de status (depois de salvar a planilha, por ex.). */
+function _atualizarVotoStatus(id){
+  var d = TODOS.find(function(x){ return x.id === id; });
+  var st = document.getElementById('vst-' + id);
+  if(d && st) st.innerHTML = _votoStatusHtml(id, d.arr[10]);
+}
+
+function _gravarEdital(id, mudancas, extras){
   var anterior = _filaGravacao[id] || Promise.resolve();
   var agora = anterior.catch(function(){}).then(async function(){
     var d = TODOS.find(function(x){ return x.id === id; });
@@ -2343,8 +2481,10 @@ function _gravarEdital(id, mudancas){
     var _emp = String(arr[2]||'').trim().replace(/\s+/g,' ').toUpperCase();
     var _doc = {_id: d._id, _arr: arr, _updatedAt: Date.now()};
     if(_emp) _doc.empresa = _emp;
+    if(extras) Object.keys(extras).forEach(function(k){ _doc[k] = extras[k]; });
     await db.collection('editais').doc(id).set(_doc, {merge: true});
     d.arr = arr;
+    if(extras) Object.keys(extras).forEach(function(k){ d[k] = extras[k]; });
     return arr;
   });
   _filaGravacao[id] = agora;
@@ -2382,15 +2522,97 @@ async function selecionarVoto(id, valor){
   var bts = document.querySelectorAll('#card-' + id + ' .btns-part .btn-part');
   bts.forEach(function(b){ b.disabled = true; });
   try{
-    await _gravarEdital(id, {10: novo});
+    await _gravarEdital(id, {10: novo}, _extrasDecisao(novo));
+    _pintarVoto(id, novo);                       /* agora com "por Fulano em…" */
+    _pintarPrazo(id);
     atualizarStats();
     _avisoDesfazer(id, novo, antes);
+    /* Participar com a planilha vazia: além do aviso no cartão, já abre
+       a planilha — é o próximo passo de qualquer jeito. */
+    if(isSim(novo) && _planilhaVazia(id)) setTimeout(function(){ itensAbrir(id); }, 450);
   }catch(e){
     _pintarVoto(id, antes);                      /* não gravou: a tela volta ao que vale */
     toast('Não consegui salvar a decisão: ' + (e.message||e), 'err');
   }finally{
     bts.forEach(function(b){ b.disabled = false; });
   }
+}
+
+/* ═══ DÚVIDA PARA A NH — 03/10/2026 ═════════════════════════════════════
+   Em vez de mensagem solta no WhatsApp, a pergunta fica no próprio
+   processo. Vai para o campo `conversa` do edital (lista de mensagens
+   {de:'cliente'|'nh', nome, texto, em}) e marca `perguntaAberta`, que o
+   Sistema NH escuta ao vivo. A resposta da NH aparece aqui. */
+var _pergAberta = {};
+
+function _pergVistoEm(id){ try{ return +localStorage.getItem('nh_perg_visto_' + id) || 0; }catch(_e){ return 0; } }
+
+function _perguntaHtml(id, aberto){
+  var d = TODOS.find(function(x){ return x.id === id; }) || {};
+  var msgs = d.conversa || [];
+  var ultNh = msgs.filter(function(m){ return m.de === 'nh'; }).pop();
+  var novaResposta = ultNh && (ultNh.em || 0) > _pergVistoEm(id);
+  var aguardando = msgs.length && msgs[msgs.length - 1].de === 'cliente';
+  var cab = '<button type="button" class="perg-cab" onclick="pergAlternar(\'' + id + '\')">' +
+      '<span>❓ Dúvida para a NH' + (msgs.length ? ' <i>(' + msgs.length + ')</i>' : '') + '</span>' +
+      (novaResposta ? '<em class="perg-selo nova">NH respondeu</em>' : aguardando ? '<em class="perg-selo esp">aguardando resposta</em>' : '') +
+      '<span class="perg-seta">' + (aberto ? '▴' : '▾') + '</span></button>';
+  if(!aberto) return cab;
+  var lista = msgs.length ? msgs.map(function(m){
+    return '<div class="perg-msg ' + (m.de === 'nh' ? 'nh' : 'cli') + '">' +
+      '<div class="perg-msg-cab"><b>' + esc(m.de === 'nh' ? (m.nome ? m.nome + ' · NH' : 'NH Licitações') : (m.nome || 'Você')) + '</b>' +
+      '<i>' + _fmtQuando(m.em) + '</i></div>' +
+      '<div class="perg-msg-t">' + esc(m.texto) + '</div></div>';
+  }).join('') : '<p class="perg-vazio">Tem alguma dúvida sobre este processo? Pergunte aqui — a NH responde neste mesmo lugar.</p>';
+  return cab + '<div class="perg-corpo"><div class="perg-lista">' + lista + '</div>' +
+    '<textarea class="just-area perg-in" id="perg-in-' + id + '" placeholder="Escreva sua pergunta para a NH..."></textarea>' +
+    '<button type="button" class="perg-enviar" onclick="enviarPergunta(\'' + id + '\')">Enviar pergunta</button></div>';
+}
+
+async function pergAlternar(id){
+  _pergAberta[id] = !_pergAberta[id];
+  var el = document.getElementById('perg-' + id);
+  if(!el) return;
+  if(_pergAberta[id]){
+    /* Abre com a conversa atualizada: a resposta da NH pode ter chegado
+       depois que a página carregou. */
+    try{
+      var s = await db.collection('editais').doc(id).get();
+      var d = TODOS.find(function(x){ return x.id === id; });
+      if(s.exists && d){ var c = (s.data()||{}).conversa; d.conversa = Array.isArray(c) ? c : []; }
+    }catch(_e){}
+    try{ localStorage.setItem('nh_perg_visto_' + id, String(Date.now())); }catch(_e){}
+  }
+  el.innerHTML = _perguntaHtml(id, !!_pergAberta[id]);
+}
+
+async function enviarPergunta(id){
+  var ta = document.getElementById('perg-in-' + id);
+  var texto = String(ta && ta.value || '').trim();
+  if(!texto){ toast('Escreva a pergunta antes de enviar.', 'err'); return; }
+  var d = TODOS.find(function(x){ return x.id === id; });
+  if(!d) return;
+  var msg = {de: 'cliente', nome: window._euNome || (SESSAO && SESSAO.nome) || '', texto: texto.slice(0, 2000), em: Date.now()};
+  var bt = document.querySelector('#perg-' + id + ' .perg-enviar');
+  if(bt){ bt.disabled = true; bt.textContent = 'Enviando...'; }
+  try{
+    await db.collection('editais').doc(id).set({
+      conversa: firebase.firestore.FieldValue.arrayUnion(msg),
+      perguntaAberta: true, perguntaEm: msg.em
+    }, {merge: true});
+    d.conversa = (d.conversa || []).concat([msg]);
+    document.getElementById('perg-' + id).innerHTML = _perguntaHtml(id, true);
+    toast('✅ Pergunta enviada para a NH', 'ok');
+  }catch(e){
+    if(bt){ bt.disabled = false; bt.textContent = 'Enviar pergunta'; }
+    toast('Não consegui enviar: ' + (e.message || e), 'err');
+  }
+}
+
+function _pintarPrazo(id){
+  var d = TODOS.find(function(x){ return x.id === id; });
+  var el = document.getElementById('prz-' + id);
+  if(d && el) el.innerHTML = _prazoRespostaHtml(d.arr, d.arr[10]);
 }
 
 function voltarParaPendente(id){
@@ -2418,7 +2640,9 @@ function _avisoDesfazer(id, novo, antes){
     el.style.display = 'none';
     clearTimeout(_desfazerTimer);
     _pintarVoto(id, antes);
-    _gravarEdital(id, {10: antes}).then(function(){
+    _gravarEdital(id, {10: antes}, _extrasDecisao(antes)).then(function(){
+      _pintarVoto(id, antes);
+      _pintarPrazo(id);
       atualizarStats();
       toast('↩ Desfeito — voltou para "' + _rotuloVoto(antes) + '"', 'ok');
     }).catch(function(e){
@@ -2599,30 +2823,35 @@ function renderItens(id){
     var temTR = proc && String(proc.arr[13]||'').trim();
     if(!temTR) return '';
     return '<div class="itens-bt itens-vazio" title="Processo '+esc(String(id))+
-        ' — nenhuma planilha de itens gravada para ele">'+
-      '<span class="itens-bt-ic">📋</span>'+
-      '<span class="itens-bt-txt"><b>Planilha de itens</b>'+
-        '<i>ainda não preparada pela NH</i></span>'+
+        ' — a NH ainda não preparou a lista de itens deste processo">'+
+      '<span class="itens-bt-ic">💰</span>'+
+      '<span class="itens-bt-txt"><b>Preços mínimos por item</b>'+
+        '<i>a NH ainda está preparando a lista de itens</i></span>'+
     '</div>';
   }
 
   var resp = (d && d.resposta) || {};
   var val  = resp.valores || {};
-  var n    = Object.keys(val).length;
-  var soma = 0;
+  /* Conta só valor de verdade (> 0): chave com campo vazio não é item
+     precificado, e contava como "preenchido". */
+  var n = 0, soma = 0;
   itens.forEach(function(it, ix){
     var v = _vNum(val[String(ix)]);
-    if(v > 0) soma += v * (_vNum(it.qtd) || 0);
+    if(v > 0){ n++; soma += v * (_vNum(it.qtd) || 0); }
   });
+  /* Verde quando todos os itens têm preço; âmbar quando falta algum. */
+  var estado = !n ? '' : (n >= itens.length ? ' feito' : ' parcial');
 
-  return '<button type="button" class="itens-bt'+(n ? ' feito' : '')+'" '+
+  /* "Preços mínimos por item" (03/10/2026) — era "Planilha de itens",
+     que não dizia o que se preenche ali. */
+  return '<button type="button" class="itens-bt'+estado+'" '+
       'onclick="itensAbrir(\''+esc(id)+'\')">'+
-    '<span class="itens-bt-ic">📋</span>'+
+    '<span class="itens-bt-ic">'+(n >= itens.length ? '✅' : '💰')+'</span>'+
     '<span class="itens-bt-txt">'+
-      '<b>Planilha de itens</b>'+
+      '<b>Preços mínimos por item</b>'+
       '<i>'+ (n
-          ? n + ' de ' + itens.length + ' preenchido' + (n===1?'':'s') + ' · ' + _vBRL(soma)
-          : itens.length + ' ' + (itens.length===1?'item':'itens') + ' para precificar') +'</i>'+
+          ? (n >= itens.length ? 'Todos os ' + itens.length + ' itens com preço' : n + ' de ' + itens.length + ' itens com preço') + ' · ' + _vBRL(soma)
+          : itens.length + ' ' + (itens.length===1?'item':'itens') + ' para informar o preço') +'</i>'+
     '</span>'+
     '<span class="itens-bt-seta">›</span>'+
   '</button>';
@@ -2833,6 +3062,8 @@ async function itensSalvar(){
       var bt = card.querySelector('.itens-bt');
       if(bt) bt.outerHTML = renderItens(id);
     }
+    /* Some o aviso "Participar com planilha vazia". */
+    try{ _atualizarVotoStatus(id); }catch(_e){}
   }catch(e){
     toast('Não consegui enviar: ' + ((e && e.message) || e), 'err');
   }finally{
@@ -2987,6 +3218,7 @@ async function nhPintarQuem(email){
   var box=document.getElementById('nh-quem'); if(!box) return;
   var q=null;
   try{ q=await nhQuemSou(email); }catch(e){}
+  if(q&&q.nome) window._euNome = q.nome;   /* quem decidiu / quem perguntou */
   if(!q||!q.nome){ box.style.display='none'; return; }
   box.style.display='inline-flex';
   box.querySelector('.nh-quem-av').textContent=nhQuemIniciais(q.nome);
