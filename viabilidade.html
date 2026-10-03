@@ -274,6 +274,30 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
 .btn-salvar.ativo:active{opacity:.85;transform:scale(.98)}
 .btn-salvar:disabled{cursor:not-allowed}
 
+/* Decisão que grava na hora — 03/10/2026 */
+.card-acoes .itens-bt{margin:0 0 14px}
+.btn-part:disabled{opacity:.7;cursor:progress}
+.voto-status{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;
+  margin:-4px 0 16px;font-size:13.5px;min-height:24px}
+.voto-status .vs-pend{color:var(--txt3)}
+.voto-status .vs-ok{color:var(--sim);font-weight:600}
+.voto-status .vs-ok b{font-weight:800}
+.vs-voltar{font-family:Outfit,sans-serif;font-size:13px;font-weight:700;cursor:pointer;padding:7px 12px;border-radius:10px;
+  background:transparent;border:1px solid var(--line2);color:var(--txt2)}
+.vs-voltar:hover{border-color:var(--nh);color:var(--nh)}
+.just-salvo{margin-left:8px;font-size:11.5px;font-weight:700;text-transform:none;letter-spacing:0;color:var(--txt3)}
+.just-salvo.ok{color:var(--sim)}
+.just-salvo.erro{color:var(--nao)}
+.toast-desfazer{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(24px + env(safe-area-inset-bottom));
+  z-index:1000;display:none;align-items:center;gap:16px;max-width:calc(100vw - 32px);
+  padding:12px 12px 12px 20px;border-radius:14px;background:var(--surf2);border:1px solid var(--line2);
+  box-shadow:0 14px 40px rgba(0,0,0,.7)}
+.toast-desfazer .td-txt{display:flex;flex-direction:column;min-width:0}
+.toast-desfazer .td-txt b{font-size:15px;color:var(--txt)}
+.toast-desfazer .td-txt i{font-style:normal;font-size:12.5px;color:var(--txt3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toast-desfazer button{flex-shrink:0;font-family:Outfit,sans-serif;font-size:14px;font-weight:800;cursor:pointer;
+  padding:10px 18px;border-radius:10px;border:none;color:#000;background:linear-gradient(135deg,var(--nh2),#ea580c)}
+
 /* Cabeçalho do card: eyebrow + badges de risco/CAPAG */
 .card-eyebrow-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 .card-eyebrow{font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--txt3)}
@@ -2136,59 +2160,197 @@ function renderCard(d){
       renderGaugeViab(an)+
       '<div class="score-txt">'+(an&&an.motivo?esc(an.motivo):'Nota calculada sobre exigências, concorrência prevista e histórico de preços do órgão. Analise pelo Sistema NH.')+'</div>'+
     '</div>'+
+    /* ⚠️ DECISÃO SEM "SALVAR" — 03/10/2026.
+       Pedido do cliente: "a pessoa clica em participar, depois na
+       planilha e depois salvar". Eram três passos para uma decisão, e
+       quem esquecia o último perdia o voto sem perceber.
+       Agora: (1) a planilha vem PRIMEIRO, porque o preço é o que decide;
+       (2) clicar em SIM/NÃO/ANÁLISE JÁ GRAVA; (3) arrependeu? o aviso
+       traz "Desfazer", e clicar de novo no botão marcado volta para
+       pendente; (4) a observação se salva sozinha enquanto se escreve. */
     '<div class="card-acoes">'+
+      renderItens(id)+
       '<div class="btns-part">'+
-        '<button class="btn-part'+(isSim(part)?' on-sim':'')+'" onclick="selecionarVoto(\''+id+'\',\'SIM\')">✅ SIM, PARTICIPAR</button>'+
+        '<button class="btn-part'+(isSim(part)?' on-sim':'')+'" onclick="selecionarVoto(\''+id+'\',\'SIM\')">'+
+          (isSim(part)?'✅ VOU PARTICIPAR':'✅ SIM, PARTICIPAR')+'</button>'+
         '<button class="btn-part'+(isNao(part)?' on-nao':'')+'" onclick="selecionarVoto(\''+id+'\',\'NÃO\')">❌ NÃO</button>'+
         '<button class="btn-part'+(isAnalise(part)?' on-analise':'')+'" style="font-size:12px" onclick="selecionarVoto(\''+id+'\',\'EM ANÁLISE\')">🔍 ANÁLISE</button>'+
       '</div>'+
+      '<div class="voto-status" id="vst-'+id+'">'+_votoStatusHtml(id, part)+'</div>'+
       '<div class="just-wrap">'+
-        '<div class="just-label">Justificativa / Observação</div>'+
+        '<div class="just-label">Justificativa / Observação <span class="just-salvo" id="jsv-'+id+'"></span></div>'+
         '<textarea class="just-area" id="just-'+id+'" '+justDisabled+' '+
-          'oninput="justMudou(\''+id+'\')" '+
-          'placeholder="'+(temPart?'Escreva uma justificativa...'
-                                  :'Pode anotar aqui. Para salvar, escolha SIM, NÃO ou ANÁLISE acima.')+'">'+esc(just)+'</textarea>'+
-        '<div class="aviso-salvar" id="aviso-'+id+'">⚠️ Alteração pendente — clique em Salvar</div>'+
-        /* A planilha entra depois da justificativa: primeiro se decide
-           se vale a pena, depois se coloca preço. E é só um botão —
-           a tabela abre em tela cheia, sem inchar o cartão. */
-        renderItens(id)+
-        '<button class="btn-salvar'+(temPart?' ativo':'')+'" id="btn-'+id+'" '+(temPart?'':'disabled')+' onclick="salvar(\''+id+'\')">💾 Salvar</button>'+
+          'oninput="justMudou(\''+id+'\')" onblur="justSalvarAgora(\''+id+'\')" '+
+          'placeholder="Anote o motivo da decisão ou o que precisa ser visto. Salva sozinho.">'+esc(just)+'</textarea>'+
       '</div>'+
     '</div>'+
   '</div>';
 }
 
-function selecionarVoto(id, valor){
-  var d=TODOS.find(function(x){return x.id===id;});
-  if(!d) return;
-  if(!_pendentes[id]) _pendentes[id]={};
-  _pendentes[id].part = valor;
+/* ═══ DECISÃO QUE GRAVA NA HORA — 03/10/2026 ═══════════════════════════
+   Ver a nota no renderCard. Três peças:
+   · selecionarVoto: grava o voto no clique. Clicar de novo no botão
+     que já está marcado DESMARCA (volta para pendente).
+   · Desfazer: o aviso de confirmação traz o botão por 8 s e restaura o
+     voto anterior — exatamente o "apertei em participar e desisti".
+   · Observação: grava 1,2 s depois de parar de digitar e ao sair do
+     campo, sem botão.
+   Toda gravação passa por _gravarEdital, que enfileira por processo:
+   voto e observação gravados quase juntos não podem um apagar o outro. */
+var _filaGravacao = {};     /* id -> Promise da última gravação */
+var _justTimer = {};
 
-  var card=document.getElementById('card-'+id);
-  if(!card) return;
-  card.querySelectorAll('.btn-part').forEach(function(b){b.classList.remove('on-sim','on-nao','on-analise');});
-  if(valor==='SIM') card.querySelectorAll('.btn-part')[0].classList.add('on-sim');
-  else if(valor==='NÃO') card.querySelectorAll('.btn-part')[1].classList.add('on-nao');
-  else card.querySelectorAll('.btn-part')[2].classList.add('on-analise');
-
-  var just=document.getElementById('just-'+id);
-  if(just){ just.disabled=false; just.placeholder='Escreva uma justificativa...'; }
-  var btn=document.getElementById('btn-'+id);
-  if(btn){ btn.disabled=false; btn.className='btn-salvar ativo'; }
-
-  var aviso=document.getElementById('aviso-'+id);
-  if(aviso) aviso.style.display='block';
-
-  var pill=card.querySelector('.status-pill');
-  if(pill){
-    if(valor==='SIM') pill.outerHTML='<span class="status-pill s-sim">✓ Participar</span>';
-    else if(valor==='NÃO') pill.outerHTML='<span class="status-pill s-nao">✕ Recusado</span>';
-    else pill.outerHTML='<span class="status-pill s-analise"><span class="dot"></span>Em Análise</span>';
-  }
-  // atualizar borda do card imediatamente
-  card.className='card '+(valor==='SIM'?'sim':valor==='NÃO'?'nao':'analise');
+function _rotuloVoto(p){
+  return isSim(p) ? 'Vou participar' : isNao(p) ? 'Não vou participar' : isAnalise(p) ? 'Em análise' : 'Pendente';
 }
+
+function _votoStatusHtml(id, part){
+  if(!String(part||'').trim()) return '<span class="vs-pend">Escolha uma opção — a decisão é salva na hora.</span>';
+  return '<span class="vs-ok">✓ Decisão salva: <b>' + esc(_rotuloVoto(part)) + '</b></span>' +
+    '<button type="button" class="vs-voltar" onclick="voltarParaPendente(\'' + id + '\')">↩ Mudei de ideia — voltar para pendente</button>';
+}
+
+function _gravarEdital(id, mudancas){
+  var anterior = _filaGravacao[id] || Promise.resolve();
+  var agora = anterior.catch(function(){}).then(async function(){
+    var d = TODOS.find(function(x){ return x.id === id; });
+    if(!d) throw new Error('processo não encontrado');
+    var arr = d.arr.slice();
+    Object.keys(mudancas).forEach(function(k){ arr[+k] = mudancas[k]; });
+    /* merge para não apagar _createdAt, que o sistema principal grava.
+       `empresa` solto — fase 1 da separação entre empresas (18/08/2026):
+       salvar aqui basta mesmo que o backfill ainda não tenha passado. A
+       empresa sai do array, não da sessão — este arquivo nunca altera o
+       índice 2. */
+    var _emp = String(arr[2]||'').trim().replace(/\s+/g,' ').toUpperCase();
+    var _doc = {_id: d._id, _arr: arr, _updatedAt: Date.now()};
+    if(_emp) _doc.empresa = _emp;
+    await db.collection('editais').doc(id).set(_doc, {merge: true});
+    d.arr = arr;
+    return arr;
+  });
+  _filaGravacao[id] = agora;
+  return agora;
+}
+
+/** Pinta o cartão conforme o voto, sem redesenhar (a observação que
+ *  está sendo digitada não pode sumir). */
+function _pintarVoto(id, valor){
+  var card = document.getElementById('card-' + id);
+  if(!card) return;
+  var bts = card.querySelectorAll('.btns-part .btn-part');
+  bts.forEach(function(b){ b.classList.remove('on-sim','on-nao','on-analise'); });
+  if(isSim(valor)) bts[0].classList.add('on-sim');
+  else if(isNao(valor)) bts[1].classList.add('on-nao');
+  else if(isAnalise(valor)) bts[2].classList.add('on-analise');
+  if(bts[0]) bts[0].textContent = isSim(valor) ? '✅ VOU PARTICIPAR' : '✅ SIM, PARTICIPAR';
+
+  var pill = card.querySelector('.status-pill');
+  if(pill){
+    if(isSim(valor)) pill.outerHTML = '<span class="status-pill s-sim">✓ Participar</span>';
+    else if(isNao(valor)) pill.outerHTML = '<span class="status-pill s-nao">✕ Recusado</span>';
+    else if(isAnalise(valor)) pill.outerHTML = '<span class="status-pill s-analise"><span class="dot"></span>Em Análise</span>';
+    else pill.outerHTML = '<span class="status-pill s-pend">— Pendente</span>';
+  }
+  /* Mantém a prioridade (prio-alta/media) na classe do cartão. */
+  var prio = (card.className.match(/\bprio-\w+/) || [''])[0];
+  card.className = 'card ' + (isSim(valor) ? 'sim' : isNao(valor) ? 'nao' : isAnalise(valor) ? 'analise' : '') + (prio ? ' ' + prio : '');
+  var st = document.getElementById('vst-' + id);
+  if(st) st.innerHTML = _votoStatusHtml(id, valor);
+}
+
+async function selecionarVoto(id, valor){
+  var d = TODOS.find(function(x){ return x.id === id; });
+  if(!d) return;
+  var antes = String(d.arr[10]||'').trim();
+  /* Clicou no que já estava marcado: é desmarcar. */
+  var novo = (_rotuloVoto(antes) === _rotuloVoto(valor)) ? '' : valor;
+  _pintarVoto(id, novo);                         /* resposta imediata na tela */
+  var bts = document.querySelectorAll('#card-' + id + ' .btns-part .btn-part');
+  bts.forEach(function(b){ b.disabled = true; });
+  try{
+    await _gravarEdital(id, {10: novo});
+    atualizarStats();
+    _avisoDesfazer(id, novo, antes);
+  }catch(e){
+    _pintarVoto(id, antes);                      /* não gravou: a tela volta ao que vale */
+    toast('Não consegui salvar a decisão: ' + (e.message||e), 'err');
+  }finally{
+    bts.forEach(function(b){ b.disabled = false; });
+  }
+}
+
+function voltarParaPendente(id){
+  var d = TODOS.find(function(x){ return x.id === id; });
+  if(!d || !String(d.arr[10]||'').trim()) return;
+  selecionarVoto(id, d.arr[10]);                 /* clicar no marcado = desmarcar */
+}
+
+/* Aviso com "Desfazer". Fica 8 s — tempo de perceber o clique errado. */
+var _desfazerTimer = null;
+function _avisoDesfazer(id, novo, antes){
+  var el = document.getElementById('toast-desfazer');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'toast-desfazer'; el.className = 'toast-desfazer';
+    document.body.appendChild(el);
+  }
+  var proc = TODOS.find(function(x){ return x.id === id; });
+  var nome = proc ? String(proc.arr[3]||'').trim() : '';
+  el.innerHTML = '<span class="td-txt"><b>' + (novo ? '✓ ' + esc(_rotuloVoto(novo)) : '↩ Voltou para pendente') + '</b>' +
+      (nome ? '<i>' + esc(nome.slice(0, 70)) + '</i>' : '') + '</span>' +
+    '<button type="button" id="td-bt">Desfazer</button>';
+  el.style.display = 'flex';
+  document.getElementById('td-bt').onclick = function(){
+    el.style.display = 'none';
+    clearTimeout(_desfazerTimer);
+    _pintarVoto(id, antes);
+    _gravarEdital(id, {10: antes}).then(function(){
+      atualizarStats();
+      toast('↩ Desfeito — voltou para "' + _rotuloVoto(antes) + '"', 'ok');
+    }).catch(function(e){
+      _pintarVoto(id, novo);
+      toast('Não consegui desfazer: ' + (e.message||e), 'err');
+    });
+  };
+  clearTimeout(_desfazerTimer);
+  _desfazerTimer = setTimeout(function(){ el.style.display = 'none'; }, 8000);
+}
+
+/** Observação: salva sozinha 1,2 s depois de parar de digitar. */
+function justMudou(id){
+  var s = document.getElementById('jsv-' + id);
+  if(s){ s.textContent = 'digitando…'; s.className = 'just-salvo'; }
+  clearTimeout(_justTimer[id]);
+  _justTimer[id] = setTimeout(function(){ justSalvarAgora(id); }, 1200);
+}
+
+async function justSalvarAgora(id){
+  clearTimeout(_justTimer[id]);
+  var ta = document.getElementById('just-' + id);
+  var d = TODOS.find(function(x){ return x.id === id; });
+  if(!ta || !d) return;
+  var txt = ta.value.trim();
+  if(txt === String(d.arr[12]||'').trim()){
+    var s0 = document.getElementById('jsv-' + id);
+    if(s0 && s0.textContent === 'digitando…') s0.textContent = '';
+    return;
+  }
+  var s = document.getElementById('jsv-' + id);
+  if(s){ s.textContent = 'salvando…'; s.className = 'just-salvo'; }
+  try{
+    await _gravarEdital(id, {12: txt});
+    if(s){ s.textContent = '✓ salvo'; s.className = 'just-salvo ok'; }
+  }catch(e){
+    if(s){ s.textContent = '⚠ não salvou — tente de novo'; s.className = 'just-salvo erro'; }
+  }
+}
+
+/* Quem fecha a aba com a observação ainda no intervalo de 1,2 s: grava
+   já. O navegador não espera a resposta, mas o pedido sai. */
+window.addEventListener('pagehide', function(){
+  Object.keys(_justTimer).forEach(function(id){ justSalvarAgora(id); });
+});
 
 /* ═════════════════════════════════════════════════
    PLANILHA DE ITENS — 29/08/2026
@@ -2358,13 +2520,6 @@ function renderItens(id){
    própria, e o rodapé com os totais fixo enquanto se digita. */
 var _itensAberto = null;
 
-/** Digitou na justificativa: marca alteração pendente, do mesmo jeito
- *  que trocar o voto marca. Sem isto, quem escreve e sai da tela perde
- *  o que escreveu sem nenhum aviso. */
-function justMudou(id){
-  var aviso = document.getElementById('aviso-' + id);
-  if(aviso) aviso.style.display = 'block';
-}
 
 /* ⚠️ COLUNAS QUE DEPENDEM DO OBJETO — 10/09/2026.
    Uma locação precisa que a empresa diga marca e modelo; uma compra,
@@ -2629,51 +2784,22 @@ function _itensLinhas(id){
   return out;
 }
 
+/* Mantida por compatibilidade: grava voto pendente e observação de uma
+   vez, pelo mesmo caminho enfileirado (_gravarEdital). O cartão não tem
+   mais botão Salvar — ver a nota de 03/10/2026 no renderCard. */
 async function salvar(id){
-  var d=TODOS.find(function(x){return x.id===id;});
-  if(!d) return;
-
-  var btn=document.getElementById('btn-'+id);
-  if(btn){btn.disabled=true;btn.textContent='Salvando...';}
-
-  var arr=d.arr.slice();
-  if(_pendentes[id]&&_pendentes[id].part) arr[10]=_pendentes[id].part;
-  var just=document.getElementById('just-'+id);
-  if(just) arr[12]=just.value.trim();
-
+  var m = {};
+  if(_pendentes[id] && _pendentes[id].part) m[10] = _pendentes[id].part;
+  var just = document.getElementById('just-' + id);
+  if(just) m[12] = just.value.trim();
   try{
-    /* merge para não apagar _createdAt, que o sistema principal grava. */
-    /* `empresa` solto — fase 1 da separação entre empresas (18/08/2026),
-       ver a nota longa em index.html junto de fbSave. Com `merge` o
-       campo já sobreviveria, e esta linha existe para o caso de o
-       backfill ainda não ter passado por este documento: salvar aqui
-       passa a ser suficiente. A empresa sai do array, não da sessão —
-       este arquivo nunca altera o índice 2. */
-    var _emp=String(arr[2]||'').trim().replace(/\s+/g,' ').toUpperCase();
-    var _doc={_id:d._id,_arr:arr,_updatedAt:Date.now()};
-    if(_emp) _doc.empresa=_emp;
-    await db.collection('editais').doc(id).set(_doc,{merge:true});
-    d.arr=arr;
+    await _gravarEdital(id, m);
     delete _pendentes[id];
-
-    var aviso=document.getElementById('aviso-'+id);
-    if(aviso) aviso.style.display='none';
-
-    var card=document.getElementById('card-'+id);
-    var part=String(arr[10]||'').toUpperCase().trim();
-    if(card){
-      card.className='card '+(isSim(part)?'sim':isNao(part)?'nao':isAnalise(part)?'analise':'');
-    }
-
     atualizarStats();
-    toast('✅ Salvo com sucesso!','ok');
+    toast('✅ Salvo com sucesso!', 'ok');
   }catch(e){
-    toast('Erro ao salvar: '+e.message,'err');
-    if(btn){btn.disabled=false;btn.textContent='💾 Salvar';}
-    return;
+    toast('Erro ao salvar: ' + e.message, 'err');
   }
-
-  if(btn){btn.disabled=false;btn.textContent='💾 Salvar';}
 }
 
 /* A chamada final não é mais iniciarAcesso() direto — é o próprio
