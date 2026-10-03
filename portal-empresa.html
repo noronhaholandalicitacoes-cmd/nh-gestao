@@ -3666,7 +3666,10 @@ function gerarDashboard(){
      A saudação existe para a tela ter dono. Ao lado dela, os três
      números que respondem "e aí, como estamos?" sem rolar a página. */
   const h = new Date().getHours();
-  const saud = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
+  /* Sexta-feira é "Sextouuuu" — pedido de 03/10/2026, igual no gestão e
+     no portal geral. */
+  const sexta = new Date().getDay() === 5;
+  const saud = sexta ? 'Sextouuuu' : h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
   const quem = (typeof PERFIL_NOME === 'string' && PERFIL_NOME) ? PERFIL_NOME : '';
   const ondeEstou = isAdmin
     ? empresas.length + (empresas.length === 1 ? ' empresa' : ' empresas')
@@ -3681,7 +3684,7 @@ function gerarDashboard(){
              achando que são da carteira toda. */
           (textoDoEscopo() ? ' &middot; <b style="color:var(--nh)">' + pEsc(textoDoEscopo()) + '</b>' : '') +
         '</div>' +
-        '<h1 class="pd-tit">' + saud + (quem ? ', <span class="pd-nome">' + pEsc(quem) + '</span>' : '') + '</h1>' +
+        '<h1 class="pd-tit">' + saud + (quem ? ', <span class="pd-nome">' + pEsc(quem) + '</span>' : '') + (sexta ? '! 🎉' : '') + '</h1>' +
         /* Maiúscula só na primeira letra, feita aqui e não no CSS: o
            `capitalize` maiuscula TODA palavra e escreve "Sábado, 29 De
            Agosto De 2026", que ninguém escreve assim. */

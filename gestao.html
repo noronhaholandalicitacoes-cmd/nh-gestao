@@ -5554,6 +5554,10 @@ function nhSaudacao(){
   var n=meuPrimeiroNome();
   if(!n) return '';                        /* sem nome, sem frase */
   var d=new Date(), h=d.getHours();
+  /* Sexta-feira não sorteia: é sempre "Sextouuuu" (pedido de 03/10/2026,
+     vale para todos os sistemas — portal geral e Portal de Contratos
+     fazem o mesmo). */
+  if(d.getDay()===5) return 'Sextouuuu, '+n+'! 🎉';
   var pool=[];
   /* Hora do dia manda quando é começo ou fim de expediente. */
   if(h<12) pool.push('Bom dia, {n}');
