@@ -345,19 +345,7 @@ body.light-theme .vc-obj-cab,body.light-theme .vc-obj-mais{color:#2563eb}
 body.light-theme .vc-obj-local{background:rgba(255,255,255,.6)}
 .vc-links{padding:0 18px 14px 22px}
 /* Arquivos do processo — 04/10/2026 */
-.arq{margin:0 18px 14px 22px;border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:var(--surf2)}
-.arq.tem-nh{border-color:rgba(59,130,246,.45);background:rgba(59,130,246,.06)}
-.arq-cab{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--txt)}
-.arq-cab em{font-style:normal;text-transform:none;letter-spacing:0;font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:99px}
-.arq-cab em.esp{color:#fbbf24;background:rgba(234,179,8,.14)}
-.arq-cab em.ok{color:#22c55e;background:rgba(34,197,94,.14)}
-.arq-sub{font-size:12px;font-weight:800;color:var(--txt3);margin:12px 0 6px;text-transform:uppercase;letter-spacing:.05em}
-.arq-it{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 11px;border-radius:11px;background:var(--bg);border:1px solid var(--line);margin-top:6px}
 .arq-ic{font-size:20px;line-height:1}
-.arq-info{flex:1;min-width:160px}
-.arq-nome{font-size:14px;font-weight:700;color:var(--txt);word-break:break-word}
-.arq-meta{font-size:12px;color:var(--txt3);margin-top:2px}
-.arq-desc{font-size:13px;color:var(--txt2);margin-top:4px;white-space:pre-wrap}
 .arq-resp{font-size:12px;font-weight:700;color:#22c55e;margin-top:3px}
 .arq-bts{display:flex;gap:6px;flex-wrap:wrap}
 .arq-bt{font-family:Outfit,sans-serif;font-size:13px;font-weight:800;cursor:pointer;padding:7px 12px;border-radius:9px;
@@ -365,8 +353,6 @@ body.light-theme .vc-obj-local{background:rgba(255,255,255,.6)}
 .arq-bt:hover{border-color:var(--nh2)}
 .arq-bt.forte{border:none;color:#000;background:linear-gradient(135deg,var(--nh2),#ea580c)}
 .arq-bt:disabled{opacity:.6;cursor:progress}
-.arq-vazio{font-size:13px;color:var(--txt3);margin-top:6px}
-.arq-rodape{margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--txt3)}
 .arq-prog{font-size:12.5px;font-weight:700;color:var(--nh2)}
 .score-cab{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;margin-bottom:6px}
 .score-cab b{font-size:12.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--txt)}
@@ -472,6 +458,35 @@ body.light-theme .vc-obj-local{background:rgba(255,255,255,.6)}
 .perg-enviar{background:transparent;color:var(--nh2);border:1.5px solid var(--nh2);font-weight:700}
 .perg-enviar:hover{background:rgba(249,115,22,.1)}
 .arq-bt.forte{background:rgba(249,115,22,.12);color:var(--nh2);border:1.5px solid var(--nh2)}
+
+/* Conversa com a NH = mensagens + arquivos, recolhida (04/10/2026) */
+.perg{margin-top:14px;border-top:0;padding-top:0}
+.perg-cab{flex-wrap:wrap;padding:11px 14px;border-radius:12px;background:var(--surf2);border:1px solid var(--line);font-size:14.5px}
+.perg-cab:hover{border-color:var(--line2)}
+.perg-cab[aria-expanded="true"]{border-color:var(--nh2)}
+.perg-n{font-style:normal;font-size:12px;font-weight:800;color:var(--txt2);background:var(--bg);border:1px solid var(--line);padding:1px 8px;border-radius:99px}
+.perg-dica{font-style:normal;font-size:12.5px;font-weight:600;color:var(--txt3)}
+.perg-selo.arq{color:#fbbf24;background:rgba(234,179,8,.16)}
+.perg-msg.perg-arq{max-width:92%}
+.perg-msg.perg-arq.pend{border-color:rgba(234,179,8,.55);background:rgba(234,179,8,.07)}
+.perg-arq-it{display:flex;align-items:center;gap:8px;margin:4px 0 6px}
+.perg-arq-nome{font-size:14px;font-weight:700;color:var(--txt);word-break:break-word}
+.perg-arq-nome small{display:block;font-size:11.5px;font-weight:600;color:var(--txt3)}
+.perg-msg .arq-bts{margin-top:8px;align-items:center}
+.perg-anexo{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;padding:8px 11px;border-radius:10px;
+  font-size:13.5px;color:var(--txt);background:rgba(249,115,22,.08);border:1px dashed var(--nh2)}
+.perg-anexo small,.perg-anexo span{color:var(--txt3);font-size:12px}
+.perg-anexo button{margin-left:auto;background:none;border:0;color:var(--txt3);font-size:15px;cursor:pointer}
+.perg-acoes{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px}
+.perg-acoes .perg-enviar{margin:0 0 0 auto}
+.perg-limite{margin-top:6px;font-size:11.5px;color:var(--txt3)}
+
+/* Objeto mais enxuto: 3 linhas e o local numa linha só. */
+.vc-obj-txt.longo{-webkit-line-clamp:3}
+.vc-obj-local{margin-top:8px;padding:0;background:none;border:0;align-items:baseline;gap:6px}
+.vc-obj-local i{display:inline;font-size:11.5px}
+.vc-obj-local b{display:inline;font-size:13.5px;margin:0 0 0 4px}
+body.light-theme .vc-obj-local{background:none}
 
 /* Loading / vazio */
 .loading{text-align:center;padding:70px 20px;color:var(--txt3);position:relative;z-index:1}
@@ -2370,10 +2385,6 @@ function renderCard(d){
       (linkPub?'<a href="'+esc(linkPub)+'" target="_blank" rel="noopener" class="meta-link" onclick="event.stopPropagation()">📄 Consultar Edital / TR</a>':'')+
       renderItens(id)+
     '</div>'+
-    /* Arquivos do processo (04/10/2026): planilha de composição de
-       custo, declaração, modelo — a NH manda, o cliente baixa, preenche
-       e devolve aqui mesmo. */
-    '<div id="arq-'+id+'">'+_arquivosHtml(id)+'</div>'+
     '<div class="score-wrap">'+
       renderGaugeViab(an)+
       '<div class="score-txt">'+
@@ -2405,7 +2416,7 @@ function renderCard(d){
       '<div class="voto-status" id="vst-'+id+'">'+_votoStatusHtml(id, part)+'</div>'+
       /* Justificativa e "Dúvida para a NH" eram dois campos para a mesma
          coisa — falar com a NH. Viraram um só (03/10/2026). */
-      '<div class="perg" id="perg-'+id+'">'+_perguntaHtml(id, true)+'</div>'+
+      '<div class="perg" id="perg-'+id+'">'+_perguntaHtml(id)+'</div>'+
     '</div>'+
   '</div>';
 }
@@ -2592,41 +2603,112 @@ var _pergAberta = {};
 
 function _pergVistoEm(id){ try{ return +localStorage.getItem('nh_perg_visto_' + id) || 0; }catch(_e){ return 0; } }
 
-function _perguntaHtml(id, aberto){
-  var d = TODOS.find(function(x){ return x.id === id; }) || {};
+/* ⚠️ CONVERSA E ARQUIVOS NUM LUGAR SÓ — 04/10/2026.
+   Pedido do cliente: "unificar mensagem e envio de documentos para não
+   ficar muita informação solta… a imagem está muito poluída, mesmo que
+   recolha algumas informações".
+   Antes eram dois blocos abertos no cartão (Arquivos do processo no
+   meio, Mensagem para a NH no fim). Agora é UMA faixa no rodapé,
+   recolhida, que diz em selos o que pede atenção ("NH respondeu",
+   "1 arquivo para preencher"). Aberta, mostra mensagens e arquivos na
+   mesma linha do tempo, e a caixa de escrever tem "📎 Anexar". */
+var _pergAnexo = {};   /* id → {arquivo, respostaDe, nomeResp} — anexo escolhido, ainda não enviado */
+
+function _pergMensagens(d){
   var msgs = (d.conversa || []).slice();
   /* A justificativa de antes (campo próprio, índice 12) entra como a
      primeira mensagem, para não sumir de quem já tinha escrito. */
   var antiga = String((d.arr || [])[12] || '').trim();
   if(antiga && !msgs.some(function(m){ return m.de !== 'nh' && String(m.texto || '').trim() === antiga; }))
     msgs.unshift({de: 'cliente', nome: 'Justificativa registrada', texto: antiga, em: 0});
-  /* Em ordem de tempo; a justificativa antiga (sem data real) fica no topo. */
-  msgs.sort(function(a, b){ return (a.em || 0) - (b.em || 0); });
+  return msgs;
+}
+
+function _perguntaHtml(id){
+  var d = TODOS.find(function(x){ return x.id === id; }) || {};
+  var msgs = _pergMensagens(d);
+  var arqs = ARQUIVOS[id] || [];
+  var respondidos = {};
+  arqs.forEach(function(f){ if(f.de !== 'nh' && f.respostaDe) respondidos[f.respostaDe] = 1; });
+  var pendentes = arqs.filter(function(f){ return f.de === 'nh' && !respondidos[f.id]; });
   var ultNh = msgs.filter(function(m){ return m.de === 'nh'; }).pop();
   var novaResposta = ultNh && (ultNh.em || 0) > _pergVistoEm(id);
   var aguardando = (d.conversa || []).length && d.conversa[d.conversa.length - 1].de === 'cliente';
-  var cab = '<div class="perg-cab">' +
-      '<span>💬 Mensagem para a NH</span>' +
-      (novaResposta ? '<em class="perg-selo nova">NH respondeu</em>' : aguardando ? '<em class="perg-selo esp">aguardando resposta</em>' : '') +
-    '</div>';
-  var lista = msgs.map(function(m){
-    return '<div class="perg-msg ' + (m.de === 'nh' ? 'nh' : 'cli') + '">' +
-      '<div class="perg-msg-cab"><b>' + esc(m.de === 'nh' ? (m.nome ? m.nome + ' · NH' : 'NH Licitações') : (m.nome || 'Você')) + '</b>' +
-      (m.em > 1e11 ? '<i>' + _fmtQuando(m.em) + '</i>' : '') + '</div>' +
-      '<div class="perg-msg-t">' + esc(m.texto) + '</div></div>';
+  var aberto = !!_pergAberta[id];
+  var total = msgs.length + arqs.length;
+
+  var selos = '';
+  if(pendentes.length) selos += '<em class="perg-selo arq">📎 ' + pendentes.length + (pendentes.length > 1 ? ' arquivos' : ' arquivo') + ' para preencher</em>';
+  if(novaResposta) selos += '<em class="perg-selo nova">NH respondeu</em>';
+  else if(aguardando) selos += '<em class="perg-selo esp">aguardando resposta</em>';
+  var cab = '<button type="button" class="perg-cab" onclick="pergAlternar(\'' + id + '\')" aria-expanded="' + aberto + '">' +
+      '<span>💬 Conversa com a NH</span>' +
+      (total ? '<i class="perg-n">' + total + '</i>' : '<i class="perg-dica">dúvida, justificativa ou arquivo</i>') +
+      selos + '<span class="perg-seta">' + (aberto ? '▴' : '▾') + '</span>' +
+    '</button>';
+  if(!aberto) return cab;
+
+  /* Linha do tempo: mensagem e arquivo, na ordem em que aconteceram. */
+  var linha = msgs.map(function(m){ return {t: 'm', em: m.em || 0, m: m}; })
+    .concat(arqs.map(function(f){ return {t: 'a', em: f.em || 0, f: f}; }))
+    .sort(function(a, b){ return a.em - b.em; });
+  var nomeDe = {}; arqs.forEach(function(f){ nomeDe[f.id] = f.nome; });
+  var lista = linha.map(function(x){
+    if(x.t === 'm'){
+      var m = x.m;
+      return '<div class="perg-msg ' + (m.de === 'nh' ? 'nh' : 'cli') + '">' +
+        '<div class="perg-msg-cab"><b>' + esc(m.de === 'nh' ? (m.nome ? m.nome + ' · NH' : 'NH Licitações') : (m.nome || 'Você')) + '</b>' +
+        (m.em > 1e11 ? '<i>' + _fmtQuando(m.em) + '</i>' : '') + '</div>' +
+        '<div class="perg-msg-t">' + esc(m.texto) + '</div></div>';
+    }
+    var f = x.f, deNh = f.de === 'nh';
+    return '<div class="perg-msg perg-arq ' + (deNh ? 'nh' : 'cli') + (deNh && !respondidos[f.id] ? ' pend' : '') + '">' +
+      '<div class="perg-msg-cab"><b>' + esc(deNh ? (f.autor ? f.autor + ' · NH' : 'NH Licitações') : (f.autor || 'Você')) + '</b>' +
+        (f.em ? '<i>' + _fmtQuando(f.em) + '</i>' : '') + '</div>' +
+      '<div class="perg-arq-it"><span class="arq-ic">' + _arqIcone(f.nome) + '</span>' +
+        '<span class="perg-arq-nome">' + esc(f.nome || 'arquivo') + '<small>' + _arqTam(f.tamanho) + '</small></span></div>' +
+      (f.descricao ? '<div class="perg-msg-t">' + esc(f.descricao) + '</div>' : '') +
+      (!deNh && f.respostaDe && nomeDe[f.respostaDe] ? '<div class="arq-resp">↩ Devolvendo "' + esc(nomeDe[f.respostaDe]) + '"</div>' : '') +
+      '<div class="arq-bts">' +
+        '<button type="button" class="arq-bt" onclick="arqBaixar(\'' + id + '\',\'' + f.id + '\',this)">⬇ Baixar</button>' +
+        (deNh ? (respondidos[f.id]
+            ? '<span class="arq-resp">✓ Você já devolveu preenchido</span>'
+            : '<button type="button" class="arq-bt forte" onclick="arqEscolher(\'' + id + '\',\'' + f.id + '\')">⬆ Devolver preenchido</button>') : '') +
+      '</div></div>';
   }).join('');
   /* Ao ver a conversa, a resposta da NH conta como lida. */
   if(ultNh) try{ localStorage.setItem('nh_perg_visto_' + id, String(Date.now())); }catch(_e){}
+
+  var ax = _pergAnexo[id];
   return cab + '<div class="perg-corpo">' + (lista ? '<div class="perg-lista">' + lista + '</div>' : '') +
     '<textarea class="just-area perg-in" id="perg-in-' + id + '" ' +
-      'placeholder="Justifique sua decisão ou tire uma dúvida — a NH recebe na hora e responde aqui."></textarea>' +
-    '<button type="button" class="perg-enviar" onclick="enviarPergunta(\'' + id + '\')">Enviar para a NH</button></div>';
+      'placeholder="Escreva para a NH: dúvida, justificativa da decisão… e anexe arquivos se precisar."></textarea>' +
+    (ax ? '<div class="perg-anexo">📎 <b>' + esc(ax.arquivo.name) + '</b> <small>' + _arqTam(ax.arquivo.size) + '</small>' +
+            (ax.nomeResp ? '<span>devolvendo "' + esc(ax.nomeResp) + '"</span>' : '') +
+            '<button type="button" onclick="pergTirarAnexo(\'' + id + '\')" title="Tirar anexo">✕</button></div>' : '') +
+    '<div class="perg-acoes">' +
+      '<button type="button" class="arq-bt" onclick="arqEscolher(\'' + id + '\',\'\')">📎 Anexar arquivo</button>' +
+      '<span class="arq-prog" id="arq-prog-' + id + '"></span>' +
+      '<button type="button" class="perg-enviar" onclick="enviarPergunta(\'' + id + '\')">Enviar para a NH</button>' +
+    '</div>' +
+    '<div class="perg-limite">Arquivos até 25 MB · Excel, PDF, Word, ZIP ou imagem</div></div>';
 }
+
+/* Repinta sem perder o que a pessoa estava escrevendo. */
+function _pergRepintar(id){
+  var el = document.getElementById('perg-' + id);
+  if(!el) return;
+  var ta = document.getElementById('perg-in-' + id);
+  var txt = ta ? ta.value : '', foco = ta && document.activeElement === ta;
+  el.innerHTML = _perguntaHtml(id);
+  var nt = document.getElementById('perg-in-' + id);
+  if(nt && txt){ nt.value = txt; if(foco) nt.focus(); }
+}
+
+function pergTirarAnexo(id){ delete _pergAnexo[id]; _pergRepintar(id); }
 
 async function pergAlternar(id){
   _pergAberta[id] = !_pergAberta[id];
-  var el = document.getElementById('perg-' + id);
-  if(!el) return;
   if(_pergAberta[id]){
     /* Abre com a conversa atualizada: a resposta da NH pode ter chegado
        depois que a página carregou. */
@@ -2635,44 +2717,56 @@ async function pergAlternar(id){
       var d = TODOS.find(function(x){ return x.id === id; });
       if(s.exists && d){ var c = (s.data()||{}).conversa; d.conversa = Array.isArray(c) ? c : []; }
     }catch(_e){}
-    try{ localStorage.setItem('nh_perg_visto_' + id, String(Date.now())); }catch(_e){}
   }
-  el.innerHTML = _perguntaHtml(id, !!_pergAberta[id]);
+  _pergRepintar(id);
+  if(_pergAberta[id]){ var ta = document.getElementById('perg-in-' + id); if(ta) ta.focus({preventScroll: true}); }
 }
 
 async function enviarPergunta(id){
   var ta = document.getElementById('perg-in-' + id);
   var texto = String(ta && ta.value || '').trim();
-  if(!texto){ toast('Escreva a mensagem antes de enviar.', 'err'); return; }
+  var ax = _pergAnexo[id];
+  if(!texto && !ax){ toast('Escreva a mensagem ou anexe um arquivo antes de enviar.', 'err'); return; }
   var d = TODOS.find(function(x){ return x.id === id; });
   if(!d) return;
-  var msg = {de: 'cliente', nome: window._euNome || (SESSAO && SESSAO.nome) || '', texto: texto.slice(0, 2000), em: Date.now()};
-  /* A justificativa antiga (índice 12) vai ser trocada pela mensagem
-     nova logo abaixo — antes disso, ela entra na conversa para não se
-     perder. */
-  var novas = [msg];
-  var antiga = String((d.arr || [])[12] || '').trim();
-  if(antiga && !(d.conversa || []).some(function(m){ return m.de !== 'nh' && String(m.texto || '').trim() === antiga; }))
-    novas.unshift({de: 'cliente', nome: 'Justificativa registrada', texto: antiga, em: 1});
   var bt = document.querySelector('#perg-' + id + ' .perg-enviar');
   if(bt){ bt.disabled = true; bt.textContent = 'Enviando...'; }
-  try{
-    var FV = firebase.firestore.FieldValue;
-    await db.collection('editais').doc(id).set({
-      conversa: FV.arrayUnion.apply(FV, novas),
-      perguntaAberta: true, perguntaEm: msg.em
-    }, {merge: true});
-    d.conversa = (d.conversa || []).concat(novas);
-    /* A última mensagem também vai para a coluna Justificativa do edital
-       (índice 12), que o Sistema NH já mostra. Falhar aqui não desfaz o
-       envio: a mensagem já está na conversa. */
-    try{ await _gravarEdital(id, {12: msg.texto}); }catch(_e){}
-    document.getElementById('perg-' + id).innerHTML = _perguntaHtml(id, true);
-    toast('✅ Mensagem enviada para a NH', 'ok');
-  }catch(e){
-    if(bt){ bt.disabled = false; bt.textContent = 'Enviar para a NH'; }
-    toast('Não consegui enviar: ' + (e.message || e), 'err');
+  var ok = true;
+  /* Arquivo primeiro: se ele falhar, o texto continua na caixa e nada
+     sai pela metade. */
+  if(ax){
+    ok = await arqEnviar(id, ax.arquivo, ax.respostaDe);
+    if(ok) delete _pergAnexo[id];
   }
+  if(ok && texto){
+    var msg = {de: 'cliente', nome: window._euNome || (SESSAO && SESSAO.nome) || '', texto: texto.slice(0, 2000), em: Date.now()};
+    /* A justificativa antiga (índice 12) vai ser trocada pela mensagem
+       nova logo abaixo — antes disso, ela entra na conversa para não se
+       perder. */
+    var novas = [msg];
+    var antiga = String((d.arr || [])[12] || '').trim();
+    if(antiga && !(d.conversa || []).some(function(m){ return m.de !== 'nh' && String(m.texto || '').trim() === antiga; }))
+      novas.unshift({de: 'cliente', nome: 'Justificativa registrada', texto: antiga, em: 1});
+    try{
+      var FV = firebase.firestore.FieldValue;
+      await db.collection('editais').doc(id).set({
+        conversa: FV.arrayUnion.apply(FV, novas),
+        perguntaAberta: true, perguntaEm: msg.em
+      }, {merge: true});
+      d.conversa = (d.conversa || []).concat(novas);
+      if(ta) ta.value = '';
+      /* A última mensagem também vai para a coluna Justificativa do edital
+         (índice 12), que o Sistema NH já mostra. Falhar aqui não desfaz o
+         envio: a mensagem já está na conversa. */
+      try{ await _gravarEdital(id, {12: msg.texto}); }catch(_e){}
+      toast('✅ Mensagem enviada para a NH', 'ok');
+    }catch(e){
+      ok = false;
+      toast('Não consegui enviar: ' + (e.message || e), 'err');
+    }
+  }
+  if(bt){ bt.disabled = false; bt.textContent = 'Enviar para a NH'; }
+  _pergRepintar(id);
 }
 
 function _pintarPrazo(id){
@@ -2908,49 +3002,13 @@ function arqOuvir(){
   });
 }
 
-function _arqPintar(id){
-  var el = document.getElementById('arq-' + id);
-  if(el) el.innerHTML = _arquivosHtml(id);
-}
+/* Os arquivos agora moram dentro da "Conversa com a NH" (04/10/2026):
+   repintar é repintar a conversa, sem perder o que está sendo escrito. */
+function _arqPintar(id){ _pergRepintar(id); }
 
-function _arquivosHtml(id){
-  var l = ARQUIVOS[id] || [];
-  var daNh = l.filter(function(f){ return f.de === 'nh'; });
-  var meus = l.filter(function(f){ return f.de !== 'nh'; });
-  var respondidos = {};
-  meus.forEach(function(f){ if(f.respostaDe) respondidos[f.respostaDe] = 1; });
-  var faltam = daNh.filter(function(f){ return !respondidos[f.id]; }).length;
-  var item = function(f, deNh){
-    return '<div class="arq-it"><span class="arq-ic">' + _arqIcone(f.nome) + '</span>' +
-      '<div class="arq-info"><div class="arq-nome">' + esc(f.nome || 'arquivo') + '</div>' +
-        '<div class="arq-meta">' + _arqTam(f.tamanho) + ' · ' + esc(deNh ? 'NH Licitações' : (f.autor || 'Você')) +
-          (f.em ? ' · ' + _fmtQuando(f.em) : '') + '</div>' +
-        (f.descricao ? '<div class="arq-desc">' + esc(f.descricao) + '</div>' : '') +
-        (deNh && respondidos[f.id] ? '<div class="arq-resp">✓ Você já devolveu este arquivo preenchido</div>' : '') +
-      '</div>' +
-      '<div class="arq-bts">' +
-        '<button type="button" class="arq-bt" onclick="arqBaixar(\'' + id + '\',\'' + f.id + '\',this)">⬇ Baixar</button>' +
-        (deNh ? '<button type="button" class="arq-bt forte" onclick="arqEscolher(\'' + id + '\',\'' + f.id + '\')">⬆ Enviar preenchido</button>' : '') +
-      '</div></div>';
-  };
-  if(!l.length)
-    return '<div class="arq"><div class="arq-cab">📎 Arquivos do processo</div>' +
-      '<div class="arq-rodape" style="margin-top:6px"><span>Precisa mandar planilha, proposta ou documento para a NH?</span>' +
-      '<button type="button" class="arq-bt" onclick="arqEscolher(\'' + id + '\',\'\')">⬆ Enviar arquivo</button>' +
-      '<span class="arq-prog" id="arq-prog-' + id + '"></span></div></div>';
-  return '<div class="arq' + (daNh.length ? ' tem-nh' : '') + '">' +
-    '<div class="arq-cab">📎 Arquivos do processo' +
-      (faltam ? '<em class="esp">' + faltam + (faltam > 1 ? ' arquivos aguardam' : ' arquivo aguarda') + ' seu preenchimento</em>'
-              : (daNh.length ? '<em class="ok">✓ Tudo devolvido</em>' : '')) + '</div>' +
-    (daNh.length ? '<div class="arq-sub">Enviados pela NH — baixe, preencha e devolva</div>' +
-      daNh.map(function(f){ return item(f, true); }).join('') : '') +
-    (meus.length ? '<div class="arq-sub">Enviados por você</div>' +
-      meus.map(function(f){ return item(f, false); }).join('') : '') +
-    '<div class="arq-rodape"><button type="button" class="arq-bt" onclick="arqEscolher(\'' + id + '\',\'\')">⬆ Enviar outro arquivo</button>' +
-      '<span>Até 25 MB · Excel, PDF, Word, ZIP</span><span class="arq-prog" id="arq-prog-' + id + '"></span></div>' +
-  '</div>';
-}
-
+/* Escolher arquivo NÃO envia na hora: ele vira anexo da caixa de
+   mensagem, a pessoa confere e clica "Enviar para a NH" — o mesmo
+   botão de sempre, com ou sem texto junto. */
 function arqEscolher(id, respostaDe){
   var inp = document.getElementById('arq-input');
   if(!inp){
@@ -2961,7 +3019,14 @@ function arqEscolher(id, respostaDe){
       var f = inp.files && inp.files[0];
       var ed = inp.getAttribute('data-id'), rd = inp.getAttribute('data-resp') || '';
       inp.value = '';
-      if(f) arqEnviar(ed, f, rd);
+      if(!f) return;
+      if(!ARQ_EXT.test(f.name)){ toast('Tipo de arquivo não aceito. Envie Excel, PDF, Word, ZIP ou imagem.', 'err'); return; }
+      if(f.size > ARQ_MAX){ toast('O arquivo tem ' + _arqTam(f.size) + '. O limite é 25 MB — compacte em ZIP ou divida.', 'err'); return; }
+      var orig = rd ? (ARQUIVOS[ed] || []).find(function(x){ return x.id === rd; }) : null;
+      _pergAnexo[ed] = {arquivo: f, respostaDe: rd, nomeResp: orig ? orig.nome : ''};
+      _pergAberta[ed] = true;
+      _pergRepintar(ed);
+      var ta = document.getElementById('perg-in-' + ed); if(ta) ta.focus({preventScroll: true});
     });
     document.body.appendChild(inp);
   }
@@ -2970,7 +3035,6 @@ function arqEscolher(id, respostaDe){
   inp.click();
 }
 
-/* Pedaço do arquivo → base64, sem o "data:...;base64," da frente. */
 function _arqBase64(blob){
   return new Promise(function(ok, falha){
     var r = new FileReader();
@@ -2981,11 +3045,11 @@ function _arqBase64(blob){
 }
 
 async function arqEnviar(id, arquivo, respostaDe){
-  if(!ARQ_EXT.test(arquivo.name)){ toast('Tipo de arquivo não aceito. Envie Excel, PDF, Word, ZIP ou imagem.', 'err'); return; }
-  if(arquivo.size > ARQ_MAX){ toast('O arquivo tem ' + _arqTam(arquivo.size) + '. O limite é 25 MB — compacte em ZIP ou divida.', 'err'); return; }
-  if(!arquivo.size){ toast('O arquivo está vazio.', 'err'); return; }
+  if(!ARQ_EXT.test(arquivo.name)){ toast('Tipo de arquivo não aceito. Envie Excel, PDF, Word, ZIP ou imagem.', 'err'); return false; }
+  if(arquivo.size > ARQ_MAX){ toast('O arquivo tem ' + _arqTam(arquivo.size) + '. O limite é 25 MB — compacte em ZIP ou divida.', 'err'); return false; }
+  if(!arquivo.size){ toast('O arquivo está vazio.', 'err'); return false; }
   var emp = _arqEmpresa(id);
-  if(!emp){ toast('Não encontrei a empresa deste processo.', 'err'); return; }
+  if(!emp){ toast('Não encontrei a empresa deste processo.', 'err'); return false; }
   var prog = function(t){ var p = document.getElementById('arq-prog-' + id); if(p) p.textContent = t; };
   var ref = db.collection('arquivos_edital').doc();
   var partes = Math.ceil(arquivo.size / ARQ_PARTE);
@@ -3010,12 +3074,14 @@ async function arqEnviar(id, arquivo, respostaDe){
     await ref.set(ficha);
     prog('');
     toast('✅ Arquivo enviado para a NH: ' + ficha.nome.slice(0, 60), 'ok');
+    return true;
   }catch(e){
     prog('');
     console.warn('[Viabilidade] envio de arquivo:', e.code || '', e.message);
     toast(e.code === 'permission-denied'
       ? 'O envio foi negado pelo controle de acesso. Avise a NH.'
       : 'Não consegui enviar o arquivo: ' + (e.message || e), 'err');
+    return false;
   }
 }
 
