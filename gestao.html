@@ -3247,6 +3247,25 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
 .perg-m.cli{align-self:flex-start;background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.3)}
 .perg-m.nh{align-self:flex-end;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.3)}
 .perg-resp{min-height:70px}
+/* Arquivos do processo — 04/10/2026 */
+.arqn-sub{font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--t3);margin:14px 0 6px}
+.arqn-it{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;border-radius:10px;border:1px solid var(--b1);background:var(--s2);margin-top:6px}
+.arqn-it.cli{border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.06)}
+.arqn-ic{font-size:20px}
+.arqn-info{flex:1;min-width:180px}
+.arqn-nome{font-size:14px;font-weight:700;color:var(--t1);word-break:break-word}
+.arqn-meta{font-size:12px;color:var(--t3);margin-top:2px}
+.arqn-desc{font-size:13px;color:var(--t2);margin-top:4px;white-space:pre-wrap}
+.arqn-ok{font-size:12px;font-weight:700;color:#22c55e;margin-top:3px}
+.arqn-esp{font-size:12px;font-weight:700;color:#eab308;margin-top:3px}
+.arqn-bts{display:flex;gap:6px}
+.arqn-bt{font-size:13px;font-weight:700;cursor:pointer;padding:6px 11px;border-radius:8px;border:1px solid var(--b2);background:var(--s1);color:var(--t1)}
+.arqn-bt:hover{border-color:var(--nh)}
+.arqn-bt.del:hover{border-color:#ef4444;color:#ef4444}
+.arqn-bt:disabled{opacity:.6;cursor:progress}
+.arqn-novo{margin-top:16px;padding:12px;border:1px dashed var(--b2);border-radius:10px}
+.arqn-novo textarea{width:100%;min-height:54px;margin:6px 0 8px}
+.arqn-vazio{font-size:13.5px;color:var(--t3);padding:6px 0}
 </style>
   <!-- Firebase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js"></script>
@@ -17165,6 +17184,234 @@ function _convPintarBotoes(chave){
   });
 }
 
+/* ═══ ARQUIVOS DO PROCESSO — 04/10/2026 ═══════════════════════════════
+   Planilha de composição de custo, BDI, declaração, modelo de proposta:
+   a NH envia aqui, o cliente baixa no Viabilidade, preenche e devolve.
+   Serve para qualquer ramo, não só obra.
+
+   O arquivo fica no Firestore em partes de ~600 KB (arquivos_partes) e
+   a ficha em arquivos_edital. As duas levam `empresa` — é o que a regra
+   do Firestore usa para que uma empresa nunca veja arquivo de outra. O
+   cliente só cria; apagar é só da NH. */
+var ARQ_TR = {};                   /* chave 'e-ID' → [fichas] */
+var ARQ_MAX = 25 * 1024 * 1024;
+var ARQ_PARTE = 600 * 1024;
+var ARQ_EXT = /\.(xlsx|xlsm|xls|ods|csv|pdf|doc|docx|odt|zip|rar|7z|txt|png|jpe?g)$/i;
+
+function _arqTam(n){
+  n = +n || 0;
+  return n >= 1048576 ? (n / 1048576).toFixed(1).replace('.', ',') + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
+}
+function _arqIcone(nome){
+  var e = String(nome || '').split('.').pop().toLowerCase();
+  return /^(xlsx|xlsm|xls|ods|csv)$/.test(e) ? '📊' : e === 'pdf' ? '📕' : /^(doc|docx|odt|txt)$/.test(e) ? '📝' : /^(zip|rar|7z)$/.test(e) ? '🗜️' : '📎';
+}
+function _arqQuando(ts){
+  if(!ts) return '';
+  var d = new Date(ts);
+  return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear()+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
+}
+
+function _arqChip(chave){
+  var l = ARQ_TR[chave] || [];
+  var nh = l.filter(function(f){ return f.de === 'nh'; });
+  var cli = l.filter(function(f){ return f.de !== 'nh'; });
+  if(!l.length) return {cls: '', txt: '📎 Arquivos', title: 'Enviar planilha ou modelo para o cliente preencher no Viabilidade'};
+  var resp = {}; cli.forEach(function(f){ if(f.respostaDe) resp[f.respostaDe] = 1; });
+  var faltam = nh.filter(function(f){ return !resp[f.id]; }).length;
+  if(!cli.length)
+    return {cls: ' nh-btn-espera', txt: '📎 Arquivos (' + nh.length + ') · aguardando cliente',
+            title: 'A NH enviou ' + nh.length + ' arquivo(s); o cliente ainda não devolveu nada'};
+  return {cls: faltam ? ' nh-btn-parcial' : ' nh-btn-ok',
+          txt: '📎 Cliente enviou ' + cli.length + (faltam ? ' · falta ' + faltam : ''),
+          title: 'O cliente enviou ' + cli.length + ' arquivo(s)' + (faltam ? '; ' + faltam + ' modelo(s) da NH ainda sem resposta' : '') + '. Clique para baixar.'};
+}
+
+function _arqPintarChave(chave){
+  var ac = _arqChip(chave);
+  document.querySelectorAll('[data-arq-chave="' + chave + '"]').forEach(function(b){
+    b.className = 'nh-btn' + ac.cls; b.title = ac.title; b.innerHTML = ac.txt;
+  });
+  document.querySelectorAll('.kc-st[data-arq="' + chave + '"]').forEach(function(st){
+    var ok = /nh-btn-ok/.test(ac.cls);
+    st.style.display = (ARQ_TR[chave] || []).length ? '' : 'none';
+    st.classList.toggle('feito', ok);
+    st.textContent = (ok ? '✓ ' : '○ ') + ac.txt.replace(/^📎\s*/, '');
+    st.title = ac.title;
+  });
+  var m = document.getElementById('nh-arq-modal');
+  if(m && m.style.display === 'flex' && m.getAttribute('data-chave') === chave) _arqPintarModal(chave);
+}
+
+/* Ao vivo: arquivo devolvido pelo cliente avisa na hora, sem F5. Só as
+   fichas (pequenas) são ouvidas; as partes só são lidas ao baixar. */
+var _arqOuvindo = false;
+function _arqOuvirNH(){
+  if(_arqOuvindo || typeof db === 'undefined') return;
+  _arqOuvindo = true;
+  var primeira = true;
+  db.collection('arquivos_edital').onSnapshot(function(s){
+    var mudou = {};
+    s.docChanges().forEach(function(c){
+      var f = Object.assign({id: c.doc.id}, c.doc.data() || {});
+      var k = String(f.edital || '');
+      if(!k) return;
+      var l = (ARQ_TR[k] || []).filter(function(x){ return x.id !== f.id; });
+      if(c.type !== 'removed') l.push(f);
+      l.sort(function(a, b){ return (a.em || 0) - (b.em || 0); });
+      ARQ_TR[k] = l;
+      mudou[k] = 1;
+      if(!primeira && c.type === 'added' && f.de !== 'nh'){
+        var ln = _nhLinhaEdital(k) || [];
+        toast('📎 ' + (String(ln[2] || '') || 'Cliente') + ' enviou "' + String(f.nome || '').slice(0, 50) + '" — ' + String(ln[3] || k).slice(0, 60), 'ok');
+        try{ if(typeof _chatBip === 'function') _chatBip(false); }catch(_e){}
+      }
+    });
+    Object.keys(mudou).forEach(_arqPintarChave);
+    primeira = false;
+  }, function(err){ console.warn('[arquivos_edital ao vivo]', err.code || '', err.message); });
+}
+
+function nhAbrirArquivos(chave){
+  var m = document.getElementById('nh-arq-modal');
+  if(!m){
+    m = document.createElement('div'); m.id = 'nh-arq-modal'; m.className = 'chat-modal';
+    m.addEventListener('click', function(ev){ if(ev.target === m) m.style.display = 'none'; });
+    document.body.appendChild(m);
+  }
+  m.setAttribute('data-chave', chave);
+  _arqPintarModal(chave);
+  m.style.display = 'flex';
+}
+
+function _arqPintarModal(chave){
+  var m = document.getElementById('nh-arq-modal');
+  if(!m) return;
+  var l = ARQ_TR[chave] || [];
+  var ln = _nhLinhaEdital(chave) || [];
+  var nh = l.filter(function(f){ return f.de === 'nh'; });
+  var cli = l.filter(function(f){ return f.de !== 'nh'; });
+  var resp = {}; cli.forEach(function(f){ if(f.respostaDe) (resp[f.respostaDe] = resp[f.respostaDe] || []).push(f); });
+  var nomeDe = {}; nh.forEach(function(f){ nomeDe[f.id] = f.nome; });
+  var item = function(f){
+    var deNh = f.de === 'nh';
+    return '<div class="arqn-it' + (deNh ? '' : ' cli') + '"><span class="arqn-ic">' + _arqIcone(f.nome) + '</span>' +
+      '<div class="arqn-info"><div class="arqn-nome">' + esc0(f.nome || 'arquivo') + '</div>' +
+        '<div class="arqn-meta">' + _arqTam(f.tamanho) + ' · ' + esc0(f.autor || (deNh ? 'NH' : 'Cliente')) + ' · ' + _arqQuando(f.em) + '</div>' +
+        (f.descricao ? '<div class="arqn-desc">' + esc0(f.descricao) + '</div>' : '') +
+        (deNh ? (resp[f.id] ? '<div class="arqn-ok">✓ Cliente devolveu preenchido</div>' : '<div class="arqn-esp">⏳ Aguardando o cliente devolver</div>')
+              : (f.respostaDe && nomeDe[f.respostaDe] ? '<div class="arqn-ok">↩ Resposta a "' + esc0(nomeDe[f.respostaDe]) + '"</div>' : '')) +
+      '</div><div class="arqn-bts">' +
+        '<button class="arqn-bt" onclick="nhArqBaixar(\'' + chave + '\',\'' + f.id + '\',this)">⬇ Baixar</button>' +
+        '<button class="arqn-bt del" title="Apagar este arquivo" onclick="nhArqExcluir(\'' + chave + '\',\'' + f.id + '\')">🗑</button>' +
+      '</div></div>';
+  };
+  m.innerHTML = '<div class="chat-cx" style="max-width:760px;max-height:90vh">' +
+    '<div class="chat-cab"><b>📎 Arquivos do processo</b>' +
+      '<button onclick="document.getElementById(\'nh-arq-modal\').style.display=\'none\'">&times;</button></div>' +
+    '<div class="chat-corpo" style="overflow-y:auto">' +
+      '<div class="perg-item-cab"><b>' + esc0(String(ln[3] || 'Processo ' + chave)) + '</b><span>' + esc0(String(ln[2] || '')) + '</span></div>' +
+      '<div class="arqn-sub">Devolvidos pelo cliente</div>' +
+      (cli.length ? cli.map(item).join('') : '<div class="arqn-vazio">Nada recebido ainda.</div>') +
+      '<div class="arqn-sub">Enviados pela NH</div>' +
+      (nh.length ? nh.map(item).join('') : '<div class="arqn-vazio">Nenhum arquivo enviado ao cliente.</div>') +
+      '<div class="arqn-novo"><b style="font-size:14px">Enviar arquivo ao cliente</b>' +
+        '<div style="font-size:12.5px;color:var(--t3);margin-top:2px">Aparece no cartão deste processo no Viabilidade, só para ' + esc0(String(ln[2] || 'a empresa')) + '. Até 25 MB.</div>' +
+        '<textarea class="chat-in" id="arq-desc" placeholder="Instrução para o cliente (opcional) — ex.: preencher a aba Composição e devolver até quinta"></textarea>' +
+        '<input type="file" id="arq-arquivo" accept=".xlsx,.xlsm,.xls,.ods,.csv,.pdf,.doc,.docx,.odt,.zip,.rar,.7z,.txt,.png,.jpg,.jpeg">' +
+        '<div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:10px">' +
+          '<span id="arq-prog" style="font-size:13px;font-weight:700;color:var(--nh)"></span>' +
+          '<button class="btn btn-nh" id="arq-enviar" onclick="nhArqEnviar(\'' + chave + '\')">Enviar ao cliente</button></div>' +
+      '</div>' +
+    '</div></div>';
+}
+
+function _arqBase64(blob){
+  return new Promise(function(ok, falha){
+    var r = new FileReader();
+    r.onload = function(){ var s = String(r.result || ''); ok(s.slice(s.indexOf(',') + 1)); };
+    r.onerror = function(){ falha(r.error || new Error('leitura do arquivo falhou')); };
+    r.readAsDataURL(blob);
+  });
+}
+
+async function nhArqEnviar(chave){
+  var inp = document.getElementById('arq-arquivo');
+  var arquivo = inp && inp.files && inp.files[0];
+  if(!arquivo){ toast('Escolha o arquivo primeiro.', 'err'); return; }
+  if(!ARQ_EXT.test(arquivo.name)){ toast('Tipo não aceito. Use Excel, PDF, Word, ZIP ou imagem.', 'err'); return; }
+  if(arquivo.size > ARQ_MAX){ toast('O arquivo tem ' + _arqTam(arquivo.size) + '. O limite é 25 MB.', 'err'); return; }
+  if(!arquivo.size){ toast('O arquivo está vazio.', 'err'); return; }
+  var ln = _nhLinhaEdital(chave) || [];
+  /* Mesma normalização da planilha de itens: é o que a regra confere. */
+  var emp = String(ln[2] || '').trim().replace(/\s+/g, ' ').toUpperCase();
+  if(!emp){ toast('Este processo não tem empresa cadastrada — sem ela o cliente não vê o arquivo.', 'err'); return; }
+  var desc = String((document.getElementById('arq-desc') || {}).value || '').trim().slice(0, 1000);
+  var bt = document.getElementById('arq-enviar');
+  var prog = function(t){ var p = document.getElementById('arq-prog'); if(p) p.textContent = t; };
+  if(bt) bt.disabled = true;
+  var ref = db.collection('arquivos_edital').doc();
+  var partes = Math.ceil(arquivo.size / ARQ_PARTE);
+  try{
+    /* Partes primeiro, ficha por último: o cliente só vê o arquivo
+       quando ele está inteiro. */
+    for(var i = 0; i < partes; i++){
+      prog('Enviando ' + Math.round(i / partes * 100) + '%...');
+      var dados = await _arqBase64(arquivo.slice(i * ARQ_PARTE, (i + 1) * ARQ_PARTE));
+      await db.collection('arquivos_partes').doc(ref.id + '__' + i).set({arquivo: ref.id, i: i, empresa: emp, de: 'nh', dados: dados});
+    }
+    await ref.set({
+      edital: chave, empresa: emp, de: 'nh',
+      nome: String(arquivo.name).slice(0, 200), tipo: String(arquivo.type || '').slice(0, 100),
+      tamanho: arquivo.size, partes: partes, em: Date.now(), descricao: desc,
+      autor: meuPrimeiroNome() || meuNome() || 'NH',
+      autorEmail: (auth.currentUser && auth.currentUser.email) || ''
+    });
+    prog('');
+    toast('✅ Arquivo enviado — o cliente já vê no Viabilidade', 'ok');
+  }catch(e){
+    prog('');
+    toast(e.code === 'permission-denied' ? 'Envio negado pelo controle de acesso (regras do Firestore publicadas?).' : 'Não consegui enviar: ' + (e.message || e), 'err');
+  }finally{ if(bt) bt.disabled = false; }
+}
+
+async function nhArqBaixar(chave, arqId, bt){
+  var f = (ARQ_TR[chave] || []).find(function(x){ return x.id === arqId; });
+  if(!f) return;
+  var rot = bt ? bt.textContent : '';
+  if(bt){ bt.disabled = true; bt.textContent = 'Baixando...'; }
+  try{
+    var pedacos = [];
+    for(var i = 0; i < (f.partes || 0); i++){
+      var s = await db.collection('arquivos_partes').doc(arqId + '__' + i).get();
+      if(!s.exists) throw new Error('parte ' + (i + 1) + ' de ' + f.partes + ' não encontrada');
+      var b = atob(String((s.data() || {}).dados || ''));
+      var u = new Uint8Array(b.length);
+      for(var k = 0; k < b.length; k++) u[k] = b.charCodeAt(k);
+      pedacos.push(u);
+    }
+    var url = URL.createObjectURL(new Blob(pedacos, {type: f.tipo || 'application/octet-stream'}));
+    var a = document.createElement('a');
+    a.href = url; a.download = f.nome || 'arquivo';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 30000);
+  }catch(e){ toast('Não consegui baixar: ' + (e.message || e), 'err'); }
+  finally{ if(bt){ bt.disabled = false; bt.textContent = rot; } }
+}
+
+async function nhArqExcluir(chave, arqId){
+  var f = (ARQ_TR[chave] || []).find(function(x){ return x.id === arqId; });
+  if(!f) return;
+  if(!confirm('Apagar "' + (f.nome || 'arquivo') + '"? ' + (f.de === 'nh' ? 'O cliente deixa de ver este arquivo.' : 'Este é um arquivo que o CLIENTE enviou.'))) return;
+  try{
+    await db.collection('arquivos_edital').doc(arqId).delete();
+    for(var i = 0; i < (f.partes || 0); i++){
+      try{ await db.collection('arquivos_partes').doc(arqId + '__' + i).delete(); }catch(_e){}
+    }
+    toast('Arquivo apagado', 'ok');
+  }catch(e){ toast('Não consegui apagar: ' + (e.message || e), 'err'); }
+}
+
 async function nhPerguntaFechar(id){
   try{ await db.collection('editais').doc(String(id)).set({perguntaAberta: false}, {merge: true}); }
   catch(e){ toast('Não consegui marcar: ' + (e.message || e), 'err'); }
@@ -17177,6 +17424,7 @@ async function nhCarregarItensTR(){
     s.forEach(function(d){ ITENS_TR[d.id] = d.data()||{}; });
   }catch(e){ console.warn('[itens_edital]', e.message); ITENS_TR = {}; }
   _itensOuvir();
+  _arqOuvirNH();
 }
 
 /* ── Situação dos preços do cliente — 03/10/2026 ──────────────────── */
@@ -18798,12 +19046,18 @@ function _kcFerramentas(card, tab){
     /* Ordem importa: tira primeiro o ícone, depois o verbo — senão o
        "💬" na frente impede de achar o "Monitorar". */
     var curto = b.textContent.replace(/\s+/g, ' ').trim()
-      .replace(/^[✓✔]\s*/, '').replace(/^(📋|💬|✅|💰)\s*/, '')
+      .replace(/^[✓✔]\s*/, '').replace(/^(📋|💬|✅|💰|📎)\s*/, '')
       .replace(/^Monitorar\s+/i, '').trim();
     var ehChat = /nhChatDoEdital/.test(b.getAttribute('onclick') || '');
     var itK = b.getAttribute('data-itens-chave');
+    /* Arquivos: o selo só aparece no resumo quando já existe arquivo —
+       "○ Arquivos" em todo card seria ruído. Fica escondido, e o ouvinte
+       ao vivo o acende quando o primeiro chega. */
+    var arK = b.getAttribute('data-arq-chave');
+    var arVazio = arK && !((window.ARQ_TR || {})[arK] || []).length;
     partes.push('<span class="kc-st' + (ok ? ' feito' : '') + '"' + (ehChat ? ' data-chat="1"' : '') +
-      (itK ? ' data-itens="' + itK + '"' : '') + ' title="' + _kcEsc(b.getAttribute('title') || '') + '">' +
+      (itK ? ' data-itens="' + itK + '"' : '') + (arK ? ' data-arq="' + arK + '"' : '') +
+      (arVazio ? ' style="display:none"' : '') + ' title="' + _kcEsc(b.getAttribute('title') || '') + '">' +
       (ok ? '✓ ' : '○ ') + _kcEsc(curto.charAt(0).toUpperCase() + curto.slice(1)) + '</span>');
   });
 
@@ -19824,6 +20078,11 @@ if(typeof renderCard==='function'){
             +'title="'+(_aberta?'O cliente mandou mensagem e espera a NH':'Histórico da conversa com o cliente')+'" '
             +'onclick="event.stopPropagation();nhAbrirConversa(\''+chave+'\')">💬 Conversa com o cliente ('+_cv.length+')</button>';
         }
+        /* Arquivos do processo (04/10/2026): modelo que a NH manda e o
+           cliente devolve preenchido pelo Viabilidade. */
+        var _ac = _arqChip(chave);
+        itens+='<button class="nh-btn'+_ac.cls+'" data-arq-chave="'+chave+'" title="'+esc0(_ac.title).replace(/"/g,'&quot;')+'" '
+          +'onclick="event.stopPropagation();nhAbrirArquivos(\''+chave+'\')">'+_ac.txt+'</button>';
 
         /* ── Chat do pregão — 01/10/2026 ───────────────────────────
            Liga o monitor de chat deste processo. Aceso quando já está

@@ -344,6 +344,30 @@ body.light-theme .vc-obj-cab,body.light-theme .vc-obj-mais{color:#2563eb}
 .perg-enviar:disabled{opacity:.6;cursor:progress}
 body.light-theme .vc-obj-local{background:rgba(255,255,255,.6)}
 .vc-links{padding:0 18px 14px 22px}
+/* Arquivos do processo — 04/10/2026 */
+.arq{margin:0 18px 14px 22px;border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:var(--surf2)}
+.arq.tem-nh{border-color:rgba(59,130,246,.45);background:rgba(59,130,246,.06)}
+.arq-cab{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--txt)}
+.arq-cab em{font-style:normal;text-transform:none;letter-spacing:0;font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:99px}
+.arq-cab em.esp{color:#fbbf24;background:rgba(234,179,8,.14)}
+.arq-cab em.ok{color:#22c55e;background:rgba(34,197,94,.14)}
+.arq-sub{font-size:12px;font-weight:800;color:var(--txt3);margin:12px 0 6px;text-transform:uppercase;letter-spacing:.05em}
+.arq-it{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 11px;border-radius:11px;background:var(--bg);border:1px solid var(--line);margin-top:6px}
+.arq-ic{font-size:20px;line-height:1}
+.arq-info{flex:1;min-width:160px}
+.arq-nome{font-size:14px;font-weight:700;color:var(--txt);word-break:break-word}
+.arq-meta{font-size:12px;color:var(--txt3);margin-top:2px}
+.arq-desc{font-size:13px;color:var(--txt2);margin-top:4px;white-space:pre-wrap}
+.arq-resp{font-size:12px;font-weight:700;color:#22c55e;margin-top:3px}
+.arq-bts{display:flex;gap:6px;flex-wrap:wrap}
+.arq-bt{font-family:Outfit,sans-serif;font-size:13px;font-weight:800;cursor:pointer;padding:7px 12px;border-radius:9px;
+  border:1px solid var(--line2);background:var(--surf2);color:var(--txt);white-space:nowrap}
+.arq-bt:hover{border-color:var(--nh2)}
+.arq-bt.forte{border:none;color:#000;background:linear-gradient(135deg,var(--nh2),#ea580c)}
+.arq-bt:disabled{opacity:.6;cursor:progress}
+.arq-vazio{font-size:13px;color:var(--txt3);margin-top:6px}
+.arq-rodape{margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--txt3)}
+.arq-prog{font-size:12.5px;font-weight:700;color:var(--nh2)}
 .score-cab{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;margin-bottom:6px}
 .score-cab b{font-size:12.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--txt)}
 .score-cab .badge-risco,.score-cab .badge-capag{padding:3px 10px;font-size:11.5px}
@@ -428,6 +452,26 @@ body.light-theme .vc-obj-local{background:rgba(255,255,255,.6)}
    0/1/2 (SIM,NÃO,ANÁLISE) de que selecionarVoto() depende. */
 .btn-part:first-child{flex:1 1 100%;padding:16px;font-size:15px;border-width:2px;border-style:solid;border-color:var(--nh);color:var(--nh);background:var(--nha)}
 .btn-part:first-child.on-sim{background:linear-gradient(135deg,var(--nh),#ea580c);color:#fff;border-color:transparent;box-shadow:0 6px 18px rgba(249,115,22,.32)}
+
+/* ⚠️ DECISÃO EM PRIMEIRO PLANO — 04/10/2026.
+   Queixa: "o botão de participar está mais apagado do que o enviar
+   mensagem para a NH". Os três botões da decisão estavam em cinza
+   (texto --txt3 sobre o fundo) e o "Enviar para a NH" era laranja
+   cheio — o olho ia para a mensagem, não para a decisão.
+   Agora cada botão já nasce na cor dele (verde / vermelho / amarelo),
+   com borda forte; marcado, fica CHEIO. O "Enviar para a NH" passou a
+   botão secundário, só contorno. */
+.btns-part .btn-part{border-width:2px;font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.btns-part .btn-part:nth-child(1){color:var(--sim);border-color:rgba(34,197,94,.7);background:rgba(34,197,94,.12)}
+.btns-part .btn-part:nth-child(2){color:var(--nao);border-color:rgba(239,68,68,.6);background:rgba(239,68,68,.10)}
+.btns-part .btn-part:nth-child(3){color:var(--ana);border-color:rgba(234,179,8,.6);background:rgba(234,179,8,.10)}
+.btns-part .btn-part:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.btns-part .btn-part.on-sim,.btns-part .btn-part:first-child.on-sim{background:#16a34a;color:#fff;border-color:#16a34a;box-shadow:0 6px 18px rgba(34,197,94,.35)}
+.btns-part .btn-part.on-nao{background:#dc2626;color:#fff;border-color:#dc2626;box-shadow:0 6px 18px rgba(239,68,68,.32)}
+.btns-part .btn-part.on-analise{background:#eab308;color:#1a1a1a;border-color:#eab308;box-shadow:0 6px 18px rgba(234,179,8,.32)}
+.perg-enviar{background:transparent;color:var(--nh2);border:1.5px solid var(--nh2);font-weight:700}
+.perg-enviar:hover{background:rgba(249,115,22,.1)}
+.arq-bt.forte{background:rgba(249,115,22,.12);color:var(--nh2);border:1.5px solid var(--nh2)}
 
 /* Loading / vazio */
 .loading{text-align:center;padding:70px 20px;color:var(--txt3);position:relative;z-index:1}
@@ -1575,6 +1619,7 @@ async function carregar(){
     await carregarRespsCad();
     await carregarAnalisesViab();
     await carregarItensEdital();
+    await arqOuvir();
     /* Falhou? A pessoa fica sabendo. Silêncio aqui já custou duas
        rodadas de "não aparece e ninguém sabe por quê". */
     if(_itensErro) setTimeout(function(){ toast(_itensErro, 'err'); }, 1200);
@@ -2325,6 +2370,10 @@ function renderCard(d){
       (linkPub?'<a href="'+esc(linkPub)+'" target="_blank" rel="noopener" class="meta-link" onclick="event.stopPropagation()">📄 Consultar Edital / TR</a>':'')+
       renderItens(id)+
     '</div>'+
+    /* Arquivos do processo (04/10/2026): planilha de composição de
+       custo, declaração, modelo — a NH manda, o cliente baixa, preenche
+       e devolve aqui mesmo. */
+    '<div id="arq-'+id+'">'+_arquivosHtml(id)+'</div>'+
     '<div class="score-wrap">'+
       renderGaugeViab(an)+
       '<div class="score-txt">'+
@@ -2785,6 +2834,217 @@ async function carregarItensEdital(){
 /* Guardado para a tela poder dizer o que houve, em vez de fingir que
    simplesmente não existe planilha nenhuma. */
 var _itensErro = '';
+
+/* ═══ ARQUIVOS DO PROCESSO — 04/10/2026 ═══════════════════════════════
+   Pedido do cliente: em obra (construção civil) o pregão pede planilha
+   de composição de custo, BDI, encargos — não cabe na planilha de
+   preços do Viabilidade. A NH manda o arquivo, o cliente baixa, preenche
+   no Excel e devolve aqui. Serve para qualquer serviço.
+
+   O arquivo fica no próprio Firestore, em partes de ~600 KB
+   (arquivos_partes), e a ficha dele em arquivos_edital. As DUAS
+   coleções levam `empresa`, e a regra do Firestore só entrega/aceita
+   arquivo da empresa de quem está logado — a mesma trava da planilha
+   de itens. O cliente envia, não apaga: o que foi entregue fica
+   registrado. */
+var ARQUIVOS = {};                 /* id do edital → [fichas] */
+var ARQ_MAX = 25 * 1024 * 1024;    /* 25 MB — plano gratuito: o banco tem 1 GB para tudo */
+var ARQ_PARTE = 600 * 1024;
+var ARQ_EXT = /\.(xlsx|xlsm|xls|ods|csv|pdf|doc|docx|odt|zip|rar|7z|txt|png|jpe?g)$/i;
+
+function _arqEmpresa(id){
+  var d = TODOS.find(function(x){ return x.id === id; });
+  return d ? String(d.arr[2] || '').trim().replace(/\s+/g, ' ').toUpperCase() : '';
+}
+function _arqTam(n){
+  n = +n || 0;
+  if(n >= 1048576) return (n / 1048576).toFixed(1).replace('.', ',') + ' MB';
+  return Math.max(1, Math.round(n / 1024)) + ' KB';
+}
+function _arqIcone(nome){
+  var e = String(nome || '').split('.').pop().toLowerCase();
+  if(/^(xlsx|xlsm|xls|ods|csv)$/.test(e)) return '📊';
+  if(e === 'pdf') return '📕';
+  if(/^(doc|docx|odt|txt)$/.test(e)) return '📝';
+  if(/^(zip|rar|7z)$/.test(e)) return '🗜️';
+  return '📎';
+}
+
+/* Ao vivo: arquivo que a NH manda aparece no cartão sem F5. */
+var _arqOuvindo = false;
+function arqOuvir(){
+  if(_arqOuvindo) return Promise.resolve();
+  var q = db.collection('arquivos_edital');
+  if(!(SESSAO && SESSAO.todas)){
+    var nomes = ((SESSAO && SESSAO.empresasNomes) || [])
+      .map(function(n){ return String(n || '').trim().replace(/\s+/g, ' ').toUpperCase(); })
+      .filter(Boolean);
+    if(!nomes.length) return Promise.resolve();
+    q = q.where('empresa', 'in', nomes.slice(0, 30));
+  }
+  _arqOuvindo = true;
+  return new Promise(function(pronto){
+    var primeira = true;
+    q.onSnapshot(function(s){
+      var mudou = {};
+      s.docChanges().forEach(function(c){
+        var f = Object.assign({id: c.doc.id}, c.doc.data() || {});
+        var ed = String(f.edital || '').replace(/^e-/, '');
+        if(!ed) return;
+        var l = (ARQUIVOS[ed] || []).filter(function(x){ return x.id !== f.id; });
+        if(c.type !== 'removed') l.push(f);
+        l.sort(function(a, b){ return (a.em || 0) - (b.em || 0); });
+        ARQUIVOS[ed] = l;
+        mudou[ed] = 1;
+        if(!primeira && c.type === 'added' && f.de === 'nh')
+          toast('📎 A NH enviou um arquivo: ' + String(f.nome || '').slice(0, 60), 'ok');
+      });
+      Object.keys(mudou).forEach(_arqPintar);
+      if(primeira){ primeira = false; pronto(); }
+    }, function(e){
+      console.warn('[Viabilidade] arquivos_edital:', e.code || '', e.message);
+      if(primeira){ primeira = false; pronto(); }
+    });
+  });
+}
+
+function _arqPintar(id){
+  var el = document.getElementById('arq-' + id);
+  if(el) el.innerHTML = _arquivosHtml(id);
+}
+
+function _arquivosHtml(id){
+  var l = ARQUIVOS[id] || [];
+  var daNh = l.filter(function(f){ return f.de === 'nh'; });
+  var meus = l.filter(function(f){ return f.de !== 'nh'; });
+  var respondidos = {};
+  meus.forEach(function(f){ if(f.respostaDe) respondidos[f.respostaDe] = 1; });
+  var faltam = daNh.filter(function(f){ return !respondidos[f.id]; }).length;
+  var item = function(f, deNh){
+    return '<div class="arq-it"><span class="arq-ic">' + _arqIcone(f.nome) + '</span>' +
+      '<div class="arq-info"><div class="arq-nome">' + esc(f.nome || 'arquivo') + '</div>' +
+        '<div class="arq-meta">' + _arqTam(f.tamanho) + ' · ' + esc(deNh ? 'NH Licitações' : (f.autor || 'Você')) +
+          (f.em ? ' · ' + _fmtQuando(f.em) : '') + '</div>' +
+        (f.descricao ? '<div class="arq-desc">' + esc(f.descricao) + '</div>' : '') +
+        (deNh && respondidos[f.id] ? '<div class="arq-resp">✓ Você já devolveu este arquivo preenchido</div>' : '') +
+      '</div>' +
+      '<div class="arq-bts">' +
+        '<button type="button" class="arq-bt" onclick="arqBaixar(\'' + id + '\',\'' + f.id + '\',this)">⬇ Baixar</button>' +
+        (deNh ? '<button type="button" class="arq-bt forte" onclick="arqEscolher(\'' + id + '\',\'' + f.id + '\')">⬆ Enviar preenchido</button>' : '') +
+      '</div></div>';
+  };
+  if(!l.length)
+    return '<div class="arq"><div class="arq-cab">📎 Arquivos do processo</div>' +
+      '<div class="arq-rodape" style="margin-top:6px"><span>Precisa mandar planilha, proposta ou documento para a NH?</span>' +
+      '<button type="button" class="arq-bt" onclick="arqEscolher(\'' + id + '\',\'\')">⬆ Enviar arquivo</button>' +
+      '<span class="arq-prog" id="arq-prog-' + id + '"></span></div></div>';
+  return '<div class="arq' + (daNh.length ? ' tem-nh' : '') + '">' +
+    '<div class="arq-cab">📎 Arquivos do processo' +
+      (faltam ? '<em class="esp">' + faltam + (faltam > 1 ? ' arquivos aguardam' : ' arquivo aguarda') + ' seu preenchimento</em>'
+              : (daNh.length ? '<em class="ok">✓ Tudo devolvido</em>' : '')) + '</div>' +
+    (daNh.length ? '<div class="arq-sub">Enviados pela NH — baixe, preencha e devolva</div>' +
+      daNh.map(function(f){ return item(f, true); }).join('') : '') +
+    (meus.length ? '<div class="arq-sub">Enviados por você</div>' +
+      meus.map(function(f){ return item(f, false); }).join('') : '') +
+    '<div class="arq-rodape"><button type="button" class="arq-bt" onclick="arqEscolher(\'' + id + '\',\'\')">⬆ Enviar outro arquivo</button>' +
+      '<span>Até 25 MB · Excel, PDF, Word, ZIP</span><span class="arq-prog" id="arq-prog-' + id + '"></span></div>' +
+  '</div>';
+}
+
+function arqEscolher(id, respostaDe){
+  var inp = document.getElementById('arq-input');
+  if(!inp){
+    inp = document.createElement('input');
+    inp.type = 'file'; inp.id = 'arq-input'; inp.style.display = 'none';
+    inp.accept = '.xlsx,.xlsm,.xls,.ods,.csv,.pdf,.doc,.docx,.odt,.zip,.rar,.7z,.txt,.png,.jpg,.jpeg';
+    inp.addEventListener('change', function(){
+      var f = inp.files && inp.files[0];
+      var ed = inp.getAttribute('data-id'), rd = inp.getAttribute('data-resp') || '';
+      inp.value = '';
+      if(f) arqEnviar(ed, f, rd);
+    });
+    document.body.appendChild(inp);
+  }
+  inp.setAttribute('data-id', id);
+  inp.setAttribute('data-resp', respostaDe || '');
+  inp.click();
+}
+
+/* Pedaço do arquivo → base64, sem o "data:...;base64," da frente. */
+function _arqBase64(blob){
+  return new Promise(function(ok, falha){
+    var r = new FileReader();
+    r.onload = function(){ var s = String(r.result || ''); ok(s.slice(s.indexOf(',') + 1)); };
+    r.onerror = function(){ falha(r.error || new Error('leitura do arquivo falhou')); };
+    r.readAsDataURL(blob);
+  });
+}
+
+async function arqEnviar(id, arquivo, respostaDe){
+  if(!ARQ_EXT.test(arquivo.name)){ toast('Tipo de arquivo não aceito. Envie Excel, PDF, Word, ZIP ou imagem.', 'err'); return; }
+  if(arquivo.size > ARQ_MAX){ toast('O arquivo tem ' + _arqTam(arquivo.size) + '. O limite é 25 MB — compacte em ZIP ou divida.', 'err'); return; }
+  if(!arquivo.size){ toast('O arquivo está vazio.', 'err'); return; }
+  var emp = _arqEmpresa(id);
+  if(!emp){ toast('Não encontrei a empresa deste processo.', 'err'); return; }
+  var prog = function(t){ var p = document.getElementById('arq-prog-' + id); if(p) p.textContent = t; };
+  var ref = db.collection('arquivos_edital').doc();
+  var partes = Math.ceil(arquivo.size / ARQ_PARTE);
+  try{
+    /* As partes vão ANTES da ficha: a ficha só aparece para a NH quando
+       o arquivo inteiro já está lá. */
+    for(var i = 0; i < partes; i++){
+      prog('Enviando ' + Math.round(i / partes * 100) + '%...');
+      var dados = await _arqBase64(arquivo.slice(i * ARQ_PARTE, (i + 1) * ARQ_PARTE));
+      await db.collection('arquivos_partes').doc(ref.id + '__' + i).set({
+        arquivo: ref.id, i: i, empresa: emp, de: 'cliente', dados: dados
+      });
+    }
+    var ficha = {
+      edital: 'e-' + id, empresa: emp, de: 'cliente',
+      nome: String(arquivo.name).slice(0, 200), tipo: String(arquivo.type || '').slice(0, 100),
+      tamanho: arquivo.size, partes: partes, em: Date.now(),
+      autor: String(window._euNome || (SESSAO && SESSAO.nome) || '').slice(0, 120),
+      autorEmail: (auth.currentUser && auth.currentUser.email) || ''
+    };
+    if(respostaDe) ficha.respostaDe = respostaDe;
+    await ref.set(ficha);
+    prog('');
+    toast('✅ Arquivo enviado para a NH: ' + ficha.nome.slice(0, 60), 'ok');
+  }catch(e){
+    prog('');
+    console.warn('[Viabilidade] envio de arquivo:', e.code || '', e.message);
+    toast(e.code === 'permission-denied'
+      ? 'O envio foi negado pelo controle de acesso. Avise a NH.'
+      : 'Não consegui enviar o arquivo: ' + (e.message || e), 'err');
+  }
+}
+
+async function arqBaixar(id, arqId, bt){
+  var f = (ARQUIVOS[id] || []).find(function(x){ return x.id === arqId; });
+  if(!f) return;
+  var rot = bt ? bt.textContent : '';
+  if(bt){ bt.disabled = true; bt.textContent = 'Baixando...'; }
+  try{
+    var pedacos = [];
+    for(var i = 0; i < (f.partes || 0); i++){
+      var s = await db.collection('arquivos_partes').doc(arqId + '__' + i).get();
+      if(!s.exists) throw new Error('parte ' + (i + 1) + ' de ' + f.partes + ' não encontrada');
+      var b = atob(String((s.data() || {}).dados || ''));
+      var u = new Uint8Array(b.length);
+      for(var k = 0; k < b.length; k++) u[k] = b.charCodeAt(k);
+      pedacos.push(u);
+    }
+    var url = URL.createObjectURL(new Blob(pedacos, {type: f.tipo || 'application/octet-stream'}));
+    var a = document.createElement('a');
+    a.href = url; a.download = f.nome || 'arquivo';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 30000);
+  }catch(e){
+    toast('Não consegui baixar: ' + (e.message || e), 'err');
+  }finally{
+    if(bt){ bt.disabled = false; bt.textContent = rot; }
+  }
+}
 
 function _vNum(v){
   var s = String(v == null ? '' : v).replace(/R\$\s*/g, '').replace(/\s/g, '').trim();
