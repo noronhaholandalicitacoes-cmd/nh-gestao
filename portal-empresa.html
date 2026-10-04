@@ -1546,6 +1546,101 @@ textarea.gc-in{resize:vertical}
   box-shadow:0 6px 20px -6px rgba(0,0,0,.5)}
 .gc-bt-prazos:hover{color:var(--nh);border-color:var(--nh)}
 @media (max-width:560px){ .gc-bt-prazos{right:10px;bottom:10px;padding:9px 12px;font-size:11px} }
+
+/* ═══ LIMPEZA VISUAL — 04/10/2026 ════════════════════════════════════
+   Pedido: "está funcional mas não está apresentável, falta
+   profissionalismo, deixar mais limpo". O que pesava:
+     · cor em tudo — cada indicador com borda e número de uma cor, oito
+       cores na mesma faixa; o olho não sabia onde parar;
+     · números em fonte de código (monoespaçada) ao lado de texto normal;
+     · efeitos de vitrine: cartão inclinando com o mouse, reflexo, malha
+       e esferas coloridas no fundo;
+     · repetição: o painel mostrava "6 em execução" três vezes.
+   Regra nova: o NÚMERO fica em branco e a cor vira um ponto no rótulo.
+   Cor forte só onde pede ação (vencido, atraso). Este bloco vem por
+   último de propósito — sobrepõe as regras antigas sem apagá-las. */
+#nhd-atmosfera .nhd-grade{display:none}
+#nhd-atmosfera .nhd-orb{opacity:.14}
+
+.kpi-card,.pd-kpi{background:var(--s2)!important;border:1px solid var(--b1)!important;
+  box-shadow:none!important;transform:none!important;border-radius:12px!important}
+.kpi-card::before,.kpi-card::after,.stat::before,.stat::after,.pd-kpi::before{display:none!important}
+.pd-kpi > span[style*="position:absolute"]{display:none}
+.kpi-num,.pd-kpi-val{color:var(--t1)!important;font-family:inherit!important;font-weight:700!important;
+  font-variant-numeric:tabular-nums;letter-spacing:-.02em!important}
+.kpi-num{font-size:24px!important}
+.pd-kpi-val{font-size:26px!important}
+.kpi-lbl,.pd-kpi-lbl{display:flex;align-items:center;gap:7px;font-size:11px!important;letter-spacing:.05em!important;
+  color:var(--t2)!important;font-weight:700}
+.kpi-lbl::before,.pd-kpi-lbl::before{content:'';width:7px;height:7px;border-radius:50%;
+  background:var(--kc,var(--nh));flex-shrink:0}
+.kpi-sub,.pd-kpi-sub{color:var(--t3)!important}
+.kpi-card:hover,.pd-kpi[data-f]:hover{border-color:var(--b2)!important;transform:none!important}
+.pd-kpi.on{border-color:var(--kc,var(--nh))!important}
+.pd-kpis{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+.pd-kpis .pd-kpi:first-child{grid-column:auto!important}
+@media (max-width:900px){ .pd-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important} }
+.kpi-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+@media (max-width:900px){ .kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important} }
+
+/* Cartão de contrato: um fio de cor à esquerda diz a situação; o resto
+   é neutro. O que importa (órgão, valor, vencimento) já aparece fechado. */
+.contratos{gap:10px!important}
+.ccard{background:var(--s2)!important;border:1px solid var(--b1)!important;border-left:3px solid var(--stc)!important;
+  border-radius:12px!important;box-shadow:none!important}
+.ccard::before{display:none!important}
+.ccard:hover{transform:none!important;border-color:var(--b2)!important;border-left-color:var(--stc)!important;box-shadow:none!important}
+.ccard.cinza{--stc:var(--b2)}
+.ccard-header{padding:15px 18px 15px 18px!important;align-items:center!important}
+.ccard-titulo{font-family:inherit!important;font-size:15.5px!important;font-weight:700!important;letter-spacing:0!important}
+.ccard-id{background:none!important;border:0!important;padding:0!important;color:var(--t3)!important;font-weight:700!important}
+.ccard-resumo{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:6px;font-size:12.5px;color:var(--t2)}
+.ccard-resumo span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.ccard-resumo b{color:var(--t1);font-weight:700}
+.ccard-resumo .cm-org{white-space:normal}
+.ccard-emp{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.04em;color:var(--t2);
+  padding:2px 8px;border-radius:5px;border:1px solid var(--b1);margin-left:8px;vertical-align:2px}
+.ccard-badges button{background:transparent!important;border:1px solid var(--b1)!important;color:var(--t2)!important}
+.ccard-badges button:hover{color:var(--t1)!important;border-color:var(--b2)!important}
+.badge.urgente{animation:none!important}
+
+/* Títulos de bloco (Indicadores, Fim de exercício) no mesmo padrão dos outros. */
+.pd-card-cab{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px;margin-bottom:14px}
+.pd-card-t{font-size:13px;font-weight:700;color:var(--t1)}
+.pd-card-cab .pd-card-sub{margin:0}
+
+/* "Prazos da lei" sai de cima do conteúdo e vai para a barra das abas. */
+.gc-bt-prazos.na-barra{position:static;margin-left:auto;align-self:center;box-shadow:none;
+  padding:6px 12px;font-size:12px;border-color:var(--b1);background:transparent}
+@media (max-width:560px){ .gc-bt-prazos.na-barra{padding:6px 10px;font-size:11px;flex-shrink:0} }
+.emp-troca select{height:34px;line-height:1.2}
+.kpi-pontos{display:flex;flex-wrap:wrap;gap:8px 20px;margin:-6px 0 18px;padding:10px 14px;
+  border:1px solid var(--b1);border-radius:10px;font-size:12.5px;color:var(--t2)}
+.kpi-pontos span{display:inline-flex;align-items:center;gap:7px}
+.kpi-pontos i{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.kpi-pontos b{color:var(--t1)}
+/* Número em fonte de texto, com algarismos de largura igual — alinha
+   em coluna sem a cara de "código" da fonte monoespaçada. */
+.av-chip b,.pd-num-v,.pd-linha-v,.pd-venc-tag,.pd-venc-val{font-family:inherit!important;
+  font-variant-numeric:tabular-nums;letter-spacing:0!important}
+.pd-num-v{font-weight:800!important;font-size:26px!important}
+/* Selo da empresa (ver empSelo) */
+.emp-selo{display:inline-block;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+  padding:3px 9px;border-radius:6px;line-height:1.3;vertical-align:2px;white-space:nowrap;
+  box-shadow:0 1px 0 rgba(0,0,0,.25)}
+.ccard-titulo .emp-selo{margin-left:8px;font-size:12.5px}
+.pd-venc-org .emp-selo,.av-item .emp-selo{font-size:11px;padding:2px 7px;vertical-align:1px}
+/* Celular: a situação e os botões descem para baixo do texto, em vez
+   de espremer o título numa coluna estreita. */
+@media (max-width:640px){
+  .ccard-header{flex-direction:column!important;align-items:stretch!important;gap:10px!important;padding:14px 14px!important}
+  .ccard-badges{justify-content:flex-start}
+  .ccard-badges .ccard-arrow{margin-left:auto}
+  .ccard-titulo{font-size:15px!important}
+  .ccard-resumo{gap:2px 12px;font-size:12px}
+  .kpi-num{font-size:21px!important}
+  .pd-kpi-val{font-size:21px!important}
+}
 </style>
 </head>
 <body>
@@ -2394,6 +2489,31 @@ let EMP_ESCOPO = [];
  *  representante em "Todas as minhas"). Só muda a APRESENTAÇÃO —
  *  etiqueta da empresa no contrato, divisão por empresa no painel. */
 function vendoVarias(){ return isAdmin || (!empAtual && EMP_ESCOPO.length > 1); }
+
+/* ⚠️ EMPRESA EM DESTAQUE — 04/10/2026.
+   Queixa: "o nome das empresas está sem destaque, a gente acaba se
+   perdendo". Vendo várias empresas juntas, o nome era um texto cinza
+   miúdo. Agora é um selo CHEIO na cor da empresa (a mesma do Sistema
+   NH e do Viabilidade), com letra preta ou branca conforme a cor. */
+function _empTxtP(c){
+  var m=/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.exec(String(c||'').trim());
+  if(!m) return '#fff';
+  var h=m[1]; if(h.length===3) h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  var r=parseInt(h.substr(0,2),16), g=parseInt(h.substr(2,2),16), b=parseInt(h.substr(4,2),16);
+  return (.299*r+.587*g+.114*b) > 150 ? '#111' : '#fff';
+}
+function empSelo(nome){
+  var n=String(nome||'').trim().toUpperCase();
+  if(!n) return '';
+  var c=(typeof CORES!=='undefined' && CORES[n]) || '#64748b';
+  return '<span class="emp-selo" style="background:'+c+';color:'+_empTxtP(c)+'">'+pEsc(n)+'</span>';
+}
+/** Linha de baixo dos avisos: com várias empresas na tela, a empresa vai
+ *  em selo; com uma só, ela já está no topo e fica em texto, como antes. */
+function _avSec(emp, resto){
+  if(vendoVarias() && String(emp||'').trim()) return empSelo(emp) + (resto ? ' ' + pEsc(resto) : '');
+  return pEsc([emp, resto].filter(Boolean).join(' · '));
+}
 
 /** Este documento pode aparecer para quem está logado? Um critério
  *  só para todas as coleções (contratos, faturamento, atestados…). */
@@ -3829,33 +3949,29 @@ function gerarDashboard(){
   /* ── 2. Indicadores ─────────────────────────────────────
      Seis, e cada um com um filtro atrás. O primeiro é o que responde
      a pergunta inteira, e por isso é o primeiro. */
+  /* ⚠️ QUATRO, NÃO OITO — 04/10/2026 (limpeza visual).
+     As contagens (em execução, vencem em 90 dias, total) já estão no
+     topo, ao lado da saudação, e cada situação tem sua linha em
+     "Situação da carteira" logo abaixo. Repetir aqui era ruído. Ficam
+     os quatro números de DINHEIRO, na ordem em que se lê:
+     contratei → está rodando → faturei → recebi. */
   const kpis = [
-    {f:'exec',   cor:'#22c55e', lbl:'Contratos em execução', val:ag.exec,
-     sub:'vigentes e dentro do prazo'},
     /* Abreviado no número grande e exato embaixo. "R$ 1.840.500,00" em
        21px não cabe na coluna do celular: quebrava em duas linhas e
        cortava o final, que é justamente a parte que muda. */
-    {f:'exec',   cor:'#22c55e', lbl:'Valor em execução',     val:fmtM(ag.valAtivo), dinheiro:true,
-     sub:ag.valAtivo > 0 ? fmtMoedaP(ag.valAtivo) : 'nada em execução'},
     {f:null,     cor:'#f97316', lbl:'Portfólio total',       val:fmtM(ag.portfolio), dinheiro:true,
      sub:ag.total + ' contrato' + (ag.total !== 1 ? 's' : '') +
          (ag.portfolio > 0 ? ' &middot; ' + fmtMoedaP(ag.portfolio) : '')},
-    {f:'prox',   cor:(ag.prox30 ? '#ef4444' : '#eab308'), lbl:'Vencem em 90 dias', val:ag.prox30 + ag.prox90,
-     sub:ag.prox30 ? ag.prox30 + ' em menos de 30 dias' : 'nenhum urgente'},
-    {f:'aguard', cor:'#3b82f6', lbl:'Aguardando contrato',   val:ag.aguard,
-     sub:'ganhos, ainda não assinados'},
-    {f:'fin',    cor:'#6b7280', lbl:'Encerrados',            val:ag.encerrado,
-     sub:'concluídos, rescindidos ou cancelados'}
+    {f:'exec',   cor:'#22c55e', lbl:'Valor em execução',     val:fmtM(ag.valAtivo), dinheiro:true,
+     sub:ag.valAtivo > 0 ? ag.exec + ' contrato' + (ag.exec !== 1 ? 's' : '') + ' &middot; ' + fmtMoedaP(ag.valAtivo) : 'nada em execução'}
   ];
 
-  /* Faturado e Recebido entram logo depois do Portfólio, porque a
-     leitura natural é "contratei tanto → faturei tanto → recebi tanto".
-     Separados do bloco de contagem de contratos, esses dois são
-     dinheiro que existe, não promessa. Não filtram a lista: não há
-     recorte de contrato que corresponda a "o que foi faturado". */
+  /* Faturado e Recebido: dinheiro que existe, não promessa. Sem
+     lançamento ainda, os dois lugares mostram o que pede atenção
+     (vencimentos e o que falta assinar) em vez de zeros. */
   if(temFat){
-    kpis.splice(3, 0,
-      {cor:'#a855f7', lbl:'Faturado (real)', val:fmtM(fx.faturado), dinheiro:true,
+    kpis.push(
+      {cor:'#a855f7', lbl:'Faturado', val:fmtM(fx.faturado), dinheiro:true,
        sub:(ag.portfolio > 0
               ? pctFat.toFixed(0) + '% do contratado'
               : (fmtMoedaP(fx.faturado) || 'nada lançado'))},
@@ -3863,6 +3979,13 @@ function gerarDashboard(){
        sub:(fx.aReceber > 0
               ? fmtMoedaP(fx.aReceber) + ' ainda a receber'
               : 'nada pendente de recebimento')}
+    );
+  }else{
+    kpis.push(
+      {f:'prox',   cor:(ag.prox30 ? '#ef4444' : '#eab308'), lbl:'Vencem em 90 dias', val:ag.prox30 + ag.prox90,
+       sub:ag.prox30 ? ag.prox30 + ' em menos de 30 dias' : 'nenhum urgente'},
+      {f:'aguard', cor:'#3b82f6', lbl:'Aguardando contrato',   val:ag.aguard,
+       sub:'ganhos, ainda não assinados'}
     );
   }
 
@@ -3936,7 +4059,8 @@ function gerarDashboard(){
           '<span class="pd-venc-tag" style="background:' + cor + '1f;color:' + cor + '">' + tag + '</span>' +
           '<div class="pd-venc-txt">' +
             '<div class="pd-venc-obj" title="' + pEsc(obj) + '">' + pEsc(obj) + '</div>' +
-            (org ? '<div class="pd-venc-org">' + pEsc(org) + '</div>' : '') +
+            (org || vendoVarias() ? '<div class="pd-venc-org">' +
+              (vendoVarias() && v.arr[IDX.EMPRESA] ? empSelo(v.arr[IDX.EMPRESA]) + ' ' : '') + pEsc(org) + '</div>' : '') +
           '</div>' +
           (v.valor > 0 ? '<span class="pd-venc-val">' + fmtM(v.valor) + '</span>' : '') +
         '</div>';
@@ -4406,7 +4530,7 @@ function renderAvisos(){
         const val = arr[8] ? fmtMoedaP(parseMoedaV(arr[8])) : '';
         return {
           principal: pEsc(arr[3]||'Sem identifica\u00e7\u00e3o'),
-          secundario: pEsc([arr[2], arr[6]].filter(Boolean).join(' \u00b7 ')),
+          secundario: _avSec(arr[2], arr[6]),
           extra: pEsc([st, val ? 'Valor final: '+val : ''].filter(Boolean).join(' \u00b7 ')),
           link: String(arr[19]||'').trim()
         };
@@ -4425,7 +4549,7 @@ function renderAvisos(){
       const vv = vencVigente(arr);
       return {
         principal: pEsc(arr[IDX.LICITACAO]||'Sem identifica\u00e7\u00e3o'),
-        secundario: pEsc([arr[IDX.EMPRESA], arr[IDX.CONTRATO]].filter(Boolean).join(' \u00b7 ')),
+        secundario: _avSec(arr[IDX.EMPRESA], arr[IDX.CONTRATO]),
         extra: rotulo(vv.valor, _pDias(vv.valor)),
         /* O id do contrato viaja junto com o aviso \u2014 \u00e9 ele que faz o
            clique levar ao processo em vez de o aviso ser s\u00f3 um texto. */
@@ -4468,7 +4592,7 @@ function renderAvisos(){
     if(itens.length) grupos.push({icone:icone, cor:cor, titulo:titulo, sub:sub, itens:itens});
   }
   var _idContrato = function(e){
-    return pEsc([e.arr[IDX.EMPRESA], e.arr[IDX.CONTRATO]].filter(Boolean).join(' \u00b7 '));
+    return _avSec(e.arr[IDX.EMPRESA], e.arr[IDX.CONTRATO]);
   };
 
   grupoExec('\u2696\ufe0f','#ef4444','Prazo de defesa vencido',
@@ -5080,22 +5204,13 @@ function renderStats(){
     '</div>';
   };
 
-  let html = '<div class="kpi-grid">';
-  html += sc('Total',total,'#f97316',valTotal>0?fmtMoedaP(valTotal):'');
-  html += sc('Em Execu\u00e7\u00e3o',emExec,'#22c55e',valExec>0?fmtMoedaP(valExec):'');
-  if(aguard>0)    html += sc('Aguardando',aguard,'#eab308',valAguard>0?fmtMoedaP(valAguard):'');
-  if(vencidos>0)  html += sc('Vencidos',vencidos,'#ef4444',valVenc>0?fmtMoedaP(valVenc):'');
-  html += sc('Finalizados',finalizados,'#3b82f6',valFin>0?fmtMoedaP(valFin):'');
-  if(proxVenc>0)  html += sc('Pr\u00f3x. Vencer 90d',proxVenc,'#eab308',valProx>0?fmtMoedaP(valProx):'');
-  if(recomp>0)    html += sc('Recomp. Contratual',recomp,'#f97316',valRecomp>0?fmtMoedaP(valRecomp):'');
-  if(suspenso>0)  html += sc('Suspenso',suspenso,'#eab308','');
-  if(rescindido>0)html += sc('Rescindido',rescindido,'#ef4444','');
-  html += '</div>';
-
-  /* ── Execução: dinheiro, não contagem de contrato ──
-     Fica numa segunda fileira e só aparece quando existe lançamento —
-     antes de a equipe começar a usar o módulo, uma fila de zeros só
-     ocuparia espaço. */
+  /* ⚠️ RESUMO ENXUTO — 04/10/2026 (limpeza visual).
+     Eram até três fileiras de cartões coloridos (contagem por situação,
+     execução financeira, atestados) — e logo abaixo as pastilhas de
+     filtro repetiam as mesmas contagens. Agora: UMA fileira com quatro
+     números de dinheiro, e o resto vira uma linha discreta de "pontos
+     de atenção", que só aparece quando há algo a dizer. As contagens
+     por situação ficam nas pastilhas, onde também servem de filtro. */
   var ex = {faturado:0, recebido:0, aReceber:0, atrasado:0, glosado:0,
             autorizado:0, notAbertas:0, multas:0, semLancamento:0};
   dadosGanhas.forEach(function(e){
@@ -5106,26 +5221,6 @@ function renderStats(){
     ex.notAbertas += n.abertas; ex.multas += n.multas;
     if(!r.qtd && !rpEncerrado(e.arr)) ex.semLancamento += 1;
   });
-
-  if(ex.faturado > 0 || ex.autorizado > 0 || ex.notAbertas > 0){
-    html += '<div class="kpi-grid" style="margin-top:10px">';
-    if(ex.autorizado>0) html += sc('Autorizado', fmtMoedaP(ex.autorizado), '#a855f7', 'OS e OC emitidas');
-    html += sc('Faturado', fmtMoedaP(ex.faturado)||'R$ 0,00', '#f97316',
-      ex.semLancamento>0 ? ex.semLancamento+' contrato(s) sem lançamento' : '');
-    html += sc('Recebido', fmtMoedaP(ex.recebido)||'R$ 0,00', '#22c55e', '');
-    if(ex.aReceber>0) html += sc('A Receber', fmtMoedaP(ex.aReceber), '#3b82f6', '');
-    if(ex.atrasado>0) html += sc('Em Atraso', fmtMoedaP(ex.atrasado), '#ef4444', 'vencidas sem pagamento');
-    if(ex.glosado>0)  html += sc('Glosado', fmtMoedaP(ex.glosado), '#eab308', '');
-    if(ex.notAbertas>0) html += sc('Notif. Abertas', ex.notAbertas, '#ef4444',
-      ex.multas>0 ? 'multas ' + fmtMoedaP(ex.multas) : '');
-    html += '</div>';
-  }
-
-  /* ── Atestados, no agregado (18/08/2026) ──
-     Terceira fileira, e só aparece quando há atestado cadastrado. O que
-     interessa à empresa não é o total: é quantos contratos executados
-     ainda NÃO renderam atestado — isso é qualificação técnica que ela
-     tem direito e não está usando na próxima licitação. */
   var atg = {total:0, prontos:0, pendentes:0, contratosSemNenhum:0};
   dadosGanhas.forEach(function(e){
     var r = atestResumo(e.arr);
@@ -5133,16 +5228,29 @@ function renderStats(){
     if(!r.total) atg.contratosSemNenhum++;
   });
 
-  if(atg.total > 0){
-    html += '<div class="kpi-grid" style="margin-top:10px">';
-    html += sc('Atestados em mãos', atg.prontos, '#22c55e',
-      atg.total ? ('de ' + atg.total + ' registrados') : '');
-    if(atg.pendentes>0) html += sc('Atestados em andamento', atg.pendentes, '#a855f7',
-      'solicitados e ainda não recebidos');
-    if(atg.contratosSemNenhum>0) html += sc('Contratos sem atestado', atg.contratosSemNenhum, '#eab308',
-      'execução que ainda não virou qualificação');
-    html += '</div>';
-  }
+  var plural = function(n, s){ return n + ' ' + s + (n !== 1 ? 's' : ''); };
+  let html = '<div class="kpi-grid">';
+  html += sc('Contratado', fmtM(valTotal), '#f97316', plural(total, 'contrato'));
+  html += sc('Em execução', fmtM(valExec), '#22c55e', plural(emExec, 'contrato'));
+  html += sc('Faturado', fmtM(ex.faturado), '#a855f7',
+    ex.semLancamento > 0 ? plural(ex.semLancamento, 'contrato') + ' sem lançamento' : (ex.faturado > 0 ? 'tudo lançado' : 'nada lançado ainda'));
+  html += sc('Recebido', fmtM(ex.recebido), '#14b8a6',
+    ex.aReceber > 0 ? fmtMoedaP(ex.aReceber) + ' a receber' : 'nada pendente');
+  html += '</div>';
+
+  var pontos = [];
+  if(ex.atrasado > 0)   pontos.push({c:'#ef4444', t:'<b>' + fmtMoedaP(ex.atrasado) + '</b> em atraso de pagamento'});
+  if(proxVenc > 0)      pontos.push({c:'#eab308', t:'<b>' + proxVenc + '</b> vence' + (proxVenc !== 1 ? 'm' : '') + ' em 90 dias'});
+  if(ex.notAbertas > 0) pontos.push({c:'#ef4444', t:'<b>' + plural(ex.notAbertas, 'notificação').replace('notificaçãos', 'notificações') + '</b> em aberto' + (ex.multas > 0 ? ' (multas ' + fmtMoedaP(ex.multas) + ')' : '')});
+  if(ex.glosado > 0)    pontos.push({c:'#eab308', t:'<b>' + fmtMoedaP(ex.glosado) + '</b> glosado'});
+  if(recomp > 0)        pontos.push({c:'#f97316', t:'<b>' + recomp + '</b> com recomposição'});
+  if(atg.total > 0)     pontos.push({c:'#22c55e', t:'Atestados: <b>' + atg.prontos + '</b> em mãos' +
+                          (atg.pendentes ? ', <b>' + atg.pendentes + '</b> em andamento' : '') +
+                          (atg.contratosSemNenhum ? ', <b>' + atg.contratosSemNenhum + '</b> contrato' + (atg.contratosSemNenhum !== 1 ? 's' : '') + ' sem atestado' : '')});
+  if(pontos.length)
+    html += '<div class="kpi-pontos">' + pontos.map(function(p){
+      return '<span><i style="background:' + p.c + '"></i>' + p.t + '</span>';
+    }).join('') + '</div>';
 
   el.innerHTML = html;
   renderStatusPills();
@@ -5368,7 +5476,11 @@ function renderContratos(){
     const {id,arr} = entry;
     const status = String(arr[IDX.STATUS]||'').trim() || 'EM EXECUÇÃO';
     const statusUp = status.toUpperCase();
-    const cor = statusUp==='FINALIZADO'?'azul':statusUp==='RESCINDIDO'?'vermelho':statusUp==='SUSPENSO'?'amarelo':'verde';
+    /* Cor do fio lateral = a mesma da "Situação da carteira" no painel:
+       encerrado é cinza (acabou, não é alerta), aguardando é azul — antes
+       "AGUARDANDO CONTRATO" saía verde, como se estivesse rodando. */
+    const cor = (statusUp==='FINALIZADO'||statusUp==='RESCINDIDO'||statusUp==='CANCELADO')?'cinza'
+      :statusUp==='SUSPENSO'?'amarelo':statusUp.indexOf('AGUARDANDO')===0?'azul':'verde';
 
     // Vencimento efetivo (último aditivo ou contrato)
     const venc = arr[RECOMP_IDX[3][5]]||arr[RECOMP_IDX[2][5]]||arr[RECOMP_IDX[1][5]]||arr[RECOMP_IDX[0][5]]||arr[IDX.VENCIMENTO]||'';
@@ -5405,18 +5517,28 @@ function renderContratos(){
     const recomp = (!_sitCobreRecomp && String(arr[RECOMP_IDX[0][0]]||'').toUpperCase().trim()==='SIM')
       ? '<span class="badge b-orange">Recomp.</span>' : '';
 
-    const statusBadge = `<span class="badge ${cor==='verde'?'b-green':cor==='azul'?'b-blue':cor==='vermelho'?'b-red':'b-yellow'}">${status}</span>`;
+    const statusBadge = `<span class="badge ${cor==='verde'?'b-green':cor==='azul'?'b-blue':cor==='vermelho'?'b-red':cor==='cinza'?'b-gray':'b-yellow'}">${status}</span>`;
+
+    /* Fechado, o cartão mostrava só "Pregão nº X" — tinha de abrir um
+       por um para saber de quem era e quanto valia. Agora a linha de
+       baixo diz órgão, cidade, valor e vencimento. */
+    const _org = String(arr[IDX.LOCAL]||'').trim();
+    const _mun = String(arr[IDX.MUNICIPIO]||'').trim();
+    const _val = calcValorGanhas(arr);
+    const _num = String(arr[IDX.CONTRATO]||'').trim();
+    const metaHtml = [
+      _org ? `<span class="cm-org">${pEsc(_org)}${_mun && _org.indexOf(_mun.split('/')[0])===-1 ? ' · '+pEsc(_mun) : ''}</span>` : (_mun ? `<span>${pEsc(_mun)}</span>` : ''),
+      _num ? `<span>${pEsc(_num)}</span>` : '',
+      _val > 0 ? `<span><b>${fmtMoedaP(_val)}</b></span>` : '',
+      (venc && !encerrado) ? `<span>vence ${pEsc(String(venc).split(' ')[0])}</span>` : ''
+    ].filter(Boolean).join('');
 
     return `
     <div class="ccard ${cor}" id="ccard-${id}">
       <div class="ccard-header" onclick="toggleCard('${id}')">
         <div style="flex:1">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-            <span class="ccard-id">#${arr[IDX.ID]||'?'}</span>
-            <span style="font-size:11px;color:var(--t3)">${arr[IDX.DATA]||''}</span>
-          </div>
-          <div class="ccard-titulo">${pEsc(arr[IDX.LICITACAO]||'Sem título')}</div>
-          ${vendoVarias() && arr[IDX.EMPRESA] ? `<div style="font-size:11px;color:${CORES[arr[IDX.EMPRESA].trim().toUpperCase()]||'#888'};font-weight:700;margin-top:3px">${arr[IDX.EMPRESA].trim().toUpperCase()}</div>` : ''}
+          <div class="ccard-titulo"><span class="ccard-id">#${arr[IDX.ID]||'?'}</span> ${pEsc(arr[IDX.LICITACAO]||'Sem título')}${vendoVarias() && arr[IDX.EMPRESA] ? empSelo(arr[IDX.EMPRESA]) : ''}</div>
+          ${metaHtml ? `<div class="ccard-resumo">${metaHtml}</div>` : ''}
         </div>
         <div class="ccard-badges">
           ${statusBadge}${situacaoBadge}${vencBadge}${recomp}
@@ -6572,7 +6694,7 @@ function renderBody(id, arr, entry){
     (arr[IDX.MUNICIPIO]?'<div class="cmeta"><span class="cmeta-lbl">Munic\xedpio</span><span class="cmeta-val">'+arr[IDX.MUNICIPIO]+'</span></div>':'') +
     (arr[IDX.VALOR]?'<div class="cmeta"><span class="cmeta-lbl">Valor</span><span class="cmeta-val hl">'+fmtValPortal(arr[IDX.VALOR])+'</span></div>':'') +
     (arr[IDX.CONTRATO]?'<div class="cmeta"><span class="cmeta-lbl">Contrato</span><span class="cmeta-val">'+arr[IDX.CONTRATO]+'</span></div>':'') +
-    (arr[IDX.VIGENCIA]?'<div class="cmeta"><span class="cmeta-lbl">Vig\xeancia</span><span class="cmeta-val">'+arr[IDX.VIGENCIA]+' meses</span></div>':'') +
+    (arr[IDX.VIGENCIA]?'<div class="cmeta"><span class="cmeta-lbl">Vig\xeancia</span><span class="cmeta-val">'+pEsc(arr[IDX.VIGENCIA])+(/m[eê]s/i.test(String(arr[IDX.VIGENCIA]))?'':' meses')+'</span></div>':'') +
     (arr[IDX.DT_ASSINATURA]?'<div class="cmeta"><span class="cmeta-lbl">Dt. Assinatura</span><span class="cmeta-val">'+arr[IDX.DT_ASSINATURA]+'</span></div>':'') +
     (venc?'<div class="cmeta"><span class="cmeta-lbl">Vencimento</span><span class="cmeta-val">'+venc+'</span></div>':'') +
     (hasRecomp?'<div class="cmeta"><span class="cmeta-lbl" style="color:#f97316">Recomposi\xe7\xe3o</span><span class="cmeta-val" style="color:#fb923c;font-weight:700">Sim</span></div>':'') +
@@ -9125,7 +9247,9 @@ function gcMostrarResultado(id, fi, r, d){
    ══════════════════════════════════════════════════════════════════ */
 (function(){
   var SEL='.kpi-card,.stat';
-  var podeAnimar=!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
+  /* Inclinação 3D desligada na limpeza visual de 04/10/2026: cartão que
+     se mexe com o mouse parecia vitrine, não painel de gestão. */
+  var podeAnimar=false;
 
   function montarAtmosfera(){
     if(document.getElementById('nhd-atmosfera'))return;
@@ -9181,6 +9305,12 @@ function gcMostrarResultado(id, fi, r, d){
 })();
 </script>
 <button class="gc-bt-prazos" onclick="gcAbrirPrazos()" title="Prazos e valores da Lei 14.133 — Anexo C da apostila">⏱️ Prazos da lei</button>
+<script>
+/* "Prazos da lei" ficava flutuando no canto, por cima dos cartões. Vai
+   para a barra das abas, à direita (limpeza visual de 04/10/2026). */
+(function(){ var b=document.querySelector(".gc-bt-prazos"), barra=document.getElementById("topbar-abas");
+  if(b && barra){ b.classList.add("na-barra"); barra.appendChild(b); } })();
+</script>
 </body>
 </html>
 

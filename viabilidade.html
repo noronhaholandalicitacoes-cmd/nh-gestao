@@ -212,7 +212,7 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
 
 .card-head{padding:18px 18px 12px 22px}
 .card-top-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
-.card-emp{font-size:12px;font-weight:800;padding:5px 13px;border-radius:20px;flex-shrink:0;letter-spacing:.02em}
+.card-emp{font-size:13.5px;font-weight:800;padding:5px 13px;border-radius:8px;flex-shrink:0;letter-spacing:.04em;text-transform:uppercase;box-shadow:0 1px 0 rgba(0,0,0,.25)}
 /* Etiqueta de prazo — a cor acompanha a urgência, na mesma escala já usada
    pelos status dos cards. */
 .prazo-tag{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:800;
@@ -2288,6 +2288,16 @@ function ordenarPorPrazo(lista){
   });
 }
 
+/* Texto preto em cor clara, branco em cor escura — para o selo cheio
+   da empresa continuar legível com qualquer cor cadastrada. */
+function _empTxt(c){
+  var m=/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.exec(String(c||'').trim());
+  if(!m) return '#fff';
+  var h=m[1]; if(h.length===3) h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  var r=parseInt(h.substr(0,2),16), g=parseInt(h.substr(2,2),16), b=parseInt(h.substr(4,2),16);
+  return (.299*r+.587*g+.114*b) > 150 ? '#111' : '#fff';
+}
+
 function renderCard(d){
   var arr=d.arr;
   var id=d.id;
@@ -2358,7 +2368,9 @@ function renderCard(d){
   return '<div class="card '+cardCls+'" id="card-'+id+'">'+
     '<div class="card-head">'+
       '<div class="vc-topo">'+
-        '<span class="card-emp" style="background:'+empCor+'22;color:'+empCor+';border:1px solid '+empCor+'44">'+esc(emp)+'</span>'+
+        /* Empresa em selo CHEIO na cor dela (04/10/2026): era um selo
+           claro, pequeno, e quem cuida de várias empresas se perdia. */
+        '<span class="card-emp" style="background:'+empCor+';color:'+_empTxt(empCor)+';border:1px solid '+empCor+'">'+esc(emp)+'</span>'+
         tagPrazo+
         pill+
       '</div>'+
