@@ -1628,7 +1628,47 @@ textarea.gc-in{resize:vertical}
 .emp-selo{display:inline-block;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
   padding:3px 9px;border-radius:6px;line-height:1.3;vertical-align:2px;white-space:nowrap;
   box-shadow:0 1px 0 rgba(0,0,0,.25)}
-.ccard-titulo .emp-selo{margin-left:8px;font-size:12.5px}
+.ccard-titulo .emp-selo{margin-right:10px;font-size:12.5px}
+.ccard-resumo .cm-id{color:var(--t3);font-size:11.5px}
+
+/* ── Quadro de avisos em lista (04/10/2026) ───────────────────────── */
+.av-tit{font-family:inherit!important;font-size:24px!important;letter-spacing:-.02em!important}
+.avx{display:flex;flex-direction:column;gap:18px}
+.avx-nivel{background:var(--s2);border:1px solid var(--b1);border-radius:14px;overflow:hidden}
+.avx-nivel-cab{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--b1);
+  background:linear-gradient(90deg,rgba(255,255,255,.025),transparent)}
+.avx-nivel-cab i{width:10px;height:10px;border-radius:50%;background:var(--nc);box-shadow:0 0 0 4px rgba(255,255,255,.04)}
+.avx-nivel-cab b{font-size:14px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--t1)}
+.avx-nivel-cab span{font-size:12px;font-weight:800;color:var(--nc);background:rgba(255,255,255,.05);
+  border:1px solid var(--b1);padding:1px 9px;border-radius:99px}
+.avx-nivel-cab em{font-style:normal;font-size:12.5px;color:var(--t3);margin-left:4px}
+.avx-grupo + .avx-grupo{border-top:1px solid var(--b1)}
+.avx-grupo-cab{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px;padding:13px 18px 6px}
+.avx-grupo-cab b{font-size:13.5px;font-weight:700;color:var(--t1)}
+.avx-grupo-cab span{font-size:12px;color:var(--t3)}
+.avx-grupo-cab em{font-style:normal;margin-left:auto;font-size:12px;font-weight:700;color:var(--t2)}
+.avx-lista{list-style:none;margin:0;padding:0 8px 8px}
+.avx-item{display:grid;grid-template-columns:88px minmax(0,1fr) minmax(0,38%) 14px;align-items:center;gap:14px;
+  padding:9px 10px;border-radius:9px}
+.avx-item.vai{cursor:pointer}
+.avx-item.vai:hover{background:rgba(255,255,255,.04)}
+.avx-emp{min-width:0}
+.avx-emp .emp-selo{display:block;text-align:center;font-size:11px;padding:4px 6px;overflow:hidden;text-overflow:ellipsis}
+.avx-p{font-size:13.5px;font-weight:700;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.avx-s{font-size:12px;color:var(--t3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.avx-s a{color:var(--t2)}
+.avx-ex{font-size:12.5px;font-weight:600;color:var(--ac);line-height:1.4}
+.avx-ir{color:var(--t3);font-size:18px;line-height:1}
+.avx-mais{margin:0 18px 12px;background:none;border:0;padding:0;cursor:pointer;font:inherit;
+  font-size:12.5px;font-weight:700;color:var(--t2)}
+.avx-mais:hover{color:var(--t1)}
+@media (max-width:760px){
+  .avx-item{grid-template-columns:auto minmax(0,1fr) 14px;gap:4px 10px}
+  .avx-ex{grid-column:2 / 3}
+  .avx-ir{grid-row:1;grid-column:3}
+  .avx-p{white-space:normal}
+  .avx-nivel-cab em{display:none}
+}
 .pd-venc-org .emp-selo,.av-item .emp-selo{font-size:11px;padding:2px 7px;vertical-align:1px}
 /* Celular: a situação e os botões descem para baixo do texto, em vez
    de espremer o título numa coluna estreita. */
@@ -2508,11 +2548,11 @@ function empSelo(nome){
   var c=(typeof CORES!=='undefined' && CORES[n]) || '#64748b';
   return '<span class="emp-selo" style="background:'+c+';color:'+_empTxtP(c)+'">'+pEsc(n)+'</span>';
 }
-/** Linha de baixo dos avisos: com várias empresas na tela, a empresa vai
- *  em selo; com uma só, ela já está no topo e fica em texto, como antes. */
+/** Linha de baixo dos avisos. A empresa já vai em selo na frente da
+ *  linha (ver _avisoItem), então aqui fica só o resto (nº do contrato,
+ *  município) — sem repetir o nome. */
 function _avSec(emp, resto){
-  if(vendoVarias() && String(emp||'').trim()) return empSelo(emp) + (resto ? ' ' + pEsc(resto) : '');
-  return pEsc([emp, resto].filter(Boolean).join(' · '));
+  return pEsc(String(resto||'').trim());
 }
 
 /** Este documento pode aparecer para quem está logado? Um critério
@@ -4530,6 +4570,7 @@ function renderAvisos(){
         const val = arr[8] ? fmtMoedaP(parseMoedaV(arr[8])) : '';
         return {
           principal: pEsc(arr[3]||'Sem identifica\u00e7\u00e3o'),
+          emp: arr[2],
           secundario: _avSec(arr[2], arr[6]),
           extra: pEsc([st, val ? 'Valor final: '+val : ''].filter(Boolean).join(' \u00b7 ')),
           link: String(arr[19]||'').trim()
@@ -4549,7 +4590,7 @@ function renderAvisos(){
       const vv = vencVigente(arr);
       return {
         principal: pEsc(arr[IDX.LICITACAO]||'Sem identifica\u00e7\u00e3o'),
-        secundario: _avSec(arr[IDX.EMPRESA], arr[IDX.CONTRATO]),
+        secundario: _avSec(arr[IDX.EMPRESA], [arr[IDX.LOCAL], arr[IDX.CONTRATO]].filter(Boolean).join(' · ')),
         extra: rotulo(vv.valor, _pDias(vv.valor)),
         /* O id do contrato viaja junto com o aviso \u2014 \u00e9 ele que faz o
            clique levar ao processo em vez de o aviso ser s\u00f3 um texto. */
@@ -4592,7 +4633,7 @@ function renderAvisos(){
     if(itens.length) grupos.push({icone:icone, cor:cor, titulo:titulo, sub:sub, itens:itens});
   }
   var _idContrato = function(e){
-    return _avSec(e.arr[IDX.EMPRESA], e.arr[IDX.CONTRATO]);
+    return _avSec(e.arr[IDX.EMPRESA], [e.arr[IDX.LOCAL], e.arr[IDX.CONTRATO]].filter(Boolean).join(' · '));
   };
 
   grupoExec('\u2696\ufe0f','#ef4444','Prazo de defesa vencido',
@@ -4791,37 +4832,57 @@ function renderAvisos(){
      Some com ele o cabeçalho recolhível: recolher existia porque o
      quadro empurrava os contratos para baixo da dobra, e agora os
      contratos estão em outra aba. */
+  /* ⚠️ QUADRO DE AVISOS REPAGINADO — 04/10/2026.
+     Queixa: "os avisos estão bagunçados… você tem informação para deixar
+     profissional mas não deixa". Eram cartões em três colunas, cada um
+     de uma altura, com ícone, borda colorida e texto em três tamanhos —
+     o olho pulava de um lado para o outro sem saber por onde começar.
+     Agora é UMA lista, lida de cima para baixo:
+       · três faixas por gravidade (Crítico → Atenção → Informativo);
+       · dentro de cada faixa, os tipos de aviso como subtítulos;
+       · cada linha no mesmo formato: EMPRESA · processo · o problema
+         e o prazo, alinhados em coluna, e clique leva ao contrato. */
+  var NIVEIS = [
+    {k:'critico', rot:'Crítico',     cor:'#ef4444', dica:'custa dinheiro ou prazo se ficar parado'},
+    {k:'atencao', rot:'Atenção',     cor:'#f59e0b', dica:'resolver nas próximas semanas'},
+    {k:'info',    rot:'Informativo', cor:'#3b82f6', dica:'para acompanhar'}
+  ];
   box.innerHTML =
       '<div class="av-topo">'
     +   '<div class="av-topo-txt">'
-    +     '<div class="av-olho">🔔 O que pede atenção</div>'
+    +     '<div class="av-olho">O que pede atenção</div>'
     +     '<h2 class="av-tit">' + total + ' aviso' + (total === 1 ? '' : 's') + '</h2>'
-    +     '<div class="av-sub">Do mais grave para o menos. Clique em qualquer linha para abrir o processo.</div>'
+    +     '<div class="av-sub">Do mais grave para o menos. Clique em uma linha para abrir o contrato.</div>'
     +   '</div>'
     +   '<div class="av-niveis">'
     +     '<button class="av-chip on" data-nivel="tudo" onclick="avFiltrarNivel(\'tudo\')" '
-    +       'style="--cn:#f97316;--cnf:rgba(249,115,22,.12)"><i></i>Tudo<b>' + total + '</b></button>'
+    +       'style="--cn:#94a3b8;--cnf:rgba(148,163,184,.12)"><i></i>Tudo<b>' + total + '</b></button>'
     +     _chip('critico', 'Crítico',     porNivel.critico, '#ef4444', 'rgba(239,68,68,.12)')
-    +     _chip('atencao', 'Atenção',     porNivel.atencao, '#f97316', 'rgba(249,115,22,.12)')
+    +     _chip('atencao', 'Atenção',     porNivel.atencao, '#f59e0b', 'rgba(245,158,11,.12)')
     +     _chip('info',    'Informativo', porNivel.info,    '#3b82f6', 'rgba(59,130,246,.12)')
     +   '</div>'
     + '</div>'
-    + '<div class="avisos-grid" id="avisos-grid">'
-    + grupos.map((g, gi) =>
-        '<div class="aviso-card" data-nivel="'+g.nivel+'" style="--ac:'+g.cor+'">'
-        + '<div class="aviso-card-head">'
-        +   '<span class="aviso-ic">'+g.icone+'</span>'
-        +   '<div><div class="aviso-t">'+g.titulo+'</div><div class="aviso-s">'+g.sub+'</div></div>'
-        +   '<span class="aviso-n">'+g.itens.length+'</span>'
-        + '</div>'
-        + '<ul class="aviso-list" id="aviso-list-'+gi+'">'
-        + g.itens.slice(0,6).map(i => _avisoItem(i)).join('')
-        + '</ul>'
-        + (g.itens.length>6
-            ? '<div class="aviso-mais" onclick="avisosVerTodos('+gi+',this)">+ '+(g.itens.length-6)+' outro(s) &mdash; ver todos</div>'
-            : '')
-        + '</div>'
-      ).join('')
+    + '<div class="avx" id="avisos-grid">'
+    + NIVEIS.map(function(nv){
+        var gs = grupos.filter(function(g){ return g.nivel === nv.k; });
+        if(!gs.length) return '';
+        return '<section class="avx-nivel" data-nivel="' + nv.k + '" style="--nc:' + nv.cor + '">'
+          + '<div class="avx-nivel-cab"><i></i><b>' + nv.rot + '</b><span>' + porNivel[nv.k] + '</span>'
+          +   '<em>' + nv.dica + '</em></div>'
+          + gs.map(function(g){
+              var gi = grupos.indexOf(g);
+              return '<div class="avx-grupo" style="--ac:' + g.cor + '">'
+                + '<div class="avx-grupo-cab"><b>' + g.titulo + '</b><span>' + g.sub + '</span><em>' + g.itens.length + '</em></div>'
+                + '<ul class="avx-lista" id="aviso-list-' + gi + '">'
+                + g.itens.slice(0, 5).map(function(i){ return _avisoItem(i); }).join('')
+                + '</ul>'
+                + (g.itens.length > 5
+                    ? '<button type="button" class="avx-mais" onclick="avisosVerTodos(' + gi + ',this)">Ver mais ' + (g.itens.length - 5) + '</button>'
+                    : '')
+                + '</div>';
+            }).join('')
+          + '</section>';
+      }).join('')
     + '</div>';
 
   /* Guarda para o "ver todos" abrir o grupo inteiro sem recalcular. */
@@ -4849,13 +4910,24 @@ function avFiltrarNivel(k){
    deixa de ser texto e vira caminho: clicar leva ao processo. */
 function _avisoItem(i){
   var clicavel = !!i.ct;
-  return '<li'+(clicavel
-      ? ' class="aviso-vai" onclick="irParaContrato(\'' + pEsc(String(i.ct)) + '\')" title="Ir para este processo"'
+  /* A empresa vem na FRENTE de cada linha (04/10/2026): \u00e9 por ela que se
+     procura. Quando o aviso n\u00e3o trouxe a empresa, ela sai do contrato. */
+  var emp = i.emp;
+  if(!emp && i.ct){
+    var e = dadosGanhas.find(function(x){ return String(x.id) === String(i.ct); });
+    if(e) emp = e.arr[IDX.EMPRESA];
+  }
+  return '<li class="avx-item'+(clicavel?' vai':'')+'"'+(clicavel
+      ? ' onclick="irParaContrato(\'' + pEsc(String(i.ct)) + '\')" title="Abrir este contrato"'
       : '')+'>'
-    + '<div class="aviso-p">'+i.principal+(clicavel?'<span class="aviso-ir">&rsaquo;</span>':'')+'</div>'
-    + (i.secundario?'<div class="aviso-sec">'+i.secundario+'</div>':'')
-    + (i.extra?'<div class="aviso-ex">'+i.extra+'</div>':'')
-    + (i.link?'<a class="aviso-link" href="'+pEsc(i.link)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">\ud83d\udcc1 Abrir pasta do processo</a>':'')
+    + '<span class="avx-emp">'+(emp ? empSelo(emp) : '')+'</span>'
+    + '<div class="avx-txt"><div class="avx-p">'+i.principal+'</div>'
+    +   ((i.secundario || i.link) ? '<div class="avx-s">'+(i.secundario||'')
+    +     (i.link?(i.secundario?' \u00b7 ':'')+'<a href="'+pEsc(i.link)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">abrir pasta</a>':'')
+    +   '</div>' : '')
+    + '</div>'
+    + '<div class="avx-ex">'+(i.extra||'')+'</div>'
+    + '<span class="avx-ir">'+(clicavel?'&rsaquo;':'')+'</span>'
     + '</li>';
 }
 
@@ -5530,14 +5602,17 @@ function renderContratos(){
       _org ? `<span class="cm-org">${pEsc(_org)}${_mun && _org.indexOf(_mun.split('/')[0])===-1 ? ' · '+pEsc(_mun) : ''}</span>` : (_mun ? `<span>${pEsc(_mun)}</span>` : ''),
       _num ? `<span>${pEsc(_num)}</span>` : '',
       _val > 0 ? `<span><b>${fmtMoedaP(_val)}</b></span>` : '',
-      (venc && !encerrado) ? `<span>vence ${pEsc(String(venc).split(' ')[0])}</span>` : ''
+      (venc && !encerrado) ? `<span>vence ${pEsc(String(venc).split(' ')[0])}</span>` : '',
+      /* O nº interno saiu da frente — o lugar agora é da empresa — e
+         fica aqui no fim, discreto, para quem precisa citar o registro. */
+      `<span class="cm-id">#${pEsc(String(arr[IDX.ID]||'?'))}</span>`
     ].filter(Boolean).join('');
 
     return `
     <div class="ccard ${cor}" id="ccard-${id}">
       <div class="ccard-header" onclick="toggleCard('${id}')">
         <div style="flex:1">
-          <div class="ccard-titulo"><span class="ccard-id">#${arr[IDX.ID]||'?'}</span> ${pEsc(arr[IDX.LICITACAO]||'Sem título')}${vendoVarias() && arr[IDX.EMPRESA] ? empSelo(arr[IDX.EMPRESA]) : ''}</div>
+          <div class="ccard-titulo">${arr[IDX.EMPRESA] ? empSelo(arr[IDX.EMPRESA]) : ''}${pEsc(arr[IDX.LICITACAO]||'Sem título')}</div>
           ${metaHtml ? `<div class="ccard-resumo">${metaHtml}</div>` : ''}
         </div>
         <div class="ccard-badges">
