@@ -1623,6 +1623,26 @@ textarea.gc-in{resize:vertical}
   background:var(--s2,rgba(255,255,255,.04));color:var(--t1,#fff);font-size:15px;font-weight:600;
   cursor:pointer;text-align:left;transition:border-color .15s,background .15s;font-family:inherit}
 .escolher-item:hover{border-color:var(--nh,#f97316);background:rgba(249,115,22,.08)}
+.escolher-todas{border-color:rgba(249,115,22,.55);background:rgba(249,115,22,.08)}
+.escolher-todas b{display:block}
+.escolher-todas span{display:block;font-size:12.5px;font-weight:500;color:var(--t3);margin-top:2px}
+/* Seletor de empresa no topo (quem representa mais de uma) */
+.emp-troca select{font-family:inherit;font-size:13.5px;font-weight:700;color:var(--t1);cursor:pointer;
+  background:var(--s2,rgba(255,255,255,.04));border:1px solid var(--nh,#f97316);border-radius:9px;
+  padding:6px 30px 6px 10px;max-width:260px;appearance:none;-webkit-appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,var(--nh,#f97316) 50%),linear-gradient(135deg,var(--nh,#f97316) 50%,transparent 50%);
+  background-position:calc(100% - 15px) 52%,calc(100% - 10px) 52%;background-size:5px 5px;background-repeat:no-repeat}
+.emp-troca select option{color:#111;background:#fff}
+@media (max-width:600px){.emp-troca select{max-width:170px;font-size:12.5px}}
+/* No celular a área da empresa some para o "Sair" caber; com o seletor
+   ela volta, só com ele (sem o ponto colorido), e o nome "NH
+   Licitações" dá lugar a ele — trocar de empresa importa mais. */
+.topbar-emp.com-troca{display:flex}
+@media (max-width:600px){
+  .topbar-emp.com-troca{padding:0;border:0;background:none}
+  .topbar-emp.com-troca .topbar-emp-dot{display:none}
+  body.com-troca .topbar-titulo{display:none}
+}
 </style>
 
 <!-- Portal -->
@@ -1646,6 +1666,7 @@ textarea.gc-in{resize:vertical}
     <div class="topbar-emp">
       <div class="topbar-emp-dot" id="emp-dot"></div>
       <div class="topbar-emp-name" id="emp-nome-top"></div>
+      <div class="emp-troca" id="emp-troca" style="display:none"></div>
     </div>
     <span class="nh-quem" id="nh-quem"><span class="nh-quem-av"></span><span class="nh-quem-nm"></span></span>
     <button class="topbar-tema" id="btn-tema-app" onclick="acTrocarTema()" title="Alternar tema">◐</button>
@@ -2360,6 +2381,27 @@ async function carregarCoresEmpresas(){
 // ─── ESTADO ──────────────────────────────────────────────────────
 let empAtual = '';
 let isAdmin  = false;
+/* ⚠️ QUEM REPRESENTA VÁRIAS EMPRESAS — 04/10/2026.
+   Queixa: representante com 6 empresas marcadas no Gestão tinha de ver
+   uma de cada vez, não havia como trocar sem sair e entrar, e depois
+   de trocar a tela vinha VAZIA.
+   EMP_ESCOPO guarda as empresas dela. `empAtual` vazio com EMP_ESCOPO
+   cheio = "Todas as minhas empresas", juntas. Isso NÃO dá poder de
+   conta mestra: excluir continua só com `isAdmin`. */
+let EMP_ESCOPO = [];
+
+/** Vendo mais de uma empresa ao mesmo tempo (conta mestra, ou a
+ *  representante em "Todas as minhas"). Só muda a APRESENTAÇÃO —
+ *  etiqueta da empresa no contrato, divisão por empresa no painel. */
+function vendoVarias(){ return isAdmin || (!empAtual && EMP_ESCOPO.length > 1); }
+
+/** Este documento pode aparecer para quem está logado? Um critério
+ *  só para todas as coleções (contratos, faturamento, atestados…). */
+function _pVisivel(emp){
+  if(isAdmin) return true;
+  if(empAtual) return mesmaEmpresa(emp, empAtual);
+  return EMP_ESCOPO.some(function(e){ return mesmaEmpresa(emp, e); });
+}
 let dadosGanhas = [];
 let filtroAtual = 'todos';
 let _pgAtual = 1;
@@ -2411,7 +2453,12 @@ function _pEscopo(){
      sem erro, sem explicação. Os dois lados da comparação precisam
      normalizar igual, sempre. */
   var e=String(empAtual||'').trim().replace(/\s+/g,' ').toUpperCase();
-  return e ? [e] : null;
+  if(e) return [e];
+  /* "Todas as minhas empresas": a consulta pede exatamente as dela —
+     é o que a regra confere, documento por documento. */
+  var lista=EMP_ESCOPO.map(function(n){ return String(n||'').trim().replace(/\s+/g,' ').toUpperCase(); })
+    .filter(function(n,i,a){ return n && a.indexOf(n)===i; });
+  return lista.length ? lista : null;
 }
 
 /* Aplica o filtro quando houver escopo. Uma função só, para as cinco
@@ -2788,23 +2835,86 @@ function abrirComPerfil(perfil){
     return;
   }
   isAdmin=false;
+  EMP_ESCOPO=perfil.empresas.slice();
+  /* Volta na última escolha desta pessoa (se ainda for dela), sem
+     perguntar de novo a cada entrada. */
+  var ult=null;
+  try{ ult=localStorage.getItem('nh_portal_emp_'+_pChavePessoa()); }catch(_e){}
+  if(ult==='__todas__'){ escolherEmpresaPortal(''); return; }
+  if(ult && EMP_ESCOPO.indexOf(ult)!==-1){ escolherEmpresaPortal(ult); return; }
   mostrarSeletorEmpresa(perfil.empresas);
+}
+
+function _pChavePessoa(){
+  try{ return String((auth.currentUser&&auth.currentUser.email)||'').split('@')[0].replace(/\.r\d+$/,''); }catch(_e){ return ''; }
 }
 
 function mostrarSeletorEmpresa(nomes){
   document.getElementById('login-screen').style.display='none';
   var tela=document.getElementById('tela-escolher-empresa');
   var lista=document.getElementById('escolher-lista');
-  lista.innerHTML=nomes.map(function(n){
-    return '<button class="escolher-item" onclick="escolherEmpresaPortal(\''+n+'\')">'+n+'</button>';
-  }).join('');
+  lista.innerHTML=
+    '<button class="escolher-item escolher-todas" onclick="escolherEmpresaPortal(\'\')">'+
+      '<b>Todas as minhas empresas</b><span>'+nomes.length+' empresas juntas no mesmo painel</span></button>'+
+    nomes.map(function(n){
+      return '<button class="escolher-item" onclick="escolherEmpresaPortal(\''+String(n).replace(/'/g,"\\'")+'\')">'+pEsc(n)+'</button>';
+    }).join('');
   tela.style.display='flex';
 }
 
 function escolherEmpresaPortal(nome){
-  empAtual=nome;
+  /* Só aceita empresa da própria lista — o nome vem de um clique, mas
+     não custa conferir. */
+  if(nome && EMP_ESCOPO.length && EMP_ESCOPO.indexOf(nome)===-1) return;
+  empAtual=nome||'';
+  try{ localStorage.setItem('nh_portal_emp_'+_pChavePessoa(), empAtual||'__todas__'); }catch(_e){}
   document.getElementById('tela-escolher-empresa').style.display='none';
   iniciarPortal();
+}
+
+/* ── Desliga as leituras ao vivo da empresa anterior ─────────────────
+   ⚠️ ERA ESTE O "TROCO DE EMPRESA E NÃO APARECE NADA" (04/10/2026).
+   As leituras ao vivo eram ligadas uma vez só e ficavam presas na
+   PRIMEIRA empresa: `_portalGanhasDocs` devolvia os contratos dela, o
+   filtro da nova empresa descartava todos, e faturamento/ficha/pleitos
+   nem religavam (`_execLigado`/`_gcLigado` já estavam em true). Tela
+   vazia, sem erro. Agora toda troca — e todo "Sair" — desliga tudo e
+   zera o que estava em memória antes de ler a empresa nova. */
+var _pOuvintes = [];
+function _pDesligarTudo(){
+  try{ if(typeof window._portalListener === 'function') window._portalListener(); }catch(_e){}
+  window._portalListener = null; window._portalSnapDocs = null;
+  _pOuvintes.forEach(function(f){ try{ if(typeof f === 'function') f(); }catch(_e){} });
+  _pOuvintes = [];
+  _execLigado = false; _gcLigado = false;
+  dadosGanhas = []; dadosAndamento = []; ATEST = []; ATEST_POR_CONTRATO = null;
+  FAT = {}; NOT = {}; FICHA = {}; PLEITOS = {}; OCOR = {}; ADIT = {};
+  filtroAtual = 'todos'; _pgAtual = 1;
+}
+
+/** Troca de empresa sem sair do portal (seletor do topo). */
+function trocarEmpresaPortal(nome){
+  if(isAdmin) return;
+  if(nome && EMP_ESCOPO.indexOf(nome)===-1) return;
+  if((nome||'')===(empAtual||'')) return;
+  _pDesligarTudo();
+  escolherEmpresaPortal(nome);
+}
+
+/** Seletor do topo: só aparece para quem tem mais de uma empresa. */
+function _pPintarSeletorTopo(){
+  var box=document.getElementById('emp-troca');
+  if(!box) return;
+  var temTroca = !isAdmin && EMP_ESCOPO.length > 1;
+  var area = box.parentNode;
+  if(area) area.classList.toggle('com-troca', temTroca);
+  document.body.classList.toggle('com-troca', temTroca);
+  if(!temTroca){ box.style.display='none'; box.innerHTML=''; return; }
+  box.style.display='';
+  box.innerHTML='<select id="emp-troca-sel" onchange="trocarEmpresaPortal(this.value)" title="Trocar de empresa" aria-label="Trocar de empresa">'+
+    '<option value=""'+(!empAtual?' selected':'')+'>Todas as minhas empresas ('+EMP_ESCOPO.length+')</option>'+
+    EMP_ESCOPO.map(function(n){ return '<option value="'+pEsc(n)+'"'+(n===empAtual?' selected':'')+'>'+pEsc(n)+'</option>'; }).join('')+
+  '</select>';
 }
 
 document.addEventListener('DOMContentLoaded', ()=>{
@@ -2920,9 +3030,15 @@ function abrirModalContrato(entry){
   }
 
     // Empresa comum: travar campo empresa
-    if(!isAdmin){
-      var empSel2 = document.getElementById('mc-empresa');
-      if(empSel2) empSel2.disabled = true;
+    var empSel2 = document.getElementById('mc-empresa');
+    if(empSel2){
+      /* O seletor só oferece as empresas desta pessoa. */
+      Array.prototype.forEach.call(empSel2.options, function(o){
+        o.hidden = !isAdmin && !!o.value && !EMP_ESCOPO.concat(empAtual ? [empAtual] : []).some(function(e){ return mesmaEmpresa(o.value, e); });
+      });
+      /* Em "Todas as minhas empresas", contrato NOVO precisa escolher de
+         qual delas é; editar continua travado na empresa do contrato. */
+      if(!isAdmin) empSel2.disabled = !(!entry && !empAtual && EMP_ESCOPO.length > 1);
     }
   mcShowRecomp(1);
   var modal=document.getElementById('modal-contrato');
@@ -2990,6 +3106,12 @@ async function mcSalvar(){
     erroEl.textContent='Preencha os campos obrigatórios: Data, Empresa e Licitação.';
     erroEl.style.display='block'; return;
   }
+  /* Quem não é conta mestra só grava nas empresas que representa. A
+     regra do Firestore também confere; aqui o erro fica legível. */
+  if(!isAdmin && !_pVisivel(emp)){
+    erroEl.textContent='Você só pode lançar contratos das empresas que representa.';
+    erroEl.style.display='block'; return;
+  }
   if(autor.length<3){
     erroEl.textContent='Informe o nome do responsável pela alteração.';
     erroEl.style.display='block';
@@ -3030,14 +3152,14 @@ async function mcSalvar(){
     if(_mcEditId){
       // Atualizar existente
       arr[0] = dadosGanhas.find(e=>e.id===_mcEditId)?.arr[0] || _mcEditId;
-      var logEntry = { autor: autor, empresa: empAtual, data: _agora, acao: 'Contrato editado pelo portal' };
+      var logEntry = { autor: autor, empresa: empAtual || nhEmpresaDoArr(arr), data: _agora, acao: 'Contrato editado pelo portal' };
       await db.collection('ganhas').doc(_mcEditId).update({
         _arr: arr, _updatedAt: Date.now(),
         /* Reescrito junto com o `_arr` para o campo não envelhecer:
            `update` preservaria o valor antigo, e um contrato que
            trocasse de empresa ficaria indexado na errada. */
         empresa: nhEmpresaDoArr(arr),
-        _portalUltimaEdicao: autor+' ('+empAtual+') em '+_agora,
+        _portalUltimaEdicao: autor+' ('+(empAtual || nhEmpresaDoArr(arr))+') em '+_agora,
         _portalLog: firebase.firestore.FieldValue.arrayUnion(logEntry)
       });
     } else {
@@ -3096,13 +3218,13 @@ async function mcSalvar(){
       try{
         await db.collection('config').doc('seq_ganhas').set({proximo: nextId+1},{merge:true});
       }catch(_e){}
-      var logEntryN = { autor: autor, empresa: empAtual, data: _agora, acao: 'Contrato criado pelo portal' };
+      var logEntryN = { autor: autor, empresa: empAtual || nhEmpresaDoArr(arr), data: _agora, acao: 'Contrato criado pelo portal' };
       await db.collection('ganhas').doc(String(nextId)).set({
         _id: nextId, _arr: arr, _updatedAt: Date.now(), _createdAt: Date.now(),
         /* `set` sem merge — o campo tem de vir junto, senão o contrato
            nasce sem ele e o backfill precisaria rodar de novo. */
         empresa: nhEmpresaDoArr(arr),
-        _portalUltimaEdicao: autor+' ('+empAtual+') em '+_agora,
+        _portalUltimaEdicao: autor+' ('+(empAtual || nhEmpresaDoArr(arr))+') em '+_agora,
         _portalLog: [logEntryN]
       });
     }
@@ -3251,9 +3373,14 @@ async function iniciarPortal(){
   /* Na conta mestra `empAtual` é vazio, e a barra mostrava um ponto
      laranja solto, sem nada ao lado — um enfeite que parecia defeito.
      Agora ela diz em quantas empresas você está. */
-  const _emps = isAdmin ? (CONTA_MESTRA_EMPRESAS || []) : [];
+  const _emps = isAdmin ? (CONTA_MESTRA_EMPRESAS || []) : EMP_ESCOPO;
   document.getElementById('emp-nome-top').textContent = empAtual
-    || (_emps.length ? _emps.length + (_emps.length === 1 ? ' empresa' : ' empresas') : 'Todas as empresas');
+    || (!isAdmin && EMP_ESCOPO.length ? 'Todas as minhas empresas'
+        : (_emps.length ? _emps.length + (_emps.length === 1 ? ' empresa' : ' empresas') : 'Todas as empresas'));
+  /* Com mais de uma empresa, o nome vira seletor: troca sem sair. */
+  const _comTroca = !isAdmin && EMP_ESCOPO.length > 1;
+  document.getElementById('emp-nome-top').style.display = _comTroca ? 'none' : '';
+  _pPintarSeletorTopo();
 
   await carregarContratos();
 
@@ -3632,7 +3759,7 @@ function gerarDashboard(){
   const dash = document.getElementById('dashboard-area');
   if(!dash) return;
 
-  const empresas = isAdmin ? (CONTA_MESTRA_EMPRESAS || EMPRESAS_SISTEMA) : [empAtual];
+  const empresas = isAdmin ? (CONTA_MESTRA_EMPRESAS || EMPRESAS_SISTEMA) : (empAtual ? [empAtual] : EMP_ESCOPO.slice());
 
   /* Os contratos que este painel resume são exatamente os que a lista
      abaixo mostra — respeitando o período escolhido. Painel que soma
@@ -3671,7 +3798,7 @@ function gerarDashboard(){
   const sexta = new Date().getDay() === 5;
   const saud = sexta ? 'Sextouuuu' : h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
   const quem = (typeof PERFIL_NOME === 'string' && PERFIL_NOME) ? PERFIL_NOME : '';
-  const ondeEstou = isAdmin
+  const ondeEstou = vendoVarias()
     ? empresas.length + (empresas.length === 1 ? ' empresa' : ' empresas')
     : String(empAtual || '');
 
@@ -3821,7 +3948,7 @@ function gerarDashboard(){
      Para a empresa, por órgão: diz de quem ela depende. Para a NH,
      por empresa: diz qual carteira pesa. */
   let cardTerceiro;
-  if(isAdmin && empresas.length > 1){
+  if(vendoVarias() && empresas.length > 1){
     const porEmp = {};
     arrs.forEach(a => {
       const nome = empresas.find(e => mesmaEmpresa(e, String(a[IDX.EMPRESA] || '').trim()));
@@ -3903,7 +4030,7 @@ function gerarDashboard(){
     /* Para a NH, com mais de uma empresa na tela, o total não basta: a
        pergunta é qual carteira está faturando e qual parou. */
     let porEmpFat = '';
-    if(isAdmin && empresas.length > 1){
+    if(vendoVarias() && empresas.length > 1){
       const mapa = {};
       ents.forEach(e => {
         const nome = empresas.find(x => mesmaEmpresa(x, String(e.arr[IDX.EMPRESA] || '').trim()));
@@ -4112,7 +4239,7 @@ async function carregarAndamento(){
     snap.forEach(doc => {
       const arr = (doc.data()._arr) || [];
       const emp = String(arr[2]||'').trim().toUpperCase();
-      if(isAdmin || emp === empAtual) out.push({id:doc.id, arr});
+      if(_pVisivel(emp)) out.push({id:doc.id, arr});
     });
     dadosAndamento = out;
   }catch(e){
@@ -4150,7 +4277,7 @@ async function carregarAtestados(){
     snap.forEach(doc => {
       const arr = (doc.data()._arr) || [];
       const emp = String(arr[2]||'').trim().toUpperCase();
-      if(isAdmin || mesmaEmpresa(emp, empAtual)) out.push(arr);
+      if(_pVisivel(emp)) out.push(arr);
     });
     ATEST = out;
   }catch(e){
@@ -4796,7 +4923,7 @@ async function carregarContratos(){
       const arr = d._arr || [];
       const emp = String(arr[IDX.EMPRESA]||'').trim();
       // GROWTH vê todos; outras empresas veem só os seus
-      if(isAdmin || mesmaEmpresa(emp, empAtual)){
+      if(_pVisivel(emp)){
         todos.push({
           id: doc.id,
           arr,
@@ -4829,7 +4956,7 @@ async function carregarContratos(){
     try{ nhVerificarTotais(); }catch(_e){}
     // Atualizar título da seção
     const st = document.getElementById('section-title-contratos');
-    if(st) st.textContent = isAdmin ? 'Gerenciamento de Contratos — Visão Geral' : 'Gerenciamento de Contratos';
+    if(st) st.textContent = vendoVarias() ? 'Gerenciamento de Contratos — Visão Geral' : 'Gerenciamento de Contratos';
     // Botões extras GROWTH
     if(isAdmin){
       const btnExp = document.getElementById('btn-expandir-tudo');
@@ -4849,6 +4976,16 @@ async function carregarContratos(){
       }
     }
   }catch(e){
+    /* "Todas as minhas empresas" negado = alguma empresa marcada para
+       ela não bate com o cadastro de acesso. Diz isso, e oferece ver
+       uma de cada vez, em vez de uma tela de erro técnico. */
+    if(!isAdmin && !empAtual && EMP_ESCOPO.length > 1 && String(e.code||'') === 'permission-denied'){
+      document.getElementById('contratos-area').innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div>'+
+        '<p>Não consegui juntar as '+EMP_ESCOPO.length+' empresas: o cadastro de acesso de uma delas não confere. '+
+        'Escolha uma empresa no seletor do topo e avise a NH para acertar o cadastro.</p></div>';
+      console.warn('[Portal] Todas as minhas empresas negado:', EMP_ESCOPO.join(', '));
+      return;
+    }
     document.getElementById('contratos-area').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><p>Erro ao carregar: ${e.message}</p></div>`;
   }
 }
@@ -5107,9 +5244,9 @@ function portalExplicarVazio(){
     txt='O portal está funcionando e seu acesso está certo — a NH ainda não lançou contrato nenhum.';
   }else if(!outras.length && !d.semEmpresa){
     tit='Nenhum contrato para esta empresa';
-    txt='Há '+d.total+' contrato(s) no sistema, mas nenhum é de <b>'+pEsc(empAtual)+'</b>.';
+    txt='Há '+d.total+' contrato(s) no sistema, mas nenhum é de <b>'+pEsc(empAtual || EMP_ESCOPO.join(', '))+'</b>.';
   }else{
-    tit='Nenhum contrato de '+pEsc(empAtual);
+    tit='Nenhum contrato de '+pEsc(empAtual || 'suas empresas');
     txt='Há <b>'+d.total+'</b> contrato(s) no sistema. Os que existem estão em nome de: <b>'+
         pEsc(outras.slice(0,8).join(', '))+'</b>'+(outras.length>8?' e outras':'')+
         (d.semEmpresa?', e '+d.semEmpresa+' sem empresa preenchida':'')+'.';
@@ -5279,7 +5416,7 @@ function renderContratos(){
             <span style="font-size:11px;color:var(--t3)">${arr[IDX.DATA]||''}</span>
           </div>
           <div class="ccard-titulo">${pEsc(arr[IDX.LICITACAO]||'Sem título')}</div>
-          ${isAdmin && arr[IDX.EMPRESA] ? `<div style="font-size:11px;color:${CORES[arr[IDX.EMPRESA].trim().toUpperCase()]||'#888'};font-weight:700;margin-top:3px">${arr[IDX.EMPRESA].trim().toUpperCase()}</div>` : ''}
+          ${vendoVarias() && arr[IDX.EMPRESA] ? `<div style="font-size:11px;color:${CORES[arr[IDX.EMPRESA].trim().toUpperCase()]||'#888'};font-weight:700;margin-top:3px">${arr[IDX.EMPRESA].trim().toUpperCase()}</div>` : ''}
         </div>
         <div class="ccard-badges">
           ${statusBadge}${situacaoBadge}${vencBadge}${recomp}
@@ -5622,7 +5759,7 @@ function _execOuvir(colecao, destino){
          não vai ser mostrado. */
       /* Mesmo critério da lista e do dashboard. Com `!==` exato, a
          empresa via os contratos e não via o faturamento deles. */
-      if(!isAdmin && !mesmaEmpresa(d.empresa, empAtual)) return;
+      if(!_pVisivel(d.empresa)) return;
       (novo[cid] = novo[cid] || []).push(Object.assign({id:doc.id}, d));
     });
     Object.keys(novo).forEach(function(cid){
@@ -5646,8 +5783,8 @@ var _execLigado = false;
 function execIniciar(){
   if(_execLigado) return;
   _execLigado = true;
-  _execOuvir('contrato_faturamento', 'FAT');
-  _execOuvir('contrato_notificacoes', 'NOT');
+  _pOuvintes.push(_execOuvir('contrato_faturamento', 'FAT'));
+  _pOuvintes.push(_execOuvir('contrato_notificacoes', 'NOT'));
 }
 
 /* ── Faixa de saúde ────────────────────────────────────────────────
@@ -6012,7 +6149,8 @@ function _execMsgErro(e){
 async function _execLog(contratoId, autor, acao){
   try{
     var agora = new Date().toLocaleString('pt-BR');
-    var entrada = {autor:autor, empresa:empAtual || 'GROWTH', data:agora, acao:acao};
+    var _ce = (dadosGanhas.find(function(e){ return String(e.id) === String(contratoId); }) || {}).arr;
+    var entrada = {autor:autor, empresa:empAtual || (isAdmin ? 'GROWTH' : (_ce ? nhEmpresaDoArr(_ce) : '')), data:agora, acao:acao};
     await db.collection('ganhas').doc(contratoId).update({
       _portalLog: firebase.firestore.FieldValue.arrayUnion(entrada)
     });
@@ -6893,7 +7031,7 @@ function gerarHTMLImpressao(entries, opts){
   if(!opts) opts = {basico:true,objeto:true,obs:true,recomp:true,link:false,log:false,executivo:true};
   var _orient = (opts && opts.orientacao==='paisagem') ? 'paisagem' : 'retrato';
   var _execOn = (opts.executivo !== false) && entries.length > 1;
-  const titulo = isAdmin ? 'GROWTH — Todas as Empresas' : empAtual;
+  const titulo = isAdmin ? 'GROWTH — Todas as Empresas' : (empAtual || 'Todas as minhas empresas');
   const cor = isAdmin ? '#8b5cf6' : (CORES[empAtual] || '#f97316');
   const hoje = new Date().toLocaleDateString('pt-BR');
   let html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
@@ -7007,12 +7145,12 @@ function gerarHTMLImpressao(entries, opts){
     const empNome = String(arr[IDX.EMPRESA]||'').trim().toUpperCase();
     const empCor = CORES[empNome] || '#6b7280';
     // Borda lateral colorida pela empresa (GROWTH vê todas)
-    const borderCor = isAdmin ? empCor : cor;
+    const borderCor = vendoVarias() ? empCor : cor;
 
     html += `<div class="contrato" style="border-left:4px solid ${borderCor}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
         <div>
-          ${isAdmin && empNome ? `<span class="emp-tag" style="background:${empCor}22;color:${empCor};border:1px solid ${empCor}44">${empNome}</span>` : ''}
+          ${vendoVarias() && empNome ? `<span class="emp-tag" style="background:${empCor}22;color:${empCor};border:1px solid ${empCor}44">${empNome}</span>` : ''}
           <span class="c-titulo" style="display:inline">#${arr[IDX.ID]||'?'} — ${arr[IDX.LICITACAO]||'Sem título'}</span>
         </div>
         <span class="badge-status ${badgeCls}">${status}</span>
@@ -7264,7 +7402,7 @@ function exportarExcelPortal(){
   }
 
   const data = new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
-  XLSX.writeFile(wb, `NH_Contratos_${empAtual||'GROWTH'}_${data}.xlsx`);
+  XLSX.writeFile(wb, `NH_Contratos_${empAtual||(isAdmin?'GROWTH':'MINHAS-EMPRESAS')}_${data}.xlsx`);
 }
 
 function imprimirContrato(id){
@@ -7611,26 +7749,26 @@ async function salvarAlteracoes(id){
     const agora = new Date().toLocaleString('pt-BR');
     const logEntry = Object.assign({
       autor: autor,
-      empresa: empAtual,
+      empresa: empAtual || nhEmpresaDoArr(arr),
       data: agora
     }, mudou);
 
     await db.collection('ganhas').doc(id).update({
       _arr: arr,
       _portalLog: firebase.firestore.FieldValue.arrayUnion(logEntry),
-      _portalUltimaEdicao: `${autor} (${empAtual}) em ${agora}`
+      _portalUltimaEdicao: `${autor} (${empAtual || nhEmpresaDoArr(arr)}) em ${agora}`
     });
 
     entry.arr = arr;
     entry._portalLog = (entry._portalLog||[]).concat([logEntry]);
-    entry._portalUltimaEdicao = `${autor} (${empAtual}) em ${agora}`;
+    entry._portalUltimaEdicao = `${autor} (${empAtual || nhEmpresaDoArr(arr)}) em ${agora}`;
 
     btn.disabled = false;
     btn.textContent = '✓ Salvo!';
     btn.style.background = '#22c55e';
 
     const lastEdit = document.getElementById('last-edit-'+id);
-    if(lastEdit) lastEdit.textContent = `\u270e Última edição: ${autor} (${empAtual}) em ${agora}`;
+    if(lastEdit) lastEdit.textContent = `\u270e Última edição: ${autor} (${empAtual || nhEmpresaDoArr(arr)}) em ${agora}`;
 
     setTimeout(()=>{
       btn.textContent = '💾 Salvar Alterações';
@@ -7758,7 +7896,10 @@ window.addEventListener('load', async ()=>{
 
 auth.onAuthStateChanged(async function(user){
     if(!user){
-      empAtual=''; isAdmin=false; CONTA_MESTRA_EMPRESAS=null; dadosGanhas=[];
+      /* Sair desliga as leituras ao vivo: sem isto, a próxima entrada
+         (outra empresa, outra pessoa) herdava os dados da anterior. */
+      try{ _pDesligarTudo(); }catch(_e){}
+      empAtual=''; isAdmin=false; CONTA_MESTRA_EMPRESAS=null; dadosGanhas=[]; EMP_ESCOPO=[];
       document.getElementById('portal').style.display='none';
       var tsel=document.getElementById('tela-escolher-empresa');
       if(tsel) tsel.style.display='none';
@@ -8285,7 +8426,7 @@ function _gcOuvir(colecao, destino, umPorContrato){
       var d = doc.data() || {};
       var cid = d.contratoId;
       if(!cid) return;
-      if(!isAdmin && !mesmaEmpresa(d.empresa, empAtual)) return;
+      if(!_pVisivel(d.empresa)) return;
       var reg = Object.assign({id:doc.id}, d);
       if(umPorContrato) novo[cid] = reg;
       else (novo[cid] = novo[cid] || []).push(reg);
@@ -8316,10 +8457,10 @@ var _gcLigado = false;
 function gcIniciar(){
   if(_gcLigado) return;
   _gcLigado = true;
-  _gcOuvir('contrato_ficha',       'FICHA',   true);
-  _gcOuvir('contrato_pleitos',     'PLEITOS', false);
-  _gcOuvir('contrato_ocorrencias', 'OCOR',    false);
-  _gcOuvir('contrato_aditivos',    'ADIT',    false);
+  _pOuvintes.push(_gcOuvir('contrato_ficha',       'FICHA',   true));
+  _pOuvintes.push(_gcOuvir('contrato_pleitos',     'PLEITOS', false));
+  _pOuvintes.push(_gcOuvir('contrato_ocorrencias', 'OCOR',    false));
+  _pOuvintes.push(_gcOuvir('contrato_aditivos',    'ADIT',    false));
 }
 
 /* ══ TELAS ══════════════════════════════════════════════════════════
