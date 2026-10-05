@@ -68,6 +68,11 @@ body.light .fin-hero{box-shadow:0 1px 2px rgba(15,23,42,.06),0 18px 40px -24px r
   content:'';position:absolute;top:0;left:0;right:0;height:2px;
   background:linear-gradient(90deg,var(--nh),rgba(249,115,22,.25) 35%,transparent 70%);
 }
+/* Seletor de período dos cards grandes (05/10/2026) */
+.fin-seg{display:inline-flex;gap:4px;padding:3px;margin-bottom:12px;border-radius:10px;background:var(--s1);border:1px solid var(--b1)}
+.fin-seg-b{font:inherit;font-size:13px;font-weight:700;cursor:pointer;padding:6px 14px;border-radius:8px;border:0;background:transparent;color:var(--t2)}
+.fin-seg-b:hover{color:var(--t1)}
+.fin-seg-b.on{background:var(--nh);color:#111}
 .fin-hero-olho{font-size:10.5px;font-weight:800;color:var(--nh);text-transform:uppercase;letter-spacing:.11em;margin-bottom:7px}
 .fin-hero-num{font-size:clamp(27px,7vw,40px);font-weight:800;line-height:1;letter-spacing:-1.4px;font-variant-numeric:tabular-nums;white-space:nowrap}
 .fin-hero-sub{font-size:12.5px;color:var(--t2);margin-top:8px;line-height:1.5;max-width:440px}
@@ -860,6 +865,58 @@ function resumoDoMes(){
           qtd:doMes.length, doMes:doMes};
 }
 
+/* ⚠️ VISÃO DO ANO E GERAL NOS CARDS GRANDES — 05/10/2026.
+   Pedido: "não tem um dashboard geral com informações gerais ou anuais
+   nos cards grandes na tela inicial". A abertura só mostrava o mês.
+   Agora há três visões: Mês (como era), Ano (o ano escolhido no topo)
+   e Geral (tudo desde o início). Mesmas regras do resumo do mês —
+   competência, cancelada fora, saldo, atraso, entradas manuais —, só
+   muda o recorte. */
+var VISAO_FIN = 'mes';
+try{ VISAO_FIN = localStorage.getItem('nh_fin_visao') || 'mes'; }catch(_e){}
+function finVisao(v){
+  VISAO_FIN = v;
+  try{ localStorage.setItem('nh_fin_visao', v); }catch(_e){}
+  pintar();
+}
+
+function resumoPeriodo(){
+  if(VISAO_FIN !== 'ano' && VISAO_FIN !== 'tudo') return Object.assign(resumoDoMes(), {modo:'mes'});
+  var tudo = VISAO_FIN === 'tudo';
+  var noAno = function(d){ return !!(d && d.getFullYear() === ANO); };
+  var lista = RECEITAS.filter(function(r){
+    if(tudo) return true;
+    if(r.competencia) return String(r.competencia).slice(0,4) === String(ANO);
+    return noAno(dData(r.dataVencimento));
+  });
+  var v = lista.filter(valida);
+  var previsto = v.reduce(function(s,r){ return s+num(r.valor); },0);
+  var recebido = v.reduce(function(s,r){ return s+num(r.valorRecebido); },0);
+  var aReceber = v.reduce(function(s,r){ return s+saldo(r); },0);
+  var emAtraso = v.filter(atrasada).reduce(function(s,r){ return s+saldo(r); },0);
+  var despesas = DESPESAS.filter(function(a){ return tudo || noAno(dData(a[0])); })
+    .reduce(function(s,a){ return s+num(a[4]); },0);
+  var ents = (typeof ENTRADAS !== 'undefined' ? ENTRADAS : []).filter(function(e){ return tudo || noAno(dData(e.data)); });
+  var entradas = ents.reduce(function(s,e){ return s+num(e.valor); },0);
+  /* Média mensal: no ano corrente divide pelos meses já vividos, não
+     por 12 — senão outubro pareceria ter um mês médio fraco. */
+  var hoje = new Date(), meses;
+  if(!tudo) meses = ANO < hoje.getFullYear() ? 12 : ANO > hoje.getFullYear() ? 1 : hoje.getMonth() + 1;
+  else {
+    var datas = v.map(function(r){
+      if(r.competencia){ var p = String(r.competencia).split('-'); return new Date(+p[0], +p[1]-1, 1); }
+      return dData(r.dataVencimento);
+    }).filter(Boolean);
+    var ini = datas.length ? new Date(Math.min.apply(null, datas)) : hoje;
+    meses = Math.max(1, (hoje.getFullYear() - ini.getFullYear()) * 12 + hoje.getMonth() - ini.getMonth() + 1);
+  }
+  var ativos = CONTRATOS.filter(function(c){ return String(c.status||'').toUpperCase() === 'ATIVO'; }).length;
+  return {modo:VISAO_FIN, previsto:previsto, recebido:recebido, aReceber:aReceber, emAtraso:emAtraso,
+          despesas:despesas, entradas:entradas, qtdEntradas:ents.length,
+          entrou:recebido+entradas, resultado:(recebido+entradas)-despesas, qtd:lista.length,
+          mediaMes:(recebido+entradas)/meses, meses:meses, contratosAtivos:ativos};
+}
+
 /* Os doze meses do ano corrente, para o gráfico. Mesma regra de
    competência do resumo do mês — se divergisse, a barra de agosto não
    bateria com o que agosto mostra ao ser aberto. */
@@ -936,24 +993,32 @@ function pintar(){
 
   /* ── Faixa de abertura ──────────────────────────────────────────
      Uma frase e um número: o que sobrou no mês. O resto é apoio. */
-  var pctReceb = r.previsto>0 ? (r.recebido/r.previsto)*100 : 0;
-  var corRes   = r.resultado>=0 ? 'var(--g1)' : 'var(--r1)';
-  var frase = r.previsto<=0
-    ? 'Nenhuma cobrança com competência neste mês.'
-    : 'De '+brl(r.previsto)+' previstos, <b style="color:var(--g1)">'+pctReceb.toFixed(0)+'%</b> já entraram'+
-      (r.emAtraso>0 ? ' — e <b style="color:var(--r1)">'+brl(r.emAtraso)+'</b> venceram sem pagamento.' : '.');
+  /* Os cards grandes seguem a visão escolhida (Mês/Ano/Geral); as abas
+     de baixo continuam no mês, que é onde se trabalha (05/10/2026). */
+  var rp = resumoPeriodo();
+  var rotPer = rp.modo === 'ano' ? 'de ' + ANO : rp.modo === 'tudo' ? 'geral' : 'de ' + MESES[MES];
+  var pctReceb = rp.previsto>0 ? (rp.recebido/rp.previsto)*100 : 0;
+  var corRes   = rp.resultado>=0 ? 'var(--g1)' : 'var(--r1)';
+  var frase = rp.previsto<=0
+    ? (rp.modo === 'mes' ? 'Nenhuma cobrança com competência neste mês.' : rp.modo === 'ano' ? 'Nenhuma cobrança com competência em ' + ANO + '.' : 'Nenhuma cobrança lançada ainda.')
+    : 'De '+brl(rp.previsto)+' previstos, <b style="color:var(--g1)">'+pctReceb.toFixed(0)+'%</b> já entraram'+
+      (rp.emAtraso>0 ? ' — e <b style="color:var(--r1)">'+brl(rp.emAtraso)+'</b> venceram sem pagamento.' : '.');
+  var seg = function(v, rot){
+    return '<button type="button" class="fin-seg-b'+(rp.modo===v?' on':'')+'" onclick="finVisao(\''+v+'\')">'+rot+'</button>';
+  };
 
   document.getElementById('hero').innerHTML=
     '<div>'+
-      '<div class="fin-hero-olho">Resultado de '+MESES[MES]+'</div>'+
-      '<div class="fin-hero-num" style="color:'+corRes+'">'+brl(r.resultado)+'</div>'+
+      '<div class="fin-seg" role="group" aria-label="Período dos números">'+seg('mes','Mês')+seg('ano','Ano '+ANO)+seg('tudo','Geral')+'</div>'+
+      '<div class="fin-hero-olho">Resultado '+rotPer+'</div>'+
+      '<div class="fin-hero-num" style="color:'+corRes+'">'+brl(rp.resultado)+'</div>'+
       '<div class="fin-hero-sub">'+frase+'</div>'+
     '</div>'+
     '<div class="fin-hero-lado">'+
-      '<div><div class="fin-mini-l">Entrou</div><div class="fin-mini-v" style="color:var(--g1)">'+brl(r.entrou)+'</div>'+
-        (r.entradas>0?'<div style="font-size:10px;color:var(--t3);margin-top:2px">'+brl(r.recebido)+' de cobranças + '+brl(r.entradas)+' de outras entradas</div>':'')+'</div>'+
-      '<div><div class="fin-mini-l">Saiu</div><div class="fin-mini-v" style="color:var(--y1)">'+brl(r.despesas)+'</div></div>'+
-      '<div><div class="fin-mini-l">Em aberto</div><div class="fin-mini-v" style="color:var(--b_)">'+brl(r.aReceber)+'</div></div>'+
+      '<div><div class="fin-mini-l">Entrou</div><div class="fin-mini-v" style="color:var(--g1)">'+brl(rp.entrou)+'</div>'+
+        (rp.entradas>0?'<div style="font-size:10px;color:var(--t3);margin-top:2px">'+brl(rp.recebido)+' de cobranças + '+brl(rp.entradas)+' de outras entradas</div>':'')+'</div>'+
+      '<div><div class="fin-mini-l">Saiu</div><div class="fin-mini-v" style="color:var(--y1)">'+brl(rp.despesas)+'</div></div>'+
+      '<div><div class="fin-mini-l">Em aberto</div><div class="fin-mini-v" style="color:var(--b_)">'+brl(rp.aReceber)+'</div></div>'+
     '</div>';
 
   /* KPI com destino: clicar abre a aba que detalha aquele número. */
@@ -964,13 +1029,18 @@ function pintar(){
       (s?'<div class="kpi-s">'+s+'</div>':'')+'</div>';
   };
   document.getElementById('kpis').innerHTML =
-    kpi('Previsto no mês', brl(r.previsto), 'var(--t1)', r.qtd+' cobrança(s)', 'receber') +
-    kpi('Recebido', brl(r.recebido), 'var(--g1)', pctReceb.toFixed(0)+'% do previsto', 'receber') +
-    kpi('A receber', brl(r.aReceber), 'var(--b_)', 'ainda em aberto', 'receber') +
-    (r.emAtraso>0 ? kpi('Em atraso', brl(r.emAtraso), 'var(--r1)', 'vencidas sem pagamento', 'receber') : '') +
-    (r.entradas>0 ? kpi('Outras entradas', brl(r.entradas), 'var(--g1)', r.qtdEntradas+' lançamento(s) manual(is)', 'caixa') : '') +
-    kpi('Despesas', brl(r.despesas), 'var(--y1)', 'lançadas no Sistema NH', 'despesas') +
-    kpi('Resultado', brl(r.resultado), corRes, 'entrou − despesas', '') +
+    kpi(rp.modo === 'mes' ? 'Previsto no mês' : rp.modo === 'ano' ? 'Previsto em ' + ANO : 'Previsto (geral)',
+        brl(rp.previsto), 'var(--t1)', rp.qtd+' cobrança(s)', 'receber') +
+    kpi('Recebido', brl(rp.recebido), 'var(--g1)', pctReceb.toFixed(0)+'% do previsto', 'receber') +
+    kpi('A receber', brl(rp.aReceber), 'var(--b_)', 'ainda em aberto', 'receber') +
+    (rp.emAtraso>0 ? kpi('Em atraso', brl(rp.emAtraso), 'var(--r1)', 'vencidas sem pagamento', 'receber') : '') +
+    (rp.entradas>0 ? kpi('Outras entradas', brl(rp.entradas), 'var(--g1)', rp.qtdEntradas+' lançamento(s) manual(is)', 'caixa') : '') +
+    kpi('Despesas', brl(rp.despesas), 'var(--y1)', 'lançadas no Sistema NH', 'despesas') +
+    kpi('Resultado', brl(rp.resultado), corRes, 'entrou − despesas', '') +
+    (rp.modo !== 'mes'
+      ? kpi('Média que entrou por mês', brl(rp.mediaMes), 'var(--nh)', 'em ' + rp.meses + (rp.meses === 1 ? ' mês' : ' meses'), '') +
+        kpi('Contratos ativos', String(rp.contratosAtivos), 'var(--t1)', 'contratos de honorários', 'contratos')
+      : '') +
     /* Saldo é o número que ninguém tinha: quanto existe AGORA, somando
        banco e caixa. O resultado do mês responde "como foi o mês"; o
        saldo responde "dá para pagar a folha na sexta". */

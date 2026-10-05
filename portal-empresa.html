@@ -5658,7 +5658,17 @@ function renderContratos(){
       _org ? `<span class="cm-org">${pEsc(_org)}${_mun && _org.indexOf(_mun.split('/')[0])===-1 ? ' · '+pEsc(_mun) : ''}</span>` : (_mun ? `<span>${pEsc(_mun)}</span>` : ''),
       _num ? `<span>${pEsc(_num)}</span>` : '',
       _val > 0 ? `<span><b>${fmtMoedaP(_val)}</b></span>` : '',
-      (venc && !encerrado) ? `<span>vence ${pEsc(String(venc).split(' ')[0])}</span>` : '',
+      /* Contagem regressiva no cartão recolhido (05/10/2026): a data
+         sozinha obrigava a fazer conta de cabeça. */
+      (venc && !encerrado) ? (function(){
+        const p = String(venc).split(' ')[0].split('/');
+        const dt = p.length === 3 ? new Date(+p[2], +p[1]-1, +p[0]) : null;
+        const d = dt && !isNaN(dt) ? Math.round((dt - hoje) / 86400000) : null;
+        const falta = d === null ? '' : d < 0 ? 'vencido há ' + Math.abs(d) + 'd' : d === 0 ? 'vence HOJE'
+          : d <= 60 ? 'faltam ' + d + ' dias' : 'faltam ' + Math.round(d / 30) + ' meses';
+        const cor = d === null ? '' : d < 0 ? '#ef4444' : d <= 30 ? '#f97316' : d <= 90 ? '#eab308' : '#22c55e';
+        return `<span>vence ${pEsc(String(venc).split(' ')[0])}${falta ? ` · <b style="color:${cor}">${falta}</b>` : ''}</span>`;
+      })() : '',
       /* O nº interno saiu da frente — o lugar agora é da empresa — e
          fica aqui no fim, discreto, para quem precisa citar o registro. */
       `<span class="cm-id">#${pEsc(String(arr[IDX.ID]||'?'))}</span>`
