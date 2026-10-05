@@ -23242,7 +23242,29 @@ body{font-size:15px}
 .kcard .emp-badge{font-size:12.5px}
 /* Empresa em destaque (04/10/2026): "o nome das empresas está sem destaque, a
    gente acaba se perdendo". Selo CHEIO na cor da empresa, letra forte. */
-.venc-chip{display:inline-flex;align-items:center;font-size:12.5px;font-weight:800;padding:3px 10px;border-radius:7px;border:1px solid;white-space:nowrap}
+/* ═══ CARD LIMPO — 05/10/2026 ════════════════════════════════════════
+   Queixa (com print): "tela muito poluída, me deu dor de cabeça de tanta
+   informação tumultuada". A linha de cima tinha QUATRO caixas (empresa,
+   número, vencimento, data) e embaixo mais três etiquetas com borda. Cada
+   caixa disputa o olho com a outra. Regra agora: só a EMPRESA é selo; o
+   resto é texto simples, e cor só no que avisa (vencimento, recomposição).
+   Só aparência — nada do que o card faz mudou. */
+.kcard-top .kcard-id{background:none!important;border:0!important;padding:0!important;color:var(--t3)!important;
+  font-size:12.5px!important;font-weight:700!important}
+.kcard-top span[style*="background:var(--s3)"]{background:none!important;padding:0!important;
+  font-size:12.5px!important;font-weight:600!important;color:var(--t2)!important}
+.venc-chip{display:inline-flex;align-items:center;font-size:12.5px;font-weight:800;white-space:nowrap;
+  border:0!important;background:none!important;padding:0!important;order:2}
+.kcard-top span[title="Última edição"]{order:3}
+.kcard.collapsed .kcard-top span[title="Última edição"]{display:none!important}
+/* Título: o campo editável só mostra o tracejado ao passar o mouse. */
+.kcard .kcard-licit input[type=text]{border-bottom-color:transparent!important}
+.kcard .kcard-licit input[type=text]:hover{border-bottom-color:rgba(255,255,255,.18)!important}
+/* Etiquetas de situação / saldo / carona: texto colorido, sem caixa. */
+.kcard span[onclick="event.stopPropagation()"][style*="padding:2px 8px"]{background:none!important;border:0!important;
+  padding:0!important;font-size:12.5px!important;font-weight:700!important}
+.kcard span[onclick="event.stopPropagation()"][style*="padding:2px 8px"] + span[onclick="event.stopPropagation()"][style*="padding:2px 8px"]::before{
+  content:"·";margin:0 8px 0 2px;color:var(--t3);font-weight:400}
 .cli-badge{display:inline-flex;align-items:center;font-size:12px;font-weight:800;letter-spacing:.03em;padding:3px 10px;border-radius:7px;color:#c4b5fd;background:rgba(139,92,246,.14);border:1px dashed rgba(139,92,246,.6)}
 .emp-badge{font-size:13px!important;font-weight:800!important;padding:4px 12px!important;border-radius:7px!important;
   letter-spacing:.04em!important;text-transform:uppercase;box-shadow:0 1px 0 rgba(0,0,0,.25)}
