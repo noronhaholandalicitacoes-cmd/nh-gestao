@@ -18402,13 +18402,17 @@ function chatPintarPainel(){
                      : '<button class="btn btn-nh" onclick="chatRetomar(\'' + sel + '\')">Retomar</button>') +
           '<button class="btn btn-ghost" style="color:#f87171" onclick="chatExcluir(\'' + sel + '\')" title="Apaga a conversa e as mensagens guardadas">🗑 Excluir</button>' +
         '</div></div>' +
-      (mon.ativo && !direto && (!mon.url || _chatEhPCP(mon.portal)) ? '<div class="chat-aviso" style="margin:10px 16px 0">' +
-        (_chatEhPCP(mon.portal)
-          ? '<b>Falta o link do processo.</b> No Portal de Compras Públicas o sistema lê o chat sozinho, sem extensão — ' +
-            'abra o processo em portaldecompraspublicas.com.br, copie o endereço da página e cole aqui:'
-          : (mon.url ? 'Quer trocar o link do processo? Cole o novo aqui:' : '<b>Falta o link do processo.</b> Cole aqui o endereço do processo no portal:')) +
-        '<div style="display:flex;gap:8px;margin-top:8px"><input id="chat-link-painel" class="chat-in" style="flex:1" placeholder="https://…" value="' + esc0(mon.url||'') + '">' +
-        '<button class="btn btn-nh" onclick="chatSalvarLink(\'' + sel + '\')">Salvar link</button></div></div>' : '') +
+      /* O link é achado sozinho (PNCP, 05/10/2026). Colar à mão virou o
+         último recurso, recolhido, só quando a busca não conseguiu. */
+      (mon.ativo && !direto && !mon.url
+        ? (_chatLinkTentado[sel] === 'falhou'
+            ? '<div class="chat-aviso" style="margin:10px 16px 0"><b>Não achei este processo sozinho.</b> ' +
+                'Confira se o título do card tem número/ano, cidade, UF e a data da sessão (ex.: "PE 17.2026 - João Pessoa - PB - 10.08.2026 as 09h").' +
+                '<details style="margin-top:8px"><summary style="cursor:pointer">Colar o link manualmente</summary>' +
+                '<div style="display:flex;gap:8px;margin-top:8px"><input id="chat-link-painel" class="chat-in" style="flex:1" placeholder="https://…">' +
+                '<button class="btn btn-nh" onclick="chatSalvarLink(\'' + sel + '\')">Salvar link</button></div></details></div>'
+            : '<div class="chat-aviso" style="margin:10px 16px 0">🔎 Procurando o processo no portal pelo PNCP… em segundos o chat começa a ser lido.</div>')
+        : '') +
       '<div class="chat-msgs">' + (msgs.length ? msgs.map(function(x){
         return '<div class="chat-msg ' + x.nivel + (x.ts > lido && !x.historico ? ' nova' : '') + '">' +
           '<div class="chat-msg-cab"><b>' + esc0(x.autor || 'Pregoeiro') + '</b>' +
@@ -18725,17 +18729,132 @@ async function _chatBuscarPCP(titulo){
   return 'https://www.portaldecompraspublicas.com.br/processos' + cands[0].urlReferencia;
 }
 
-/** Portal do card + título → link do processo, para os portais de
- *  leitura direta. Hoje só o Portal de Compras Públicas. */
+/* ═══ ACHAR O PROCESSO EM QUALQUER PORTAL PELO PNCP — 05/10/2026 ═══════
+   Pedido do cliente: "eu não quero colocar nada, assim como o Compras
+   Públicas funciona normal os outros têm que funcionar". Antes, fora do
+   Portal de Compras Públicas, o painel pedia para colar o link.
+   Por lei (14.133, art. 54) todo processo é publicado no PNCP, e a
+   publicação traz `linkSistemaOrigem` — o endereço do processo no portal
+   onde ele corre (Compras.gov, BLL, BNC, Licitanet…). A API de consulta
+   do PNCP é aberta e aceita chamada do navegador.
+   Busca: pregões/dispensas publicados no município do card, nos 45 dias
+   antes da sessão; confere número e ano; desempata pela DATA E HORA da
+   sessão do título e, se ainda houver dúvida, pelo objeto. Empate que
+   sobra = não escolhe (monitorar o pregão errado é pior que não achar).
+   Testado em 05/10/2026: "PE 17.2026 - João Pessoa - PB - 10.08.2026 as
+   09h" (RECCONM) — cinco "17/2026" na cidade, um só com sessão 10/08
+   às 09h: Secretaria de Estado da Administração, no Compras.gov. */
+/* O PNCP às vezes falha de primeira (testado 05/10/2026: a mesma
+   consulta deu "Failed to fetch" e, segundos depois, 200 em 131 ms —
+   quando o servidor deles se engasga, a resposta de erro vem sem a
+   liberação de CORS). Tenta de novo antes de concluir que não achou. */
+async function _pncpGet(url){
+  for(var t = 0; t < 2; t++){
+    try{
+      var r = await fetch(url);
+      if(r.ok || r.status === 204 || (r.status >= 400 && r.status < 500 && r.status !== 429)) return r;
+    }catch(_e){}
+    await new Promise(function(ok){ setTimeout(ok, 800 * (t + 1)); });
+  }
+  throw new Error('PNCP não respondeu');
+}
+
+var _ibgeMun = {};   /* UF -> [{id, nome}] */
+async function _chatIbgeCidade(uf, cidade){
+  if(!_ibgeMun[uf]){
+    var r = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados/' + uf + '/municipios');
+    if(!r.ok) return '';
+    _ibgeMun[uf] = await r.json();
+  }
+  var achou = (_ibgeMun[uf] || []).find(function(m){ return _chatMesmaCidade(m.nome, cidade); });
+  return achou ? String(achou.id) : '';
+}
+
+function _chatDataSessao(titulo){
+  var m = String(titulo||'').match(/(\d{2})[.\/](\d{2})[.\/](\d{2,4})(?:\s*(?:as|às|-)?\s*(\d{1,2})\s*[h:]\s*(\d{2})?)?/i);
+  if(!m) return null;
+  var ano = m[3].length === 2 ? '20' + m[3] : m[3];
+  return {ymd: ano + m[2] + m[1], dia: ano + '-' + m[2] + '-' + m[1],
+          hora: m[4] ? ('0' + m[4]).slice(-2) + ':' + (m[5] || '00') : ''};
+}
+
+function _chatMesmoNumero(numeroCompra, n){
+  /* "17", "0017", e o formato federal "90017" (9 + número). */
+  var s = String(numeroCompra||'').replace(/\D/g, '').replace(/^0+/, '');
+  return s === String(n) || (s.charAt(0) === '9' && +s.slice(1) === +n);
+}
+
+function _chatPalavras(t){
+  return _chatSemAcento(String(t||'')).toLowerCase().split(/[^a-z0-9]+/)
+    .filter(function(w){ return w.length > 4; });
+}
+
+async function _chatBuscarPNCP(titulo, objeto){
+  var p = _chatLerTitulo(titulo);
+  if(!p || !p.uf || !p.cid) return '';
+  var ibge = await _chatIbgeCidade(p.uf, p.cid);
+  if(!ibge) return '';
+  var ses = _chatDataSessao(titulo);
+  var fmt = function(d){ return d.getFullYear() + ('0'+(d.getMonth()+1)).slice(-2) + ('0'+d.getDate()).slice(-2); };
+  var fim = ses ? new Date(+ses.ymd.slice(0,4), +ses.ymd.slice(4,6)-1, +ses.ymd.slice(6,8)) : new Date();
+  /* 45 dias: pregão sai de 8 a 30 dias antes da sessão. Janela maior
+     só multiplica páginas — e o PNCP limita requisições por minuto. */
+  var ini = new Date(fim.getTime() - 45 * 86400000);
+  /* 6 pregão eletrônico · 8 dispensa · 4/5 concorrência · 7 pregão presencial */
+  var mods = /^(DL|DE|DS|DISP|CD)$/.test(p.mod) ? [8] : /^(CC|CE|CP|CON)$/.test(p.mod) ? [4, 5] : /^PP$/.test(p.mod) ? [7] : [6];
+  var cands = [];
+  for(var mi = 0; mi < mods.length; mi++){
+    for(var pag = 1; pag <= 20; pag++){
+      /* Pelo servidor do portal geral: do navegador o PNCP barra esta
+         consulta de forma intermitente; servidor a servidor ela responde.
+         Ver /api/pncp/publicacao em dashboard-nh/server/_core/index.ts. */
+      var r = await _pncpGet('https://nhlicitacoes.noronhaholanda.com.br/api/pncp/publicacao?dataInicial=' + fmt(ini) +
+        '&dataFinal=' + fmt(fim) + '&modalidade=' + mods[mi] + '&uf=' + p.uf +
+        '&ibge=' + ibge + '&pagina=' + pag);
+      if(r.status === 204 || !r.ok) break;
+      var j = await r.json();
+      (j.data || []).forEach(function(x){
+        if(String(x.anoCompra) === String(p.ano) && _chatMesmoNumero(x.numeroCompra, p.n) && x.linkSistemaOrigem) cands.push(x);
+      });
+      if(pag >= (j.totalPaginas || 1)) break;
+    }
+  }
+  if(!cands.length) return '';
+  if(cands.length > 1){
+    var pal = _chatPalavras(objeto);
+    var pont = function(x){
+      var s = 0, enc = String(x.dataEncerramentoProposta || x.dataAberturaProposta || '');
+      if(ses && enc.slice(0, 10) === ses.dia){ s += 10; if(ses.hora && enc.slice(11, 16) === ses.hora) s += 5; }
+      if(pal.length){
+        var obj = _chatSemAcento(String(x.objetoCompra||'')).toLowerCase();
+        s += pal.filter(function(w){ return obj.indexOf(w) >= 0; }).length / pal.length * 4;
+      }
+      return s;
+    };
+    cands.sort(function(a, b){ return pont(b) - pont(a); });
+    if(pont(cands[0]) === pont(cands[1])) return '';
+  }
+  return String(cands[0].linkSistemaOrigem);
+}
+
+function _chatObjetoDaChave(chave){
+  if(chave.indexOf('e-') === 0) return String((_nhLinhaEdital(chave) || [])[4] || '');
+  var a = (ALL.andamento||[]).find(function(r){ return 'a-' + r[0] === chave; }) || [];
+  return String(a[4] || '');
+}
+
+/** Portal do card + título → link do processo. Portal de Compras
+ *  Públicas pela busca dele (leitura direta, sem extensão); qualquer
+ *  outro portal pelo PNCP (05/10/2026). */
 async function _chatAcharLinkPortal(chave, urlCard){
   if(chatLeitorDireto(urlCard)) return urlCard;
   var info = _chatPortalDaChave(chave);
-  /* Portal de outro sistema (BNC, BLL…): nem procura. Portal em branco
-     — comum em Editais Capturados (o #617 de Bodó estava assim) —
-     procura mesmo assim: número + ano + cidade batendo é o mesmo
-     processo. */
-  if(info.portal && !_chatEhPCP(info.portal)) return '';
-  try{ return await _chatBuscarPCP(info.titulo); }catch(_e){ return ''; }
+  /* Portal em branco — comum em Editais Capturados (o #617 de Bodó
+     estava assim) — tenta o Compras Públicas e, sem achar, o PNCP. */
+  if(!info.portal || _chatEhPCP(info.portal)){
+    try{ var pcp = await _chatBuscarPCP(info.titulo); if(pcp) return pcp; }catch(_e){}
+  }
+  try{ return await _chatBuscarPNCP(info.titulo, _chatObjetoDaChave(chave)); }catch(_e){ return ''; }
 }
 
 /** Portal e título de um card. O portal às vezes só foi preenchido numa
@@ -18868,14 +18987,29 @@ async function _chatGravarLink(chave, url){
    achar o processo sozinho; achou, grava, e a leitura começa. */
 var _chatLinkTentado = {};
 async function _chatConsertarLinks(){
+  /* Qualquer portal (05/10/2026) — o PNCP acha o processo de todos. */
   var faltam = Object.keys(CHAT_MON).filter(function(k){
     var m = CHAT_MON[k];
-    return m.ativo && !m.url && (!m.portal || _chatEhPCP(m.portal)) && !_chatLinkTentado[k];
+    return m.ativo && !m.url && !_chatLinkTentado[k];
   });
   for(var i = 0; i < faltam.length; i++){
-    _chatLinkTentado[faltam[i]] = 1;
-    var u = await _chatAcharLinkPortal(faltam[i], '');
-    if(u) await _chatGravarLink(faltam[i], u);
+    var k = faltam[i];
+    /* Cards ainda carregando: sem título não há o que procurar — tenta
+       na próxima volta, sem marcar como "não achei". */
+    if(!_chatPortalDaChave(k).titulo) continue;
+    _chatLinkTentado[k] = 'buscando';
+    if(_chatPainelChave === k) chatPintarPainel();
+    var u = '';
+    try{ u = await _chatAcharLinkPortal(k, ''); }catch(_e){}
+    _chatLinkTentado[k] = u ? 'achou' : 'falhou';
+    if(u){
+      await _chatGravarLink(k, u);
+      /* Portal que precisa da extensão: já abre a aba do processo para
+         ela ler — ninguém precisa clicar em nada. Uma vez só, quando o
+         link é achado; depois o botão "Aba do chat" traz a aba de volta. */
+      if(!chatLeitorDireto(u) && _chatExt){ try{ chatReabrirAba(k); }catch(_e){} }
+    }
+    else if(_chatPainelChave === k) chatPintarPainel();
   }
 }
 
