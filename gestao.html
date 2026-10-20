@@ -3271,20 +3271,20 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
    Queixa: "chat e mensagem do cliente não combinam com o design, estão
    meio deslocados". Eram dois botões (um azul cheio, único bloco de cor
    forte do menu) soltos entre o logo e o "Visão geral". Agora são itens
-   iguais aos outros do menu (classe sb-item), numa seção "Comunicação".
-   O destaque fica só no número: laranja quando há algo esperando,
-   vermelho piscando quando citam a empresa no pregão. */
+   iguais aos outros do menu (classe sb-item), logo depois de "Pesquisa
+   de Preço". Quando há algo esperando, o nome e o ícone ficam laranja
+   (pedido do cliente); o número fica vermelho piscando só quando citam
+   a empresa no pregão. */
 .sb-alertas{display:flex;flex-direction:column;padding:0}
-.sb-alertas .sb-section{padding-top:14px}
 .sb-alertas .sb-item{position:relative!important;left:auto;bottom:auto;z-index:auto;width:auto;
   background:none;border:0;box-shadow:none;font:inherit;font-size:13px;font-weight:400;
   color:var(--t2);text-align:left;justify-content:flex-start;gap:10px;padding:9px 14px;margin:1px 6px;border-radius:9px}
 .sb-alertas .sb-item:hover{background:var(--s3);color:var(--t1)}
-.sb-alertas .sb-item.tem{color:var(--t1);font-weight:600}
+.sb-alertas .sb-item.tem{color:var(--nh)}
 .sb-alertas .sb-item.tem .sb-icon{opacity:1}
-.sb-alertas .sb-aviso{margin-left:auto;font-style:normal;font-size:11px;font-weight:800;padding:2px 8px;
-  border-radius:20px;background:var(--nh);color:#fff;line-height:1.35}
-.sb-alertas .sb-aviso.vermelho{background:#ef4444;animation:chatPisca 1.2s ease-in-out infinite}
+.sb-alertas .sb-aviso{margin-left:auto;font-style:normal;font-size:11px;font-weight:600;padding:2px 8px;
+  border-radius:20px;background:var(--nha);color:var(--nh);font-family:'JetBrains Mono',monospace}
+.sb-alertas .sb-aviso.vermelho{background:#ef4444;color:#fff;animation:chatPisca 1.2s ease-in-out infinite}
 @media (prefers-reduced-motion: reduce){ .sb-alertas .sb-aviso.vermelho{animation:none} }
 body.light-theme .sb-alertas .sb-item:hover{background:rgba(37,99,235,.07);color:#0b1220}
 @media(max-width:960px){
@@ -18983,12 +18983,13 @@ function chatTelaCheia(){
 function _nhSbAlertas(){
   var box = document.getElementById('sb-alertas');
   if(box) return box;
-  var topo = document.querySelector('#sb .sb-top');
-  if(!topo) return document.body;
+  /* Logo depois de "Pesquisa de Preço", como mais dois itens da lista
+     (pedido de 20/10/2026). Sem o item, cai abaixo do logo. */
+  var ancora = document.getElementById('nav-precos') || document.querySelector('#sb .sb-top');
+  if(!ancora) return document.body;
   box = document.createElement('div');
   box.id = 'sb-alertas'; box.className = 'sb-alertas';
-  box.innerHTML = '<div class="sb-section">Comunicação</div>';
-  topo.parentNode.insertBefore(box, topo.nextSibling);
+  ancora.parentNode.insertBefore(box, ancora.nextSibling);
   return box;
 }
 
