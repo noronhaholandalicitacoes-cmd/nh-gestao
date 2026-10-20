@@ -3287,6 +3287,38 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
 .arqn-anexar span{font-weight:600;color:var(--nh);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:280px}
 .arqn-prog{font-size:13px;font-weight:700;color:var(--nh)}
 .arqn-limite{margin-top:6px;font-size:12px;color:var(--t3)}
+/* ═══ LOGIN DIVIDIDO — 20/10/2026 ═══════════════════════════════════
+   Pedido: "tela de login com divisão: metade da tela os campos de login
+   e a outra metade o símbolo da NH que fica rodando os arcos, bem
+   grande, com o texto do sistema embaixo". Só estilo — os campos, o
+   botão e o que o login faz não mudam. Fundo e esferas de luz ficam
+   como estão (o cliente gosta deles). Em tela estreita (celular) segue
+   como era: tudo numa coluna.
+   Mesmo bloco em todos os sistemas da NH: Gestão, Viabilidade, Portal
+   de Contratos, Financeiro e CRM. */
+@media (min-width:900px){
+  .nh-acesso, .acesso{padding:0!important}
+  .ac-hero, .cx-acesso{
+    max-width:none!important;width:100%!important;min-height:100vh;margin:0!important;
+    display:grid!important;grid-template-columns:1fr 1fr;
+    grid-template-rows:1fr auto auto auto auto 1fr;
+    justify-items:center;align-items:center;position:relative;
+    background:none!important;border:0!important;box-shadow:none!important;padding:0!important;
+    backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+  /* Fio vertical discreto separando as duas metades. */
+  .ac-hero::before, .cx-acesso::before{content:'';position:absolute;top:14%;bottom:14%;left:50%;width:1px;
+    background:linear-gradient(transparent,rgba(148,163,184,.28),transparent);pointer-events:none}
+  /* Metade esquerda: a marca. */
+  .ac-hero > .ac-logo, .cx-acesso > .ac-logo{grid-column:1;grid-row:2;width:300px!important;height:300px!important;margin:0 0 34px!important}
+  .ac-hero > .ac-tit, .cx-acesso > .ac-tit{grid-column:1;grid-row:3;font-size:46px!important;margin:0 0 10px!important;padding:0 24px}
+  .ac-hero > .ac-sub, .cx-acesso > .ac-sub{grid-column:1;grid-row:4;font-size:15px!important;margin:0 0 18px!important;padding:0 32px;max-width:460px}
+  .ac-hero > .ac-badge, .cx-acesso > .ac-badge{grid-column:1;grid-row:5;margin:0!important}
+  /* Metade direita: os campos. */
+  .ac-hero > .ac-form, .cx-acesso > .ac-form{grid-column:2;grid-row:1 / -1;width:min(430px,82%)!important;align-self:center}
+  /* Arcos e símbolo em escala grande. */
+  .ac-hero .ac-anel, .cx-acesso .ac-anel{border-width:3px!important}
+  .ac-hero .ac-marca, .cx-acesso .ac-marca{width:150px!important;height:150px!important;border-radius:38px!important}
+}
 </style>
   <!-- Firebase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js"></script>
@@ -9724,7 +9756,7 @@ document.addEventListener("change",function(ev){
   }
 });
 
-function renderCard(e,a,t){var o=String(a[0]||"").trim(),i=String(a[1]||"").trim(),n=String(("financeiro"===e?a[8]:a[2])||"").trim(),r=empColor(n),s=empBg(n),d="";if("editais"===e){var _rPart=String(a[10]||"").toUpperCase().trim(),_rViab=String(a[11]||"").toUpperCase().trim();var _rNegPart=("NÃO"===_rPart||"NAO"===_rPart||"N"===_rPart);var _rNegViab=("NÃO"===_rViab||"NAO"===_rViab||"NEGATIVO"===_rViab||"N"===_rViab);var _rSimPart=("SIM"===_rPart||"S"===_rPart);var _rPosViab=("POSITIVO"===_rViab||"SIM"===_rViab||"S"===_rViab);var _rAnalise=(_ehAnalise(_rPart)||_ehAnalise(_rViab));d=_rNegPart||_rNegViab?"red":_rSimPart&&_rPosViab?"green":_rAnalise?"blue":_rSimPart?"yellow":"blue"}else if("andamento"===e||"finalizados"===e)d=getAndamentoCor(a);else if("ganhas"===e){var c=String(a[9]||"").trim();d="EM EXECUÇÃO"===c?"green":"FINALIZADO"===c?"blue":"SUSPENSO"===c?"yellow":"AGUARDANDO CONTRATO"===c?"yellow":"red"}else if("atestados"===e){var _atSt=String(a[18]||"").toUpperCase().trim(),_atVig=String(a[9]||"").trim();var _atLink=String(a[20]||"").trim();d="COMPLETO"===_atSt||("RECEBIDO"===_atSt&&_atLink)?"green":"ARQUIVADO"===_atSt?"red":"PENDENTE"===_atSt||"EM SOLICITAÇÃO"===_atSt||"RECEBIDO"===_atSt?"yellow":"yellow";}else if("financeiro"===e){var A=String(finGetField(a,5,6)||"").trim();d="Pago"===A?"green":"Atrasado"===A?"red":"yellow"}else if("valores"===e)d=String(a[7]||"").trim()?"blue":"green";var _venceCls="";if("editais"===e){if(_editalAlerta24h(a))_venceCls=" vence-alerta";}var p='<div class="kcard '+d+_venceCls+' collapsed" id="'+("row-"+e+"-"+t)+'">';if(p+='<div class="kcard-top" onclick="this.parentElement.classList.toggle(\'collapsed\')">',p+='<div style="flex:1;min-width:0">',p+='<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">',n&&(p+='<span class="emp-badge" style="background:'+r+";color:"+empTxt(r)+";border:1px solid "+r+'">'+n+"</span>"),"cliente"===a._origem&&(p+='<span class="cli-badge" title="Contrato que a empresa já tinha antes da NH — aparece aqui para acompanhamento, mas não entra nos números da NH">Carteira do cliente</span>'),p+='<span class="kcard-id">#'+o+"</span>",i&&(p+='<span style="font-size:13px;font-weight:700;color:var(--t1);background:var(--s3);padding:2px 10px;border-radius:6px">'+i+"</span>"),a._updatedAt){var u=new Date(a._updatedAt),m=("0"+u.getDate()).slice(-2)+"/"+("0"+(u.getMonth()+1)).slice(-2)+" "+("0"+u.getHours()).slice(-2)+":"+("0"+u.getMinutes()).slice(-2);p+='<span title="Última edição" style="font-size:10px;color:var(--t4);background:var(--s3);padding:2px 8px;border-radius:5px;margin-left:auto">✎ '+m+"</span>"}p+="</div>";var v="andamento"===e||"finalizados"===e;if(p+='<div class="kcard-licit">',p+="financeiro"===e?inlineCell(e,t,finGetField(a,2,3)===a[2]?2:3,finGetField(a,2,3)):"valores"===e?inlineCell(e,t,3,a[3]):v?String(a[3]||"").trim():inlineCell(e,t,3,a[3]),p+="</div>",
+function renderCard(e,a,t){var o=String(a[0]||"").trim(),i=String(a[1]||"").trim(),n=String(("financeiro"===e?a[8]:a[2])||"").trim(),r=empColor(n),s=empBg(n),d="";if("editais"===e){var _rPart=String(a[10]||"").toUpperCase().trim(),_rViab=String(a[11]||"").toUpperCase().trim();var _rNegPart=("NÃO"===_rPart||"NAO"===_rPart||"N"===_rPart);var _rNegViab=("NÃO"===_rViab||"NAO"===_rViab||"NEGATIVO"===_rViab||"N"===_rViab);var _rSimPart=("SIM"===_rPart||"S"===_rPart);var _rPosViab=("POSITIVO"===_rViab||"SIM"===_rViab||"S"===_rViab);var _rAnalise=(_ehAnalise(_rPart)||_ehAnalise(_rViab));d=_rNegPart||_rNegViab?"red":_rSimPart&&_rPosViab?"green":_rAnalise?"blue":_rSimPart?"yellow":"blue"}else if("andamento"===e||"finalizados"===e)d=getAndamentoCor(a);else if("ganhas"===e){var c=String(a[9]||"").trim();d="EM EXECUÇÃO"===c?"green":"FINALIZADO"===c?"blue":"SUSPENSO"===c?"yellow":"AGUARDANDO CONTRATO"===c?"yellow":"red"}else if("atestados"===e){var _atSt=String(a[18]||"").toUpperCase().trim(),_atVig=String(a[9]||"").trim();var _atLink=String(a[20]||"").trim();d="COMPLETO"===_atSt||("RECEBIDO"===_atSt&&_atLink)?"green":"ARQUIVADO"===_atSt?"red":"PENDENTE"===_atSt||"EM SOLICITAÇÃO"===_atSt||"RECEBIDO"===_atSt?"yellow":"yellow";}else if("financeiro"===e){var A=String(finGetField(a,5,6)||"").trim();d="Pago"===A?"green":"Atrasado"===A?"red":"yellow"}else if("valores"===e)d=String(a[7]||"").trim()?"blue":"green";var _venceCls="";if("editais"===e){if(_editalAlerta24h(a))_venceCls=" vence-alerta";}var p='<div class="kcard '+d+_venceCls+' collapsed" id="'+("row-"+e+"-"+t)+'">';if(p+='<div class="kcard-top" onclick="this.parentElement.classList.toggle(\'collapsed\')">',p+='<div style="flex:1;min-width:0">',p+='<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">',n&&(p+='<span class="emp-badge" style="--ec:'+r+'">'+n+"</span>"),"cliente"===a._origem&&(p+='<span class="cli-badge" title="Contrato que a empresa já tinha antes da NH — aparece aqui para acompanhamento, mas não entra nos números da NH">Carteira do cliente</span>'),p+='<span class="kcard-id">#'+o+"</span>",i&&(p+='<span style="font-size:13px;font-weight:700;color:var(--t1);background:var(--s3);padding:2px 10px;border-radius:6px">'+i+"</span>"),a._updatedAt){var u=new Date(a._updatedAt),m=("0"+u.getDate()).slice(-2)+"/"+("0"+(u.getMonth()+1)).slice(-2)+" "+("0"+u.getHours()).slice(-2)+":"+("0"+u.getMinutes()).slice(-2);p+='<span title="Última edição" style="font-size:10px;color:var(--t4);background:var(--s3);padding:2px 8px;border-radius:5px;margin-left:auto">✎ '+m+"</span>"}p+="</div>";var v="andamento"===e||"finalizados"===e;if(p+='<div class="kcard-licit">',p+="financeiro"===e?inlineCell(e,t,finGetField(a,2,3)===a[2]?2:3,finGetField(a,2,3)):"valores"===e?inlineCell(e,t,3,a[3]):v?String(a[3]||"").trim():inlineCell(e,t,3,a[3]),p+="</div>",
 // Badge EM ANÁLISE em editais (viabilidade/participar em análise)
 "editais"===e&&(function(){var _p=String(a[10]||"").toUpperCase().trim(),_vb=String(a[11]||"").toUpperCase().trim();if(_ehAnalise(_p)||_ehAnalise(_vb)){p+='<span class="badge-analise" style="display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:800;padding:2px 9px;border-radius:5px;background:rgba(234,179,8,.15);color:#eab308;border:1px solid rgba(234,179,8,.45);text-transform:uppercase;letter-spacing:.04em;margin-left:6px"><span class="pulse-dot" style="width:7px;height:7px;border-radius:50%;background:#eab308;display:inline-block"></span>Em Análise</span>';}})(),
 // Badge de vencimento da sessão (1 dia pra vencer) — piscando
@@ -23266,8 +23298,21 @@ body{font-size:15px}
 .kcard span[onclick="event.stopPropagation()"][style*="padding:2px 8px"] + span[onclick="event.stopPropagation()"][style*="padding:2px 8px"]::before{
   content:"·";margin:0 8px 0 2px;color:var(--t3);font-weight:400}
 .cli-badge{display:inline-flex;align-items:center;font-size:12px;font-weight:800;letter-spacing:.03em;padding:3px 10px;border-radius:7px;color:#c4b5fd;background:rgba(139,92,246,.14);border:1px dashed rgba(139,92,246,.6)}
-.emp-badge{font-size:13px!important;font-weight:800!important;padding:4px 12px!important;border-radius:7px!important;
-  letter-spacing:.04em!important;text-transform:uppercase;box-shadow:0 1px 0 rgba(0,0,0,.25)}
+/* ═══ VISUAL SUAVE — 20/10/2026 ══════════════════════════════════════
+   Referência mostrada pelo cliente (Crivya): "achei as letras e cores
+   das empresas mais suaves". O destaque da empresa vem do NEGRITO e da
+   posição (primeira coisa do card), não de um selo cheio colorido. A
+   cor da empresa fica numa bolinha antes do nome — reconhece de longe,
+   sem gritar. As cores de FUNDO do sistema não mudam (pedido explícito). */
+.emp-badge{display:inline-flex!important;align-items:center;gap:7px;background:none!important;border:0!important;
+  padding:0!important;border-radius:0!important;box-shadow:none!important;color:var(--t1)!important;
+  font-size:14px!important;font-weight:800!important;letter-spacing:.02em!important;text-transform:uppercase}
+.emp-badge::before{content:'';width:9px;height:9px;border-radius:50%;background:var(--ec,#64748b);flex-shrink:0}
+/* Uma fonte só em todo o sistema: a mistura com a fonte de código nos
+   números era parte do "pesado". Algarismos de largura igual mantêm as
+   colunas alinhadas. */
+body, body *{font-family:'Outfit',system-ui,-apple-system,'Segoe UI',sans-serif!important}
+body{font-variant-numeric:tabular-nums}
 .kcard .kcard-obj,.kcard .kcard-obj textarea{font-size:15px;line-height:1.6}
 
 /* Linha de informações (local, município, valor…): o rótulo laranja em

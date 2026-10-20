@@ -412,6 +412,39 @@ body.light .ac-form{background:rgba(255,255,255,.75)}
 .pncp-item:hover{color:var(--t1)}
 .pncp-item-v{font-weight:800;color:var(--t1);white-space:nowrap;font-variant-numeric:tabular-nums}
 .pncp-item-o{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Visual suave (20/10/2026): uma fonte só, a Outfit, igual em todos os sistemas da NH. */body, body *{font-family:'Outfit',system-ui,-apple-system,'Segoe UI',sans-serif!important}body{font-variant-numeric:tabular-nums}
+/* ═══ LOGIN DIVIDIDO — 20/10/2026 ═══════════════════════════════════
+   Pedido: "tela de login com divisão: metade da tela os campos de login
+   e a outra metade o símbolo da NH que fica rodando os arcos, bem
+   grande, com o texto do sistema embaixo". Só estilo — os campos, o
+   botão e o que o login faz não mudam. Fundo e esferas de luz ficam
+   como estão (o cliente gosta deles). Em tela estreita (celular) segue
+   como era: tudo numa coluna.
+   Mesmo bloco em todos os sistemas da NH: Gestão, Viabilidade, Portal
+   de Contratos, Financeiro e CRM. */
+@media (min-width:900px){
+  .nh-acesso, .acesso{padding:0!important}
+  .ac-hero, .cx-acesso{
+    max-width:none!important;width:100%!important;min-height:100vh;margin:0!important;
+    display:grid!important;grid-template-columns:1fr 1fr;
+    grid-template-rows:1fr auto auto auto auto 1fr;
+    justify-items:center;align-items:center;position:relative;
+    background:none!important;border:0!important;box-shadow:none!important;padding:0!important;
+    backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+  /* Fio vertical discreto separando as duas metades. */
+  .ac-hero::before, .cx-acesso::before{content:'';position:absolute;top:14%;bottom:14%;left:50%;width:1px;
+    background:linear-gradient(transparent,rgba(148,163,184,.28),transparent);pointer-events:none}
+  /* Metade esquerda: a marca. */
+  .ac-hero > .ac-logo, .cx-acesso > .ac-logo{grid-column:1;grid-row:2;width:300px!important;height:300px!important;margin:0 0 34px!important}
+  .ac-hero > .ac-tit, .cx-acesso > .ac-tit{grid-column:1;grid-row:3;font-size:46px!important;margin:0 0 10px!important;padding:0 24px}
+  .ac-hero > .ac-sub, .cx-acesso > .ac-sub{grid-column:1;grid-row:4;font-size:15px!important;margin:0 0 18px!important;padding:0 32px;max-width:460px}
+  .ac-hero > .ac-badge, .cx-acesso > .ac-badge{grid-column:1;grid-row:5;margin:0!important}
+  /* Metade direita: os campos. */
+  .ac-hero > .ac-form, .cx-acesso > .ac-form{grid-column:2;grid-row:1 / -1;width:min(430px,82%)!important;align-self:center}
+  /* Arcos e símbolo em escala grande. */
+  .ac-hero .ac-anel, .cx-acesso .ac-anel{border-width:3px!important}
+  .ac-hero .ac-marca, .cx-acesso .ac-marca{width:150px!important;height:150px!important;border-radius:38px!important}
+}
 .pncp-item-d{color:var(--t3);white-space:nowrap;font-variant-numeric:tabular-nums}</style>
 </head>
 <body>

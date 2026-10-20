@@ -1642,9 +1642,11 @@ body.light-theme .kp-it{background:#fff}
   font-variant-numeric:tabular-nums;letter-spacing:0!important}
 .pd-num-v{font-weight:800!important;font-size:26px!important}
 /* Selo da empresa (ver empSelo) */
-.emp-selo{display:inline-block;font-size:13px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
-  padding:3px 9px;border-radius:6px;line-height:1.3;vertical-align:2px;white-space:nowrap;
-  box-shadow:0 1px 0 rgba(0,0,0,.25)}
+/* Empresa: nome em negrito com bolinha na cor dela (visual suave, 20/10/2026). */
+.emp-selo{display:inline-flex;align-items:center;gap:7px;font-size:14px;font-weight:800;letter-spacing:.02em;
+  text-transform:uppercase;color:var(--t1);line-height:1.3;white-space:nowrap;vertical-align:1px}
+.emp-selo::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--ec,#64748b);flex-shrink:0}
+/* Uma fonte só (20/10/2026): saem Syne, DM Sans e a fonte de código; fica a Outfit, a mesma do Gestão e do Viabilidade. */body, body *{font-family:'Outfit',system-ui,-apple-system,'Segoe UI',sans-serif!important}body{font-variant-numeric:tabular-nums}
 .ccard-titulo .emp-selo{margin-right:10px;font-size:13.5px}
 .ccard-resumo .cm-id{color:var(--t3);font-size:13px}
 .cli-tag{display:inline-block;margin-left:10px;font-size:12px;font-weight:800;letter-spacing:.03em;padding:2px 9px;
@@ -1673,7 +1675,7 @@ body.light-theme .cli-tag{color:#6d28d9}
 .avx-item.vai{cursor:pointer}
 .avx-item.vai:hover{background:rgba(255,255,255,.04)}
 .avx-emp{min-width:0}
-.avx-emp .emp-selo{display:block;text-align:center;font-size:12.5px;padding:4px 6px;overflow:hidden;text-overflow:ellipsis}
+.avx-emp .emp-selo{display:flex;font-size:13px;overflow:hidden;text-overflow:ellipsis}
 .avx-p{font-size:15px;font-weight:700;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .avx-s{font-size:13.5px;color:var(--t2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .avx-s a{color:var(--t2)}
@@ -1689,7 +1691,7 @@ body.light-theme .cli-tag{color:#6d28d9}
   .avx-p{white-space:normal}
   .avx-nivel-cab em{display:none}
 }
-.pd-venc-org .emp-selo,.av-item .emp-selo{font-size:12.5px;padding:2px 7px;vertical-align:1px}
+.pd-venc-org .emp-selo,.av-item .emp-selo{font-size:12.5px;margin-right:4px}
 /* Celular: a situação e os botões descem para baixo do texto, em vez
    de espremer o título numa coluna estreita. */
 @media (max-width:640px){
@@ -1700,6 +1702,38 @@ body.light-theme .cli-tag{color:#6d28d9}
   .ccard-resumo{gap:2px 12px;font-size:13px}
   .kpi-num{font-size:21px!important}
   .pd-kpi-val{font-size:21px!important}
+}
+/* ═══ LOGIN DIVIDIDO — 20/10/2026 ═══════════════════════════════════
+   Pedido: "tela de login com divisão: metade da tela os campos de login
+   e a outra metade o símbolo da NH que fica rodando os arcos, bem
+   grande, com o texto do sistema embaixo". Só estilo — os campos, o
+   botão e o que o login faz não mudam. Fundo e esferas de luz ficam
+   como estão (o cliente gosta deles). Em tela estreita (celular) segue
+   como era: tudo numa coluna.
+   Mesmo bloco em todos os sistemas da NH: Gestão, Viabilidade, Portal
+   de Contratos, Financeiro e CRM. */
+@media (min-width:900px){
+  .nh-acesso, .acesso{padding:0!important}
+  .ac-hero, .cx-acesso{
+    max-width:none!important;width:100%!important;min-height:100vh;margin:0!important;
+    display:grid!important;grid-template-columns:1fr 1fr;
+    grid-template-rows:1fr auto auto auto auto 1fr;
+    justify-items:center;align-items:center;position:relative;
+    background:none!important;border:0!important;box-shadow:none!important;padding:0!important;
+    backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+  /* Fio vertical discreto separando as duas metades. */
+  .ac-hero::before, .cx-acesso::before{content:'';position:absolute;top:14%;bottom:14%;left:50%;width:1px;
+    background:linear-gradient(transparent,rgba(148,163,184,.28),transparent);pointer-events:none}
+  /* Metade esquerda: a marca. */
+  .ac-hero > .ac-logo, .cx-acesso > .ac-logo{grid-column:1;grid-row:2;width:300px!important;height:300px!important;margin:0 0 34px!important}
+  .ac-hero > .ac-tit, .cx-acesso > .ac-tit{grid-column:1;grid-row:3;font-size:46px!important;margin:0 0 10px!important;padding:0 24px}
+  .ac-hero > .ac-sub, .cx-acesso > .ac-sub{grid-column:1;grid-row:4;font-size:15px!important;margin:0 0 18px!important;padding:0 32px;max-width:460px}
+  .ac-hero > .ac-badge, .cx-acesso > .ac-badge{grid-column:1;grid-row:5;margin:0!important}
+  /* Metade direita: os campos. */
+  .ac-hero > .ac-form, .cx-acesso > .ac-form{grid-column:2;grid-row:1 / -1;width:min(430px,82%)!important;align-self:center}
+  /* Arcos e símbolo em escala grande. */
+  .ac-hero .ac-anel, .cx-acesso .ac-anel{border-width:3px!important}
+  .ac-hero .ac-marca, .cx-acesso .ac-marca{width:150px!important;height:150px!important;border-radius:38px!important}
 }
 </style>
 </head>
@@ -2577,7 +2611,9 @@ function empSelo(nome){
   var n=String(nome||'').trim().toUpperCase();
   if(!n) return '';
   var c=(typeof CORES!=='undefined' && CORES[n]) || '#64748b';
-  return '<span class="emp-selo" style="background:'+c+';color:'+_empTxtP(c)+'">'+pEsc(n)+'</span>';
+  /* Visual suave (20/10/2026): nome em negrito com bolinha na cor da
+     empresa, em vez do selo cheio. */
+  return '<span class="emp-selo" style="--ec:'+c+'">'+pEsc(n)+'</span>';
 }
 /** Linha de baixo dos avisos. A empresa já vai em selo na frente da
  *  linha (ver _avisoItem), então aqui fica só o resto (nº do contrato,
