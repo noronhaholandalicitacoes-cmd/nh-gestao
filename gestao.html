@@ -15449,7 +15449,7 @@ async function nhResumoIA(i){
   var e=BSC_LISTA[i];if(!e)return;
   var id=nhBscId(e);
   var box=document.getElementById('bsc-ia-'+id);
-  var key=localStorage.getItem('nh_claude_key');
+  var key=_nhClaudeKey();
   if(!key){toast('Configure a API Key do Claude na aba Documentos','err');return;}
   box.innerHTML='<div class="bsc-ia"><div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:18px;height:18px"></div> Lendo a licitação...</div></div>';
   var org=e.orgaoEntidade||{},uni=e.unidadeOrgao||{};
@@ -16101,15 +16101,13 @@ function carregarIAKey(){
   var cdot=document.getElementById("ia-claude-status-dot");
   var ctxt=document.getElementById("ia-claude-status-txt");
   if(cdot&&ctxt){
-    if(ck){
-      cdot.style.background="#22c55e";
-      ctxt.textContent="Claude conectado";
-      ctxt.style.color="#22c55e";
-    }else{
-      cdot.style.background="#ef4444";
-      ctxt.textContent="Claude não configurado";
-      ctxt.style.color="#ef4444";
-    }
+    var pinta=function(cor,t){cdot.style.background=cor;ctxt.textContent=t;ctxt.style.color=cor;};
+    pinta(ck?"#22c55e":"#ef4444",ck?"Claude conectado (chave deste navegador)":"Claude não configurado");
+    /* Chave no servidor vale para todos os computadores — ver
+       _nhClaudeServidor. Ela tem prioridade sobre a do navegador. */
+    fetch(NH_API+"/api/health",{cache:"no-store"}).then(function(r){return r.json();}).then(function(h){
+      if(h&&h.chaveClaude)pinta("#22c55e","Claude pelo servidor da NH (não precisa de chave aqui)");
+    }).catch(function(){});
   }
 }
 var _iaTexto="";
@@ -16514,7 +16512,42 @@ function _claudeVaiPassar(status){
   return 429===status||529===status||(status>=500&&status<600);
 }
 
+/* ⚠️ CLAUDE PELO SERVIDOR — 20/10/2026.
+   A chave do Claude passou a morar no servidor da NH (Railway,
+   ANTHROPIC_API_KEY): vale para todos os computadores e não fica
+   exposta no navegador. O pedido vai para /api/ia/claude, que confere
+   o login e o cadastro de equipe antes de chamar a IA.
+   A chave do navegador continua como reserva SÓ enquanto o servidor
+   ainda não tem a dele (resposta CHAVE_CLAUDE_AUSENTE) — assim nada
+   para no dia da troca. Quem chama passa 'servidor' quando não há
+   chave local (ver _nhClaudeKey). */
+var _nhClaudeSemServidor=false;
+function _nhClaudeKey(){return localStorage.getItem('nh_claude_key')||'servidor';}
+async function _nhClaudeServidor(parts,maxTok){
+  if(_nhClaudeSemServidor)return null;
+  var u=auth.currentUser;
+  if(!u)throw new Error('faça login de novo');
+  var ultimo=null;
+  for(var tent=0;tent<3;tent++){
+    if(tent)await new Promise(function(r){setTimeout(r,1500*tent);});
+    var r;
+    try{
+      r=await fetch(NH_API+'/api/ia/claude',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({idToken:await u.getIdToken(),model:CLAUDE_MODEL,max_tokens:maxTok||8000,
+          content:_nhClaudePartsToBlocks(parts)})});
+    }catch(eRede){ultimo=new Error('sem conexão com o servidor da NH ('+(eRede.message||'falha de rede')+')');continue;}
+    var j=await r.json().catch(function(){return{};});
+    if(r.ok)return j;
+    if(r.status===503&&j.erro==='CHAVE_CLAUDE_AUSENTE'){_nhClaudeSemServidor=true;return null;}
+    ultimo=new Error((j.error&&j.error.message)||j.erro||('Erro '+r.status));
+    if(!_claudeVaiPassar(r.status))throw ultimo;
+  }
+  throw ultimo||new Error('falha ao chamar a IA');
+}
 async function chamarClaude(key,parts,maxTok){
+  var peloServidor=await _nhClaudeServidor(parts,maxTok);
+  if(peloServidor)return peloServidor;
+  if(!key||key==='servidor')throw new Error('a chave do Claude ainda não foi cadastrada no servidor (ANTHROPIC_API_KEY no Railway)');
   var ultimo=null;
   for(var tent=0;tent<3;tent++){
     if(tent)await new Promise(function(r){setTimeout(r,1500*tent);});
@@ -21216,7 +21249,7 @@ async function nhAnalisarViabilidadeAuto(edId,forcar){
   var chave='e-'+String(edId||'').trim();
   if(!chave||'e-'===chave)return null;
   if(ANALISES_VIAB[chave]&&!forcar)return null;      /* já analisado */
-  var key=localStorage.getItem('nh_claude_key');
+  var key=_nhClaudeKey();
   /* Estes dois casos devolviam null em silêncio: a análise não acontecia e
      ninguém ficava sabendo por quê. Agora sobem como erro e viram aviso. */
   if(!key)throw new Error('a chave da IA (Claude) não está configurada');
@@ -21240,7 +21273,7 @@ async function nhAnalisarViabilidadeAuto(edId,forcar){
 /* Fila em série: em captura de lote seriam várias chamadas de uma vez,
    o que estoura limite da API. Uma de cada vez, com respiro entre elas. */
 function nhFilaViabilidade(ids){
-  if(!localStorage.getItem('nh_claude_key')){
+  if(!_nhClaudeKey()){
     /* Antes saía calado daqui — o edital salvava e a análise simplesmente
        não vinha, sem nenhuma pista do motivo. */
     toast('Edital salvo. A análise automática de viabilidade não rodou: falta configurar a chave da IA.','info');
@@ -21285,7 +21318,7 @@ async function _viabProcessarFila(){
 
 async function nhRodarAnaliseViabilidade(){
   var ctx=_viabCtx;if(!ctx)return;
-  var key=localStorage.getItem('nh_claude_key');
+  var key=_nhClaudeKey();
   if(!key){toast('Configure a API Key do Claude na aba Documentos','err');return;}
   var out=document.getElementById('nh-viab-result');
   out.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:20px;height:20px"></div> Analisando viabilidade...</div>';
@@ -22044,7 +22077,7 @@ async function nhCarregarAnaliseEdital(chave){
 
 async function nhRodarAnaliseCard(){
   var ctx=_anaCtx;if(!ctx)return;
-  var key=localStorage.getItem('nh_claude_key');
+  var key=_nhClaudeKey();
   if(!key){toast('Configure a API Key do Claude na aba Documentos','err');return;}
   if(!_anaFiles.length){toast('Anexe o edital/TR do processo','err');return;}
   var out=document.getElementById('nh-ana-result');
