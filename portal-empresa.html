@@ -1685,6 +1685,107 @@ body.light-theme .cli-tag{color:#6d28d9}
 .avx-mais{margin:0 18px 12px;background:none;border:0;padding:0;cursor:pointer;font:inherit;
   font-size:13.5px;font-weight:700;color:var(--t2)}
 .avx-mais:hover{color:var(--t1)}
+
+/* ── Cards que se recolhem (20/10/2026) — avisos e painel ─────────────
+   Mesmo desenho da tela "Hoje" do Gestão: uma linha por assunto, com o
+   total e uma frase curta; os detalhes ficam dentro. */
+.avr-topo{margin:2px 0 16px}
+.avr-tit{font-size:22px;font-weight:800;color:var(--t1);margin:0;letter-spacing:-.2px}
+.avr-sub{font-size:14px;color:var(--t3);margin-top:3px}
+.avr-sub b{color:#f87171;font-weight:700}
+.avr{background:var(--s2);border:1px solid var(--b1);border-radius:14px;margin-bottom:10px;overflow:hidden}
+.avr-cab{display:flex;align-items:center;gap:12px;width:100%;padding:15px 18px;background:none;border:0;
+  cursor:pointer;font:inherit;text-align:left;color:var(--t1)}
+.avr-cab:hover{background:rgba(255,255,255,.03)}
+.avr-t{font-size:15px;font-weight:700;white-space:nowrap}
+.avr-n{font-size:12.5px;font-weight:700;color:var(--t2);background:rgba(255,255,255,.06);border-radius:20px;padding:1px 9px;min-width:24px;text-align:center}
+.avr-n.critico{color:#f87171;background:rgba(239,68,68,.12)}
+.avr-n.atencao{color:#f59e0b;background:rgba(245,158,11,.12)}
+.avr-res{flex:1;min-width:0;font-size:13px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.avr-seta{color:var(--t3);font-size:12px;transition:transform .2s}
+.avr.aberta .avr-seta{transform:rotate(180deg)}
+.avr-corpo{display:none;border-top:1px solid var(--b1)}
+.avr.aberta .avr-corpo{display:block}
+.avr-corpo .avx-lista{padding:6px 8px 8px}
+.avr .avx-ex{font-size:13.5px;font-weight:600}
+.pd-card-dot{display:none!important}
+
+/* ── Painel no desenho do portal geral (20/10/2026) ──────────────────
+   Mesmas proporções do dashboard-nh: indicador com ícone num quadrado
+   da cor dele e um fio fino no topo; cards com título + ícone + linha
+   de apoio; grade larga + estreita. */
+.pg-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.pg-kpi{position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start;text-align:left;
+  background:var(--s2);border:1px solid var(--b1);border-radius:14px;padding:20px;font:inherit;color:var(--t1);
+  cursor:pointer;transition:border-color .2s,transform .2s}
+.pg-kpi[tabindex="-1"]{cursor:default}
+.pg-kpi:hover{border-color:rgba(255,107,0,.35);transform:translateY(-2px)}
+.pg-kpi.on{border-color:var(--kc)}
+.pg-kpi-fio{position:absolute;top:0;left:0;right:0;height:3px;background:var(--kc);opacity:.85}
+.pg-kpi-cab{display:flex;align-items:center;gap:8px;margin:4px 0 12px}
+.pg-ic{width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;flex:none;
+  background:var(--kcf);color:var(--kc)}
+.pg-ic svg{width:16px;height:16px}
+.pg-kpi-lbl{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t2);line-height:1.2}
+.pg-kpi-val{font-size:30px;font-weight:900;line-height:1;letter-spacing:-.5px;color:var(--t1);font-variant-numeric:tabular-nums}
+.pg-kpi-sub{font-size:13px;color:var(--t2);margin-top:8px}
+.pg-card{background:var(--s2);border:1px solid var(--b1);border-radius:14px;padding:22px;margin-bottom:16px;min-width:0}
+.pg-tit{display:flex;align-items:flex-start;gap:10px;margin-bottom:16px}
+.pg-tit-ic{width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;flex:none;
+  background:rgba(255,107,0,.12);color:var(--nh)}
+.pg-tit-ic svg{width:16px;height:16px}
+.pg-tit h3{font-size:15px;font-weight:800;color:var(--t1);margin:0;line-height:1.3}
+.pg-tit p{font-size:12.5px;color:var(--t3);margin:2px 0 0}
+.pg-grade{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px}
+.pg-grade > .pg-card{margin-bottom:16px}
+.pg-blocos{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.pg-bloco{position:relative;overflow:hidden;text-align:left;font:inherit;cursor:pointer;border-radius:12px;padding:16px;
+  background:rgba(255,255,255,.03);border:1px solid var(--b1);color:var(--t1);display:flex;flex-direction:column}
+.pg-bloco:hover{border-color:var(--bc)}
+.pg-bloco-fundo{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--bcf),transparent);pointer-events:none}
+.pg-bloco-lbl{position:relative;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);margin-bottom:6px}
+.pg-bloco-val{position:relative;font-size:26px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
+.pg-bloco-sub{position:relative;font-size:11.5px;margin-top:6px;color:var(--bc)}
+.pg-grafico{display:block;width:100%;height:auto}
+.pg-g-grade{stroke:rgba(255,255,255,.06);stroke-width:1}
+.pg-g-mes{font-size:11px;fill:var(--t3);text-anchor:middle;font-family:inherit}
+.pg-lista{display:flex;flex-direction:column}
+.pg-li{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--b1)}
+.pg-li:last-child{border-bottom:0}
+.pg-li-tag{flex:none;width:58px;font-size:12.5px;font-weight:800;font-variant-numeric:tabular-nums}
+.pg-li-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.pg-li-t{font-size:13.5px;font-weight:700;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pg-li-s{font-size:12px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pg-li-s .emp-selo{font-size:11.5px}
+.pg-li-v{flex:none;font-size:13px;font-weight:700;color:var(--t2);font-variant-numeric:tabular-nums}
+.pg-barra-l + .pg-barra-l{margin-top:16px}
+.pg-barra-topo{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:7px}
+.pg-barra-nome{display:flex;align-items:center;gap:8px;min-width:0;font-size:13.5px;font-weight:700;color:var(--t1)}
+.pg-barra-nome span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pg-barra-nome i{width:8px;height:8px;border-radius:50%;flex:none}
+.pg-barra-num{display:flex;align-items:baseline;gap:8px;flex:none}
+.pg-barra-num b{font-size:13.5px;color:var(--t1);font-variant-numeric:tabular-nums}
+.pg-barra-num small{font-size:11.5px;color:var(--t3)}
+.pg-barra{height:9px;border-radius:99px;background:rgba(255,255,255,.05);overflow:hidden}
+.pg-barra span{display:block;height:100%;border-radius:99px;transition:width .7s}
+.pg-vazio{font-size:13px;color:var(--t3);padding:14px 0}
+/* Bloco antigo dentro de um card novo: perde a moldura e o título dele. */
+.pg-embute .pd-cards{margin:0!important;display:block!important}
+.pg-embute .pd-card{background:none!important;border:0!important;box-shadow:none!important;padding:0!important}
+.pg-embute .pd-card-tit,.pg-embute .pd-card-cab{display:none!important}
+.pg-embute .gc-inds{grid-template-columns:1fr 1fr!important}
+@media (max-width:1000px){ .pg-grade{grid-template-columns:1fr} }
+@media (max-width:900px){ .pg-kpis{grid-template-columns:repeat(2,minmax(0,1fr))} .pg-kpi-val{font-size:24px} }
+body.light-theme .pg-g-grade{stroke:rgba(0,0,0,.08)}
+body.light-theme .pg-bloco,body.light-theme .pg-barra{background:rgba(0,0,0,.04)}
+/* Saudação sem moldura: é uma frase, não um quadro. */
+.pd-bv{background:none!important;border:0!important;box-shadow:none!important;padding:2px 2px 14px!important;margin-bottom:6px!important}
+.pd-bv::before{display:none!important}
+.pd-olho .pd-dot{display:none}
+@media (max-width:620px){
+  .avr-res{display:none}
+  .avr-cab{padding:14px}
+}
 @media (max-width:760px){
   .avx-item{grid-template-columns:auto minmax(0,1fr) 14px;gap:4px 10px}
   .avx-ex{grid-column:2 / 3}
@@ -4056,11 +4157,9 @@ function gerarDashboard(){
             new Date().toLocaleDateString('pt-BR',
               {weekday:'long', day:'numeric', month:'long', year:'numeric'})) + '</div>' +
       '</div>' +
-      '<div class="pd-nums">' +
-        pdNum(ag.exec, 'Em execução', '#22c55e') +
-        pdNum(ag.prox30 + ag.prox90, 'Vencem em 90d', (ag.prox30 ? '#ef4444' : ag.prox90 ? '#eab308' : 'var(--t3)')) +
-        pdNum(ag.total, 'No total', 'var(--nh)') +
-      '</div>' +
+      /* Os três números que ficavam aqui (em execução, vencem em 90d,
+         total) saíram em 20/10/2026: repetiam os quadros logo abaixo e
+         a "Situação da carteira". Painel limpo, pedido do cliente. */
     '</div>';
 
   /* ── 2. Indicadores ─────────────────────────────────────
@@ -4347,17 +4446,175 @@ function gerarDashboard(){
       '</div>';
   }
 
-  dash.innerHTML = bv + kpisHTML +
-    '<div class="pd-cards">' + cardSituacao + cardVenc + '</div>' +
-    (cardFaturamento
-      ? '<div class="pd-cards" style="grid-template-columns:1fr">' + cardFaturamento + '</div>'
-      : '') +
+  /* ⚠️ PAINEL NO DESENHO DO PORTAL GERAL — 20/10/2026.
+     O cliente achou o painel poluído; a primeira tentativa (tudo em
+     cards recolhidos) também não agradou: "quero algo mais parecido
+     com a tela do dashboard do portal geral". Então segue o mesmo
+     desenho dele (ModernDashboard / KPICardsSection / ChartsSection no
+     dashboard-nh): quatro indicadores com ícone e fio colorido no topo,
+     um card largo com a carteira em blocos proporcionais, e duas
+     linhas de cards (largo + estreito) com evolução, vencimentos,
+     participação por empresa e indicadores. Os números são os mesmos de
+     antes — muda o desenho, não a conta. */
+  const kpisPG = '<div class="pg-kpis">' + kpis.map(k => {
+    const clicavel = k.f !== undefined;
+    const ligado = clicavel && filtroStatus === k.f && k.f !== null;
+    return '<button type="button" class="pg-kpi' + (ligado ? ' on' : '') + '" style="--kc:' + k.cor + ';--kcf:' + k.cor + '24"' +
+      (clicavel ? ' onclick="pdFiltrar(' + (k.f === null ? 'null' : "'" + k.f + "'") + ')"' : ' tabindex="-1"') + '>' +
+      '<span class="pg-kpi-fio"></span>' +
+      '<span class="pg-kpi-cab"><span class="pg-ic">' + pgIcone(PG_ICONE_KPI[k.lbl] || 'dinheiro') + '</span>' +
+        '<span class="pg-kpi-lbl">' + k.lbl + '</span></span>' +
+      '<span class="pg-kpi-val">' + k.val + '</span>' +
+      '<span class="pg-kpi-sub">' + k.sub + '</span>' +
+    '</button>';
+  }).join('') + '</div>';
+
+  /* Carteira em blocos proporcionais — como o "Do edital ao contrato". */
+  const totSit = situacoes.reduce((s, x) => s + x.n, 0) || 1;
+  const cardSituacaoPG = '<div class="pg-card">' +
+    pgTitulo('camadas', 'Situação da carteira', ag.total + ' contrato' + (ag.total === 1 ? '' : 's') + ' no período. Clique para ver só esses.') +
+    (situacoes.length ? '<div class="pg-blocos">' + situacoes.map(s => {
+      const pct = (s.n / totSit) * 100;
+      return '<button type="button" class="pg-bloco" onclick="pdFiltrar(\'' + s.f + '\')" style="--bc:' + CAT_COR[s.k] + ';--bcf:' + CAT_COR[s.k] + '38">' +
+        '<span class="pg-bloco-fundo" style="width:' + pct.toFixed(1) + '%"></span>' +
+        '<span class="pg-bloco-lbl">' + s.rot + '</span>' +
+        '<span class="pg-bloco-val">' + s.n + '</span>' +
+        '<span class="pg-bloco-sub">' + pct.toFixed(0) + '% da carteira</span>' +
+      '</button>';
+    }).join('') + '</div>' : '<div class="pg-vazio">Nenhum contrato no período escolhido.</div>') +
+  '</div>';
+
+  /* Evolução: contratos assinados por mês, últimos 12 meses. */
+  const cardEvolucaoPG = '<div class="pg-card">' +
+    pgTitulo('sobe', 'Contratos assinados por mês', 'Últimos 12 meses, pela data de assinatura.') +
+    pgGraficoMeses(arrs) +
+  '</div>';
+
+  /* O que vence primeiro: a mesma lista de antes, no desenho novo. */
+  const cardVencPG = '<div class="pg-card">' +
+    pgTitulo('relogio', 'O que vence primeiro', 'Próximos 90 dias, do mais apertado ao mais folgado.') +
+    (vencendo.length ? '<div class="pg-lista">' + vencendo.map(v => {
+      const cor = v.dias < 0 ? '#f87171' : v.dias <= 30 ? '#f97316' : 'var(--t2)';
+      const tag = v.dias < 0 ? 'há ' + Math.abs(v.dias) + 'd' : v.dias === 0 ? 'hoje' : v.dias + ' dias';
+      const obj = String(v.arr[IDX.LICITACAO] || v.arr[IDX.OBJETO] || 'Contrato').trim();
+      const org = String(v.arr[IDX.LOCAL] || v.arr[IDX.MUNICIPIO] || '').trim();
+      return '<div class="pg-li">' +
+        '<span class="pg-li-tag" style="color:' + cor + '">' + tag + '</span>' +
+        '<span class="pg-li-txt"><span class="pg-li-t" title="' + pEsc(obj) + '">' + pEsc(obj) + '</span>' +
+          '<span class="pg-li-s">' + (vendoVarias() && v.arr[IDX.EMPRESA] ? empSelo(v.arr[IDX.EMPRESA]) + ' ' : '') + pEsc(org) + '</span></span>' +
+        (v.valor > 0 ? '<span class="pg-li-v">' + fmtM(v.valor) + '</span>' : '') +
+      '</div>';
+    }).join('') + '</div>' : '<div class="pg-vazio">Nada vencendo nos próximos 90 dias.</div>') +
+  '</div>';
+
+  /* Participação na carteira — barras com a fatia de cada uma. */
+  const porNome = {}, varias = vendoVarias() && empresas.length > 1;
+  arrs.forEach(a => {
+    let nome;
+    if(varias){ nome = empresas.find(e => mesmaEmpresa(e, String(a[IDX.EMPRESA] || '').trim())); if(!nome) return; }
+    else nome = String(a[IDX.LOCAL] || a[IDX.MUNICIPIO] || '').trim() || '(sem órgão)';
+    if(!porNome[nome]) porNome[nome] = {v:0, n:0};
+    porNome[nome].v += calcValorGanhas(a);
+    porNome[nome].n++;
+  });
+  const nomesCart = Object.keys(porNome).sort((a, b) => porNome[b].v - porNome[a].v).slice(0, varias ? 20 : 6);
+  const totCart = nomesCart.reduce((s, k) => s + porNome[k].v, 0);
+  const cardCarteiraPG = '<div class="pg-card">' +
+    pgTitulo('pasta', varias ? 'Carteira por empresa' : 'Onde está o contratado',
+      totCart > 0 ? fmtMoedaP(totCart) + ' em contratos' + (varias ? '' : ' · os órgãos que mais pesam') : 'Valor contratado') +
+    (nomesCart.length ? nomesCart.map(k => {
+      const fatia = totCart > 0 ? (porNome[k].v / totCart) * 100 : 0;
+      const cor = varias ? (CORES[k] || 'var(--nh)') : 'var(--nh)';
+      return '<div class="pg-barra-l">' +
+        '<div class="pg-barra-topo"><span class="pg-barra-nome">' + (varias ? '<i style="background:' + cor + '"></i>' : '') +
+          '<span title="' + pEsc(k) + '">' + pEsc(k) + '</span></span>' +
+          '<span class="pg-barra-num"><b>' + fmtM(porNome[k].v) + '</b><small>' + porNome[k].n + ' contrato' + (porNome[k].n === 1 ? '' : 's') +
+          ' · ' + fatia.toFixed(0) + '%</small></span></div>' +
+        '<div class="pg-barra"><span style="width:' + fatia.toFixed(1) + '%;background:' + cor + '"></span></div>' +
+      '</div>';
+    }).join('') : '<div class="pg-vazio">Nenhum contrato no período.</div>') +
+  '</div>';
+
+  const indHTML = gcBlocoIndicadores(arrs);
+  const cardIndPG = '<div class="pg-card pg-embute">' +
+    pgTitulo('barras', 'Indicadores de gestão', 'Metas da apostila · §18.3') +
+    (indHTML || '<div class="pg-vazio">Ainda sem dados suficientes.</div>') +
+  '</div>';
+
+  const fimHTML = gcJanelaFimExercicio() ? gcBlocoFimExercicio(arrs) : '';
+
+  dash.innerHTML = bv + kpisPG +
+    cardSituacaoPG +
+    '<div class="pg-grade">' + cardEvolucaoPG + cardVencPG + '</div>' +
+    '<div class="pg-grade">' + cardCarteiraPG + cardIndPG + '</div>' +
+    (cardFaturamento ? '<div class="pg-card pg-embute">' + pgTitulo('fatura', 'Faturamento', 'O que virou nota, o que entrou e o que está em atraso.') + cardFaturamento + '</div>' : '') +
     /* Fim de exercício só de setembro a março: fora dessa janela é
        ruído, e bloco que aparece o ano inteiro deixa de ser lido. */
-    (gcJanelaFimExercicio() ? gcBlocoFimExercicio(arrs) : '') +
-    gcBlocoIndicadores(arrs) +
-    '<div class="pd-cards" style="grid-template-columns:1fr">' + cardTerceiro + '</div>';
+    (fimHTML ? '<div class="pg-card pg-embute">' + pgTitulo('calendario', 'Fim de exercício', 'O que acontece com cada nota em 31/12.') + fimHTML + '</div>' : '');
   dash.style.display = '';
+}
+
+/* ── Peças do painel no desenho do portal geral ─────────────────── */
+var PG_ICONES = {
+  dinheiro:'<path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>',
+  atividade:'<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+  fatura:'<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1z"/><path d="M8 7h8M8 11h8M8 15h5"/>',
+  recebido:'<path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/>',
+  relogio:'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+  caneta:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/>',
+  camadas:'<path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/>',
+  sobe:'<path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/>',
+  pasta:'<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/>',
+  barras:'<path d="M12 20V10M18 20V4M6 20v-4"/>',
+  calendario:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'
+};
+var PG_ICONE_KPI = {'Portfólio total':'dinheiro','Valor em execução':'atividade','Faturado':'fatura',
+  'Recebido':'recebido','Vencem em 90 dias':'relogio','Aguardando contrato':'caneta'};
+function pgIcone(k){
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (PG_ICONES[k] || '') + '</svg>';
+}
+function pgTitulo(ic, tit, apoio){
+  return '<div class="pg-tit"><span class="pg-tit-ic">' + pgIcone(ic) + '</span><div><h3>' + tit + '</h3>' +
+    (apoio ? '<p>' + apoio + '</p>' : '') + '</div></div>';
+}
+/* Área com os contratos assinados em cada um dos últimos 12 meses.
+   SVG feito à mão: o portal não carrega biblioteca de gráfico, e um
+   gráfico só não justifica trazer uma. */
+function pgGraficoMeses(arrs){
+  var MES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  var hoje = new Date(), meses = [];
+  for(var i = 11; i >= 0; i--){
+    var d = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
+    meses.push({a:d.getFullYear(), m:d.getMonth(), n:0, v:0});
+  }
+  (arrs || []).forEach(function(a){
+    var d = parseDateBR(String(a[IDX.DT_ASSINATURA] || '').trim());
+    if(!d) return;
+    meses.forEach(function(x){ if(x.a === d.getFullYear() && x.m === d.getMonth()){ x.n++; x.v += calcValorGanhas(a); } });
+  });
+  var tot = meses.reduce(function(s, x){ return s + x.n; }, 0);
+  if(!tot) return '<div class="pg-vazio" style="padding:50px 0">Nenhum contrato assinado nos últimos 12 meses.</div>';
+  var W = 600, H = 190, top = 14, base = H - 26, maior = Math.max.apply(null, meses.map(function(x){ return x.n; }).concat([1]));
+  var px = function(i){ return 16 + i * ((W - 32) / 11); };
+  var py = function(n){ return base - (n / maior) * (base - top); };
+  var linha = meses.map(function(x, i){ return (i ? 'L' : 'M') + px(i).toFixed(1) + ' ' + py(x.n).toFixed(1); }).join(' ');
+  var area = linha + ' L' + px(11).toFixed(1) + ' ' + base + ' L' + px(0).toFixed(1) + ' ' + base + ' Z';
+  var grade = [0.25, 0.5, 0.75, 1].map(function(f){
+    var y = (base - f * (base - top)).toFixed(1);
+    return '<line x1="16" x2="' + (W - 16) + '" y1="' + y + '" y2="' + y + '" class="pg-g-grade"/>';
+  }).join('');
+  return '<svg class="pg-grafico" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Contratos assinados por mês">' +
+    '<defs><linearGradient id="pgArea" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stop-color="#FF6B00" stop-opacity=".28"/>' +
+    '<stop offset="95%" stop-color="#FF6B00" stop-opacity="0"/></linearGradient></defs>' + grade +
+    '<path d="' + area + '" fill="url(#pgArea)"/>' +
+    '<path d="' + linha + '" fill="none" stroke="#FF6B00" stroke-width="2.2"/>' +
+    meses.map(function(x, i){
+      return '<g><circle cx="' + px(i).toFixed(1) + '" cy="' + py(x.n).toFixed(1) + '" r="3.2" fill="#FF6B00"/>' +
+        '<title>' + MES[x.m] + '/' + String(x.a).slice(2) + ': ' + x.n + ' contrato' + (x.n === 1 ? '' : 's') +
+        (x.v > 0 ? ' · ' + fmtM(x.v) : '') + '</title></g>' +
+        '<text x="' + px(i).toFixed(1) + '" y="' + (H - 6) + '" class="pg-g-mes">' + MES[x.m] + '</text>';
+    }).join('') +
+  '</svg>';
 }
 
 /* ═════════════════════════════════════════════════
@@ -4909,7 +5166,7 @@ function renderAvisos(){
      Some com ele o cabeçalho recolhível: recolher existia porque o
      quadro empurrava os contratos para baixo da dobra, e agora os
      contratos estão em outra aba. */
-  /* ⚠️ QUADRO DE AVISOS REPAGINADO — 04/10/2026.
+  /* ⚠️ QUADRO DE AVISOS REPAGINADO — 04/10/2026 (substituído em 20/10: ver abaixo).
      Queixa: "os avisos estão bagunçados… você tem informação para deixar
      profissional mas não deixa". Eram cartões em três colunas, cada um
      de uma altura, com ícone, borda colorida e texto em três tamanhos —
@@ -4919,51 +5176,56 @@ function renderAvisos(){
        · dentro de cada faixa, os tipos de aviso como subtítulos;
        · cada linha no mesmo formato: EMPRESA · processo · o problema
          e o prazo, alinhados em coluna, e clique leva ao contrato. */
-  var NIVEIS = [
-    {k:'critico', rot:'Crítico',     cor:'#ef4444', dica:'custa dinheiro ou prazo se ficar parado'},
-    {k:'atencao', rot:'Atenção',     cor:'#f59e0b', dica:'resolver nas próximas semanas'},
-    {k:'info',    rot:'Informativo', cor:'#3b82f6', dica:'para acompanhar'}
-  ];
+  /* ⚠️ AVISOS EM CARDS QUE SE RECOLHEM — 20/10/2026.
+     Queixa: "os avisos e dashboard estão muito poluídos... estou
+     prezando por imagens mais limpas". A versão de 04/10 tinha título
+     em caixa alta, três filtros com bolinha, faixas CRÍTICO/ATENÇÃO/
+     INFORMATIVO e subgrupos abertos — tudo à vista ao mesmo tempo.
+     Agora cada TIPO de aviso é um card fechado: nome, quantos, e a
+     explicação curta numa linha só. A gravidade fica na ORDEM (o mais
+     grave primeiro) e na cor do número, não em faixas. Abrir mostra
+     as linhas, que seguem levando ao contrato. O que está aberto fica
+     lembrado neste aparelho. */
+  var COR_NIVEL = {critico:'#f87171', atencao:'#f59e0b', info:'var(--t2)'};
+  var crit = porNivel.critico;
   box.innerHTML =
-      '<div class="av-topo">'
-    +   '<div class="av-topo-txt">'
-    +     '<div class="av-olho">O que pede atenção</div>'
-    +     '<h2 class="av-tit">' + total + ' aviso' + (total === 1 ? '' : 's') + '</h2>'
-    +     '<div class="av-sub">Do mais grave para o menos. Clique em uma linha para abrir o contrato.</div>'
-    +   '</div>'
-    +   '<div class="av-niveis">'
-    +     '<button class="av-chip on" data-nivel="tudo" onclick="avFiltrarNivel(\'tudo\')" '
-    +       'style="--cn:#94a3b8;--cnf:rgba(148,163,184,.12)"><i></i>Tudo<b>' + total + '</b></button>'
-    +     _chip('critico', 'Crítico',     porNivel.critico, '#ef4444', 'rgba(239,68,68,.12)')
-    +     _chip('atencao', 'Atenção',     porNivel.atencao, '#f59e0b', 'rgba(245,158,11,.12)')
-    +     _chip('info',    'Informativo', porNivel.info,    '#3b82f6', 'rgba(59,130,246,.12)')
-    +   '</div>'
+      '<div class="avr-topo">'
+    +   '<h2 class="avr-tit">' + total + ' aviso' + (total === 1 ? '' : 's') + '</h2>'
+    +   '<div class="avr-sub">' + (crit ? '<b>' + crit + (crit === 1 ? ' crítico' : ' críticos') + '</b> &middot; ' : '')
+    +     'do mais grave para o menos</div>'
     + '</div>'
-    + '<div class="avx" id="avisos-grid">'
-    + NIVEIS.map(function(nv){
-        var gs = grupos.filter(function(g){ return g.nivel === nv.k; });
-        if(!gs.length) return '';
-        return '<section class="avx-nivel" data-nivel="' + nv.k + '" style="--nc:' + nv.cor + '">'
-          + '<div class="avx-nivel-cab"><i></i><b>' + nv.rot + '</b><span>' + porNivel[nv.k] + '</span>'
-          +   '<em>' + nv.dica + '</em></div>'
-          + gs.map(function(g){
-              var gi = grupos.indexOf(g);
-              return '<div class="avx-grupo" style="--ac:' + g.cor + '">'
-                + '<div class="avx-grupo-cab"><b>' + g.titulo + '</b><span>' + g.sub + '</span><em>' + g.itens.length + '</em></div>'
-                + '<ul class="avx-lista" id="aviso-list-' + gi + '">'
-                + g.itens.slice(0, 5).map(function(i){ return _avisoItem(i); }).join('')
-                + '</ul>'
-                + (g.itens.length > 5
-                    ? '<button type="button" class="avx-mais" onclick="avisosVerTodos(' + gi + ',this)">Ver mais ' + (g.itens.length - 5) + '</button>'
-                    : '')
-                + '</div>';
-            }).join('')
-          + '</section>';
+    + '<div id="avisos-grid">'
+    + grupos.map(function(g, gi){
+        var ab = !!AV_ABERTOS[g.titulo];
+        return '<section class="avr' + (ab ? ' aberta' : '') + '" data-nivel="' + g.nivel + '" data-k="' + pEsc(g.titulo) + '"'
+          +   ' style="--ac:' + COR_NIVEL[g.nivel] + '">'
+          + '<button type="button" class="avr-cab" onclick="avRecolher(this)" aria-expanded="' + ab + '">'
+          +   '<span class="avr-t">' + pEsc(g.titulo) + '</span>'
+          +   '<span class="avr-n ' + g.nivel + '">' + g.itens.length + '</span>'
+          +   '<span class="avr-res">' + pEsc(g.sub) + '</span>'
+          +   '<span class="avr-seta" aria-hidden="true">&#9662;</span>'
+          + '</button>'
+          + '<div class="avr-corpo"><ul class="avx-lista" id="aviso-list-' + gi + '">'
+          +   g.itens.slice(0, 8).map(function(i){ return _avisoItem(i); }).join('')
+          + '</ul>'
+          + (g.itens.length > 8
+              ? '<button type="button" class="avx-mais" onclick="avisosVerTodos(' + gi + ',this)">Ver mais ' + (g.itens.length - 8) + '</button>'
+              : '')
+          + '</div></section>';
       }).join('')
     + '</div>';
 
   /* Guarda para o "ver todos" abrir o grupo inteiro sem recalcular. */
   window._avisosGrupos = grupos;
+}
+
+var AV_ABERTOS = (function(){ try{ return JSON.parse(localStorage.getItem('pe_avisos_abertos') || '{}') || {}; }catch(e){ return {}; } })();
+function avRecolher(bt){
+  var s = bt.parentElement, k = s.getAttribute('data-k');
+  AV_ABERTOS[k] = !AV_ABERTOS[k];
+  try{ localStorage.setItem('pe_avisos_abertos', JSON.stringify(AV_ABERTOS)); }catch(e){}
+  s.classList.toggle('aberta', !!AV_ABERTOS[k]);
+  bt.setAttribute('aria-expanded', AV_ABERTOS[k] ? 'true' : 'false');
 }
 
 /** Mostra só os grupos de uma gravidade.

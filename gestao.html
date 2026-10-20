@@ -1304,53 +1304,49 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 .bsc-radar-tg{padding:7px 9px!important;opacity:.4;filter:grayscale(1)}
 .bsc-radar-tg.on{opacity:1;filter:none;border-color:var(--nh)!important;background:var(--nha)!important}
 
-/* ── HOJE (20/10/2026) — o que precisa de ação hoje ─────────────────── */
-.hj-cab{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:18px}
-.hj-dia{font-size:24px;font-weight:800;color:var(--t1);letter-spacing:-.3px;line-height:1.15}
-.hj-dia span{color:var(--nh)}
-.hj-sub{font-size:14px;color:var(--t3);margin-top:4px}
-.hj-nums{display:flex;gap:8px;flex-wrap:wrap}
-.hj-num{background:var(--s1);border:1px solid var(--b1);border-radius:12px;padding:9px 14px;min-width:96px;cursor:pointer;
-  font:inherit;text-align:left;color:var(--t2);transition:border-color .15s}
-.hj-num:hover{border-color:var(--b2)}
-.hj-num b{display:block;font-size:22px;font-weight:800;color:var(--t1);line-height:1.1}
-.hj-num small{font-size:12px}
-.hj-num.quente b{color:var(--nh)}
-.hj-grade{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
-.hj-col{display:flex;flex-direction:column;gap:16px;min-width:0}
-.hj-bloco{background:var(--s1);border:1px solid var(--b1);border-radius:14px;overflow:hidden}
-.hj-bloco-cab{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--b1)}
-.hj-bloco-cab b{font-size:15px;font-weight:800;color:var(--t1)}
-.hj-bloco-cab em{font-style:normal;font-size:12px;font-weight:700;color:var(--t3);background:var(--s2);border-radius:20px;padding:2px 9px}
-.hj-bloco-cab .hj-mais{margin-left:auto;background:none;border:0;color:var(--nh);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
-.hj-linha{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--b1)}
-.hj-linha:last-child{border-bottom:0}
-.hj-quando{flex:none;width:62px;text-align:center;font-size:12px;font-weight:700;color:var(--t3);line-height:1.25}
-.hj-quando b{display:block;font-size:16px;font-weight:800;color:var(--t1)}
-.hj-quando.quente b{color:var(--nh)}
-.hj-quando.atraso b{color:#f87171}
-.hj-meio{flex:1;min-width:0}
-.hj-tit{font-size:14px;font-weight:700;color:var(--t1);line-height:1.4;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.hj-meta{display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap;margin-top:4px;font-size:12.5px;color:var(--t3)}
-.hj-meta .emp-badge{font-size:12px!important}
-.hj-meta .hj-alerta{color:#f87171;font-weight:700}
-.hj-meta .hj-quente{color:var(--nh);font-weight:700}
-.hj-acoes{flex:none;display:flex;gap:6px}
-.hj-bt{background:var(--s2);border:1px solid var(--b1);color:var(--t2);font:inherit;font-size:12.5px;font-weight:700;
-  padding:7px 11px;border-radius:9px;cursor:pointer;white-space:nowrap}
-.hj-bt:hover{color:var(--t1);border-color:var(--b2)}
-.hj-bt.nh{background:var(--nha);border-color:rgba(249,115,22,.35);color:var(--nh)}
-.hj-bt.ok{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.35);color:#22c55e}
-.hj-vazio{padding:16px;font-size:13.5px;color:var(--t3)}
-.hj-tudo-ok{text-align:center;padding:50px 20px;color:var(--t3);font-size:15px;line-height:1.7}
-.hj-tudo-ok b{display:block;font-size:20px;color:var(--t1);margin-bottom:4px}
-/* Duas colunas só em tela larga: no notebook o título do processo ficava
-   espremido entre a data e os botões. */
-@media(max-width:1500px){.hj-grade{grid-template-columns:1fr}}
+/* ── HOJE (20/10/2026) — versão limpa: um card por assunto, recolhido ── */
+#hoje-body{max-width:880px}
+.hj-cab{margin:2px 0 18px}
+.hj-dia{font-size:22px;font-weight:800;color:var(--t1);letter-spacing:-.2px;line-height:1.2}
+.hj-sub{font-size:14px;color:var(--t3);margin-top:3px}
+.hj-sec{background:var(--s1);border:1px solid var(--b1);border-radius:14px;margin-bottom:10px;overflow:hidden}
+.hj-sec-cab{display:flex;align-items:center;gap:12px;width:100%;padding:15px 18px;background:none;border:0;
+  cursor:pointer;font:inherit;text-align:left;color:var(--t1)}
+.hj-sec-cab:hover{background:var(--s2)}
+.hj-sec-tit{font-size:15px;font-weight:700;white-space:nowrap}
+.hj-sec-n{font-size:12.5px;font-weight:700;color:var(--t2);background:var(--s2);border-radius:20px;padding:1px 9px;min-width:24px;text-align:center}
+.hj-sec-n.quente{color:var(--nh);background:var(--nha)}
+.hj-sec-res{flex:1;min-width:0;font-size:13px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hj-sec-seta{color:var(--t3);font-size:12px;transition:transform .2s}
+.hj-sec.aberta .hj-sec-seta{transform:rotate(180deg)}
+.hj-sec-corpo{display:none;border-top:1px solid var(--b1)}
+.hj-sec.aberta .hj-sec-corpo{display:block}
+.hj-l{display:flex;align-items:center;gap:14px;padding:11px 18px;border-bottom:1px solid var(--b1)}
+.hj-l:last-child{border-bottom:0}
+.hj-l[role=button]{cursor:pointer}
+.hj-l[role=button]:hover{background:var(--s2)}
+.hj-l-q{flex:none;width:50px;font-size:13px;font-weight:700;color:var(--t2);font-variant-numeric:tabular-nums}
+.hj-l-q.quente{color:var(--nh)}
+.hj-l-q.atraso{color:#f87171}
+.hj-l-meio{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.hj-l-tit{font-size:14px;font-weight:600;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hj-l-sub{display:flex;align-items:center;gap:4px 12px;flex-wrap:wrap;font-size:12.5px;color:var(--t3)}
+.hj-l-sub .emp-badge{font-size:12px!important}
+.hj-l-sub .hj-alerta{color:#f87171;font-weight:600}
+.hj-l-sub .hj-pa{color:var(--t2);font-weight:600}
+.hj-l-bt{flex:none}
+.hj-ic{width:32px;height:32px;border-radius:9px;background:none;border:1px solid var(--b1);color:var(--t3);
+  cursor:pointer;font-size:14px;line-height:1;font-family:inherit}
+.hj-ic:hover{color:var(--nh);border-color:rgba(249,115,22,.4)}
+.hj-ic.ok:hover{color:#22c55e;border-color:rgba(34,197,94,.45)}
+.hj-vazio{padding:14px 18px;font-size:13px;color:var(--t3);line-height:1.6}
+.hj-tudo-ok{text-align:center;padding:40px 20px;color:var(--t3);font-size:14.5px;line-height:1.7}
+.hj-tudo-ok b{display:block;font-size:18px;color:var(--t1);margin-bottom:2px}
 @media(max-width:620px){
-  .hj-linha{flex-wrap:wrap}
-  .hj-acoes{width:100%;padding-left:74px}
-  .hj-num{min-width:0;flex:1}
+  .hj-sec-res{display:none}
+  .hj-sec-cab{padding:14px}
+  .hj-l{padding:11px 14px;gap:10px}
+  .hj-l-q{width:44px}
 }
 /* Próxima ação no card: uma linha só, e só quando existe (cartão limpo). */
 .pa-linha{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:8px;font-size:13px;color:var(--t2);cursor:pointer;width:fit-content;max-width:100%}
@@ -19965,26 +19961,54 @@ function nhHojeBadge(){
 }
 
 /* ── Desenha a tela ─────────────────────────────────────────────── */
+/* ⚠️ VERSÃO LIMPA — 20/10/2026 (mesmo dia da primeira).
+   A primeira tinha duas colunas, quatro números no topo e dois botões em
+   cada linha. Cliente: "achei muito carregado, deu até dor de cabeça...
+   dentro de cards que se recolhem, estou prezando por imagens mais
+   limpas". Agora: uma coluna; cada assunto é UMA linha com o total e
+   uma frase do mais urgente, e os detalhes ficam recolhidos (o que está
+   aberto fica lembrado neste aparelho). Linha aberta: clicar abre o
+   processo; sobra um botão discreto (➜ próxima ação, ou ✓ concluir).
+   Cor só onde o prazo é hoje ou já passou. */
+var _hjAbertas=(function(){try{return JSON.parse(localStorage.getItem('nh_hoje_abertas')||'{}')||{};}catch(e){return {};}})();
+function _hjToggle(id){
+  _hjAbertas[id]=!_hjAbertas[id];
+  try{localStorage.setItem('nh_hoje_abertas',JSON.stringify(_hjAbertas));}catch(e){}
+  var s=document.getElementById('hj-'+id);if(!s)return;
+  s.classList.toggle('aberta',!!_hjAbertas[id]);
+  var bt=s.querySelector('.hj-sec-cab');if(bt)bt.setAttribute('aria-expanded',_hjAbertas[id]?'true':'false');
+}
+function _hjSec(id,tit,n,resumo,corpo,quente){
+  var ab=!!_hjAbertas[id];
+  return '<section class="hj-sec'+(ab?' aberta':'')+'" id="hj-'+id+'">'+
+    '<button type="button" class="hj-sec-cab" aria-expanded="'+ab+'" onclick="_hjToggle(\''+id+'\')">'+
+      '<span class="hj-sec-tit">'+tit+'</span>'+
+      '<span class="hj-sec-n'+(quente?' quente':'')+'">'+n+'</span>'+
+      '<span class="hj-sec-res">'+resumo+'</span>'+
+      '<span class="hj-sec-seta" aria-hidden="true">&#9662;</span>'+
+    '</button><div class="hj-sec-corpo">'+corpo+'</div></section>';
+}
+/* Uma linha: quando · o quê (empresa e detalhe embaixo, em cinza) · um botão. */
 function _hjLinha(o){
-  return '<div class="hj-linha">'+
-    '<div class="hj-quando'+(o.qcls?' '+o.qcls:'')+'"><b>'+o.quando+'</b>'+(o.qsub||'')+'</div>'+
-    '<div class="hj-meio"><div class="hj-tit" title="'+_kcEsc(o.tit)+'">'+esc0(o.tit)+'</div>'+
-      '<div class="hj-meta">'+(o.emp?'<span class="emp-badge" style="--ec:'+empColor(o.emp)+'">'+esc0(o.emp)+'</span>':'')+
-      (o.meta||[]).join('')+'</div></div>'+
-    '<div class="hj-acoes">'+(o.acoes||'')+'</div></div>';
+  return '<div class="hj-l"'+(o.abrir?' role="button" tabindex="0" onclick="'+o.abrir+'" onkeydown="if(event.key===\'Enter\')this.click()"':'')+'>'+
+    '<span class="hj-l-q'+(o.qcls?' '+o.qcls:'')+'">'+o.quando+'</span>'+
+    '<span class="hj-l-meio"><span class="hj-l-tit">'+esc0(o.tit)+'</span>'+
+      '<span class="hj-l-sub">'+(o.emp?'<span class="emp-badge" style="--ec:'+empColor(o.emp)+'">'+esc0(o.emp)+'</span>':'')+
+      (o.sub||[]).filter(Boolean).map(function(x){return '<span>'+x+'</span>';}).join('')+'</span></span>'+
+    (o.bt?'<span class="hj-l-bt">'+o.bt+'</span>':'')+'</div>';
 }
-function _hjBloco(id,tit,qt,corpo,mais){
-  return '<div class="hj-bloco" id="hj-'+id+'"><div class="hj-bloco-cab"><b>'+tit+'</b>'+(qt!==null?'<em>'+qt+'</em>':'')+(mais||'')+'</div>'+corpo+'</div>';
-}
+function _hjAbrirJs(aba,id){return "_hjAbrir('"+aba+"','"+_kcEsc(id)+"')";}
 function _hjBtAcao(aba,id){
   if(_hjSoLeitura())return '';
   var p=PROX_ACAO[_paChave(aba,id)];
-  return '<button class="hj-bt'+(p?'':' nh')+'" onclick="nhProxAcao(\''+aba+'\',\''+_kcEsc(id)+'\')">'+(p?'Editar ação':'&#10140; Pr&oacute;xima a&ccedil;&atilde;o')+'</button>';
+  return '<button type="button" class="hj-ic" title="'+(p?'Editar a próxima ação':'Marcar a próxima ação')+'" aria-label="Próxima ação" '+
+    'onclick="event.stopPropagation();nhProxAcao(\''+aba+'\',\''+_kcEsc(id)+'\')">&#10140;</button>';
 }
-function _hjBtAbrir(aba,id){return '<button class="hj-bt" onclick="_hjAbrir(\''+aba+'\',\''+_kcEsc(id)+'\')">Abrir</button>';}
-function _hjMetaAcao(aba,id){
-  var p=PROX_ACAO[_paChave(aba,id)];
-  return p?'<span class="hj-quente">&#10140; '+esc0(p.t)+'</span>':'';
+function _hjSubAcao(aba,id){var p=PROX_ACAO[_paChave(aba,id)];return p?'<b class="hj-pa">&#10140; '+esc0(p.t)+'</b>':'';}
+function _hjCurto(s,n){s=String(s||'').trim();return s.length>n?s.slice(0,n-1)+'…':s;}
+function _hjRel(n){return n<0?(n===-1?'ontem':'há '+(-n)+' dias'):n===0?'hoje':n===1?'amanhã':'em '+n+' dias';}
+function _hjBtFeita(js){
+  return _hjSoLeitura()?'':'<button type="button" class="hj-ic ok" title="Marcar como feita" aria-label="Feita" onclick="event.stopPropagation();'+js+'">&#10003;</button>';
 }
 
 function nhHojeMontar(){
@@ -20000,105 +20024,122 @@ function nhHojeMontar(){
   }
   var r=_hjColetar();
   var b=document.getElementById('b-hoje');if(b){b.textContent=r.urgente;b.style.display=r.urgente?'':'none';}
-  var hoje=new Date();
-  var dia=hoje.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
-  var msgs=r.msg.perg+r.msg.chat;
-  var sHoje=r.sessoes.filter(function(s){return s.n===0;}).length;
-  var atras=r.acoes.filter(function(s){return s.n!==null&&s.n<0;}).length;
-
-  var num=function(alvo,n,rot,quente){
-    return '<button class="hj-num'+(quente&&n?' quente':'')+'" onclick="var x=document.getElementById(\'hj-'+alvo+'\');if(x)x.scrollIntoView({behavior:\'smooth\',block:\'start\'})"><b>'+n+'</b><small>'+rot+'</small></button>';};
-  var cab='<div class="hj-cab"><div><div class="hj-dia">Hoje, <span>'+esc0(dia)+'</span></div>'+
-    '<div class="hj-sub">'+(r.urgente?'<b style="color:var(--t1)">'+r.urgente+'</b> '+(r.urgente===1?'coisa pede':'coisas pedem')+' a&ccedil;&atilde;o hoje.':'Nada vence hoje.')+
-    (PROX_ACAO_ERRO?' <span style="color:#f87171">Pr&oacute;ximas a&ccedil;&otilde;es indispon&iacute;veis: '+esc0(PROX_ACAO_ERRO)+'</span>':'')+'</div></div>'+
-    '<div class="hj-nums">'+num('sessoes',sHoje,sHoje===1?'sess&atilde;o hoje':'sess&otilde;es hoje',true)+num('decidir',r.decidir.length,'para decidir',true)+
-      num('acoes',atras,'a&ccedil;&otilde;es atrasadas',true)+num('msg',msgs,'mensagens',true)+'</div></div>';
+  var dia=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
+  dia=dia.charAt(0).toUpperCase()+dia.slice(1);
+  var cab='<div class="hj-cab"><div class="hj-dia">'+esc0(dia)+'</div><div class="hj-sub">'+
+    (r.urgente?r.urgente+' '+(r.urgente===1?'coisa pede':'coisas pedem')+' a&ccedil;&atilde;o hoje':'Nada vence hoje')+
+    (PROX_ACAO_ERRO?' &middot; <span style="color:#f87171">pr&oacute;ximas a&ccedil;&otilde;es indispon&iacute;veis: '+esc0(PROX_ACAO_ERRO)+'</span>':'')+'</div></div>';
+  var secs=[];
 
   /* Sessões de hoje e amanhã */
-  var sess=r.sessoes.length?r.sessoes.map(function(s){
-    var a=s.a,h=_hjHora(s.d),semDecisao=s.aba==='editais'&&!_editalTratado(a);
-    var portal=String((s.aba==='editais'?a[15]:a[9])||'').trim();
-    return _hjLinha({quando:h||(s.n===0?'Hoje':'Amanhã'),qsub:h?(s.n===0?'hoje':'amanhã'):'',qcls:s.n===0?'quente':'',
-      tit:String(a[3]||a[4]||'Processo #'+a[0]),emp:String(a[2]||'').trim(),
-      meta:[s.tipo==='Sessão'?'':'<span>'+s.tipo+'</span>',
-        portal?'<span>'+esc0(portal)+'</span>':'',
-        semDecisao?'<span class="hj-alerta">sem decis&atilde;o de participar</span>':'',_hjMetaAcao(s.aba,a[0])],
-      acoes:_hjBtAcao(s.aba,a[0])+_hjBtAbrir(s.aba,a[0])});
-  }).join(''):'<div class="hj-vazio">Nenhuma sess&atilde;o hoje nem amanh&atilde;.</div>';
+  if(r.sessoes.length){
+    var s0=r.sessoes[0],h0=_hjHora(s0.d);
+    secs.push(_hjSec('sessoes','Sess&otilde;es',r.sessoes.length,
+      'a pr&oacute;xima: '+(s0.n===0?'hoje':'amanh&atilde;')+(h0?' &agrave;s '+h0:'')+' &middot; '+esc0(String(s0.a[2]||''))+' &middot; '+esc0(_hjCurto(s0.a[3],48)),
+      r.sessoes.map(function(s){
+        var a=s.a,h=_hjHora(s.d),semDecisao=s.aba==='editais'&&!_editalTratado(a);
+        var portal=String((s.aba==='editais'?a[15]:a[9])||'').trim();
+        return _hjLinha({quando:h||'—',qcls:s.n===0?'quente':'',tit:String(a[3]||a[4]||'Processo #'+a[0]),emp:String(a[2]||'').trim(),
+          sub:[s.n===0?'hoje':'amanh&atilde;',s.tipo==='Sessão'?'':s.tipo,esc0(portal),
+            semDecisao?'<b class="hj-alerta">sem decis&atilde;o</b>':'',_hjSubAcao(s.aba,a[0])],
+          abrir:_hjAbrirJs(s.aba,a[0]),bt:_hjBtAcao(s.aba,a[0])});
+      }).join(''),r.sessoes.some(function(s){return s.n===0;})));
+  }
 
-  /* Editais sem decisão com sessão chegando */
-  var dec=r.decidir.map(function(s){
-    var a=s.a;
-    return _hjLinha({quando:_hjDdMm(s.d),qsub:s.n===0?'hoje':s.n===1?'amanhã':'em '+s.n+' dias',qcls:s.n<=2?'quente':'',
-      tit:String(a[3]||a[4]||'Edital #'+a[0]),emp:String(a[2]||'').trim(),
-      meta:[String(a[9]||'').trim()?'<span>'+esc0(String(a[9]))+'</span>':'',
-        String(a[15]||'').trim()?'<span>'+esc0(String(a[15]))+'</span>':'',_hjMetaAcao('editais',a[0])],
-      acoes:_hjBtAcao('editais',a[0])+_hjBtAbrir('editais',a[0])});
-  }).join('');
+  /* Editais sem decisão com sessão nos próximos 7 dias */
+  if(r.decidir.length){
+    var d0=r.decidir[0];
+    secs.push(_hjSec('decidir','Decidir se participa',r.decidir.length,
+      'sess&atilde;o mais pr&oacute;xima '+_hjRel(d0.n)+' &middot; '+esc0(_hjCurto(d0.a[3],52)),
+      r.decidir.map(function(s){
+        var a=s.a;
+        return _hjLinha({quando:_hjDdMm(s.d),qcls:s.n<=1?'quente':'',tit:String(a[3]||a[4]||'Edital #'+a[0]),emp:String(a[2]||'').trim(),
+          sub:['sess&atilde;o '+_hjRel(s.n),esc0(String(a[9]||'').trim()),_hjSubAcao('editais',a[0])],
+          abrir:_hjAbrirJs('editais',a[0]),bt:_hjBtAcao('editais',a[0])});
+      }).join(''),r.decidir.some(function(s){return s.n<=1;})));
+  }
 
-  /* Próximas ações */
-  var MAXA=15;
-  var acs=r.acoes.slice(0,MAXA).map(function(s){
-    var a=s.a,p=s.p;
-    return _hjLinha({quando:s.d?_hjDdMm(s.d):'—',qsub:s.d?(s.n<0?'atrasada':s.n===0?'hoje':s.n===1?'amanhã':'em '+s.n+' dias'):'sem prazo',
-      qcls:s.n!==null&&s.n<0?'atraso':s.n===0?'quente':'',
-      tit:p.t,emp:String(a[2]||'').trim(),
-      meta:['<span>'+esc0(String(a[3]||'').slice(0,90))+'</span>',p.q?'<span>&middot; '+esc0(p.q)+'</span>':''],
-      acoes:(_hjSoLeitura()?'':'<button class="hj-bt ok" onclick="nhProxAcaoFeita(\''+p.aba+'\',\''+_kcEsc(p.id)+'\')">&#10003; Feita</button>'+
-        '<button class="hj-bt" onclick="nhProxAcao(\''+p.aba+'\',\''+_kcEsc(p.id)+'\')">Editar</button>')+_hjBtAbrir(p.aba,p.id)});
-  }).join('')+(r.acoes.length>MAXA?'<div class="hj-vazio">+ '+(r.acoes.length-MAXA)+' a&ccedil;&otilde;es com prazo mais longe.</div>':'');
-  if(!r.acoes.length)acs='<div class="hj-vazio">Nenhuma pr&oacute;xima a&ccedil;&atilde;o marcada. Marque pelo bot&atilde;o <b>&#10140; Pr&oacute;xima a&ccedil;&atilde;o</b> aqui ou no menu &#8943; do card.</div>';
+  /* Próximas ações — aparece mesmo vazia: é onde se descobre que existe. */
+  var atras=r.acoes.filter(function(s){return s.n!==null&&s.n<0;}).length;
+  var deHoje=r.acoes.filter(function(s){return s.n===0;}).length;
+  var resA=!r.acoes.length?'nenhuma marcada ainda':
+    (atras||deHoje)?[atras?atras+(atras===1?' atrasada':' atrasadas'):'',deHoje?deHoje+' para hoje':''].filter(Boolean).join(' &middot; '):
+    r.acoes[0].d?'a pr&oacute;xima vence '+_hjRel(r.acoes[0].n):'nenhuma com prazo';
+  secs.push(_hjSec('acoes','Pr&oacute;ximas a&ccedil;&otilde;es',r.acoes.length,resA,
+    r.acoes.length?r.acoes.map(function(s){
+      var a=s.a,p=s.p;
+      return _hjLinha({quando:s.d?_hjDdMm(s.d):'—',qcls:s.n!==null&&s.n<0?'atraso':s.n===0?'quente':'',tit:p.t,emp:String(a[2]||'').trim(),
+        sub:[p.q?esc0(p.q):'',s.d?(s.n<0?'<b class="hj-alerta">atrasada</b>':_hjRel(s.n)):'sem prazo',esc0(_hjCurto(a[3],60))],
+        abrir:_hjSoLeitura()?_hjAbrirJs(p.aba,p.id):"nhProxAcao('"+p.aba+"','"+_kcEsc(p.id)+"')",
+        bt:_hjBtFeita("nhProxAcaoFeita('"+p.aba+"','"+_kcEsc(p.id)+"')")});
+    }).join(''):'<div class="hj-vazio">Marque o que falta fazer em cada processo pelo bot&atilde;o <b>&#10140;</b> nas linhas acima, ou no menu &#8943; do card.</div>',
+    !!(atras||deHoje)));
 
   /* Esperando a NH */
   var m=r.msg,ms=[];
-  if(m.perg)ms.push(_hjLinha({quando:String(m.perg),qcls:'quente',tit:'Mensagens de clientes esperando resposta',
-    acoes:'<button class="hj-bt nh" onclick="nhAbrirPerguntas()">Responder</button>'}));
-  if(m.chat)ms.push(_hjLinha({quando:String(m.chat),qcls:'quente',tit:'Mensagens não lidas no chat dos pregões',
-    acoes:'<button class="hj-bt nh" onclick="chatAbrirPainel()">Abrir chat</button>'}));
+  if(m.perg)ms.push(_hjLinha({quando:String(m.perg),qcls:'quente',tit:'Mensagens de clientes esperando resposta',abrir:'nhAbrirPerguntas()'}));
+  if(m.chat)ms.push(_hjLinha({quando:String(m.chat),qcls:'quente',tit:'Mensagens não lidas no chat dos pregões',abrir:'chatAbrirPainel()'}));
   if(m.radar)ms.push(_hjLinha({quando:String(m.radar),tit:'Licitações novas no Radar para triar',
-    acoes:'<button class="hj-bt" onclick="go(\'buscador\',document.getElementById(\'nav-buscador\'));nhSetCanal(\'radar\')">Ver Radar</button>'}));
+    abrir:"go('buscador',document.getElementById('nav-buscador'));nhSetCanal('radar')"}));
+  if(ms.length)secs.push(_hjSec('msg','Esperando a NH',m.perg+m.chat+m.radar,
+    [m.perg?m.perg+' de clientes':'',m.chat?m.chat+' no chat':'',m.radar?m.radar+' no Radar':''].filter(Boolean).join(' &middot; '),
+    ms.join(''),!!(m.perg||m.chat)));
 
-  /* Tarefas */
-  var tfs=r.tarefas.map(function(s){
-    var t=s.t;
-    return _hjLinha({quando:_hjDdMm(s.d),qsub:s.n<0?'atrasada':s.n===0?'hoje':'amanhã',qcls:s.n<0?'atraso':s.n===0?'quente':'',
-      tit:String(t.titulo||'Tarefa'),emp:String(t.empresa||'').trim(),meta:[t.desc?'<span>'+esc0(String(t.desc).slice(0,80))+'</span>':''],
-      acoes:(_hjSoLeitura()?'':'<button class="hj-bt ok" onclick="toggleTarefa(\''+_kcEsc(t.id)+'\').then(function(){setTimeout(nhHojeMontar,600)})">&#10003; Feita</button>')+
-        '<button class="hj-bt" onclick="go(\'tarefas\',document.getElementById(\'nav-tarefas\'))">Abrir</button>'});
-  }).join('');
+  /* Tarefas vencendo */
+  if(r.tarefas.length){
+    var tA=r.tarefas.filter(function(s){return s.n<0;}).length,tH=r.tarefas.filter(function(s){return s.n===0;}).length,tM=r.tarefas.length-tA-tH;
+    secs.push(_hjSec('tarefas','Tarefas',r.tarefas.length,
+      [tA?tA+(tA===1?' atrasada':' atrasadas'):'',tH?tH+' para hoje':'',tM?tM+' para amanh&atilde;':''].filter(Boolean).join(' &middot; '),
+      r.tarefas.map(function(s){
+        var t=s.t;
+        return _hjLinha({quando:_hjDdMm(s.d),qcls:s.n<0?'atraso':s.n===0?'quente':'',tit:String(t.titulo||'Tarefa'),emp:String(t.empresa||'').trim(),
+          sub:[s.n<0?'<b class="hj-alerta">atrasada</b>':_hjRel(s.n)],
+          abrir:"go('tarefas',document.getElementById('nav-tarefas'))",
+          bt:_hjBtFeita("toggleTarefa('"+_kcEsc(t.id)+"').then(function(){setTimeout(nhHojeMontar,600)})")});
+      }).join(''),!!(tA||tH)));
+  }
 
-  var recs=r.recursos.map(function(s){
-    var a=s.a;
-    return _hjLinha({quando:'&#9878;',tit:String(a[3]||a[4]||'Processo #'+a[0]),emp:String(a[2]||'').trim(),
-      meta:[String(a[15]||'').trim()?'<span>'+esc0(String(a[15]).slice(0,90))+'</span>':'',_hjMetaAcao('andamento',a[0])],
-      acoes:_hjBtAcao('andamento',a[0])+_hjBtAbrir('andamento',a[0])});
-  }).join('');
+  /* Recursos em aberto */
+  if(r.recursos.length){
+    secs.push(_hjSec('recursos','Recursos em aberto',r.recursos.length,esc0(_hjCurto(r.recursos[0].a[3],60)),
+      r.recursos.map(function(s){
+        var a=s.a;
+        return _hjLinha({quando:'&#9878;',tit:String(a[3]||a[4]||'Processo #'+a[0]),emp:String(a[2]||'').trim(),
+          sub:[_hjSubAcao('andamento',a[0])||esc0(_hjCurto(a[15],70))],
+          abrir:_hjAbrirJs('andamento',a[0]),bt:_hjBtAcao('andamento',a[0])});
+      }).join(''),false));
+  }
 
-  var cons=r.contratos.map(function(s){
-    var a=s.a;
-    return _hjLinha({quando:_hjDdMm(s.d),qsub:s.n<0?'vencido':s.n===0?'hoje':'em '+s.n+' dias',qcls:s.n<0?'atraso':'quente',
-      tit:String(a[3]||a[4]||'Contrato #'+a[0]),emp:String(a[2]||'').trim(),
-      meta:[String(a[8]||'').trim()?'<span>'+esc0(String(a[8]))+'</span>':'',_hjMetaAcao('ganhas',a[0])],
-      acoes:_hjBtAcao('ganhas',a[0])+_hjBtAbrir('ganhas',a[0])});
-  }).join('');
+  /* Contratos vencendo em até 30 dias (ou vencidos há até 30) */
+  if(r.contratos.length){
+    var c0=r.contratos[0];
+    secs.push(_hjSec('contratos','Contratos vencendo',r.contratos.length,
+      (c0.n<0?'um j&aacute; venceu':'o primeiro vence '+_hjRel(c0.n))+' &middot; '+esc0(String(c0.a[2]||'')),
+      r.contratos.map(function(s){
+        var a=s.a;
+        return _hjLinha({quando:_hjDdMm(s.d),qcls:s.n<0?'atraso':s.n<=7?'quente':'',tit:String(a[3]||a[4]||'Contrato #'+a[0]),emp:String(a[2]||'').trim(),
+          sub:[s.n<0?'<b class="hj-alerta">vencido</b>':'vence '+_hjRel(s.n),esc0(String(a[8]||'').trim()),_hjSubAcao('ganhas',a[0])],
+          abrir:_hjAbrirJs('ganhas',a[0]),bt:_hjBtAcao('ganhas',a[0])});
+      }).join(''),r.contratos.some(function(s){return s.n<=7;})));
+  }
 
-  var certs=r.certs.map(function(s){
-    return _hjLinha({quando:_hjDdMm(s.d),qsub:s.n<0?'vencida':s.n===0?'hoje':'em '+s.n+' dias',qcls:s.n<0?'atraso':'quente',
-      tit:s.nome,emp:s.emp,
-      acoes:'<button class="hj-bt" data-emp="'+_kcEsc(s.emp)+'" onclick="_hjAbrirEmpresa(this.getAttribute(\'data-emp\'))">Abrir</button>'});
-  }).join('');
+  /* Certidões vencidas ou vencendo em até 5 dias */
+  if(r.certs.length){
+    var cV=r.certs.filter(function(s){return s.n<0;}).length;
+    secs.push(_hjSec('certs','Certid&otilde;es',r.certs.length,
+      [cV?cV+(cV===1?' vencida':' vencidas'):'',r.certs.length-cV?(r.certs.length-cV)+' vencendo':''].filter(Boolean).join(' &middot; '),
+      r.certs.map(function(s,i){
+        return _hjLinha({quando:_hjDdMm(s.d),qcls:s.n<0?'atraso':'quente',tit:s.nome,emp:s.emp,
+          sub:[s.n<0?'<b class="hj-alerta">vencida</b>':'vence '+_hjRel(s.n)],
+          abrir:'_hjAbrirEmpresa(_hjCertEmp['+i+'])'});
+      }).join(''),cV>0));
+  }
+  /* Nome da empresa vai por índice, não dentro do onclick: nome com
+     apóstrofo quebraria o atributo. */
+  window._hjCertEmp=r.certs.map(function(s){return s.emp;});
 
-  var esq=_hjBloco('sessoes','Sess&otilde;es hoje e amanh&atilde;',r.sessoes.length,sess)+
-    (dec?_hjBloco('decidir','Decidir se participa',r.decidir.length,dec,'<span style="margin-left:auto;font-size:12px;color:var(--t3)">sess&atilde;o nos pr&oacute;ximos 7 dias</span>'):'')+
-    _hjBloco('acoes','Pr&oacute;ximas a&ccedil;&otilde;es',r.acoes.length,acs);
-  var dir=(ms.length?_hjBloco('msg','Esperando a NH',null,ms.join('')):'')+
-    (tfs?_hjBloco('tarefas','Tarefas',r.tarefas.length,tfs,'<button class="hj-mais" onclick="go(\'tarefas\',document.getElementById(\'nav-tarefas\'))">ver todas</button>'):'')+
-    (recs?_hjBloco('recursos','Recursos em aberto',r.recursos.length,recs):'')+
-    (cons?_hjBloco('contratos','Contratos vencendo',r.contratos.length,cons,'<span style="margin-left:auto;font-size:12px;color:var(--t3)">pr&oacute;ximos 30 dias</span>'):'')+
-    (certs?_hjBloco('certs','Certid&otilde;es vencendo',r.certs.length,certs):'');
-  if(!dir)dir='<div class="hj-bloco"><div class="hj-tudo-ok"><b>Tudo em dia &#128077;</b>Sem mensagens esperando, tarefas vencendo, recursos, contratos ou certid&otilde;es para hoje.</div></div>';
-
-  el.innerHTML=cab+'<div class="hj-grade"><div class="hj-col">'+esq+'</div><div class="hj-col">'+dir+'</div></div>';
+  var tudoOk=secs.length===1&&!r.acoes.length;
+  el.innerHTML=cab+secs.join('')+(tudoOk?'<div class="hj-tudo-ok"><b>Tudo em dia &#128077;</b>Sem sess&otilde;es, decis&otilde;es, mensagens ou vencimentos para hoje.</div>':'');
 }
 
 /* ── Próxima ação: janela de editar ─────────────────────────────── */
