@@ -1304,6 +1304,63 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 .bsc-radar-tg{padding:7px 9px!important;opacity:.4;filter:grayscale(1)}
 .bsc-radar-tg.on{opacity:1;filter:none;border-color:var(--nh)!important;background:var(--nha)!important}
 
+/* ── HOJE (20/10/2026) — o que precisa de ação hoje ─────────────────── */
+.hj-cab{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.hj-dia{font-size:24px;font-weight:800;color:var(--t1);letter-spacing:-.3px;line-height:1.15}
+.hj-dia span{color:var(--nh)}
+.hj-sub{font-size:14px;color:var(--t3);margin-top:4px}
+.hj-nums{display:flex;gap:8px;flex-wrap:wrap}
+.hj-num{background:var(--s1);border:1px solid var(--b1);border-radius:12px;padding:9px 14px;min-width:96px;cursor:pointer;
+  font:inherit;text-align:left;color:var(--t2);transition:border-color .15s}
+.hj-num:hover{border-color:var(--b2)}
+.hj-num b{display:block;font-size:22px;font-weight:800;color:var(--t1);line-height:1.1}
+.hj-num small{font-size:12px}
+.hj-num.quente b{color:var(--nh)}
+.hj-grade{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.hj-col{display:flex;flex-direction:column;gap:16px;min-width:0}
+.hj-bloco{background:var(--s1);border:1px solid var(--b1);border-radius:14px;overflow:hidden}
+.hj-bloco-cab{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--b1)}
+.hj-bloco-cab b{font-size:15px;font-weight:800;color:var(--t1)}
+.hj-bloco-cab em{font-style:normal;font-size:12px;font-weight:700;color:var(--t3);background:var(--s2);border-radius:20px;padding:2px 9px}
+.hj-bloco-cab .hj-mais{margin-left:auto;background:none;border:0;color:var(--nh);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
+.hj-linha{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--b1)}
+.hj-linha:last-child{border-bottom:0}
+.hj-quando{flex:none;width:62px;text-align:center;font-size:12px;font-weight:700;color:var(--t3);line-height:1.25}
+.hj-quando b{display:block;font-size:16px;font-weight:800;color:var(--t1)}
+.hj-quando.quente b{color:var(--nh)}
+.hj-quando.atraso b{color:#f87171}
+.hj-meio{flex:1;min-width:0}
+.hj-tit{font-size:14px;font-weight:700;color:var(--t1);line-height:1.4;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.hj-meta{display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap;margin-top:4px;font-size:12.5px;color:var(--t3)}
+.hj-meta .emp-badge{font-size:12px!important}
+.hj-meta .hj-alerta{color:#f87171;font-weight:700}
+.hj-meta .hj-quente{color:var(--nh);font-weight:700}
+.hj-acoes{flex:none;display:flex;gap:6px}
+.hj-bt{background:var(--s2);border:1px solid var(--b1);color:var(--t2);font:inherit;font-size:12.5px;font-weight:700;
+  padding:7px 11px;border-radius:9px;cursor:pointer;white-space:nowrap}
+.hj-bt:hover{color:var(--t1);border-color:var(--b2)}
+.hj-bt.nh{background:var(--nha);border-color:rgba(249,115,22,.35);color:var(--nh)}
+.hj-bt.ok{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.35);color:#22c55e}
+.hj-vazio{padding:16px;font-size:13.5px;color:var(--t3)}
+.hj-tudo-ok{text-align:center;padding:50px 20px;color:var(--t3);font-size:15px;line-height:1.7}
+.hj-tudo-ok b{display:block;font-size:20px;color:var(--t1);margin-bottom:4px}
+/* Duas colunas só em tela larga: no notebook o título do processo ficava
+   espremido entre a data e os botões. */
+@media(max-width:1500px){.hj-grade{grid-template-columns:1fr}}
+@media(max-width:620px){
+  .hj-linha{flex-wrap:wrap}
+  .hj-acoes{width:100%;padding-left:74px}
+  .hj-num{min-width:0;flex:1}
+}
+/* Próxima ação no card: uma linha só, e só quando existe (cartão limpo). */
+.pa-linha{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:8px;font-size:13px;color:var(--t2);cursor:pointer;width:fit-content;max-width:100%}
+.pa-linha:hover{color:var(--t1)}
+.pa-linha i{font-style:normal;font-weight:800;color:var(--nh)}
+.pa-linha b{font-weight:700;color:var(--t1)}
+.pa-linha span{color:var(--t3)}
+.pa-linha.hoje span.pa-ate{color:var(--nh);font-weight:700}
+.pa-linha.atraso span.pa-ate{color:#f87171;font-weight:700}
+
 /* Layout de duas colunas */
 .bsc-wrap{display:grid;grid-template-columns:288px 1fr;gap:18px;align-items:start}
 .bsc-filtros{
@@ -3429,6 +3486,11 @@ body.light-theme .sb-alertas .sb-item:hover{background:rgba(37,99,235,.07);color
 
   <nav style="flex:1;padding:6px 0">
     <div class="sb-section">Visão Geral</div>
+    <div class="sb-item" id="nav-hoje" onclick="go('hoje',this)">
+      <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+      <span>Hoje</span>
+      <span class="sb-badge" id="b-hoje" style="display:none" title="O que precisa de a&ccedil;&atilde;o hoje">0</span>
+    </div>
     <div class="sb-item on" id="nav-resumo" onclick="go('resumo',this)">
       <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm0 8a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zm12 0a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg>
       <span>Resumo</span>
@@ -3596,6 +3658,9 @@ body.light-theme .sb-alertas .sb-item:hover{background:rgba(37,99,235,.07);color
       </div>
       <div id="resumo-body"><div class="load"><div class="spin"></div>Carregando resumo...</div></div>
     </div>
+
+    <!-- HOJE — o que precisa de ação hoje (ver nhHojeMontar) -->
+    <div class="page" id="page-hoje"><div id="hoje-body"></div></div>
 
     <!-- EDITAIS -->
     <div class="page" id="page-editais">
@@ -19744,6 +19809,484 @@ if(typeof renderTbl === 'function' && !renderTbl.__kcLimpo){
     return r;
   };
   renderTbl.__kcLimpo = true;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   HOJE + PRÓXIMA AÇÃO — 20/10/2026
+   Ideia trazida do Crivya, aprovada pelo cliente. Duas peças:
+   1. "Hoje": uma tela que junta, das abas que já existem, só o que pede
+      ação — sessões de hoje e amanhã, editais sem decisão com sessão
+      chegando, ações vencendo, tarefas, mensagens, recursos, contratos e
+      certidões vencendo. Não cria dado novo: lê ALL, as tarefas, as
+      certidões, PERGUNTAS, o chat e o Radar. Mesmas regras das abas
+      (datas de "Pra Hoje", _editalCancelado/_editalTratado, vencimento
+      vigente do card de Ganhas), para a tela não discordar delas.
+   2. "Próxima ação": o que falta fazer em cada processo, quem faz e até
+      quando. Fica em proxima_acao/geral (um documento só, um mapa por
+      processo: uma leitura por abertura) e só a equipe lê. No card vira
+      UMA linha, e só quando existe — cartão limpo; para criar, item
+      "Próxima ação" no menu ⋯ do card ou o botão na tela Hoje.
+   ══════════════════════════════════════════════════════════════════ */
+TOPS.hoje=['Hoje','O que precisa de ação hoje e nos próximos dias'];
+var PROX_ACAO={}, PROX_ACAO_ERRO='';
+function _paDoc(){return db.collection('proxima_acao').doc('geral');}
+function _paChave(aba,id){return aba+'-'+String(id);}
+function _paAcharProc(aba,id){
+  var l=ALL[aba]||[];
+  for(var i=0;i<l.length;i++){if(String(l[i][0])===String(id))return l[i];}
+  return null;
+}
+function _hjMeiaNoite(d){var x=new Date(d);x.setHours(0,0,0,0);return x;}
+function _hjDias(d){return d?Math.round((_hjMeiaNoite(d)-_hjMeiaNoite(new Date()))/864e5):null;}
+function _hjData(s){
+  s=String(s||'').trim();
+  if(!s||s==='-')return null;
+  try{return extrairDataSessaoEdital(s);}catch(e){return null;}
+}
+function _hjDataISO(iso){
+  var p=String(iso||'').slice(0,10).split('-');
+  if(p.length!==3)return null;
+  var d=new Date(+p[0],+p[1]-1,+p[2]);
+  return isNaN(d.getTime())?null:d;
+}
+/* extrairDataSessaoEdital põe 23:59 quando o texto não tem hora. */
+function _hjHora(d){return (d.getHours()===23&&d.getMinutes()===59)?'':('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
+function _hjDdMm(d){return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2);}
+function _paAteTxt(n,d){return n<0?'atrasada '+(-n)+(n===-1?' dia':' dias'):n===0?'até hoje':n===1?'até amanhã':'até '+_hjDdMm(d);}
+function _hjErroRegra(err,colecao){
+  var m=(err&&err.message)||'erro';
+  return /permission|insufficient/i.test(m)?'falta publicar a regra nova do Firestore ('+colecao+').':m;
+}
+/* ⚠️ MESMA PERMISSÃO DAS ABAS. Quem não tem acesso "SOS" não vê processo
+   marcado como restrito (renderTbl e buildResumo filtram igual). O Hoje
+   lê ALL direto, então precisa filtrar também — senão mostraria aqui o
+   que a aba esconde. */
+function _hjVisivel(a){
+  if(typeof USER_SOS==='undefined'||USER_SOS)return true;
+  try{return localStorage.getItem('restr_'+propNorm(a[3]||a[0]))!=='1';}catch(e){return false;}
+}
+function _hjSoLeitura(){return typeof IS_READONLY!=='undefined'&&!!IS_READONLY;}
+var _hjCarregou=false, _hjTogglesTentou=false;
+function _hjAbrir(aba,id){try{irParaCard(aba,id);}catch(e){toast('Não consegui abrir o processo','err');}}
+function _hjAbrirEmpresa(nome){
+  var nav=null;
+  document.querySelectorAll('.sb-item').forEach(function(x){
+    if(!nav&&(x.getAttribute('onclick')||'').indexOf("'emp-"+nome+"'")>-1)nav=x;});
+  go('emp-'+nome,nav);
+}
+
+/* ── Junta o que pede ação ──────────────────────────────────────── */
+function _hjColetar(){
+  var r={sessoes:[],decidir:[],acoes:[],tarefas:[],recursos:[],contratos:[],certs:[]};
+  var vistas={};
+  function chaveSessao(a,d){return propNorm(String(a[3]||'')).slice(0,40)+'|'+_hjMeiaNoite(d).getTime();}
+  /* Em Andamento primeiro: se o mesmo processo ainda está em Editais
+     Capturados, a sessão aparece uma vez só. */
+  (ALL.andamento||[]).forEach(function(a){
+    if(!_hjVisivel(a))return;
+    [[a[10],'Disputa'],[a[13],'Reabertura']].forEach(function(p){
+      var d=_hjData(p[0]),n=_hjDias(d);
+      if(n===null||n<0||n>1)return;
+      vistas[chaveSessao(a,d)]=1;
+      r.sessoes.push({aba:'andamento',a:a,d:d,n:n,tipo:p[1]});
+    });
+    if(String(a[14]||'').trim().toLowerCase()==='sim')r.recursos.push({aba:'andamento',a:a});
+  });
+  (ALL.editais||[]).forEach(function(a){
+    if(_editalCancelado(a)||!_hjVisivel(a))return;
+    var d=_hjData(a[1])||_hjData(a[3]),n=_hjDias(d);
+    if(n===null||n<0)return;
+    if(n<=1&&!vistas[chaveSessao(a,d)])r.sessoes.push({aba:'editais',a:a,d:d,n:n,tipo:'Sessão'});
+    if(!_editalTratado(a)&&n<=7)r.decidir.push({aba:'editais',a:a,d:d,n:n});
+  });
+  r.sessoes.sort(function(x,y){return x.d-y.d;});
+  r.decidir.sort(function(x,y){return x.d-y.d;});
+
+  Object.keys(PROX_ACAO).forEach(function(k){
+    var p=PROX_ACAO[k];
+    if(!p||!p.t)return;
+    var a=_paAcharProc(p.aba,p.id);
+    if(!a||!_hjVisivel(a))return;       /* saiu da aba, ou é restrito */
+    var d=_hjDataISO(p.ate);
+    r.acoes.push({k:k,p:p,a:a,d:d,n:d?_hjDias(d):null});
+  });
+  r.acoes.sort(function(x,y){
+    if(x.n===null&&y.n===null)return 0;if(x.n===null)return 1;if(y.n===null)return -1;return x.n-y.n;});
+
+  (window._tarefas||[]).forEach(function(t){
+    if(!t||t.status==='concluida')return;
+    var d=_hjDataISO(t.prazo),n=d?_hjDias(d):null;
+    if(n!==null&&n<=1)r.tarefas.push({t:t,d:d,n:n});
+  });
+  r.tarefas.sort(function(x,y){return x.n-y.n;});
+
+  (ALL.ganhas||[]).forEach(function(a){
+    if(!_hjVisivel(a))return;
+    var st=String(a[9]||'').toUpperCase().trim();
+    if(st==='FINALIZADO'||st==='RESCINDIDO'||st==='CANCELADO')return;
+    var vv=String(a[39]||a[32]||a[25]||a[18]||a[12]||'').trim();
+    var d=vv?(parseBRDate(vv)||parseDataCal(vv)):null,n=_hjDias(d);
+    if(n!==null&&n>=-30&&n<=30)r.contratos.push({aba:'ganhas',a:a,d:d,n:n});
+  });
+  r.contratos.sort(function(x,y){return x.n-y.n;});
+
+  (EMPRESAS||[]).forEach(function(e){
+    var lista=(window._empCache&&_empCache[e.nome]&&_empCache[e.nome].certs&&_empCache[e.nome].certs.length)?_empCache[e.nome].certs:
+      ((EMP_DATA[e.nome]&&EMP_DATA[e.nome].certidoes)||[]);
+    lista.forEach(function(c){
+      var d=parseBRDate(String(c.validade||c.vencimento||'')),n=_hjDias(d);
+      if(n!==null&&n<=5)r.certs.push({emp:e.nome,nome:c.item||c.nome||c.tipo||'Certidão',d:d,n:n});
+    });
+  });
+  r.certs.sort(function(x,y){return x.n-y.n;});
+
+  var nChat=0;
+  try{Object.keys(CHAT_MON||{}).forEach(function(k){nChat+=chatResumo(k).naoLidas||0;});}catch(_e){}
+  var nRadar=0;
+  try{(RADAR_DADOS||[]).forEach(function(e){if(_radarAberta(e)&&_radarSit(e)==='nova')nRadar++;});}catch(_e){}
+  r.msg={perg:Object.keys(window.PERGUNTAS||{}).length,chat:nChat,radar:nRadar};
+
+  /* O número do menu: o que vence HOJE (ou já venceu). */
+  r.urgente=r.sessoes.filter(function(s){return s.n===0;}).length+
+    r.decidir.filter(function(s){return s.n<=2;}).length+
+    r.acoes.filter(function(s){return s.n!==null&&s.n<=0;}).length+
+    r.tarefas.filter(function(s){return s.n<=0;}).length;
+  return r;
+}
+
+function nhHojeBadge(){
+  try{
+    var b=document.getElementById('b-hoje');if(!b)return;
+    if(!_hjCarregou)return;
+    if(typeof USER_SOS!=='undefined'&&!USER_SOS&&!(typeof _togglesLoaded!=='undefined'&&_togglesLoaded))return;
+    var n=_hjColetar().urgente;
+    b.textContent=n;b.style.display=n?'':'none';
+  }catch(e){console.warn('[hoje] contador',e);}
+}
+
+/* ── Desenha a tela ─────────────────────────────────────────────── */
+function _hjLinha(o){
+  return '<div class="hj-linha">'+
+    '<div class="hj-quando'+(o.qcls?' '+o.qcls:'')+'"><b>'+o.quando+'</b>'+(o.qsub||'')+'</div>'+
+    '<div class="hj-meio"><div class="hj-tit" title="'+_kcEsc(o.tit)+'">'+esc0(o.tit)+'</div>'+
+      '<div class="hj-meta">'+(o.emp?'<span class="emp-badge" style="--ec:'+empColor(o.emp)+'">'+esc0(o.emp)+'</span>':'')+
+      (o.meta||[]).join('')+'</div></div>'+
+    '<div class="hj-acoes">'+(o.acoes||'')+'</div></div>';
+}
+function _hjBloco(id,tit,qt,corpo,mais){
+  return '<div class="hj-bloco" id="hj-'+id+'"><div class="hj-bloco-cab"><b>'+tit+'</b>'+(qt!==null?'<em>'+qt+'</em>':'')+(mais||'')+'</div>'+corpo+'</div>';
+}
+function _hjBtAcao(aba,id){
+  if(_hjSoLeitura())return '';
+  var p=PROX_ACAO[_paChave(aba,id)];
+  return '<button class="hj-bt'+(p?'':' nh')+'" onclick="nhProxAcao(\''+aba+'\',\''+_kcEsc(id)+'\')">'+(p?'Editar ação':'&#10140; Pr&oacute;xima a&ccedil;&atilde;o')+'</button>';
+}
+function _hjBtAbrir(aba,id){return '<button class="hj-bt" onclick="_hjAbrir(\''+aba+'\',\''+_kcEsc(id)+'\')">Abrir</button>';}
+function _hjMetaAcao(aba,id){
+  var p=PROX_ACAO[_paChave(aba,id)];
+  return p?'<span class="hj-quente">&#10140; '+esc0(p.t)+'</span>':'';
+}
+
+function nhHojeMontar(){
+  var el=document.getElementById('hoje-body');if(!el)return;
+  /* Só desenha com os dados E a lista de restritos já carregados: sem
+     isso, quem não tem acesso "SOS" veria um restrito por um instante. */
+  var semSos=typeof USER_SOS!=='undefined'&&!USER_SOS;
+  if(!_hjCarregou||(semSos&&!(typeof _togglesLoaded!=='undefined'&&_togglesLoaded))){
+    el.innerHTML=(semSos&&_hjTogglesTentou&&_hjCarregou)
+      ?'<div class="hj-tudo-ok"><b>N&atilde;o consegui carregar as permiss&otilde;es</b>Recarregue a p&aacute;gina.</div>'
+      :'<div class="load"><div class="spin"></div>Montando o seu dia...</div>';
+    return;
+  }
+  var r=_hjColetar();
+  var b=document.getElementById('b-hoje');if(b){b.textContent=r.urgente;b.style.display=r.urgente?'':'none';}
+  var hoje=new Date();
+  var dia=hoje.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
+  var msgs=r.msg.perg+r.msg.chat;
+  var sHoje=r.sessoes.filter(function(s){return s.n===0;}).length;
+  var atras=r.acoes.filter(function(s){return s.n!==null&&s.n<0;}).length;
+
+  var num=function(alvo,n,rot,quente){
+    return '<button class="hj-num'+(quente&&n?' quente':'')+'" onclick="var x=document.getElementById(\'hj-'+alvo+'\');if(x)x.scrollIntoView({behavior:\'smooth\',block:\'start\'})"><b>'+n+'</b><small>'+rot+'</small></button>';};
+  var cab='<div class="hj-cab"><div><div class="hj-dia">Hoje, <span>'+esc0(dia)+'</span></div>'+
+    '<div class="hj-sub">'+(r.urgente?'<b style="color:var(--t1)">'+r.urgente+'</b> '+(r.urgente===1?'coisa pede':'coisas pedem')+' a&ccedil;&atilde;o hoje.':'Nada vence hoje.')+
+    (PROX_ACAO_ERRO?' <span style="color:#f87171">Pr&oacute;ximas a&ccedil;&otilde;es indispon&iacute;veis: '+esc0(PROX_ACAO_ERRO)+'</span>':'')+'</div></div>'+
+    '<div class="hj-nums">'+num('sessoes',sHoje,sHoje===1?'sess&atilde;o hoje':'sess&otilde;es hoje',true)+num('decidir',r.decidir.length,'para decidir',true)+
+      num('acoes',atras,'a&ccedil;&otilde;es atrasadas',true)+num('msg',msgs,'mensagens',true)+'</div></div>';
+
+  /* Sessões de hoje e amanhã */
+  var sess=r.sessoes.length?r.sessoes.map(function(s){
+    var a=s.a,h=_hjHora(s.d),semDecisao=s.aba==='editais'&&!_editalTratado(a);
+    var portal=String((s.aba==='editais'?a[15]:a[9])||'').trim();
+    return _hjLinha({quando:h||(s.n===0?'Hoje':'Amanhã'),qsub:h?(s.n===0?'hoje':'amanhã'):'',qcls:s.n===0?'quente':'',
+      tit:String(a[3]||a[4]||'Processo #'+a[0]),emp:String(a[2]||'').trim(),
+      meta:[s.tipo==='Sessão'?'':'<span>'+s.tipo+'</span>',
+        portal?'<span>'+esc0(portal)+'</span>':'',
+        semDecisao?'<span class="hj-alerta">sem decis&atilde;o de participar</span>':'',_hjMetaAcao(s.aba,a[0])],
+      acoes:_hjBtAcao(s.aba,a[0])+_hjBtAbrir(s.aba,a[0])});
+  }).join(''):'<div class="hj-vazio">Nenhuma sess&atilde;o hoje nem amanh&atilde;.</div>';
+
+  /* Editais sem decisão com sessão chegando */
+  var dec=r.decidir.map(function(s){
+    var a=s.a;
+    return _hjLinha({quando:_hjDdMm(s.d),qsub:s.n===0?'hoje':s.n===1?'amanhã':'em '+s.n+' dias',qcls:s.n<=2?'quente':'',
+      tit:String(a[3]||a[4]||'Edital #'+a[0]),emp:String(a[2]||'').trim(),
+      meta:[String(a[9]||'').trim()?'<span>'+esc0(String(a[9]))+'</span>':'',
+        String(a[15]||'').trim()?'<span>'+esc0(String(a[15]))+'</span>':'',_hjMetaAcao('editais',a[0])],
+      acoes:_hjBtAcao('editais',a[0])+_hjBtAbrir('editais',a[0])});
+  }).join('');
+
+  /* Próximas ações */
+  var MAXA=15;
+  var acs=r.acoes.slice(0,MAXA).map(function(s){
+    var a=s.a,p=s.p;
+    return _hjLinha({quando:s.d?_hjDdMm(s.d):'—',qsub:s.d?(s.n<0?'atrasada':s.n===0?'hoje':s.n===1?'amanhã':'em '+s.n+' dias'):'sem prazo',
+      qcls:s.n!==null&&s.n<0?'atraso':s.n===0?'quente':'',
+      tit:p.t,emp:String(a[2]||'').trim(),
+      meta:['<span>'+esc0(String(a[3]||'').slice(0,90))+'</span>',p.q?'<span>&middot; '+esc0(p.q)+'</span>':''],
+      acoes:(_hjSoLeitura()?'':'<button class="hj-bt ok" onclick="nhProxAcaoFeita(\''+p.aba+'\',\''+_kcEsc(p.id)+'\')">&#10003; Feita</button>'+
+        '<button class="hj-bt" onclick="nhProxAcao(\''+p.aba+'\',\''+_kcEsc(p.id)+'\')">Editar</button>')+_hjBtAbrir(p.aba,p.id)});
+  }).join('')+(r.acoes.length>MAXA?'<div class="hj-vazio">+ '+(r.acoes.length-MAXA)+' a&ccedil;&otilde;es com prazo mais longe.</div>':'');
+  if(!r.acoes.length)acs='<div class="hj-vazio">Nenhuma pr&oacute;xima a&ccedil;&atilde;o marcada. Marque pelo bot&atilde;o <b>&#10140; Pr&oacute;xima a&ccedil;&atilde;o</b> aqui ou no menu &#8943; do card.</div>';
+
+  /* Esperando a NH */
+  var m=r.msg,ms=[];
+  if(m.perg)ms.push(_hjLinha({quando:String(m.perg),qcls:'quente',tit:'Mensagens de clientes esperando resposta',
+    acoes:'<button class="hj-bt nh" onclick="nhAbrirPerguntas()">Responder</button>'}));
+  if(m.chat)ms.push(_hjLinha({quando:String(m.chat),qcls:'quente',tit:'Mensagens não lidas no chat dos pregões',
+    acoes:'<button class="hj-bt nh" onclick="chatAbrirPainel()">Abrir chat</button>'}));
+  if(m.radar)ms.push(_hjLinha({quando:String(m.radar),tit:'Licitações novas no Radar para triar',
+    acoes:'<button class="hj-bt" onclick="go(\'buscador\',document.getElementById(\'nav-buscador\'));nhSetCanal(\'radar\')">Ver Radar</button>'}));
+
+  /* Tarefas */
+  var tfs=r.tarefas.map(function(s){
+    var t=s.t;
+    return _hjLinha({quando:_hjDdMm(s.d),qsub:s.n<0?'atrasada':s.n===0?'hoje':'amanhã',qcls:s.n<0?'atraso':s.n===0?'quente':'',
+      tit:String(t.titulo||'Tarefa'),emp:String(t.empresa||'').trim(),meta:[t.desc?'<span>'+esc0(String(t.desc).slice(0,80))+'</span>':''],
+      acoes:(_hjSoLeitura()?'':'<button class="hj-bt ok" onclick="toggleTarefa(\''+_kcEsc(t.id)+'\').then(function(){setTimeout(nhHojeMontar,600)})">&#10003; Feita</button>')+
+        '<button class="hj-bt" onclick="go(\'tarefas\',document.getElementById(\'nav-tarefas\'))">Abrir</button>'});
+  }).join('');
+
+  var recs=r.recursos.map(function(s){
+    var a=s.a;
+    return _hjLinha({quando:'&#9878;',tit:String(a[3]||a[4]||'Processo #'+a[0]),emp:String(a[2]||'').trim(),
+      meta:[String(a[15]||'').trim()?'<span>'+esc0(String(a[15]).slice(0,90))+'</span>':'',_hjMetaAcao('andamento',a[0])],
+      acoes:_hjBtAcao('andamento',a[0])+_hjBtAbrir('andamento',a[0])});
+  }).join('');
+
+  var cons=r.contratos.map(function(s){
+    var a=s.a;
+    return _hjLinha({quando:_hjDdMm(s.d),qsub:s.n<0?'vencido':s.n===0?'hoje':'em '+s.n+' dias',qcls:s.n<0?'atraso':'quente',
+      tit:String(a[3]||a[4]||'Contrato #'+a[0]),emp:String(a[2]||'').trim(),
+      meta:[String(a[8]||'').trim()?'<span>'+esc0(String(a[8]))+'</span>':'',_hjMetaAcao('ganhas',a[0])],
+      acoes:_hjBtAcao('ganhas',a[0])+_hjBtAbrir('ganhas',a[0])});
+  }).join('');
+
+  var certs=r.certs.map(function(s){
+    return _hjLinha({quando:_hjDdMm(s.d),qsub:s.n<0?'vencida':s.n===0?'hoje':'em '+s.n+' dias',qcls:s.n<0?'atraso':'quente',
+      tit:s.nome,emp:s.emp,
+      acoes:'<button class="hj-bt" data-emp="'+_kcEsc(s.emp)+'" onclick="_hjAbrirEmpresa(this.getAttribute(\'data-emp\'))">Abrir</button>'});
+  }).join('');
+
+  var esq=_hjBloco('sessoes','Sess&otilde;es hoje e amanh&atilde;',r.sessoes.length,sess)+
+    (dec?_hjBloco('decidir','Decidir se participa',r.decidir.length,dec,'<span style="margin-left:auto;font-size:12px;color:var(--t3)">sess&atilde;o nos pr&oacute;ximos 7 dias</span>'):'')+
+    _hjBloco('acoes','Pr&oacute;ximas a&ccedil;&otilde;es',r.acoes.length,acs);
+  var dir=(ms.length?_hjBloco('msg','Esperando a NH',null,ms.join('')):'')+
+    (tfs?_hjBloco('tarefas','Tarefas',r.tarefas.length,tfs,'<button class="hj-mais" onclick="go(\'tarefas\',document.getElementById(\'nav-tarefas\'))">ver todas</button>'):'')+
+    (recs?_hjBloco('recursos','Recursos em aberto',r.recursos.length,recs):'')+
+    (cons?_hjBloco('contratos','Contratos vencendo',r.contratos.length,cons,'<span style="margin-left:auto;font-size:12px;color:var(--t3)">pr&oacute;ximos 30 dias</span>'):'')+
+    (certs?_hjBloco('certs','Certid&otilde;es vencendo',r.certs.length,certs):'');
+  if(!dir)dir='<div class="hj-bloco"><div class="hj-tudo-ok"><b>Tudo em dia &#128077;</b>Sem mensagens esperando, tarefas vencendo, recursos, contratos ou certid&otilde;es para hoje.</div></div>';
+
+  el.innerHTML=cab+'<div class="hj-grade"><div class="hj-col">'+esq+'</div><div class="hj-col">'+dir+'</div></div>';
+}
+
+/* ── Próxima ação: janela de editar ─────────────────────────────── */
+function _paFechar(){var m=document.getElementById('nh-pa-modal');if(m)m.style.display='none';}
+function nhProxAcao(aba,id){
+  if(_hjSoLeitura()){toast('Seu acesso é só de leitura.','err');return;}
+  var k=_paChave(aba,id),p=PROX_ACAO[k]||null,a=_paAcharProc(aba,id);
+  var m=document.getElementById('nh-pa-modal');
+  if(!m){
+    m=document.createElement('div');m.id='nh-pa-modal';m.className='chat-modal';
+    m.addEventListener('click',function(ev){if(ev.target===m)_paFechar();});
+    m.addEventListener('keydown',function(ev){if(ev.key==='Escape')_paFechar();if(ev.key==='Enter'&&ev.target.tagName==='INPUT')document.getElementById('pa-salvar').click();});
+    document.body.appendChild(m);
+  }
+  /* Sugestões de "quem": os responsáveis que a equipe já usa nos editais. */
+  var nomes={};
+  (ALL.editais||[]).forEach(function(r){var n=String(r[9]||'').trim();if(n&&n.length<40)nomes[n]=1;});
+  m.innerHTML='<div class="chat-cx" style="max-width:520px">'+
+    '<div class="chat-cab"><b>&#10140; Pr&oacute;xima a&ccedil;&atilde;o</b><button type="button" onclick="_paFechar()" aria-label="Fechar">&times;</button></div>'+
+    '<div class="chat-corpo">'+
+      '<div class="chat-sub" style="font-size:13.5px">'+(a?'<b style="color:var(--t1)">'+esc0(String(a[2]||''))+'</b> &middot; '+esc0(String(a[3]||a[4]||'').slice(0,140)):'Processo #'+esc0(id))+'</div>'+
+      '<label class="chat-lb" for="pa-t">O que precisa ser feito</label>'+
+      '<input class="chat-in" id="pa-t" maxlength="140" placeholder="Ex.: enviar proposta ajustada, pedir certid&atilde;o, impugnar o edital">'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+        '<div><label class="chat-lb" for="pa-q">Quem faz</label><input class="chat-in" id="pa-q" maxlength="60" list="pa-quem" placeholder="Nome"></div>'+
+        '<div><label class="chat-lb" for="pa-ate">At&eacute; quando</label><input class="chat-in" id="pa-ate" type="date"></div>'+
+      '</div>'+
+      '<datalist id="pa-quem">'+Object.keys(nomes).sort().map(function(n){return '<option value="'+_kcEsc(n)+'">';}).join('')+'</datalist>'+
+    '</div>'+
+    '<div class="chat-pe"><span id="pa-erro"></span>'+
+      (p?'<button type="button" class="btn btn-ghost" onclick="nhProxAcaoFeita(\''+aba+'\',\''+_kcEsc(id)+'\')">&#10003; Feita</button>':'')+
+      '<button type="button" class="btn btn-ghost" onclick="_paFechar()">Cancelar</button>'+
+      '<button type="button" class="btn btn-nh" id="pa-salvar" onclick="nhProxAcaoSalvar(\''+aba+'\',\''+_kcEsc(id)+'\')">Salvar</button>'+
+    '</div></div>';
+  document.getElementById('pa-t').value=p?p.t||'':'';
+  document.getElementById('pa-q').value=p?p.q||'':'';
+  document.getElementById('pa-ate').value=p?p.ate||'':'';
+  m.style.display='flex';
+  setTimeout(function(){var x=document.getElementById('pa-t');if(x)x.focus();},30);
+}
+async function nhProxAcaoSalvar(aba,id){
+  var t=document.getElementById('pa-t').value.trim(),q=document.getElementById('pa-q').value.trim(),ate=document.getElementById('pa-ate').value;
+  var er=document.getElementById('pa-erro');
+  if(!t){er.textContent='Escreva o que precisa ser feito.';return;}
+  var u=auth.currentUser||{};
+  var k=_paChave(aba,id),reg={t:t.slice(0,140),q:q.slice(0,60),ate:ate||'',aba:aba,id:String(id),por:u.email||u.phoneNumber||'',em:Date.now()};
+  var bt=document.getElementById('pa-salvar');if(bt){bt.disabled=true;bt.textContent='Salvando...';}
+  try{
+    var it={};it[k]=reg;
+    await _paDoc().set({itens:it},{merge:true});
+    PROX_ACAO[k]=reg;PROX_ACAO_ERRO='';
+    _paFechar();toast('➜ Próxima ação salva','ok');
+    _paAtualizarTudo(aba);
+  }catch(err){
+    er.textContent='Não salvou: '+_hjErroRegra(err,'proxima_acao');
+    if(bt){bt.disabled=false;bt.textContent='Salvar';}
+  }
+}
+async function nhProxAcaoFeita(aba,id){
+  var k=_paChave(aba,id),antes=PROX_ACAO[k];
+  delete PROX_ACAO[k];_paFechar();_paAtualizarTudo(aba);
+  try{
+    await _paDoc().update(new firebase.firestore.FieldPath('itens',k),firebase.firestore.FieldValue.delete());
+    toast('✓ Ação concluída','ok');
+  }catch(err){
+    if(antes)PROX_ACAO[k]=antes;_paAtualizarTudo(aba);
+    toast('Não consegui concluir: '+_hjErroRegra(err,'proxima_acao'),'err');
+  }
+}
+function _paAtualizarTudo(aba){
+  nhHojeBadge();
+  if(CUR==='hoje')nhHojeMontar();
+  try{_paPintarCards(aba);}catch(e){}
+}
+
+/* ── No card: uma linha quando existe + item no menu ⋯ ──────────── */
+function _paPintarCards(tab){
+  if(['editais','andamento','ganhas'].indexOf(tab)<0)return;
+  var area=document.getElementById('tbl-'+tab);if(!area)return;
+  area.querySelectorAll('.kcard').forEach(function(card){
+    var idEl=card.querySelector('.kcard-id');if(!idEl)return;
+    var id=idEl.textContent.replace(/\D/g,'');if(!id)return;
+    var p=PROX_ACAO[_paChave(tab,id)];
+    var alvo=card.querySelector('.kcard-top > div:first-child');
+    var lin=card.querySelector('.pa-linha');
+    if(p&&p.t&&alvo){
+      if(!lin){
+        lin=document.createElement('div');
+        lin.title='Próxima ação — clique para editar';
+        lin.addEventListener('click',function(ev){ev.stopPropagation();nhProxAcao(tab,id);});
+        alvo.appendChild(lin);
+      }
+      var d=_hjDataISO(p.ate),n=d?_hjDias(d):null;
+      lin.className='pa-linha'+(n!==null&&n<0?' atraso':n===0?' hoje':'');
+      lin.innerHTML='<i>&#10140;</i><b>'+esc0(p.t)+'</b>'+(p.q?'<span>&middot; '+esc0(p.q)+'</span>':'')+
+        (d?'<span class="pa-ate">&middot; '+_paAteTxt(n,d)+'</span>':'');
+    }else if(lin)lin.remove();
+    var menu=card.querySelector('.kc-menu');
+    if(menu&&!_hjSoLeitura()&&!menu.querySelector('.pa-item')){
+      var b=document.createElement('button');
+      b.type='button';b.className='kc-item pa-item';
+      b.innerHTML='<span style="font-size:15px;color:var(--nh)">&#10140;</span><span class="kc-item-t">Pr&oacute;xima a&ccedil;&atilde;o</span>';
+      b.addEventListener('click',function(ev){ev.stopPropagation();_kcFecharMenus();nhProxAcao(tab,id);});
+      menu.insertBefore(b,menu.firstChild);
+    }
+  });
+}
+
+async function _paCarregar(){
+  try{
+    var d=await _paDoc().get();
+    PROX_ACAO=(d.exists&&d.data()&&d.data().itens)||{};
+    PROX_ACAO_ERRO='';
+  }catch(err){PROX_ACAO_ERRO=_hjErroRegra(err,'proxima_acao');console.warn('[proxima acao]',err.message);}
+  _hjCarregou=true;
+  nhHojeBadge();
+  if(CUR==='hoje')nhHojeMontar();
+  ['editais','andamento','ganhas'].forEach(function(t){try{_paPintarCards(t);}catch(_e){}});
+}
+
+/* Liga nos fluxos que já existem. */
+if(typeof renderTbl==='function'&&!renderTbl.__pa){
+  var _paRenderTblOrig=renderTbl;
+  renderTbl=function(e){
+    var r=_paRenderTblOrig.apply(this,arguments);
+    try{_paPintarCards(e);}catch(err){console.warn('[proxima acao] card',err);}
+    return r;
+  };
+  renderTbl.__pa=true;renderTbl.__kcLimpo=true;
+}
+if(typeof go==='function'&&!go.__hoje){
+  var _hjGoOrig=go;
+  go=function(e,a){
+    if(e!=='hoje')return _hjGoOrig.apply(this,arguments);
+    document.querySelectorAll('.sb-item').forEach(function(x){x.classList.remove('on');});
+    if(a&&a.classList)a.classList.add('on');
+    window.scrollTo({top:0,behavior:'instant'});
+    CUR='hoje';
+    document.getElementById('tbTitle').textContent=TOPS.hoje[0];
+    document.getElementById('tbSub').textContent=TOPS.hoje[1];
+    showPage('page-hoje');
+    nhHojeMontar();
+  };
+  go.__hoje=true;
+}
+if(typeof reload==='function'&&!reload.__hoje){
+  var _hjReloadOrig=reload;
+  reload=function(){if(CUR==='hoje'){loadAll();return;}return _hjReloadOrig.apply(this,arguments);};
+  reload.__hoje=true;
+}
+if(typeof loadAll==='function'&&!loadAll.__hoje){
+  var _hjLoadAllOrig=loadAll;
+  loadAll=async function(){
+    var r=await _hjLoadAllOrig.apply(this,arguments);
+    await _paCarregar();
+    return r;
+  };
+  loadAll.__hoje=true;
+}
+/* A lista de restritos chega depois do loadAll: redesenha quando chegar. */
+if(typeof loadTogglesFromFirebase==='function'&&!loadTogglesFromFirebase.__hoje){
+  var _hjTogglesOrig=loadTogglesFromFirebase;
+  loadTogglesFromFirebase=async function(){
+    try{return await _hjTogglesOrig.apply(this,arguments);}
+    finally{_hjTogglesTentou=true;nhHojeBadge();if(CUR==='hoje')nhHojeMontar();}
+  };
+  loadTogglesFromFirebase.__hoje=true;
+}
+/* Abre no Hoje depois do login (pedido de 20/10/2026). O Resumo segue no
+   menu, logo abaixo. */
+if(typeof initApp==='function'&&!initApp.__hoje){
+  var _hjInitOrig=initApp;
+  initApp=function(){
+    var r=_hjInitOrig.apply(this,arguments);
+    try{go('hoje',document.getElementById('nav-hoje'));}catch(e){console.warn('[hoje] abrir',e);}
+    return r;
+  };
+  initApp.__hoje=true;
+}
+/* Tarefas carregam por fora do loadAll: quando chegam, o contador acerta. */
+if(typeof carregarTarefas==='function'&&!carregarTarefas.__hoje){
+  var _hjTarefasOrig=carregarTarefas;
+  carregarTarefas=async function(){
+    var r=await _hjTarefasOrig.apply(this,arguments);
+    nhHojeBadge();if(CUR==='hoje')nhHojeMontar();
+    return r;
+  };
+  carregarTarefas.__hoje=true;
 }
 
 function _nhColunasDoDoc(d){
