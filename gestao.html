@@ -1379,6 +1379,64 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
   .hj-l{padding:11px 14px;gap:10px}
   .hj-l-q{width:44px}
 }
+/* ── Análise do edital item por item (20/10/2026) ─────────────────── */
+.ae{color:var(--t1)}
+.ae-topo{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;align-items:flex-start;
+  background:var(--s2);border:1px solid var(--b1);border-radius:14px;padding:18px 20px;margin-bottom:12px}
+.ae-topo-l{display:flex;flex-direction:column;gap:12px;min-width:260px;flex:1}
+.ae-score{font-size:13.5px;color:var(--t2)}
+.ae-score b{color:var(--t1)}
+.ae-score small{display:block;font-size:12.5px;color:var(--t3);margin-top:6px}
+.ae-barra{height:8px;border-radius:99px;background:rgba(255,255,255,.06);overflow:hidden;margin-top:8px;max-width:420px}
+.ae-barra span{display:block;height:100%;border-radius:99px;background:#22c55e}
+.ae-fatos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 22px;min-width:260px;flex:1}
+.ae-fato span{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t3)}
+.ae-fato b{font-size:14px;color:var(--t1);font-weight:700}
+.ae-resumo{font-size:14.5px;line-height:1.65;color:var(--t1);margin:0 2px 8px}
+.ae-meta{font-size:12px;color:var(--t3);margin:0 2px 14px}
+.ae-chip{display:inline-flex;align-items:center;font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;
+  background:rgba(148,163,184,.12);color:var(--t2)}
+.ae-chip.grande{font-size:14px;padding:6px 14px;align-self:flex-start}
+.ae-chip.ok{background:rgba(34,197,94,.13);color:#22c55e}
+.ae-chip.falta{background:rgba(239,68,68,.13);color:#f87171}
+.ae-chip.venc{background:rgba(245,158,11,.13);color:#f59e0b}
+.ae-sec{background:var(--s2);border:1px solid var(--b1);border-radius:14px;margin-bottom:10px;overflow:hidden}
+.ae-sec summary{list-style:none;display:flex;align-items:center;gap:12px;padding:14px 18px;cursor:pointer}
+.ae-sec summary::-webkit-details-marker{display:none}
+.ae-sec summary:hover{background:rgba(255,255,255,.03)}
+.ae-sec summary b{font-size:15px;font-weight:700;color:var(--t1)}
+.ae-sec summary em{font-style:normal;font-size:12.5px;font-weight:700;color:var(--t2);background:rgba(255,255,255,.06);border-radius:20px;padding:1px 9px}
+.ae-sec-res{flex:1;font-size:13px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ae-seta{margin-left:auto;font-style:normal;color:var(--t3);font-size:12px;transition:transform .2s}
+.ae-sec[open] .ae-seta{transform:rotate(180deg)}
+.ae-sec-corpo{border-top:1px solid var(--b1);padding:4px 0}
+.ae-cat{font-size:11.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);padding:12px 18px 4px}
+.ae-l{padding:10px 18px;border-bottom:1px solid rgba(255,255,255,.04)}
+.ae-l:last-child{border-bottom:0}
+.ae-l-cab{display:flex;align-items:flex-start;gap:14px}
+.ae-l-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.ae-l-txt b{font-size:14px;font-weight:700;color:var(--t1)}
+.ae-l-txt span{font-size:13px;color:var(--t2);line-height:1.5}
+.ae-l-txt i{display:block;font-style:normal;font-size:12.5px;color:var(--t3);margin-top:2px}
+.ae-l-txt i.ae-acao{color:var(--t2)}
+.ae-quando{display:inline-block;color:var(--nh);font-weight:700;margin-right:8px}
+.ae-l-dir{flex:none;display:flex;align-items:center;gap:8px}
+.ae-fonte{background:none;border:1px solid var(--b1);color:var(--t3);font:inherit;font-size:12px;font-weight:600;padding:3px 9px;border-radius:8px;cursor:pointer}
+.ae-fonte:hover{color:var(--t1);border-color:var(--b2)}
+.ae-trecho{display:none;margin:8px 0 2px;padding:10px 12px;border-left:3px solid var(--nh);background:rgba(255,255,255,.03);
+  border-radius:0 8px 8px 0;font-size:13px;line-height:1.6;color:var(--t2);font-style:italic}
+.ae-trecho span{font-style:normal;color:var(--t3)}
+.ae-l.ver .ae-trecho{display:block}
+.ae-tab-wrap{overflow-x:auto;padding:6px 12px 10px}
+.ae-tab{width:100%;border-collapse:collapse;font-size:13px}
+.ae-tab th{text-align:left;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);padding:8px;border-bottom:1px solid var(--b1)}
+.ae-tab td{padding:8px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--t2);vertical-align:top}
+.ae-tab td:nth-child(2){color:var(--t1);min-width:240px}
+@media(max-width:620px){
+  .ae-l-cab{flex-direction:column;gap:6px}
+  .ae-sec-res{display:none}
+  .ae-fatos{grid-template-columns:1fr}
+}
 /* Próxima ação no card: uma linha só, e só quando existe (cartão limpo). */
 .pa-linha{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:8px;font-size:13px;color:var(--t2);cursor:pointer;width:fit-content;max-width:100%}
 .pa-linha:hover{color:var(--t1)}
@@ -14627,7 +14685,12 @@ function nhSetCanal(c){
   var radar=c==='radar',hero=document.querySelector('.bsc-hero'),wrap=document.querySelector('.bsc-wrap');
   if(hero)hero.classList.toggle('modo-radar',radar);
   if(wrap)wrap.classList.toggle('modo-radar',radar);
-  if(radar&&!eraRadar){_bscAntesRadar=BSC_BRUTO;BSC_SEL={};nhRadar(false);return;}
+  if(radar&&!eraRadar){
+    _bscAntesRadar=BSC_BRUTO;BSC_SEL={};nhRadar(false);
+    /* Triagem que falhou ao abrir o sistema tenta de novo aqui. */
+    if(RADAR_TRI_ERRO)_radarCarregarTriagem().then(_radarPintar);
+    return;
+  }
   if(!radar&&eraRadar){BSC_BRUTO=_bscAntesRadar||[];_bscAntesRadar=null;BSC_SEL={};
     document.getElementById('bsc-status').textContent='';nhRenderResultados();}
   if(radar)return;
@@ -20337,6 +20400,10 @@ if(typeof go==='function'&&!go.__hoje){
     document.getElementById('tbSub').textContent=TOPS.hoje[1];
     showPage('page-hoje');
     nhHojeMontar();
+    /* Se a leitura falhou (ex.: regra do Firestore publicada depois de o
+       sistema abrir), tenta de novo ao entrar — o aviso vermelho não
+       pode ficar preso até alguém recarregar a página. */
+    if(PROX_ACAO_ERRO)_paCarregar();
   };
   go.__hoje=true;
 }
@@ -21326,13 +21393,13 @@ if(typeof renderCard==='function'){
            barra vira um mapa do andamento em vez de uma fileira de
            botões iguais. */
         if(!temPendA&&emp)
-          itens+='<button class="nh-btn" title="A IA confere se a documentação da empresa atende ao edital" '
+          itens+='<button class="nh-btn" title="O Claude lê o edital: prazos, habilitação cruzada com o dossiê, riscos — com a página de cada item" '
             +'onclick="event.stopPropagation();nhAbrirAnaliseCard(\''+chave+'\',\''+emp.replace(/'/g,"\\'")+'\',\''+tit.substring(0,60)+'\')">'
-            +iaSvg+'Habilita&ccedil;&atilde;o</button>';
+            +iaSvg+'An&aacute;lise do edital</button>';
         else if(emp)
-          itens+='<button class="nh-btn nh-btn-ok" title="Habilitação já analisada — clique para ver de novo" '
+          itens+='<button class="nh-btn nh-btn-ok" title="Edital já analisado — clique para ver a análise" '
             +'onclick="event.stopPropagation();nhAbrirAnaliseCard(\''+chave+'\',\''+emp.replace(/'/g,"\\'")+'\',\''+tit.substring(0,60)+'\')">'
-            +'✓ Habilita&ccedil;&atilde;o</button>';
+            +'✓ An&aacute;lise do edital</button>';
 
         itens+='<button class="nh-btn'+(an?' nh-btn-ok':'')+'" '
           +'title="'+(an?'Nota de viabilidade já calculada — clique para reavaliar':'A IA calcula a nota de viabilidade deste processo')+'" '
@@ -21732,9 +21799,9 @@ function nhAbrirAnaliseCard(chave,emp,titulo){
     m=document.createElement('div');
     m.id='nh-ana-modal';
     m.style.cssText='display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;align-items:center;justify-content:center;padding:16px';
-    m.innerHTML='<div style="background:var(--s1);border:1px solid var(--b1);border-radius:14px;max-width:900px;width:100%;max-height:92vh;display:flex;flex-direction:column;overflow:hidden">'+
+    m.innerHTML='<div style="background:var(--s1);border:1px solid var(--b1);border-radius:14px;max-width:1000px;width:100%;max-height:92vh;display:flex;flex-direction:column;overflow:hidden">'+
       '<div style="padding:14px 18px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:10px">'+
-        '<b style="color:var(--nh)">🤖 Análise de Habilitação</b>'+
+        '<b style="color:var(--nh)">🤖 Análise do edital</b>'+
         '<span id="nh-ana-sub" style="font-size:12px;color:var(--t3)"></span>'+
         '<button onclick="nhImprimirAnaliseCard()" style="margin-left:auto;background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif">🖨 Imprimir</button>'+
         '<button onclick="document.getElementById(\'nh-ana-modal\').style.display=\'none\'" style="background:none;border:none;color:var(--t3);font-size:18px;cursor:pointer">✕</button>'+
@@ -21747,7 +21814,7 @@ function nhAbrirAnaliseCard(chave,emp,titulo){
             '<label style="background:var(--nha);border:1px solid var(--nh);color:var(--nh);padding:7px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;font-family:Outfit,sans-serif">📄 Anexar manualmente'+
               '<input type="file" accept=".pdf,image/*" multiple style="display:none" onchange="nhAnaAddFiles(this)"></label>'+
             '<span id="nh-ana-files" style="font-size:11px;color:var(--t3)"></span>'+
-            '<button onclick="nhRodarAnaliseCard()" style="background:linear-gradient(135deg,#059669,#22c55e);color:#fff;border:none;padding:8px 18px;border-radius:8px;font-weight:800;font-size:12px;cursor:pointer;font-family:Outfit,sans-serif">✓ Analisar agora</button>'+
+            '<button id="nh-ana-rodar" onclick="nhRodarAnaliseCard()" style="background:linear-gradient(135deg,#059669,#22c55e);color:#fff;border:none;padding:8px 18px;border-radius:8px;font-weight:800;font-size:12px;cursor:pointer;font-family:Outfit,sans-serif">✓ Analisar com o Claude</button>'+
           '</div>'+
           '<div style="font-size:11px;color:var(--t3);margin-top:8px">Ao concluir, o resultado é salvo automaticamente neste card do processo.</div>'+
         '</div>'+
@@ -21762,6 +21829,10 @@ function nhAbrirAnaliseCard(chave,emp,titulo){
   document.getElementById('nh-ana-result').innerHTML='';
   m.style.display='flex';
   nhAnaTentarLerPasta(_pastaLink);
+  /* Se este processo já foi analisado, a análise guardada aparece na
+     hora — sem gastar IA de novo. "Analisar de novo" refaz. */
+  var _bRod=document.getElementById('nh-ana-rodar');if(_bRod)_bRod.textContent='✓ Analisar com o Claude';
+  nhCarregarAnaliseEdital(chave);
   /* status do dossiê da empresa */
   var dEl=document.getElementById('nh-ana-dossie');
   dEl.innerHTML='Verificando dossiê de '+emp+'...';
@@ -21792,50 +21863,231 @@ function nhAnaAddFiles(input){
   input.value='';
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   ANÁLISE DO EDITAL ITEM POR ITEM — 20/10/2026
+   Pedido do cliente depois de ver o Crivya Insight ("a análise de
+   edital gostei também"; "chama a IA Claude para ler o edital").
+   Antes: o Claude lia o edital e devolvia um parecer em texto corrido
+   (Quadro de Aderência, Faltantes, Veredito). Bom de ler uma vez,
+   ruim de conferir: não dava para saber de que página saiu cada
+   exigência, nem achar um prazo sem reler tudo.
+   Agora o Claude devolve a análise ESTRUTURADA — resumo, prazos,
+   regras da disputa, participação, itens, habilitação, garantias,
+   execução e riscos —, cada linha com a PÁGINA e o TRECHO do edital.
+   A habilitação vem cruzada com o dossiê da empresa (tem / falta /
+   vencido / conferir), e daí sai a mesma pendência de antes para o
+   card (coleção `pendencias`, mesmo formato). A análise inteira fica
+   guardada em `analise_edital/<chave>` (só a equipe lê) e reabre sem
+   gastar IA de novo.
+   ══════════════════════════════════════════════════════════════════ */
+function _nhPromptAnaliseEdital(emp,dossie,hoje){
+  return 'HOJE É '+hoje+'. Você é um consultor sênior de licitações públicas (Lei 14.133/2021). Leia com atenção TODO o edital e os anexos fornecidos '+
+  '(termo de referência, minuta, planilha) e extraia as informações abaixo para a empresa "'+emp+'".\n\n'+
+  'RESPONDA SOMENTE com um JSON válido entre as marcas <ANALISE> e </ANALISE>. Nada antes, nada depois, sem markdown.\n\n'+
+  'REGRAS:\n'+
+  '- Cada item traz "pag" (número da página do PDF onde está; "" se não souber) e "trecho": a frase do edital, copiada LITERALMENTE, com no máximo 220 caracteres.\n'+
+  '- Não invente. Se o edital não diz, não crie o item. Se uma informação importante não está no edital (ex.: data da sessão), diga isso no resumo.\n'+
+  '- Datas no formato dd/mm/aaaa (e hh:mm quando houver).\n'+
+  '- Habilitação: UMA linha por documento exigido, na categoria certa. Cruze cada um com o DOSSIÊ da empresa (JSON ao final): '+
+  '"tem" = há documento válido no dossiê que atende; "vencido" = há, mas a validade já passou ou vence antes da sessão; '+
+  '"falta" = não há no dossiê; "conferir" = depende de algo que só uma pessoa confirma (ex.: atestado cobre o quantitativo?). '+
+  (dossie?'':'A empresa NÃO tem dossiê cadastrado: use "conferir" em todos. ')+
+  'Em "no_dossie" diga qual documento do dossiê atende (ou ""), e em "acao" o que fazer quando não for "tem".\n'+
+  '- Riscos: cláusulas restritivas ou fora da Lei 14.133, exigências desproporcionais, multas pesadas, prazos apertados, garantias, '+
+  'pagamento demorado, quantitativo de atestado alto, amostra/visita obrigatória. Gravidade alta/media/baixa.\n'+
+  '- Seja completo mas objetivo: textos curtos.\n\n'+
+  'FORMATO:\n<ANALISE>{'+
+  '"resumo":"4 a 6 frases: objeto, órgão, valor estimado, data da sessão, modalidade e os pontos mais críticos para decidir participar",'+
+  '"orgao":"","objeto":"","modalidade":"","sessao":"dd/mm/aaaa hh:mm ou \'\'","valor_estimado":"R$ ...",'+
+  '"status":"APTA|PENDENCIAS|NAO_APTA",'+
+  '"prazos":[{"nome":"","quando":"","descricao":"","pag":"","trecho":""}],'+
+  '"disputa":[{"nome":"","detalhe":"","pag":"","trecho":""}],'+
+  '"participacao":[{"nome":"","detalhe":"","pag":"","trecho":""}],'+
+  '"itens":[{"n":"","descricao":"","qtd":"","un":"","valor_unit":"","pag":""}],'+
+  '"habilitacao":[{"categoria":"Jurídica|Fiscal e trabalhista|Econômico-financeira|Técnica|Declarações","doc":"","exigencia":"","obrigatorio":true,'+
+    '"situacao":"tem|falta|vencido|conferir","no_dossie":"","acao":"","pag":"","trecho":""}],'+
+  '"garantias":[{"nome":"","detalhe":"","pag":"","trecho":""}],'+
+  '"execucao":[{"nome":"","detalhe":"","pag":"","trecho":""}],'+
+  '"riscos":[{"titulo":"","gravidade":"alta|media|baixa","explicacao":"","pag":"","trecho":""}]'+
+  '}</ANALISE>\n\n'+
+  'Em "disputa": modo de disputa, critério de julgamento, intervalo mínimo de lances, tempo, margem de preferência, amostra, visita técnica. '+
+  'Em "participacao": exclusividade ME/EPP, cota reservada, consórcio, subcontratação, vedações. '+
+  'Em "execucao": local, prazo de entrega/início, forma de medição e pagamento, reajuste. '+
+  'Em "itens": no máximo 60 linhas; se houver mais, as 60 de maior valor.\n\n'+
+  'DOSSIÊ DA EMPRESA '+emp+':\n'+(dossie?JSON.stringify(dossie):'(sem dossiê cadastrado)');
+}
+
+/* Lê o JSON da resposta. Tolera markdown em volta e vírgula sobrando. */
+function _nhLerAnaliseEdital(resp){
+  var t=String(resp||'');
+  var m=t.match(/<ANALISE>([\s\S]*?)(<\/ANALISE>|$)/i);
+  var j=(m?m[1]:t).replace(/```json/gi,'').replace(/```/g,'').trim();
+  var ini=j.indexOf('{'),fim=j.lastIndexOf('}');
+  if(ini<0||fim<=ini)return null;
+  j=j.slice(ini,fim+1);
+  try{return JSON.parse(j);}catch(e){
+    try{return JSON.parse(j.replace(/,\s*([}\]])/g,'$1'));}catch(_e){return null;}
+  }
+}
+
+/* Pendência do card no MESMO formato de antes (PENDENCIAS/pendencias). */
+function _nhPendDaAnalise(an,emp,hoje){
+  var hab=an.habilitacao||[];
+  var falt=hab.filter(function(h){return h.situacao==='falta';}).map(function(h){return {doc:String(h.doc||''),acao:String(h.acao||'')};});
+  var venc=hab.filter(function(h){return h.situacao==='vencido';}).map(function(h){return {doc:String(h.doc||''),validade:''};});
+  var st=String(an.status||'').toUpperCase();
+  if(['APTA','PENDENCIAS','NAO_APTA'].indexOf(st)<0)st=(falt.length||venc.length)?'PENDENCIAS':'APTA';
+  return {empresa:emp,data:hoje,status:st,faltantes:falt,vencidos:venc};
+}
+
+/* ── Desenho da análise ────────────────────────────────────────── */
+var AE_SIT={tem:['ok','✓ no dossiê'],falta:['falta','✗ falta'],vencido:['venc','⚠ vencido'],conferir:['conf','conferir']};
+var AE_GRAV={alta:['falta','alta'],media:['venc','média'],baixa:['conf','baixa']};
+function _aeFonte(o){
+  var p=String(o.pag||'').trim(),t=String(o.trecho||'').trim();
+  if(!p&&!t)return '';
+  return '<button type="button" class="ae-fonte" onclick="this.closest(\'.ae-l\').classList.toggle(\'ver\')" title="Ver o trecho do edital">'+
+    (p?'pág. '+esc0(p):'trecho')+' ▾</button>';
+}
+function _aeTrecho(o){
+  var t=String(o.trecho||'').trim();
+  return t?'<div class="ae-trecho">“'+esc0(t)+'”'+(o.pag?' <span>— pág. '+esc0(o.pag)+'</span>':'')+'</div>':'';
+}
+function _aeLinha(tit,det,chip,o){
+  return '<div class="ae-l"><div class="ae-l-cab"><div class="ae-l-txt"><b>'+esc0(tit)+'</b>'+(det?'<span>'+det+'</span>':'')+'</div>'+
+    '<div class="ae-l-dir">'+(chip||'')+_aeFonte(o)+'</div></div>'+_aeTrecho(o)+'</div>';
+}
+function _aeChip(par){return par?'<span class="ae-chip '+par[0]+'">'+par[1]+'</span>':'';}
+function _aeSecao(id,tit,n,resumo,corpo,aberta){
+  if(!n)return '';
+  return '<details class="ae-sec" data-sec="'+id+'"'+(aberta?' open':'')+'><summary><b>'+tit+'</b><em>'+n+'</em>'+
+    (resumo?'<span class="ae-sec-res">'+resumo+'</span>':'')+'<i class="ae-seta">▾</i></summary><div class="ae-sec-corpo">'+corpo+'</div></details>';
+}
+
+function nhRenderAnaliseEdital(an,meta){
+  meta=meta||{};
+  var hab=(an.habilitacao||[]).filter(function(h){return h&&h.doc;});
+  var obrig=hab.filter(function(h){return h.obrigatorio!==false;});
+  var okN=obrig.filter(function(h){return h.situacao==='tem';}).length;
+  var faltN=hab.filter(function(h){return h.situacao==='falta';}).length;
+  var vencN=hab.filter(function(h){return h.situacao==='vencido';}).length;
+  var confN=hab.filter(function(h){return h.situacao==='conferir';}).length;
+  var pct=obrig.length?Math.round(okN*100/obrig.length):null;
+  var st={APTA:['ok','Habilitada'],PENDENCIAS:['venc','Habilitada com pendências'],NAO_APTA:['falta','Não habilitada']}[String(an.status||'').toUpperCase()]||['conf','Conferir'];
+
+  var fatos=[['Órgão',an.orgao],['Modalidade',an.modalidade],['Sessão',an.sessao],['Valor estimado',an.valor_estimado]]
+    .filter(function(f){return String(f[1]||'').trim();})
+    .map(function(f){return '<div class="ae-fato"><span>'+f[0]+'</span><b>'+esc0(f[1])+'</b></div>';}).join('');
+
+  var topo='<div class="ae-topo">'+
+    '<div class="ae-topo-l">'+
+      '<span class="ae-chip grande '+st[0]+'">'+st[1]+'</span>'+
+      (pct!==null?'<div class="ae-score"><b>'+okN+' de '+obrig.length+'</b> exigências de habilitação atendidas pelo dossiê'+
+        '<div class="ae-barra"><span style="width:'+pct+'%"></span></div>'+
+        '<small>'+[faltN?faltN+' faltando':'',vencN?vencN+' vencido'+(vencN>1?'s':''):'',confN?confN+' para conferir':''].filter(Boolean).join(' · ')+'</small></div>':'')+
+    '</div>'+
+    (fatos?'<div class="ae-fatos">'+fatos+'</div>':'')+
+  '</div>'+
+  (an.resumo?'<p class="ae-resumo">'+esc0(an.resumo)+'</p>':'')+
+  (meta.data?'<div class="ae-meta">Análise de '+esc0(meta.data)+(meta.arquivos&&meta.arquivos.length?' · '+esc0(meta.arquivos.join(', ')):'')+
+    ' · feita pelo Claude — apoio à leitura; confirme prazos e exigências no edital antes de participar.</div>':'');
+
+  /* Habilitação agrupada por categoria, o que falta primeiro. */
+  var ordemSit={falta:0,vencido:1,conferir:2,tem:3};
+  var cats={};hab.forEach(function(h){var c=String(h.categoria||'Outros');(cats[c]=cats[c]||[]).push(h);});
+  var habHtml=Object.keys(cats).map(function(c){
+    return '<div class="ae-cat">'+esc0(c)+'</div>'+cats[c].sort(function(a,b){var x=ordemSit[a.situacao],y=ordemSit[b.situacao];return (x===undefined?9:x)-(y===undefined?9:y);}).map(function(h){
+      var det=[h.exigencia?esc0(h.exigencia):'',h.situacao==='tem'&&h.no_dossie?'<i>dossiê: '+esc0(h.no_dossie)+'</i>':'',
+        h.situacao!=='tem'&&h.acao?'<i class="ae-acao">➜ '+esc0(h.acao)+'</i>':'',h.obrigatorio===false?'<i>opcional</i>':''].filter(Boolean).join('');
+      return _aeLinha(h.doc,det,_aeChip(AE_SIT[h.situacao]),h);
+    }).join('');
+  }).join('');
+
+  var simples=function(lista,campoT,campoD){
+    return (lista||[]).map(function(o){return _aeLinha(o[campoT]||'',o[campoD]?esc0(o[campoD]):'','',o);}).join('');
+  };
+  var riscos=(an.riscos||[]).slice().sort(function(a,b){var g={alta:0,media:1,baixa:2},x=g[a.gravidade],y=g[b.gravidade];return (x===undefined?9:x)-(y===undefined?9:y);});
+  var rAltos=riscos.filter(function(r){return r.gravidade==='alta';}).length;
+  var prazosHtml=(an.prazos||[]).map(function(p){
+    return _aeLinha(p.nome||'',(p.quando?'<b class="ae-quando">'+esc0(p.quando)+'</b>':'')+(p.descricao?esc0(p.descricao):''),'',p);
+  }).join('');
+  var itens=an.itens||[];
+  var itensHtml=itens.length?'<div class="ae-tab-wrap"><table class="ae-tab"><thead><tr><th>Item</th><th>Descrição</th><th>Qtd.</th><th>Un.</th><th>Valor unit.</th><th>Pág.</th></tr></thead><tbody>'+
+    itens.map(function(i){return '<tr><td>'+esc0(i.n)+'</td><td>'+esc0(i.descricao)+'</td><td>'+esc0(i.qtd)+'</td><td>'+esc0(i.un)+'</td><td>'+esc0(i.valor_unit)+'</td><td>'+esc0(i.pag)+'</td></tr>';}).join('')+
+    '</tbody></table></div>':'';
+
+  return '<div class="ae">'+topo+
+    _aeSecao('hab','Habilitação',hab.length,(faltN||vencN)?[faltN?faltN+' faltando':'',vencN?vencN+' vencido'+(vencN>1?'s':''):''].filter(Boolean).join(' · '):'tudo encontrado no dossiê',habHtml,true)+
+    _aeSecao('riscos','Riscos e pontos de atenção',riscos.length,rAltos?rAltos+' de gravidade alta':'',
+      riscos.map(function(r){return _aeLinha(r.titulo||'',r.explicacao?esc0(r.explicacao):'',_aeChip(AE_GRAV[r.gravidade]),r);}).join(''),true)+
+    _aeSecao('prazos','Prazos',(an.prazos||[]).length,'',prazosHtml,true)+
+    _aeSecao('disputa','Regras da disputa',(an.disputa||[]).length,'',simples(an.disputa,'nome','detalhe'),false)+
+    _aeSecao('participacao','Participação',(an.participacao||[]).length,'',simples(an.participacao,'nome','detalhe'),false)+
+    _aeSecao('itens','Itens',itens.length,'',itensHtml,false)+
+    _aeSecao('garantias','Garantias',(an.garantias||[]).length,'',simples(an.garantias,'nome','detalhe'),false)+
+    _aeSecao('execucao','Execução e pagamento',(an.execucao||[]).length,'',simples(an.execucao,'nome','detalhe'),false)+
+  '</div>';
+}
+
+/* Abre a última análise guardada deste processo, se houver. */
+async function nhCarregarAnaliseEdital(chave){
+  var out=document.getElementById('nh-ana-result');
+  try{
+    var d=await db.collection('analise_edital').doc(String(chave)).get();
+    if(!d.exists||!d.data()._arr||!d.data()._arr.analise)return;
+    if(!_anaCtx||_anaCtx.chave!==chave)return;     /* a janela já é de outro processo */
+    var reg=d.data()._arr;
+    out.innerHTML=nhRenderAnaliseEdital(reg.analise,{data:reg.data,arquivos:reg.arquivos});
+    var b=document.getElementById('nh-ana-rodar');if(b)b.textContent='🔄 Analisar de novo';
+  }catch(e){console.warn('analise_edital',e.message);}
+}
+
 async function nhRodarAnaliseCard(){
   var ctx=_anaCtx;if(!ctx)return;
   var key=localStorage.getItem('nh_claude_key');
   if(!key){toast('Configure a API Key do Claude na aba Documentos','err');return;}
   if(!_anaFiles.length){toast('Anexe o edital/TR do processo','err');return;}
   var out=document.getElementById('nh-ana-result');
-  out.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:20px;height:20px"></div> Carregando dossiê de '+ctx.emp+'...</div>';
+  var esp=function(m){out.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:20px;height:20px"></div> '+m+'</div>';};
+  esp('Carregando dossiê de '+esc0(ctx.emp)+'...');
   var dossie=await carregarDossie(ctx.emp);
-  if(!dossie){out.innerHTML='<div style="color:#eab308;font-weight:600">⚠ '+ctx.emp+' não tem dossiê cadastrado. Cadastre primeiro na página da empresa.</div>';return;}
-  out.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:20px;height:20px"></div> Cruzando edital com o dossiê de '+ctx.emp+'...</div>';
+  esp('O Claude está lendo o edital'+(dossie?' e cruzando com o dossiê de '+esc0(ctx.emp):'')+'... (pode levar 1 a 2 minutos)');
   var dh=new Date();
   var hoje=('0'+dh.getDate()).slice(-2)+'/'+('0'+(dh.getMonth()+1)).slice(-2)+'/'+dh.getFullYear();
   try{
-    var prompt=_nhPromptAderencia(ctx.emp,dossie,hoje);
-    var parts=_anaFiles.map(function(f){return {inline_data:{mime_type:f.mime,data:f.base64}}}).concat([{text:prompt}]);
-    var resp=await _nhClaudeLongo(key,parts,function(m){out.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:20px;height:20px"></div> '+m+'</div>';});
-    var pend=null;
-    var pm=resp.match(/<PENDENCIAS>([\s\S]*?)<\/PENDENCIAS>/i);
-    if(pm){try{pend=JSON.parse(pm[1].replace(/```json/gi,'').replace(/```/g,'').trim());}catch(_e){}resp=resp.replace(pm[0],'').trim();}
-    window._nhUltimaAder={empresa:ctx.emp,data:hoje,pend:pend};
-    var head='';
-    if(pend){
-      var stMap={APTA:['#22c55e','✅ HABILITADA'],PENDENCIAS:['#eab308','⚠️ HABILITADA COM PENDÊNCIAS'],NAO_APTA:['#ef4444','❌ NÃO HABILITADA']};
-      var sm=stMap[pend.status]||stMap.PENDENCIAS;
-      head='<div style="background:var(--s2);border:1px solid '+sm[0]+'55;border-left:4px solid '+sm[0]+';border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px">'+
-        '<b style="color:'+sm[0]+'">'+sm[1]+'</b>';
-      var falt=pend.faltantes||[];
-      if(falt.length)head+=' · Faltam <b>'+falt.length+'</b>: '+falt.map(function(f){return '<span style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);color:#ef4444;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:600">'+f.doc+'</span>'}).join(' ');
-      var vc=pend.vencidos||[];
-      if(vc.length)head+=' · Vencidos: '+vc.map(function(f){return '<span style="background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.35);color:#eab308;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:600">'+f.doc+'</span>'}).join(' ');
-      head+='</div>';
-      /* salva automaticamente no processo */
-      var reg={empresa:ctx.emp,data:hoje,status:pend.status||'PENDENCIAS',faltantes:falt,vencidos:vc};
-      try{
-        await fbSave('pendencias',ctx.chave,reg);
-        PENDENCIAS[ctx.chave]=reg;
-        head+='<div style="font-size:11px;color:#22c55e;margin-bottom:10px">💾 Resultado fixado automaticamente no card deste processo.</div>';
-        try{renderTbl(CUR);}catch(_e){}
-      }catch(es){head+='<div style="font-size:11px;color:#ef4444;margin-bottom:10px">Erro ao fixar no card: '+es.message+'</div>';}
+    var parts=_anaFiles.map(function(f){return {inline_data:{mime_type:f.mime,data:f.base64}};})
+      .concat([{text:_nhPromptAnaliseEdital(ctx.emp,dossie,hoje)}]);
+    var resp=await _nhClaudeLongo(key,parts,esp);
+    var an=_nhLerAnaliseEdital(resp);
+    if(!an){
+      out.innerHTML='<div style="color:#ef4444;margin-bottom:10px">❌ O Claude respondeu, mas não no formato esperado. Tente "Analisar" de novo.</div>'+formatarRespostaIA(resp);
+      return;
     }
-    out.innerHTML=head+formatarRespostaIA(resp);
+    var nomes=_anaFiles.map(function(f){return f.name;});
+    out.innerHTML=nhRenderAnaliseEdital(an,{data:hoje,arquivos:nomes});
+    /* Pendência no card (mesmo formato de antes) */
+    var pend=_nhPendDaAnalise(an,ctx.emp,hoje);
+    window._nhUltimaAder={empresa:ctx.emp,data:hoje,pend:pend};
+    var aviso='';
+    try{
+      await fbSave('pendencias',ctx.chave,pend);
+      PENDENCIAS[ctx.chave]=pend;
+      try{renderTbl(CUR);}catch(_e){}
+    }catch(es){aviso+='Pendência não fixada no card: '+es.message+'. ';}
+    /* Análise inteira, para reabrir sem gastar IA */
+    try{
+      var reg={analise:an,empresa:ctx.emp,data:hoje,arquivos:nomes,criadoEm:Date.now(),
+               por:(auth.currentUser&&(auth.currentUser.email||auth.currentUser.phoneNumber))||''};
+      if(JSON.stringify(reg).length>900000)throw new Error('análise grande demais para guardar');
+      await fbSave('analise_edital',ctx.chave,reg);
+    }catch(es2){aviso+='Análise não guardada: '+(/permission|insufficient/i.test(es2.message)?'falta publicar a regra nova do Firestore (analise_edital).':es2.message);}
+    out.insertAdjacentHTML('afterbegin',aviso
+      ?'<div style="font-size:12px;color:#f59e0b;margin-bottom:10px">'+esc0(aviso)+'</div>'
+      :'<div style="font-size:12px;color:#22c55e;margin-bottom:10px">💾 Análise guardada neste processo e pendências fixadas no card.</div>');
+    var b=document.getElementById('nh-ana-rodar');if(b)b.textContent='🔄 Analisar de novo';
   }catch(e){
-    console.error('analise card',e);
-    out.innerHTML='<div style="color:#ef4444">❌ Erro: '+(e.message||e)+'</div>';
+    console.error('analise edital',e);
+    out.innerHTML='<div style="color:#ef4444">❌ Erro: '+esc0(e.message||e)+'</div>';
   }
 }
 
