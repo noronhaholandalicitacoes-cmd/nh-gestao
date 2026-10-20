@@ -1275,6 +1275,35 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 .bsc-canal.on b{color:var(--nh)}
 .bsc-canal.on .sub{color:var(--nh2)}
 
+/* ── Radar (20/10/2026) — canal do Buscador que vigia as buscas salvas ── */
+.bsc-canal-radar .sub b{color:var(--nh);font-weight:800}
+.bsc-radar{display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--b1)}
+.bsc-hero.modo-radar .bsc-radar{display:block}
+.bsc-hero.modo-radar .bsc-campo-lbl,
+.bsc-hero.modo-radar .bsc-hero-row,
+.bsc-hero.modo-radar .bsc-hero-linha{display:none}
+.bsc-radar-linha{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.bsc-radar .bsc-modo button b{font-weight:800;margin-left:5px;opacity:.85}
+.bsc-radar-info{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:11px;font-size:12.5px;color:var(--t3);line-height:1.5}
+.bsc-radar-info b{color:var(--t1)}
+.bsc-radar-info .bsc-mini{margin-left:auto}
+.bsc-radar-dica{display:none;font-size:12px;color:var(--t2);line-height:1.55;background:var(--nha);
+  border:1px solid rgba(249,115,22,.25);border-radius:9px;padding:10px 12px;margin-bottom:14px}
+.bsc-wrap.modo-radar .bsc-radar-dica{display:block}
+.bsc-wrap.modo-radar .bsc-filtros .bsc-fgrupo:not(:last-child){display:none}
+/* Por que a licitação apareceu no Radar */
+.bsc-radar-mot{font-size:12.5px;color:var(--t2);margin:2px 0 10px;line-height:1.5}
+.bsc-radar-mot b{color:var(--nh);font-weight:700}
+.bsc-radar-mot span{color:var(--t3)}
+.bsc-card.tri-descartada{opacity:.55}
+.bsc-a.tri{background:var(--s2);border-color:var(--b1);color:var(--t2)}
+.bsc-a.tri:hover{color:var(--t1);border-color:var(--b2)}
+.bsc-a.tri.int.on{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.45);color:#22c55e}
+.bsc-a.tri.desc.on{background:rgba(148,163,184,.14);border-color:rgba(148,163,184,.45);color:var(--t1)}
+/* Liga/desliga o Radar em cada busca salva */
+.bsc-radar-tg{padding:7px 9px!important;opacity:.4;filter:grayscale(1)}
+.bsc-radar-tg.on{opacity:1;filter:none;border-color:var(--nh)!important;background:var(--nha)!important}
+
 /* Layout de duas colunas */
 .bsc-wrap{display:grid;grid-template-columns:288px 1fr;gap:18px;align-items:start}
 .bsc-filtros{
@@ -3238,14 +3267,29 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
   background:#1d4ed8;border:1px solid #3b82f6;color:#fff;box-shadow:0 10px 26px -8px rgba(29,78,216,.7)}
 .perg-flut em{font-style:normal;font-size:12px;font-weight:900;padding:1px 8px;border-radius:999px;background:#fff;color:#1d4ed8}
 /* Botões de aviso no topo do menu lateral (05/10/2026) — ver _nhSbAlertas. */
-.sb-alertas{display:flex;flex-direction:column;gap:8px;padding:10px 12px 6px}
-.sb-alertas .chat-flut,.sb-alertas .perg-flut{position:static!important;left:auto;bottom:auto;width:100%;
-  justify-content:center;box-shadow:none;font-size:13.5px;padding:9px 12px;border-radius:10px}
+/* ⚠️ ITENS DE MENU, NÃO BOTÕES — 20/10/2026.
+   Queixa: "chat e mensagem do cliente não combinam com o design, estão
+   meio deslocados". Eram dois botões (um azul cheio, único bloco de cor
+   forte do menu) soltos entre o logo e o "Visão geral". Agora são itens
+   iguais aos outros do menu (classe sb-item), numa seção "Comunicação".
+   O destaque fica só no número: laranja quando há algo esperando,
+   vermelho piscando quando citam a empresa no pregão. */
+.sb-alertas{display:flex;flex-direction:column;padding:0}
+.sb-alertas .sb-section{padding-top:14px}
+.sb-alertas .sb-item{position:relative!important;left:auto;bottom:auto;z-index:auto;width:auto;
+  background:none;border:0;box-shadow:none;font:inherit;font-size:13px;font-weight:400;
+  color:var(--t2);text-align:left;justify-content:flex-start;gap:10px;padding:9px 14px;margin:1px 6px;border-radius:9px}
+.sb-alertas .sb-item:hover{background:var(--s3);color:var(--t1)}
+.sb-alertas .sb-item.tem{color:var(--t1);font-weight:600}
+.sb-alertas .sb-item.tem .sb-icon{opacity:1}
+.sb-alertas .sb-aviso{margin-left:auto;font-style:normal;font-size:11px;font-weight:800;padding:2px 8px;
+  border-radius:20px;background:var(--nh);color:#fff;line-height:1.35}
+.sb-alertas .sb-aviso.vermelho{background:#ef4444;animation:chatPisca 1.2s ease-in-out infinite}
+@media (prefers-reduced-motion: reduce){ .sb-alertas .sb-aviso.vermelho{animation:none} }
+body.light-theme .sb-alertas .sb-item:hover{background:rgba(37,99,235,.07);color:#0b1220}
 @media(max-width:960px){
-  .sb-alertas{padding:8px 4px}
-  .sb-alertas .sb-rot{display:none}
-  .sb-alertas .chat-flut,.sb-alertas .perg-flut{padding:8px 2px;gap:3px;font-size:15px}
-  .sb-alertas .chat-flut b{display:none}
+  .sb-alertas .sb-item{justify-content:center;padding:12px;margin:1px 4px}
+  .sb-alertas .sb-aviso{position:absolute;top:3px;right:3px;margin:0;padding:0 5px;font-size:9.5px}
 }
 .perg-item{padding:14px 0;border-bottom:1px solid var(--b1)}
 .perg-item:last-child{border-bottom:0}
@@ -3396,6 +3440,7 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
     <div class="sb-item" id="nav-buscador" onclick="go('buscador',this)">
       <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
       <span>Buscador</span>
+      <span class="sb-badge" id="b-radar" style="display:none" title="Licita&ccedil;&otilde;es novas no Radar, esperando triagem">0</span>
     </div>
     <div class="sb-item" id="nav-precos" onclick="go('precos',this)">
       <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 20h18M7 20V10m5 10V4m5 16v-7"/></svg>
@@ -4534,6 +4579,16 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
       <button class="bsc-canal on" data-canal="proposta" onclick="nhSetCanal('proposta')"><b>&#9201; Recebendo proposta</b><span class="sub">d&aacute; para participar agora</span></button>
       <button class="bsc-canal" data-canal="publicacao" onclick="nhSetCanal('publicacao')"><b>&#128196; Publicadas</b><span class="sub">por data de publica&ccedil;&atilde;o</span></button>
       <button class="bsc-canal" data-canal="atualizacao" onclick="nhSetCanal('atualizacao')"><b>&#128260; Atualizadas</b><span class="sub">alteradas ou reabertas</span></button>
+      <button class="bsc-canal bsc-canal-radar" data-canal="radar" onclick="nhSetCanal('radar')"><b>&#128225; Radar</b><span class="sub" id="bsc-radar-sub">suas buscas vigiadas</span></button>
+    </div>
+
+    <!-- Radar: só aparece no canal Radar, no lugar das palavras-chave -->
+    <div class="bsc-radar" id="bsc-radar">
+      <div class="bsc-radar-linha">
+        <div class="bsc-modo" id="bsc-radar-tri"></div>
+        <div class="bsc-modo" id="bsc-radar-jan"></div>
+      </div>
+      <div class="bsc-radar-info"><span id="bsc-radar-info"></span><button class="bsc-mini" id="bsc-radar-btn" onclick="nhRadar(true)">&#8635; Atualizar agora</button></div>
     </div>
   </div>
 
@@ -4543,6 +4598,7 @@ body.light-theme .kcard-meta{border-bottom-color:rgba(11,18,32,.06)}
     <!-- ── Refinar (só recortes; palavras ficam no bloco de busca) ── -->
     <div class="bsc-filtros" id="bsc-filtros">
       <div class="bsc-filtros-tit">Refinar resultados</div>
+      <div class="bsc-radar-dica">No Radar, cada busca salva com o <b>&#128225;</b> ligado usa os pr&oacute;prios filtros: palavras, estado, modalidade e valor. Ligue ou desligue em <b>Buscas salvas</b>, aqui embaixo.</div>
 
       <div class="bsc-fgrupo">
         <label class="bsc-flabel">Estado</label>
@@ -14468,10 +14524,21 @@ async function nhPncpFetch(url){
 }
 
 function nhSetCanal(c){
+  var eraRadar=BSC_CANAL==='radar';
   BSC_CANAL=c;
   document.querySelectorAll('#bsc-canais .bsc-canal').forEach(function(b){
     b.classList.toggle('on',b.getAttribute('data-canal')===c);
   });
+  /* Radar: some a caixa de palavras (cada busca vigiada tem as suas) e
+     entra a triagem. A lista que estava na tela fica guardada e volta
+     quando sai do Radar. */
+  var radar=c==='radar',hero=document.querySelector('.bsc-hero'),wrap=document.querySelector('.bsc-wrap');
+  if(hero)hero.classList.toggle('modo-radar',radar);
+  if(wrap)wrap.classList.toggle('modo-radar',radar);
+  if(radar&&!eraRadar){_bscAntesRadar=BSC_BRUTO;BSC_SEL={};nhRadar(false);return;}
+  if(!radar&&eraRadar){BSC_BRUTO=_bscAntesRadar||[];_bscAntesRadar=null;BSC_SEL={};
+    document.getElementById('bsc-status').textContent='';nhRenderResultados();}
+  if(radar)return;
   var lbl=document.getElementById('bsc-lbl-datas'),dica=document.getElementById('bsc-dica-datas');
   if(c==='proposta'){lbl.textContent='Prazo para envio da proposta';dica.textContent='Em branco = próximos 90 dias.';}
   else if(c==='publicacao'){lbl.textContent='Período de publicação';dica.textContent='Em branco = últimos 30 dias.';}
@@ -14560,6 +14627,7 @@ async function nhBuscar(){
 
 /* ── Filtros que rodam na tela, depois que os dados chegaram ─────── */
 function nhFiltrarBusca(lista){
+  if(BSC_CANAL==='radar')return _radarFiltrar(lista);
   var termo=document.getElementById('bsc-termo').value.trim().toLowerCase();
   var excl=document.getElementById('bsc-excluir').value.trim().toLowerCase();
   var vmin=parseFloat(document.getElementById('bsc-vmin').value)||0;
@@ -14656,9 +14724,10 @@ function nhRenderResultados(){
   var barra=document.getElementById('bsc-barra');
   BSC_LISTA=nhOrdenarBusca(nhFiltrarBusca(BSC_BRUTO));
 
+  var noRadar=BSC_CANAL==='radar';
   document.getElementById('bsc-cont').innerHTML='<b>'+BSC_LISTA.length+'</b> <span>'+
     (BSC_LISTA.length===1?'licitação encontrada':'licitações encontradas')+
-    (BSC_BRUTO.length!==BSC_LISTA.length?' <span style="color:var(--t3)">· '+BSC_BRUTO.length+' vieram do PNCP</span>':'')+'</span>';
+    (BSC_BRUTO.length!==BSC_LISTA.length?' <span style="color:var(--t3)">· '+BSC_BRUTO.length+(noRadar?' no Radar':' vieram do PNCP')+'</span>':'')+'</span>';
   barra.style.display=BSC_BRUTO.length?'flex':'none';
 
   /* Chip do topo: quantas estão encerrando nos próximos 3 dias */
@@ -14673,6 +14742,7 @@ function nhRenderResultados(){
   var x=document.getElementById('bsc-x');
   if(x)x.style.display=document.getElementById('bsc-termo').value?'':'none';
 
+  if(noRadar&&!BSC_LISTA.length){el.innerHTML=_radarVazio();return;}
   if(!BSC_BRUTO.length){
     el.innerHTML='<div class="bsc-vazio"><span class="ic">&#128269;</span>Digite as <b>palavras-chave</b> l&aacute; em cima e clique em <b>Buscar</b>.<br><span style="font-size:12px">Sem palavra nenhuma tamb&eacute;m funciona &mdash; traz tudo do estado e da modalidade escolhidos.</span></div>';
     return;
@@ -14717,8 +14787,12 @@ function nhBscCard(e,i){
 
   var m=function(l,v,cls){return '<div class="bsc-mi"><span class="bsc-mi-l">'+l+'</span><span class="bsc-mi-v'+(cls?' '+cls:'')+'">'+v+'</span></div>';};
 
+  /* No Radar: por que apareceu + a triagem da equipe. */
+  var rad=(BSC_CANAL==='radar'&&e._radar)?_radarCard(e,id,jaCap):null;
+  if(rad)tags+=rad.tag;
+
   var urgente=(dias!==null&&dias>=0&&dias<=2);
-  return '<div class="bsc-card'+(jaCap?' capturado':urgente?' urgente':'')+(BSC_SEL[id]?' sel':'')+'" id="bsc-c-'+id+'">'+
+  return '<div class="bsc-card'+(jaCap?' capturado':urgente?' urgente':'')+(BSC_SEL[id]?' sel':'')+(rad?rad.cls:'')+'" id="bsc-c-'+id+'">'+
     '<div class="bsc-chead">'+
       '<input type="checkbox" class="bsc-chk-item" '+(BSC_SEL[id]?'checked':'')+' onchange="nhToggleSel(\''+id+'\',this.checked)" style="width:15px;height:15px;accent-color:var(--nh);cursor:pointer" title="Selecionar para captura em lote">'+
       '<span class="bsc-num">N&ordm; '+(i+1)+'</span>'+tags+
@@ -14726,6 +14800,7 @@ function nhBscCard(e,i){
     '</div>'+
     '<div class="bsc-obj clamp" id="bsc-obj-'+id+'">'+esc0(String(e.objetoCompra||'Sem objeto informado'))+'</div>'+
     '<button class="bsc-vermais" onclick="nhVerMais(\''+id+'\',this)">ver objeto completo</button>'+
+    (rad?rad.motivo:'')+
     '<div class="bsc-meta">'+
       m('&Oacute;rg&atilde;o',esc0(String(org.razaoSocial||'—')))+
       m('Cidade / UF',esc0(mun+(uf?' - '+uf:'')))+
@@ -14745,6 +14820,7 @@ function nhBscCard(e,i){
       (jaCap
         ? '<button class="bsc-a vd" disabled>&#10003; J&aacute; est&aacute; no sistema</button>'
         : '<button class="bsc-a vd" onclick="nhAbrirCaptura('+i+')">&#43; Capturar edital</button>')+
+      (rad?rad.botoes:'')+
     '</div>'+
     '<div id="bsc-ia-'+id+'"></div>'+
     '<textarea class="bsc-nota" placeholder="&#128221; Anota&ccedil;&atilde;o da equipe sobre esta licita&ccedil;&atilde;o..." onblur="nhSalvarNota(\''+id+'\',this.value)">'+esc0(nota)+'</textarea>'+
@@ -14829,6 +14905,14 @@ async function nhLoadBuscaMeta(){
     BSC_FILTROS_SALVOS=(s.exists&&s.data()&&s.data().lista)||[];
     nhRenderSalvos();
   }catch(e){console.warn('busca_filtros',e.message);}
+  await _radarCarregarTriagem();
+  /* Roda o Radar sozinho, pouco depois de abrir, para o contador do menu
+     já mostrar quantas novas há. Repetir o loadAll não repete a consulta:
+     o Radar guarda o resultado por 15 minutos. */
+  if(_radarBuscas().length)setTimeout(function(){nhRadar(false);},8000);
+  else _radarPintar();
+  /* Enquanto o sistema fica aberto, o Radar confere de novo sozinho. */
+  if(!window._radarRelogio)window._radarRelogio=setInterval(function(){if(_radarBuscas().length)nhRadar(true);},30*60000);
 }
 
 /* ── Filtros salvos ─────────────────────────────────────────────── */
@@ -14843,13 +14927,16 @@ function _bscLerFiltros(){
     srp:document.getElementById('bsc-srp').checked};
 }
 async function nhSalvarFiltro(){
+  if(BSC_CANAL==='radar'){toast('Para salvar uma busca nova, saia do Radar e monte a busca em "Recebendo proposta".','err');return;}
   var nome=prompt('Nome para esta busca:');
   if(!nome)return;
   BSC_FILTROS_SALVOS=BSC_FILTROS_SALVOS.filter(function(f){return f.nome!==nome;});
-  BSC_FILTROS_SALVOS.push({nome:nome,f:_bscLerFiltros()});
+  /* Busca salva já entra vigiada no Radar — é para isso que se salva. */
+  BSC_FILTROS_SALVOS.push({nome:nome,f:_bscLerFiltros(),radar:true});
   try{
     await db.collection('config').doc('busca_filtros').set({lista:BSC_FILTROS_SALVOS});
-    nhRenderSalvos();toast('✅ Busca salva','ok');
+    nhRenderSalvos();toast('✅ Busca salva e ligada no Radar 📡','ok');
+    RADAR_EM=0;nhRadar(true);
   }catch(e){toast('Não consegui salvar: '+e.message,'err');}
 }
 function nhRenderSalvos(){
@@ -14858,6 +14945,7 @@ function nhRenderSalvos(){
   if(!BSC_FILTROS_SALVOS.length){el.innerHTML='<div style="font-size:11px;color:var(--t3)">Nenhuma busca salva ainda.</div>';return;}
   el.innerHTML=BSC_FILTROS_SALVOS.map(function(f,i){
     return '<div style="display:flex;gap:4px;align-items:center">'+
+      '<button class="bsc-mini bsc-radar-tg'+(f.radar?' on':'')+'" onclick="nhRadarLigar('+i+')" title="'+(f.radar?'Vigiada pelo Radar — clique para desligar':'Fora do Radar — clique para vigiar esta busca')+'">&#128225;</button>'+
       '<button class="bsc-mini" style="flex:1;text-align:left" onclick="nhCarregarFiltro('+i+')">'+esc0(f.nome)+'</button>'+
       '<button class="bsc-mini" style="padding:7px 9px" onclick="nhExcluirFiltro('+i+')" title="Excluir">&times;</button></div>';
   }).join('');
@@ -14877,7 +14965,7 @@ function nhCarregarFiltro(i){
 }
 async function nhExcluirFiltro(i){
   BSC_FILTROS_SALVOS.splice(i,1);
-  try{await db.collection('config').doc('busca_filtros').set({lista:BSC_FILTROS_SALVOS});nhRenderSalvos();}
+  try{await db.collection('config').doc('busca_filtros').set({lista:BSC_FILTROS_SALVOS});nhRenderSalvos();RADAR_EM=0;nhRadar(true);}
   catch(e){toast('Erro: '+e.message,'err');}
 }
 function nhLimparFiltros(){
@@ -14890,6 +14978,265 @@ function nhLimparFiltros(){
     var el=document.getElementById(id);if(el)el.checked=false;});
   nhSetModo('ou');
   if(BSC_BRUTO.length)nhRenderResultados();
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   RADAR — 20/10/2026
+   Pedido do cliente, depois de ver o Crivya: "o radar do sistema deles
+   tinha que ser integrado com o nosso buscador". Por isso o Radar não
+   é outra tela: é o quarto canal do Buscador. Ele roda sozinho as
+   buscas salvas que estão com o 📡 ligado, junta tudo numa lista só e
+   diz em cada licitação POR QUE ela apareceu ("casou com: limpeza").
+   A equipe tria num clique — Tenho interesse / Descartar — e o número
+   no menu mostra quantas ainda faltam triar.
+   - Só olha o que ainda recebe proposta: radar é para o que dá tempo
+     de disputar.
+   - Uma consulta ao PNCP por estado+modalidade, não uma por busca.
+   - A triagem fica em radar_triagem/geral (um documento só, um mapa por
+     licitação: uma leitura por abertura, sem ler coleção inteira) e só
+     a equipe lê — as buscas salvas ficam em config, que a empresa
+     cliente também consegue ler.
+   ══════════════════════════════════════════════════════════════════ */
+var RADAR_DADOS=[], RADAR_TRI={}, RADAR_EM=0, RADAR_FILTRO='nova', RADAR_JANELA=0;
+var RADAR_AVISO='', RADAR_TRI_ERRO='', _radarRodando=false, _radarDeNovo=false, _bscAntesRadar=null;
+var RADAR_PAGINAS=20;   /* 20 páginas x 50 = 1.000 licitações por estado+modalidade */
+
+function _radarDoc(){return db.collection('radar_triagem').doc('geral');}
+function _radarBuscas(){return (BSC_FILTROS_SALVOS||[]).filter(function(s){return s&&s.radar&&s.f;});}
+function _radarNorm(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();}
+function _radarAttr(s){return esc0(s).replace(/"/g,'&quot;');}
+function _radarErro(err){
+  var m=(err&&err.message)||'erro';
+  return /permission|insufficient/i.test(m)?'falta publicar a regra nova do Firestore (radar_triagem).':m;
+}
+function _radarModNome(cod){
+  var o=document.querySelector('#bsc-modalidade option[value="'+cod+'"]');
+  return o?o.textContent:'modalidade '+cod;
+}
+
+/* Casa a licitação com UMA busca salva, com as regras do Buscador
+   (Qualquer / Todas / Frase exata, "sem estas palavras", valor, SRP).
+   Devolve as palavras que casaram — é o "porquê" do card — ou null.
+   Sem acento dos dois lados: "manutencao" acha "MANUTENÇÃO". */
+function _radarCasou(e,f){
+  var alvo=_radarNorm(String(e.objetoCompra||'')+' '+String((e.orgaoEntidade||{}).razaoSocial||'')+' '+
+    String((e.unidadeOrgao||{}).municipioNome||''));
+  var orig=String(f.termo||'').trim().toLowerCase().split(/\s+/).filter(Boolean);
+  var achou=[];
+  if(orig.length){
+    if(f.modo==='exato'){
+      if(alvo.indexOf(_radarNorm(f.termo).trim())<0)return null;
+      achou=[String(f.termo).trim()];
+    }else{
+      achou=orig.filter(function(t){return alvo.indexOf(_radarNorm(t))>=0;});
+      if(f.modo==='e'?achou.length<orig.length:!achou.length)return null;
+    }
+  }
+  var excl=_radarNorm(f.excluir).split(/[,;]+/).map(function(t){return t.trim();}).filter(Boolean);
+  if(excl.some(function(t){return alvo.indexOf(t)>=0;}))return null;
+  var v=parseFloat(e.valorTotalEstimado)||0,vmin=parseFloat(f.vmin)||0,vmax=parseFloat(f.vmax)||0;
+  if(vmin&&v<vmin)return null;
+  if(vmax&&v>vmax)return null;
+  if(f.srp&&!e.srp)return null;
+  return achou;
+}
+
+async function nhRadar(forcar){
+  if(_radarRodando){if(forcar)_radarDeNovo=true;return;}
+  var buscas=_radarBuscas();
+  if(!buscas.length){RADAR_DADOS=[];RADAR_EM=0;RADAR_AVISO='';_radarPintar();return;}
+  if(!forcar&&RADAR_EM&&Date.now()-RADAR_EM<15*60000){_radarPintar();return;}
+  _radarRodando=true;
+  var st=document.getElementById('bsc-status'),btn=document.getElementById('bsc-radar-btn');
+  if(btn){btn.disabled=true;btn.textContent='Atualizando...';}
+  if(BSC_CANAL==='radar')_radarPintar();
+  try{
+    var grupos={},ordem=[];
+    buscas.forEach(function(s){
+      var k=(s.f.uf||'')+'|'+(s.f.modalidade||'');
+      if(!grupos[k]){grupos[k]=[];ordem.push(k);}
+      grupos[k].push(s);
+    });
+    var dFim=_bscData(_bscMaisDias(90)),porId={},falhas=[],cortes=[];
+    for(var g=0;g<ordem.length;g++){
+      var k=ordem[g],p=k.split('|'),lista=[],tot=1;
+      if(BSC_CANAL==='radar'&&st){st.style.color='var(--nh)';
+        st.textContent='Rodando o Radar'+(ordem.length>1?' ('+(g+1)+' de '+ordem.length+')':'')+'...';}
+      try{
+        for(var pg=1;pg<=Math.min(tot,RADAR_PAGINAS);pg++){
+          var r=await nhPncpFetch('https://pncp.gov.br/api/consulta/v1/contratacoes/proposta?tamanhoPagina=50&pagina='+pg+
+            '&dataFinal='+dFim+(p[1]?'&codigoModalidadeContratacao='+p[1]:'')+(p[0]?'&uf='+p[0]:''));
+          if(pg===1)tot=r.totalPaginas||1;
+          lista=lista.concat(r.data||[]);
+          /* Folga entre páginas: o PNCP corta quem pede rápido demais. */
+          if(pg<Math.min(tot,RADAR_PAGINAS))await new Promise(function(ok){setTimeout(ok,250);});
+        }
+        if(tot>RADAR_PAGINAS)cortes.push(k);
+      }catch(err){falhas.push(k);}
+      lista.forEach(function(e){
+        var casos=[];
+        grupos[k].forEach(function(s){var w=_radarCasou(e,s.f);if(w)casos.push({nome:s.nome,palavras:w});});
+        if(!casos.length)return;
+        var id=nhBscId(e);
+        if(porId[id])porId[id]._radar=porId[id]._radar.concat(casos);
+        else{e._radar=casos;porId[id]=e;}
+      });
+    }
+    RADAR_DADOS=Object.keys(porId).map(function(id){return porId[id];});
+    RADAR_EM=Date.now();
+    var nomeG=function(k){var q=k.split('|');return (q[0]||'Brasil todo')+(q[1]?' / '+_radarModNome(q[1]):'');};
+    RADAR_AVISO=(falhas.length?'O PNCP não respondeu para '+falhas.map(nomeG).join(', ')+': a lista pode estar incompleta. ':'')+
+      (cortes.length?'Em '+cortes.map(nomeG).join(', ')+' há mais de '+(RADAR_PAGINAS*50)+
+        ' licitações abertas e o Radar olhou só as primeiras. Escolha estado e modalidade nessa busca. ':'');
+  }finally{
+    _radarRodando=false;
+    if(btn){btn.disabled=false;btn.innerHTML='&#8635; Atualizar agora';}
+    if(BSC_CANAL==='radar'&&st)st.textContent='';
+  }
+  _radarPintar();
+  if(_radarDeNovo){_radarDeNovo=false;nhRadar(true);}
+}
+
+function _radarSit(e){
+  if(nhJaCapturado(e))return 'capturada';
+  var t=RADAR_TRI[nhBscId(e)];
+  return (t&&t.s)||'nova';
+}
+function _radarAberta(e){var d=_bscPrazo(e);return d===null||d>=0;}
+function _radarFiltrar(lista){
+  return lista.filter(function(e){
+    if(!_radarAberta(e))return false;
+    if(RADAR_FILTRO!=='todas'&&_radarSit(e)!==RADAR_FILTRO)return false;
+    if(RADAR_JANELA){var d=_bscPrazo(e);if(d===null||d>RADAR_JANELA)return false;}
+    return true;
+  });
+}
+function nhRadarFiltro(v){RADAR_FILTRO=v;_radarPintar();}
+function nhRadarJanela(v){RADAR_JANELA=parseInt(v,10)||0;_radarPintar();}
+
+/* Contador do menu, subtítulo do canal e — se o Radar está aberto — a
+   triagem e a lista. */
+function _radarPintar(){
+  var buscas=_radarBuscas(),n={nova:0,interesse:0,descartada:0,capturada:0,todas:0};
+  RADAR_DADOS.forEach(function(e){if(!_radarAberta(e))return;n.todas++;var s=_radarSit(e);n[s]=(n[s]||0)+1;});
+  var b=document.getElementById('b-radar');
+  if(b){b.textContent=n.nova;b.style.display=n.nova?'':'none';}
+  var sub=document.getElementById('bsc-radar-sub');
+  if(sub)sub.innerHTML=!buscas.length?'ligue o &#128225; numa busca salva':
+    !RADAR_EM?'vigiando '+buscas.length+(buscas.length===1?' busca':' buscas'):
+    n.nova?'<b>'+n.nova+'</b> '+(n.nova===1?'nova para triar':'novas para triar'):'nada novo para triar';
+  if(BSC_CANAL!=='radar')return;
+
+  var bt=function(fn,val,atual,rot,qt){
+    return '<button class="'+(String(val)===String(atual)?'on':'')+'" onclick="'+fn+'(\''+val+'\')">'+rot+
+      (qt!==undefined?'<b>'+qt+'</b>':'')+'</button>';};
+  document.getElementById('bsc-radar-tri').innerHTML=
+    bt('nhRadarFiltro','nova',RADAR_FILTRO,'Novas',n.nova)+
+    bt('nhRadarFiltro','interesse',RADAR_FILTRO,'Com interesse',n.interesse)+
+    bt('nhRadarFiltro','descartada',RADAR_FILTRO,'Descartadas',n.descartada)+
+    bt('nhRadarFiltro','capturada',RADAR_FILTRO,'J&aacute; no sistema',n.capturada)+
+    bt('nhRadarFiltro','todas',RADAR_FILTRO,'Todas',n.todas);
+  document.getElementById('bsc-radar-jan').innerHTML=
+    bt('nhRadarJanela',0,RADAR_JANELA,'Qualquer prazo')+
+    bt('nhRadarJanela',7,RADAR_JANELA,'Encerra em 7 dias')+
+    bt('nhRadarJanela',15,RADAR_JANELA,'15 dias')+
+    bt('nhRadarJanela',30,RADAR_JANELA,'30 dias');
+  var hora=RADAR_EM?new Date(RADAR_EM).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'';
+  document.getElementById('bsc-radar-info').innerHTML=buscas.length
+    ?'Vigiando <b>'+buscas.map(function(s){return esc0(s.nome);}).join('</b>, <b>')+'</b>'+
+      (hora?' &middot; atualizado &agrave;s '+hora:'')+
+      (RADAR_AVISO?'<br><span style="color:#f59e0b">'+esc0(RADAR_AVISO)+'</span>':'')+
+      (RADAR_TRI_ERRO?'<br><span style="color:#ef4444">Triagem indispon&iacute;vel: '+esc0(RADAR_TRI_ERRO)+'</span>':'')
+    :'Nenhuma busca no Radar ainda.';
+  BSC_BRUTO=RADAR_DADOS;
+  nhRenderResultados();
+}
+
+function _radarVazio(){
+  if(!_radarBuscas().length)return '<div class="bsc-vazio"><span class="ic">&#128225;</span>O Radar vigia as suas <b>buscas salvas</b> e mostra cada licita&ccedil;&atilde;o nova que casar com elas.'+
+    '<br><span style="font-size:12px">Monte uma busca em <b>Recebendo proposta</b> e clique em <b>&#128190; Salvar</b>: ela j&aacute; entra no Radar. '+
+    'Nas buscas que voc&ecirc; j&aacute; tem, ligue o <b>&#128225;</b> ao lado do nome.</span></div>';
+  if(_radarRodando||!RADAR_EM)return '<div class="bsc-vazio"><span class="ic">&#128225;</span>Rodando o Radar nas suas buscas...</div>';
+  if(!RADAR_DADOS.length)return '<div class="bsc-vazio"><span class="ic">&#128225;</span>Nenhuma licita&ccedil;&atilde;o recebendo proposta casou com as suas buscas agora.'+
+    '<br><span style="font-size:12px">O Radar confere de novo a cada 30 minutos enquanto o sistema est&aacute; aberto.</span></div>';
+  if(RADAR_FILTRO==='nova'&&!RADAR_JANELA)return '<div class="bsc-vazio"><span class="ic">&#9989;</span>Tudo triado. Nenhuma licita&ccedil;&atilde;o nova esperando.</div>';
+  return '<div class="bsc-vazio"><span class="ic">&#128225;</span>Nada neste filtro.</div>';
+}
+
+/* Pedaços do card do Buscador quando ele mostra o Radar. */
+function _radarCard(e,id,jaCap){
+  var t=RADAR_TRI[id]||null, sit=jaCap?'capturada':((t&&t.s)||'nova');
+  var motivo=(e._radar||[]).map(function(c){
+    var pal=(c.palavras||[]).length
+      ?'<b>&ldquo;'+c.palavras.map(esc0).join('&rdquo;</b>, <b>&ldquo;')+'&rdquo;</b>'
+      :'<b>estado e modalidade</b> (busca sem palavra-chave)';
+    return pal+' <span>&middot; busca '+esc0(c.nome)+'</span>';
+  }).join('<br>');
+  var quem=t?_radarAttr('Marcado por '+(t.por||'equipe')+(t.em?' em '+new Date(t.em).toLocaleDateString('pt-BR'):'')):'';
+  var tag='';
+  if(sit==='interesse')tag='<span class="bsc-tag" style="background:rgba(34,197,94,.14);color:#22c55e;border:1px solid rgba(34,197,94,.4)" title="'+quem+'">&#9733; Interesse</span>';
+  else if(sit==='descartada')tag='<span class="bsc-tag" style="background:rgba(148,163,184,.14);color:var(--t2);border:1px solid rgba(148,163,184,.4)" title="'+quem+'">Descartada</span>';
+  else if(sit==='nova')tag='<span class="bsc-tag" style="background:var(--nha);color:var(--nh);border:1px solid rgba(249,115,22,.4)">Nova</span>';
+  var botoes=jaCap?'':
+    '<button class="bsc-a tri int'+(sit==='interesse'?' on':'')+'" onclick="nhRadarMarcar(\''+id+'\',\'interesse\')" title="'+(sit==='interesse'?'Clique para desfazer':'')+'">'+
+      (sit==='interesse'?'&#9733; Com interesse':'&#9734; Tenho interesse')+'</button>'+
+    '<button class="bsc-a tri desc'+(sit==='descartada'?' on':'')+'" onclick="nhRadarMarcar(\''+id+'\',\'descartada\')">'+
+      (sit==='descartada'?'Descartada &middot; desfazer':'Descartar')+'</button>';
+  return {tag:tag,cls:' tri-'+sit,motivo:'<div class="bsc-radar-mot">&#9678; Casou com '+motivo+'</div>',botoes:botoes};
+}
+
+/* Triagem: aparece na hora para quem clicou e fica gravada para a
+   equipe toda. Clicar de novo no mesmo botão desfaz. */
+async function nhRadarMarcar(id,s){
+  var e=RADAR_DADOS.filter(function(x){return nhBscId(x)===id;})[0];
+  var antes=RADAR_TRI[id], desfazer=!!(antes&&antes.s===s);
+  try{
+    if(desfazer){
+      delete RADAR_TRI[id];_radarPintar();
+      await _radarDoc().update(new firebase.firestore.FieldPath('itens',id),firebase.firestore.FieldValue.delete());
+    }else{
+      var fim=e&&e.dataEncerramentoProposta?new Date(e.dataEncerramentoProposta).getTime():0;
+      var u=auth.currentUser||{};
+      var reg={s:s,por:u.email||u.phoneNumber||'',em:Date.now(),fim:isNaN(fim)?0:fim};
+      RADAR_TRI[id]=reg;_radarPintar();
+      var it={};it[id]=reg;
+      await _radarDoc().set({itens:it},{merge:true});
+    }
+    RADAR_TRI_ERRO='';
+  }catch(err){
+    if(antes)RADAR_TRI[id]=antes;else delete RADAR_TRI[id];
+    _radarPintar();
+    toast('Não consegui gravar a triagem: '+_radarErro(err),'err');
+  }
+}
+
+async function _radarCarregarTriagem(){
+  try{
+    var d=await _radarDoc().get();
+    RADAR_TRI=(d.exists&&d.data()&&d.data().itens)||{};
+    RADAR_TRI_ERRO='';
+  }catch(err){RADAR_TRI_ERRO=_radarErro(err);console.warn('radar_triagem',err.message);return;}
+  /* Faxina: triagem de licitação encerrada há mais de 30 dias não serve
+     para nada e só engorda o documento (o limite é 1 MB). */
+  var agora=Date.now(),args=[];
+  Object.keys(RADAR_TRI).forEach(function(id){
+    var t=RADAR_TRI[id]||{};
+    if((t.fim&&t.fim<agora-30*86400000)||(!t.fim&&t.em&&t.em<agora-180*86400000)){
+      args.push(new firebase.firestore.FieldPath('itens',id),firebase.firestore.FieldValue.delete());
+      delete RADAR_TRI[id];
+    }
+  });
+  if(args.length){try{var ref=_radarDoc();await ref.update.apply(ref,args);}catch(err){console.warn('radar faxina',err.message);}}
+}
+
+async function nhRadarLigar(i){
+  var f=BSC_FILTROS_SALVOS[i];if(!f)return;
+  f.radar=!f.radar;nhRenderSalvos();
+  try{
+    await db.collection('config').doc('busca_filtros').set({lista:BSC_FILTROS_SALVOS});
+    toast(f.radar?'📡 "'+f.nome+'" entrou no Radar':'"'+f.nome+'" saiu do Radar','ok');
+    RADAR_EM=0;nhRadar(true);
+  }catch(e){f.radar=!f.radar;nhRenderSalvos();toast('Não consegui salvar: '+e.message,'err');}
 }
 
 /* ── Itens da licitação (cruzados com o nosso banco de preços) ───── */
@@ -17188,12 +17535,15 @@ function _pergPintarBotao(){
   var b = document.getElementById('nh-perg-flut');
   if(!b){
     b = document.createElement('button');
-    b.id = 'nh-perg-flut'; b.className = 'perg-flut';
+    b.id = 'nh-perg-flut'; b.className = 'perg-flut sb-item';
     b.onclick = nhAbrirPerguntas;
     _nhSbAlertas().appendChild(b);
   }
-  b.style.display = n ? '' : 'none';
-  b.innerHTML = '📨<span class="sb-rot"> Mensagens de clientes</span> <em>' + n + '</em>';
+  /* Item fixo do menu (20/10/2026): sumir e voltar fazia o menu pular. */
+  b.style.display = '';
+  b.classList.toggle('tem', !!n);
+  b.innerHTML = '<svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>' +
+    '<span>Mensagens de clientes</span>' + (n ? '<em class="sb-aviso">' + n + '</em>' : '');
   b.title = n + ' mensagem(ns) do Viabilidade esperando a NH';
 }
 
@@ -18637,6 +18987,7 @@ function _nhSbAlertas(){
   if(!topo) return document.body;
   box = document.createElement('div');
   box.id = 'sb-alertas'; box.className = 'sb-alertas';
+  box.innerHTML = '<div class="sb-section">Comunicação</div>';
   topo.parentNode.insertBefore(box, topo.nextSibling);
   return box;
 }
@@ -18650,14 +19001,19 @@ function _chatAtualizarFlutuante(){
      está o monitoramento?" veio no mesmo dia. Porta de entrada não pode
      depender de já ter entrado. */
   if(!b){
-    b = document.createElement('button'); b.id = 'nh-chat-flut'; b.className = 'chat-flut';
+    b = document.createElement('button'); b.id = 'nh-chat-flut'; b.className = 'chat-flut sb-item';
     b.onclick = function(){ chatAbrirPainel(); };
     _nhSbAlertas().appendChild(b);
   }
   var ativos = chaves.filter(function(k){ return CHAT_MON[k].ativo; }).length;
   var nl = 0, mc = 0;
   chaves.forEach(function(k){ var r = chatResumo(k); nl += r.naoLidas; if(r.naoLidas) mc += r.mencoes; });
-  b.innerHTML = '💬<span class="sb-rot"> Chats</span>' + (ativos ? ' <b>' + ativos + '</b>' : '') + (nl ? '<em class="' + (mc ? 'vermelho' : '') + '">' + nl + '</em>' : '');
+  /* Mesmo desenho dos itens do menu: ícone fino, nome, número à direita.
+     Número cinza = pregões vigiados; laranja = mensagens não lidas. */
+  b.classList.toggle('tem', !!nl);
+  b.innerHTML = '<svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>' +
+    '<span>Chat dos pregões</span>' +
+    (nl ? '<em class="sb-aviso' + (mc ? ' vermelho' : '') + '">' + nl + '</em>' : (ativos ? '<span class="sb-badge">' + ativos + '</span>' : ''));
   b.title = ativos ? (ativos + ' pregão(ões) monitorado(s)' + (nl ? ' · ' + nl + ' mensagem(ns) não lida(s)' : ''))
                    : 'Monitor de chat dos pregões — ative pelo botão 💬 no card de Editais Capturados ou Em Andamento';
   b.style.display = '';
@@ -23302,12 +23658,13 @@ body{font-size:15px}
    Referência mostrada pelo cliente (Crivya): "achei as letras e cores
    das empresas mais suaves". O destaque da empresa vem do NEGRITO e da
    posição (primeira coisa do card), não de um selo cheio colorido. A
-   cor da empresa fica numa bolinha antes do nome — reconhece de longe,
-   sem gritar. As cores de FUNDO do sistema não mudam (pedido explícito). */
+   cor da empresa fica numa BARRINHA vertical antes do nome. Era bolinha,
+   mas o card já usa bolinha para risco e prioridade e as duas se
+   confundiam (cliente, 20/10). As cores de FUNDO não mudam (pedido explícito). */
 .emp-badge{display:inline-flex!important;align-items:center;gap:7px;background:none!important;border:0!important;
   padding:0!important;border-radius:0!important;box-shadow:none!important;color:var(--t1)!important;
   font-size:14px!important;font-weight:800!important;letter-spacing:.02em!important;text-transform:uppercase}
-.emp-badge::before{content:'';width:9px;height:9px;border-radius:50%;background:var(--ec,#64748b);flex-shrink:0}
+.emp-badge::before{content:'';width:4px;height:16px;border-radius:2px;background:var(--ec,#64748b);flex-shrink:0}
 /* Uma fonte só em todo o sistema: a mistura com a fonte de código nos
    números era parte do "pesado". Algarismos de largura igual mantêm as
    colunas alinhadas. */
