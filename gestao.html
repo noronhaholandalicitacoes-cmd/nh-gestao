@@ -19909,15 +19909,24 @@ function _hjColetar(){
   function chaveSessao(a,d){return propNorm(String(a[3]||'')).slice(0,40)+'|'+_hjMeiaNoite(d).getTime();}
   /* Em Andamento primeiro: se o mesmo processo ainda está em Editais
      Capturados, a sessão aparece uma vez só. */
+  /* ⚠️ SÓ O QUE ESTÁ REALMENTE EM ANDAMENTO — 20/10/2026.
+     O card de Recursos mostrava 18, "mas a maioria são de processos
+     finalizados". ALL.andamento guarda também as linhas com ADJU = sim
+     (que a aba Em Andamento esconde: já foram para Finalizados), e o
+     status pode ter fechado sem o ADJU mudar. Mesmas regras da aba e
+     do Portal de Contratos (pProcessoAtivo). */
+  var ENCERRA=['adjudicado','cancelado','desclassificado','inabilitado','ganha','finalizado','perdido','deserto','fracassado'];
   (ALL.andamento||[]).forEach(function(a){
     if(!_hjVisivel(a))return;
+    if(String(a[16]||'').toLowerCase().trim()==='sim')return;      /* ADJU: já está em Finalizados */
+    var ativo=ENCERRA.indexOf(String(a[12]||'').toLowerCase().trim())<0;
     [[a[10],'Disputa'],[a[13],'Reabertura']].forEach(function(p){
       var d=_hjData(p[0]),n=_hjDias(d);
       if(n===null||n<0||n>1)return;
       vistas[chaveSessao(a,d)]=1;
       r.sessoes.push({aba:'andamento',a:a,d:d,n:n,tipo:p[1]});
     });
-    if(String(a[14]||'').trim().toLowerCase()==='sim')r.recursos.push({aba:'andamento',a:a});
+    if(ativo&&String(a[14]||'').trim().toLowerCase()==='sim')r.recursos.push({aba:'andamento',a:a});
   });
   (ALL.editais||[]).forEach(function(a){
     if(_editalCancelado(a)||!_hjVisivel(a))return;
