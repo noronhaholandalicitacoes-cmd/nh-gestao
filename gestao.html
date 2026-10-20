@@ -1304,24 +1304,53 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 .bsc-radar-tg{padding:7px 9px!important;opacity:.4;filter:grayscale(1)}
 .bsc-radar-tg.on{opacity:1;filter:none;border-color:var(--nh)!important;background:var(--nha)!important}
 
-/* ── HOJE (20/10/2026) — versão limpa: um card por assunto, recolhido ── */
-#hoje-body{max-width:880px}
+/* ── HOJE (20/10/2026) — painel de cards retangulares ────────────────
+   Mesmo desenho dos indicadores do portal geral: fio da cor no topo,
+   ícone num quadrado da mesma cor, número grande em branco. Card
+   deitado (pedido do cliente: "melhor, mas tenta os cards
+   retangular"): à esquerda o assunto e o número, à direita os três
+   primeiros itens. Dois por linha, todos do mesmo tamanho. */
 .hj-cab{margin:2px 0 18px}
 .hj-dia{font-size:22px;font-weight:800;color:var(--t1);letter-spacing:-.2px;line-height:1.2}
 .hj-sub{font-size:14px;color:var(--t3);margin-top:3px}
-.hj-sec{background:var(--s1);border:1px solid var(--b1);border-radius:14px;margin-bottom:10px;overflow:hidden}
-.hj-sec-cab{display:flex;align-items:center;gap:12px;width:100%;padding:15px 18px;background:none;border:0;
-  cursor:pointer;font:inherit;text-align:left;color:var(--t1)}
-.hj-sec-cab:hover{background:var(--s2)}
-.hj-sec-tit{font-size:15px;font-weight:700;white-space:nowrap}
-.hj-sec-n{font-size:12.5px;font-weight:700;color:var(--t2);background:var(--s2);border-radius:20px;padding:1px 9px;min-width:24px;text-align:center}
-.hj-sec-n.quente{color:var(--nh);background:var(--nha)}
-.hj-sec-res{flex:1;min-width:0;font-size:13px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hj-sec-seta{color:var(--t3);font-size:12px;transition:transform .2s}
-.hj-sec.aberta .hj-sec-seta{transform:rotate(180deg)}
-.hj-sec-corpo{display:none;border-top:1px solid var(--b1)}
-.hj-sec.aberta .hj-sec-corpo{display:block}
-.hj-l{display:flex;align-items:center;gap:14px;padding:11px 18px;border-bottom:1px solid var(--b1)}
+.hj-grade{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media(max-width:1180px){.hj-grade{grid-template-columns:1fr}}
+.hj-card{position:relative;overflow:hidden;min-height:190px;display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);grid-template-rows:auto auto 1fr auto;
+  grid-template-areas:"cab mini" "n mini" "sub mini" "pe mini";column-gap:24px;
+  align-items:start;text-align:left;padding:22px 24px;border-radius:16px;background:var(--s1);border:1px solid var(--b1);
+  color:var(--t1);font:inherit;cursor:pointer;transition:border-color .2s,transform .2s,box-shadow .2s}
+.hj-card-cab{grid-area:cab}
+.hj-card-n{grid-area:n}
+.hj-card-sub{grid-area:sub}
+.hj-card-pe{grid-area:pe}
+.hj-card-mini{grid-area:mini}
+.hj-card:hover{border-color:var(--hc);transform:translateY(-2px);box-shadow:0 12px 30px -14px rgba(0,0,0,.7)}
+.hj-card-fio{position:absolute;top:0;left:0;right:0;height:3px;background:var(--hc);opacity:.85}
+.hj-card-cab{display:flex;align-items:center;gap:10px;margin-top:2px}
+.hj-card-ic{width:34px;height:34px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;flex:none;
+  background:var(--hcf);color:var(--hc)}
+.hj-card-ic svg{width:18px;height:18px}
+.hj-card-tit{font-size:12.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--t2);line-height:1.25}
+.hj-card-n{font-size:46px;font-weight:900;line-height:1;letter-spacing:-1px;margin-top:16px;font-variant-numeric:tabular-nums;color:var(--t1)}
+.hj-card.quente .hj-card-n{color:var(--hc)}
+.hj-card-sub{font-size:13px;color:var(--t2);margin-top:6px;line-height:1.4}
+.hj-card-mini{display:flex;flex-direction:column;justify-content:center;gap:10px;width:100%;height:100%;
+  padding-left:22px;border-left:1px solid var(--b1)}
+.hj-mini-vazio{font-size:13px;color:var(--t3)}
+.hj-mini{display:flex;align-items:baseline;gap:8px;min-width:0;font-size:12.5px;color:var(--t2)}
+.hj-mini b{flex:none;min-width:40px;font-weight:700;color:var(--t3);font-variant-numeric:tabular-nums}
+.hj-mini b.quente{color:var(--nh)}
+.hj-mini b.atraso{color:#f87171}
+.hj-mini span{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;min-width:0}
+.hj-card-pe{margin-top:10px;font-size:12px;font-weight:700;color:var(--hc)}
+.hj-card.vazio{opacity:.55}
+/* Janela com a lista inteira de um card */
+.hj-det .chat-cab{gap:10px}
+.hj-det .hj-card-ic{width:30px;height:30px}
+.hj-det-n{font-size:12.5px;font-weight:700;color:var(--t2);background:var(--s1);border-radius:20px;padding:1px 9px}
+.hj-det-corpo{overflow-y:auto;max-height:70vh}
+.hj-l{display:flex;align-items:center;gap:14px;padding:12px 18px;border-bottom:1px solid var(--b1)}
 .hj-l:last-child{border-bottom:0}
 .hj-l[role=button]{cursor:pointer}
 .hj-l[role=button]:hover{background:var(--s2)}
@@ -1339,12 +1368,14 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
   cursor:pointer;font-size:14px;line-height:1;font-family:inherit}
 .hj-ic:hover{color:var(--nh);border-color:rgba(249,115,22,.4)}
 .hj-ic.ok:hover{color:#22c55e;border-color:rgba(34,197,94,.45)}
-.hj-vazio{padding:14px 18px;font-size:13px;color:var(--t3);line-height:1.6}
+.hj-vazio{padding:18px;font-size:13.5px;color:var(--t3);line-height:1.6}
 .hj-tudo-ok{text-align:center;padding:40px 20px;color:var(--t3);font-size:14.5px;line-height:1.7}
 .hj-tudo-ok b{display:block;font-size:18px;color:var(--t1);margin-bottom:2px}
 @media(max-width:620px){
-  .hj-sec-res{display:none}
-  .hj-sec-cab{padding:14px}
+  .hj-grade{grid-template-columns:1fr;gap:10px}
+  .hj-card{grid-template-columns:1fr;grid-template-rows:auto;grid-template-areas:"cab" "n" "sub";min-height:0;padding:16px}
+  .hj-card-n{font-size:34px;margin-top:12px}
+  .hj-card-mini,.hj-card-pe{display:none}
   .hj-l{padding:11px 14px;gap:10px}
   .hj-l-q{width:44px}
 }
@@ -19961,34 +19992,30 @@ function nhHojeBadge(){
 }
 
 /* ── Desenha a tela ─────────────────────────────────────────────── */
-/* ⚠️ VERSÃO LIMPA — 20/10/2026 (mesmo dia da primeira).
-   A primeira tinha duas colunas, quatro números no topo e dois botões em
-   cada linha. Cliente: "achei muito carregado, deu até dor de cabeça...
-   dentro de cards que se recolhem, estou prezando por imagens mais
-   limpas". Agora: uma coluna; cada assunto é UMA linha com o total e
-   uma frase do mais urgente, e os detalhes ficam recolhidos (o que está
-   aberto fica lembrado neste aparelho). Linha aberta: clicar abre o
-   processo; sobra um botão discreto (➜ próxima ação, ou ✓ concluir).
-   Cor só onde o prazo é hoje ou já passou. */
-var _hjAbertas=(function(){try{return JSON.parse(localStorage.getItem('nh_hoje_abertas')||'{}')||{};}catch(e){return {};}})();
-function _hjToggle(id){
-  _hjAbertas[id]=!_hjAbertas[id];
-  try{localStorage.setItem('nh_hoje_abertas',JSON.stringify(_hjAbertas));}catch(e){}
-  var s=document.getElementById('hj-'+id);if(!s)return;
-  s.classList.toggle('aberta',!!_hjAbertas[id]);
-  var bt=s.querySelector('.hj-sec-cab');if(bt)bt.setAttribute('aria-expanded',_hjAbertas[id]?'true':'false');
+/* ⚠️ HOJE EM CARDS — 20/10/2026 (terceira versão do dia; cards deitados a pedido).
+   1ª: duas colunas de listas → "muito carregado, deu dor de cabeça".
+   2ª: uma coluna de cards recolhidos → "horrível... coloca no modelo
+   dashboard, cards quadrados distribuídos na tela toda".
+   Agora: a tela é um painel. Cada assunto é um card retangular, todos do
+   mesmo tamanho, enchendo a largura: ícone, nome, um número grande, a
+   frase do mais urgente e os três primeiros itens. Clicar no card abre
+   a lista inteira numa janela, com os botões de ação. Card sem nada
+   fica apagado, mas no lugar — painel que muda de forma todo dia não
+   se aprende. Mesmo desenho dos indicadores do portal geral. */
+var HJ_ICONES = {
+  sessoes:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  decidir:'<circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 015.8 1c0 2-3 3-3 3M12 17h.01"/>',
+  acoes:'<path d="M5 12h14M12 5l7 7-7 7"/>',
+  msg:'<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>',
+  tarefas:'<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>',
+  recursos:'<path d="M12 3v18M5 7h14M7 7l-4 8a4 4 0 008 0zM17 7l-4 8a4 4 0 008 0z"/>',
+  contratos:'<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 15l2 2 4-4"/>',
+  certs:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'
+};
+function _hjIcone(k){
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+(HJ_ICONES[k]||'')+'</svg>';
 }
-function _hjSec(id,tit,n,resumo,corpo,quente){
-  var ab=!!_hjAbertas[id];
-  return '<section class="hj-sec'+(ab?' aberta':'')+'" id="hj-'+id+'">'+
-    '<button type="button" class="hj-sec-cab" aria-expanded="'+ab+'" onclick="_hjToggle(\''+id+'\')">'+
-      '<span class="hj-sec-tit">'+tit+'</span>'+
-      '<span class="hj-sec-n'+(quente?' quente':'')+'">'+n+'</span>'+
-      '<span class="hj-sec-res">'+resumo+'</span>'+
-      '<span class="hj-sec-seta" aria-hidden="true">&#9662;</span>'+
-    '</button><div class="hj-sec-corpo">'+corpo+'</div></section>';
-}
-/* Uma linha: quando · o quê (empresa e detalhe embaixo, em cinza) · um botão. */
+/* Uma linha da lista completa (na janela): quando · o quê · um botão. */
 function _hjLinha(o){
   return '<div class="hj-l"'+(o.abrir?' role="button" tabindex="0" onclick="'+o.abrir+'" onkeydown="if(event.key===\'Enter\')this.click()"':'')+'>'+
     '<span class="hj-l-q'+(o.qcls?' '+o.qcls:'')+'">'+o.quando+'</span>'+
@@ -19997,7 +20024,7 @@ function _hjLinha(o){
       (o.sub||[]).filter(Boolean).map(function(x){return '<span>'+x+'</span>';}).join('')+'</span></span>'+
     (o.bt?'<span class="hj-l-bt">'+o.bt+'</span>':'')+'</div>';
 }
-function _hjAbrirJs(aba,id){return "_hjAbrir('"+aba+"','"+_kcEsc(id)+"')";}
+function _hjAbrirJs(aba,id){return "_hjFecharDet();_hjAbrir('"+aba+"','"+_kcEsc(id)+"')";}
 function _hjBtAcao(aba,id){
   if(_hjSoLeitura())return '';
   var p=PROX_ACAO[_paChave(aba,id)];
@@ -20011,6 +20038,8 @@ function _hjBtFeita(js){
   return _hjSoLeitura()?'':'<button type="button" class="hj-ic ok" title="Marcar como feita" aria-label="Feita" onclick="event.stopPropagation();'+js+'">&#10003;</button>';
 }
 
+/* ── Os cards ──────────────────────────────────────────────────── */
+var HJ_CARDS={}, _hjDetAberto=null;
 function nhHojeMontar(){
   var el=document.getElementById('hoje-body');if(!el)return;
   /* Só desenha com os dados E a lista de restritos já carregados: sem
@@ -20026,120 +20055,137 @@ function nhHojeMontar(){
   var b=document.getElementById('b-hoje');if(b){b.textContent=r.urgente;b.style.display=r.urgente?'':'none';}
   var dia=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
   dia=dia.charAt(0).toUpperCase()+dia.slice(1);
-  var cab='<div class="hj-cab"><div class="hj-dia">'+esc0(dia)+'</div><div class="hj-sub">'+
-    (r.urgente?r.urgente+' '+(r.urgente===1?'coisa pede':'coisas pedem')+' a&ccedil;&atilde;o hoje':'Nada vence hoje')+
-    (PROX_ACAO_ERRO?' &middot; <span style="color:#f87171">pr&oacute;ximas a&ccedil;&otilde;es indispon&iacute;veis: '+esc0(PROX_ACAO_ERRO)+'</span>':'')+'</div></div>';
-  var secs=[];
+  var cards=[];
+  /* mini: [quando, texto, classe] dos três primeiros. */
+  function card(o){cards.push(o);HJ_CARDS[o.id]=o;}
 
-  /* Sessões de hoje e amanhã */
-  if(r.sessoes.length){
-    var s0=r.sessoes[0],h0=_hjHora(s0.d);
-    secs.push(_hjSec('sessoes','Sess&otilde;es',r.sessoes.length,
-      'a pr&oacute;xima: '+(s0.n===0?'hoje':'amanh&atilde;')+(h0?' &agrave;s '+h0:'')+' &middot; '+esc0(String(s0.a[2]||''))+' &middot; '+esc0(_hjCurto(s0.a[3],48)),
-      r.sessoes.map(function(s){
-        var a=s.a,h=_hjHora(s.d),semDecisao=s.aba==='editais'&&!_editalTratado(a);
-        var portal=String((s.aba==='editais'?a[15]:a[9])||'').trim();
-        return _hjLinha({quando:h||'—',qcls:s.n===0?'quente':'',tit:String(a[3]||a[4]||'Processo #'+a[0]),emp:String(a[2]||'').trim(),
-          sub:[s.n===0?'hoje':'amanh&atilde;',s.tipo==='Sessão'?'':s.tipo,esc0(portal),
-            semDecisao?'<b class="hj-alerta">sem decis&atilde;o</b>':'',_hjSubAcao(s.aba,a[0])],
-          abrir:_hjAbrirJs(s.aba,a[0]),bt:_hjBtAcao(s.aba,a[0])});
-      }).join(''),r.sessoes.some(function(s){return s.n===0;})));
-  }
+  var sHoje=r.sessoes.filter(function(s){return s.n===0;}).length;
+  card({id:'sessoes',tit:'Sessões',cor:'#f97316',n:r.sessoes.length,quente:sHoje>0,
+    sub:r.sessoes.length?[sHoje?sHoje+' hoje':'',r.sessoes.length-sHoje?(r.sessoes.length-sHoje)+' amanhã':''].filter(Boolean).join(' · '):'nenhuma hoje nem amanhã',
+    mini:r.sessoes.slice(0,3).map(function(s){return [_hjHora(s.d)||(s.n===0?'hoje':'amanhã'),String(s.a[2]||'')+' · '+String(s.a[3]||''),s.n===0?'quente':''];}),
+    linhas:r.sessoes.map(function(s){
+      var a=s.a,h=_hjHora(s.d),semDecisao=s.aba==='editais'&&!_editalTratado(a);
+      var portal=String((s.aba==='editais'?a[15]:a[9])||'').trim();
+      return _hjLinha({quando:h||'—',qcls:s.n===0?'quente':'',tit:String(a[3]||a[4]||'Processo #'+a[0]),emp:String(a[2]||'').trim(),
+        sub:[s.n===0?'hoje':'amanhã',s.tipo==='Sessão'?'':s.tipo,esc0(portal),semDecisao?'<b class="hj-alerta">sem decisão</b>':'',_hjSubAcao(s.aba,a[0])],
+        abrir:_hjAbrirJs(s.aba,a[0]),bt:_hjBtAcao(s.aba,a[0])});
+    })});
 
-  /* Editais sem decisão com sessão nos próximos 7 dias */
-  if(r.decidir.length){
-    var d0=r.decidir[0];
-    secs.push(_hjSec('decidir','Decidir se participa',r.decidir.length,
-      'sess&atilde;o mais pr&oacute;xima '+_hjRel(d0.n)+' &middot; '+esc0(_hjCurto(d0.a[3],52)),
-      r.decidir.map(function(s){
-        var a=s.a;
-        return _hjLinha({quando:_hjDdMm(s.d),qcls:s.n<=1?'quente':'',tit:String(a[3]||a[4]||'Edital #'+a[0]),emp:String(a[2]||'').trim(),
-          sub:['sess&atilde;o '+_hjRel(s.n),esc0(String(a[9]||'').trim()),_hjSubAcao('editais',a[0])],
-          abrir:_hjAbrirJs('editais',a[0]),bt:_hjBtAcao('editais',a[0])});
-      }).join(''),r.decidir.some(function(s){return s.n<=1;})));
-  }
+  card({id:'decidir',tit:'Decidir se participa',cor:'#f59e0b',n:r.decidir.length,quente:r.decidir.some(function(s){return s.n<=1;}),
+    sub:r.decidir.length?'sessão mais próxima '+_hjRel(r.decidir[0].n):'nenhum edital esperando decisão',
+    mini:r.decidir.slice(0,3).map(function(s){return [_hjDdMm(s.d),String(s.a[2]||'')+' · '+String(s.a[3]||''),s.n<=1?'quente':''];}),
+    linhas:r.decidir.map(function(s){
+      var a=s.a;
+      return _hjLinha({quando:_hjDdMm(s.d),qcls:s.n<=1?'quente':'',tit:String(a[3]||a[4]||'Edital #'+a[0]),emp:String(a[2]||'').trim(),
+        sub:['sessão '+_hjRel(s.n),esc0(String(a[9]||'').trim()),_hjSubAcao('editais',a[0])],
+        abrir:_hjAbrirJs('editais',a[0]),bt:_hjBtAcao('editais',a[0])});
+    })});
 
-  /* Próximas ações — aparece mesmo vazia: é onde se descobre que existe. */
-  var atras=r.acoes.filter(function(s){return s.n!==null&&s.n<0;}).length;
-  var deHoje=r.acoes.filter(function(s){return s.n===0;}).length;
-  var resA=!r.acoes.length?'nenhuma marcada ainda':
-    (atras||deHoje)?[atras?atras+(atras===1?' atrasada':' atrasadas'):'',deHoje?deHoje+' para hoje':''].filter(Boolean).join(' &middot; '):
-    r.acoes[0].d?'a pr&oacute;xima vence '+_hjRel(r.acoes[0].n):'nenhuma com prazo';
-  secs.push(_hjSec('acoes','Pr&oacute;ximas a&ccedil;&otilde;es',r.acoes.length,resA,
-    r.acoes.length?r.acoes.map(function(s){
+  var atras=r.acoes.filter(function(s){return s.n!==null&&s.n<0;}).length,deHoje=r.acoes.filter(function(s){return s.n===0;}).length;
+  card({id:'acoes',tit:'Próximas ações',cor:'#a855f7',n:r.acoes.length,quente:!!(atras||deHoje),
+    sub:!r.acoes.length?'marque pelo ➜ nos processos':(atras||deHoje)?[atras?atras+(atras===1?' atrasada':' atrasadas'):'',deHoje?deHoje+' para hoje':''].filter(Boolean).join(' · '):
+      (r.acoes[0].d?'a próxima vence '+_hjRel(r.acoes[0].n):'nenhuma com prazo'),
+    mini:r.acoes.slice(0,3).map(function(s){return [s.d?_hjDdMm(s.d):'—',s.p.t,s.n!==null&&s.n<0?'atraso':s.n===0?'quente':''];}),
+    linhas:r.acoes.map(function(s){
       var a=s.a,p=s.p;
       return _hjLinha({quando:s.d?_hjDdMm(s.d):'—',qcls:s.n!==null&&s.n<0?'atraso':s.n===0?'quente':'',tit:p.t,emp:String(a[2]||'').trim(),
         sub:[p.q?esc0(p.q):'',s.d?(s.n<0?'<b class="hj-alerta">atrasada</b>':_hjRel(s.n)):'sem prazo',esc0(_hjCurto(a[3],60))],
         abrir:_hjSoLeitura()?_hjAbrirJs(p.aba,p.id):"nhProxAcao('"+p.aba+"','"+_kcEsc(p.id)+"')",
         bt:_hjBtFeita("nhProxAcaoFeita('"+p.aba+"','"+_kcEsc(p.id)+"')")});
-    }).join(''):'<div class="hj-vazio">Marque o que falta fazer em cada processo pelo bot&atilde;o <b>&#10140;</b> nas linhas acima, ou no menu &#8943; do card.</div>',
-    !!(atras||deHoje)));
+    }),
+    vazio:'Nenhuma ação marcada. Use o botão ➜ nas sessões e nos editais, ou o item "Próxima ação" no menu ⋯ do card do processo.'});
 
-  /* Esperando a NH */
-  var m=r.msg,ms=[];
-  if(m.perg)ms.push(_hjLinha({quando:String(m.perg),qcls:'quente',tit:'Mensagens de clientes esperando resposta',abrir:'nhAbrirPerguntas()'}));
-  if(m.chat)ms.push(_hjLinha({quando:String(m.chat),qcls:'quente',tit:'Mensagens não lidas no chat dos pregões',abrir:'chatAbrirPainel()'}));
-  if(m.radar)ms.push(_hjLinha({quando:String(m.radar),tit:'Licitações novas no Radar para triar',
-    abrir:"go('buscador',document.getElementById('nav-buscador'));nhSetCanal('radar')"}));
-  if(ms.length)secs.push(_hjSec('msg','Esperando a NH',m.perg+m.chat+m.radar,
-    [m.perg?m.perg+' de clientes':'',m.chat?m.chat+' no chat':'',m.radar?m.radar+' no Radar':''].filter(Boolean).join(' &middot; '),
-    ms.join(''),!!(m.perg||m.chat)));
+  var m=r.msg,ms=[],msMini=[];
+  if(m.perg){ms.push(_hjLinha({quando:String(m.perg),qcls:'quente',tit:'Mensagens de clientes esperando resposta',abrir:'_hjFecharDet();nhAbrirPerguntas()'}));msMini.push([String(m.perg),'de clientes esperando resposta','quente']);}
+  if(m.chat){ms.push(_hjLinha({quando:String(m.chat),qcls:'quente',tit:'Mensagens não lidas no chat dos pregões',abrir:'_hjFecharDet();chatAbrirPainel()'}));msMini.push([String(m.chat),'não lidas no chat dos pregões','quente']);}
+  if(m.radar){ms.push(_hjLinha({quando:String(m.radar),tit:'Licitações novas no Radar para triar',
+    abrir:"_hjFecharDet();go('buscador',document.getElementById('nav-buscador'));nhSetCanal('radar')"}));msMini.push([String(m.radar),'novas no Radar para triar','']);}
+  card({id:'msg',tit:'Esperando a NH',cor:'#3b82f6',n:m.perg+m.chat+m.radar,quente:!!(m.perg||m.chat),
+    sub:(m.perg||m.chat||m.radar)?'mensagens e Radar':'nada esperando resposta',mini:msMini,linhas:ms});
 
-  /* Tarefas vencendo */
-  if(r.tarefas.length){
-    var tA=r.tarefas.filter(function(s){return s.n<0;}).length,tH=r.tarefas.filter(function(s){return s.n===0;}).length,tM=r.tarefas.length-tA-tH;
-    secs.push(_hjSec('tarefas','Tarefas',r.tarefas.length,
-      [tA?tA+(tA===1?' atrasada':' atrasadas'):'',tH?tH+' para hoje':'',tM?tM+' para amanh&atilde;':''].filter(Boolean).join(' &middot; '),
-      r.tarefas.map(function(s){
-        var t=s.t;
-        return _hjLinha({quando:_hjDdMm(s.d),qcls:s.n<0?'atraso':s.n===0?'quente':'',tit:String(t.titulo||'Tarefa'),emp:String(t.empresa||'').trim(),
-          sub:[s.n<0?'<b class="hj-alerta">atrasada</b>':_hjRel(s.n)],
-          abrir:"go('tarefas',document.getElementById('nav-tarefas'))",
-          bt:_hjBtFeita("toggleTarefa('"+_kcEsc(t.id)+"').then(function(){setTimeout(nhHojeMontar,600)})")});
-      }).join(''),!!(tA||tH)));
-  }
+  var tA=r.tarefas.filter(function(s){return s.n<0;}).length,tH=r.tarefas.filter(function(s){return s.n===0;}).length;
+  card({id:'tarefas',tit:'Tarefas',cor:'#06b6d4',n:r.tarefas.length,quente:!!(tA||tH),
+    sub:r.tarefas.length?[tA?tA+(tA===1?' atrasada':' atrasadas'):'',tH?tH+' para hoje':'',(r.tarefas.length-tA-tH)?(r.tarefas.length-tA-tH)+' para amanhã':''].filter(Boolean).join(' · '):'nenhuma vencendo',
+    mini:r.tarefas.slice(0,3).map(function(s){return [_hjDdMm(s.d),String(s.t.titulo||'Tarefa'),s.n<0?'atraso':s.n===0?'quente':''];}),
+    linhas:r.tarefas.map(function(s){
+      var t=s.t;
+      return _hjLinha({quando:_hjDdMm(s.d),qcls:s.n<0?'atraso':s.n===0?'quente':'',tit:String(t.titulo||'Tarefa'),emp:String(t.empresa||'').trim(),
+        sub:[s.n<0?'<b class="hj-alerta">atrasada</b>':_hjRel(s.n)],
+        abrir:"_hjFecharDet();go('tarefas',document.getElementById('nav-tarefas'))",
+        bt:_hjBtFeita("toggleTarefa('"+_kcEsc(t.id)+"').then(function(){setTimeout(nhHojeMontar,600)})")});
+    })});
 
-  /* Recursos em aberto */
-  if(r.recursos.length){
-    secs.push(_hjSec('recursos','Recursos em aberto',r.recursos.length,esc0(_hjCurto(r.recursos[0].a[3],60)),
-      r.recursos.map(function(s){
-        var a=s.a;
-        return _hjLinha({quando:'&#9878;',tit:String(a[3]||a[4]||'Processo #'+a[0]),emp:String(a[2]||'').trim(),
-          sub:[_hjSubAcao('andamento',a[0])||esc0(_hjCurto(a[15],70))],
-          abrir:_hjAbrirJs('andamento',a[0]),bt:_hjBtAcao('andamento',a[0])});
-      }).join(''),false));
-  }
+  card({id:'recursos',tit:'Recursos em aberto',cor:'#ec4899',n:r.recursos.length,quente:false,
+    sub:r.recursos.length?'em Em Andamento':'nenhum recurso aberto',
+    mini:r.recursos.slice(0,3).map(function(s){return ['&#9878;',String(s.a[2]||'')+' · '+String(s.a[3]||''),''];}),
+    linhas:r.recursos.map(function(s){
+      var a=s.a;
+      return _hjLinha({quando:'&#9878;',tit:String(a[3]||a[4]||'Processo #'+a[0]),emp:String(a[2]||'').trim(),
+        sub:[_hjSubAcao('andamento',a[0])||esc0(_hjCurto(a[15],70))],
+        abrir:_hjAbrirJs('andamento',a[0]),bt:_hjBtAcao('andamento',a[0])});
+    })});
 
-  /* Contratos vencendo em até 30 dias (ou vencidos há até 30) */
-  if(r.contratos.length){
-    var c0=r.contratos[0];
-    secs.push(_hjSec('contratos','Contratos vencendo',r.contratos.length,
-      (c0.n<0?'um j&aacute; venceu':'o primeiro vence '+_hjRel(c0.n))+' &middot; '+esc0(String(c0.a[2]||'')),
-      r.contratos.map(function(s){
-        var a=s.a;
-        return _hjLinha({quando:_hjDdMm(s.d),qcls:s.n<0?'atraso':s.n<=7?'quente':'',tit:String(a[3]||a[4]||'Contrato #'+a[0]),emp:String(a[2]||'').trim(),
-          sub:[s.n<0?'<b class="hj-alerta">vencido</b>':'vence '+_hjRel(s.n),esc0(String(a[8]||'').trim()),_hjSubAcao('ganhas',a[0])],
-          abrir:_hjAbrirJs('ganhas',a[0]),bt:_hjBtAcao('ganhas',a[0])});
-      }).join(''),r.contratos.some(function(s){return s.n<=7;})));
-  }
+  var cV=r.contratos.filter(function(s){return s.n<0;}).length;
+  card({id:'contratos',tit:'Contratos vencendo',cor:'#22c55e',n:r.contratos.length,quente:r.contratos.some(function(s){return s.n<=7;}),
+    sub:r.contratos.length?(cV?cV+(cV===1?' já venceu':' já venceram'):'o primeiro vence '+_hjRel(r.contratos[0].n)):'nenhum nos próximos 30 dias',
+    mini:r.contratos.slice(0,3).map(function(s){return [_hjDdMm(s.d),String(s.a[2]||'')+' · '+String(s.a[3]||''),s.n<0?'atraso':s.n<=7?'quente':''];}),
+    linhas:r.contratos.map(function(s){
+      var a=s.a;
+      return _hjLinha({quando:_hjDdMm(s.d),qcls:s.n<0?'atraso':s.n<=7?'quente':'',tit:String(a[3]||a[4]||'Contrato #'+a[0]),emp:String(a[2]||'').trim(),
+        sub:[s.n<0?'<b class="hj-alerta">vencido</b>':'vence '+_hjRel(s.n),esc0(String(a[8]||'').trim()),_hjSubAcao('ganhas',a[0])],
+        abrir:_hjAbrirJs('ganhas',a[0]),bt:_hjBtAcao('ganhas',a[0])});
+    })});
 
-  /* Certidões vencidas ou vencendo em até 5 dias */
-  if(r.certs.length){
-    var cV=r.certs.filter(function(s){return s.n<0;}).length;
-    secs.push(_hjSec('certs','Certid&otilde;es',r.certs.length,
-      [cV?cV+(cV===1?' vencida':' vencidas'):'',r.certs.length-cV?(r.certs.length-cV)+' vencendo':''].filter(Boolean).join(' &middot; '),
-      r.certs.map(function(s,i){
-        return _hjLinha({quando:_hjDdMm(s.d),qcls:s.n<0?'atraso':'quente',tit:s.nome,emp:s.emp,
-          sub:[s.n<0?'<b class="hj-alerta">vencida</b>':'vence '+_hjRel(s.n)],
-          abrir:'_hjAbrirEmpresa(_hjCertEmp['+i+'])'});
-      }).join(''),cV>0));
-  }
+  var cerV=r.certs.filter(function(s){return s.n<0;}).length;
   /* Nome da empresa vai por índice, não dentro do onclick: nome com
      apóstrofo quebraria o atributo. */
   window._hjCertEmp=r.certs.map(function(s){return s.emp;});
+  card({id:'certs',tit:'Certidões',cor:'#eab308',n:r.certs.length,quente:cerV>0,
+    sub:r.certs.length?[cerV?cerV+(cerV===1?' vencida':' vencidas'):'',r.certs.length-cerV?(r.certs.length-cerV)+' vencendo em 5 dias':''].filter(Boolean).join(' · '):'todas em dia',
+    mini:r.certs.slice(0,3).map(function(s){return [_hjDdMm(s.d),s.emp+' · '+s.nome,s.n<0?'atraso':'quente'];}),
+    linhas:r.certs.map(function(s,i){
+      return _hjLinha({quando:_hjDdMm(s.d),qcls:s.n<0?'atraso':'quente',tit:s.nome,emp:s.emp,
+        sub:[s.n<0?'<b class="hj-alerta">vencida</b>':'vence '+_hjRel(s.n)],
+        abrir:'_hjFecharDet();_hjAbrirEmpresa(_hjCertEmp['+i+'])'});
+    })});
 
-  var tudoOk=secs.length===1&&!r.acoes.length;
-  el.innerHTML=cab+secs.join('')+(tudoOk?'<div class="hj-tudo-ok"><b>Tudo em dia &#128077;</b>Sem sess&otilde;es, decis&otilde;es, mensagens ou vencimentos para hoje.</div>':'');
+  el.innerHTML='<div class="hj-cab"><div class="hj-dia">'+esc0(dia)+'</div><div class="hj-sub">'+
+      (r.urgente?r.urgente+' '+(r.urgente===1?'coisa pede':'coisas pedem')+' a&ccedil;&atilde;o hoje':'Nada vence hoje')+
+      (PROX_ACAO_ERRO?' &middot; <span style="color:#f87171">pr&oacute;ximas a&ccedil;&otilde;es indispon&iacute;veis: '+esc0(PROX_ACAO_ERRO)+'</span>':'')+'</div></div>'+
+    '<div class="hj-grade">'+cards.map(function(c){
+      return '<button type="button" class="hj-card'+(c.n?'':' vazio')+(c.quente?' quente':'')+'" style="--hc:'+c.cor+';--hcf:'+c.cor+'24" onclick="_hjDetalhe(\''+c.id+'\')">'+
+        '<span class="hj-card-fio"></span>'+
+        '<span class="hj-card-cab"><span class="hj-card-ic">'+_hjIcone(c.id)+'</span><span class="hj-card-tit">'+c.tit+'</span></span>'+
+        '<span class="hj-card-n">'+c.n+'</span>'+
+        '<span class="hj-card-sub">'+esc0(c.sub)+'</span>'+
+        '<span class="hj-card-mini">'+(c.mini.length?c.mini.map(function(x){
+          return '<span class="hj-mini"><b class="'+(x[2]||'')+'">'+x[0]+'</b><span>'+esc0(_hjCurto(x[1],70))+'</span></span>';
+        }).join(''):'<span class="hj-mini-vazio">Nada por aqui hoje.</span>')+'</span>'+
+        (c.n>3?'<span class="hj-card-pe">+ '+(c.n-3)+' &middot; ver tudo</span>':c.n?'<span class="hj-card-pe">abrir</span>':'')+
+      '</button>';
+    }).join('')+'</div>';
+  if(_hjDetAberto)_hjDetalhe(_hjDetAberto,true);
+}
+
+/* Lista inteira de um card, numa janela. */
+function _hjFecharDet(){_hjDetAberto=null;var m=document.getElementById('nh-hj-det');if(m)m.style.display='none';}
+function _hjDetalhe(id,soAtualizar){
+  var c=HJ_CARDS[id];if(!c)return;
+  var m=document.getElementById('nh-hj-det');
+  if(soAtualizar&&(!m||m.style.display==='none'))return;
+  if(!m){
+    m=document.createElement('div');m.id='nh-hj-det';m.className='chat-modal';
+    m.addEventListener('click',function(ev){if(ev.target===m)_hjFecharDet();});
+    document.addEventListener('keydown',function(ev){if(ev.key==='Escape'&&_hjDetAberto)_hjFecharDet();});
+    document.body.appendChild(m);
+  }
+  _hjDetAberto=id;
+  m.innerHTML='<div class="chat-cx hj-det" style="max-width:720px;--hc:'+c.cor+';--hcf:'+c.cor+'24">'+
+    '<div class="chat-cab"><span class="hj-card-ic">'+_hjIcone(c.id)+'</span><b>'+c.tit+'</b><span class="hj-det-n">'+c.n+'</span>'+
+      '<button type="button" onclick="_hjFecharDet()" aria-label="Fechar">&times;</button></div>'+
+    '<div class="hj-det-corpo">'+(c.linhas.length?c.linhas.join(''):'<div class="hj-vazio">'+esc0(c.vazio||'Nada por aqui hoje.')+'</div>')+'</div>'+
+  '</div>';
+  m.style.display='flex';
 }
 
 /* ── Próxima ação: janela de editar ─────────────────────────────── */
