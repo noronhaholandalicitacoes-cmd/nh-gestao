@@ -211,10 +211,17 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
 .card.analise{border-color:rgba(234,179,8,.35);box-shadow:0 0 0 1px rgba(234,179,8,.12),0 6px 20px rgba(234,179,8,.06)}
 
 .card-head{padding:18px 18px 12px 22px}
+/* Card recolhido (21/10/2026): só o topo e os três números à vista. */
+.card-head{cursor:pointer}
+.vc-seta{margin-left:2px;color:var(--txt3,#8b95a1);font-size:13px;transition:transform .2s;padding-left:4px}
+.card:not(.recolhido) .vc-seta{transform:rotate(180deg)}
+.card.recolhido > .vc-obj,.card.recolhido > .vc-links,.card.recolhido > .score-wrap,
+.card.recolhido > .viab-completa,.card.recolhido > .card-acoes{display:none!important}
+.card.recolhido > .vc-fatos{cursor:pointer}
 .card-top-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 /* Empresa: nome em negrito com barrinha na cor dela — visual suave (20/10/2026).
    Barrinha, não bolinha: o prazo e o risco usam bolinha e se confundiam. */
-.card-emp{display:inline-flex;align-items:center;gap:7px;font-size:14px;font-weight:800;letter-spacing:.02em;text-transform:uppercase;color:var(--txt);flex-shrink:0}
+.card-emp{display:inline-flex;align-items:center;gap:7px;font-size:14px;font-weight:800;letter-spacing:.02em;text-transform:uppercase;color:var(--ec,var(--txt));flex-shrink:0}
 .card-emp::before{content:'';width:4px;height:16px;border-radius:2px;background:var(--ec,#64748b);flex-shrink:0}
 /* Uma fonte só (20/10/2026): números também em Outfit, com algarismos de largura igual. */body, body *{font-family:'Outfit',system-ui,-apple-system,'Segoe UI',sans-serif!important}body{font-variant-numeric:tabular-nums}
 /* Etiqueta de prazo — a cor acompanha a urgência, na mesma escala já usada
@@ -944,8 +951,14 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
   .ac-hero > .ac-form, .cx-acesso > .ac-form{grid-column:2;grid-row:1 / -1;width:min(430px,82%)!important;align-self:center}
   /* Arcos e símbolo em escala grande. */
   .ac-hero .ac-anel, .cx-acesso .ac-anel{border-width:3px!important}
-  .ac-hero .ac-marca, .cx-acesso .ac-marca{width:150px!important;height:150px!important;border-radius:38px!important}
+  .ac-hero .ac-marca, .cx-acesso .ac-marca{width:150px!important;height:150px!important;border-radius:50%!important}
 }
+</style>
+<style>
+/* LOGO REDONDA — 21/10/2026. Pedido do cliente: "deixar a logo NH bem
+   redondinha para acompanhar os anéis que giram ao redor dela". Vale
+   para toda logo cercada de anéis: login, selo do menu e boas-vindas. */
+.ac-marca,.nh-selo > :not(.nh-selo-anel),.bv-marca{border-radius:50%!important;overflow:hidden}
 </style>
 </head>
 <body>
@@ -2401,18 +2414,26 @@ function renderCard(d){
   var fato = function(rot, valor, cls){
     return '<div class="vc-fato' + (cls ? ' ' + cls : '') + '"><span>' + rot + '</span><b>' + valor + '</b></div>';
   };
-  return '<div class="card '+cardCls+'" id="card-'+id+'">'+
-    '<div class="card-head">'+
+  /* ⚠️ CARD RECOLHIDO — 21/10/2026. Pedido: "colocar os cards
+     recolhidos, ao clicar eles abrem, deixando as principais
+     informações aparecendo". Fechado mostra empresa, prazo, situação,
+     o processo e os três números (valor, município, responsável).
+     Clicar no topo ou nos números abre o resto. O que ficou aberto é
+     lembrado neste aparelho (VC_ABERTOS). */
+  var aberto=!!VC_ABERTOS[id];
+  return '<div class="card '+cardCls+(aberto?'':' recolhido')+'" id="card-'+id+'">'+
+    '<div class="card-head" role="button" tabindex="0" aria-expanded="'+aberto+'" onclick="vcAlternar(\''+id+'\')" onkeydown="if(event.key===\'Enter\')vcAlternar(\''+id+'\')">'+
       '<div class="vc-topo">'+
         /* Empresa em selo CHEIO na cor dela (04/10/2026): era um selo
            claro, pequeno, e quem cuida de várias empresas se perdia. */
         '<span class="card-emp" style="--ec:'+empCor+'">'+esc(emp)+'</span>'+
         tagPrazo+
         pill+
+        '<span class="vc-seta" aria-hidden="true">▾</span>'+
       '</div>'+
       '<div class="card-licit">'+esc(licit)+'</div>'+
     '</div>'+
-    '<div class="vc-fatos">'+
+    '<div class="vc-fatos" onclick="if(document.getElementById(\'card-'+id+'\').classList.contains(\'recolhido\'))vcAlternar(\''+id+'\')">'+
       fato('Valor estimado', val>0?fmtMoeda(val):'Não informado', 'destaque')+
       fato('Município / UF', mun?esc(mun):'—')+
       fato('Responsável', resp?esc(resp):'—')+
@@ -2467,6 +2488,17 @@ function renderCard(d){
       '<div class="perg" id="perg-'+id+'">'+_perguntaHtml(id)+'</div>'+
     '</div>'+
   '</div>';
+}
+
+/* Cards abertos (ver CARD RECOLHIDO no renderCard). */
+var VC_ABERTOS=(function(){try{return JSON.parse(localStorage.getItem('vb_cards_abertos')||'{}')||{};}catch(e){return {};}})();
+function vcAlternar(id){
+  VC_ABERTOS[id]=!VC_ABERTOS[id];
+  if(!VC_ABERTOS[id])delete VC_ABERTOS[id];
+  try{localStorage.setItem('vb_cards_abertos',JSON.stringify(VC_ABERTOS));}catch(e){}
+  var c=document.getElementById('card-'+id);if(!c)return;
+  c.classList.toggle('recolhido',!VC_ABERTOS[id]);
+  var h=c.querySelector('.card-head');if(h)h.setAttribute('aria-expanded',VC_ABERTOS[id]?'true':'false');
 }
 
 /* ═══ DECISÃO QUE GRAVA NA HORA — 03/10/2026 ═══════════════════════════

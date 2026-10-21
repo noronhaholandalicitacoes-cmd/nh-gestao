@@ -1645,7 +1645,7 @@ body.light-theme .kp-it{background:#fff}
 /* Empresa: nome em negrito com barrinha na cor dela (visual suave, 20/10/2026).
    Barrinha, não bolinha: bolinha é a cor de situação e as duas se confundiam. */
 .emp-selo{display:inline-flex;align-items:center;gap:7px;font-size:14px;font-weight:800;letter-spacing:.02em;
-  text-transform:uppercase;color:var(--t1);line-height:1.3;white-space:nowrap;vertical-align:1px}
+  text-transform:uppercase;color:var(--ec,var(--t1));line-height:1.3;white-space:nowrap;vertical-align:1px}
 .emp-selo::before{content:"";width:4px;height:15px;border-radius:2px;background:var(--ec,#64748b);flex-shrink:0}
 /* Uma fonte só (20/10/2026): saem Syne, DM Sans e a fonte de código; fica a Outfit, a mesma do Gestão e do Viabilidade. */body, body *{font-family:'Outfit',system-ui,-apple-system,'Segoe UI',sans-serif!important}body{font-variant-numeric:tabular-nums}
 .ccard-titulo .emp-selo{margin-right:10px;font-size:13.5px}
@@ -1835,8 +1835,14 @@ body.light-theme .pg-bloco,body.light-theme .pg-barra{background:rgba(0,0,0,.04)
   .ac-hero > .ac-form, .cx-acesso > .ac-form{grid-column:2;grid-row:1 / -1;width:min(430px,82%)!important;align-self:center}
   /* Arcos e símbolo em escala grande. */
   .ac-hero .ac-anel, .cx-acesso .ac-anel{border-width:3px!important}
-  .ac-hero .ac-marca, .cx-acesso .ac-marca{width:150px!important;height:150px!important;border-radius:38px!important}
+  .ac-hero .ac-marca, .cx-acesso .ac-marca{width:150px!important;height:150px!important;border-radius:50%!important}
 }
+</style>
+<style>
+/* LOGO REDONDA — 21/10/2026. Pedido do cliente: "deixar a logo NH bem
+   redondinha para acompanhar os anéis que giram ao redor dela". Vale
+   para toda logo cercada de anéis: login, selo do menu e boas-vindas. */
+.ac-marca,.nh-selo > :not(.nh-selo-anel),.bv-marca{border-radius:50%!important;overflow:hidden}
 </style>
 </head>
 <body>
