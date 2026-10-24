@@ -24882,6 +24882,7 @@ body.compact .kcard .kcard-body input:not([type=checkbox]),body.compact .kcard .
 .kf-fatos .k3{color:#eab308;font-weight:700}
 .kf-fatos .kok{color:#22c55e;font-weight:700}
 .kcard:not(.collapsed) .kf-fatos{display:none!important}
+.kcard-top .nh-viab-badges.nh-bar.kc-ferr-topo{margin-top:10px;cursor:default}
 .fp-cx .ae-sec-corpo .fp-campo:last-child{border-bottom:none}
 @media(max-width:720px){
   .fp-tempo{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -25258,6 +25259,7 @@ function _kfFatos(tab,a){
     if(q)add('📅',q.txt,q.cls,'Data da sessão');
     add('💰',_kfValor(a[7]),'','Valor estimado');
     add('📍',a[6],'','Município');
+    add('🌐',a[15],'','Portal');
     var p=String(a[10]||'').trim(),v=String(a[11]||'').trim();
     if(q&&q.cls&&(!p||!v||_ehAnalise(p)||_ehAnalise(v)))add('⚠','sem decisão','k1','Participar/Viabilidade ainda em aberto');
   }else if(tab==='andamento'||tab==='finalizados'){
@@ -25282,6 +25284,19 @@ function _kfPintarCards(tab){
   if(['editais','andamento','finalizados','ganhas'].indexOf(tab)<0)return;
   var area=document.getElementById('tbl-'+tab);if(!area)return;
   area.querySelectorAll('.kcard').forEach(function(card){
+    /* Ferramentas no alto (24/10/2026): "estão muito escondidas, de
+       difícil acesso — têm que ficar recolhidas, mas não no fim do card".
+       A barra (situação + botão Ferramentas) sobe para logo abaixo do
+       título e dos fatos; continua recolhida até clicar. */
+    if(tab==='editais'){
+      var bar=card.querySelector('.nh-viab-badges.nh-bar');
+      var topoL=card.querySelector('.kcard-top > div:first-child');
+      if(bar&&topoL&&!topoL.contains(bar)){
+        bar.classList.add('kc-ferr-topo');
+        var ref=topoL.querySelector('.kf-fatos')||topoL.querySelector('.kcard-licit');
+        if(ref&&ref.parentNode===topoL)topoL.insertBefore(bar,ref.nextSibling);else topoL.appendChild(bar);
+      }
+    }
     if(card.querySelector('.kf-fatos'))return;
     var idEl=card.querySelector('.kcard-id');if(!idEl)return;
     var id=idEl.textContent.replace(/\D/g,'');
