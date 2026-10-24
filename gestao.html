@@ -8164,7 +8164,9 @@ async function fbSave(e,a,t,_docId){
        Só copia o que existe, para não criar campo vazio à toa. */
     if(i.exists){
       var _ant=i.data()||{};
-      ['prioridade','_portalLog','_portalUltimaEdicao'].forEach(function(k){
+      /* `_edital` é o elo da ficha única (24/10/2026): diz de qual edital
+         este processo de Em Andamento nasceu. */
+      ['prioridade','_portalLog','_portalUltimaEdicao','_edital'].forEach(function(k){
         if(_ant[k]!==undefined && o[k]===undefined) o[k]=_ant[k];
       });
     }
@@ -8258,7 +8260,7 @@ async function fbDelete(e,a){
    pode ser montado depois da carga. Rodar de novo é inofensivo: a
    função sai fora se já existir. */
 (function(){try{nhMontarFiltrosPeriodo();Object.keys(DATE_CAMPOS).forEach(nhPopularAnos);}catch(_e){console.warn('filtro de período:',_e.message);}})(),
-autoFinalizarContratos(),"documentos"===CUR&&popularProcessosDoc(),"resumo"===CUR&&buildResumo(),loadTogglesFromFirebase().then(function(){migrarPropostaToggles();if(!USER_SOS){try{"resumo"===CUR?buildResumo():renderTbl(CUR)}catch(e){}}});var e=getEventosDoMes((new Date).getFullYear(),(new Date).getMonth()),a=document.getElementById("b-calendario");a&&(a.textContent=e.length||"—")}setSt("ok");var _finAno=(new Date).getFullYear(),_finMes=(new Date).getMonth(),_finRecarga=1500;function finGetData(e){var a=String(e[0]||"");if(-1!==a.indexOf("/"))return a;var t=String(e[1]||"");if(-1!==t.indexOf("/"))return t;if(e._createdAt){var o=new Date(e._createdAt);return("0"+o.getDate()).slice(-2)+"/"+("0"+(o.getMonth()+1)).slice(-2)+"/"+o.getFullYear()}return a}function finGetField(e,a,t){return e[a]}function filtrarFinanceiroMes(){FIL.financeiro=(ALL.financeiro||[]).filter(function(e){var a=finGetData(e).split("/");return 3===a.length&&(parseInt(a[1])-1===_finMes&&parseInt(a[2])===_finAno)});if(_finEmpSel){FIL.financeiro=FIL.financeiro.filter(function(r){return String(r[8]||"").trim()===_finEmpSel})}PG.financeiro=1;var e=document.getElementById("tbl-financeiro");if(e)if(0===FIL.financeiro.length){e.innerHTML='<div style="text-align:center;padding:40px;color:var(--t3);font-size:13px">Nenhum lançamento em '+["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"][_finMes]+" "+_finAno+"</div>";var a=document.getElementById("pag-financeiro");a&&(a.innerHTML="")}else renderTbl("financeiro")}function finMes(e){(_finMes+=e)<0&&(_finMes=11,_finAno--),_finMes>11&&(_finMes=0,_finAno++),carregarRecargaMes();buildFinResumo(),filtrarFinanceiroMes()}function finMesHoje(){_finAno=(new Date).getFullYear(),_finMes=(new Date).getMonth(),buildFinResumo(),filtrarFinanceiroMes()}function salvarRecarga(){var e=document.getElementById("fin-recarga-val");if(e){var a=parseMoeda(e.value);if(a>0){_finRecarga=a;var key="recarga_"+_finAno+"_"+_finMes;if(API&&db)db.collection("config").doc(key).set({valor:a}).catch(function(){});localStorage.setItem("nh_rec_"+_finAno+"_"+_finMes,String(a));}buildFinResumo();}}async function carregarRecargaMes(){var key="recarga_"+_finAno+"_"+_finMes;var local=localStorage.getItem("nh_rec_"+_finAno+"_"+_finMes);if(local){_finRecarga=parseFloat(local);}else{_finRecarga=1500;}if(API&&db){try{var doc=await db.collection("config").doc(key).get();if(doc.exists&&doc.data().valor){_finRecarga=doc.data().valor;localStorage.setItem("nh_rec_"+_finAno+"_"+_finMes,String(_finRecarga));}}catch(e){}}var el=document.getElementById("fin-recarga-val");if(el)el.value=fmtVal(_finRecarga);}function buildFinResumo(){var e=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"],a=document.getElementById("fin-mes-label");a&&(a.textContent=e[_finMes]+" "+_finAno);var t=document.getElementById("fin-recarga-val");t&&!t._dirty&&(t.value=fmtVal(_finRecarga).replace("R$ ","R$ "));var o=document.getElementById("fin-resumo"),i=document.getElementById("fin-por-empresa");if(o){var n=(ALL.financeiro||[]).filter(function(e){var a=finGetData(e).split("/");return 3===a.length&&(parseInt(a[1])-1===_finMes&&parseInt(a[2])===_finAno)}),r=_finRecarga,s=n.reduce(function(e,a){return e+parseMoeda(a[4]||0)},0),d=r-s;if(o.style.marginBottom="16px",o.innerHTML='<div class="r-kpi"><div class="rkpi-lbl">Recarga Mensal</div><div class="rkpi-val" style="color:var(--b2_);font-size:22px">'+fmtVal(r)+'</div></div><div class="r-kpi"><div class="rkpi-lbl">Total Gasto (Mês)</div><div class="rkpi-val" style="color:var(--r2);font-size:22px">'+fmtVal(s)+'</div></div><div class="r-kpi nh-accent"><div class="rkpi-lbl">Total Disponível</div><div class="rkpi-val nh" style="font-size:22px">'+fmtVal(d)+"</div></div>",i){var l={};n.forEach(function(e){var a=String(finGetField(e,1,2)||"").trim()||"Outros",t=parseMoeda(finGetField(e,4,5)||0);l[a]||(l[a]=0),l[a]+=t});var c=Object.keys(l).sort(function(e,a){return l[a]-l[e]});c.length>0?(i.style.marginBottom="16px",i.innerHTML='<div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:8px">Gastos por categoria — '+e[_finMes]+'</div><div style="display:flex;flex-direction:column;gap:6px">'+c.map(function(e){var a=l[e],t=s>0?Math.round(a/s*100):0,o=(EMPRESAS.find(function(a){return a.nome===e})||{}).cor||"var(--nh)";return'<div style="display:flex;align-items:center;gap:10px"><span style="font-size:12px;font-weight:700;color:'+o+';min-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+e+'</span><div style="flex:1;background:var(--b1);border-radius:4px;height:6px;overflow:hidden"><div style="width:'+t+"%;background:"+o+';height:100%;border-radius:4px;transition:width .4s"></div></div><span style="font-size:12px;color:var(--t2);min-width:90px;text-align:right">'+fmtVal(a)+'</span><span style="font-size:11px;color:var(--t3);min-width:32px;text-align:right">'+t+"%</span></div>"}).join("")+"</div>"):(i.style.marginBottom="0",i.innerHTML="")}}}async function loadPage(e){await _load(e)}function _skelHtml(){for(var e="",a=0;a<4;a++)e+='<div class="skel-card"><div class="skeleton skel-line lg" style="margin-bottom:14px"></div><div class="skeleton skel-line md"></div><div class="skeleton skel-line sm"></div></div>';return e}async function _load(e){var a=document.getElementById("tbl-"+e);a&&(a.innerHTML=_skelHtml());try{var t=await db.collection(FB_COLS[e]).orderBy("_id","asc").get(),o=[];if(t.forEach(function(d0){var a=d0.data(),t=a._arr||[];(t.length>0&&void 0!==t[0]&&null!==t[0]&&""!==t[0])||console.warn("[NH] Registro ignorado em "+e+" (campo [0] vazio) — doc:",d0.id),t.length>0&&void 0!==t[0]&&null!==t[0]&&""!==t[0]&&(a._updatedAt&&(t._updatedAt=a._updatedAt),a._createdAt&&(t._createdAt=a._createdAt),void 0!==a._id&&(t._docId=a._id),a.origem&&(t._origem=a.origem),t._fbId=d0.id,t._idField=a._id,o.push(t))}),"financeiro"===e?o.sort(function(e,a){var t=String(e[0]||"").split("/"),o=String(a[0]||"").split("/"),i=3===t.length?new Date(parseInt(t[2]),parseInt(t[1])-1,parseInt(t[0])):new Date(0);return(3===o.length?new Date(parseInt(o[2]),parseInt(o[1])-1,parseInt(o[0])):new Date(0))-i}):o.sort(function(e,a){return(parseInt(a[0])||0)-(parseInt(e[0])||0)}),ALL[e]=o,"andamento"===e){ALL[e]=o;var i=o.filter(function(e){return"sim"!==String(e[16]||"").toLowerCase().trim()});EMP_FILTER[e]||STATUS_FILTER[e]?applyFilters(e):(FIL[e]=i.slice(),a&&(renderStats(e,FIL[e]),renderPills(e,i,FIL[e]),renderTbl(e)))}else EMP_FILTER[e]||STATUS_FILTER[e]?applyFilters(e):(FIL[e]=o.slice(),"atestados"===e&&sortAtestados(FIL[e]),"financeiro"===e?filtrarFinanceiroMes():a&&(renderStats(e,FIL[e]),renderPills(e,ALL[e],FIL[e]),renderTbl(e)));var n=document.getElementById("b-"+e);if(n)if("andamento"===e){var r=o.filter(function(e){return"EM ANDAMENTO"===String(e[12]||"").toUpperCase().trim()}).length;n.textContent=r}else{"atestados"===e?n.textContent=o.filter(function(r){var st=String(r[18]||"").toUpperCase().trim();return"PENDENTE"===st||"EM SOLICITAÇÃO"===st||""===st;}).length:n.textContent=o.length,"valores"===e&&renderValoresGrid()}}catch(e){a&&(a.innerHTML=emptyEl("Erro ao carregar: "+e.message))}}function rcRows(e,a){return e.length?e.map(function(e){return'<div class="rcard-row"><span class="rcard-row-k">'+e[0]+'</span><span class="rcard-row-v '+a+'">'+e[1]+"</span></div>"}).join(""):'<div class="rcard-row"><span class="rcard-row-k" style="color:var(--t3)">Sem dados</span></div>'}function parseMoeda(e){if("number"==typeof e)return isNaN(e)?0:e;var a=String(e||"").replace(/R\$\s*/g,"").replace(/\s/g,"").trim();if(!a)return 0;a=-1!==a.indexOf(",")?a.replace(/\./g,"").replace(",","."):a.replace(/[^\d.]/g,"");var t=parseFloat(a);return isNaN(t)||t<0?0:t}function fmtMoeda(e){return"string"==typeof e&&(e=parseMoeda(e)),!e||isNaN(e)?"R$ 0,00":"R$ "+e.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})}function fmtValBR(e){if(!e)return"";var a=parseMoeda(e);return a?fmtMoeda(a):e}function fmtVal(e){return"string"==typeof e&&(e=parseMoeda(e)),!e||isNaN(e)?"R$ 0,00":"R$ "+e.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})}function mascaraMoeda(e){var a=e.value.replace(/\D/g,"");if(a){var t=parseInt(a,10)/100;e.value="R$ "+t.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})}else e.value=""}function validarMoeda(e){if(!e||!String(e).trim())return 0;var a=parseMoeda(e);return 0===a&&""!==String(e).trim()&&"0,00"!==String(e).replace(/R\$\s*/,"").trim()?null:a}function calcValorGanhas(e){var v=parseMoeda(e[40])||parseMoeda(e[33])||parseMoeda(e[26])||parseMoeda(e[19]);return v>0?v:parseMoeda(e[7])}var _rPeriodo="total",_rMesSel=(new Date).getMonth(),_rAnoSel=(new Date).getFullYear();function setPeriodoResumo(e,a){_rPeriodo=e,document.querySelectorAll(".r-periodo-btn").forEach(function(e){e.classList.remove("on")}),a&&a.classList.add("on");var t=document.getElementById("r-sel-mes"),o=document.getElementById("r-sel-ano");t&&(t.style.display="mes"===e||"trimestre"===e?"":"none"),o&&(o.style.display="ano"===e||"mes"===e||"trimestre"===e?"":"none"),buildResumo()}function setMesResumo(e){_rMesSel=parseInt(e),buildResumo()}function setAnoResumo(e){_rAnoSel=parseInt(e),buildResumo()}function filtrarPeriodo(e,a){return"total"===_rPeriodo?e:e.filter(function(e){var t=null,o=String(e[a]||"").trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);if(o&&(t=new Date(parseInt(o[3]),parseInt(o[2])-1,parseInt(o[1]))),!t||isNaN(t.getTime()))return!1;if("mes"===_rPeriodo)return t.getMonth()===_rMesSel&&t.getFullYear()===_rAnoSel;if("trimestre"===_rPeriodo){var i=Math.floor(_rMesSel/3);return Math.floor(t.getMonth()/3)===i&&t.getFullYear()===_rAnoSel}return"ano"!==_rPeriodo||t.getFullYear()===_rAnoSel})}function buildPeriodoHTML(){for(var e=(new Date).getFullYear(),a=[],t=e;t>=e-4;t--)a.push(t);var o=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"].map(function(e,a){return'<option value="'+a+'"'+(a===_rMesSel?" selected":"")+">"+e+"</option>"}).join(""),i=a.map(function(e){return'<option value="'+e+'"'+(e===_rAnoSel?" selected":"")+">"+e+"</option>"}).join("");return'<div class="r-periodo"><span class="r-periodo-label">Período:</span><button class="r-periodo-btn'+("total"===_rPeriodo?" on":"")+'" onclick="setPeriodoResumo(\'total\',this)">Total</button><button class="r-periodo-btn'+("mes"===_rPeriodo?" on":"")+'" onclick="setPeriodoResumo(\'mes\',this)">Mês</button><button class="r-periodo-btn'+("trimestre"===_rPeriodo?" on":"")+'" onclick="setPeriodoResumo(\'trimestre\',this)">Trimestre</button><button class="r-periodo-btn'+("ano"===_rPeriodo?" on":"")+'" onclick="setPeriodoResumo(\'ano\',this)">Ano</button><select id="r-sel-mes" class="r-periodo-sel" onchange="setMesResumo(this.value)" style="display:'+("mes"===_rPeriodo||"trimestre"===_rPeriodo?"":"none")+'">'+o+'</select><select id="r-sel-ano" class="r-periodo-sel" onchange="setAnoResumo(this.value)" style="display:'+("total"===_rPeriodo?"none":"")+'">'+i+'</select><span style="font-size:12px;color:var(--t3);margin-left:4px" id="r-periodo-desc"></span></div>'}function buildHistoricoHTML(){
+autoFinalizarContratos(),"documentos"===CUR&&popularProcessosDoc(),"resumo"===CUR&&buildResumo(),loadTogglesFromFirebase().then(function(){migrarPropostaToggles();if(!USER_SOS){try{"resumo"===CUR?buildResumo():renderTbl(CUR)}catch(e){}}});var e=getEventosDoMes((new Date).getFullYear(),(new Date).getMonth()),a=document.getElementById("b-calendario");a&&(a.textContent=e.length||"—")}setSt("ok");var _finAno=(new Date).getFullYear(),_finMes=(new Date).getMonth(),_finRecarga=1500;function finGetData(e){var a=String(e[0]||"");if(-1!==a.indexOf("/"))return a;var t=String(e[1]||"");if(-1!==t.indexOf("/"))return t;if(e._createdAt){var o=new Date(e._createdAt);return("0"+o.getDate()).slice(-2)+"/"+("0"+(o.getMonth()+1)).slice(-2)+"/"+o.getFullYear()}return a}function finGetField(e,a,t){return e[a]}function filtrarFinanceiroMes(){FIL.financeiro=(ALL.financeiro||[]).filter(function(e){var a=finGetData(e).split("/");return 3===a.length&&(parseInt(a[1])-1===_finMes&&parseInt(a[2])===_finAno)});if(_finEmpSel){FIL.financeiro=FIL.financeiro.filter(function(r){return String(r[8]||"").trim()===_finEmpSel})}PG.financeiro=1;var e=document.getElementById("tbl-financeiro");if(e)if(0===FIL.financeiro.length){e.innerHTML='<div style="text-align:center;padding:40px;color:var(--t3);font-size:13px">Nenhum lançamento em '+["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"][_finMes]+" "+_finAno+"</div>";var a=document.getElementById("pag-financeiro");a&&(a.innerHTML="")}else renderTbl("financeiro")}function finMes(e){(_finMes+=e)<0&&(_finMes=11,_finAno--),_finMes>11&&(_finMes=0,_finAno++),carregarRecargaMes();buildFinResumo(),filtrarFinanceiroMes()}function finMesHoje(){_finAno=(new Date).getFullYear(),_finMes=(new Date).getMonth(),buildFinResumo(),filtrarFinanceiroMes()}function salvarRecarga(){var e=document.getElementById("fin-recarga-val");if(e){var a=parseMoeda(e.value);if(a>0){_finRecarga=a;var key="recarga_"+_finAno+"_"+_finMes;if(API&&db)db.collection("config").doc(key).set({valor:a}).catch(function(){});localStorage.setItem("nh_rec_"+_finAno+"_"+_finMes,String(a));}buildFinResumo();}}async function carregarRecargaMes(){var key="recarga_"+_finAno+"_"+_finMes;var local=localStorage.getItem("nh_rec_"+_finAno+"_"+_finMes);if(local){_finRecarga=parseFloat(local);}else{_finRecarga=1500;}if(API&&db){try{var doc=await db.collection("config").doc(key).get();if(doc.exists&&doc.data().valor){_finRecarga=doc.data().valor;localStorage.setItem("nh_rec_"+_finAno+"_"+_finMes,String(_finRecarga));}}catch(e){}}var el=document.getElementById("fin-recarga-val");if(el)el.value=fmtVal(_finRecarga);}function buildFinResumo(){var e=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"],a=document.getElementById("fin-mes-label");a&&(a.textContent=e[_finMes]+" "+_finAno);var t=document.getElementById("fin-recarga-val");t&&!t._dirty&&(t.value=fmtVal(_finRecarga).replace("R$ ","R$ "));var o=document.getElementById("fin-resumo"),i=document.getElementById("fin-por-empresa");if(o){var n=(ALL.financeiro||[]).filter(function(e){var a=finGetData(e).split("/");return 3===a.length&&(parseInt(a[1])-1===_finMes&&parseInt(a[2])===_finAno)}),r=_finRecarga,s=n.reduce(function(e,a){return e+parseMoeda(a[4]||0)},0),d=r-s;if(o.style.marginBottom="16px",o.innerHTML='<div class="r-kpi"><div class="rkpi-lbl">Recarga Mensal</div><div class="rkpi-val" style="color:var(--b2_);font-size:22px">'+fmtVal(r)+'</div></div><div class="r-kpi"><div class="rkpi-lbl">Total Gasto (Mês)</div><div class="rkpi-val" style="color:var(--r2);font-size:22px">'+fmtVal(s)+'</div></div><div class="r-kpi nh-accent"><div class="rkpi-lbl">Total Disponível</div><div class="rkpi-val nh" style="font-size:22px">'+fmtVal(d)+"</div></div>",i){var l={};n.forEach(function(e){var a=String(finGetField(e,1,2)||"").trim()||"Outros",t=parseMoeda(finGetField(e,4,5)||0);l[a]||(l[a]=0),l[a]+=t});var c=Object.keys(l).sort(function(e,a){return l[a]-l[e]});c.length>0?(i.style.marginBottom="16px",i.innerHTML='<div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:8px">Gastos por categoria — '+e[_finMes]+'</div><div style="display:flex;flex-direction:column;gap:6px">'+c.map(function(e){var a=l[e],t=s>0?Math.round(a/s*100):0,o=(EMPRESAS.find(function(a){return a.nome===e})||{}).cor||"var(--nh)";return'<div style="display:flex;align-items:center;gap:10px"><span style="font-size:12px;font-weight:700;color:'+o+';min-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+e+'</span><div style="flex:1;background:var(--b1);border-radius:4px;height:6px;overflow:hidden"><div style="width:'+t+"%;background:"+o+';height:100%;border-radius:4px;transition:width .4s"></div></div><span style="font-size:12px;color:var(--t2);min-width:90px;text-align:right">'+fmtVal(a)+'</span><span style="font-size:11px;color:var(--t3);min-width:32px;text-align:right">'+t+"%</span></div>"}).join("")+"</div>"):(i.style.marginBottom="0",i.innerHTML="")}}}async function loadPage(e){await _load(e)}function _skelHtml(){for(var e="",a=0;a<4;a++)e+='<div class="skel-card"><div class="skeleton skel-line lg" style="margin-bottom:14px"></div><div class="skeleton skel-line md"></div><div class="skeleton skel-line sm"></div></div>';return e}async function _load(e){var a=document.getElementById("tbl-"+e);a&&(a.innerHTML=_skelHtml());try{var t=await db.collection(FB_COLS[e]).orderBy("_id","asc").get(),o=[];if(t.forEach(function(d0){var a=d0.data(),t=a._arr||[];(t.length>0&&void 0!==t[0]&&null!==t[0]&&""!==t[0])||console.warn("[NH] Registro ignorado em "+e+" (campo [0] vazio) — doc:",d0.id),t.length>0&&void 0!==t[0]&&null!==t[0]&&""!==t[0]&&(a._updatedAt&&(t._updatedAt=a._updatedAt),a._createdAt&&(t._createdAt=a._createdAt),void 0!==a._id&&(t._docId=a._id),a.origem&&(t._origem=a.origem),a._edital&&(t._edital=a._edital),t._fbId=d0.id,t._idField=a._id,o.push(t))}),"financeiro"===e?o.sort(function(e,a){var t=String(e[0]||"").split("/"),o=String(a[0]||"").split("/"),i=3===t.length?new Date(parseInt(t[2]),parseInt(t[1])-1,parseInt(t[0])):new Date(0);return(3===o.length?new Date(parseInt(o[2]),parseInt(o[1])-1,parseInt(o[0])):new Date(0))-i}):o.sort(function(e,a){return(parseInt(a[0])||0)-(parseInt(e[0])||0)}),ALL[e]=o,"andamento"===e){ALL[e]=o;var i=o.filter(function(e){return"sim"!==String(e[16]||"").toLowerCase().trim()});EMP_FILTER[e]||STATUS_FILTER[e]?applyFilters(e):(FIL[e]=i.slice(),a&&(renderStats(e,FIL[e]),renderPills(e,i,FIL[e]),renderTbl(e)))}else EMP_FILTER[e]||STATUS_FILTER[e]?applyFilters(e):(FIL[e]=o.slice(),"atestados"===e&&sortAtestados(FIL[e]),"financeiro"===e?filtrarFinanceiroMes():a&&(renderStats(e,FIL[e]),renderPills(e,ALL[e],FIL[e]),renderTbl(e)));var n=document.getElementById("b-"+e);if(n)if("andamento"===e){var r=o.filter(function(e){return"EM ANDAMENTO"===String(e[12]||"").toUpperCase().trim()}).length;n.textContent=r}else{"atestados"===e?n.textContent=o.filter(function(r){var st=String(r[18]||"").toUpperCase().trim();return"PENDENTE"===st||"EM SOLICITAÇÃO"===st||""===st;}).length:n.textContent=o.length,"valores"===e&&renderValoresGrid()}}catch(e){a&&(a.innerHTML=emptyEl("Erro ao carregar: "+e.message))}}function rcRows(e,a){return e.length?e.map(function(e){return'<div class="rcard-row"><span class="rcard-row-k">'+e[0]+'</span><span class="rcard-row-v '+a+'">'+e[1]+"</span></div>"}).join(""):'<div class="rcard-row"><span class="rcard-row-k" style="color:var(--t3)">Sem dados</span></div>'}function parseMoeda(e){if("number"==typeof e)return isNaN(e)?0:e;var a=String(e||"").replace(/R\$\s*/g,"").replace(/\s/g,"").trim();if(!a)return 0;a=-1!==a.indexOf(",")?a.replace(/\./g,"").replace(",","."):a.replace(/[^\d.]/g,"");var t=parseFloat(a);return isNaN(t)||t<0?0:t}function fmtMoeda(e){return"string"==typeof e&&(e=parseMoeda(e)),!e||isNaN(e)?"R$ 0,00":"R$ "+e.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})}function fmtValBR(e){if(!e)return"";var a=parseMoeda(e);return a?fmtMoeda(a):e}function fmtVal(e){return"string"==typeof e&&(e=parseMoeda(e)),!e||isNaN(e)?"R$ 0,00":"R$ "+e.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})}function mascaraMoeda(e){var a=e.value.replace(/\D/g,"");if(a){var t=parseInt(a,10)/100;e.value="R$ "+t.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})}else e.value=""}function validarMoeda(e){if(!e||!String(e).trim())return 0;var a=parseMoeda(e);return 0===a&&""!==String(e).trim()&&"0,00"!==String(e).replace(/R\$\s*/,"").trim()?null:a}function calcValorGanhas(e){var v=parseMoeda(e[40])||parseMoeda(e[33])||parseMoeda(e[26])||parseMoeda(e[19]);return v>0?v:parseMoeda(e[7])}var _rPeriodo="total",_rMesSel=(new Date).getMonth(),_rAnoSel=(new Date).getFullYear();function setPeriodoResumo(e,a){_rPeriodo=e,document.querySelectorAll(".r-periodo-btn").forEach(function(e){e.classList.remove("on")}),a&&a.classList.add("on");var t=document.getElementById("r-sel-mes"),o=document.getElementById("r-sel-ano");t&&(t.style.display="mes"===e||"trimestre"===e?"":"none"),o&&(o.style.display="ano"===e||"mes"===e||"trimestre"===e?"":"none"),buildResumo()}function setMesResumo(e){_rMesSel=parseInt(e),buildResumo()}function setAnoResumo(e){_rAnoSel=parseInt(e),buildResumo()}function filtrarPeriodo(e,a){return"total"===_rPeriodo?e:e.filter(function(e){var t=null,o=String(e[a]||"").trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);if(o&&(t=new Date(parseInt(o[3]),parseInt(o[2])-1,parseInt(o[1]))),!t||isNaN(t.getTime()))return!1;if("mes"===_rPeriodo)return t.getMonth()===_rMesSel&&t.getFullYear()===_rAnoSel;if("trimestre"===_rPeriodo){var i=Math.floor(_rMesSel/3);return Math.floor(t.getMonth()/3)===i&&t.getFullYear()===_rAnoSel}return"ano"!==_rPeriodo||t.getFullYear()===_rAnoSel})}function buildPeriodoHTML(){for(var e=(new Date).getFullYear(),a=[],t=e;t>=e-4;t--)a.push(t);var o=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"].map(function(e,a){return'<option value="'+a+'"'+(a===_rMesSel?" selected":"")+">"+e+"</option>"}).join(""),i=a.map(function(e){return'<option value="'+e+'"'+(e===_rAnoSel?" selected":"")+">"+e+"</option>"}).join("");return'<div class="r-periodo"><span class="r-periodo-label">Período:</span><button class="r-periodo-btn'+("total"===_rPeriodo?" on":"")+'" onclick="setPeriodoResumo(\'total\',this)">Total</button><button class="r-periodo-btn'+("mes"===_rPeriodo?" on":"")+'" onclick="setPeriodoResumo(\'mes\',this)">Mês</button><button class="r-periodo-btn'+("trimestre"===_rPeriodo?" on":"")+'" onclick="setPeriodoResumo(\'trimestre\',this)">Trimestre</button><button class="r-periodo-btn'+("ano"===_rPeriodo?" on":"")+'" onclick="setPeriodoResumo(\'ano\',this)">Ano</button><select id="r-sel-mes" class="r-periodo-sel" onchange="setMesResumo(this.value)" style="display:'+("mes"===_rPeriodo||"trimestre"===_rPeriodo?"":"none")+'">'+o+'</select><select id="r-sel-ano" class="r-periodo-sel" onchange="setAnoResumo(this.value)" style="display:'+("total"===_rPeriodo?"none":"")+'">'+i+'</select><span style="font-size:12px;color:var(--t3);margin-left:4px" id="r-periodo-desc"></span></div>'}function buildHistoricoHTML(){
 var mN=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"],
     hoje=new Date,dados=[];
 for(var o=11;o>=0;o--){
@@ -10143,7 +10145,7 @@ function preencherPlanilhaBD(itens){
     if(munLabel)munLabel.textContent=primMun.mun.trim();
   }
 }
-function inlineCell(e,a,t,o){var i=String(o||"").trim(),n="ic-"+e+"-"+a+"-"+t;if("finalizados"===e)return'<span style="font-size:14px;color:var(--t2);line-height:1.6;word-break:break-word;white-space:pre-wrap">'+(i||"—")+"</span>";var r=[""];function s(e,a,t){var o=getOptsCustom(e,a),i=t.slice();return o.forEach(function(e){-1===i.indexOf(e)&&i.push(e)}),-1===i.indexOf("Outro")&&i.push("Outro"),i}EMPRESAS.forEach(function(e){r.push(e.nome)});var d={editais:{2:r,10:["","SIM","NÃO","EM ANÁLISE"],11:["","POSITIVO","NEGATIVO","PENDENTE"]},andamento:{2:r,9:s("andamento",9,["","Compras Gov","BLL","LICITANET","CONLICITACAO","BNC","Publinexo","Licitanet","PE-Integrado","Compras Públicas","Apoio Cotações","Licitar Digital","Licitações-e","Enviada por E-mail"]),11:s("andamento",11,["","1 posição","2 posição","3 posição","4 posição","5 posição","6 posição","7 posição","8 posição","9 posição","10 posição","11 posição","12 posição","13 posição","14 posição","15 posição","Proposta enviada","Desclassificado","Inabilitado","Cancelado","Não participou"]),12:s("andamento",12,["","Em andamento","Ganha","Finalizado","Suspenso","Desclassificado","Inabilitado","Cancelado","Recurso","Aguardando"]),14:["","sim","não"],16:["","sim","não"]},ganhas:{2:r,9:s("ganhas",9,["","AGUARDANDO CONTRATO","EM EXECUÇÃO","SERÁ ENCERRADO","FINALIZADO","SUSPENSO","RESCINDIDO"]),13:["","SIM","NÃO"],43:["","(automático)","Não prorrogável","Será encerrado","Aguardando recomposição","Recomposição em andamento","Prorrogado","Prestação continuada via TAC"],49:["","Solicitar prorrogação","Solicitar reajuste","Solicitar recomposição","Recomposição solicitada","Aguardar assinatura","Acompanhar execução","Acompanhar publicação","Arquivar","Sem providências"]},atestados:{2:r,10:["","SIM","NÃO"],11:["","SIM","NÃO"],15:s("atestados",15,["","ATIVO","PENDENTE","VENCIDO"]),17:s("atestados",17,["","ATIVO","PENDENTE","VENCIDO"]),18:s("atestados",18,["","COMPLETO","PENDENTE","EM ANDAMENTO"])},financeiro:{1:s("financeiro",1,["","IAs","Portais","Telefonia","Informatica"]),5:s("financeiro",5,["","Pago","Pendente","Atrasado"]),6:s("financeiro",6,["","Banco Inter","Banco do Brasil","Caixa"])}},l=d[e]&&d[e][t];if(l){var c=l.slice();i&&"Outro"!==i&&-1===c.indexOf(i)&&c.push(i);var A='<select id="'+n+'" onchange="onSelChange(this,\''+e+"',"+a+","+t+')">'+c.map(function(e){return'<option value="'+e+'"'+(e===i?" selected":"")+">"+(e||"—")+"</option>"}).join("")+"</select>";return"andamento"===e&&9===t&&i&&"Outro"!==i&&-1===l.slice(1).indexOf(i)&&(A+='<input type="text" id="'+n+'-custom" value="'+i.replace(/"/g,"&quot;")+'" placeholder="Nome do portal..." onblur="saveCell(\''+e+"',"+a+","+t+",this.value||document.getElementById('"+n+'\').value)" style="margin-top:4px;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.15);color:var(--t1);font-family:Outfit,sans-serif;font-size:13px;width:100%;outline:none;padding:3px 0">'),A}if(1===t)return'<input type="date" id="'+n+'" value="'+isoDate(i)+'" onchange="saveCell(\''+e+"',"+a+","+t+',formatDateBR(this.value))">';var p={editais:[4,12],andamento:[4,15],finalizados:[4,15],ganhas:[4,20,41],atestados:[4],financeiro:[7]};if(p[e]&&-1!==p[e].indexOf(t)){var u=12===t?"Justificativa...":15===t?"Resumo do andamento...":20===t||19===t||41===t?"Observações...":4===t?"Objeto...":"";return'<textarea id="'+("ta_"+e+"_"+a+"_"+t)+'" data-val="'+encodeURIComponent(i)+'" rows="3" placeholder="'+u+'" onblur="saveCell(\''+e+"',"+a+","+t+',this.value)" style="width:100%;min-height:80px;background:var(--s2);border:1px solid var(--b1);border-radius:8px;padding:8px 10px;font-size:13px;font-family:Outfit,sans-serif;color:var(--t1);line-height:1.5;resize:vertical;white-space:pre-wrap;word-break:break-word;box-sizing:border-box;255,255,255,.1);color:var(--t1);font-family:Outfit,sans-serif;font-size:14px;outline:none;padding:4px 0;resize:vertical;line-height:1.7;min-height:44px;white-space:pre-wrap;word-break:break-word;box-sizing:border-box;"></textarea>'}var _dtCols={andamento:[10,13]};if(_dtCols[e]&&_dtCols[e].indexOf(t)>=0){var _parts=i.split(/\s+/),_dv=_parts[0]||"",_tv=_parts[1]||"";return'<div style="display:flex;gap:6px;align-items:center"><input type="text" id="'+n+'" value="'+_dv+'" placeholder="DD/MM/AAAA" style="flex:1;min-width:0" onblur="saveDateTime(\''+e+"',"+a+","+t+',this)"><input type="text" id="'+n+'_h" value="'+_tv+'" placeholder="HH:MM" style="width:60px;text-align:center" onblur="saveDateTime(\''+e+"',"+a+","+t+',this)"></div>'}var _moedaCols={editais:[7],andamento:[7,8,18],ganhas:[7]},_isMoeda=_moedaCols[e]&&_moedaCols[e].indexOf(t)>=0;if(_isMoeda&&i){var _pv=parseMoeda(i);if(_pv>0)i=fmtMoeda(_pv)}return'<input type="text" id="'+n+'" value="'+i.replace(/"/g,"&quot;")+'" onblur="saveCell(\''+e+"',"+a+","+t+',this.value)">'}function isoDate(e){if(!e)return"";var a=e.split("/");return 3===a.length?a[2]+"-"+a[1]+"-"+a[0]:e}function formatDateBR(e){if(!e)return"";var a=e.split("-");return 3===a.length?a[2]+"/"+a[1]+"/"+a[0]:e}var _saveQueue=[],_saveRunning=!1,_saveTimer={};function saveCell(e,a,t,o){if(IS_READONLY)return;if("ganhas"===e&&(8===t||10===t||11===t)&&o&&String(o).trim()){var _row=FIL.ganhas?FIL.ganhas[a]:null;if(_row){var _ck="contrato_"+parseInt(_row[0]||0);localStorage.setItem(_ck,"1");if(typeof db!=="undefined"&&db){var _dd={};_dd[_ck]="1";db.collection("config").doc("toggles").set(_dd,{merge:true}).catch(function(){})}}}var i={andamento:[7,8,18],ganhas:[7,19,26,33,40],financeiro:[3]};if(i[e]&&-1!==i[e].indexOf(t)&&o){var n=parseMoeda(o);n>0&&(o=fmtMoeda(n))}var _orig=FIL[e][a];var r=_orig.slice();if(_orig._fbId!==undefined)r._fbId=_orig._fbId;if(_orig._idField!==undefined)r._idField=_orig._idField;if(_orig._docId!==undefined)r._docId=_orig._docId;if(_orig._createdAt!==undefined)r._createdAt=_orig._createdAt;if(_orig._updatedAt!==undefined)r._updatedAt=_orig._updatedAt;var _min=("ganhas"===e?50:25);for(;r.length<_min;)r.push("");r[t]=o;var s=parseInt(r[0]);if(s){for(;r.length<_min;)r.push("");for(var _z=0;_z<r.length;_z++)if(r[_z]===undefined||r[_z]===null)r[_z]="";FIL[e][a]=r,ALL[e]=ALL[e].map(function(e){return parseInt(e[0])===s?r:e}),updateCardColor(e,a),setSavingDot(!0);var d=e+"-"+a+"-"+t;_saveTimer[d]&&clearTimeout(_saveTimer[d]),_saveTimer[d]=setTimeout(function(){delete _saveTimer[d],_saveQueue.push({k:e,rowIdx:a,ci:t,rowId:s,fbId:FIL[e][a]._fbId,row:FIL[e][a].slice()}),_saveRunning||_processQueue()},600)}}async function syncEntreAbas(e,a,t){if("editais"===e||"andamento"===e||"finalizados"===e){var o=String(t[3]||"").trim(),i=String(t[10]||"").toUpperCase().trim();String(t[16]||"").toLowerCase().trim();if("editais"===e){var n=ALL.andamento.findIndex(function(e){return String(e[3]||"").trim().toLowerCase()===o.toLowerCase()}),vi=String(t[11]||"").toUpperCase().trim();var _partSIM="SIM"===i;var _partNAO="NÃO"===i||"NAO"===i;var _viabOK="POSITIVO"===vi||"SIM"===vi;var _viabNEG="NEGATIVO"===vi||"NÃO"===vi||"NAO"===vi;if((10===a&&_partNAO)||(11===a&&_viabNEG)){  if(-1!==n){    var _idRem=ALL.andamento[n]._fbId||parseInt(ALL.andamento[n][0]);    try{      await fbDelete("andamento",_idRem);      ALL.andamento.splice(n,1);      FIL.andamento=ALL.andamento.slice();      var _bAnd=document.getElementById("b-andamento");      if(_bAnd)_bAnd.textContent=FIL.andamento.filter(function(e){return"EM ANDAMENTO"===String(e[12]||"").toUpperCase().trim();}).length;      if("andamento"===CUR)renderTbl("andamento");      toast("Processo removido de Em Andamento (negativa)","info");    }catch(_er){toast("Erro ao remover de Andamento: "+_er.message,"err");}  }  return;}/* 21/10/2026: só vai para Em Andamento com os DOIS campos positivos — Participar=SIM e Viabilidade=POSITIVO/SIM (pedido do cliente). Antes bastava Participar=SIM. */if((10===a||11===a)&&_partSIM&&_viabOK){return void(-1===n&&await criarAndamentoDoEdital(t));}if(11===a&&_viabOK&&"SIM"===String(t[10]||"").toUpperCase().trim()){return void(-1===n&&await criarAndamentoDoEdital(t));}if(10===a&&"SIM"!==i){if(-1!==n){var r=ALL.andamento[n]._fbId||parseInt(ALL.andamento[n][0]);await fbDelete("andamento",r),ALL.andamento.splice(n,1),FIL.andamento=ALL.andamento.slice();var s=document.getElementById("b-andamento");s&&(s.textContent=FIL.andamento.filter(function(e){return"EM ANDAMENTO"===String(e[12]||"").toUpperCase().trim()}).length),toast("Removido de Em Andamento","info")}return}var d=ALL.andamento.findIndex(function(e){return String(e[3]||"").trim().toLowerCase()===o.toLowerCase()});if(-1!==d){for(var l=ALL.andamento[d].slice(),c=parseInt(l[0]),A=1;A<=7;A++)l[A]=void 0!==t[A]?t[A]:l[A];await fbSave("andamento",c,l),ALL.andamento[d]=l,FIL.andamento=ALL.andamento.slice(),"andamento"===CUR&&renderTbl("andamento"),toast("Empresa atualizada em Em Andamento!","ok")}}if("andamento"===e){var p=String(t[16]||"").toLowerCase().trim(),u=String(t[11]||"").trim(),m="sim"===p&&is1Posicao(u);if(16===a&&"sim"===p&&await copiarParaFinalizados(t),16===a&&"sim"===p){var v=ALL.finalizados.findIndex(function(e){return parseInt(e[0])===parseInt(t[0])});-1!==v&&(ALL.finalizados[v]=t.slice(),await fbSave("finalizados",parseInt(t[0]),t))}if(16===a||11===a)if(m)await criarLicitacaoGanha(t);else{var f=String(t[3]||"").trim().toLowerCase(),g=String(t[2]||"").trim(),b=ALL.ganhas.findIndex(function(e){return String(e[3]||"").trim().toLowerCase()===f&&String(e[2]||"").trim()===g});if(-1!==b){var h=ALL.ganhas[b]._fbId||parseInt(ALL.ganhas[b][0]);await fbDelete("ganhas",h),ALL.ganhas.splice(b,1),applyFilters("ganhas");var y=document.getElementById("b-ganhas");y&&(y.textContent=ALL.ganhas.length),toast("Removido de Licitações Ganhas","info")}}if(16===a&&"sim"!==p){var x=parseInt(t[0]),E=ALL.finalizados.findIndex(function(e){return parseInt(e[0])===x});if(-1!==E){await fbDelete("finalizados",ALL.finalizados[E]._fbId||x),ALL.finalizados.splice(E,1),FIL.finalizados=ALL.finalizados.slice();var S=document.getElementById("b-finalizados");S&&(S.textContent=FIL.finalizados.length)}}}}}async function reabrirFinalizados(e){var a=FIL.finalizados[e];if(a&&confirm('Reabrir este processo em Em Andamento? O ADJU será resetado para "não".')){var t=parseInt(a[0]),o=a.slice();o[16]="não",await fbSave("andamento",t,o);var i=ALL.andamento.findIndex(function(e){return parseInt(e[0])===t});-1!==i?ALL.andamento[i]=o:ALL.andamento.push(o);var _fx=ALL.finalizados.find(function(e){return parseInt(e[0])===t});await fbDelete("finalizados",(_fx&&_fx._fbId)||t),ALL.finalizados.splice(e,1),FIL.finalizados=ALL.finalizados.slice(),applyFilters("andamento"),"finalizados"===CUR&&renderTbl("finalizados");var n=document.getElementById("b-finalizados");n&&(n.textContent=ALL.finalizados.length),toast("✅ Processo reaberto em Em Andamento!","ok")}}async function criarLicitacaoGanha(e){try{parseInt(e[0]);if(ALL.ganhas.some(function(a){return String(a[3]||"").trim().toLowerCase()===String(e[3]||"").trim().toLowerCase()&&String(a[2]||"").trim()===String(e[2]||"").trim()}))return;for(var a=await fbGetNextId("ganhas"),t=[];t.length<50;)t.push("");t[0]=a,t[1]=e[1]||"",t[2]=e[2]||"",t[3]=e[3]||"",t[4]=e[4]||"",t[5]=e[5]||"",t[6]=e[6]||"",t[7]=e[8]||e[7]||"",t[9]="AGUARDANDO CONTRATO",t[42]=e[19]||"",await fbSave("ganhas",a,t),ALL.ganhas.push(t),applyFilters("ganhas");var o=document.getElementById("b-ganhas");o&&(o.textContent=ALL.ganhas.length),toast("✅ Processo adicionado em Licitações Ganhas!","ok")}catch(e){toast("Erro ao criar em Ganhas: "+e.message,"err")}}async function criarAndamentoDoEdital(e){try{var a=String(e[0]||"").trim();if(!(await db.collection("andamento").where("_id","==",parseInt(a)).get()).empty)return;var t=await fbGetNextId("andamento"),o=new Array(25).fill("");o[0]=t,o[1]=e[1]||"",o[2]=e[2]||"",o[3]=e[3]||"",o[4]=e[4]||"",o[5]=e[5]||"",o[6]=e[6]||"",o[7]=e[7]||"",o[9]=e[15]||"",o[19]=e[14]||"",await fbSave("andamento",t,o),ALL.andamento.unshift(o),FIL.andamento=ALL.andamento.slice();var i=document.getElementById("b-andamento");if(i){var n=FIL.andamento.filter(function(e){return"EM ANDAMENTO"===String(e[12]||"").toUpperCase().trim()}).length;i.textContent=n}toast("✅ Adicionado em Em Andamento (#"+t+")","ok")}catch(e){}}async function copiarParaFinalizados(e){try{var a=parseInt(e[0]);if((await db.collection("finalizados").doc(String(a)).get()).exists)return;await fbSave("finalizados",a,e),ALL.finalizados.unshift(e),FIL.finalizados=ALL.finalizados.slice();var t=document.getElementById("b-finalizados");t&&(t.textContent=FIL.finalizados.length),toast("✅ Copiado para Finalizados!","ok")}catch(e){}}var _corSelecionada="#f97316";function selecionarCor(e){document.querySelectorAll(".cor-opt").forEach(function(e){e.style.border="2px solid transparent"}),e.style.border="2px solid #fff",_corSelecionada=e.getAttribute("data-cor"),document.getElementById("emp-novo-cor").value=_corSelecionada}function mascaraCNPJ(e){var a=e.value.replace(/\D/g,"").substring(0,14);a=(a=(a=(a=a.replace(/(\d{2})(\d)/,"$1.$2")).replace(/(\d{3})(\d)/,"$1.$2")).replace(/(\d{3})(\d)/,"$1/$2")).replace(/(\d{4})(\d)/,"$1-$2"),e.value=a}
+function inlineCell(e,a,t,o){var i=String(o||"").trim(),n="ic-"+e+"-"+a+"-"+t;if("finalizados"===e)return'<span style="font-size:14px;color:var(--t2);line-height:1.6;word-break:break-word;white-space:pre-wrap">'+(i||"—")+"</span>";var r=[""];function s(e,a,t){var o=getOptsCustom(e,a),i=t.slice();return o.forEach(function(e){-1===i.indexOf(e)&&i.push(e)}),-1===i.indexOf("Outro")&&i.push("Outro"),i}EMPRESAS.forEach(function(e){r.push(e.nome)});var d={editais:{2:r,10:["","SIM","NÃO","EM ANÁLISE"],11:["","POSITIVO","NEGATIVO","PENDENTE"]},andamento:{2:r,9:s("andamento",9,["","Compras Gov","BLL","LICITANET","CONLICITACAO","BNC","Publinexo","Licitanet","PE-Integrado","Compras Públicas","Apoio Cotações","Licitar Digital","Licitações-e","Enviada por E-mail"]),11:s("andamento",11,["","1 posição","2 posição","3 posição","4 posição","5 posição","6 posição","7 posição","8 posição","9 posição","10 posição","11 posição","12 posição","13 posição","14 posição","15 posição","Proposta enviada","Desclassificado","Inabilitado","Cancelado","Não participou"]),12:s("andamento",12,["","Em andamento","Ganha","Finalizado","Suspenso","Desclassificado","Inabilitado","Cancelado","Recurso","Aguardando"]),14:["","sim","não"],16:["","sim","não"]},ganhas:{2:r,9:s("ganhas",9,["","AGUARDANDO CONTRATO","EM EXECUÇÃO","SERÁ ENCERRADO","FINALIZADO","SUSPENSO","RESCINDIDO"]),13:["","SIM","NÃO"],43:["","(automático)","Não prorrogável","Será encerrado","Aguardando recomposição","Recomposição em andamento","Prorrogado","Prestação continuada via TAC"],49:["","Solicitar prorrogação","Solicitar reajuste","Solicitar recomposição","Recomposição solicitada","Aguardar assinatura","Acompanhar execução","Acompanhar publicação","Arquivar","Sem providências"]},atestados:{2:r,10:["","SIM","NÃO"],11:["","SIM","NÃO"],15:s("atestados",15,["","ATIVO","PENDENTE","VENCIDO"]),17:s("atestados",17,["","ATIVO","PENDENTE","VENCIDO"]),18:s("atestados",18,["","COMPLETO","PENDENTE","EM ANDAMENTO"])},financeiro:{1:s("financeiro",1,["","IAs","Portais","Telefonia","Informatica"]),5:s("financeiro",5,["","Pago","Pendente","Atrasado"]),6:s("financeiro",6,["","Banco Inter","Banco do Brasil","Caixa"])}},l=d[e]&&d[e][t];if(l){var c=l.slice();i&&"Outro"!==i&&-1===c.indexOf(i)&&c.push(i);var A='<select id="'+n+'" onchange="onSelChange(this,\''+e+"',"+a+","+t+')">'+c.map(function(e){return'<option value="'+e+'"'+(e===i?" selected":"")+">"+(e||"—")+"</option>"}).join("")+"</select>";return"andamento"===e&&9===t&&i&&"Outro"!==i&&-1===l.slice(1).indexOf(i)&&(A+='<input type="text" id="'+n+'-custom" value="'+i.replace(/"/g,"&quot;")+'" placeholder="Nome do portal..." onblur="saveCell(\''+e+"',"+a+","+t+",this.value||document.getElementById('"+n+'\').value)" style="margin-top:4px;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.15);color:var(--t1);font-family:Outfit,sans-serif;font-size:13px;width:100%;outline:none;padding:3px 0">'),A}if(1===t)return'<input type="date" id="'+n+'" value="'+isoDate(i)+'" onchange="saveCell(\''+e+"',"+a+","+t+',formatDateBR(this.value))">';var p={editais:[4,12],andamento:[4,15],finalizados:[4,15],ganhas:[4,20,41],atestados:[4],financeiro:[7]};if(p[e]&&-1!==p[e].indexOf(t)){var u=12===t?"Justificativa...":15===t?"Resumo do andamento...":20===t||19===t||41===t?"Observações...":4===t?"Objeto...":"";return'<textarea id="'+("ta_"+e+"_"+a+"_"+t)+'" data-val="'+encodeURIComponent(i)+'" rows="3" placeholder="'+u+'" onblur="saveCell(\''+e+"',"+a+","+t+',this.value)" style="width:100%;min-height:80px;background:var(--s2);border:1px solid var(--b1);border-radius:8px;padding:8px 10px;font-size:13px;font-family:Outfit,sans-serif;color:var(--t1);line-height:1.5;resize:vertical;white-space:pre-wrap;word-break:break-word;box-sizing:border-box;255,255,255,.1);color:var(--t1);font-family:Outfit,sans-serif;font-size:14px;outline:none;padding:4px 0;resize:vertical;line-height:1.7;min-height:44px;white-space:pre-wrap;word-break:break-word;box-sizing:border-box;"></textarea>'}var _dtCols={andamento:[10,13]};if(_dtCols[e]&&_dtCols[e].indexOf(t)>=0){var _parts=i.split(/\s+/),_dv=_parts[0]||"",_tv=_parts[1]||"";return'<div style="display:flex;gap:6px;align-items:center"><input type="text" id="'+n+'" value="'+_dv+'" placeholder="DD/MM/AAAA" style="flex:1;min-width:0" onblur="saveDateTime(\''+e+"',"+a+","+t+',this)"><input type="text" id="'+n+'_h" value="'+_tv+'" placeholder="HH:MM" style="width:60px;text-align:center" onblur="saveDateTime(\''+e+"',"+a+","+t+',this)"></div>'}var _moedaCols={editais:[7],andamento:[7,8,18],ganhas:[7]},_isMoeda=_moedaCols[e]&&_moedaCols[e].indexOf(t)>=0;if(_isMoeda&&i){var _pv=parseMoeda(i);if(_pv>0)i=fmtMoeda(_pv)}return'<input type="text" id="'+n+'" value="'+i.replace(/"/g,"&quot;")+'" onblur="saveCell(\''+e+"',"+a+","+t+',this.value)">'}function isoDate(e){if(!e)return"";var a=e.split("/");return 3===a.length?a[2]+"-"+a[1]+"-"+a[0]:e}function formatDateBR(e){if(!e)return"";var a=e.split("-");return 3===a.length?a[2]+"/"+a[1]+"/"+a[0]:e}var _saveQueue=[],_saveRunning=!1,_saveTimer={};function saveCell(e,a,t,o){if(IS_READONLY)return;if("ganhas"===e&&(8===t||10===t||11===t)&&o&&String(o).trim()){var _row=FIL.ganhas?FIL.ganhas[a]:null;if(_row){var _ck="contrato_"+parseInt(_row[0]||0);localStorage.setItem(_ck,"1");if(typeof db!=="undefined"&&db){var _dd={};_dd[_ck]="1";db.collection("config").doc("toggles").set(_dd,{merge:true}).catch(function(){})}}}var i={andamento:[7,8,18],ganhas:[7,19,26,33,40],financeiro:[3]};if(i[e]&&-1!==i[e].indexOf(t)&&o){var n=parseMoeda(o);n>0&&(o=fmtMoeda(n))}var _orig=FIL[e][a];var r=_orig.slice();if(_orig._fbId!==undefined)r._fbId=_orig._fbId;if(_orig._idField!==undefined)r._idField=_orig._idField;if(_orig._docId!==undefined)r._docId=_orig._docId;if(_orig._createdAt!==undefined)r._createdAt=_orig._createdAt;if(_orig._updatedAt!==undefined)r._updatedAt=_orig._updatedAt;if(_orig._edital!==undefined)r._edital=_orig._edital;var _min=("ganhas"===e?50:25);for(;r.length<_min;)r.push("");r[t]=o;var s=parseInt(r[0]);if(s){for(;r.length<_min;)r.push("");for(var _z=0;_z<r.length;_z++)if(r[_z]===undefined||r[_z]===null)r[_z]="";FIL[e][a]=r,ALL[e]=ALL[e].map(function(e){return parseInt(e[0])===s?r:e}),updateCardColor(e,a),setSavingDot(!0);var d=e+"-"+a+"-"+t;_saveTimer[d]&&clearTimeout(_saveTimer[d]),_saveTimer[d]=setTimeout(function(){delete _saveTimer[d],_saveQueue.push({k:e,rowIdx:a,ci:t,rowId:s,fbId:FIL[e][a]._fbId,row:FIL[e][a].slice()}),_saveRunning||_processQueue()},600)}}async function syncEntreAbas(e,a,t){if("editais"===e||"andamento"===e||"finalizados"===e){var o=String(t[3]||"").trim(),i=String(t[10]||"").toUpperCase().trim();String(t[16]||"").toLowerCase().trim();if("editais"===e){var n=ALL.andamento.findIndex(function(e){return String(e[3]||"").trim().toLowerCase()===o.toLowerCase()}),vi=String(t[11]||"").toUpperCase().trim();var _partSIM="SIM"===i;var _partNAO="NÃO"===i||"NAO"===i;var _viabOK="POSITIVO"===vi||"SIM"===vi;var _viabNEG="NEGATIVO"===vi||"NÃO"===vi||"NAO"===vi;if((10===a&&_partNAO)||(11===a&&_viabNEG)){  if(-1!==n){    var _idRem=ALL.andamento[n]._fbId||parseInt(ALL.andamento[n][0]);    try{      await fbDelete("andamento",_idRem);      ALL.andamento.splice(n,1);      FIL.andamento=ALL.andamento.slice();      var _bAnd=document.getElementById("b-andamento");      if(_bAnd)_bAnd.textContent=FIL.andamento.filter(function(e){return"EM ANDAMENTO"===String(e[12]||"").toUpperCase().trim();}).length;      if("andamento"===CUR)renderTbl("andamento");      toast("Processo removido de Em Andamento (negativa)","info");    }catch(_er){toast("Erro ao remover de Andamento: "+_er.message,"err");}  }  return;}/* 21/10/2026: só vai para Em Andamento com os DOIS campos positivos — Participar=SIM e Viabilidade=POSITIVO/SIM (pedido do cliente). Antes bastava Participar=SIM. */if((10===a||11===a)&&_partSIM&&_viabOK){return void(-1===n&&await criarAndamentoDoEdital(t));}if(11===a&&_viabOK&&"SIM"===String(t[10]||"").toUpperCase().trim()){return void(-1===n&&await criarAndamentoDoEdital(t));}if(10===a&&"SIM"!==i){if(-1!==n){var r=ALL.andamento[n]._fbId||parseInt(ALL.andamento[n][0]);await fbDelete("andamento",r),ALL.andamento.splice(n,1),FIL.andamento=ALL.andamento.slice();var s=document.getElementById("b-andamento");s&&(s.textContent=FIL.andamento.filter(function(e){return"EM ANDAMENTO"===String(e[12]||"").toUpperCase().trim()}).length),toast("Removido de Em Andamento","info")}return}var d=ALL.andamento.findIndex(function(e){return String(e[3]||"").trim().toLowerCase()===o.toLowerCase()});if(-1!==d){for(var l=ALL.andamento[d].slice(),c=parseInt(l[0]),A=1;A<=7;A++)l[A]=void 0!==t[A]?t[A]:l[A];await fbSave("andamento",c,l),ALL.andamento[d]=l,FIL.andamento=ALL.andamento.slice(),"andamento"===CUR&&renderTbl("andamento"),toast("Empresa atualizada em Em Andamento!","ok")}}if("andamento"===e){var p=String(t[16]||"").toLowerCase().trim(),u=String(t[11]||"").trim(),m="sim"===p&&is1Posicao(u);if(16===a&&"sim"===p&&await copiarParaFinalizados(t),16===a&&"sim"===p){var v=ALL.finalizados.findIndex(function(e){return parseInt(e[0])===parseInt(t[0])});-1!==v&&(ALL.finalizados[v]=t.slice(),await fbSave("finalizados",parseInt(t[0]),t))}if(16===a||11===a)if(m)await criarLicitacaoGanha(t);else{var f=String(t[3]||"").trim().toLowerCase(),g=String(t[2]||"").trim(),b=ALL.ganhas.findIndex(function(e){return String(e[3]||"").trim().toLowerCase()===f&&String(e[2]||"").trim()===g});if(-1!==b){var h=ALL.ganhas[b]._fbId||parseInt(ALL.ganhas[b][0]);await fbDelete("ganhas",h),ALL.ganhas.splice(b,1),applyFilters("ganhas");var y=document.getElementById("b-ganhas");y&&(y.textContent=ALL.ganhas.length),toast("Removido de Licitações Ganhas","info")}}if(16===a&&"sim"!==p){var x=parseInt(t[0]),E=ALL.finalizados.findIndex(function(e){return parseInt(e[0])===x});if(-1!==E){await fbDelete("finalizados",ALL.finalizados[E]._fbId||x),ALL.finalizados.splice(E,1),FIL.finalizados=ALL.finalizados.slice();var S=document.getElementById("b-finalizados");S&&(S.textContent=FIL.finalizados.length)}}}}}async function reabrirFinalizados(e){var a=FIL.finalizados[e];if(a&&confirm('Reabrir este processo em Em Andamento? O ADJU será resetado para "não".')){var t=parseInt(a[0]),o=a.slice();o[16]="não",await fbSave("andamento",t,o);var i=ALL.andamento.findIndex(function(e){return parseInt(e[0])===t});-1!==i?ALL.andamento[i]=o:ALL.andamento.push(o);var _fx=ALL.finalizados.find(function(e){return parseInt(e[0])===t});await fbDelete("finalizados",(_fx&&_fx._fbId)||t),ALL.finalizados.splice(e,1),FIL.finalizados=ALL.finalizados.slice(),applyFilters("andamento"),"finalizados"===CUR&&renderTbl("finalizados");var n=document.getElementById("b-finalizados");n&&(n.textContent=ALL.finalizados.length),toast("✅ Processo reaberto em Em Andamento!","ok")}}async function criarLicitacaoGanha(e){try{parseInt(e[0]);if(ALL.ganhas.some(function(a){return String(a[3]||"").trim().toLowerCase()===String(e[3]||"").trim().toLowerCase()&&String(a[2]||"").trim()===String(e[2]||"").trim()}))return;for(var a=await fbGetNextId("ganhas"),t=[];t.length<50;)t.push("");t[0]=a,t[1]=e[1]||"",t[2]=e[2]||"",t[3]=e[3]||"",t[4]=e[4]||"",t[5]=e[5]||"",t[6]=e[6]||"",t[7]=e[8]||e[7]||"",t[9]="AGUARDANDO CONTRATO",t[42]=e[19]||"",await fbSave("ganhas",a,t),ALL.ganhas.push(t),applyFilters("ganhas");var o=document.getElementById("b-ganhas");o&&(o.textContent=ALL.ganhas.length),toast("✅ Processo adicionado em Licitações Ganhas!","ok")}catch(e){toast("Erro ao criar em Ganhas: "+e.message,"err")}}async function criarAndamentoDoEdital(e){try{var a=String(e[0]||"").trim();if(!(await db.collection("andamento").where("_id","==",parseInt(a)).get()).empty)return;var t=await fbGetNextId("andamento"),o=new Array(25).fill("");o[0]=t,o[1]=e[1]||"",o[2]=e[2]||"",o[3]=e[3]||"",o[4]=e[4]||"",o[5]=e[5]||"",o[6]=e[6]||"",o[7]=e[7]||"",o[9]=e[15]||"",o[19]=e[14]||"",await fbSave("andamento",t,o),ALL.andamento.unshift(o),FIL.andamento=ALL.andamento.slice();var i=document.getElementById("b-andamento");if(i){var n=FIL.andamento.filter(function(e){return"EM ANDAMENTO"===String(e[12]||"").toUpperCase().trim()}).length;i.textContent=n}toast("✅ Adicionado em Em Andamento (#"+t+")","ok")}catch(e){}}async function copiarParaFinalizados(e){try{var a=parseInt(e[0]);if((await db.collection("finalizados").doc(String(a)).get()).exists)return;await fbSave("finalizados",a,e),ALL.finalizados.unshift(e),FIL.finalizados=ALL.finalizados.slice();var t=document.getElementById("b-finalizados");t&&(t.textContent=FIL.finalizados.length),toast("✅ Copiado para Finalizados!","ok")}catch(e){}}var _corSelecionada="#f97316";function selecionarCor(e){document.querySelectorAll(".cor-opt").forEach(function(e){e.style.border="2px solid transparent"}),e.style.border="2px solid #fff",_corSelecionada=e.getAttribute("data-cor"),document.getElementById("emp-novo-cor").value=_corSelecionada}function mascaraCNPJ(e){var a=e.value.replace(/\D/g,"").substring(0,14);a=(a=(a=(a=a.replace(/(\d{2})(\d)/,"$1.$2")).replace(/(\d{3})(\d)/,"$1.$2")).replace(/(\d{3})(\d)/,"$1/$2")).replace(/(\d{4})(\d)/,"$1-$2"),e.value=a}
 /* ════════════════════════════════════════════════════════════
    PAPEL TIMBRADO DAS EMPRESAS
    Guardado em documentos SEPARADOS do Firestore (config/timbrado_{empresa}),
@@ -24840,7 +24842,392 @@ body.compact .kcard .kcard-body input:not([type=checkbox]),body.compact .kcard .
 @media print{
   .kc-mais,.kc-menu,.kc-ferr-bt,.kc-ferr{display:none!important}
 }
+
+/* ── Ficha única do processo (24/10/2026) ── */
+.fp-linha{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:8px;font-size:12.5px;color:var(--t3);cursor:pointer;width:fit-content;max-width:100%}
+.fp-linha b{color:var(--t2);font-weight:700}
+.fp-linha:hover b{color:var(--nh)}
+.fp-linha .fp-sep{opacity:.5}
+.fp-linha .alta{color:#ef4444;font-weight:700}
+.fp-cx{max-width:860px}
+.fp-cab-emp{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.fp-tit{font-size:16px;font-weight:800;color:var(--t1);line-height:1.35}
+.fp-obj{font-size:12.5px;color:var(--t3);margin:4px 0 14px;line-height:1.5}
+.fp-tempo{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:16px}
+.fp-passo{background:var(--s2);border:1px solid var(--b1);border-radius:12px;padding:10px 11px;min-width:0}
+.fp-passo i{display:block;font-style:normal;font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--t3);margin-bottom:4px}
+.fp-passo b{display:block;font-size:13px;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fp-passo span{display:block;font-size:11.5px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fp-passo.feito{border-color:rgba(34,197,94,.45)}
+.fp-passo.feito i{color:#22c55e}
+.fp-passo.atual{border-color:var(--nh);box-shadow:0 0 0 1px var(--nh) inset}
+.fp-passo.atual i{color:var(--nh)}
+.fp-passo.nao{opacity:.55}
+.fp-grade{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 18px}
+.fp-campo{padding:7px 0;border-bottom:1px solid var(--b1);min-width:0}
+.fp-campo span{display:block;font-size:11px;font-weight:700;color:var(--t3)}
+.fp-campo b{display:block;font-size:13px;font-weight:600;color:var(--t1);word-break:break-word;white-space:pre-wrap}
+.fp-campo a{color:var(--nh);font-weight:700;text-decoration:none}
+.fp-vazio{font-size:12.5px;color:var(--t3);padding:4px 0}
+.fp-acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.fp-pe-ir{display:flex;gap:8px;flex-wrap:wrap;flex:1}
+.fp-cx .ae-sec-corpo{padding:6px 18px 14px}
+.fp-cx .ae-sec-corpo .fp-campo:last-child{border-bottom:none}
+@media(max-width:720px){
+  .fp-tempo{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .fp-grade{grid-template-columns:1fr}
+}
 </style>
+
+<script>
+/* ═══ FICHA ÚNICA DO PROCESSO — 24/10/2026 ══════════════════════════════
+   Pedido do cliente: "as abas têm que se conectar com mais precisão, sem
+   retrabalho: se o edital foi analisado em Editais Capturados, as
+   informações devem ficar com ele até o contrato".
+   O processo passa por quatro registros diferentes — edital, Em
+   Andamento, Finalizados e Licitações Ganhas —, cada um com seu número.
+   O que se fazia no edital (análise, viabilidade, prioridade do cliente,
+   conversa) ficava preso no número do edital, e o card de Em Andamento
+   não mostrava.
+   Agora:
+   1. `nhFichaElos` acha os quatro registros do mesmo processo. O elo
+      firme é o campo `_edital` que o Em Andamento ganha ao nascer do
+      edital; para os processos antigos, mesmo título E mesma empresa
+      (a mesma regra que o sistema já usa para criar Ganhas). Empresa
+      diferente nunca liga: a mesma licitação para dois clientes são
+      dois processos.
+   2. "Ficha do processo" (menu ⋯ de qualquer card) junta tudo numa
+      tela: linha do tempo, dados, decisão, análise do edital,
+      habilitação, disputa, contrato e acompanhamento.
+   3. Nos cards depois do edital, UMA linha diz que a história veio junto
+      (e o que é mais importante dela) — só quando existe.
+   4. A análise do edital abre de qualquer etapa: procura em todos os
+      registros do processo antes de dizer que não há análise.
+   Sem coleção nova e sem leitura a mais: só a análise do edital é lida,
+   e só quando a ficha abre.
+   ═══════════════════════════════════════════════════════════════════════ */
+function _fpEmp(r){return String(r&&r[2]||'').trim().toUpperCase();}
+function _fpTit(r){return propNorm(r&&r[3]);}
+
+/* Índice título+empresa → registros. Montado uma vez por pintura de
+   lista, para não comparar cada card com a base inteira. */
+function _fpIndice(){
+  var ix={};
+  ['editais','andamento','finalizados','ganhas'].forEach(function(col){
+    var m=ix[col]={};
+    (ALL[col]||[]).forEach(function(r){
+      var t=_fpTit(r);if(!t)return;
+      var k=t+'|'+_fpEmp(r);(m[k]=m[k]||[]).push(r);
+    });
+  });
+  var pe={};(ALL.andamento||[]).forEach(function(r){if(r._edital)pe[r._edital]=r;});
+  ix.andDoEdital=pe;
+  return ix;
+}
+
+function nhFichaElos(aba,id,ix){
+  ix=ix||_fpIndice();
+  var porId=function(col,x){x=String(x);return (ALL[col]||[]).find(function(r){return String(r[0])===x;})||null;};
+  var ini=porId(aba,id);if(!ini)return null;
+  var k=_fpTit(ini)+'|'+_fpEmp(ini);
+  var mesmo=function(col){var l=(ix[col]||{})[k]||[];return l[0]||null;};
+  var el={edital:null,andamento:null,finalizado:null,ganha:null};
+  if(aba==='editais')el.edital=ini;
+  else if(aba==='andamento')el.andamento=ini;
+  else if(aba==='finalizados'){el.finalizado=ini;el.andamento=porId('andamento',ini[0]);}
+  else if(aba==='ganhas')el.ganha=ini;
+  var base=el.andamento||el.finalizado;
+  if(!el.edital&&base&&base._edital){
+    var ed=porId('editais',String(base._edital).replace(/^e-/,''));
+    if(ed&&_fpEmp(ed)===_fpEmp(base))el.edital=ed;
+  }
+  if(!el.edital)el.edital=mesmo('editais');
+  if(!el.andamento&&el.edital)el.andamento=ix.andDoEdital['e-'+el.edital[0]]||null;
+  if(!el.andamento)el.andamento=mesmo('andamento');
+  if(!el.finalizado&&el.andamento)el.finalizado=porId('finalizados',el.andamento[0]);
+  if(!el.ganha)el.ganha=mesmo('ganhas');
+  /* Mesma permissão das abas: restrito some da ficha também. */
+  ['edital','andamento','finalizado','ganha'].forEach(function(p){if(el[p]&&!_hjVisivel(el[p]))el[p]=null;});
+  var ch=[];
+  if(el.andamento)ch.push('a-'+el.andamento[0]);
+  if(el.finalizado&&ch.indexOf('a-'+el.finalizado[0])<0)ch.push('a-'+el.finalizado[0]);
+  if(el.edital)ch.push('e-'+el.edital[0]);
+  el.chaves=ch;
+  return el;
+}
+
+/* Chave de card ('e-12' / 'a-5') → todas as chaves do mesmo processo,
+   a pedida primeiro. */
+function _fpChavesDe(chave){
+  chave=String(chave||'');
+  var m=chave.match(/^([ae])-(.+)$/);if(!m)return [chave];
+  var aba=m[1]==='e'?'editais':((ALL.andamento||[]).some(function(r){return String(r[0])===m[2];})?'andamento':'finalizados');
+  var el=null;try{el=nhFichaElos(aba,m[2]);}catch(_e){}
+  var l=[chave];(el&&el.chaves||[]).forEach(function(c){if(l.indexOf(c)<0)l.push(c);});
+  return l;
+}
+function _fpPrimeiro(mapa,chaves){
+  for(var i=0;i<chaves.length;i++){var v=mapa&&mapa[chaves[i]];if(v)return {chave:chaves[i],v:v};}
+  return null;
+}
+
+/* ── 4. Análise do edital em qualquer etapa ─────────────────────────── */
+if(typeof nhCarregarAnaliseEdital==='function'){
+  nhCarregarAnaliseEdital=async function(chave){
+    var out=document.getElementById('nh-ana-result');
+    var chs=_fpChavesDe(chave);
+    for(var i=0;i<chs.length;i++){
+      try{
+        var d=await db.collection('analise_edital').doc(String(chs[i])).get();
+        if(!d.exists||!d.data()._arr||!d.data()._arr.analise)continue;
+        if(!_anaCtx||_anaCtx.chave!==chave)return;     /* a janela já é de outro processo */
+        var reg=d.data()._arr;
+        out.innerHTML=(chs[i]!==chave?'<div style="font-size:12px;color:var(--t3);margin-bottom:10px">Análise feita em '+
+          (chs[i].charAt(0)==='e'?'Editais Capturados':'Em Andamento')+' (#'+esc0(chs[i].slice(2))+') — veio junto com o processo.</div>':'')+
+          nhRenderAnaliseEdital(reg.analise,{data:reg.data,arquivos:reg.arquivos});
+        var b=document.getElementById('nh-ana-rodar');if(b)b.textContent='🔄 Analisar de novo';
+        return;
+      }catch(e){console.warn('analise_edital',e.message);}
+    }
+  };
+}
+
+/* ── O elo nasce junto com o Em Andamento ───────────────────────────── */
+if(typeof criarAndamentoDoEdital==='function'){
+  var _fpCriarAnd=criarAndamentoDoEdital;
+  criarAndamentoDoEdital=async function(e){
+    await _fpCriarAnd(e);
+    try{
+      var edId=String(e&&e[0]||'').trim();if(!edId)return;
+      var tit=_fpTit(e),emp=_fpEmp(e);
+      var novo=(ALL.andamento||[]).find(function(r){return !r._edital&&_fpTit(r)===tit&&_fpEmp(r)===emp;});
+      if(!novo)return;
+      await db.collection('andamento').doc(String(novo._fbId||novo[0])).set({_edital:'e-'+edId},{merge:true});
+      novo._edital='e-'+edId;
+    }catch(err){console.warn('[ficha] elo',err&&err.message);}
+  };
+}
+
+/* ── 2. A ficha ─────────────────────────────────────────────────────── */
+function _fpV(s){s=String(s==null?'':s).trim();return s&&s!=='-'?s:'';}
+function _fpCampo(rot,val,html){
+  val=_fpV(val);if(!val&&!html)return '';
+  return '<div class="fp-campo"><span>'+rot+'</span><b>'+(html||esc0(val))+'</b></div>';
+}
+function _fpLink(rot,url){
+  url=_fpV(url);if(!/^https?:\/\//i.test(url))return '';
+  return _fpCampo(rot,'x','<a href="'+esc0(url)+'" target="_blank" rel="noopener">abrir ↗</a>');
+}
+function _fpSec(id,tit,resumo,corpo,aberta){
+  return '<details class="ae-sec" data-sec="'+id+'"'+(aberta?' open':'')+'><summary><b>'+tit+'</b>'+
+    (resumo?'<span class="ae-sec-res">'+resumo+'</span>':'')+'<i class="ae-seta">▾</i></summary><div class="ae-sec-corpo">'+corpo+'</div></details>';
+}
+function _fpVenc(g){return _fpV(g[39]||g[32]||g[25]||g[18]||g[12]);}
+function _fpFechar(){var m=document.getElementById('nh-fp-modal');if(m)m.style.display='none';}
+
+function nhFichaAbrir(aba,id){
+  var el=nhFichaElos(aba,id);
+  if(!el){toast('Não achei este processo','err');return;}
+  var e=el.edital,a=el.andamento||el.finalizado,g=el.ganha;
+  var qualquer=e||a||g;
+  var emp=String(qualquer[2]||'').trim(),tit=String(qualquer[3]||'').trim();
+  var eK=e?'e-'+e[0]:'';
+  var viab=eK&&typeof ANALISES_VIAB!=='undefined'?ANALISES_VIAB[eK]:null;
+  var doc=eK&&typeof _nhDocEdital==='function'?(_nhDocEdital(eK)||{}):{};
+  var prio=String(doc.prioridade||'').toLowerCase();
+
+  /* Linha do tempo */
+  var part=e?String(e[10]||'').toUpperCase().trim():'',vb=e?String(e[11]||'').toUpperCase().trim():'';
+  var decOk=part==='SIM'&&(vb==='POSITIVO'||vb==='SIM'),decNao=part==='NÃO'||part==='NAO'||vb==='NEGATIVO';
+  var adju=a&&String(a[16]||'').toLowerCase().trim()==='sim';
+  var stA=a?_fpV(a[12]):'';
+  var passos=[
+    {t:'Capturado',b:e?'#'+e[0]:'—',s:e?_fpV(e[1]):'sem registro',c:e?'feito':'nao'},
+    {t:'Decisão',b:decOk?'Participar':decNao?'Não participar':(part||vb?'Em análise':'Pendente'),s:[part&&'Part. '+part.toLowerCase(),vb&&'Viab. '+vb.toLowerCase()].filter(Boolean).join(' · '),
+      c:decOk||decNao?'feito':(e&&!a?'atual':'nao')},
+    {t:'Disputa',b:a?'#'+a[0]:'—',s:a?[stA,_fpV(a[11])].filter(Boolean).join(' · '):'',c:a?(adju||g?'feito':'atual'):'nao'},
+    {t:'Resultado',b:g?'Ganha':adju?'Adjudicado':(a&&/finaliz|desclass|inabil|cancel/i.test(stA)?stA:'—'),s:a&&_fpV(a[8])?_fpV(a[8]):'',
+      c:g||adju?'feito':'nao'},
+    {t:'Contrato',b:g?(_fpV(g[8])||'#'+g[0]):'—',s:g?[_fpV(g[9]),_fpVenc(g)&&'vence '+_fpVenc(g)].filter(Boolean).join(' · '):'',c:g?'atual':'nao'}
+  ];
+  var tempo='<div class="fp-tempo">'+passos.map(function(p){
+    return '<div class="fp-passo '+p.c+'"><i>'+p.t+'</i><b title="'+esc0(p.b)+'">'+esc0(p.b)+'</b><span title="'+esc0(p.s)+'">'+esc0(p.s||' ')+'</span></div>';
+  }).join('')+'</div>';
+
+  /* Dados */
+  var dados=_fpCampo('Valor estimado',(e&&e[7])||(a&&a[7]))+
+    _fpCampo('Município / UF',(a&&a[6])||(e&&e[6]))+
+    _fpCampo('Local de execução',(a&&a[5])||(e&&e[5]))+
+    _fpCampo('Portal',(a&&a[9])||(e&&e[15]))+
+    _fpCampo('Data da disputa',a&&a[10])+
+    _fpCampo('Responsável',e&&e[9])+
+    _fpLink('Edital',e&&e[13])+
+    _fpLink('Pasta',(g&&g[42])||(a&&a[19])||(e&&e[14]));
+
+  /* Decisão */
+  var decisao=_fpCampo('Participar',e&&e[10])+_fpCampo('Viabilidade',e&&e[11])+
+    _fpCampo('Justificativa',e&&e[12])+
+    (viab?_fpCampo('Nota da IA',(viab.risco?({baixo:'Risco baixo',medio:'Risco médio',alto:'Risco alto'}[viab.risco]||viab.risco):'')+
+      (typeof viab.nota==='number'?' · '+viab.nota.toFixed(1).replace('.',','):'')):'')+
+    (viab&&viab.capag&&viab.capag.nota?_fpCampo('CAPAG',viab.capag.nota):'')+
+    (prio?_fpCampo('Prioridade do cliente',prio==='alta'?'Alta':prio==='media'||prio==='média'?'Média':prio):'');
+
+  /* Habilitação */
+  var pend=_fpPrimeiro(typeof PENDENCIAS!=='undefined'?PENDENCIAS:{},el.chaves);
+  var pv=pend&&pend.v,hab='',habRes='';
+  if(pv){
+    var faltas=(pv.faltantes||[]).map(function(f){return f.doc;}).concat((pv.vencidos||[]).map(function(v){return v.doc+' (vencido)';}));
+    habRes=faltas.length?faltas.length+' pendência'+(faltas.length>1?'s':''):'OK';
+    hab=faltas.length?'<div class="nh-aviso-itens">'+faltas.map(function(x){return '<span class="nh-aviso-item">'+esc0(x)+'</span>';}).join('')+'</div>'
+      :'<div class="fp-vazio" style="color:#22c55e">✓ Habilitação OK'+(pv.resolvidoEm?' — resolvido em '+esc0(pv.resolvidoEm):'')+'</div>';
+    hab+='<div class="fp-vazio">Análise de '+esc0(pv.data||'')+' · '+esc0(pv.empresa||emp)+'</div>';
+  }else hab='<div class="fp-vazio">Sem análise de habilitação ainda.</div>';
+
+  /* Disputa */
+  var disputa=a?(_fpCampo('Status',a[12])+_fpCampo('Posição',a[11])+_fpCampo('Reabertura',a[13])+_fpCampo('Recurso',a[14])+
+    _fpCampo('Valor final',a[8])+_fpCampo('1º colocado',[_fpV(a[17]),_fpV(a[18])].filter(Boolean).join(' · '))+
+    _fpCampo('Resumo do andamento',a[15])):'';
+
+  /* Contrato */
+  var contrato=g?(_fpCampo('Nº do contrato',g[8])+_fpCampo('Status',g[9])+_fpCampo('Valor',g[7])+_fpCampo('Vencimento',_fpVenc(g))+
+    _fpCampo('Observações',g[41])):'';
+
+  /* Acompanhamento: próxima ação, chat, conversa */
+  var acomp='';
+  [['ganhas',g],['andamento',el.andamento],['editais',e]].forEach(function(p){
+    if(!p[1]||typeof PROX_ACAO==='undefined')return;
+    var x=PROX_ACAO[_paChave(p[0],p[1][0])];
+    if(x&&x.t)acomp+=_fpCampo('Próxima ação',x.t+(x.q?' · '+x.q:'')+(x.ate?' · até '+x.ate.split('-').reverse().join('/'):''));
+  });
+  var chatK=typeof CHAT_MON!=='undefined'?el.chaves.filter(function(c){return CHAT_MON[c];})[0]:null;
+  if(chatK){
+    var cr=typeof chatResumo==='function'?chatResumo(chatK):null;
+    acomp+=_fpCampo('Chat do pregão',(CHAT_MON[chatK].ativo?'Em monitoramento':'Parado')+(cr&&cr.naoLidas?' · '+cr.naoLidas+' não lida'+(cr.naoLidas>1?'s':''):''));
+  }
+  var conv=Array.isArray(doc.conversa)?doc.conversa.length:0;
+  if(conv)acomp+=_fpCampo('Conversa com o cliente',conv+' mensage'+(conv>1?'ns':'m'));
+  var bAcomp=[];
+  if(chatK)bAcomp.push('<button class="nh-btn" onclick="_fpFechar();chatRetomar(\''+chatK+'\')">💬 Abrir chat</button>');
+  if(eK&&conv)bAcomp.push('<button class="nh-btn" onclick="_fpFechar();nhAbrirConversa(\''+eK+'\')">Conversa com o cliente</button>');
+  var stage=g?['ganhas',g[0]]:el.andamento?['andamento',el.andamento[0]]:e?['editais',e[0]]:null;
+  if(stage&&!_hjSoLeitura())bAcomp.push('<button class="nh-btn" onclick="_fpFechar();nhProxAcao(\''+stage[0]+'\',\''+stage[1]+'\')">➜ Próxima ação</button>');
+  if(!acomp)acomp='<div class="fp-vazio">Nada pendente registrado.</div>';
+  if(bAcomp.length)acomp+='<div class="fp-acoes">'+bAcomp.join('')+'</div>';
+
+  /* A análise do edital é do processo: grava e lê na chave mais antiga. */
+  var anaK=eK||el.chaves[0]||'';
+  var ej=emp.replace(/\\/g,'').replace(/'/g,"\\'"),tj=tit.substring(0,60).replace(/\\/g,'').replace(/'/g,'').replace(/"/g,'');
+  var anaCorpo='<div id="fp-ana"><div class="fp-vazio">Procurando a análise…</div></div>'+
+    (anaK&&emp?'<div class="fp-acoes"><button class="nh-btn" onclick="_fpFechar();nhAbrirAnaliseCard(\''+anaK+'\',\''+ej+'\',\''+tj+'\')">Abrir a análise do edital</button></div>':'');
+
+  var ir=[['editais',e,'Edital'],['andamento',el.andamento,'Em Andamento'],['finalizados',el.finalizado,'Finalizado'],['ganhas',g,'Contrato']]
+    .filter(function(p){return p[1];})
+    .map(function(p){return '<button class="btn btn-ghost" onclick="_fpFechar();irParaCard(\''+p[0]+'\',\''+p[1][0]+'\')">'+p[2]+' #'+esc0(p[1][0])+'</button>';}).join('');
+
+  var m=document.getElementById('nh-fp-modal');
+  if(!m){
+    m=document.createElement('div');m.id='nh-fp-modal';m.className='chat-modal';
+    m.addEventListener('click',function(ev){if(ev.target===m)_fpFechar();});
+    document.addEventListener('keydown',function(ev){if(ev.key==='Escape'&&m.style.display==='flex')_fpFechar();});
+    document.body.appendChild(m);
+  }
+  m.innerHTML='<div class="chat-cx fp-cx">'+
+    '<div class="chat-cab"><b>Ficha do processo</b><button type="button" onclick="_fpFechar()" aria-label="Fechar">&times;</button></div>'+
+    '<div class="chat-corpo">'+
+      '<div class="fp-cab-emp">'+(emp?'<span class="emp-badge" style="--ec:'+empColor(emp)+'">'+esc0(emp)+'</span>':'')+'</div>'+
+      '<div class="fp-tit">'+esc0(tit)+'</div>'+
+      '<div class="fp-obj">'+esc0(String(qualquer[4]||'').slice(0,300))+'</div>'+
+      tempo+
+      _fpSec('dados','Dados do processo','',dados?'<div class="fp-grade">'+dados+'</div>':'<div class="fp-vazio">Sem dados.</div>',true)+
+      (e?_fpSec('decisao','Decisão de participar',decOk?'participar':decNao?'não participar':'pendente','<div class="fp-grade">'+decisao+'</div>',!a):'')+
+      _fpSec('analise','Análise do edital','',anaCorpo,false)+
+      _fpSec('hab','Habilitação',habRes,hab,!!(pv&&habRes!=='OK'))+
+      (a?_fpSec('disputa','Disputa',stA,'<div class="fp-grade">'+disputa+'</div>',!g):'')+
+      (g?_fpSec('contrato','Contrato',_fpV(g[9]),'<div class="fp-grade">'+contrato+'</div>',true):'')+
+      _fpSec('acomp','Acompanhamento','',acomp,true)+
+    '</div>'+
+    '<div class="chat-pe"><div class="fp-pe-ir">'+ir+'</div><button type="button" class="btn btn-nh" onclick="_fpFechar()">Fechar</button></div>'+
+  '</div>';
+  m.style.display='flex';
+  _fpCarregarAnalise(el.chaves);
+}
+
+/* Só lê quando a ficha abre — uma ou duas leituras. */
+async function _fpCarregarAnalise(chaves){
+  var alvo=function(){return document.getElementById('fp-ana');};
+  for(var i=0;i<chaves.length;i++){
+    try{
+      var d=await db.collection('analise_edital').doc(String(chaves[i])).get();
+      if(!d.exists||!d.data()._arr||!d.data()._arr.analise)continue;
+      var reg=d.data()._arr,an=reg.analise;
+      var x=alvo();if(!x)return;
+      var st={APTA:'Habilitada',PENDENCIAS:'Habilitada com pendências',NAO_APTA:'Não habilitada'}[String(an.status||'').toUpperCase()]||'';
+      var altos=(an.riscos||[]).filter(function(r){return r.gravidade==='alta';}).length;
+      var sec=x.closest('details');
+      if(sec){var res=sec.querySelector('summary');if(res&&!res.querySelector('.ae-sec-res'))res.insertAdjacentHTML('beforeend','<span class="ae-sec-res">'+esc0(['feita em '+(reg.data||''),st,altos?altos+' risco'+(altos>1?'s':'')+' alto'+(altos>1?'s':''):''].filter(Boolean).join(' · '))+'</span>');}
+      x.innerHTML=(an.resumo?'<p class="ae-resumo" style="margin-top:0">'+esc0(an.resumo)+'</p>':'')+
+        '<div class="fp-grade">'+_fpCampo('Sessão',an.sessao)+_fpCampo('Valor estimado',an.valor_estimado)+
+        _fpCampo('Prazos',(an.prazos||[]).slice(0,4).map(function(p){return (p.nome||'')+(p.quando?' — '+p.quando:'');}).join('\n'))+
+        _fpCampo('Riscos altos',(an.riscos||[]).filter(function(r){return r.gravidade==='alta';}).slice(0,4).map(function(r){return r.titulo||'';}).join('\n'))+
+        '</div><div class="fp-vazio">Análise de '+esc0(reg.data||'')+' por '+esc0(reg.empresa||'')+' — feita '+
+        (String(chaves[i]).charAt(0)==='e'?'em Editais Capturados':'em Em Andamento')+'.</div>';
+      return;
+    }catch(e){
+      var y=alvo();if(y)y.innerHTML='<div class="fp-vazio">Não consegui ler a análise: '+esc0(_hjErroRegra(e,'analise_edital'))+'</div>';
+      return;
+    }
+  }
+  var z=alvo();if(z)z.innerHTML='<div class="fp-vazio">Este edital ainda não foi analisado.</div>';
+}
+
+/* ── 3. Nos cards: item no menu ⋯ e, depois do edital, uma linha ───── */
+function _fpPintarCards(tab){
+  if(['editais','andamento','finalizados','ganhas'].indexOf(tab)<0)return;
+  var area=document.getElementById('tbl-'+tab);if(!area)return;
+  var ix=null;
+  area.querySelectorAll('.kcard').forEach(function(card){
+    var idEl=card.querySelector('.kcard-id');if(!idEl)return;
+    var id=idEl.textContent.replace(/\D/g,'');if(!id)return;
+    var menu=card.querySelector('.kc-menu');
+    if(menu&&!menu.querySelector('.fp-item')){
+      var b=document.createElement('button');
+      b.type='button';b.className='kc-item fp-item';
+      b.innerHTML='<span style="font-size:14px;color:var(--nh)">&#128193;</span><span class="kc-item-t">Ficha do processo</span>';
+      b.addEventListener('click',function(ev){ev.stopPropagation();_kcFecharMenus();nhFichaAbrir(tab,id);});
+      menu.insertBefore(b,menu.firstChild);
+    }
+    if(tab==='editais'||card.querySelector('.fp-linha'))return;
+    ix=ix||_fpIndice();
+    var el=nhFichaElos(tab,id,ix);
+    if(!el||!el.edital)return;
+    var eK='e-'+el.edital[0];
+    var v=typeof ANALISES_VIAB!=='undefined'?ANALISES_VIAB[eK]:null;
+    var pr=String(((typeof _nhDocEdital==='function'&&_nhDocEdital(eK))||{}).prioridade||'').toLowerCase();
+    var bits=[];
+    if(v&&v.risco)bits.push(({baixo:'risco baixo',medio:'risco médio',alto:'risco alto'}[v.risco]||'')+(typeof v.nota==='number'?' '+v.nota.toFixed(1).replace('.',','):''));
+    if(pr==='alta')bits.push('<span class="alta">prioridade alta do cliente</span>');
+    else if(pr==='media'||pr==='média')bits.push('prioridade média do cliente');
+    var lin=document.createElement('div');
+    lin.className='fp-linha';
+    lin.title='Abre a ficha: tudo o que foi feito neste processo, do edital ao contrato';
+    lin.innerHTML='<span>&#128193;</span><b>Ficha do processo</b><span class="fp-sep">·</span><span>veio do edital #'+esc0(el.edital[0])+'</span>'+
+      bits.map(function(x){return '<span class="fp-sep">·</span><span>'+x+'</span>';}).join('');
+    lin.addEventListener('click',function(ev){ev.stopPropagation();nhFichaAbrir(tab,id);});
+    var alvo=card.querySelector('.kcard-top > div:first-child');
+    if(alvo)alvo.appendChild(lin);
+  });
+}
+
+if(typeof renderTbl==='function'&&!renderTbl.__fpFicha){
+  var _fpRenderTblOrig=renderTbl;
+  renderTbl=function(e){
+    var r=_fpRenderTblOrig.apply(this,arguments);
+    try{_fpPintarCards(e);}catch(err){console.warn('[ficha] card',err);}
+    return r;
+  };
+  renderTbl.__fpFicha=true;
+}
+</script>
 </body>
 </html>
 
