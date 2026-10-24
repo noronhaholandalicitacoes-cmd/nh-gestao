@@ -3514,6 +3514,7 @@ body.light-theme .sb-alertas .sb-item:hover{background:rgba(37,99,235,.07);color
        continua funcionando mas PARA DE AUDITAR, e a aba Atividade em
        Configurações avisa isso em vermelho. -->
   <script src="nh-auditoria.js"></script>
+  <script src="nh-filtros.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-auth-compat.js"></script>
 <style>
 /* LOGO REDONDA — 21/10/2026. Pedido do cliente: "deixar a logo NH bem
@@ -25760,7 +25761,18 @@ async function _estBater(){
   }catch(e){ console.warn('[estacao]', e.message); }
 }
 setInterval(_estBater, 30000);
+
+/* Filtros compactos (24/10/2026) — ver nh-filtros.js. Empresa e
+   Situação viram dois botões na mesma linha, recolhidos. */
+if(typeof nhFiltrosCompactos==='function'){
+  nhFiltrosCompactos([
+    {sel:'.pills[id^="pills-"]',item:'.pill',rotulo:'Empresa'},
+    {sel:'.pills[id^="status-pills-"]',item:'.pill',rotulo:'Situação',
+      junto:function(b){return nhFiltroBotaoDe(document.getElementById(b.id.replace('status-','')));}}
+  ]);
+}
 </script>
+<style>.nhf+.nhf{margin-right:auto}</style>
 </body>
 </html>
 

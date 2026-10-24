@@ -9757,6 +9757,18 @@ function gcMostrarResultado(id, fi, r, d){
 (function(){ var b=document.querySelector(".gc-bt-prazos"), barra=document.getElementById("topbar-abas");
   if(b && barra){ b.classList.add("na-barra"); barra.appendChild(b); } })();
 </script>
+<!-- Filtros compactos (24/10/2026): Situação e Empresa viram botões
+     recolhidos, lado a lado — mesmo componente do Gestão (nh-filtros.js). -->
+<script src="nh-filtros.js"></script>
+<script>
+if(typeof nhFiltrosCompactos==='function'){
+  nhFiltrosCompactos([
+    {sel:'#filtros-area',item:'.filtro-btn',rotulo:'Situação'},
+    {sel:'#filtros-empresa-area',item:'.filtro-btn',rotulo:'Empresa',
+      junto:function(){return nhFiltroBotaoDe(document.getElementById('filtros-area'));}}
+  ]);
+}
+</script>
 </body>
 </html>
 
