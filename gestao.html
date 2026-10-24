@@ -22121,32 +22121,44 @@ function nhAbrirAnaliseCard(chave,emp,titulo){
      hora — sem gastar IA de novo. "Analisar de novo" refaz. */
   var _bRod=document.getElementById('nh-ana-rodar');if(_bRod)_bRod.textContent='✓ Analisar com o Claude';
   nhCarregarAnaliseEdital(chave);
-  /* status do dossiê da empresa */
+  /* QUAL DOCUMENTAÇÃO USAR — 24/10/2026: "melhor colocar, pq aí eu
+     seleciono como quero analisar". A janela sempre pergunta, já marcada
+     com a empresa do card; dá para trocar de empresa ou escolher
+     "nenhuma" (só lê o edital; a habilitação sai como "conferir" e não
+     vira pendência no card). */
   var dEl=document.getElementById('nh-ana-dossie');
-  /* Sem empresa (análise avulsa ou card ainda sem empresa — 24/10/2026):
-     o edital é lido do mesmo jeito; a habilitação sai como "conferir",
-     ou cruza com a empresa escolhida aqui. */
-  if(!emp){
-    dEl.innerHTML='<label style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">Cruzar a habilitação com o dossiê de: '+
-      '<select id="nh-ana-emp" onchange="_anaCtx.emp=this.value;_nhAnaSub()" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);border-radius:8px;padding:6px 10px;font:inherit;font-size:12.5px">'+
-      '<option value="">nenhuma — só ler o edital</option>'+(EMPRESAS||[]).map(function(x){return '<option value="'+esc0(x.nome)+'">'+esc0(x.nome)+'</option>';}).join('')+
-      '</select></label><div style="font-size:11px;color:var(--t3);margin-top:4px">Sem empresa, a análise traz prazos, regras, itens, exigências e riscos; as exigências de habilitação saem como "conferir".</div>';
-    var _bt=document.getElementById('nh-ana-rodar');
-    var _av=_bt&&_bt.parentNode&&_bt.parentNode.parentNode&&_bt.parentNode.parentNode.querySelector('div[style*="margin-top:8px"]');
-    if(_av)_av.textContent=_anaCtx.avulsa?'Análise avulsa: o resultado aparece aqui e pode ser impresso, mas não fica guardado em nenhum processo.':'Ao concluir, o resultado é salvo automaticamente neste card do processo.';
-    return;
+  var _emps=(EMPRESAS||[]).map(function(x){return String(x.nome||'');}).filter(Boolean);
+  if(emp&&_emps.indexOf(emp)<0)_emps.unshift(emp);
+  dEl.innerHTML='<label style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-weight:600">Cruzar a habilitação com a documentação de: '+
+    '<select id="nh-ana-emp" onchange="_anaCtx.emp=this.value;_nhAnaSub();_nhAnaDossieSt()" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);border-radius:8px;padding:6px 10px;font:inherit;font-size:12.5px">'+
+    '<option value="">nenhuma — só ler o edital</option>'+_emps.map(function(n){return '<option value="'+esc0(n)+'"'+(n===emp?' selected':'')+'>'+esc0(n)+'</option>';}).join('')+
+    '</select></label><div id="nh-ana-dossie-st" style="margin-top:6px"></div>';
+  var _bt=document.getElementById('nh-ana-rodar');
+  var _av=_bt&&_bt.parentNode&&_bt.parentNode.parentNode&&_bt.parentNode.parentNode.querySelector('div[style*="margin-top:8px"]');
+  if(_av)_av.textContent=_anaCtx.avulsa?'Análise avulsa: o resultado aparece aqui e pode ser impresso, mas não fica guardado em nenhum processo.':'Ao concluir, o resultado é salvo automaticamente neste card do processo.';
+  _nhAnaDossieSt();
+}
+
+/* Situação da documentação da empresa escolhida — a mesma conta da aba
+   Habilitação, que é o que a análise vai usar. */
+async function _nhAnaDossieSt(){
+  var el=document.getElementById('nh-ana-dossie-st');if(!el)return;
+  var emp=(_anaCtx&&_anaCtx.emp)||'';
+  if(!emp){el.innerHTML='<span style="font-size:11.5px;color:var(--t3)">Sem empresa: a análise traz prazos, regras, itens, exigências e riscos; a habilitação sai como "conferir" e não vira pendência no card.</span>';return;}
+  el.innerHTML='<span style="font-size:11.5px;color:var(--t3)">Conferindo a documentação de '+esc0(emp)+'...</span>';
+  try{
+    var f=await _hbFontes(emp);
+    if(!_anaCtx||_anaCtx.emp!==emp)return;          /* trocaram de empresa no meio */
+    var res=HB_LISTA.filter(function(it){return !it.opcional;}).map(function(it){return _hbAvaliar(it,f).st;});
+    var ok=res.filter(function(s){return s==='ok';}).length;
+    var venc=res.filter(function(s){return s==='venc';}).length,falta=res.filter(function(s){return s==='falta';}).length;
+    el.innerHTML='<span style="font-size:12px">📁 <b>'+esc0(emp)+'</b>: '+ok+' de '+res.length+' exigências em dia'+
+      (venc?' · <span style="color:#ef4444">'+venc+' vencida'+(venc>1?'s':'')+'</span>':'')+
+      (falta?' · <span style="color:#eab308">'+falta+' faltando</span>':'')+
+      ' <span style="color:var(--t3)">(Certidões + Documentação + Dossiê IA + Atestados — veja na aba Habilitação da empresa)</span></span>';
+  }catch(e){
+    el.innerHTML='<span style="font-size:11.5px;color:#eab308">Não consegui conferir a documentação de '+esc0(emp)+': '+esc0(e.message||e)+'</span>';
   }
-  dEl.innerHTML='Verificando dossiê de '+emp+'...';
-  carregarDossie(emp).then(function(d){
-    if(d){
-      var _venc=(d.documentos||[]).filter(function(x){var di=calcDias(x.validade);return di!==null&&di<0;}).length;
-      dEl.innerHTML='📁 Dossiê de <b>'+emp+'</b>: <span style="color:#22c55e">'+(d.documentos||[]).length+' documentos'+(d._lidoEm?' · lido '+d._lidoEm:'')+'</span>'+
-        (_venc?' <span style="color:#eab308">· '+_venc+' com validade vencida</span>':'')+
-        '<div style="font-size:11px;color:var(--t3);margin-top:3px">Alguma data está errada? Abra a página da empresa na barra lateral → card <b>Dossiê de Habilitação</b> → <b>👁 Ver dossiê</b> → <b>✏️ Corrigir dados</b>. A análise passa a usar o valor corrigido.</div>';
-    }else{
-      dEl.innerHTML='<span style="color:#eab308">⚠ <b>'+emp+'</b> ainda não tem dossiê. Abra a página da empresa na lateral e cadastre no card "Dossiê de Habilitação (IA)".</span>';
-    }
-  });
 }
 
 function nhAnaAddFiles(input){
