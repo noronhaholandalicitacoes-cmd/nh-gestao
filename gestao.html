@@ -24879,6 +24879,10 @@ body.compact .kcard .kcard-body input:not([type=checkbox]),body.compact .kcard .
 .fp-acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .fp-pe-ir{display:flex;gap:8px;flex-wrap:wrap;flex:1}
 .fp-cx .ae-sec-corpo{padding:6px 18px 14px}
+.fp-parecer{background:var(--s2);border:1px solid var(--b1);border-left:3px solid var(--nh);border-radius:10px;padding:10px 14px;font-size:13px;line-height:1.6;color:var(--t1)}
+.fp-parecer b{color:var(--nh);font-size:11.5px;letter-spacing:.04em;margin-right:4px}
+.fp-parecer small{display:block;margin-top:6px;color:var(--t3);font-size:11px}
+.fp-linha .fp-at{color:#ef4444;font-weight:800}
 .kcard .kf-fatos{display:flex!important;flex-wrap:wrap;gap:6px 16px;margin-top:7px;font-size:13px;color:var(--t2)}
 .kf-fatos .kf{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .kf-fatos .kf i{font-style:normal;font-size:12px;opacity:.8}
@@ -25154,6 +25158,16 @@ function nhFichaAbrir(aba,id){
       '<div class="fp-tit">'+esc0(tit)+'</div>'+
       '<div class="fp-obj">'+esc0(String(qualquer[4]||'').slice(0,300))+'</div>'+
       tempo+
+      (function(){
+        var at=_fpAtencao(el),altas=at.filter(function(x){return x.n==='alta';}).length;
+        var corpo=(at.length?at.map(function(x){
+            return '<div class="ae-l"><div class="ae-l-cab"><div class="ae-l-txt"><b style="font-weight:600">'+esc0(x.t)+'</b></div>'+
+              '<div class="ae-l-dir">'+_aeChip(x.n==='alta'?['falta','urgente']:['venc','atenção'])+'</div></div></div>';
+          }).join(''):'<div class="fp-vazio" style="color:#22c55e">✓ Nada fora do lugar neste processo.</div>')+
+          '<div id="fp-parecer" style="margin-top:10px"></div>'+
+          '<div class="fp-acoes"><button class="nh-btn" onclick="nhFichaParecer()">🤖 Parecer da IA</button></div>';
+        return _fpSec('atencao','Pontos de atenção',at.length?(altas?altas+' urgente'+(altas>1?'s':''):at.length+' para olhar'):'tudo em ordem',corpo,true);
+      })()+
       _fpSec('dados','Dados do processo','',dados?'<div class="fp-grade">'+dados+'</div>':'<div class="fp-vazio">Sem dados.</div>',true)+
       (e?_fpSec('decisao','Decisão de participar',decOk?'participar':decNao?'não participar':'pendente','<div class="fp-grade">'+decisao+'</div>',!a):'')+
       _fpSec('analise','Análise do edital','',anaCorpo,false)+
@@ -25166,6 +25180,86 @@ function nhFichaAbrir(aba,id){
   '</div>';
   m.style.display='flex';
   _fpCarregarAnalise(el.chaves);
+}
+
+/* ═══ IA ACOMPANHANDO O PROCESSO — 24/10/2026 ══════════════════════════
+   Pedido: "a IA tem que acompanhar tudo". Duas camadas:
+   1. Pontos de atenção — regras que olham o processo inteiro (edital,
+      disputa, contrato, chat, próxima ação) e apontam o que está fora do
+      lugar. Rodam sozinhas, em todo card, sem gastar IA nem leitura.
+   2. Parecer da IA — sob pedido, na ficha: o Claude lê a ficha inteira e
+      diz em poucas linhas a situação, o que fazer agora e o risco.
+   ═══════════════════════════════════════════════════════════════════════ */
+function _fpAtencao(el){
+  var out=[],e=el.edital,a=el.andamento,g=el.ganha;
+  var add=function(n,t){out.push({n:n,t:t});};
+  var pend=_fpPrimeiro(typeof PENDENCIAS!=='undefined'?PENDENCIAS:{},el.chaves);
+  var nPend=pend?((pend.v.faltantes||[]).length+(pend.v.vencidos||[]).length):0;
+  var adju=a&&String(a[16]||'').toLowerCase().trim()==='sim';
+  if(e&&!a&&!g){
+    var d=_hjData(e[1]),n=d?_hjDias(d):null;
+    var part=String(e[10]||'').toUpperCase().trim(),vb=String(e[11]||'').toUpperCase().trim();
+    var decOk=part==='SIM'&&(vb==='POSITIVO'||vb==='SIM'),decNao=part==='NÃO'||part==='NAO'||vb==='NEGATIVO';
+    var prio=String(((typeof _nhDocEdital==='function'&&_nhDocEdital('e-'+e[0]))||{}).prioridade||'').toLowerCase();
+    if(n!==null&&n>=0&&n<=3&&!decOk&&!decNao)add('alta','Sessão '+(n===0?'hoje':n===1?'amanhã':'em '+n+' dias')+' e ainda sem decisão de participar.');
+    if(prio==='alta'&&!decOk&&!decNao)add('alta','O cliente marcou prioridade alta e a NH ainda não decidiu.');
+    if(decOk&&!pend&&n!==null&&n>=0)add('media','Vai participar, mas o edital ainda não foi analisado — rode a Análise do edital.');
+    if(nPend&&n!==null&&n>=0&&n<=7)add('alta','Habilitação com '+nPend+' pendência'+(nPend>1?'s':'')+' e sessão '+(n===0?'hoje':'em '+n+' dia'+(n>1?'s':''))+'.');
+    if(decOk&&n!==null&&n<0)add('media','A sessão já passou e o processo não foi para Em Andamento.');
+  }
+  if(a&&!adju&&!g){
+    var st=String(a[12]||'').toLowerCase();
+    if(String(a[14]||'').toLowerCase().trim()==='sim')add('alta','Há recurso neste processo — acompanhe o prazo de razões e contrarrazões.');
+    var re=_hjData(a[13]),nr=re?_hjDias(re):null;
+    if(nr!==null&&nr>=0&&nr<=2)add('alta','Reabertura da sessão '+(nr===0?'hoje':nr===1?'amanhã':'em 2 dias')+'.');
+    if(is1Posicao(String(a[11]||''))&&!(typeof PROX_ACAO!=='undefined'&&PROX_ACAO[_paChave('andamento',a[0])]))
+      add('media','Em 1º lugar e sem próxima ação registrada — documentos de habilitação e proposta ajustada estão prontos?');
+    var di=_hjData(a[10]),nd=di?_hjDias(di):null;
+    var chatK=typeof CHAT_MON!=='undefined'?el.chaves.filter(function(c){return CHAT_MON[c]&&CHAT_MON[c].ativo;})[0]:null;
+    if(nd!==null&&nd>=0&&nd<=2&&!chatK&&!/finaliz|cancel|desclass|inabil/.test(st))add('media','Disputa '+(nd===0?'hoje':'em '+nd+' dia'+(nd>1?'s':''))+' e o chat do pregão não está sendo monitorado.');
+    if(nPend&&!/finaliz|cancel/.test(st))add('media','Habilitação ainda com '+nPend+' pendência'+(nPend>1?'s':'')+'.');
+  }
+  if(typeof CHAT_MON!=='undefined'&&typeof chatResumo==='function'){
+    el.chaves.forEach(function(c){var r=CHAT_MON[c]?chatResumo(c):null;if(r&&r.mencoes&&r.naoLidas)add('alta','O pregoeiro citou a empresa no chat e há mensagem não lida.');});
+  }
+  if(g){
+    var v=_hjData(_fpVenc(g)),nv=v?_hjDias(v):null,sg=String(g[9]||'').toUpperCase();
+    var prov=_fpV(g[49]);
+    if(nv!==null&&nv<0&&/EXECU/.test(sg))add('alta','Contrato vencido e ainda marcado como em execução.');
+    else if(nv!==null&&nv>=0&&nv<=90&&(!prov||/^sem provid/i.test(prov))&&/EXECU|AGUARD/.test(sg))add(nv<=30?'alta':'media','Contrato vence em '+nv+' dias e não há providência definida (prorrogar, reajustar, encerrar?).');
+  }
+  [['ganhas',g],['andamento',a],['editais',e]].forEach(function(p){
+    if(!p[1]||typeof PROX_ACAO==='undefined')return;
+    var x=PROX_ACAO[_paChave(p[0],p[1][0])];
+    var d=x&&x.ate?_hjDataISO(x.ate):null,n=d?_hjDias(d):null;
+    if(n!==null&&n<0)add('alta','Próxima ação atrasada: '+x.t+'.');
+  });
+  var vistos={};return out.filter(function(o){if(vistos[o.t])return false;vistos[o.t]=1;return true;})
+    .sort(function(x,y){return (x.n==='alta'?0:1)-(y.n==='alta'?0:1);});
+}
+
+async function nhFichaParecer(){
+  var m=document.getElementById('nh-fp-modal'),alvo=document.getElementById('fp-parecer');
+  if(!m||!alvo)return;
+  var corpo=m.querySelector('.chat-corpo');
+  var texto=String(corpo?corpo.innerText:'').replace(/\n{3,}/g,'\n\n').slice(0,9000);
+  alvo.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:18px;height:18px"></div> O Claude está lendo a ficha...</div>';
+  var dh=new Date(),hoje=('0'+dh.getDate()).slice(-2)+'/'+('0'+(dh.getMonth()+1)).slice(-2)+'/'+dh.getFullYear();
+  var prompt='HOJE É '+hoje+'. Você é o consultor sênior de licitações da NH Licitações e acompanha este processo para a empresa cliente. '+
+    'Abaixo está a ficha do processo, do edital ao contrato. Responda em português, no máximo 8 linhas curtas, neste formato exato:\n'+
+    'SITUAÇÃO: (uma frase)\nAGORA: (o que a equipe deve fazer hoje, com prazo se houver)\nDEPOIS: (o próximo passo)\nRISCO: (o principal risco, ou "nenhum relevante")\n'+
+    'Não invente dados que não estão na ficha; se faltar uma informação importante, diga qual.\n\nFICHA:\n'+texto;
+  try{
+    var j=await chamarClaude(_nhClaudeKey(),[{text:prompt}],900);
+    var r=((j&&j.content)||[]).map(function(c){return c.text||'';}).join('').trim();
+    if(!r)throw new Error('resposta vazia');
+    alvo.innerHTML='<div class="fp-parecer">'+r.split('\n').filter(Boolean).map(function(l){
+      var mm=l.match(/^\s*(SITUA[ÇC][ÃA]O|AGORA|DEPOIS|RISCO)\s*:\s*(.*)$/i);
+      return mm?'<div><b>'+esc0(mm[1].toUpperCase())+'</b> '+esc0(mm[2])+'</div>':'<div>'+esc0(l)+'</div>';
+    }).join('')+'<small>Parecer do Claude em '+hoje+' — apoio à decisão; confira no edital e no portal.</small></div>';
+  }catch(e){
+    alvo.innerHTML='<div class="fp-vazio" style="color:#ef4444">Não consegui o parecer: '+esc0(e.message||e)+'</div>';
+  }
 }
 
 /* Só lê quando a ficha abre — uma ou duas leituras. */
@@ -25212,21 +25306,36 @@ function _fpPintarCards(tab){
       b.addEventListener('click',function(ev){ev.stopPropagation();_kcFecharMenus();nhFichaAbrir(tab,id);});
       menu.insertBefore(b,menu.firstChild);
     }
-    if(tab==='editais'||card.querySelector('.fp-linha'))return;
+    if(card.querySelector('.fp-linha')||card.querySelector('.fp-at-ed'))return;
     ix=ix||_fpIndice();
     var el=nhFichaElos(tab,id,ix);
-    if(!el||!el.edital)return;
-    var eK='e-'+el.edital[0];
-    var v=typeof ANALISES_VIAB!=='undefined'?ANALISES_VIAB[eK]:null;
-    var pr=String(((typeof _nhDocEdital==='function'&&_nhDocEdital(eK))||{}).prioridade||'').toLowerCase();
+    if(!el)return;
+    /* Pontos urgentes da IA acompanhando o processo */
+    var urg=_fpAtencao(el).filter(function(x){return x.n==='alta'&&!/^Sessão /.test(x.t);});
+    if(tab==='editais'){
+      var ff=card.querySelector('.kf-fatos');
+      if(urg.length&&ff){
+        var s=document.createElement('span');s.className='kf k0 fp-at-ed';s.title=urg.map(function(x){return x.t;}).join('\n')+'\n\nClique para abrir a ficha';
+        s.innerHTML='<i>⚠</i>'+urg.length+' urgente'+(urg.length>1?'s':'');s.style.cursor='pointer';
+        s.addEventListener('click',function(ev){ev.stopPropagation();nhFichaAbrir(tab,id);});
+        ff.appendChild(s);
+      }
+      return;
+    }
+    if(!el.edital&&!urg.length)return;
+    var eK=el.edital?'e-'+el.edital[0]:'';
+    var v=eK&&typeof ANALISES_VIAB!=='undefined'?ANALISES_VIAB[eK]:null;
+    var pr=String(((eK&&typeof _nhDocEdital==='function'&&_nhDocEdital(eK))||{}).prioridade||'').toLowerCase();
     var bits=[];
+    if(urg.length)bits.push('<span class="fp-at" title="'+esc0(urg.map(function(x){return x.t;}).join('\n'))+'">⚠ '+urg.length+' urgente'+(urg.length>1?'s':'')+'</span>');
     if(v&&v.risco)bits.push(({baixo:'risco baixo',medio:'risco médio',alto:'risco alto'}[v.risco]||'')+(typeof v.nota==='number'?' '+v.nota.toFixed(1).replace('.',','):''));
     if(pr==='alta')bits.push('<span class="alta">prioridade alta do cliente</span>');
     else if(pr==='media'||pr==='média')bits.push('prioridade média do cliente');
     var lin=document.createElement('div');
     lin.className='fp-linha';
     lin.title='Abre a ficha: tudo o que foi feito neste processo, do edital ao contrato';
-    lin.innerHTML='<span>&#128193;</span><b>Ficha do processo</b><span class="fp-sep">·</span><span>veio do edital #'+esc0(el.edital[0])+'</span>'+
+    lin.innerHTML='<span>&#128193;</span><b>Ficha do processo</b>'+
+      (el.edital?'<span class="fp-sep">·</span><span>veio do edital #'+esc0(el.edital[0])+'</span>':'')+
       bits.map(function(x){return '<span class="fp-sep">·</span><span>'+x+'</span>';}).join('');
     lin.addEventListener('click',function(ev){ev.stopPropagation();nhFichaAbrir(tab,id);});
     var alvo=card.querySelector('.kcard-top > div:first-child');
