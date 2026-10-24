@@ -3626,7 +3626,7 @@ async function _hashSenhaExcl(senha, salt){
 }
 
 function abrirModalExcluir(id, titulo){
-  if(!isAdmin){ portalToast('Apenas o GROWTH pode excluir contratos.','err'); return; }
+  if(!isAdmin){ portalToast('Apenas a administração da NH pode excluir contratos.','err'); return; }
   _mcExcluirId = id;
   document.getElementById('me-desc').textContent =
     'Você está prestes a excluir permanentemente o contrato:\n"'+(titulo||id)+'"';
@@ -5992,7 +5992,7 @@ function renderContratos(){
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></svg>
           </button>
           <button onclick="event.stopPropagation();abrirModalContratoById('${id}')" title="Editar contrato completo" style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);color:var(--b_);width:30px;height:30px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px" onmouseover="this.style.background='rgba(59,130,246,.2)'" onmouseout="this.style.background='rgba(59,130,246,.1)'">✏</button>
-          ${isAdmin ? `<button onclick="event.stopPropagation();abrirModalExcluir('${id}','${String(arr[IDX.LICITACAO]||'').replace(/'/g,'').replace(/"/g,'').substring(0,40)}')" title="Excluir contrato (apenas GROWTH)" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:var(--r1);width:30px;height:30px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px" onmouseover="this.style.background='rgba(239,68,68,.18)'" onmouseout="this.style.background='rgba(239,68,68,.08)'">🗑</button>` : ''}
+          ${isAdmin ? `<button onclick="event.stopPropagation();abrirModalExcluir('${id}','${String(arr[IDX.LICITACAO]||'').replace(/'/g,'').replace(/"/g,'').substring(0,40)}')" title="Excluir contrato (só a administração da NH)" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:var(--r1);width:30px;height:30px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px" onmouseover="this.style.background='rgba(239,68,68,.18)'" onmouseout="this.style.background='rgba(239,68,68,.08)'">🗑</button>` : ''}
           <span class="ccard-arrow" id="arrow-${id}">›</span>
         </div>
       </div>
@@ -6718,7 +6718,7 @@ async function _execLog(contratoId, autor, acao){
   try{
     var agora = new Date().toLocaleString('pt-BR');
     var _ce = (dadosGanhas.find(function(e){ return String(e.id) === String(contratoId); }) || {}).arr;
-    var entrada = {autor:autor, empresa:empAtual || (isAdmin ? 'GROWTH' : (_ce ? nhEmpresaDoArr(_ce) : '')), data:agora, acao:acao};
+    var entrada = {autor:autor, empresa:empAtual || (isAdmin ? 'NH' : (_ce ? nhEmpresaDoArr(_ce) : '')), data:agora, acao:acao};
     await db.collection('ganhas').doc(contratoId).update({
       _portalLog: firebase.firestore.FieldValue.arrayUnion(entrada)
     });
@@ -7599,7 +7599,7 @@ function gerarHTMLImpressao(entries, opts){
   if(!opts) opts = {basico:true,objeto:true,obs:true,recomp:true,link:false,log:false,executivo:true};
   var _orient = (opts && opts.orientacao==='paisagem') ? 'paisagem' : 'retrato';
   var _execOn = (opts.executivo !== false) && entries.length > 1;
-  const titulo = isAdmin ? 'GROWTH — Todas as Empresas' : (empAtual || 'Todas as minhas empresas');
+  const titulo = isAdmin ? 'Todas as empresas — NH Licitações' : (empAtual || 'Todas as minhas empresas');
   const cor = isAdmin ? '#8b5cf6' : (CORES[empAtual] || '#f97316');
   const hoje = new Date().toLocaleDateString('pt-BR');
   let html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
@@ -7970,7 +7970,7 @@ function exportarExcelPortal(){
   }
 
   const data = new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
-  XLSX.writeFile(wb, `NH_Contratos_${empAtual||(isAdmin?'GROWTH':'MINHAS-EMPRESAS')}_${data}.xlsx`);
+  XLSX.writeFile(wb, `NH_Contratos_${empAtual||(isAdmin?'TODAS':'MINHAS-EMPRESAS')}_${data}.xlsx`);
 }
 
 function imprimirContrato(id){
