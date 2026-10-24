@@ -2233,7 +2233,20 @@ function _viabCompletaHtml(an){
   if(c.registrosPreco!==undefined) linhas.push('Registros de preço comparados: <b>'+c.registrosPreco+'</b>');
   var cap = c.capag || (an.capag && an.capag.nota) || '';
   linhas.push('CAPAG do município: <b>'+(cap?esc(cap):'não disponível')+'</b>');
-  return '<div class="vc-dados">'+linhas.map(function(l){return '<span>'+l+'</span>';}).join('')+'</div>'+
+  /* O CONTRATO (24/10/2026): SRP, reajuste, recomposição, garantia,
+     pagamento e os riscos do contrato — quando a análise da NH trouxer. */
+  var k = an.contrato, contrato = '';
+  if(k){
+    var srp = /^sim/i.test(k.srp||'') ? 'Sim — o órgão não é obrigado a comprar' : /^n/i.test(k.srp||'') ? 'Não' : 'Não informado';
+    var lc = [['Registro de preços (SRP)', srp], ['Tipo de contrato', k.tipo], ['Reajuste', k.reajuste], ['Recomposição', k.recomposicao],
+              ['Garantia', k.garantia], ['Pagamento', k.pagamento]]
+      .filter(function(p){ return String(p[1]||'').trim(); })
+      .map(function(p){ return '<span>'+p[0]+': <b>'+esc(p[1])+'</b></span>'; }).join('');
+    contrato = '<div class="vc-h" style="display:block;margin:12px 0 6px">Contrato'+(k.risco?' · '+labelRisco(k.risco):'')+'</div>'+
+      '<div class="vc-dados">'+lc+'</div>'+
+      ((k.riscos||[]).length ? '<div class="vc-texto">'+k.riscos.map(function(r){ return '<span class="vc-li">• '+esc(r)+'</span>'; }).join('')+'</div>' : '');
+  }
+  return '<div class="vc-dados">'+linhas.map(function(l){return '<span>'+l+'</span>';}).join('')+'</div>'+contrato+
     (an.relatorio ? '<div class="vc-texto">'+_viabFmt(an.relatorio)+'</div>'
                   : '<div class="vc-texto">'+(an.motivo?esc(an.motivo)+'<br><br>':'')+
                     '<i>A análise detalhada aparece aqui a partir da próxima análise feita pela NH.</i></div>');

@@ -17709,12 +17709,86 @@ function _nhContextoViabilidade(edId){
   return {objeto:objeto,municipio:mun,valor:valor,historicoMunicipio:{total:historicoMun.length,ganhos:ganhosMun},precos:precos,capag:capag};
 }
 
+/* ═══ O CONTRATO NA VIABILIDADE — 24/10/2026 ════════════════════════════
+   Pedido: "quando a IA fizer a análise para colocar no Viabilidade, se
+   tiver informações do contrato disponíveis é pra colocar — se o
+   contrato é de risco, se é SRP, se tem recomposições".
+   Junta o que o sistema já sabe, sem ler PDF de novo:
+   · a Análise do edital, se já foi feita (modalidade, execução,
+     pagamento, reajuste, garantias, riscos) — 1 ou 2 leituras;
+   · se é Registro de Preços pelo título/objeto;
+   · os contratos que a NH já tem no mesmo município (Licitações Ganhas):
+     situação, recomposições pedidas e como terminaram, providência e o
+     veredito da análise de contrato, quando houver. */
+async function _nhContratoParaViab(edId){
+  var ed=(ALL.editais||[]).find(function(r){return String(r[0]||'').trim()===String(edId).trim();});
+  if(!ed)return null;
+  var txt=String(ed[3]||'')+' '+String(ed[4]||'');
+  var out={srpPeloTexto:/registro\s+de\s+pre[cç]os|\bSRP\b|\bARP\b|ata\s+de\s+registro/i.test(txt),analiseEdital:null,historico:[]};
+  var chaves=typeof _fpChavesDe==='function'?_fpChavesDe('e-'+edId):['e-'+edId];
+  for(var i=0;i<chaves.length;i++){
+    try{
+      var d=await db.collection('analise_edital').doc(String(chaves[i])).get();
+      var an=d.exists&&d.data()._arr&&d.data()._arr.analise;
+      if(!an)continue;
+      var nomes=function(l,a,b){return (l||[]).slice(0,10).map(function(o){return String(o[a]||'')+(o[b]?': '+String(o[b]).slice(0,160):'');});};
+      out.analiseEdital={modalidade:an.modalidade||'',objeto:String(an.objeto||'').slice(0,300),valor:an.valor_estimado||'',
+        disputa:nomes(an.disputa,'nome','detalhe'),participacao:nomes(an.participacao,'nome','detalhe'),
+        execucao:nomes(an.execucao,'nome','detalhe'),garantias:nomes(an.garantias,'nome','detalhe'),
+        riscos:(an.riscos||[]).slice(0,10).map(function(r){return (r.gravidade||'')+' — '+(r.titulo||'')+(r.explicacao?': '+String(r.explicacao).slice(0,160):'');})};
+      break;
+    }catch(_e){}
+  }
+  var mun=String(ed[6]||'').trim().toLowerCase();
+  if(mun){
+    out.historico=(typeof _ganhasNH==='function'?_ganhasNH(ALL.ganhas||[]):(ALL.ganhas||[])).filter(function(g){
+      return String(g[6]||'').trim().toLowerCase()===mun;
+    }).slice(0,8).map(function(g){
+      var rec=[];
+      [13,20,27,34].forEach(function(b){
+        if(String(g[b]||'').toUpperCase().trim()==='SIM')rec.push({tipo:String(g[b+1]||''),status:String(g[b+2]||'')});
+      });
+      var ac=typeof ANALISES_CONTRATO!=='undefined'?ANALISES_CONTRATO[String(g[0]||'').trim()]:null;
+      return {objeto:String(g[4]||'').slice(0,120),status:String(g[9]||''),recomposicoes:rec,
+        providencia:String(g[49]||''),vereditoIA:ac&&ac.veredito?String(ac.veredito).slice(0,200):''};
+    });
+  }
+  return out;
+}
+function _nhContratoHtml(c){
+  if(!c)return '';
+  var srp=/^sim/i.test(c.srp)?'Sim — o órgão não é obrigado a comprar':/^n/i.test(c.srp)?'Não':'Não informado';
+  var cor=c.risco==='alto'?'#ef4444':c.risco==='baixo'?'#22c55e':'#eab308';
+  var lin=function(r,v){v=String(v||'').trim();return v?'<div style="margin:3px 0"><span style="color:var(--t3);font-size:12px">'+r+':</span> '+esc0(v)+'</div>':'';};
+  return '<div style="background:var(--s2);border:1px solid var(--b1);border-left:4px solid '+cor+';border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:13px">'+
+    '<b style="color:'+cor+'">Contrato'+(c.risco?' — risco '+({baixo:'baixo',medio:'médio',alto:'alto'}[c.risco]||c.risco):'')+'</b>'+
+    lin('Registro de preços (SRP)',srp)+lin('Tipo',c.tipo)+lin('Reajuste',c.reajuste)+lin('Recomposição',c.recomposicao)+
+    lin('Garantia',c.garantia)+lin('Pagamento',c.pagamento)+
+    ((c.riscos||[]).length?'<div style="margin-top:6px">'+c.riscos.map(function(r){return '<div>• '+esc0(r)+'</div>';}).join('')+'</div>':'')+
+  '</div>';
+}
+function _nhContratoLimpo(c){
+  if(!c||typeof c!=='object')return null;
+  var s=function(v){return String(v==null?'':v).slice(0,240);};
+  return {srp:s(c.srp),tipo:s(c.tipo),reajuste:s(c.reajuste),recomposicao:s(c.recomposicao),
+    garantia:s(c.garantia),pagamento:s(c.pagamento),risco:s(c.risco),
+    riscos:(Array.isArray(c.riscos)?c.riscos:[]).slice(0,6).map(s)};
+}
+
 function _nhPromptViabilidade(ctx,hoje){
   return 'HOJE É '+hoje+'. Você é um consultor sênior de licitações públicas, avaliando se vale a pena participar de um edital ainda não disputado. Dê uma NOTA DE VIABILIDADE de 0 a 10 e uma classificação de risco.\n\n'+
   'Considere: (1) porte do objeto/valor frente ao histórico de processos da empresa nesse município, (2) concorrência prevista (histórico de processos finalizados nesse mesmo município — mais processos finalizados costuma indicar mercado mais disputado), (3) histórico de preços praticados no Banco de Dados para item semelhante ou mesmo município (preços de concorrentes muito abaixo do estimado é sinal de risco), (4) a nota CAPAG do órgão/município quando disponível (A/B = bom pagador, risco fiscal baixo; C/D = risco fiscal alto, atraso de pagamento mais provável).\n\n'+
   'REGRA DE FORMATO: NUNCA use tabelas markdown (nada de linhas com |).\n\n'+
   'COMECE SUA RESPOSTA obrigatoriamente com este bloco (JSON válido em uma linha, sem markdown dentro), e só depois escreva uma justificativa curta (2-4 frases):\n'+
-  '<VIABILIDADE>{"nota":8.7,"risco":"baixo|medio|alto","motivo":"frase curta explicando a nota"}</VIABILIDADE>\n\n'+
+  '<VIABILIDADE>{"nota":8.7,"risco":"baixo|medio|alto","motivo":"frase curta explicando a nota",'+
+    '"contrato":{"srp":"sim|nao|indefinido","tipo":"ex.: serviço contínuo com mão de obra, fornecimento parcelado","reajuste":"índice e periodicidade, ou \'não informado\'",'+
+    '"recomposicao":"o que o edital e o histórico do município indicam sobre recomposição/repactuação","garantia":"","pagamento":"prazo e forma",'+
+    '"risco":"baixo|medio|alto","riscos":["até 6 riscos do CONTRATO, curtos"]}}</VIABILIDADE>\n\n'+
+  'SOBRE O CONTRATO (5º critério, pese na nota): Registro de Preços (SRP) não obriga o órgão a comprar — a empresa pode não ter pedido nenhum; '+
+  'serviço contínuo com mão de obra depende de repactuação/recomposição; olhe reajuste, garantia contratual, prazo de pagamento, multas e '+
+  'o histórico de contratos da NH neste município (recomposições negadas ou paradas são sinal de risco). Use só o que está nos dados; '+
+  'o que não estiver, responda "não informado" — não invente.\n\n'+
+  'INFORMAÇÕES DO CONTRATO DISPONÍVEIS NO SISTEMA:\n'+(ctx.contrato?JSON.stringify(ctx.contrato):'nenhuma — edital ainda não analisado e sem histórico no município')+'\n\n'+
   'DADOS DO EDITAL:\n'+JSON.stringify({objeto:ctx.objeto,municipio:ctx.municipio,valorEstimado:ctx.valor})+'\n\n'+
   'HISTÓRICO DE PROCESSOS FINALIZADOS NESTE MUNICÍPIO (proxy de concorrência):\n'+JSON.stringify(ctx.historicoMunicipio)+'\n\n'+
   'HISTÓRICO DE PREÇOS PRATICADOS (Banco de Dados — itens semelhantes ou mesmo município):\n'+JSON.stringify(ctx.precos)+'\n\n'+
@@ -21396,7 +21470,10 @@ function _nhViabContexto(d){
     valor: d.valor || 0,
     finalizadosMunicipio: h.total || 0,
     registrosPreco: (d.precos || []).length,
-    capag: d.capag ? (d.capag.nota || '') : ''
+    capag: d.capag ? (d.capag.nota || '') : '',
+    /* 24/10/2026: o que havia de contrato quando a nota saiu. */
+    contratosMunicipio: (d.contrato && d.contrato.historico || []).length,
+    editalAnalisado: !!(d.contrato && d.contrato.analiseEdital)
   };
 }
 
@@ -21410,6 +21487,7 @@ async function nhAnalisarViabilidadeAuto(edId,forcar){
   if(!key)throw new Error('a chave da IA (Claude) não está configurada');
   var dados=_nhContextoViabilidade(edId);
   if(!dados)throw new Error('não achei o edital #'+edId+' na lista carregada');
+  try{dados.contrato=await _nhContratoParaViab(edId);}catch(_e){}
   var dh=new Date();
   var hoje=('0'+dh.getDate()).slice(-2)+'/'+('0'+(dh.getMonth()+1)).slice(-2)+'/'+dh.getFullYear();
   var resp=await _nhClaudeLongo(key,[{text:_nhPromptViabilidade(dados,hoje)}],null);
@@ -21419,7 +21497,7 @@ async function nhAnalisarViabilidadeAuto(edId,forcar){
   if(!viab||typeof viab.nota!=='number')throw new Error('IA não retornou nota válida');
   var reg={nota:viab.nota,risco:viab.risco||'medio',motivo:viab.motivo||'',
            capag:dados.capag||null,criadoEm:Date.now(),automatica:true,
-           relatorio:_nhViabRelatorio(resp,vm),contexto:_nhViabContexto(dados)};
+           relatorio:_nhViabRelatorio(resp,vm),contexto:_nhViabContexto(dados),contrato:_nhContratoLimpo(viab.contrato)};
   await fbSave('analise_viabilidade',chave,reg);
   ANALISES_VIAB[chave]=reg;
   return reg;
@@ -21482,6 +21560,7 @@ async function nhRodarAnaliseViabilidade(){
   try{
     var dados=_nhContextoViabilidade(ctx.edId);
     if(!dados) throw new Error('Edital não encontrado');
+    try{dados.contrato=await _nhContratoParaViab(ctx.edId);}catch(_e){}
     var prompt=_nhPromptViabilidade(dados,hoje);
     var resp=await _nhClaudeLongo(key,[{text:prompt}],function(m){out.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:20px;height:20px"></div> '+m+'</div>';});
     var viab=null;
@@ -21492,7 +21571,7 @@ async function nhRodarAnaliseViabilidade(){
       return;
     }
     var reg={nota:viab.nota,risco:viab.risco||'medio',motivo:viab.motivo||'',capag:dados.capag||null,criadoEm:Date.now(),
-             relatorio:String(resp||'').trim().slice(0,20000),contexto:_nhViabContexto(dados)};
+             relatorio:String(resp||'').trim().slice(0,20000),contexto:_nhViabContexto(dados),contrato:_nhContratoLimpo(viab.contrato)};
     await fbSave('analise_viabilidade',ctx.chave,reg);
     ANALISES_VIAB[ctx.chave]=reg;
     var corRisco=reg.risco==='baixo'?'#22c55e':reg.risco==='alto'?'#ef4444':'#eab308';
@@ -21500,7 +21579,7 @@ async function nhRodarAnaliseViabilidade(){
     out.innerHTML='<div style="background:var(--s2);border:1px solid '+corRisco+'55;border-left:4px solid '+corRisco+';border-radius:8px;padding:10px 12px;margin-bottom:12px">'+
       '<b style="color:'+corRisco+';font-size:16px">Nota: '+viab.nota.toFixed(1).replace('.',',')+' / 10 — Risco '+riscoLbl+'</b>'+
       '<div style="font-size:11px;color:#22c55e;margin-top:6px">💾 Resultado salvo automaticamente no card deste edital.</div>'+
-      '</div>'+formatarRespostaIA(resp);
+      '</div>'+_nhContratoHtml(reg.contrato)+formatarRespostaIA(resp);
     try{renderTbl(CUR);}catch(_e){}
   }catch(e){
     console.error('analise viabilidade',e);
@@ -25153,6 +25232,9 @@ function nhFichaAbrir(aba,id){
     (viab?_fpCampo('Nota da IA',(viab.risco?({baixo:'Risco baixo',medio:'Risco médio',alto:'Risco alto'}[viab.risco]||viab.risco):'')+
       (typeof viab.nota==='number'?' · '+viab.nota.toFixed(1).replace('.',','):'')):'')+
     (viab&&viab.capag&&viab.capag.nota?_fpCampo('CAPAG',viab.capag.nota):'')+
+    (viab&&viab.contrato?_fpCampo('Registro de preços (SRP)',/^sim/i.test(viab.contrato.srp)?'Sim':/^n/i.test(viab.contrato.srp)?'Não':'Não informado')+
+      _fpCampo('Risco do contrato',[viab.contrato.risco,(viab.contrato.riscos||[]).slice(0,3).join('; ')].filter(Boolean).join(' — '))+
+      _fpCampo('Reajuste / recomposição',[viab.contrato.reajuste,viab.contrato.recomposicao].filter(function(v){return v&&!/^não informado$/i.test(v);}).join(' · ')):'')+
     (prio?_fpCampo('Prioridade do cliente',prio==='alta'?'Alta':prio==='media'||prio==='média'?'Média':prio):'');
 
   /* Habilitação */
