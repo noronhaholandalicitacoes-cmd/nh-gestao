@@ -24872,6 +24872,14 @@ body.compact .kcard .kcard-body input:not([type=checkbox]),body.compact .kcard .
 .fp-acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .fp-pe-ir{display:flex;gap:8px;flex-wrap:wrap;flex:1}
 .fp-cx .ae-sec-corpo{padding:6px 18px 14px}
+.kcard .kf-fatos{display:flex!important;flex-wrap:wrap;gap:6px 16px;margin-top:7px;font-size:13px;color:var(--t2)}
+.kf-fatos .kf{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.kf-fatos .kf i{font-style:normal;font-size:12px;opacity:.8}
+.kf-fatos .k0{color:#ef4444;font-weight:800}
+.kf-fatos .k1{color:#f97316;font-weight:700}
+.kf-fatos .k3{color:#eab308;font-weight:700}
+.kf-fatos .kok{color:#22c55e;font-weight:700}
+.kcard:not(.collapsed) .kf-fatos{display:none!important}
 .fp-cx .ae-sec-corpo .fp-campo:last-child{border-bottom:none}
 @media(max-width:720px){
   .fp-tempo{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -25218,10 +25226,77 @@ function _fpPintarCards(tab){
   });
 }
 
+/* ═══ FATOS-CHAVE NO CARD RECOLHIDO — 24/10/2026 ═══════════════════════
+   Pedido: "ajustar os campos dos cards para as prioridades ficarem
+   visíveis". O card recolhido mostrava empresa, número e título — e a
+   data da disputa, a posição e o valor só apareciam abrindo um por um.
+   Agora, UMA linha com o que decide o dia em cada etapa, e a cor só no
+   que está perto (hoje vermelho, amanhã laranja, até 3 dias amarelo):
+     Editais:     sessão · valor · município · "sem decisão" se a sessão
+                  está chegando e ninguém decidiu
+     Andamento:   disputa ou reabertura · posição · valor final · recurso
+     Finalizados: posição · valor final
+     Ganhas:      próxima providência · nº do contrato · valor
+   Some quando o card abre (os campos completos estão logo abaixo). */
+function _kfQuando(s,passou){
+  var d=_hjData(s);if(!d)return null;
+  var n=_hjDias(d),h=_hjHora(d);
+  var rel=n<0?passou:n===0?'hoje':n===1?'amanhã':'em '+n+' dias';
+  return {txt:_hjDdMm(d)+(h?' '+h:'')+(rel?' · '+rel:''),cls:n<0?'':n===0?'k0':n===1?'k1':n<=3?'k3':''};
+}
+function _kfValor(v){
+  var n=parseMoeda(v);if(!(n>0))return '';
+  return typeof _nhqCompact==='function'?_nhqCompact(n,true):fmtMoeda(n);
+}
+function _kfFatos(tab,a){
+  var f=[],q;
+  var add=function(ic,txt,cls,tit){if(_fpV(txt))f.push('<span class="kf'+(cls?' '+cls:'')+'"'+(tit?' title="'+esc0(tit)+'"':'')+'><i>'+ic+'</i>'+esc0(txt)+'</span>');};
+  if(tab==='editais'){
+    q=_kfQuando(a[1],'encerrada');
+    if(q)add('📅',q.txt,q.cls,'Data da sessão');
+    add('💰',_kfValor(a[7]),'','Valor estimado');
+    add('📍',a[6],'','Município');
+    var p=String(a[10]||'').trim(),v=String(a[11]||'').trim();
+    if(q&&q.cls&&(!p||!v||_ehAnalise(p)||_ehAnalise(v)))add('⚠','sem decisão','k1','Participar/Viabilidade ainda em aberto');
+  }else if(tab==='andamento'||tab==='finalizados'){
+    if(tab==='andamento'){
+      var re=_kfQuando(a[13],''),di=_kfQuando(a[10],'');
+      var reFut=re&&re.cls!==''||(re&&/em \d+ dias/.test(re.txt));
+      if(reFut)add('🔁','reabertura '+re.txt,re.cls,'Reabertura da sessão');
+      else if(di)add('📅',di.txt,di.cls,'Data da disputa');
+    }
+    add('🏁',a[11],is1Posicao(String(a[11]||''))?'kok':'','Classificação');
+    add('💰',_kfValor(a[8]),'','Valor final');
+    if(String(a[14]||'').toLowerCase().trim()==='sim')add('⚖','recurso','k0','Há recurso neste processo');
+  }else if(tab==='ganhas'){
+    var pa=_fpV(a[49]);
+    if(pa&&!/^(sem provid|arquivar|acompanhar execu)/i.test(pa))add('➜',pa,'k1','Próxima providência do contrato');
+    add('📄',a[8],'','Nº do contrato');
+    add('💰',_kfValor(a[7]),'','Valor');
+  }
+  return f.join('');
+}
+function _kfPintarCards(tab){
+  if(['editais','andamento','finalizados','ganhas'].indexOf(tab)<0)return;
+  var area=document.getElementById('tbl-'+tab);if(!area)return;
+  area.querySelectorAll('.kcard').forEach(function(card){
+    if(card.querySelector('.kf-fatos'))return;
+    var idEl=card.querySelector('.kcard-id');if(!idEl)return;
+    var id=idEl.textContent.replace(/\D/g,'');
+    var a=(FIL[tab]||[]).find(function(r){return String(r[0])===id;})||(ALL[tab]||[]).find(function(r){return String(r[0])===id;});
+    if(!a)return;
+    var html=_kfFatos(tab,a);if(!html)return;
+    var lin=document.createElement('div');lin.className='kf-fatos';lin.innerHTML=html;
+    var lic=card.querySelector('.kcard-top .kcard-licit');
+    if(lic&&lic.parentNode)lic.parentNode.insertBefore(lin,lic.nextSibling);
+  });
+}
+
 if(typeof renderTbl==='function'&&!renderTbl.__fpFicha){
   var _fpRenderTblOrig=renderTbl;
   renderTbl=function(e){
     var r=_fpRenderTblOrig.apply(this,arguments);
+    try{_kfPintarCards(e);}catch(err){console.warn('[fatos] card',err);}
     try{_fpPintarCards(e);}catch(err){console.warn('[ficha] card',err);}
     return r;
   };
