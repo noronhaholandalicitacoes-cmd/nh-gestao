@@ -2285,10 +2285,10 @@ body.ro-mode .btn-edit-card,body.ro-mode .btn-del,body.ro-mode .btn-cert-add,bod
 .btn-density:hover{background:var(--s3)}
 .btn-density.on{color:var(--nh);border-color:rgba(249,115,22,.4);background:var(--nha2)}
 /* compact = padrão, normal = espaçoso */
-body:not(.compact) .kcard{padding:20px 24px!important;margin-bottom:12px!important;}
-body:not(.compact) .kcard-licit{font-size:16px!important;margin-bottom:6px!important;display:block!important;}
-body:not(.compact) .kcard-licit + div:not(.kcard-obj){display:block!important;margin:6px 0 0!important;}
-body:not(.compact) .kcard-top{gap:16px!important;margin-bottom:8px!important;}
+html body .kcard{padding:20px 24px!important;margin-bottom:12px!important;}
+html body .kcard-licit{font-size:16px!important;margin-bottom:6px!important;display:block!important;}
+html body .kcard-licit + div:not(.kcard-obj){display:block!important;margin:6px 0 0!important;}
+html body .kcard-top{gap:16px!important;margin-bottom:8px!important;}
 .valores-emp-card{border:1.5px solid;border-radius:16px;padding:30px 24px;min-height:140px;cursor:pointer;display:flex;flex-direction:column;justify-content:center;transition:transform .15s ease,box-shadow .15s ease}
 .valores-emp-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,.4)}
 
@@ -3762,6 +3762,10 @@ body.light-theme .sb-alertas .sb-item:hover{background:rgba(37,99,235,.07);color
         <button class="btn btn-nh" onclick="openM('editais')">
           <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
           Novo Edital
+        </button>
+        <!-- Ler um edital que ainda não é processo, com ou sem empresa (24/10/2026). -->
+        <button class="btn btn-ghost" onclick="nhAnaliseAvulsa()" title="O Claude lê um edital em PDF — prazos, regras, itens, exigências e riscos — sem precisar de processo nem de dossiê">
+          🤖 Analisar edital
         </button>
         <div class="search"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><input placeholder="Buscar edital..." id="q-editais" oninput="doQ('editais')"></div>
         <button onclick="abrirModalImpressao('editais')" title="Imprimir / PDF" style="background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.25);color:var(--nh);padding:6px 12px;border-radius:7px;cursor:pointer;font-family:Outfit,sans-serif;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>Imprimir</button>
@@ -21576,11 +21580,11 @@ if(typeof renderCard==='function'){
            Agora quem já rodou fica aceso; quem falta fica apagado. A
            barra vira um mapa do andamento em vez de uma fileira de
            botões iguais. */
-        if(!temPendA&&emp)
+        if(!temPendA)   /* sem empresa também: lê só o edital (24/10/2026) */
           itens+='<button class="nh-btn" title="O Claude lê o edital: prazos, habilitação cruzada com o dossiê, riscos — com a página de cada item" '
             +'onclick="event.stopPropagation();nhAbrirAnaliseCard(\''+chave+'\',\''+emp.replace(/'/g,"\\'")+'\',\''+tit.substring(0,60)+'\')">'
             +iaSvg+'An&aacute;lise do edital</button>';
-        else if(emp)
+        else
           itens+='<button class="nh-btn nh-btn-ok" title="Edital já analisado — clique para ver a análise" '
             +'onclick="event.stopPropagation();nhAbrirAnaliseCard(\''+chave+'\',\''+emp.replace(/'/g,"\\'")+'\',\''+tit.substring(0,60)+'\')">'
             +'✓ An&aacute;lise do edital</button>';
@@ -21973,6 +21977,20 @@ async function _nhGeminiLongo(key,parts,onMsg){
 
 var _anaFiles=[];var _anaCtx=null;
 
+function _nhAnaSub(){
+  var c=_anaCtx||{},el=document.getElementById('nh-ana-sub');if(!el)return;
+  el.textContent=(c.avulsa?'Edital avulso':'processo #'+String(c.chave||'').replace(/^[ae]-/,''))+
+    (c.emp?' · '+c.emp:' · sem empresa')+(c.titulo?' · '+c.titulo:'');
+}
+/* Análise de um edital que ainda não é processo (24/10/2026): mesma
+   janela, mesmo Claude, sem gravar nada. */
+function nhAnaliseAvulsa(){
+  nhAbrirAnaliseCard('avulsa-'+Date.now(),'','');
+  _anaCtx.avulsa=true;
+  _nhAnaSub();
+  var _av=document.querySelector('#nh-ana-setup div[style*="margin-top:8px"]');
+  if(_av)_av.textContent='Análise avulsa: o resultado aparece aqui e pode ser impresso, mas não fica guardado em nenhum processo.';
+}
 function nhAbrirAnaliseCard(chave,emp,titulo){
   _anaFiles=[];_anaCtx={chave:chave,emp:emp,titulo:titulo};
   // localiza a Pasta de Documentos do processo (editais col.14 / andamento col.19)
@@ -22015,7 +22033,7 @@ function nhAbrirAnaliseCard(chave,emp,titulo){
     document.body.appendChild(m);
     m.addEventListener('click',function(ev){if(ev.target===m)m.style.display='none';});
   }
-  document.getElementById('nh-ana-sub').textContent=emp+' · processo #'+chave.replace(/^[ae]-/,'')+(titulo?' · '+titulo:'');
+  _nhAnaSub();
   document.getElementById('nh-ana-files').innerHTML='';
   document.getElementById('nh-ana-result').innerHTML='';
   m.style.display='flex';
@@ -22026,6 +22044,19 @@ function nhAbrirAnaliseCard(chave,emp,titulo){
   nhCarregarAnaliseEdital(chave);
   /* status do dossiê da empresa */
   var dEl=document.getElementById('nh-ana-dossie');
+  /* Sem empresa (análise avulsa ou card ainda sem empresa — 24/10/2026):
+     o edital é lido do mesmo jeito; a habilitação sai como "conferir",
+     ou cruza com a empresa escolhida aqui. */
+  if(!emp){
+    dEl.innerHTML='<label style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">Cruzar a habilitação com o dossiê de: '+
+      '<select id="nh-ana-emp" onchange="_anaCtx.emp=this.value;_nhAnaSub()" style="background:var(--s2);border:1px solid var(--b1);color:var(--t1);border-radius:8px;padding:6px 10px;font:inherit;font-size:12.5px">'+
+      '<option value="">nenhuma — só ler o edital</option>'+(EMPRESAS||[]).map(function(x){return '<option value="'+esc0(x.nome)+'">'+esc0(x.nome)+'</option>';}).join('')+
+      '</select></label><div style="font-size:11px;color:var(--t3);margin-top:4px">Sem empresa, a análise traz prazos, regras, itens, exigências e riscos; as exigências de habilitação saem como "conferir".</div>';
+    var _bt=document.getElementById('nh-ana-rodar');
+    var _av=_bt&&_bt.parentNode&&_bt.parentNode.parentNode&&_bt.parentNode.parentNode.querySelector('div[style*="margin-top:8px"]');
+    if(_av)_av.textContent=_anaCtx.avulsa?'Análise avulsa: o resultado aparece aqui e pode ser impresso, mas não fica guardado em nenhum processo.':'Ao concluir, o resultado é salvo automaticamente neste card do processo.';
+    return;
+  }
   dEl.innerHTML='Verificando dossiê de '+emp+'...';
   carregarDossie(emp).then(function(d){
     if(d){
@@ -22165,6 +22196,8 @@ function nhRenderAnaliseEdital(an,meta){
   var confN=hab.filter(function(h){return h.situacao==='conferir';}).length;
   var pct=obrig.length?Math.round(okN*100/obrig.length):null;
   var st={APTA:['ok','Habilitada'],PENDENCIAS:['venc','Habilitada com pendências'],NAO_APTA:['falta','Não habilitada']}[String(an.status||'').toUpperCase()]||['conf','Conferir'];
+  /* Sem empresa (24/10/2026): não houve cruzamento com dossiê. */
+  if(meta.semEmpresa){st=['conf','Leitura do edital — sem empresa'];pct=null;}
 
   var fatos=[['Órgão',an.orgao],['Modalidade',an.modalidade],['Sessão',an.sessao],['Valor estimado',an.valor_estimado]]
     .filter(function(f){return String(f[1]||'').trim();})
@@ -22240,16 +22273,17 @@ async function nhRodarAnaliseCard(){
   if(!_anaFiles.length){toast('Anexe o edital/TR do processo','err');return;}
   var out=document.getElementById('nh-ana-result');
   var esp=function(m){out.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:20px;height:20px"></div> '+m+'</div>';};
-  esp('Carregando dossiê de '+esc0(ctx.emp)+'...');
+  if(ctx.emp)esp('Carregando dossiê de '+esc0(ctx.emp)+'...');
   /* Dossiê completo (24/10/2026): Dossiê IA + Central de Certidões +
-     Documentação conferida + aba Atestados — ver nhDossieCompleto. */
-  var dossie=await (typeof nhDossieCompleto==='function'?nhDossieCompleto(ctx.emp):carregarDossie(ctx.emp));
+     Documentação conferida + aba Atestados — ver nhDossieCompleto.
+     Sem empresa (avulsa ou card sem empresa): lê só o edital. */
+  var dossie=!ctx.emp?null:await (typeof nhDossieCompleto==='function'?nhDossieCompleto(ctx.emp):carregarDossie(ctx.emp));
   esp('O Claude está lendo o edital'+(dossie?' e cruzando com o dossiê de '+esc0(ctx.emp):'')+'... (pode levar 1 a 2 minutos)');
   var dh=new Date();
   var hoje=('0'+dh.getDate()).slice(-2)+'/'+('0'+(dh.getMonth()+1)).slice(-2)+'/'+dh.getFullYear();
   try{
     var parts=_anaFiles.map(function(f){return {inline_data:{mime_type:f.mime,data:f.base64}};})
-      .concat([{text:_nhPromptAnaliseEdital(ctx.emp,dossie,hoje)}]);
+      .concat([{text:_nhPromptAnaliseEdital(ctx.emp||'(empresa ainda não definida)',dossie,hoje)}]);
     var resp=await _nhClaudeLongo(key,parts,esp);
     var an=_nhLerAnaliseEdital(resp);
     if(!an){
@@ -22257,12 +22291,20 @@ async function nhRodarAnaliseCard(){
       return;
     }
     var nomes=_anaFiles.map(function(f){return f.name;});
-    out.innerHTML=nhRenderAnaliseEdital(an,{data:hoje,arquivos:nomes});
+    out.innerHTML=nhRenderAnaliseEdital(an,{data:hoje,arquivos:nomes,semEmpresa:!ctx.emp});
+    /* Avulsa: não há processo onde guardar. */
+    if(ctx.avulsa){
+      out.insertAdjacentHTML('afterbegin','<div style="font-size:12px;color:var(--t3);margin-bottom:10px">Análise avulsa — use 🖨 Imprimir para guardar. Para ficar no processo, analise pelo card dele.</div>');
+      var bA=document.getElementById('nh-ana-rodar');if(bA)bA.textContent='🔄 Analisar de novo';
+      return;
+    }
     /* Pendência no card (mesmo formato de antes) */
     var pend=_nhPendDaAnalise(an,ctx.emp,hoje);
     window._nhUltimaAder={empresa:ctx.emp,data:hoje,pend:pend};
     var aviso='';
-    try{
+    /* Card sem empresa: a análise fica guardada, mas não vira pendência
+       de habilitação (não há dossiê com que cruzar). */
+    if(ctx.emp)try{
       await fbSave('pendencias',ctx.chave,pend);
       PENDENCIAS[ctx.chave]=pend;
       try{renderTbl(CUR);}catch(_e){}
@@ -24795,7 +24837,7 @@ body{font-variant-numeric:tabular-nums}
 .kcard .nhj-list{font-size:14.5px}
 .kcard .kcard-body input:focus,.kcard .kcard-body select:focus,.kcard .kcard-body textarea:focus{
   border-color:var(--nh);outline:none}
-body:not(.compact) .kcard .kcard-body{gap:18px 26px}
+html body .kcard .kcard-body{gap:18px 26px}
 
 /* ── Card: topo (lápis, chat e o menu "⋯") ── */
 .kcard-top .btn-edit-card,.kcard-top .kc-visivel,.kc-mais{min-width:38px;min-height:38px;border-radius:10px}
@@ -25025,7 +25067,7 @@ if(typeof nhCarregarAnaliseEdital==='function'){
         var reg=d.data()._arr;
         out.innerHTML=(chs[i]!==chave?'<div style="font-size:12px;color:var(--t3);margin-bottom:10px">Análise feita em '+
           (chs[i].charAt(0)==='e'?'Editais Capturados':'Em Andamento')+' (#'+esc0(chs[i].slice(2))+') — veio junto com o processo.</div>':'')+
-          nhRenderAnaliseEdital(reg.analise,{data:reg.data,arquivos:reg.arquivos});
+          nhRenderAnaliseEdital(reg.analise,{data:reg.data,arquivos:reg.arquivos,semEmpresa:!reg.empresa});
         var b=document.getElementById('nh-ana-rodar');if(b)b.textContent='🔄 Analisar de novo';
         return;
       }catch(e){console.warn('analise_edital',e.message);}
@@ -25773,6 +25815,27 @@ if(typeof nhFiltrosCompactos==='function'){
 }
 </script>
 <style>.nhf+.nhf{margin-right:auto}</style>
+<style>
+/* ═══ RESPIRO — 24/10/2026 ══════════════════════════════════════════════
+   Queixa: "tem muito campo que não está respirando, tudo muito junto um
+   do outro". Medido: card com 10px de borda interna e 7px entre um card
+   e outro; título, fatos, situação e objeto colados (uma regra genérica
+   zerava a margem da linha de fatos); dados do cabeçalho com 16px entre
+   si. Aqui só se abre espaço — nada muda de lugar. Vale também no modo
+   compacto, porque ele é o PADRÃO (applyDensity) — era nele que a
+   equipe via tudo colado. "html body" ganha das regras body.compact. */
+html body .kcard{padding:16px 22px!important;margin-bottom:12px!important}
+html body .kcard-top > div:first-child > * + *{margin-top:10px!important}
+html body .kcard .kf-fatos{margin-top:10px!important;gap:8px 20px}
+html body .kcard-top .nh-viab-badges.nh-bar.kc-ferr-topo{margin-top:12px!important}
+html body .kcard-meta{gap:10px 26px!important;padding-bottom:14px!important;margin-bottom:18px!important}
+html body .kcard-body{gap:22px 30px!important}
+html body .kfield-lbl{margin-bottom:8px!important}
+html body .toolbar{gap:12px!important;margin-bottom:18px!important}
+html body .stats{margin-bottom:22px!important}
+html body .pills{gap:8px!important}
+html body .pa-linha,html body .fp-linha{margin-top:10px!important}
+</style>
 </body>
 </html>
 
