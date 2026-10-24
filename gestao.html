@@ -15073,7 +15073,8 @@ async function nhLoadBuscaMeta(){
   if(_radarBuscas().length)setTimeout(function(){nhRadar(false);},8000);
   else _radarPintar();
   /* Enquanto o sistema fica aberto, o Radar confere de novo sozinho. */
-  if(!window._radarRelogio)window._radarRelogio=setInterval(function(){if(_radarBuscas().length)nhRadar(true);},30*60000);
+  /* Só relê o resultado do servidor (barato); quem roda o PNCP é o servidor. */
+  if(!window._radarRelogio)window._radarRelogio=setInterval(function(){if(_radarBuscas().length)nhRadar(false);},30*60000);
 }
 
 /* ── Filtros salvos ─────────────────────────────────────────────── */
@@ -15202,11 +15203,76 @@ function _radarCasou(e,f){
   return achou;
 }
 
+/* ⚠️ RADAR PELO SERVIDOR — 24/10/2026.
+   O servidor da NH roda as buscas com 📡 sozinho, de 2 em 2 horas, e
+   grava o resultado em radar_oportunidades (ver radarServidor.ts no
+   dashboard-nh). Aqui o Radar só LÊ esse resultado: 1 a 3 leituras, em
+   vez de dezenas de páginas do PNCP a cada computador que abre o Gestão.
+   "Atualizar agora" pede ao servidor uma rodada na hora.
+   Se o servidor não tiver resultado recente (regra ainda não publicada,
+   servidor fora, primeira vez), cai no jeito antigo: o próprio navegador
+   consulta o PNCP (_radarNoNavegador). Nada para por causa disso. */
+var RADAR_FONTE='', RADAR_LIDO_EM=0;
+async function _radarDoServidor(){
+  var s=await db.collection('radar_oportunidades').get();
+  if(s.empty)return null;
+  var ativas={};_radarBuscas().forEach(function(b){ativas[b.nome]=1;});
+  var cobertas={},porId={},maisNovo=0,avisos=[],cortes=[];
+  s.forEach(function(d){
+    var g=d.data()||{};
+    maisNovo=Math.max(maisNovo,Number(g.atualizadoEm)||0);
+    (g.buscas||[]).forEach(function(n){cobertas[n]=1;});
+    if(g.aviso)avisos.push(g.aviso);
+    if(g.cortado)cortes.push((g.uf||'Brasil todo')+(g.modalidade?' / '+_radarModNome(g.modalidade):''));
+    (g.itens||[]).forEach(function(e){
+      var casos=(e._radar||[]).filter(function(c){return ativas[c.nome];});
+      if(!casos.length)return;
+      var id=nhBscId(e);
+      if(porId[id]){porId[id]._radar=porId[id]._radar.concat(casos);return;}
+      e._radar=casos;porId[id]=e;
+    });
+  });
+  /* Busca nova que o servidor ainda não rodou: o resultado dele está
+     incompleto para ela — melhor pedir uma rodada. */
+  var faltando=_radarBuscas().filter(function(b){return !cobertas[b.nome];}).length;
+  return {dados:Object.keys(porId).map(function(k){return porId[k];}),em:maisNovo,faltando:faltando,
+    aviso:(avisos.length?avisos[0]+' ':'')+(cortes.length?'Em '+cortes.join(', ')+' há mais de 1.000 licitações abertas e o Radar olhou só as primeiras. Escolha estado e modalidade nessa busca.':'')};
+}
 async function nhRadar(forcar){
   if(_radarRodando){if(forcar)_radarDeNovo=true;return;}
   var buscas=_radarBuscas();
   if(!buscas.length){RADAR_DADOS=[];RADAR_EM=0;RADAR_AVISO='';_radarPintar();return;}
-  if(!forcar&&RADAR_EM&&Date.now()-RADAR_EM<15*60000){_radarPintar();return;}
+  if(!forcar&&RADAR_LIDO_EM&&Date.now()-RADAR_LIDO_EM<15*60000){_radarPintar();return;}
+  _radarRodando=true;
+  var st=document.getElementById('bsc-status'),btn=document.getElementById('bsc-radar-btn');
+  if(btn){btn.disabled=true;btn.textContent='Atualizando...';}
+  if(BSC_CANAL==='radar')_radarPintar();
+  var srv=null;
+  try{
+    if(forcar&&auth.currentUser){
+      if(BSC_CANAL==='radar'&&st){st.style.color='var(--nh)';st.textContent='O servidor está rodando o Radar agora...';}
+      try{
+        await fetch(NH_API+'/api/radar/rodar',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({idToken:await auth.currentUser.getIdToken()})});
+      }catch(_e){/* servidor fora: o navegador assume abaixo */}
+    }
+    try{srv=await _radarDoServidor();}catch(e){console.warn('[radar] leitura do servidor:',e.message);}
+    if(srv&&srv.em&&Date.now()-srv.em<6*3600000&&!(srv.faltando&&!forcar)){
+      RADAR_DADOS=srv.dados;RADAR_EM=srv.em;RADAR_AVISO=srv.aviso;RADAR_FONTE='servidor';RADAR_LIDO_EM=Date.now();
+    }
+  }finally{
+    _radarRodando=false;
+    if(btn){btn.disabled=false;btn.innerHTML='&#8635; Atualizar agora';}
+    if(BSC_CANAL==='radar'&&st)st.textContent='';
+  }
+  if(RADAR_FONTE==='servidor'&&RADAR_LIDO_EM>Date.now()-5000){_radarPintar();if(_radarDeNovo){_radarDeNovo=false;nhRadar(true);}return;}
+  RADAR_FONTE='navegador';
+  return _radarNoNavegador(forcar);
+}
+async function _radarNoNavegador(forcar){
+  if(_radarRodando){if(forcar)_radarDeNovo=true;return;}
+  var buscas=_radarBuscas();
+  if(!buscas.length){RADAR_DADOS=[];RADAR_EM=0;RADAR_AVISO='';_radarPintar();return;}
   _radarRodando=true;
   var st=document.getElementById('bsc-status'),btn=document.getElementById('bsc-radar-btn');
   if(btn){btn.disabled=true;btn.textContent='Atualizando...';}
@@ -15244,7 +15310,7 @@ async function nhRadar(forcar){
       });
     }
     RADAR_DADOS=Object.keys(porId).map(function(id){return porId[id];});
-    RADAR_EM=Date.now();
+    RADAR_EM=Date.now();RADAR_LIDO_EM=RADAR_EM;
     var nomeG=function(k){var q=k.split('|');return (q[0]||'Brasil todo')+(q[1]?' / '+_radarModNome(q[1]):'');};
     RADAR_AVISO=(falhas.length?'O PNCP não respondeu para '+falhas.map(nomeG).join(', ')+': a lista pode estar incompleta. ':'')+
       (cortes.length?'Em '+cortes.map(nomeG).join(', ')+' há mais de '+(RADAR_PAGINAS*50)+
@@ -15305,7 +15371,9 @@ function _radarPintar(){
   var hora=RADAR_EM?new Date(RADAR_EM).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'';
   document.getElementById('bsc-radar-info').innerHTML=buscas.length
     ?'Vigiando <b>'+buscas.map(function(s){return esc0(s.nome);}).join('</b>, <b>')+'</b>'+
-      (hora?' &middot; atualizado &agrave;s '+hora:'')+
+      (hora?' &middot; '+(RADAR_FONTE==='servidor'
+        ?'o servidor atualizou '+(new Date(RADAR_EM).toDateString()===new Date().toDateString()?'':'em '+new Date(RADAR_EM).toLocaleDateString('pt-BR')+' ')+'&agrave;s '+hora+' <span style="opacity:.75">(roda sozinho de 2 em 2 horas)</span>'
+        :'atualizado neste navegador &agrave;s '+hora):'')+
       (RADAR_AVISO?'<br><span style="color:#f59e0b">'+esc0(RADAR_AVISO)+'</span>':'')+
       (RADAR_TRI_ERRO?'<br><span style="color:#ef4444">Triagem indispon&iacute;vel: '+esc0(RADAR_TRI_ERRO)+'</span>':'')
     :'Nenhuma busca no Radar ainda.';
@@ -15337,7 +15405,12 @@ function _radarCard(e,id,jaCap){
   var tag='';
   if(sit==='interesse')tag='<span class="bsc-tag" style="background:rgba(34,197,94,.14);color:#22c55e;border:1px solid rgba(34,197,94,.4)" title="'+quem+'">&#9733; Interesse</span>';
   else if(sit==='descartada')tag='<span class="bsc-tag" style="background:rgba(148,163,184,.14);color:var(--t2);border:1px solid rgba(148,163,184,.4)" title="'+quem+'">Descartada</span>';
-  else if(sit==='nova')tag='<span class="bsc-tag" style="background:var(--nha);color:var(--nh);border:1px solid rgba(249,115,22,.4)">Nova</span>';
+  else if(sit==='nova'){
+    /* "Chegou hoje": o servidor marca quando a licitação apareceu pela
+       primeira vez (achadoEm). É o que faz a captação parecer viva. */
+    var hj=e.achadoEm&&(Date.now()-Number(e.achadoEm)<24*3600000);
+    tag='<span class="bsc-tag" style="background:var(--nha);color:var(--nh);border:1px solid rgba(249,115,22,.4)">'+(hj?'&#9733; Chegou hoje':'Nova')+'</span>';
+  }
   var botoes=jaCap?'':
     '<button class="bsc-a tri int'+(sit==='interesse'?' on':'')+'" onclick="nhRadarMarcar(\''+id+'\',\'interesse\')" title="'+(sit==='interesse'?'Clique para desfazer':'')+'">'+
       (sit==='interesse'?'&#9733; Com interesse':'&#9734; Tenho interesse')+'</button>'+
@@ -19257,6 +19330,13 @@ function toggleChat(btn){
    · Compras.gov.br, BLL e BNC — o chat público fica atrás de captcha
      (hCaptcha/reCAPTCHA) e o Compras.gov.br completo só logado. Captcha
      não se derruba aqui: para esses, continua a extensão.
+   Verificados em 24/10/2026 os demais da lista de portais:
+   · PE-Integrado — chat público, sem captcha; lido pelo servidor da NH
+     (o portal não libera CORS). Segundo leitor da lista abaixo.
+   · Licitações-e (BB) — histórico de mensagens pede o Turnstile.
+   · Licitar Digital — página inteira atrás da verificação do Cloudflare.
+   · Licitanet — recusa o acesso (403) fora do navegador logado.
+   · Publinexo, Apoio Cotações, Conlicitação — só com login.
    Para incluir outro portal aberto, é só acrescentar um leitor na
    lista: `casa` tira o código do link, `ler` devolve as mensagens.
    ═══════════════════════════════════════════════════════════════════ */
@@ -19287,6 +19367,42 @@ var CHAT_LEITORES = [
       }).filter(function(m){ return m.texto; });
     },
     porPagina: 50
+  },
+  {
+    /* Verificado em 24/10/2026: chat público, sem login e sem captcha, mas
+       sem CORS — quem busca é o servidor da NH (/api/chat/peintegrado).
+       O portal devolve o chat inteiro de uma vez, sem páginas. */
+    nome: 'PE-Integrado',
+    /* ...LicitacoesEmAndamento.aspx?ncdmodulo=18&...&nCdProcesso=31944 → "31944|18"
+       (o PNCP às vezes manda o link sem o https://) */
+    casa: function(url){
+      url = String(url||'');
+      if(!/peintegrado\.pe\.gov\.br/i.test(url)) return '';
+      var p = url.match(/[?&]nCdProcesso=(\d{1,9})/i), m = url.match(/[?&]nCdModulo=(\d{1,4})/i);
+      return p ? p[1] + '|' + (m ? m[1] : '18') : '';
+    },
+    ler: async function(cod, pagina){
+      if(pagina > 1) return [];
+      if(!auth.currentUser) throw new Error('faça login de novo');
+      var par = String(cod).split('|');
+      var r = await fetch(NH_API + '/api/chat/peintegrado', {
+        method: 'POST', headers: {'Content-Type': 'application/json'}, cache: 'no-store',
+        body: JSON.stringify({idToken: await auth.currentUser.getIdToken(), processo: +par[0], modulo: +(par[1]||18)})
+      });
+      var j = await r.json().catch(function(){ return {}; });
+      if(!r.ok || !j.ok) throw new Error(j.erro || ('HTTP ' + r.status));
+      var p = function(n){ return String(n).padStart(2, '0'); };
+      return (j.itens||[]).map(function(f){
+        var d = new Date(f.ms);
+        return {
+          data: p(d.getDate()) + '/' + p(d.getMonth()+1) + '/' + d.getFullYear(),
+          hora: p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()),
+          autor: String(f.autor||''), texto: String(f.texto||''),
+          bruto: String(f.ms||'')
+        };
+      });
+    },
+    porPagina: Infinity
   }
 ];
 
@@ -20081,8 +20197,9 @@ function _hjColetar(){
   var nChat=0;
   try{Object.keys(CHAT_MON||{}).forEach(function(k){nChat+=chatResumo(k).naoLidas||0;});}catch(_e){}
   var nRadar=0;
-  try{(RADAR_DADOS||[]).forEach(function(e){if(_radarAberta(e)&&_radarSit(e)==='nova')nRadar++;});}catch(_e){}
-  r.msg={perg:Object.keys(window.PERGUNTAS||{}).length,chat:nChat,radar:nRadar};
+  var nRadarHoje=0;
+  try{(RADAR_DADOS||[]).forEach(function(e){if(_radarAberta(e)&&_radarSit(e)==='nova'){nRadar++;if(e.achadoEm&&Date.now()-Number(e.achadoEm)<24*3600000)nRadarHoje++;}});}catch(_e){}
+  r.msg={perg:Object.keys(window.PERGUNTAS||{}).length,chat:nChat,radar:nRadar,radarHoje:nRadarHoje};
 
   /* O número do menu: o que vence HOJE (ou já venceu). */
   r.urgente=r.sessoes.filter(function(s){return s.n===0;}).length+
@@ -20210,7 +20327,7 @@ function nhHojeMontar(){
   if(m.perg){ms.push(_hjLinha({quando:String(m.perg),qcls:'quente',tit:'Mensagens de clientes esperando resposta',abrir:'_hjFecharDet();nhAbrirPerguntas()'}));msMini.push([String(m.perg),'de clientes esperando resposta','quente']);}
   if(m.chat){ms.push(_hjLinha({quando:String(m.chat),qcls:'quente',tit:'Mensagens não lidas no chat dos pregões',abrir:'_hjFecharDet();chatAbrirPainel()'}));msMini.push([String(m.chat),'não lidas no chat dos pregões','quente']);}
   if(m.radar){ms.push(_hjLinha({quando:String(m.radar),tit:'Licitações novas no Radar para triar',
-    abrir:"_hjFecharDet();go('buscador',document.getElementById('nav-buscador'));nhSetCanal('radar')"}));msMini.push([String(m.radar),'novas no Radar para triar','']);}
+    abrir:"_hjFecharDet();go('buscador',document.getElementById('nav-buscador'));nhSetCanal('radar')"}));msMini.push([String(m.radar),m.radarHoje?m.radarHoje+(m.radarHoje===1?' chegou hoje':' chegaram hoje')+' no Radar — '+m.radar+' para triar':'novas no Radar para triar',m.radarHoje?'quente':'']);}
   card({id:'msg',tit:'Esperando a NH',cor:'#3b82f6',n:m.perg+m.chat+m.radar,quente:!!(m.perg||m.chat),
     sub:(m.perg||m.chat||m.radar)?'mensagens e Radar':'nada esperando resposta',mini:msMini,linhas:ms});
 
