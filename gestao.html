@@ -18600,9 +18600,12 @@ function chatIniciar(){
      sumir junto. */
   _chatAtualizarFlutuante();
   db.collection('chat_monitor').onSnapshot(function(s){
-    var novo = {};
-    s.forEach(function(d){ var x = d.data()||{}; x.ids = _chatIdsEmpresa(x.empresa); novo[d.id] = x; });
+    var novo = {}, est = {};
+    /* Documentos `estacao` são a batida das estações com a extensão
+       (24/10/2026), não pregões. */
+    s.forEach(function(d){ var x = d.data()||{}; if(x.estacao){ est[d.id] = x; return; } x.ids = _chatIdsEmpresa(x.empresa); novo[d.id] = x; });
     CHAT_MON = novo;
+    window.CHAT_EST = est;
     _chatAtualizarFlutuante();
     if(_chatPainelChave !== null) chatPintarPainel();
   }, function(err){ console.warn('[chat_monitor]', err.message); });
@@ -19083,6 +19086,8 @@ function chatPintarPainel(){
       : dst.erro ? '<i style="color:#f59e0b">● lido direto · falhou às ' + esc0(dst.erroHora||'') + ', tentando de novo</i>'
       : '<i class="verde">● lido direto pelo sistema' + (dst.hora ? ' · última leitura ' + esc0(dst.hora) : '') +
           (dst.intervalo >= 2*60000 ? ' · pregão encerrado, confere a cada 2 min' : ' · confere a cada 15 s') + '</i>';
+    /* Quem está lendo de fato (24/10/2026): servidor ou estação. */
+    if(mon.ativo && (direto || mon.url) && typeof chatSaude === 'function'){ var _sd = chatSaude(sel); if(_sd) estado = _sd; }
     dir = '<div class="chat-dir-cab">' +
         '<div><b>' + esc0(mon.titulo || sel) + '</b>' +
           '<span>' + esc0(mon.empresa||'') + (mon.portal ? ' · ' + esc0(mon.portal) : '') +
@@ -25525,6 +25530,107 @@ function _hbAbrirAnaliseDoc(){
   nhFichaAbrir('andamento',m[1]);
 }
 try{_hbSepararDocumentos();}catch(e){console.warn('[documentos] separar',e);}
+
+/* ═══ CHAT 100%: QUEM ESTÁ LENDO CADA PREGÃO — 24/10/2026 ══════════════
+   O monitor ligado não dizia se alguém estava lendo de verdade. Agora:
+   · Compras Públicas e PE-Integrado: quem lê é o SERVIDOR, 24 h, mesmo
+     com todos os computadores desligados (chatServidor.ts). O Gestão
+     pergunta a cada minuto (/api/chat/status), mostra "lido pelo
+     servidor há 10 s" e deixa de ler em dobro o que o servidor já lê —
+     volta a ler sozinho se o servidor parar.
+   · Portais com captcha (extensão): todo Gestão aberto num navegador com
+     a extensão vira uma ESTAÇÃO e manda uma batida a cada 2 min para
+     chat_monitor/_est_<id>, com os pregões que têm aba aberta ali. Cada
+     pregão mostra "aba aberta na estação de Fulano" ou, em vermelho,
+     "ninguém está lendo".
+   ═══════════════════════════════════════════════════════════════════════ */
+var _chatSrv = null, _chatSrvEm = 0;
+function _chatSrvIdade(chave){
+  var p = _chatSrv && _chatSrv.pregoes && _chatSrv.pregoes[chave];
+  if(!p || !p.lidoEm) return null;
+  return (_chatSrv.agora - p.lidoEm) + (Date.now() - _chatSrvEm);   /* relógio do servidor, não o daqui */
+}
+async function _chatSrvPuxar(){
+  if(typeof auth === 'undefined' || !auth.currentUser || typeof NH_API === 'undefined') return;
+  var temDireto = Object.keys(CHAT_MON||{}).some(function(k){ return CHAT_MON[k].ativo && chatLeitorDireto(CHAT_MON[k].url); });
+  if(!temDireto){ _chatSrv = null; return; }
+  try{
+    var r = await fetch(NH_API + '/api/chat/status', {method:'POST', headers:{'Content-Type':'application/json'}, cache:'no-store',
+      body: JSON.stringify({idToken: await auth.currentUser.getIdToken()})});
+    var j = await r.json().catch(function(){ return {}; });
+    if(r.ok && j.ok){ _chatSrv = j; _chatSrvEm = Date.now(); }
+  }catch(_e){ /* sem servidor, o Gestão segue lendo sozinho */ }
+}
+setInterval(_chatSrvPuxar, 60000);
+setTimeout(_chatSrvPuxar, 8000);
+
+if(typeof _chatDiretoLer === 'function'){
+  var _chatDiretoLerOrig = _chatDiretoLer;
+  _chatDiretoLer = async function(chave, manual){
+    var idade = _chatSrvIdade(chave), p = _chatSrv && _chatSrv.pregoes && _chatSrv.pregoes[chave];
+    if(!manual && idade !== null && idade < 45000 && !(p && p.erro)){
+      var st = _chatDiretoSt[chave] = _chatDiretoSt[chave] || {};
+      st.proxima = Date.now() + 15000;
+      return;
+    }
+    return _chatDiretoLerOrig.apply(this, arguments);
+  };
+}
+
+function _chatHa(ms){
+  var s = Math.max(0, Math.round(ms/1000));
+  return s < 60 ? 'há ' + s + ' s' : s < 3600 ? 'há ' + Math.round(s/60) + ' min' : 'há ' + Math.round(s/3600) + ' h';
+}
+function chatSaude(chave){
+  var mon = CHAT_MON[chave]; if(!mon || !mon.ativo) return '';
+  var agora = Date.now();
+  if(chatLeitorDireto(mon.url)){
+    var idade = _chatSrvIdade(chave), p = _chatSrv && _chatSrv.pregoes && _chatSrv.pregoes[chave];
+    if(p && p.erro) return '<i style="color:#f59e0b">● servidor da NH: ' + esc0(String(p.erro).slice(0,90)) + ' — tentando de novo</i>';
+    if(idade !== null && idade < 90000) return '<i class="verde">● lido pelo servidor da NH, 24 h · ' + _chatHa(idade) + '</i>';
+    return '';
+  }
+  var est = window.CHAT_EST || {}, ok = null;
+  Object.keys(est).forEach(function(k){
+    var e = est[k];
+    if((e.abertas||[]).indexOf(chave) >= 0 && agora - (e.em||0) < 5*60000 && (!ok || e.em > ok.em)) ok = e;
+  });
+  if(ok) return '<i class="verde">● aba aberta na estação de ' + esc0(ok.nome || ok.email || '?') + ' · sinal ' + _chatHa(agora - ok.em) + '</i>';
+  var viva = Object.keys(est).some(function(k){ return agora - (est[k].em||0) < 5*60000; });
+  return '<i style="color:#ef4444">● ninguém está lendo — ' + (viva
+    ? 'nenhuma estação está com a aba deste pregão aberta: clique em "Aba do chat" num computador com a extensão'
+    : 'nenhum computador com a extensão está com o Gestão aberto') + '</i>';
+}
+
+/* Batida da estação */
+var _estUlt = {em: 0, abertas: ''};
+function _estId(){
+  try{
+    var id = localStorage.getItem('nh_estacao_id');
+    if(!id){ id = Math.random().toString(36).slice(2, 10); localStorage.setItem('nh_estacao_id', id); }
+    return '_est_' + id;
+  }catch(_e){ return ''; }
+}
+async function _estBater(){
+  if(typeof _chatExt === 'undefined' || !_chatExt || typeof db === 'undefined' || typeof auth === 'undefined' || !auth.currentUser) return;
+  if(typeof IS_READONLY !== 'undefined' && IS_READONLY) return;
+  var id = _estId(); if(!id) return;
+  var r = null; try{ r = await _chatPedir('situacao'); }catch(_e){}
+  if(!r || !r.ok) return;
+  var abertas = Object.keys(r.abertas || {}).sort(), assin = abertas.join(',');
+  var agora = Date.now();
+  /* Grava quando muda, ou a cada 2 min com aba aberta, ou a cada 10 min sem nenhuma. */
+  if(assin === _estUlt.abertas && agora - _estUlt.em < (abertas.length ? 2*60000 : 10*60000)) return;
+  var u = auth.currentUser;
+  try{
+    await db.collection('chat_monitor').doc(id).set({
+      estacao: true, em: agora, abertas: abertas, pendentes: r.pendentes || 0, versao: r.versao || '',
+      email: u.email || u.phoneNumber || '', nome: (typeof USER_NOME !== 'undefined' && USER_NOME) || String(u.email || '').split('@')[0]
+    });
+    _estUlt = {em: agora, abertas: assin};
+  }catch(e){ console.warn('[estacao]', e.message); }
+}
+setInterval(_estBater, 30000);
 </script>
 </body>
 </html>
