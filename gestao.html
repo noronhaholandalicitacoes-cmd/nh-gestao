@@ -2285,10 +2285,10 @@ body.ro-mode .btn-edit-card,body.ro-mode .btn-del,body.ro-mode .btn-cert-add,bod
 .btn-density:hover{background:var(--s3)}
 .btn-density.on{color:var(--nh);border-color:rgba(249,115,22,.4);background:var(--nha2)}
 /* compact = padrão, normal = espaçoso */
-html body .kcard{padding:20px 24px!important;margin-bottom:12px!important;}
-html body .kcard-licit{font-size:16px!important;margin-bottom:6px!important;display:block!important;}
-html body .kcard-licit + div:not(.kcard-obj){display:block!important;margin:6px 0 0!important;}
-html body .kcard-top{gap:16px!important;margin-bottom:8px!important;}
+body:not(.compact) .kcard{padding:20px 24px!important;margin-bottom:12px!important;}
+body:not(.compact) .kcard-licit{font-size:16px!important;margin-bottom:6px!important;display:block!important;}
+body:not(.compact) .kcard-licit + div:not(.kcard-obj){display:block!important;margin:6px 0 0!important;}
+body:not(.compact) .kcard-top{gap:16px!important;margin-bottom:8px!important;}
 .valores-emp-card{border:1.5px solid;border-radius:16px;padding:30px 24px;min-height:140px;cursor:pointer;display:flex;flex-direction:column;justify-content:center;transition:transform .15s ease,box-shadow .15s ease}
 .valores-emp-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,.4)}
 
@@ -24837,7 +24837,7 @@ body{font-variant-numeric:tabular-nums}
 .kcard .nhj-list{font-size:14.5px}
 .kcard .kcard-body input:focus,.kcard .kcard-body select:focus,.kcard .kcard-body textarea:focus{
   border-color:var(--nh);outline:none}
-html body .kcard .kcard-body{gap:18px 26px}
+body:not(.compact) .kcard .kcard-body{gap:18px 26px}
 
 /* ── Card: topo (lápis, chat e o menu "⋯") ── */
 .kcard-top .btn-edit-card,.kcard-top .kc-visivel,.kc-mais{min-width:38px;min-height:38px;border-radius:10px}
