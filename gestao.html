@@ -10100,7 +10100,7 @@ function carregarArquivoBD(input){
   reader.readAsDataURL(file);
 }
 async function extrairItensBD(){
-  var key=localStorage.getItem("nh_gemini_key");
+  var key=_nhGeminiKey();
   if(!key)return toast("Configure a API Key do Gemini nas configurações de IA","err");
   toast("🔍 Analisando com IA...","ok");
   var prompt='Analise esta tabela de itens (pode ser de um edital, ata de registro de preços, proposta ou resultado de licitação). Extraia TODOS os itens encontrados. Para cada item retorne os campos: desc (descrição/nome do item), qtd (quantidade numérica, só números), vunit (valor unitário, só números sem R$), vtotal (valor total, só números sem R$), conc (nome do fornecedor/concorrente vencedor se houver, senão vazio), vconc (valor do concorrente/vencedor se diferente do valor unitário, senão vazio), mun (município e UF se visível no documento, ex: "Currais Novos - RN", senão vazio). Responda SOMENTE com array JSON sem texto, markdown ou explicação: [{"desc":"...","qtd":"...","vunit":"...","vtotal":"...","conc":"...","vconc":"...","mun":"..."}]';
@@ -13996,7 +13996,7 @@ function _declPossivelDuplicata(titulo, texto){
 }
 
 async function detectarDeclaracoesEdital(){
-  var key = localStorage.getItem('nh_gemini_key');
+  var key = _nhGeminiKey();
   if(!key){ toast('Configure a API Key do Gemini','err'); document.getElementById('ia-key-modal').style.display='flex'; return; }
   var texto = document.getElementById('ia-texto') ? document.getElementById('ia-texto').value.trim() : '';
   texto = texto || _iaTexto || '';
@@ -16188,6 +16188,10 @@ function carregarIAKey(){
       txt.textContent="API Key não configurada — clique em Configurar";
       txt.style.color="#ef4444";
     }
+    /* Gemini pelo servidor (24/10/2026) — ver _nhGeminiServidor. */
+    fetch(NH_API+"/api/health",{cache:"no-store"}).then(function(r){return r.json();}).then(function(h){
+      if(h&&h.chaveIA){dot.style.background="#22c55e";txt.textContent="Gemini pelo servidor da NH";txt.style.color="#22c55e";}
+    }).catch(function(){});
   }
   var cdot=document.getElementById("ia-claude-status-dot");
   var ctxt=document.getElementById("ia-claude-status-txt");
@@ -16266,7 +16270,7 @@ function formatarRespostaIA(txt){if(!txt)return"";return txt.replace(/^#### (.+)
    no modo "Outras Declarações → Personalizada", já com timbre e
    assinatura da empresa selecionada — sem digitar nada na mão.
    ════════════════════════════════════════════════════════════ */
-async function analisarIA(tipo){var key=localStorage.getItem('nh_gemini_key');if(!key){toast('Configure a API Key do Gemini','err');document.getElementById('ia-key-modal').style.display='flex';return}var texto=document.getElementById('ia-texto').value.trim()||_iaTexto||'';if(!_iaArquivos.length&&(!texto||texto.length<3)){toast('Selecione um processo, faça upload do PDF ou cole o texto do edital','err');return}var prompts={resumo:'Faça um resumo executivo deste edital: objeto, órgão, valor estimado, prazo, requisitos e prazos.',habilitacao:'Liste TODOS os documentos de habilitação exigidos, por categoria: jurídica, técnica, econômica, fiscal e declarações.',itens:'Extraia TODOS os itens/lotes com a descrição TÉCNICA COMPLETA de cada um (especificações, dimensões, normas, tudo — nunca resuma; descrição incompleta pode causar desclassificação). Formato: ITEM | DESCRIÇÃO COMPLETA | UNIDADE | QTD | VALOR UNIT. (se houver no edital)',declaracoes:'Liste todas as declarações exigidas e gere o texto completo de cada uma.',requisitos:'Liste todos os requisitos técnicos e de habilitação por categoria.',riscos:'Analise os riscos e pontos de atenção. Classifique como ALTO, MÉDIO ou BAIXO.',proposta:'Analise a viabilidade de participação. Note de 1 a 10 com justificativa.',perguntar:'Aguarde pergunta sobre este edital.'};var prompt=prompts[tipo]||prompts.resumo;if(tipo==='perguntar'){var pergunta=window.prompt('Faça sua pergunta sobre o edital:');if(!pergunta)return;prompt='Sobre este edital, responda: '+pergunta}var resEl=document.getElementById('ia-resultado');var bodyEl=document.getElementById('ia-resultado-body');if(!resEl||!bodyEl)return;resEl.style.display='block';bodyEl.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:20px;height:20px"></div> Analisando'+(_iaArquivos.length?(_iaArquivos.length>1?' '+_iaArquivos.length+' arquivos':' PDF'):' texto')+'...</div>';try{var _parts=_iaArquivos.length?_iaPartsArquivos().concat([{text:prompt}]):[{text:prompt+'\n\n'+(texto.length>500?'EDITAL/TR:\n':'OBJETO:\n')+texto.substring(0,30000)}];var json=await chamarGemini(key,_parts,0.3,4000);var resposta=json.candidates&&json.candidates[0]&&json.candidates[0].content&&json.candidates[0].content.parts&&json.candidates[0].content.parts[0]&&json.candidates[0].content.parts[0].text||'Sem resposta';bodyEl.innerHTML=formatarRespostaIA(resposta);if(tipo==='itens'){try{preencherTabelaComIA(resposta);}catch(e2){console.error('Erro tabela:',e2);}}}catch(e){console.error('Erro Gemini:',e);bodyEl.innerHTML='<div style="color:#ef4444">\u274c Erro: '+e.message+'</div><div style="margin-top:8px;font-size:12px"><button onclick="document.getElementById(\'ia-key-modal\').style.display=\'flex\'" style="background:var(--nh);color:#000;border:none;padding:6px 12px;border-radius:6px;font-weight:700;cursor:pointer">\ud83d\udd11 Verificar API Key</button></div>';}}
+async function analisarIA(tipo){var key=_nhGeminiKey();if(!key){toast('Configure a API Key do Gemini','err');document.getElementById('ia-key-modal').style.display='flex';return}var texto=document.getElementById('ia-texto').value.trim()||_iaTexto||'';if(!_iaArquivos.length&&(!texto||texto.length<3)){toast('Selecione um processo, faça upload do PDF ou cole o texto do edital','err');return}var prompts={resumo:'Faça um resumo executivo deste edital: objeto, órgão, valor estimado, prazo, requisitos e prazos.',habilitacao:'Liste TODOS os documentos de habilitação exigidos, por categoria: jurídica, técnica, econômica, fiscal e declarações.',itens:'Extraia TODOS os itens/lotes com a descrição TÉCNICA COMPLETA de cada um (especificações, dimensões, normas, tudo — nunca resuma; descrição incompleta pode causar desclassificação). Formato: ITEM | DESCRIÇÃO COMPLETA | UNIDADE | QTD | VALOR UNIT. (se houver no edital)',declaracoes:'Liste todas as declarações exigidas e gere o texto completo de cada uma.',requisitos:'Liste todos os requisitos técnicos e de habilitação por categoria.',riscos:'Analise os riscos e pontos de atenção. Classifique como ALTO, MÉDIO ou BAIXO.',proposta:'Analise a viabilidade de participação. Note de 1 a 10 com justificativa.',perguntar:'Aguarde pergunta sobre este edital.'};var prompt=prompts[tipo]||prompts.resumo;if(tipo==='perguntar'){var pergunta=window.prompt('Faça sua pergunta sobre o edital:');if(!pergunta)return;prompt='Sobre este edital, responda: '+pergunta}var resEl=document.getElementById('ia-resultado');var bodyEl=document.getElementById('ia-resultado-body');if(!resEl||!bodyEl)return;resEl.style.display='block';bodyEl.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:20px;height:20px"></div> Analisando'+(_iaArquivos.length?(_iaArquivos.length>1?' '+_iaArquivos.length+' arquivos':' PDF'):' texto')+'...</div>';try{var _parts=_iaArquivos.length?_iaPartsArquivos().concat([{text:prompt}]):[{text:prompt+'\n\n'+(texto.length>500?'EDITAL/TR:\n':'OBJETO:\n')+texto.substring(0,30000)}];var json=await chamarGemini(key,_parts,0.3,4000);var resposta=json.candidates&&json.candidates[0]&&json.candidates[0].content&&json.candidates[0].content.parts&&json.candidates[0].content.parts[0]&&json.candidates[0].content.parts[0].text||'Sem resposta';bodyEl.innerHTML=formatarRespostaIA(resposta);if(tipo==='itens'){try{preencherTabelaComIA(resposta);}catch(e2){console.error('Erro tabela:',e2);}}}catch(e){console.error('Erro Gemini:',e);bodyEl.innerHTML='<div style="color:#ef4444">\u274c Erro: '+e.message+'</div><div style="margin-top:8px;font-size:12px"><button onclick="document.getElementById(\'ia-key-modal\').style.display=\'flex\'" style="background:var(--nh);color:#000;border:none;padding:6px 12px;border-radius:6px;font-weight:700;cursor:pointer">\ud83d\udd11 Verificar API Key</button></div>';}}
 function initDocumentos(){
   popularProcessosDoc();
   carregarIAKey();
@@ -16435,7 +16439,7 @@ function selecionarProcessoDoc(id){
   nhCarregarRascunhoDoc(id);
 }
 
-async function preencherComIA(){var key=localStorage.getItem("nh_gemini_key");if(!key){toast("Configure a API Key do Gemini","err");document.getElementById("ia-key-modal").style.display="flex";return}var texto=document.getElementById("ia-texto")?document.getElementById("ia-texto").value.trim():"";texto=texto||_iaTexto||"";if(!_iaArquivos.length&&(!texto||texto.length<10)){toast("Faça upload do PDF ou cole o texto do edital","err");return}var resEl=document.getElementById("ia-resultado");var bodyEl=document.getElementById("ia-resultado-body");resEl.style.display="block";bodyEl.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:20px;height:20px"></div> Extraindo dados do edital para preencher formulário...</div>';var prompts={preencher:"Extraia do edital/TR os dados abaixo e retorne APENAS JSON válido sem markdown.\n\nFORMATAÇÃO — documento oficial, sem abreviações:\n- \"orgao\", \"setor\", \"modalidade\", \"processo\": por extenso e completos, nunca abreviados (ex.: \"PREGÃO ELETRÔNICO Nº 021/2026\", não \"PE 021/2026\"; \"SECRETARIA MUNICIPAL DE SAÚDE\", não \"SEC. MUN. SAÚDE\"). Serão exibidos em maiúsculas automaticamente, então não precisa se preocupar com caixa.\n- \"objeto\": texto corrido normal (frase comum, não maiúsculo), completo e fiel ao edital, sem resumir.\n\nEstrutura exata:\n{\"orgao\":\"nome completo do órgão/entidade\",\"setor\":\"setor ou comissão por extenso\",\"modalidade\":\"modalidade por extenso e número\",\"processo\":\"tipo e número completo do processo\",\"objeto\":\"texto completo do objeto\",\"validade\":\"dias de validade da proposta\",\"prazo_entrega\":\"prazo de entrega ou execução\",\"prazo_pag\":\"prazo de pagamento\",\"local\":\"local de prestação ou entrega\",\"cidade\":\"cidade e UF do órgão\",\"tipo_doc\":\"proposta ou declaracao ou ambos\"}\nRetorne SOMENTE o JSON sem texto adicional."};try{var _parts2=_iaArquivos.length?_iaPartsArquivos().concat([{text:prompts.preencher}]):[{text:prompts.preencher+"\n\nEDITAL/TR:\n"+texto.substring(0,30000)}];var json=await chamarGemini(key,_parts2,0.1,4000);var resposta=json.candidates&&json.candidates[0]&&json.candidates[0].content&&json.candidates[0].content.parts&&json.candidates[0].content.parts[0]&&json.candidates[0].content.parts[0].text||"";var clean=resposta.replace(/```json/g,"").replace(/```/g,"").trim();var dados=null;function _repairJSON(s){  var i1=s.indexOf("{");if(i1<0)return s;  s=s.slice(i1);  s=s.replace(/,\s*([}\]])/g,"$1");  var opens=0,inStr=false,esc2=false;  for(var ci=0;ci<s.length;ci++){    var ch=s[ci];    if(esc2){esc2=false;continue;}    if(ch==="\\" && inStr){esc2=true;continue;}    if(ch==='"'){inStr=!inStr;continue;}    if(!inStr){if(ch==="{")opens++;else if(ch==="}")opens--;}  }  while(opens>0){s+="}";opens--;}  return s;}var jsonTries=[clean,_repairJSON(clean)];var i1=clean.indexOf("{"),i2=clean.lastIndexOf("}");if(i1>=0&&i2>i1)jsonTries.unshift(clean.slice(i1,i2+1));jsonTries.push(_repairJSON(i1>=0?clean.slice(i1):clean));for(var _ji=0;_ji<jsonTries.length;_ji++){  try{dados=JSON.parse(jsonTries[_ji]);break;}catch(e){}}if(!dados){toast("IA retornou formato inesperado. Tente novamente.","err");bodyEl.innerHTML='<div style="color:#ef4444">Resposta da IA não pôde ser interpretada.<br><small style="color:var(--t3)">Tente clicar em Preencher com IA novamente.</small></div>';return;}var sv=function(id,v){var el=document.getElementById(id);if(el&&v)el.value=v};
+async function preencherComIA(){var key=_nhGeminiKey();if(!key){toast("Configure a API Key do Gemini","err");document.getElementById("ia-key-modal").style.display="flex";return}var texto=document.getElementById("ia-texto")?document.getElementById("ia-texto").value.trim():"";texto=texto||_iaTexto||"";if(!_iaArquivos.length&&(!texto||texto.length<10)){toast("Faça upload do PDF ou cole o texto do edital","err");return}var resEl=document.getElementById("ia-resultado");var bodyEl=document.getElementById("ia-resultado-body");resEl.style.display="block";bodyEl.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--nh)"><div class="spin" style="width:20px;height:20px"></div> Extraindo dados do edital para preencher formulário...</div>';var prompts={preencher:"Extraia do edital/TR os dados abaixo e retorne APENAS JSON válido sem markdown.\n\nFORMATAÇÃO — documento oficial, sem abreviações:\n- \"orgao\", \"setor\", \"modalidade\", \"processo\": por extenso e completos, nunca abreviados (ex.: \"PREGÃO ELETRÔNICO Nº 021/2026\", não \"PE 021/2026\"; \"SECRETARIA MUNICIPAL DE SAÚDE\", não \"SEC. MUN. SAÚDE\"). Serão exibidos em maiúsculas automaticamente, então não precisa se preocupar com caixa.\n- \"objeto\": texto corrido normal (frase comum, não maiúsculo), completo e fiel ao edital, sem resumir.\n\nEstrutura exata:\n{\"orgao\":\"nome completo do órgão/entidade\",\"setor\":\"setor ou comissão por extenso\",\"modalidade\":\"modalidade por extenso e número\",\"processo\":\"tipo e número completo do processo\",\"objeto\":\"texto completo do objeto\",\"validade\":\"dias de validade da proposta\",\"prazo_entrega\":\"prazo de entrega ou execução\",\"prazo_pag\":\"prazo de pagamento\",\"local\":\"local de prestação ou entrega\",\"cidade\":\"cidade e UF do órgão\",\"tipo_doc\":\"proposta ou declaracao ou ambos\"}\nRetorne SOMENTE o JSON sem texto adicional."};try{var _parts2=_iaArquivos.length?_iaPartsArquivos().concat([{text:prompts.preencher}]):[{text:prompts.preencher+"\n\nEDITAL/TR:\n"+texto.substring(0,30000)}];var json=await chamarGemini(key,_parts2,0.1,4000);var resposta=json.candidates&&json.candidates[0]&&json.candidates[0].content&&json.candidates[0].content.parts&&json.candidates[0].content.parts[0]&&json.candidates[0].content.parts[0].text||"";var clean=resposta.replace(/```json/g,"").replace(/```/g,"").trim();var dados=null;function _repairJSON(s){  var i1=s.indexOf("{");if(i1<0)return s;  s=s.slice(i1);  s=s.replace(/,\s*([}\]])/g,"$1");  var opens=0,inStr=false,esc2=false;  for(var ci=0;ci<s.length;ci++){    var ch=s[ci];    if(esc2){esc2=false;continue;}    if(ch==="\\" && inStr){esc2=true;continue;}    if(ch==='"'){inStr=!inStr;continue;}    if(!inStr){if(ch==="{")opens++;else if(ch==="}")opens--;}  }  while(opens>0){s+="}";opens--;}  return s;}var jsonTries=[clean,_repairJSON(clean)];var i1=clean.indexOf("{"),i2=clean.lastIndexOf("}");if(i1>=0&&i2>i1)jsonTries.unshift(clean.slice(i1,i2+1));jsonTries.push(_repairJSON(i1>=0?clean.slice(i1):clean));for(var _ji=0;_ji<jsonTries.length;_ji++){  try{dados=JSON.parse(jsonTries[_ji]);break;}catch(e){}}if(!dados){toast("IA retornou formato inesperado. Tente novamente.","err");bodyEl.innerHTML='<div style="color:#ef4444">Resposta da IA não pôde ser interpretada.<br><small style="color:var(--t3)">Tente clicar em Preencher com IA novamente.</small></div>';return;}var sv=function(id,v){var el=document.getElementById(id);if(el&&v)el.value=v};
           var _up=function(s){return s?String(s).toUpperCase():s;};sv("orgao",_up(dados.orgao));sv("setor",_up(dados.setor));sv("modalidade",_up(dados.modalidade));sv("processo",_up(dados.processo));sv("objeto",dados.objeto);if(dados.validade){  var _vNum=String(dados.validade).match(/\d+/);  var _vEl=document.getElementById("validade");  if(_vEl&&_vNum)_vEl.value=_vNum[0];}sv("prazo_entrega",dados.prazo_entrega);sv("prazo_pag",dados.prazo_pag);sv("local_prestacao",dados.local);var _hoje=new Date();var _dataHoje=_hoje.getFullYear()+"-"+("0"+(_hoje.getMonth()+1)).slice(-2)+"-"+("0"+_hoje.getDate()).slice(-2);var _dataEl=document.getElementById("data_assina");if(_dataEl&&!_dataEl.value)_dataEl.value=_dataHoje;
           // Cidade de assinatura = cidade da empresa selecionada
           var _empSel=document.getElementById("doc_empresa");var _empNome=_empSel?_empSel.value:"";var _empD=EMPRESAS.find(function(e){return e.nome===_empNome;});
@@ -16479,7 +16483,35 @@ async function preencherComIA(){var key=localStorage.getItem("nh_gemini_key");if
           bodyEl.innerHTML='<div style="color:#22c55e;font-weight:600">✅ '+preenchidos+" campos preenchidos"+(_nItens>0?" · "+_nItens+" itens na tabela":"")+'!</div>'+(_nhAvisoItens?'<div style="margin-top:8px;background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.35);color:#eab308;border-radius:8px;padding:8px 11px;font-size:11.5px;line-height:1.55">⚠️ '+_nhAvisoItens+'</div>':(_nItens===0?'<div style="margin-top:8px;background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.35);color:#eab308;border-radius:8px;padding:8px 11px;font-size:11.5px;line-height:1.55">⚠️ Nenhum item encontrado no documento. Se o edital tem tabela de itens, confira se o arquivo anexado é o Termo de Referência / Anexo I.</div>':''))+'<div style="margin-top:8px;font-size:12px;color:var(--t3)">Verifique os dados e ajuste se necessário.</div><div style="margin-top:8px;font-size:11px;color:var(--t3);line-height:1.6">'+Object.entries(dados).filter(function(e){return e[0]!=="itens"&&e[1]}).map(function(e){return'<span style="color:var(--nh)">'+e[0]+":</span> "+String(e[1]||"—").substring(0,80)}).join("<br>")+(_nItens>0?'<br><span style="color:var(--nh)">itens:</span> '+_nItens+" item(s) extraído(s) na tabela":"")+"</div>";
         }catch(e){bodyEl.innerHTML='<div style="color:#ef4444">Erro: '+e.message+"</div>"}}
 
+/* ═══ GEMINI PELO SERVIDOR — 24/10/2026 ═════════════════════════════════
+   Pergunta do cliente: "e o Gemini?". Dossiê da empresa, consultas do
+   edital, análise de contrato, certidões e declarações pediam a chave
+   salva em CADA navegador — computador novo, recurso parado. Agora vão
+   pela rota /api/ia/gemini do servidor da NH, com a chave do Railway
+   (só equipe, com limite por pessoa). A chave do navegador vira reserva:
+   só é usada se o servidor não tiver a chave ou estiver fora do ar. */
+function _nhGeminiKey(){ return localStorage.getItem('nh_gemini_key') || 'servidor'; }
+async function _nhGeminiServidor(parts,temp,maxTok){
+  if(typeof auth==='undefined'||!auth.currentUser||typeof NH_API==='undefined')return null;
+  var r;
+  try{
+    r=await fetch(NH_API+'/api/ia/gemini',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({idToken:await auth.currentUser.getIdToken(),parts:parts,temperatura:temp||0.3,maxTokens:maxTok||4000})});
+  }catch(eRede){ return null; }                         /* servidor fora: tenta a chave do navegador */
+  var j=await r.json().catch(function(){return{};});
+  if(r.ok&&j.candidates)return j;
+  if(j&&j.erro==='CHAVE_GEMINI_AUSENTE')return null;
+  throw new Error((j&&j.error&&j.error.message)||('Erro '+r.status));
+}
+var _chamarGeminiNavegador=null;
 async function chamarGemini(key,parts,temp,maxTok){
+  var srv=null,erroSrv=null;
+  try{ srv=await _nhGeminiServidor(parts,temp,maxTok); }catch(e){ erroSrv=e; }
+  if(srv)return srv;
+  if(!key||key==='servidor')throw (erroSrv||new Error('a chave do Gemini não está no servidor nem neste navegador'));
+  return _chamarGeminiNavegador(key,parts,temp,maxTok);
+}
+_chamarGeminiNavegador=async function(key,parts,temp,maxTok){
   /* ⚠️ MODELO APOSENTADO — 30/08/2026.
      O Google desligou `gemini-2.0-flash-lite` e a análise passou a
      falhar com "no longer available". A lista tem fallback, mas todos
@@ -16575,7 +16607,7 @@ async function chamarGemini(key,parts,temp,maxTok){
     }
   }catch(_el){}
   throw new Error("Todos os modelos Gemini indisponíveis. Verifique sua API Key.");
-}
+};
 
 var CLAUDE_MODEL="claude-sonnet-5";
 function _nhClaudePartsToBlocks(parts){
@@ -17217,7 +17249,7 @@ function _dsParseJSON(raw){
 
 async function lerDossieIA(){
   var emp=_dsEmpAtual;if(!emp)return;
-  var key=localStorage.getItem('nh_gemini_key');
+  var key=_nhGeminiKey();
   if(!key){toast('Configure a API Key do Gemini na aba Documentos','err');return;}
   if(!_dsFiles.length){toast('Anexe os documentos da empresa primeiro','err');return;}
   _dsLimparErro();
@@ -17444,7 +17476,7 @@ if(typeof buildEmpresa==='function'){
 
 /* ════════ ANÁLISE DE ADERÊNCIA: edital anexado × dossiê ════════ */
 async function analisarAderencia(){
-  var key=localStorage.getItem('nh_gemini_key');
+  var key=_nhGeminiKey();
   if(!key){toast('Configure a API Key do Gemini','err');document.getElementById('ia-key-modal').style.display='flex';return;}
   var sel=document.getElementById('ia-emp-aderencia');
   var emp=sel?sel.value:'';
@@ -23645,7 +23677,7 @@ function nhAcAnexarManual(input){
 }
 
 async function nhAcAnalisar(){
-  var key=localStorage.getItem('nh_gemini_key');
+  var key=_nhGeminiKey();
   if(!key){toast('Configure a API Key do Gemini','err');return;}
   if(!_acSelecionados.length){toast('Selecione ao menos um documento','err');return;}
   var out=document.getElementById('ac-result');
@@ -24480,7 +24512,7 @@ var _CC_PROMPT='Você recebeu o arquivo de UMA certidão negativa brasileira usa
 async function nhCertSoltar(fileList){
   var arquivos=Array.prototype.slice.call(fileList||[]);
   if(!arquivos.length)return;
-  var key=localStorage.getItem('nh_gemini_key');
+  var key=_nhGeminiKey();
   if(!key){toast('Configure a API Key do Gemini para a leitura automática','err');return;}
 
   var box=document.getElementById('cc-lidos');
