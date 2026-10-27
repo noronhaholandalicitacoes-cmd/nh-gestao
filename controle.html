@@ -779,8 +779,85 @@ document.getElementById('bt-voz').classList.toggle('on', VOZ_LIGADA);
 
 /* ── Voz: ouvir ────────────────────────────────────────────────────── */
 var Rec = window.SpeechRecognition || window.webkitSpeechRecognition, rec = null, ouvindo = false;
+/* Celular (27/10/2026): "fui testar no celular e quando clico para falar
+   não funciona". No iPhone o reconhecimento do navegador falha (ainda
+   mais aberto pela tela inicial) e alguns navegadores nem têm. Nesses
+   casos o Controle grava a fala e o servidor transcreve (Gemini). Para
+   sozinho depois de 1,5 s de silêncio, ou com outro toque. */
+var IOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+var grav = null, _semRec = false;
+function avisar(t){ document.getElementById('ele').textContent = t; document.getElementById('legenda').classList.remove('some'); clearTimeout(_legTimer); }
+async function gravar(){
+  if(grav){ grav.parar(); return; }
+  if(!auth.currentUser){ document.getElementById('porta').classList.add('on'); return; }
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ avisar('Este navegador não libera o microfone. Digite abaixo.'); return; }
+  calar();
+  /* O áudio tem que nascer dentro do toque (regra do iPhone). */
+  var AC = window.AudioContext || window.webkitAudioContext, ctx = new AC();
+  try{ ctx.resume(); }catch(e){}
+  var stream;
+  try{ stream = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true}}); }
+  catch(e){
+    try{ ctx.close(); }catch(x){} estado('pronto');
+    avisar(e.name === 'NotAllowedError' ? 'Preciso da permissão do microfone. No iPhone: Ajustes › Safari (ou Chrome) › Microfone › Permitir.' : 'Não consegui abrir o microfone: ' + (e.message || e.name));
+    return;
+  }
+  var src = ctx.createMediaStreamSource(stream), proc = ctx.createScriptProcessor(4096, 1, 1);
+  var pedacos = [], inicio = Date.now(), ultimaVoz = 0, falou = false, fim = false;
+  function parar(){
+    if(fim) return; fim = true; grav = null; ouvindo = false;
+    try{ proc.disconnect(); src.disconnect(); }catch(e){}
+    stream.getTracks().forEach(function(t){ t.stop(); });
+    var taxa = ctx.sampleRate; try{ ctx.close(); }catch(e){}
+    if(!falou){ estado('pronto'); avisar('Não ouvi nada. Toque e fale de novo.'); agendarSumir(5000); return; }
+    transcrever(pedacos, taxa);
+  }
+  proc.onaudioprocess = function(ev){
+    if(fim) return;
+    var d = ev.inputBuffer.getChannelData(0), s = 0; pedacos.push(new Float32Array(d));
+    for(var i = 0; i < d.length; i += 4) s += d[i]*d[i];
+    var agora = Date.now();
+    if(Math.sqrt(s / (d.length/4)) > .015){ ultimaVoz = agora; falou = true; }
+    if((falou && agora - ultimaVoz > 1500) || agora - inicio > 30000 || (!falou && agora - inicio > 8000)) parar();
+  };
+  src.connect(proc); proc.connect(ctx.destination);
+  grav = {parar: parar}; ouvindo = true; estado('ouvindo');
+  document.getElementById('eu').textContent = ''; avisar('Pode falar…');
+}
+/* Fala gravada → WAV 16 kHz mono → base64 (≈32 KB por segundo). */
+function wav16k(pedacos, taxa){
+  var n = 0; pedacos.forEach(function(p){ n += p.length; });
+  var tudo = new Float32Array(n), o = 0; pedacos.forEach(function(p){ tudo.set(p, o); o += p.length; });
+  var passo = taxa / 16000, m = Math.floor(n / passo), buf = new ArrayBuffer(44 + m*2), v = new DataView(buf);
+  function str(p, s){ for(var i = 0; i < s.length; i++) v.setUint8(p + i, s.charCodeAt(i)); }
+  str(0, 'RIFF'); v.setUint32(4, 36 + m*2, true); str(8, 'WAVE'); str(12, 'fmt '); v.setUint32(16, 16, true);
+  v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, 16000, true); v.setUint32(28, 32000, true);
+  v.setUint16(32, 2, true); v.setUint16(34, 16, true); str(36, 'data'); v.setUint32(40, m*2, true);
+  for(var i = 0; i < m; i++){
+    var a = Math.floor(i*passo), b = Math.max(a + 1, Math.floor((i + 1)*passo)), soma = 0;
+    for(var k = a; k < b && k < n; k++) soma += tudo[k];
+    var x = Math.max(-1, Math.min(1, soma / (b - a)));
+    v.setInt16(44 + i*2, x < 0 ? x*0x8000 : x*0x7fff, true);
+  }
+  var u8 = new Uint8Array(buf), bin = '';
+  for(var j = 0; j < u8.length; j += 0x8000) bin += String.fromCharCode.apply(null, u8.subarray(j, j + 0x8000));
+  return btoa(bin);
+}
+async function transcrever(pedacos, taxa){
+  estado('pensando'); avisar('Entendendo…');
+  try{
+    var r = await fetch(NH_API + '/api/jarvis/ouvir', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({idToken: await auth.currentUser.getIdToken(), audio: wav16k(pedacos, taxa)})});
+    var j = await r.json().catch(function(){ return {}; });
+    if(!r.ok || !j.ok) throw new Error(j.erro || ('HTTP ' + r.status));
+    var t = String(j.texto || '').trim();
+    estado('pronto');
+    if(!t){ avisar('Não entendi. Toque e fale de novo.'); agendarSumir(5000); return; }
+    enviar(t);
+  }catch(e){ estado('pronto'); avisar('Não consegui ouvir: ' + (e.message || e)); agendarSumir(8000); }
+}
 function ouvir(){
-  if(!Rec){ document.getElementById('ele').textContent = 'Este navegador não ouve — use o Chrome ou o Edge, ou digite abaixo.'; return; }
+  if(grav || IOS || !Rec || _semRec){ gravar(); return; }
   if(ouvindo){ rec.stop(); return; }
   calar();
   rec = new Rec(); rec.lang = 'pt-BR'; rec.interimResults = true; rec.continuous = false;
@@ -794,15 +871,18 @@ function ouvir(){
   };
   rec.onend = function(){ ouvindo = false; if(final.trim()) enviar(final.trim()); else if(ESTADO === 'ouvindo') estado('pronto'); };
   rec.onerror = function(e){ ouvindo = false; estado('pronto');
-    if(e.error === 'not-allowed') document.getElementById('ele').textContent = 'Preciso da permissão do microfone — libere no cadeado da barra de endereço.'; };
-  ouvindo = true; estado('ouvindo'); rec.start();
+    if(e.error === 'not-allowed') avisar('Preciso da permissão do microfone — libere no cadeado da barra de endereço.');
+    else if(e.error === 'no-speech'){ avisar('Não ouvi nada. Toque e fale de novo.'); agendarSumir(5000); }
+    else if(e.error !== 'aborted'){ _semRec = true; avisar('Vou ouvir de outro jeito: toque no microfone de novo.'); } };
+  try{ rec.start(); ouvindo = true; estado('ouvindo'); }
+  catch(e){ ouvindo = false; _semRec = true; gravar(); }
 }
 document.getElementById('mic').addEventListener('click', ouvir);
 document.getElementById('orbe').addEventListener('click', ouvir);
 addEventListener('keydown', function(e){
   var digitando = document.activeElement && document.activeElement.id === 'txt';
   if(e.code === 'Space' && !digitando && !e.repeat){ e.preventDefault(); ouvir(); }
-  if(e.key === 'Escape'){ calar(); if(ouvindo && rec) rec.abort(); }
+  if(e.key === 'Escape'){ calar(); if(grav) grav.parar(); else if(ouvindo && rec) rec.abort(); }
 });
 
 /* ── Conversa ──────────────────────────────────────────────────────── */
