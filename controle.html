@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0a0e1a">
+<!-- Celular: "Adicionar à tela de início" abre o Controle em tela cheia, como um aplicativo. -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Controle">
 <title>Controle · NH Licitações</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
@@ -161,6 +166,19 @@ body{background:
 .m.jarvis{align-self:flex-start;background:rgba(255,255,255,.04);border:1px solid var(--linha)}
 .m small{display:block;margin-top:5px;font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace}
 
+/* ── Voz do Jarvis ── */
+.vz{position:fixed;top:70px;right:22px;z-index:9;width:min(320px,92vw);padding:18px;border-radius:16px;display:none;
+  background:rgba(13,20,40,.95);border:1px solid rgba(249,115,22,.3);backdrop-filter:blur(16px);box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.vz.on{display:block}
+.vz-tit{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.3em;color:var(--nh2);margin-bottom:12px}
+.vz label{display:block;font-size:11.5px;font-weight:600;color:var(--t3);margin-bottom:12px}
+.vz select{display:block;width:100%;margin-top:6px;height:38px;padding:0 10px;border-radius:10px;background:rgba(5,9,20,.8);border:1px solid var(--linha2);color:var(--t1);font:inherit;font-size:13px}
+.vz input[type=range]{display:block;width:100%;margin-top:8px;accent-color:var(--nh)}
+.vz-bts{display:flex;gap:8px}
+.vz-bts button{flex:1;height:36px;border-radius:10px;cursor:pointer;font:inherit;font-weight:700;font-size:12.5px;border:1px solid var(--linha2);background:rgba(255,255,255,.04);color:var(--t1)}
+.vz-bts button:first-child{border:none;color:#111;background:linear-gradient(135deg,var(--nh2),var(--nh))}
+.vz p{font-size:11.5px;color:var(--t3);line-height:1.5;margin-top:12px}
+
 /* ── Entrada (sem login) ── */
 .porta{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;background:rgba(10,14,26,.88);backdrop-filter:blur(8px)}
 .porta.on{display:flex}
@@ -200,6 +218,7 @@ body{background:
     <span class="chip so-pc" id="ch-srv"><span class="p"></span>SERVIDOR</span>
     <span class="chip so-pc" id="ch-mem"><span class="p"></span>MEMÓRIA</span>
     <button class="bt-ic on" id="bt-voz" title="Voz do Jarvis ligada — clique para silenciar" aria-label="Voz do Jarvis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/></svg></button>
+    <button class="bt-ic" id="bt-cfg-voz" title="Escolher a voz do Jarvis" aria-label="Escolher a voz"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg></button>
     <button class="bt-ic" id="bt-sair" title="Sair do Controle" aria-label="Sair do Controle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></svg></button>
     <button class="bt-ic" id="bt-conv" title="Conversa" aria-label="Abrir a conversa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
   </div>
@@ -222,6 +241,16 @@ body{background:
   <button type="button" class="mic" id="mic" title="Falar (ou barra de espaço)" aria-label="Falar com o Jarvis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 17v5"/></svg></button>
 </form>
 <div class="dica">ESPAÇO PARA FALAR · ENTER PARA ENVIAR · ESC PARA CALAR</div>
+
+<!-- Voz do Jarvis: escolha por aparelho (27/10/2026). -->
+<div class="vz" id="vz">
+  <div class="vz-tit">VOZ DO JARVIS</div>
+  <label>Voz<select id="vz-voz"></select></label>
+  <label>Velocidade<input id="vz-vel" type="range" min=".7" max="1.4" step=".02"></label>
+  <label>Tom<input id="vz-tom" type="range" min=".6" max="1.3" step=".02"></label>
+  <div class="vz-bts"><button type="button" id="vz-testar">▶ Testar</button><button type="button" id="vz-fechar">Fechar</button></div>
+  <p id="vz-dica"></p>
+</div>
 
 <aside class="painel" id="painel">
   <h3>CONVERSA <button class="bt-ic" id="bt-fechar" aria-label="Fechar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></h3>
@@ -359,12 +388,48 @@ function estado(e){ ESTADO = e; document.getElementById('estado').textContent = 
 
 /* ── Voz: falar ────────────────────────────────────────────────────── */
 var VOZ_LIGADA = (function(){ try{ return localStorage.getItem('jarvis_voz') !== '0'; }catch(e){ return true; } })();
+/* ── Escolha da voz (27/10/2026) ────────────────────────────────────
+   Pergunta do cliente: "como faço para trocar a voz dele?". Cada aparelho
+   tem as SUAS vozes (Windows/Edge, Chrome, Android e iPhone são
+   diferentes), então a escolha, a velocidade e o tom ficam guardados
+   neste aparelho. Sem escolha, vai a melhor voz em português que houver:
+   as "Natural" do Edge primeiro, depois a do Google. */
 var vozPt = null;
+var VOZ_CFG = (function(){ try{ return JSON.parse(localStorage.getItem('jarvis_voz_cfg') || '{}'); }catch(e){ return {}; } })();
+function vozesPt(){ return ('speechSynthesis' in window ? speechSynthesis.getVoices() : []).filter(function(v){ return /^pt(-|_)/i.test(v.lang); })
+  .sort(function(a, b){ return (/BR/i.test(b.lang) - /BR/i.test(a.lang)) || (/Natural|Online/i.test(b.name) - /Natural|Online/i.test(a.name)); }); }
 function escolherVoz(){
-  var vs = speechSynthesis.getVoices().filter(function(v){ return /^pt(-|_)BR/i.test(v.lang); });
-  vozPt = vs.find(function(v){ return /Google/i.test(v.name); }) || vs.find(function(v){ return /Antonio|Daniel|Francisca|Thalita|Natural/i.test(v.name); }) || vs[0] || null;
+  var vs = vozesPt();
+  /* No PC, o cliente quer a voz do Edge (27/10/2026): as "Natural" da
+     Microsoft só existem dentro do Edge. Antonio (masculina) primeiro. */
+  vozPt = vs.find(function(v){ return v.name === VOZ_CFG.nome; })
+    || vs.find(function(v){ return /BR/i.test(v.lang) && /Antonio/i.test(v.name) && /Natural|Online/i.test(v.name); })
+    || vs.find(function(v){ return /BR/i.test(v.lang) && /Natural|Online/i.test(v.name); })
+    || vs.find(function(v){ return /BR/i.test(v.lang) && /Google/i.test(v.name); })
+    || vs.find(function(v){ return /BR/i.test(v.lang); }) || vs[0] || null;
+  try{ _vozMontarLista(); }catch(e){}
 }
 if('speechSynthesis' in window){ escolherVoz(); speechSynthesis.onvoiceschanged = escolherVoz; }
+function _vozMontarLista(){
+  var s = document.getElementById('vz-voz'); if(!s) return;
+  var vs = vozesPt();
+  s.innerHTML = vs.length ? vs.map(function(v){ return '<option value="' + v.name.replace(/"/g, '&quot;') + '"' + (vozPt && v.name === vozPt.name ? ' selected' : '') + '>' +
+    v.name.replace(/^Microsoft\s+/, '').replace(/\s*-\s*Portuguese.*$/i, '') + ' (' + v.lang + ')</option>'; }).join('') : '<option>Nenhuma voz em português neste aparelho</option>';
+  document.getElementById('vz-vel').value = VOZ_CFG.vel || 1.04;
+  document.getElementById('vz-tom').value = VOZ_CFG.tom || .92;
+}
+function _vozGuardar(){
+  VOZ_CFG = {nome: document.getElementById('vz-voz').value, vel: +document.getElementById('vz-vel').value, tom: +document.getElementById('vz-tom').value};
+  try{ localStorage.setItem('jarvis_voz_cfg', JSON.stringify(VOZ_CFG)); }catch(e){}
+  escolherVoz();
+}
+/* iPhone: o Safari só deixa falar depois de um toque. O primeiro toque na
+   tela "destrava" a voz com uma fala vazia — senão a resposta, que chega
+   segundos depois, sairia muda. */
+document.addEventListener('pointerdown', function destrava(){
+  try{ var u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); }catch(e){}
+  document.removeEventListener('pointerdown', destrava);
+});
 function paraFala(t){
   return String(t||'').replace(/\*\*|__|`|#+\s?/g,'').replace(/^\s*[-•]\s+/gm,'').replace(/\[(.*?)\]\(.*?\)/g,'$1')
     .replace(/R\$\s?/g,'R$ ').replace(/\n{2,}/g,'. ').replace(/\n/g,', ');
@@ -380,7 +445,7 @@ function falar(t){
   (function proxima(){
     if(i >= partes.length){ clearInterval(timer); fala = 0; if(ESTADO === 'falando') estado('pronto'); return; }
     var u = new SpeechSynthesisUtterance(partes[i++].trim());
-    u.lang = 'pt-BR'; if(vozPt) u.voice = vozPt; u.rate = 1.04; u.pitch = .92;
+    u.lang = vozPt ? vozPt.lang : 'pt-BR'; if(vozPt) u.voice = vozPt; u.rate = VOZ_CFG.vel || 1.04; u.pitch = VOZ_CFG.tom || .92;
     u.onend = proxima; u.onerror = function(){ clearInterval(timer); fala = 0; estado('pronto'); };
     speechSynthesis.speak(u);
   })();
@@ -393,6 +458,23 @@ document.getElementById('bt-voz').addEventListener('click', function(){
   if(!VOZ_LIGADA) calar();
 });
 document.getElementById('bt-voz').classList.toggle('on', VOZ_LIGADA);
+/* Painel de voz */
+(function(){
+  var vz = document.getElementById('vz');
+  var ehEdge = /Edg\//.test(navigator.userAgent), celular = /Android|iPhone|iPad/i.test(navigator.userAgent);
+  document.getElementById('vz-dica').textContent = celular
+    ? 'As vozes são as do próprio celular. No iPhone, dá para baixar vozes melhores em Ajustes › Acessibilidade › Conteúdo Falado › Vozes.'
+    : ehEdge ? 'Você está no Edge: as vozes "Natural" da Microsoft são as mais humanas.'
+             : 'No computador, abra o Controle pelo Microsoft Edge para ter as vozes naturais da Microsoft (Antonio, Francisca, Thalita). Elas não existem no Chrome.';
+  document.getElementById('bt-cfg-voz').addEventListener('click', function(){ _vozMontarLista(); vz.classList.toggle('on'); });
+  document.getElementById('vz-fechar').addEventListener('click', function(){ vz.classList.remove('on'); });
+  ['vz-voz', 'vz-vel', 'vz-tom'].forEach(function(id){ document.getElementById(id).addEventListener('change', _vozGuardar); });
+  document.getElementById('vz-testar').addEventListener('click', function(){
+    _vozGuardar(); var antes = VOZ_LIGADA; VOZ_LIGADA = true;
+    falar('Olá, chefe. Esta é a minha voz agora. Se preferir outra, é só escolher aqui.');
+    VOZ_LIGADA = antes;
+  });
+})();
 
 /* ── Voz: ouvir ────────────────────────────────────────────────────── */
 var Rec = window.SpeechRecognition || window.webkitSpeechRecognition, rec = null, ouvindo = false;
