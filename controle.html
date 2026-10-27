@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="Controle">
 <title>Controle · NH Licitações</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@300;400;500;600;700;800&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 /* ═══ CONTROLE (com o Jarvis) — 27/10/2026. O cliente batizou a tela de "Controle"; o assistente continua sendo o Jarvis. ═══════════════════════════════════════════════
    Pedido: "uma tela com o Jarvis no meio e ao redor os sistemas, incluindo
@@ -28,7 +28,7 @@
   --t1:#eef1f7;--t2:#b6bdcc;--t3:#7c8496;--nh:#f97316;--nh2:#fb923c;--roxo:#7c3aed;--azul:#3b82f6;--verde:#22c55e;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;background:var(--bg);color:var(--t1);font-family:Outfit,system-ui,sans-serif;overflow:hidden}
+html,body{height:100%;background:var(--bg);color:var(--t1);font-family:'Sora',system-ui,sans-serif;overflow:hidden}
 /* Fundo com a cara do Gestão e do Portal geral (pedido do cliente: "não
    precisa ser todo preto — um escuro meio azulado com cores laranjas"):
    o mesmo #0a0e1a e as mesmas três luzes que derivam devagar. */
@@ -60,11 +60,11 @@ body{background:
 /* Para o que é centralizado com translate: girar sem perder o centro. */
 @keyframes giraC{from{transform:translate(-50%,-50%) rotate(0)}to{transform:translate(-50%,-50%) rotate(360deg)}}
 .marca{line-height:1.15}
-.marca .j{font-family:'JetBrains Mono',monospace;font-weight:700;letter-spacing:.42em;font-size:13px;color:var(--t1)}
-.marca .s{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.32em;color:var(--t3);margin-top:4px}
+.marca .j{font-family:'Oxanium',sans-serif;font-weight:700;letter-spacing:.42em;font-size:13px;color:var(--t1)}
+.marca .s{font-family:'Oxanium',sans-serif;font-size:9.5px;letter-spacing:.32em;color:var(--t3);margin-top:4px}
 .topo .dir{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
 .chip{display:inline-flex;align-items:center;gap:7px;height:28px;padding:0 11px;border-radius:999px;font-size:11px;font-weight:600;
-  font-family:'JetBrains Mono',monospace;letter-spacing:.06em;color:var(--t2);background:var(--vidro);border:1px solid var(--linha);backdrop-filter:blur(10px)}
+  font-family:'Oxanium',sans-serif;letter-spacing:.06em;color:var(--t2);background:var(--vidro);border:1px solid var(--linha);backdrop-filter:blur(10px)}
 .chip .p{width:7px;height:7px;border-radius:50%;background:var(--t3)}
 .chip.ok .p{background:var(--verde);box-shadow:0 0 8px var(--verde)}
 .chip.erro .p{background:#ef4444;box-shadow:0 0 8px #ef4444}
@@ -82,7 +82,7 @@ body{background:
 .anel.r2{width:min(78vh,700px);height:min(56vh,500px);border-color:rgba(255,255,255,.05);border-style:dashed}
 .anel.r3{width:min(62vh,560px);height:min(62vh,560px);border-color:transparent;border-top-color:rgba(249,115,22,.35);border-right-color:rgba(124,58,237,.18);animation:giraC 18s linear infinite}
 #orbe{position:absolute;left:50%;top:50%;width:min(44vh,380px);height:min(44vh,380px);transform:translate(-50%,-50%);cursor:pointer;border-radius:50%}
-.estado{position:absolute;left:50%;top:calc(50% + min(24vh,205px));transform:translateX(-50%);font-family:'JetBrains Mono',monospace;
+.estado{position:absolute;left:50%;top:calc(50% + min(24vh,205px));transform:translateX(-50%);font-family:'Oxanium',sans-serif;
   font-size:11px;letter-spacing:.5em;color:var(--nh2);text-shadow:0 0 12px rgba(249,115,22,.6);white-space:nowrap}
 /* ── Módulos dos sistemas (27/10/2026) ─────────────────────────────────
    Pedido: "ridículo esses ícones, quero algo grandioso e digital". Cada
@@ -105,11 +105,11 @@ body{background:
   background:linear-gradient(180deg,transparent,rgba(251,146,60,.22),transparent);animation:varre 3.6s ease-in-out infinite}
 @keyframes varre{0%{top:-40%}60%,100%{top:110%}}
 .hex-in svg{width:38px;height:38px;color:#ffd9b8;filter:drop-shadow(0 0 6px rgba(249,115,22,.85)) drop-shadow(0 0 16px rgba(249,115,22,.45));position:relative;z-index:1}
-.hex-cod{position:absolute;bottom:17px;left:0;right:0;text-align:center;font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.22em;color:rgba(251,146,60,.75);z-index:1}
+.hex-cod{position:absolute;bottom:17px;left:0;right:0;text-align:center;font-family:'Oxanium',sans-serif;font-size:8.5px;letter-spacing:.22em;color:rgba(251,146,60,.75);z-index:1}
 .rot{text-align:center;line-height:1.25}
-.rot b{display:block;font-family:'JetBrains Mono',monospace;font-size:11.5px;font-weight:700;letter-spacing:.24em;color:var(--t1);
+.rot b{display:block;font-family:'Oxanium',sans-serif;font-size:11.5px;font-weight:700;letter-spacing:.24em;color:var(--t1);
   text-shadow:0 0 12px rgba(249,115,22,.35);white-space:nowrap}
-.rot small{display:block;margin-top:3px;font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.2em;color:var(--t3);white-space:nowrap}
+.rot small{display:block;margin-top:3px;font-family:'Oxanium',sans-serif;font-size:8.5px;letter-spacing:.2em;color:var(--t3);white-space:nowrap}
 .no:hover{transform:translate(-50%,-50%) scale(1.07)}
 .no:hover .hex{filter:drop-shadow(0 0 14px rgba(249,115,22,.55))}
 .no:hover .hex-borda{animation-duration:2s}
@@ -140,14 +140,14 @@ body{background:
 .legenda{position:fixed;left:50%;bottom:94px;transform:translateX(-50%);z-index:5;width:min(700px,90vw);text-align:center;pointer-events:none;
   transition:opacity .6s,transform .6s}
 .legenda.some{opacity:0;transform:translate(-50%,10px)}
-.legenda .eu{font-size:11.5px;color:var(--t3);margin-bottom:6px;min-height:15px;font-family:'JetBrains Mono',monospace;letter-spacing:.04em;
+.legenda .eu{font-size:11.5px;color:var(--t3);margin-bottom:6px;min-height:15px;font-family:'Oxanium',sans-serif;letter-spacing:.04em;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .legenda .ele{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:14px;line-height:1.5;color:var(--t1);
   padding:0 16px;border-top:9px solid transparent;border-bottom:9px solid transparent;border-radius:14px;background:rgba(10,14,26,.78);backdrop-filter:blur(12px);
   box-shadow:0 0 0 1px rgba(249,115,22,.22),0 10px 30px rgba(0,0,0,.4);cursor:pointer;pointer-events:auto;text-align:left}
 .legenda .ele:empty{display:none}
 .legenda .ele:hover{box-shadow:0 0 0 1px rgba(249,115,22,.6),0 10px 30px rgba(0,0,0,.4)}
-.legenda .mais{display:block;margin-top:5px;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.2em;color:var(--nh2);
+.legenda .mais{display:block;margin-top:5px;font-family:'Oxanium',sans-serif;font-size:9.5px;letter-spacing:.2em;color:var(--nh2);
   pointer-events:auto;cursor:pointer}
 
 /* ── Barra de comando (discreta) ── */
@@ -165,25 +165,25 @@ body{background:
 .enviar{background:none;border:none;color:var(--t3);cursor:pointer;display:inline-flex;padding:6px}
 .enviar:hover{color:var(--nh)}
 .enviar svg{width:18px;height:18px}
-.dica{position:fixed;left:50%;bottom:8px;transform:translateX(-50%);z-index:5;font-size:10.5px;color:var(--t3);font-family:'JetBrains Mono',monospace;letter-spacing:.08em;white-space:nowrap}
+.dica{position:fixed;left:50%;bottom:8px;transform:translateX(-50%);z-index:5;font-size:10.5px;color:var(--t3);font-family:'Oxanium',sans-serif;letter-spacing:.08em;white-space:nowrap}
 
 /* ── Painel de conversa ── */
 .painel{position:fixed;top:0;right:0;bottom:0;z-index:8;width:min(420px,100vw);background:rgba(8,11,20,.92);border-left:1px solid var(--linha);
   backdrop-filter:blur(18px);transform:translateX(100%);transition:transform .35s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column}
 .painel.aberto{transform:none}
-.painel h3{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.3em;color:var(--t3);padding:22px 22px 12px;display:flex;align-items:center}
+.painel h3{font-family:'Oxanium',sans-serif;font-size:11px;letter-spacing:.3em;color:var(--t3);padding:22px 22px 12px;display:flex;align-items:center}
 .painel h3 button{margin-left:auto}
 .msgs{flex:1;overflow:auto;padding:4px 22px 22px;display:flex;flex-direction:column;gap:12px}
 .m{max-width:92%;padding:10px 13px;border-radius:14px;font-size:13.5px;line-height:1.55;white-space:pre-wrap}
 .m.chefe{align-self:flex-end;background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.28)}
 .m.jarvis{align-self:flex-start;background:rgba(255,255,255,.04);border:1px solid var(--linha)}
-.m small{display:block;margin-top:5px;font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace}
+.m small{display:block;margin-top:5px;font-size:10px;color:var(--t3);font-family:'Oxanium',sans-serif}
 
 /* ── Voz do Jarvis ── */
 .vz{position:fixed;top:70px;right:22px;z-index:9;width:min(320px,92vw);padding:18px;border-radius:16px;display:none;
   background:rgba(13,20,40,.95);border:1px solid rgba(249,115,22,.3);backdrop-filter:blur(16px);box-shadow:0 20px 60px rgba(0,0,0,.5)}
 .vz.on{display:block}
-.vz-tit{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.3em;color:var(--nh2);margin-bottom:12px}
+.vz-tit{font-family:'Oxanium',sans-serif;font-size:11px;letter-spacing:.3em;color:var(--nh2);margin-bottom:12px}
 .vz label{display:block;font-size:11.5px;font-weight:600;color:var(--t3);margin-bottom:12px}
 .vz select{display:block;width:100%;margin-top:6px;height:38px;padding:0 10px;border-radius:10px;background:rgba(5,9,20,.8);border:1px solid var(--linha2);color:var(--t1);font:inherit;font-size:13px}
 .vz input[type=range]{display:block;width:100%;margin-top:8px;accent-color:var(--nh)}
@@ -198,8 +198,8 @@ body{background:
 .porta form{display:flex;flex-direction:column;align-items:center;width:min(360px,90vw);padding:34px 30px;border-radius:22px;
   background:linear-gradient(170deg,rgba(17,26,48,.92),rgba(10,14,26,.94));border:1px solid rgba(249,115,22,.25);
   box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 60px rgba(249,115,22,.10)}
-.porta-tit{margin-top:18px;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:18px;letter-spacing:.5em;color:var(--t1);padding-left:.5em}
-.porta-sub{margin:6px 0 22px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.28em;color:var(--t3)}
+.porta-tit{margin-top:18px;font-family:'Oxanium',sans-serif;font-weight:700;font-size:18px;letter-spacing:.5em;color:var(--t1);padding-left:.5em}
+.porta-sub{margin:6px 0 22px;font-family:'Oxanium',sans-serif;font-size:9px;letter-spacing:.28em;color:var(--t3)}
 .porta input{width:100%;height:46px;margin-bottom:10px;padding:0 15px;border-radius:12px;background:rgba(5,9,20,.7);border:1px solid var(--linha2);
   color:var(--t1);font:inherit;font-size:14.5px;outline:none;transition:border-color .2s}
 .porta input:focus{border-color:rgba(249,115,22,.6);box-shadow:0 0 0 3px rgba(249,115,22,.12)}
@@ -217,6 +217,92 @@ body{background:
   .dica{display:none}
 }
 @media (prefers-reduced-motion:reduce){.anel.r3{animation:none}}
+
+/* ═══ LINGUAGEM PRÓPRIA DO CONTROLE — 27/10/2026 ════════════════════════
+   Pedido: "não quero nada ultrapassado; tecnológico e futurista sem perder
+   a cara da NH; não vem com quadros e letras que você já usa faz tempo".
+   Então aqui não há caixa: tudo é luz sobre o fundo da NH.
+   · Letras: Oxanium (geométrica, de painel) nos rótulos; Sora na leitura.
+   · Resposta: transmissão holográfica — texto de luz, sem moldura, que
+     surge enquanto o Jarvis fala, com um feixe acima.
+   · Barra de comando: um feixe de luz, não uma pílula.
+   · Situação no topo e botões: só luz e ícone, sem retângulo.
+   · Entrada e conversa: campos e mensagens como traços de luz. */
+body{font-family:'Sora',system-ui,sans-serif}
+.marca .j{font-family:'Oxanium',sans-serif;font-weight:700;font-size:15px;letter-spacing:.55em;
+  background:linear-gradient(90deg,#fff 0%,#ffd2a8 45%,var(--nh) 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.marca .s{font-family:'Oxanium',sans-serif;font-weight:500;font-size:9px;letter-spacing:.42em;color:rgba(255,190,140,.45)}
+
+/* Situação: luz, não pílula */
+.chip{background:none;border:none;backdrop-filter:none;height:auto;padding:0 2px;font-family:'Oxanium',sans-serif;font-size:10.5px;letter-spacing:.24em;color:var(--t3)}
+.chip+.chip{padding-left:16px;margin-left:4px;border-left:1px solid rgba(255,255,255,.08)}
+.chip .p{width:5px;height:5px}
+.bt-ic{background:none;border:none;backdrop-filter:none;width:34px;height:34px;color:var(--t3)}
+.bt-ic:hover{color:#ffd2a8;filter:drop-shadow(0 0 8px rgba(249,115,22,.8))}
+.bt-ic.on{color:var(--nh);filter:drop-shadow(0 0 6px rgba(249,115,22,.7))}
+
+/* Módulos: rótulos na letra nova */
+.rot b{font-family:'Oxanium',sans-serif;font-weight:700;letter-spacing:.28em}
+.rot small,.hex-cod{font-family:'Oxanium',sans-serif}
+.estado{font-family:'Oxanium',sans-serif;font-weight:600;letter-spacing:.7em}
+
+/* Resposta: transmissão holográfica, sem moldura */
+.legenda .eu{font-family:'Oxanium',sans-serif;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,190,140,.5);text-align:center}
+.legenda .ele{background:none!important;backdrop-filter:none!important;box-shadow:none!important;border:0!important;padding:14px 8px 0!important;
+  text-align:center;font-family:'Sora',sans-serif;font-weight:400;font-size:15px;line-height:1.6;letter-spacing:.01em;
+  color:transparent;background-image:linear-gradient(180deg,#ffffff 0%,#ffe4cc 60%,#ffb27a 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;
+  filter:drop-shadow(0 0 14px rgba(249,115,22,.35))}
+.legenda .ele:hover{box-shadow:none!important;filter:drop-shadow(0 0 18px rgba(249,115,22,.6))}
+.legenda::before{content:'';display:block;height:1px;margin:0 auto;width:60%;
+  background:linear-gradient(90deg,transparent,rgba(249,115,22,.9),transparent);box-shadow:0 0 12px rgba(249,115,22,.8);
+  animation:feixe 3.2s ease-in-out infinite}
+@keyframes feixe{50%{width:85%;opacity:.55}}
+.legenda .mais{font-family:'Oxanium',sans-serif;font-size:9.5px;letter-spacing:.32em;text-align:center}
+
+/* Barra de comando: feixe de luz */
+.barra{background:none;border:none;box-shadow:none;backdrop-filter:none;border-radius:0;padding:0 0 10px;opacity:.85}
+.barra::after{content:'';position:absolute;left:0;right:56px;bottom:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(249,115,22,.75) 30%,rgba(124,58,237,.6) 70%,transparent);transition:.3s}
+.barra:focus-within::after{box-shadow:0 0 14px rgba(249,115,22,.9);height:2px}
+.barra input{font-family:'Sora',sans-serif;font-size:14.5px;text-align:center;letter-spacing:.02em}
+.barra input::placeholder{font-family:'Oxanium',sans-serif;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:rgba(255,190,140,.38)}
+.mic{width:46px;height:46px;background:radial-gradient(circle at 35% 30%,#ffd2a8,var(--nh) 55%,#c2410c);box-shadow:0 0 0 1px rgba(255,210,168,.35),0 0 26px rgba(249,115,22,.65)}
+.dica{font-family:'Oxanium',sans-serif;letter-spacing:.32em;font-size:9.5px;color:rgba(255,190,140,.32)}
+
+/* Conversa: traços de luz, sem balões */
+.painel{background:linear-gradient(270deg,rgba(10,14,26,.97) 70%,rgba(10,14,26,.0));border-left:0}
+.painel h3{font-family:'Oxanium',sans-serif;letter-spacing:.45em;color:rgba(255,190,140,.6)}
+.m{max-width:100%;background:none!important;border:0!important;border-radius:0;padding:2px 0 2px 14px;position:relative;font-size:13.5px;color:var(--t2)}
+.m::before{content:'';position:absolute;left:0;top:4px;bottom:4px;width:2px;border-radius:2px;background:rgba(255,255,255,.18)}
+.m.jarvis{color:var(--t1)}
+.m.jarvis::before{background:linear-gradient(180deg,var(--nh),rgba(124,58,237,.8));box-shadow:0 0 10px rgba(249,115,22,.7)}
+.m.chefe{align-self:stretch;text-align:left}
+.m small{font-family:'Oxanium',sans-serif;letter-spacing:.2em;font-size:9px;color:rgba(255,190,140,.45)}
+
+/* Voz: o mesmo vidro lateral da conversa */
+.vz{border-radius:0;top:0;right:0;bottom:0;width:min(340px,100vw);padding:26px 24px;border:0;
+  background:linear-gradient(270deg,rgba(10,14,26,.97) 75%,rgba(10,14,26,0));box-shadow:none}
+.vz-tit{font-family:'Oxanium',sans-serif;letter-spacing:.45em;margin-bottom:22px}
+.vz label{font-family:'Oxanium',sans-serif;letter-spacing:.2em;text-transform:uppercase;font-size:10px}
+.vz select{background:none;border:0;border-bottom:1px solid rgba(249,115,22,.45);border-radius:0;padding:0 2px;font-family:'Sora',sans-serif}
+.vz select option{background:#0d1428}
+.vz-bts button{border-radius:999px;font-family:'Oxanium',sans-serif;letter-spacing:.2em;font-size:11px;background:none}
+
+/* Entrada: flutuante, sem cartão */
+.porta{background:radial-gradient(ellipse 50% 45% at 50% 45%,rgba(249,115,22,.12),transparent 70%),rgba(10,14,26,.9)}
+.porta form{background:none;border:0;box-shadow:none;padding:0}
+.porta .selo{width:120px!important;height:120px!important}
+.porta .selo b{width:76px!important;height:76px!important;box-shadow:0 0 40px rgba(249,115,22,.6)}
+.porta-tit{font-family:'Oxanium',sans-serif;font-weight:700;font-size:24px;letter-spacing:.6em;
+  background:linear-gradient(90deg,#fff,#ffd2a8,var(--nh));-webkit-background-clip:text;background-clip:text;color:transparent}
+.porta-sub{font-family:'Oxanium',sans-serif;letter-spacing:.42em;color:rgba(255,190,140,.4);margin-bottom:34px}
+.porta input{background:none;border:0;border-bottom:1px solid rgba(255,255,255,.14);border-radius:0;text-align:center;
+  font-family:'Sora',sans-serif;letter-spacing:.06em;margin-bottom:16px}
+.porta input::placeholder{font-family:'Oxanium',sans-serif;letter-spacing:.35em;text-transform:uppercase;font-size:11px;color:rgba(255,190,140,.4)}
+.porta input:focus{box-shadow:none;border-bottom-color:var(--nh);filter:drop-shadow(0 6px 10px rgba(249,115,22,.35))}
+.porta button{border-radius:999px;font-family:'Oxanium',sans-serif;font-weight:700;letter-spacing:.45em;font-size:12.5px;margin-top:18px;
+  background:radial-gradient(circle at 30% 20%,#ffd2a8,var(--nh) 60%,#c2410c);box-shadow:0 0 0 1px rgba(255,210,168,.35),0 0 30px rgba(249,115,22,.55)}
+.porta p{font-family:'Oxanium',sans-serif;letter-spacing:.08em}
 /* Notebook / tela baixa: tudo um pouco menor, a esfera sobe. */
 @media (max-height:780px) and (min-width:761px){
   .orbita{height:62vh;transform:translateY(-8vh)}
@@ -542,7 +628,14 @@ function bolha(papel, texto, em){
 var _legTimer = null;
 function mostrarResposta(t){
   var el = document.getElementById('ele'), txt = String(t || '').replace(/\s*\n+\s*/g, ' ').trim();
-  el.textContent = txt;
+  /* Transmissão: as palavras surgem em sequência, em pouco mais de um segundo. */
+  clearInterval(el._digita);
+  var pal = txt.split(' '), i = 0, passo = Math.max(1, Math.ceil(pal.length / 40));
+  el.textContent = '';
+  el._digita = setInterval(function(){
+    i = Math.min(pal.length, i + passo); el.textContent = pal.slice(0, i).join(' ');
+    if(i >= pal.length) clearInterval(el._digita);
+  }, 30);
   document.getElementById('legenda').classList.remove('some');
   clearTimeout(_legTimer);
   /* "Ver resposta completa" só quando não coube nas duas linhas. */
