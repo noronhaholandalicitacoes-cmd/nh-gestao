@@ -933,6 +933,7 @@ async function enviar(texto){
     mostrarResposta(j.texto);
     bolha('jarvis', j.texto);
     (j.acoes || []).forEach(function(a){
+      if(a && a.tipo === 'fechar') fecharJanela();
       if(a && a.tipo === 'abrir'){ abrirSistema(a.sistema); if(a.sistema === 'gestao' && (a.id || a.aba)) navegarNoGestao(a); }
       if(a && a.tipo === 'documento') documentoPronto(a.id, a.titulo, a.drive);
     });
