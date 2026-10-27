@@ -288,6 +288,32 @@ body{font-family:'Sora',system-ui,sans-serif}
 .vz select option{background:#0d1428}
 .vz-bts button{border-radius:999px;font-family:'Oxanium',sans-serif;letter-spacing:.2em;font-size:11px;background:none}
 
+/* Janela dos sistemas: vidro com feixe no alto, ícones para intercalar */
+.janela{position:fixed;left:18px;right:18px;top:74px;bottom:86px;z-index:7;display:none;flex-direction:column;border-radius:16px;overflow:hidden;
+  background:rgba(10,14,26,.6);box-shadow:0 0 0 1px rgba(249,115,22,.22),0 30px 80px rgba(0,0,0,.6),0 0 60px rgba(249,115,22,.08);
+  animation:jnEntra .35s cubic-bezier(.2,.8,.2,1)}
+.janela.on{display:flex}
+@keyframes jnEntra{from{opacity:0;transform:scale(.97) translateY(10px)}}
+.janela::before{content:'';position:absolute;top:0;left:10%;right:10%;height:1px;z-index:2;
+  background:linear-gradient(90deg,transparent,rgba(249,115,22,.95),rgba(124,58,237,.7),transparent);box-shadow:0 0 14px rgba(249,115,22,.8)}
+.jn-topo{display:flex;align-items:center;gap:12px;padding:8px 12px 8px 14px;background:linear-gradient(180deg,rgba(13,20,40,.95),rgba(10,14,26,.9))}
+.jn-icones{display:flex;gap:4px}
+.jn-ic{width:34px;height:34px;border:0;background:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:var(--t3);position:relative;
+  clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);transition:.2s}
+.jn-ic svg{width:17px;height:17px}
+.jn-ic:hover{color:#ffd2a8;background:rgba(249,115,22,.12)}
+.jn-ic.on{color:#111;background:radial-gradient(circle at 35% 30%,#ffd2a8,var(--nh) 60%,#c2410c)}
+.jn-nome{font-family:'Oxanium',sans-serif;font-weight:700;font-size:12px;letter-spacing:.32em;text-transform:uppercase;color:#ffd2a8;margin-left:6px}
+.jn-bt{margin-left:auto;width:32px;height:32px;border-radius:50%;border:0;background:none;color:var(--t3);cursor:pointer;display:inline-flex;align-items:center;
+  justify-content:center;font-size:15px;text-decoration:none}
+.jn-bt+.jn-bt{margin-left:0}
+.jn-bt:hover{color:#ffd2a8;filter:drop-shadow(0 0 8px rgba(249,115,22,.8))}
+.jn-corpo{position:relative;flex:1;background:#0a0e1a}
+.jn-corpo iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:none;background:#0a0e1a}
+.jn-corpo iframe.on{display:block}
+body.com-janela .legenda{z-index:8}
+@media (max-width:760px){.janela{left:0;right:0;top:62px;bottom:78px;border-radius:0}.jn-nome{display:none}}
+
 /* Entrada: flutuante, sem cartão */
 .porta{background:radial-gradient(ellipse 50% 45% at 50% 45%,rgba(249,115,22,.12),transparent 70%),rgba(10,14,26,.9)}
 .porta form{background:none;border:0;box-shadow:none;padding:0}
@@ -351,6 +377,19 @@ body{font-family:'Sora',system-ui,sans-serif}
 </form>
 <div class="dica">ESPAÇO PARA FALAR · ENTER PARA ENVIAR · ESC PARA CALAR</div>
 
+<!-- Sistemas DENTRO do Controle (28/10/2026): "os sistemas têm que abrir
+     dentro do Controle, e ao clicar nos ícones ele pode intercalar".
+     Cada sistema abre uma vez e fica carregado; trocar é instantâneo. -->
+<section class="janela" id="janela" aria-hidden="true">
+  <div class="jn-topo">
+    <div class="jn-icones" id="jn-icones"></div>
+    <span class="jn-nome" id="jn-nome"></span>
+    <a class="jn-bt" id="jn-aba" target="_blank" rel="noopener" title="Abrir em outra aba">↗</a>
+    <button type="button" class="jn-bt" id="jn-fechar" title="Voltar para o Jarvis">✕</button>
+  </div>
+  <div class="jn-corpo" id="jn-corpo"></div>
+</section>
+
 <!-- Voz do Jarvis: escolha por aparelho (27/10/2026). -->
 <div class="vz" id="vz">
   <div class="vz-tit">VOZ DO JARVIS</div>
@@ -413,7 +452,36 @@ SISTEMAS.forEach(function(s, i){
     '<em class="hex-cod">SYS-0' + (i + 1) + '</em></span></span>' +
     '<span class="rot"><b>' + s.nome.toUpperCase() + '</b><small>' + (FUNCAO[s.id] || '') + '</small></span>';
   orbita.appendChild(a);
+  a.addEventListener('click', function(ev){ ev.preventDefault(); abrirSistema(s.id); });
 });
+
+/* ── Sistemas dentro do Controle ───────────────────────────────────── */
+var janela = document.getElementById('janela'), jnCorpo = document.getElementById('jn-corpo'), jnAtual = '';
+SISTEMAS.forEach(function(s){
+  var b = document.createElement('button');
+  b.type = 'button'; b.className = 'jn-ic'; b.id = 'jn-ic-' + s.id; b.title = s.nome;
+  b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + s.ic + '</svg>';
+  b.addEventListener('click', function(){ abrirSistema(s.id); });
+  document.getElementById('jn-icones').appendChild(b);
+});
+function abrirSistema(id){
+  var s = SISTEMAS.find(function(x){ return x.id === id; }); if(!s) return;
+  var f = document.getElementById('jn-f-' + id);
+  if(!f){                                    /* abre uma vez; depois só alterna */
+    f = document.createElement('iframe');
+    f.id = 'jn-f-' + id; f.src = s.url; f.title = s.nome; f.setAttribute('allow', 'clipboard-write; microphone');
+    jnCorpo.appendChild(f);
+  }
+  jnCorpo.querySelectorAll('iframe').forEach(function(x){ x.classList.toggle('on', x === f); });
+  document.querySelectorAll('.jn-ic').forEach(function(x){ x.classList.toggle('on', x.id === 'jn-ic-' + id); });
+  document.getElementById('jn-nome').textContent = s.nome;
+  document.getElementById('jn-aba').href = s.url;
+  jnAtual = id;
+  janela.classList.add('on'); janela.setAttribute('aria-hidden', 'false'); document.body.classList.add('com-janela');
+}
+function fecharJanela(){ janela.classList.remove('on'); janela.setAttribute('aria-hidden', 'true'); document.body.classList.remove('com-janela'); jnAtual = ''; }
+document.getElementById('jn-fechar').addEventListener('click', fecharJanela);
+
 function posicionar(){
   var w = orbita.clientWidth, h = orbita.clientHeight, cx = w/2, cy = h/2;
   /* Tela baixa (notebook com barra de favoritos): órbita mais achatada,
@@ -661,6 +729,7 @@ async function enviar(texto){
     var j = await r.json().catch(function(){ return {}; });
     if(!r.ok || !j.ok) throw new Error(j.erro || ('HTTP ' + r.status));
     acender(j.sistemas);
+    (j.acoes || []).forEach(function(a){ if(a && a.tipo === 'abrir') abrirSistema(a.sistema); });
     mostrarResposta(j.texto);
     bolha('jarvis', j.texto);
     falar(j.texto);
