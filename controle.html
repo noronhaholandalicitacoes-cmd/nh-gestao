@@ -131,11 +131,24 @@ body{background:
   animation:giraC 6s linear infinite}
 
 /* ── Fala do Jarvis e do chefe ── */
-.legenda{position:fixed;left:50%;bottom:118px;transform:translateX(-50%);z-index:4;width:min(860px,92vw);text-align:center;pointer-events:none}
-.legenda .eu{font-size:13px;color:var(--t3);margin-bottom:8px;min-height:18px}
-.legenda .ele{font-size:17px;line-height:1.55;color:var(--t1);text-shadow:0 2px 18px rgba(0,0,0,.8);max-height:30vh;overflow:auto;pointer-events:auto;
-  white-space:pre-wrap;scrollbar-width:none}
-.legenda .ele::-webkit-scrollbar{display:none}
+/* Resposta discreta (27/10/2026). Antes, a resposta inteira aparecia
+   grande no meio da tela e cobria os módulos ("tem que ter um jeito de
+   deixar esses textos mais discretos ou ocultos"). Agora é um cartão de
+   duas linhas acima da barra: um clique abre a resposta completa no
+   painel de conversa, e ele some sozinho depois que o Jarvis termina de
+   falar. */
+.legenda{position:fixed;left:50%;bottom:94px;transform:translateX(-50%);z-index:5;width:min(700px,90vw);text-align:center;pointer-events:none;
+  transition:opacity .6s,transform .6s}
+.legenda.some{opacity:0;transform:translate(-50%,10px)}
+.legenda .eu{font-size:11.5px;color:var(--t3);margin-bottom:6px;min-height:15px;font-family:'JetBrains Mono',monospace;letter-spacing:.04em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.legenda .ele{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:14px;line-height:1.5;color:var(--t1);
+  padding:0 16px;border-top:9px solid transparent;border-bottom:9px solid transparent;border-radius:14px;background:rgba(10,14,26,.78);backdrop-filter:blur(12px);
+  box-shadow:0 0 0 1px rgba(249,115,22,.22),0 10px 30px rgba(0,0,0,.4);cursor:pointer;pointer-events:auto;text-align:left}
+.legenda .ele:empty{display:none}
+.legenda .ele:hover{box-shadow:0 0 0 1px rgba(249,115,22,.6),0 10px 30px rgba(0,0,0,.4)}
+.legenda .mais{display:block;margin-top:5px;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.2em;color:var(--nh2);
+  pointer-events:auto;cursor:pointer}
 
 /* ── Barra de comando (discreta) ── */
 .barra{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);z-index:6;width:min(640px,92vw);display:flex;align-items:center;gap:10px;
@@ -204,6 +217,16 @@ body{background:
   .dica{display:none}
 }
 @media (prefers-reduced-motion:reduce){.anel.r3{animation:none}}
+/* Notebook / tela baixa: tudo um pouco menor, a esfera sobe. */
+@media (max-height:780px) and (min-width:761px){
+  .orbita{height:62vh;transform:translateY(-8vh)}
+  .hex{width:80px;height:90px}.hex-in svg{width:30px;height:30px}.hex-cod{bottom:13px}
+  #orbe{width:min(38vh,320px);height:min(38vh,320px)}
+  .hud{width:min(45vh,380px);height:min(45vh,380px)}
+  .anel.r1{width:min(40vh,340px);height:min(40vh,340px)}.anel.r3{width:min(54vh,470px);height:min(54vh,470px)}
+  .estado{top:calc(50% + min(20vh,172px))}
+  .legenda{bottom:84px}.barra{bottom:22px}.dica{display:none}
+}
 </style>
 </head>
 <body>
@@ -233,7 +256,7 @@ body{background:
   </div>
 </main>
 
-<div class="legenda"><div class="eu" id="eu"></div><div class="ele" id="ele"></div></div>
+<div class="legenda" id="legenda"><div class="eu" id="eu"></div><div class="ele" id="ele" title="Clique para ver a resposta completa"></div><span class="mais" id="leg-mais" style="display:none">▸ VER RESPOSTA COMPLETA</span></div>
 
 <form class="barra" id="barra" autocomplete="off">
   <input id="txt" placeholder="Fale ou digite para o Jarvis…" aria-label="Mensagem para o Jarvis">
@@ -307,7 +330,10 @@ SISTEMAS.forEach(function(s, i){
 });
 function posicionar(){
   var w = orbita.clientWidth, h = orbita.clientHeight, cx = w/2, cy = h/2;
-  var rx = Math.min(w*0.46, 450), ry = Math.min(h*0.47, 330);
+  /* Tela baixa (notebook com barra de favoritos): órbita mais achatada,
+     para os módulos de baixo não encostarem na resposta e na barra. */
+  var baixa = innerHeight < 780;
+  var rx = Math.min(w*0.46, 450), ry = Math.min(h*(baixa ? 0.40 : 0.47), 330);
   var ro = document.querySelector('.hud').clientWidth * 0.335;   /* as linhas saem da borda do anel de leitura */
   var svg = document.getElementById('linhas'), linhas = '';
   /* O arco de baixo fica livre: é onde aparecem a fala e a barra de
@@ -435,7 +461,7 @@ function paraFala(t){
     .replace(/R\$\s?/g,'R$ ').replace(/\n{2,}/g,'. ').replace(/\n/g,', ');
 }
 function falar(t){
-  if(!VOZ_LIGADA || !('speechSynthesis' in window)){ estado('pronto'); return; }
+  if(!VOZ_LIGADA || !('speechSynthesis' in window)){ estado('pronto'); agendarSumir(); return; }
   speechSynthesis.cancel();
   /* Frase por frase: o Chrome corta falas longas no meio. */
   var partes = paraFala(t).match(/[^.!?]+[.!?]*/g) || [paraFala(t)];
@@ -443,7 +469,7 @@ function falar(t){
   estado('falando');
   timer = setInterval(function(){ fala = .4 + Math.random()*.6; }, 110);
   (function proxima(){
-    if(i >= partes.length){ clearInterval(timer); fala = 0; if(ESTADO === 'falando') estado('pronto'); return; }
+    if(i >= partes.length){ clearInterval(timer); fala = 0; if(ESTADO === 'falando') estado('pronto'); agendarSumir(); return; }
     var u = new SpeechSynthesisUtterance(partes[i++].trim());
     u.lang = vozPt ? vozPt.lang : 'pt-BR'; if(vozPt) u.voice = vozPt; u.rate = VOZ_CFG.vel || 1.04; u.pitch = VOZ_CFG.tom || .92;
     u.onend = proxima; u.onerror = function(){ clearInterval(timer); fala = 0; estado('pronto'); };
@@ -512,12 +538,29 @@ function bolha(papel, texto, em){
   var s = document.createElement('small'); s.textContent = (papel === 'jarvis' ? 'JARVIS · ' : 'VOCÊ · ') + hora(em); d.appendChild(s);
   msgsEl.appendChild(d); msgsEl.scrollTop = msgsEl.scrollHeight;
 }
+/* Cartão da resposta: duas linhas, clique abre tudo, some depois da fala. */
+var _legTimer = null;
+function mostrarResposta(t){
+  var el = document.getElementById('ele'), txt = String(t || '').replace(/\s*\n+\s*/g, ' ').trim();
+  el.textContent = txt;
+  document.getElementById('legenda').classList.remove('some');
+  clearTimeout(_legTimer);
+  /* "Ver resposta completa" só quando não coube nas duas linhas. */
+  document.getElementById('leg-mais').style.display = txt.length > 150 ? 'block' : 'none';
+}
+function agendarSumir(ms){
+  clearTimeout(_legTimer);
+  _legTimer = setTimeout(function(){ if(!ouvindo && ESTADO !== 'pensando') document.getElementById('legenda').classList.add('some'); }, ms || 12000);
+}
+function abrirConversaCompleta(){ document.getElementById('painel').classList.add('aberto'); msgsEl.scrollTop = msgsEl.scrollHeight; }
+document.getElementById('ele').addEventListener('click', abrirConversaCompleta);
+document.getElementById('leg-mais').addEventListener('click', abrirConversaCompleta);
 var ocupado = false;
 async function enviar(texto){
   texto = String(texto||'').trim(); if(!texto || ocupado) return;
   if(!auth.currentUser){ document.getElementById('porta').classList.add('on'); return; }
   ocupado = true; estado('pensando'); acender([]);
-  document.getElementById('eu').textContent = texto; document.getElementById('ele').textContent = '';
+  document.getElementById('eu').textContent = texto; document.getElementById('ele').textContent = ''; document.getElementById('legenda').classList.remove('some'); clearTimeout(_legTimer);
   bolha('chefe', texto);
   try{
     var r = await fetch(NH_API + '/api/jarvis/conversa', {method:'POST', headers:{'Content-Type':'application/json'},
@@ -525,12 +568,12 @@ async function enviar(texto){
     var j = await r.json().catch(function(){ return {}; });
     if(!r.ok || !j.ok) throw new Error(j.erro || ('HTTP ' + r.status));
     acender(j.sistemas);
-    document.getElementById('ele').textContent = j.texto;
+    mostrarResposta(j.texto);
     bolha('jarvis', j.texto);
     falar(j.texto);
   }catch(e){
     var m = 'Chefe, deu um problema: ' + (e.message || e);
-    document.getElementById('ele').textContent = m; bolha('jarvis', m); estado('pronto');
+    mostrarResposta(m); bolha('jarvis', m); estado('pronto'); agendarSumir(20000);
   }finally{ ocupado = false; }
 }
 document.getElementById('barra').addEventListener('submit', function(e){
@@ -578,9 +621,9 @@ auth.onAuthStateChanged(async function(u){
     (j.conversa || []).forEach(function(m){ bolha(m.papel === 'jarvis' ? 'jarvis' : 'chefe', m.texto, m.em); });
     chip('ch-mem', true, 'MEMÓRIA · ' + (j.fatos || 0) + ' FATOS');
     var primeiro = String(j.nome || '').split(/\s+/)[0];
-    document.getElementById('ele').textContent = (j.conversa || []).length
+    mostrarResposta((j.conversa || []).length
       ? 'De volta, ' + (primeiro || 'chefe') + '. Pergunte "o que mudou desde ontem?" ou fale o que precisa.'
-      : 'Olá, ' + (primeiro || 'chefe') + '. Sou o Jarvis da NH. Toque na esfera ou aperte espaço para falar.';
+      : 'Olá, ' + (primeiro || 'chefe') + '. Sou o Jarvis da NH. Toque na esfera ou aperte espaço para falar.'); agendarSumir(9000);
   }catch(e){
     chip('ch-mem', false, 'MEMÓRIA INDISPONÍVEL');
     document.getElementById('ele').textContent = 'Conectei, mas não consegui ler a memória: ' + (e.message || e);
