@@ -10,6 +10,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Controle">
 <title>Controle · NH Licitações</title>
+<link rel="icon" type="image/svg+xml" href="icones/controle.svg?v=1">
+<link rel="apple-touch-icon" href="icones/controle-180.png">
+$(tag controle)
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@300;400;500;600;700;800&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -288,6 +291,17 @@ body{font-family:'Sora',system-ui,sans-serif}
 .vz select option{background:#0d1428}
 .vz-bts button{border-radius:999px;font-family:'Oxanium',sans-serif;letter-spacing:.2em;font-size:11px;background:none}
 
+/* Documento pronto: feixe com o nome e o botão de baixar */
+.doc-pronto{position:fixed;left:50%;bottom:176px;transform:translateX(-50%);z-index:9;display:none;align-items:center;gap:14px;padding:8px 6px 8px 16px;
+  font-family:'Oxanium',sans-serif;letter-spacing:.12em;font-size:12px;color:#ffe4cc;white-space:nowrap;
+  background:linear-gradient(90deg,transparent,rgba(249,115,22,.16) 20%,rgba(249,115,22,.16) 80%,transparent);animation:jnEntra .4s ease}
+.doc-pronto.on{display:flex}
+.doc-pronto b{max-width:46vw;overflow:hidden;text-overflow:ellipsis;font-weight:700}
+.doc-pronto button{border:0;border-radius:999px;padding:8px 16px;cursor:pointer;font-family:'Oxanium',sans-serif;font-weight:700;letter-spacing:.24em;font-size:11px;color:#111;
+  background:radial-gradient(circle at 30% 20%,#ffd2a8,var(--nh) 60%,#c2410c);box-shadow:0 0 22px rgba(249,115,22,.6)}
+.doc-pronto i{font-style:normal;cursor:pointer;color:var(--t3);padding:0 6px}
+.m .baixar{display:inline-block;margin-top:6px;font-family:'Oxanium',sans-serif;font-size:10.5px;letter-spacing:.22em;color:var(--nh2);cursor:pointer;text-decoration:underline}
+
 /* Janela dos sistemas: vidro com feixe no alto, ícones para intercalar */
 .janela{position:fixed;left:18px;right:18px;top:74px;bottom:86px;z-index:7;display:none;flex-direction:column;border-radius:16px;overflow:hidden;
   background:rgba(10,14,26,.6);box-shadow:0 0 0 1px rgba(249,115,22,.22),0 30px 80px rgba(0,0,0,.6),0 0 60px rgba(249,115,22,.08);
@@ -377,6 +391,8 @@ body.com-janela .legenda{z-index:8}
 </form>
 <div class="dica">ESPAÇO PARA FALAR · ENTER PARA ENVIAR · ESC PARA CALAR</div>
 
+<div class="doc-pronto" id="doc-pronto"><span>📄 <b id="doc-nome"></b></span><button type="button" id="doc-baixar">BAIXAR WORD</button><i id="doc-x" title="Fechar">✕</i></div>
+
 <!-- Sistemas DENTRO do Controle (28/10/2026): "os sistemas têm que abrir
      dentro do Controle, e ao clicar nos ícones ele pode intercalar".
      Cada sistema abre uma vez e fica carregado; trocar é instantâneo. -->
@@ -454,6 +470,76 @@ SISTEMAS.forEach(function(s, i){
   orbita.appendChild(a);
   a.addEventListener('click', function(ev){ ev.preventDefault(); abrirSistema(s.id); });
 });
+
+/* ── Documentos em Word (28/10/2026) ─────────────────────────────────
+   O Jarvis redige no servidor (Claude); aqui só se monta o .docx com a
+   formatação — nenhuma IA roda nesta máquina. */
+var _docxLib = null;
+function carregarDocx(){
+  if(window.docx) return Promise.resolve(window.docx);
+  if(_docxLib) return _docxLib;
+  _docxLib = new Promise(function(ok, falha){
+    var s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js';
+    s.onload = function(){ ok(window.docx); }; s.onerror = function(){ _docxLib = null; falha(new Error('não consegui carregar o gerador de Word')); };
+    document.head.appendChild(s);
+  });
+  return _docxLib;
+}
+function documentoPronto(id, titulo){
+  var p = document.getElementById('doc-pronto');
+  document.getElementById('doc-nome').textContent = titulo || 'Documento';
+  p.dataset.id = id; p.classList.add('on');
+  /* Também na conversa, para baixar de novo depois. */
+  var ult = msgsEl.lastElementChild;
+  if(ult && ult.classList.contains('jarvis')){
+    var a = document.createElement('span'); a.className = 'baixar'; a.textContent = '⤓ BAIXAR ' + String(titulo || 'DOCUMENTO').toUpperCase();
+    a.addEventListener('click', function(){ baixarDocumento(id); });
+    ult.insertBefore(a, ult.querySelector('small'));
+  }
+}
+document.getElementById('doc-baixar').addEventListener('click', function(){ baixarDocumento(document.getElementById('doc-pronto').dataset.id); });
+document.getElementById('doc-x').addEventListener('click', function(){ document.getElementById('doc-pronto').classList.remove('on'); });
+async function baixarDocumento(id){
+  var bt = document.getElementById('doc-baixar'); bt.disabled = true; bt.textContent = 'MONTANDO…';
+  try{
+    var r = await fetch(NH_API + '/api/jarvis/documento', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({idToken: await auth.currentUser.getIdToken(), id: id})});
+    var j = await r.json().catch(function(){ return {}; });
+    if(!r.ok || !j.ok) throw new Error(j.erro || ('HTTP ' + r.status));
+    var D = await carregarDocx(), d = j.doc || {}, emp = {};
+    var P = function(txt, op){ op = op || {};
+      return new D.Paragraph({alignment: op.al || D.AlignmentType.JUSTIFIED, spacing: {after: op.depois === undefined ? 160 : op.depois, line: 360},
+        indent: op.recuo ? {firstLine: 709} : undefined,
+        children: [new D.TextRun({text: String(txt || ''), bold: !!op.negrito, size: op.tam || 24, font: 'Arial'})]}); };
+    var filhos = [];
+    if(d.titulo) filhos.push(P(String(d.titulo).toUpperCase(), {al: D.AlignmentType.CENTER, negrito: true, tam: 26, depois: 320}));
+    if(d.enderecamento) filhos.push(P(d.enderecamento, {negrito: true, al: D.AlignmentType.LEFT}));
+    if(d.referencia) filhos.push(P(d.referencia, {al: D.AlignmentType.LEFT, depois: 280}));
+    if(d.qualificacao) filhos.push(P(d.qualificacao, {recuo: true}));
+    (d.secoes || []).forEach(function(s){
+      if(s.titulo) filhos.push(P(String(s.titulo).toUpperCase(), {negrito: true, al: D.AlignmentType.LEFT, depois: 120}));
+      (s.paragrafos || []).forEach(function(par){ filhos.push(P(par, {recuo: true})); });
+    });
+    if((d.pedidos || []).length){
+      filhos.push(P('DOS PEDIDOS', {negrito: true, al: D.AlignmentType.LEFT, depois: 120}));
+      d.pedidos.forEach(function(pd, i){ filhos.push(P(String.fromCharCode(97 + i) + ') ' + pd)); });
+    }
+    if(d.fecho) filhos.push(P(d.fecho, {recuo: true, depois: 240}));
+    if(d.local_data) filhos.push(P(d.local_data, {al: D.AlignmentType.RIGHT, depois: 720}));
+    var as = d.assinatura || {};
+    filhos.push(P('_______________________________________', {al: D.AlignmentType.CENTER, depois: 0}));
+    [as.nome, as.cargo, as.empresa, as.cnpj ? 'CNPJ ' + String(as.cnpj).replace(/^CNPJ\s*/i, '') : ''].filter(Boolean)
+      .forEach(function(l){ filhos.push(P(l, {al: D.AlignmentType.CENTER, depois: 0})); });
+    var docw = new D.Document({creator: 'NH Licitações · Jarvis', title: d.titulo || 'Documento',
+      sections: [{properties: {page: {margin: {top: 1418, bottom: 1134, left: 1701, right: 1134}}}, children: filhos}]});
+    var blob = await D.Packer.toBlob(docw);
+    var nome = String(d.titulo || 'documento').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^\w\- ]+/g, '').trim().replace(/\s+/g, '_').slice(0, 80) || 'documento';
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nome + '.docx'; document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+  }catch(e){
+    mostrarResposta('Não consegui montar o Word: ' + (e.message || e)); agendarSumir(15000);
+  }finally{ bt.disabled = false; bt.textContent = 'BAIXAR WORD'; }
+}
 
 /* ── Sistemas dentro do Controle ───────────────────────────────────── */
 var janela = document.getElementById('janela'), jnCorpo = document.getElementById('jn-corpo'), jnAtual = '';
@@ -729,9 +815,12 @@ async function enviar(texto){
     var j = await r.json().catch(function(){ return {}; });
     if(!r.ok || !j.ok) throw new Error(j.erro || ('HTTP ' + r.status));
     acender(j.sistemas);
-    (j.acoes || []).forEach(function(a){ if(a && a.tipo === 'abrir') abrirSistema(a.sistema); });
     mostrarResposta(j.texto);
     bolha('jarvis', j.texto);
+    (j.acoes || []).forEach(function(a){
+      if(a && a.tipo === 'abrir') abrirSistema(a.sistema);
+      if(a && a.tipo === 'documento') documentoPronto(a.id, a.titulo);
+    });
     falar(j.texto);
   }catch(e){
     var m = 'Chefe, deu um problema: ' + (e.message || e);

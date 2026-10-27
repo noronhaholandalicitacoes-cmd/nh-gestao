@@ -10,7 +10,7 @@
   <meta name="theme-color" content="#f97316">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NH Licitações</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><defs><radialGradient id='g' cx='35%25' cy='30%25' r='70%25'><stop offset='0%25' stop-color='%23fb923c'/><stop offset='100%25' stop-color='%23b45309'/></radialGradient></defs><circle cx='24' cy='24' r='24' fill='url(%23g)'/><text x='24' y='31' text-anchor='middle' fill='white' font-family='Arial Black,sans-serif' font-weight='900' font-size='15'>NH</text></svg>">
+<link rel="icon" type="image/svg+xml" href="icones/gestao.svg?v=1">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -3578,6 +3578,12 @@ body.light-theme .sb-alertas .sb-item:hover{background:rgba(37,99,235,.07);color
 
   <nav style="flex:1;padding:6px 0">
     <div class="sb-section">Visão Geral</div>
+    <!-- Atalho para o Controle (Jarvis) — 28/10/2026. Só sócio vê (ver _ctlNav);
+         o Controle tem login próprio. -->
+    <a class="sb-item" id="nav-controle" href="controle.html" target="_blank" rel="noopener" style="display:none;text-decoration:none" title="Abrir o Controle (Jarvis)">
+      <img class="sb-icon" src="icones/controle.svg?v=1" alt="" style="width:20px;height:20px">
+      <span>Controle</span>
+    </a>
     <div class="sb-item" id="nav-hoje" onclick="go('hoje',this)">
       <svg class="sb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
       <span>Hoje</span>
@@ -25990,6 +25996,14 @@ async function nhControleSalvar(){
   }catch(e){ erro(e.message); }
   finally{ bt.disabled=false;bt.textContent='Salvar acesso'; }
 }
+/* Atalho "Controle" no menu: aparece para sócio (o mesmo que vê a aba Acessos). */
+(function _ctlNav(){
+  var el=document.getElementById('nav-controle');if(!el)return;
+  var n=0,t=setInterval(function(){
+    if(++n>80){clearInterval(t);return;}        /* 2 min: quem não é sócio não vê */
+    if(typeof IS_ADMIN!=='undefined'&&IS_ADMIN){el.style.display='';clearInterval(t);}
+  },1500);
+})();
 if(typeof cfgAba==='function'){
   var _ctlCfgAbaOrig=cfgAba;
   cfgAba=function(nome){
