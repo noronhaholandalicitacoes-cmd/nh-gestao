@@ -300,6 +300,9 @@ body{font-family:'Sora',system-ui,sans-serif}
 .doc-pronto button{border:0;border-radius:999px;padding:8px 16px;cursor:pointer;font-family:'Oxanium',sans-serif;font-weight:700;letter-spacing:.24em;font-size:11px;color:#111;
   background:radial-gradient(circle at 30% 20%,#ffd2a8,var(--nh) 60%,#c2410c);box-shadow:0 0 22px rgba(249,115,22,.6)}
 .doc-pronto i{font-style:normal;cursor:pointer;color:var(--t3);padding:0 6px}
+.doc-pronto a{font-family:'Oxanium',sans-serif;font-weight:700;letter-spacing:.24em;font-size:11px;color:#ffd2a8;text-decoration:none;
+  padding:8px 4px;border-bottom:1px solid rgba(249,115,22,.6)}
+.doc-pronto a:hover{color:#fff;filter:drop-shadow(0 0 8px rgba(249,115,22,.8))}
 .m .baixar{display:inline-block;margin-top:6px;font-family:'Oxanium',sans-serif;font-size:10.5px;letter-spacing:.22em;color:var(--nh2);cursor:pointer;text-decoration:underline}
 
 /* Janela dos sistemas: vidro com feixe no alto, ícones para intercalar */
@@ -391,9 +394,9 @@ body.com-janela .legenda{z-index:8}
 </form>
 <div class="dica">ESPAÇO PARA FALAR · ENTER PARA ENVIAR · ESC PARA CALAR</div>
 
-<div class="doc-pronto" id="doc-pronto"><span>📄 <b id="doc-nome"></b></span><button type="button" id="doc-baixar">BAIXAR WORD</button><i id="doc-x" title="Fechar">✕</i></div>
+<div class="doc-pronto" id="doc-pronto"><span>📄 <b id="doc-nome"></b></span><button type="button" id="doc-baixar">BAIXAR WORD</button><a id="doc-drive" target="_blank" rel="noopener" style="display:none">ABRIR NO DRIVE</a><i id="doc-x" title="Fechar">✕</i></div>
 
-<!-- Sistemas DENTRO do Controle (28/10/2026): "os sistemas têm que abrir
+<!-- Sistemas DENTRO do Controle (27/10/2026): "os sistemas têm que abrir
      dentro do Controle, e ao clicar nos ícones ele pode intercalar".
      Cada sistema abre uma vez e fica carregado; trocar é instantâneo. -->
 <section class="janela" id="janela" aria-hidden="true">
@@ -471,7 +474,7 @@ SISTEMAS.forEach(function(s, i){
   a.addEventListener('click', function(ev){ ev.preventDefault(); abrirSistema(s.id); });
 });
 
-/* ── Documentos em Word (28/10/2026) ─────────────────────────────────
+/* ── Documentos em Word (27/10/2026) ─────────────────────────────────
    O Jarvis redige no servidor (Claude); aqui só se monta o .docx com a
    formatação — nenhuma IA roda nesta máquina. */
 var _docxLib = null;
@@ -485,9 +488,11 @@ function carregarDocx(){
   });
   return _docxLib;
 }
-function documentoPronto(id, titulo){
+function documentoPronto(id, titulo, drive){
   var p = document.getElementById('doc-pronto');
   document.getElementById('doc-nome').textContent = titulo || 'Documento';
+  var dv = document.getElementById('doc-drive');
+  if(drive){ dv.href = drive; dv.style.display = ''; } else dv.style.display = 'none';
   p.dataset.id = id; p.classList.add('on');
   /* Também na conversa, para baixar de novo depois. */
   var ult = msgsEl.lastElementChild;
@@ -819,7 +824,7 @@ async function enviar(texto){
     bolha('jarvis', j.texto);
     (j.acoes || []).forEach(function(a){
       if(a && a.tipo === 'abrir') abrirSistema(a.sistema);
-      if(a && a.tipo === 'documento') documentoPronto(a.id, a.titulo);
+      if(a && a.tipo === 'documento') documentoPronto(a.id, a.titulo, a.drive);
     });
     falar(j.texto);
   }catch(e){

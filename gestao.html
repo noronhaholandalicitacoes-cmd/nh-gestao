@@ -3578,7 +3578,7 @@ body.light-theme .sb-alertas .sb-item:hover{background:rgba(37,99,235,.07);color
 
   <nav style="flex:1;padding:6px 0">
     <div class="sb-section">Visão Geral</div>
-    <!-- Atalho para o Controle (Jarvis) — 28/10/2026. Só sócio vê (ver _ctlNav);
+    <!-- Atalho para o Controle (Jarvis) — 27/10/2026. Só sócio vê (ver _ctlNav);
          o Controle tem login próprio. -->
     <a class="sb-item" id="nav-controle" href="controle.html" target="_blank" rel="noopener" style="display:none;text-decoration:none" title="Abrir o Controle (Jarvis)">
       <img class="sb-icon" src="icones/controle.svg?v=1" alt="" style="width:20px;height:20px">
@@ -25977,6 +25977,12 @@ async function _ctlInfo(){
     el.innerHTML=j.login?'Login atual: <b style="color:var(--t1)">'+esc0(j.login)+'</b>'+(j.atualizadoEm?' · definido em '+new Date(j.atualizadoEm).toLocaleString('pt-BR'):''):
       '<span style="color:#eab308">Ainda não há login do Controle. Defina abaixo.</span>';
     if(j.login){var i=document.getElementById('ctl-login');if(i&&!i.value)i.value=j.login;}
+    /* Para o Jarvis salvar os documentos na pasta do processo (27/10/2026). */
+    if(j.contaServico){
+      el.insertAdjacentHTML('beforeend','<div style="margin-top:10px;line-height:1.6">Para o Jarvis salvar os documentos na pasta do processo, compartilhe a pasta principal da NH no Google Drive com '+
+        '<b style="color:var(--t1);user-select:all">'+esc0(j.contaServico)+'</b> como <b>Editor</b>. '+
+        '<span class="nh-link" style="cursor:pointer;color:var(--nh);font-weight:700" onclick="navigator.clipboard.writeText(\''+esc0(j.contaServico)+'\').then(function(){toast(\'E-mail copiado\',\'ok\')})">copiar e-mail</span></div>');
+    }
   }catch(e){ el.innerHTML='<span style="color:#ef4444">'+esc0(e.message)+'</span>'; }
 }
 async function nhControleSalvar(){
