@@ -164,9 +164,19 @@ body{background:
 /* ── Entrada (sem login) ── */
 .porta{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;background:rgba(10,14,26,.88);backdrop-filter:blur(8px)}
 .porta.on{display:flex}
-.porta div{text-align:center;max-width:420px;padding:30px}
-.porta p{color:var(--t2);margin:14px 0 22px;line-height:1.6}
-.porta a{display:inline-block;padding:11px 22px;border-radius:12px;background:linear-gradient(135deg,var(--nh2),var(--nh));color:#111;font-weight:800;text-decoration:none}
+.porta form{display:flex;flex-direction:column;align-items:center;width:min(360px,90vw);padding:34px 30px;border-radius:22px;
+  background:linear-gradient(170deg,rgba(17,26,48,.92),rgba(10,14,26,.94));border:1px solid rgba(249,115,22,.25);
+  box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 60px rgba(249,115,22,.10)}
+.porta-tit{margin-top:18px;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:18px;letter-spacing:.5em;color:var(--t1);padding-left:.5em}
+.porta-sub{margin:6px 0 22px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.28em;color:var(--t3)}
+.porta input{width:100%;height:46px;margin-bottom:10px;padding:0 15px;border-radius:12px;background:rgba(5,9,20,.7);border:1px solid var(--linha2);
+  color:var(--t1);font:inherit;font-size:14.5px;outline:none;transition:border-color .2s}
+.porta input:focus{border-color:rgba(249,115,22,.6);box-shadow:0 0 0 3px rgba(249,115,22,.12)}
+.porta button{width:100%;height:46px;margin-top:6px;border:none;border-radius:12px;cursor:pointer;font:inherit;font-weight:800;letter-spacing:.08em;color:#111;
+  background:linear-gradient(135deg,var(--nh2),var(--nh));box-shadow:0 0 22px rgba(249,115,22,.35)}
+.porta button:disabled{opacity:.6;cursor:wait}
+.porta p{color:var(--t3);font-size:12px;margin-top:16px;line-height:1.55;text-align:center;min-height:18px}
+.porta p.erro{color:#f87171}
 
 @media (max-width:760px){
   .topo{padding:14px 16px}.topo .chip.so-pc{display:none}
@@ -190,6 +200,7 @@ body{background:
     <span class="chip so-pc" id="ch-srv"><span class="p"></span>SERVIDOR</span>
     <span class="chip so-pc" id="ch-mem"><span class="p"></span>MEMÓRIA</span>
     <button class="bt-ic on" id="bt-voz" title="Voz do Jarvis ligada — clique para silenciar" aria-label="Voz do Jarvis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/></svg></button>
+    <button class="bt-ic" id="bt-sair" title="Sair do Controle" aria-label="Sair do Controle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></svg></button>
     <button class="bt-ic" id="bt-conv" title="Conversa" aria-label="Abrir a conversa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
   </div>
 </header>
@@ -217,11 +228,17 @@ body{background:
   <div class="msgs" id="msgs"></div>
 </aside>
 
-<div class="porta" id="porta"><div>
-  <span class="selo" style="width:72px;height:72px"><i class="a1"></i><i class="a2"></i><i class="a3"></i><b style="width:46px;height:46px"></b></span>
-  <p id="porta-txt">Entre no Sistema de Gestão com a sua conta e volte aqui — o Jarvis usa o mesmo acesso.</p>
-  <a href="gestao.html">Entrar pelo Gestão</a>
-</div></div>
+<!-- Entrada do Controle (27/10/2026): login e senha PRÓPRIOS, criados pelo
+     dono na aba Acessos do Gestão. Não usa a sessão do Gestão. -->
+<div class="porta" id="porta"><form id="porta-form" autocomplete="on">
+  <span class="selo" style="width:84px;height:84px"><i class="a1"></i><i class="a2"></i><i class="a3"></i><b style="width:54px;height:54px"></b></span>
+  <div class="porta-tit">CONTROLE</div>
+  <div class="porta-sub">J.A.R.V.I.S · NORONHA HOLANDA LICITAÇÕES</div>
+  <input id="pt-login" name="username" autocomplete="username" spellcheck="false" placeholder="Login" aria-label="Login">
+  <input id="pt-senha" name="password" type="password" autocomplete="current-password" placeholder="Senha" aria-label="Senha">
+  <button type="submit" id="pt-entrar">Entrar</button>
+  <p id="porta-txt">O login e a senha do Controle são definidos na aba Acessos do Sistema de Gestão.</p>
+</form></div>
 
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-auth-compat.js"></script>
@@ -229,8 +246,12 @@ body{background:
 'use strict';
 var NH_API = 'https://nhlicitacoes.noronhaholanda.com.br';
 var firebaseConfig={apiKey:"AIzaSyBhcpJP9dRM0SEJsGfcNUXYb1rTMdEDw6M",authDomain:"nh-licitacoes.firebaseapp.com",projectId:"nh-licitacoes",storageBucket:"nh-licitacoes.firebasestorage.app",messagingSenderId:"1081646053691",appId:"1:1081646053691:web:a8abcb5792d026ade71f1e"};
-firebase.initializeApp(firebaseConfig);
-var auth = firebase.auth();
+/* App próprio do Firebase para o Controle: a sessão dele não se mistura
+   com a do Gestão (mesmo endereço, contas diferentes), e vale só enquanto
+   o navegador estiver aberto. */
+var appCtl = firebase.initializeApp(firebaseConfig, 'controle');
+var auth = appCtl.auth();
+auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(function(){});
 
 /* ── Os sistemas em volta ──────────────────────────────────────────── */
 var SISTEMAS = [
@@ -442,14 +463,35 @@ function chip(id, ok, txt){ var c = document.getElementById(id); c.classList.tog
 fetch(NH_API + '/api/health', {cache:'no-store'}).then(function(r){ return r.json(); })
   .then(function(h){ chip('ch-srv', !!(h && h.chaveClaude), h && h.chaveClaude ? 'SERVIDOR' : 'SEM CHAVE DA IA'); })
   .catch(function(){ chip('ch-srv', false, 'SERVIDOR FORA'); estado('erro'); });
+/* ── Entrar e sair ─────────────────────────────────────────────────── */
+function portaMsg(t, erro){ var p = document.getElementById('porta-txt'); p.textContent = t; p.classList.toggle('erro', !!erro); }
+document.getElementById('porta-form').addEventListener('submit', async function(ev){
+  ev.preventDefault();
+  var login = String(document.getElementById('pt-login').value || '').trim().toLowerCase();
+  var senha = document.getElementById('pt-senha').value;
+  if(!login || !senha){ portaMsg('Preencha o login e a senha.', true); return; }
+  if(!/^[a-z0-9._-]{3,30}$/.test(login)){ portaMsg('Login ou senha incorretos.', true); return; }
+  var bt = document.getElementById('pt-entrar'); bt.disabled = true; bt.textContent = 'Entrando…'; portaMsg('');
+  try{
+    await auth.signInWithEmailAndPassword('controle-' + login + '@nh.interno', senha);
+    document.getElementById('pt-senha').value = '';
+  }catch(e){
+    var c = String(e && e.code || '');
+    portaMsg(/too-many-requests/.test(c) ? 'Muitas tentativas. Aguarde alguns minutos.' : /network/.test(c) ? 'Sem conexão. Tente de novo.' : 'Login ou senha incorretos.', true);
+  }finally{ bt.disabled = false; bt.textContent = 'Entrar'; }
+});
+document.getElementById('bt-sair').addEventListener('click', function(){
+  calar(); auth.signOut(); msgsEl.innerHTML = ''; document.getElementById('ele').textContent = ''; document.getElementById('eu').textContent = '';
+});
+
 auth.onAuthStateChanged(async function(u){
-  if(!u){ document.getElementById('porta').classList.add('on'); estado('pronto'); return; }
+  if(!u){ document.getElementById('porta').classList.add('on'); estado('pronto'); setTimeout(function(){ document.getElementById('pt-login').focus(); }, 50); return; }
   document.getElementById('porta').classList.remove('on');
   try{
     var r = await fetch(NH_API + '/api/jarvis/historico', {method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({idToken: await u.getIdToken()})});
     var j = await r.json().catch(function(){ return {}; });
-    if(r.status === 403){ document.getElementById('porta-txt').textContent = j.erro || 'O Jarvis ainda está liberado só para o dono da NH.'; document.getElementById('porta').classList.add('on'); return; }
+    if(r.status === 403){ await auth.signOut(); portaMsg(j.erro || 'Este login não tem acesso ao Controle.', true); document.getElementById('porta').classList.add('on'); return; }
     if(!r.ok || !j.ok) throw new Error(j.erro || ('HTTP ' + r.status));
     (j.conversa || []).forEach(function(m){ bolha(m.papel === 'jarvis' ? 'jarvis' : 'chefe', m.texto, m.em); });
     chip('ch-mem', true, 'MEMÓRIA · ' + (j.fatos || 0) + ' FATOS');
