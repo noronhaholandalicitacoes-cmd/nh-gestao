@@ -570,6 +570,36 @@ function abrirSistema(id){
   jnAtual = id;
   janela.classList.add('on'); janela.setAttribute('aria-hidden', 'false'); document.body.classList.add('com-janela');
 }
+/* Ir a uma ABA ou a um CARD dentro do Gestão (27/10/2026): "pedi para o
+   Jarvis abrir o sistema e me levar até o card de um contrato". O Gestão
+   está no mesmo endereço, então o Controle chama as funções dele (go e
+   irParaCard — a mesma que a tela Hoje usa), quando ele terminar de
+   carregar os dados. Se pedir login, espera a pessoa entrar. */
+var _navTimer = null;
+function navegarNoGestao(alvo){
+  clearInterval(_navTimer);
+  var f = document.getElementById('jn-f-gestao'), inicio = Date.now(), avisou = false;
+  _navTimer = setInterval(function(){
+    var w = null; try{ w = f && f.contentWindow; }catch(e){}
+    if(!w || Date.now() - inicio > 180000){ clearInterval(_navTimer); return; }
+    var login = null; try{ login = w.document.getElementById('login-screen'); }catch(e){}
+    var logado = login && w.getComputedStyle(login).display === 'none';
+    if(!logado){
+      if(!avisou && Date.now() - inicio > 4000){ avisou = true; mostrarResposta('Entre no Gestão aqui na janela — assim que entrar, eu levo você até lá.'); agendarSumir(20000); }
+      return;
+    }
+    /* ALL é `let` no Gestão — não fica em window; lê pelo escopo dele. */
+    var dados = null; try{ dados = w.eval('typeof ALL !== "undefined" ? ALL : null'); }catch(e){}
+    var pronto = typeof w.irParaCard === 'function' && typeof w.go === 'function' && dados &&
+      (!alvo.etapa || (dados[alvo.etapa] || []).length > 0);
+    if(!pronto) return;
+    clearInterval(_navTimer);
+    try{
+      if(alvo.etapa && alvo.id) w.irParaCard(alvo.etapa, alvo.id);
+      else if(alvo.aba) w.go(alvo.aba, w.document.querySelector(".sb-item[onclick*=\"go('" + alvo.aba + "'\"]"));
+    }catch(e){ console.warn('[controle] navegar', e); }
+  }, 500);
+}
 function fecharJanela(){ janela.classList.remove('on'); janela.setAttribute('aria-hidden', 'true'); document.body.classList.remove('com-janela'); jnAtual = ''; }
 document.getElementById('jn-fechar').addEventListener('click', fecharJanela);
 
@@ -823,7 +853,7 @@ async function enviar(texto){
     mostrarResposta(j.texto);
     bolha('jarvis', j.texto);
     (j.acoes || []).forEach(function(a){
-      if(a && a.tipo === 'abrir') abrirSistema(a.sistema);
+      if(a && a.tipo === 'abrir'){ abrirSistema(a.sistema); if(a.sistema === 'gestao' && (a.id || a.aba)) navegarNoGestao(a); }
       if(a && a.tipo === 'documento') documentoPronto(a.id, a.titulo, a.drive);
     });
     falar(j.texto);
