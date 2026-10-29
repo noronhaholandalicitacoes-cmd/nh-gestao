@@ -1013,6 +1013,7 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
   </div>
   <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
     <div class="badge-pend" id="badge-pend">...</div>
+    <button class="hd-btn" id="btn-sino" onclick="ativarNotificacoes()" title="Ativar notificações no celular" style="display:none">🔕</button>
     <button class="hd-btn" id="btn-tema-app" onclick="acTrocarTema()" title="Alternar tema">◐</button>
     <span class="nh-quem" id="nh-quem"><span class="nh-quem-av"></span><span class="nh-quem-nm"></span></span>
   <button class="hd-btn" id="btn-sair" onclick="sair()" title="Sair">⎋</button>
@@ -1612,11 +1613,88 @@ function abrirApp(){
   if(s)s.textContent=SESSAO.nome||'Análise de Viabilidade';
   ['btn-sair','btn-tema-app'].forEach(function(id){
     var b=document.getElementById(id);if(b)b.style.display='flex';});
+  _pushAoAbrir();
   carregar();}
 
 async function sair(){
   if(!confirm('Sair do acesso?'))return;
+  /* Celular que saiu do acesso não recebe mais aviso deste login. */
+  await _pushDesligar();
   await auth.signOut();}
+
+/* ══════════════════════════════════════════════════════════════════
+   NOTIFICAÇÕES NO CELULAR — 29/10/2026
+   Pedido: avisar quando aparecer processo novo e quando faltar 24 h
+   para uma sessão que a pessoa ainda não marcou se vai participar.
+   Quem recebe o quê é decidido no SERVIDOR (pushViabilidade.ts), pelo
+   mesmo cadastro de Acessos: aqui só se liga e desliga o celular.
+   No iPhone só funciona com o app na Tela de Início (iOS 16.4+).
+   ══════════════════════════════════════════════════════════════════ */
+var NH_PUSH_API='https://nhlicitacoes.noronhaholanda.com.br';
+function _pushSuporta(){return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;}
+function _pushIOSsemApp(){
+  var ios=/iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  var app=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
+  return ios&&!app;}
+function _pushB64(s){s=String(s).replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';
+  var b=atob(s),u=new Uint8Array(b.length);for(var i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u;}
+function _pushBotao(ligado){
+  var b=document.getElementById('btn-sino');if(!b)return;
+  b.style.display=(_pushSuporta()||_pushIOSsemApp())?'flex':'none';
+  b.textContent=ligado?'🔔':'🔕';
+  b.title=ligado?'Notificações ligadas neste celular':'Ativar notificações no celular';}
+async function _pushInscrever(){
+  var reg=await navigator.serviceWorker.ready;
+  var jk=await (await fetch(NH_PUSH_API+'/api/push/chave')).json();
+  if(!jk||!jk.chave)throw new Error('o servidor ainda não está pronto para notificações');
+  var chave=_pushB64(jk.chave), sub=await reg.pushManager.getSubscription();
+  /* Inscrição feita com outra chave (o servidor trocou a dele) não
+     recebe mais nada: refaz. */
+  if(sub&&sub.options&&sub.options.applicationServerKey){
+    var a=new Uint8Array(sub.options.applicationServerKey);
+    if(a.length!==chave.length||a.some(function(x,i){return x!==chave[i];})){await sub.unsubscribe();sub=null;}
+  }
+  if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:chave});
+  var r=await fetch(NH_PUSH_API+'/api/push/inscrever',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({idToken:await auth.currentUser.getIdToken(),sub:sub.toJSON()})});
+  var j=await r.json().catch(function(){return{};});
+  if(!r.ok||!j.ok)throw new Error(j.erro||('HTTP '+r.status));
+}
+async function ativarNotificacoes(){
+  if(_pushIOSsemApp()){
+    alert('No iPhone, as notificações só funcionam com o app instalado:\n\n1. Toque em Compartilhar (o quadrado com a seta)\n2. Toque em "Adicionar à Tela de Início"\n3. Abra o Viabilidade pelo ícone novo e toque no sino de novo.');
+    return;}
+  if(!_pushSuporta()){alert('Este navegador não recebe notificações. No Android, use o Chrome.');return;}
+  if(Notification.permission==='denied'){
+    alert('As notificações estão bloqueadas para o Viabilidade. Libere nas configurações do celular (Notificações) e toque no sino de novo.');return;}
+  var b=document.getElementById('btn-sino');if(b)b.disabled=true;
+  try{
+    if(await Notification.requestPermission()!=='granted'){_pushBotao(false);return;}
+    await _pushInscrever();
+    _pushBotao(true);toast('Notificações ligadas neste celular','ok');
+  }catch(e){_pushBotao(false);alert('Não consegui ligar as notificações: '+(e.message||e));}
+  finally{if(b)b.disabled=false;}
+}
+/* Ao entrar: se já estava ligado, renova em silêncio (pega troca de
+   chave do servidor e troca de login no mesmo celular). */
+function _pushAoAbrir(){
+  var ligado=_pushSuporta()&&Notification.permission==='granted';
+  _pushBotao(false);
+  if(!ligado)return;
+  navigator.serviceWorker.ready.then(function(reg){return reg.pushManager.getSubscription();})
+    .then(function(sub){if(!sub)return;return _pushInscrever().then(function(){_pushBotao(true);});})
+    .catch(function(e){console.warn('[push]',e&&e.message);});
+}
+async function _pushDesligar(){
+  try{
+    if(!_pushSuporta())return;
+    var reg=await navigator.serviceWorker.getRegistration();var sub=reg&&await reg.pushManager.getSubscription();
+    if(!sub)return;
+    if(auth.currentUser)await fetch(NH_PUSH_API+'/api/push/sair',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({idToken:await auth.currentUser.getIdToken(),endpoint:sub.endpoint})}).catch(function(){});
+    await sub.unsubscribe();
+  }catch(e){}
+}
 
 /* Só enxerga as empresas que o responsável representa. Quem tem "vê
    todas" marcado no cadastro (a assessoria) enxerga tudo. */
