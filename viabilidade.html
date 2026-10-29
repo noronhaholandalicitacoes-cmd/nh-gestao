@@ -923,6 +923,17 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 .nh-quem-nm{font-size:12.5px;font-weight:700;max-width:130px;
   overflow:hidden;text-overflow:ellipsis}
 @media(max-width:620px){ .nh-quem-nm{display:none} .nh-quem{padding:4px} }
+/* Topo no iPhone pequeno (29/10/2026): "ficou uma palavra em cima da
+   outra". O selo de pendentes e os quatro botões ocupam a largura toda e
+   o nome era espremido a zero, transbordando por cima do selo. Nome
+   cortado com "…" quando aperta; abaixo de 560px some — o selo NH e as
+   iniciais do avatar já dizem onde e quem. */
+.logo-info{overflow:hidden}
+.logo-info .title,.logo-info .sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:560px){
+  .logo-info{display:none}
+  .badge-pend{padding:6px 10px;font-size:11px}
+}
 /* ═══ LOGIN DIVIDIDO — 20/10/2026 ═══════════════════════════════════
    Pedido: "tela de login com divisão: metade da tela os campos de login
    e a outra metade o símbolo da NH que fica rodando os arcos, bem
