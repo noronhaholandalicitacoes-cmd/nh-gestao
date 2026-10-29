@@ -1161,7 +1161,17 @@ async function carregarAnalisesViab(){
   /* Só leitura — quem calcula e grava é o Sistema NH principal (chip
      "Analisar Viabilidade" no card de Editais Capturados). */
   try{
-    var snap=await db.collection('analise_viabilidade').get();
+    /* 29/10/2026: cliente lê só as análises das empresas dele, como
+       itens_edital — antes vinha a coleção inteira, de todo mundo. */
+    var q=db.collection('analise_viabilidade');
+    if(!(SESSAO&&SESSAO.todas)){
+      var nomes=((SESSAO&&SESSAO.empresasNomes)||[])
+        .map(function(n){return String(n||'').trim().replace(/\s+/g,' ').toUpperCase();}).filter(Boolean);
+      ANALISES_VIAB={};
+      if(!nomes.length)return;
+      q=q.where('empresa','in',nomes.slice(0,30));
+    }
+    var snap=await q.get();
     ANALISES_VIAB={};
     snap.forEach(function(d){ANALISES_VIAB[d.id]=d.data()._arr||d.data();});
   }catch(e){console.warn('[Viabilidade] analise_viabilidade:',e.message);}
@@ -1759,11 +1769,17 @@ function iniciarAcesso(){
 
 async function carregar(){
   try{
-    await carregarCoresEmpresas();
-    await carregarRespsCad();
-    await carregarAnalisesViab();
-    await carregarItensEdital();
-    await arqOuvir();
+    /* 29/10/2026: "está demorando muito para carregar". Eram seis idas
+       ao banco, uma depois da outra — no celular, somavam segundos.
+       Agora saem todas juntas; os editais começam a vir já aqui e são
+       usados lá embaixo, depois que as cores e os cadastros chegaram
+       (o filtro por empresa precisa deles). */
+    var _nomesQ=(SESSAO&&SESSAO.empresasNomes)||[];
+    var _pEditais=(!SESSAO||SESSAO.todas||!_nomesQ.length)
+      ? db.collection('editais').orderBy('_id','desc').get()
+      : db.collection('editais').where('empresa','in',_nomesQ.slice(0,30)).get();
+    _pEditais.catch(function(){});
+    await Promise.all([carregarCoresEmpresas(), carregarRespsCad(), carregarAnalisesViab(), carregarItensEdital(), arqOuvir()]);
     /* Falhou? A pessoa fica sabendo. Silêncio aqui já custou duas
        rodadas de "não aparece e ninguém sabe por quê". */
     if(_itensErro) setTimeout(function(){ toast(_itensErro, 'err'); }, 1200);
@@ -1803,10 +1819,9 @@ async function carregar(){
          separadamente. */
     var _nomes = (SESSAO && SESSAO.empresasNomes) || [];
     var _semFiltro = !SESSAO || SESSAO.todas || !_nomes.length;
-    var snap = _semFiltro
-      ? await db.collection('editais').orderBy('_id','desc').get()
-      /* `in` aceita até 30 valores; hoje são 6 empresas no total. */
-      : await db.collection('editais').where('empresa','in',_nomes.slice(0,30)).get();
+    /* A consulta (com ou sem filtro, `in` até 30 valores) já saiu lá em
+       cima, junto com as outras cargas. */
+    var snap = await _pEditais;
     TODOS=[];
     /* Cada edital descartado é contado junto com o MOTIVO. Sem isso a
        tela vazia não distingue "não existe nada" de "existe, mas o seu

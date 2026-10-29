@@ -8161,6 +8161,13 @@ async function fbSave(e,a,t,_docId){
   /* Fase 1: o campo solto acompanha toda gravação nova, para o
      backfill não ter de correr atrás do que o sistema grava hoje. */
   var _emp=nhEmpresaDoArr(e,t);
+  /* Análise de viabilidade (29/10/2026): o registro não é linha, então
+     a empresa vem do edital da chave ('e-'+id). Sem ela, a regra não
+     tinha como separar — e todo cliente lia a análise de todo mundo. */
+  if(!_emp&&e==='analise_viabilidade'){
+    var _edV=(ALL.editais||[]).find(function(r){return 'e-'+String(r[0]||'').trim()===String(a);});
+    _emp=nhEmpresaDoArr('editais',_edV||null);
+  }
   if(_emp) o.empresa=_emp;
   var _existia=false,_antes=null;
   try{
