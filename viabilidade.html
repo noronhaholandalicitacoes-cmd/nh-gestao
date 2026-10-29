@@ -927,13 +927,17 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 /* Topo no iPhone pequeno (29/10/2026): "ficou uma palavra em cima da
    outra". O selo de pendentes e os quatro botões ocupam a largura toda e
    o nome era espremido a zero, transbordando por cima do selo. Nome
-   cortado com "…" quando aperta; abaixo de 560px some — o selo NH e as
-   iniciais do avatar já dizem onde e quem. */
+   cortado com "…" quando aperta. No celular quem sai é o selo de
+   pendentes — o cartão PENDENTES logo abaixo já mostra o número — e o
+   nome "NH Viabilidade" fica (pedido do cliente, 29/10). */
 .logo-info{overflow:hidden}
 .logo-info .title,.logo-info .sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(max-width:560px){
-  .logo-info{display:none}
-  .badge-pend{padding:6px 10px;font-size:11px}
+  .badge-pend{display:none!important}
+  .nh-selo{width:44px;height:44px}
+  .logo{gap:9px}
+  .logo-info .title{font-size:15px}
+  .logo-info .sub{font-size:10px}
 }
 /* ═══ LOGIN DIVIDIDO — 20/10/2026 ═══════════════════════════════════
    Pedido: "tela de login com divisão: metade da tela os campos de login
