@@ -601,6 +601,17 @@ body.light .seta-f{box-shadow:0 4px 14px rgba(15,23,42,.16)}
   transition:.15s}
 .lc-lk:hover{color:var(--nh);border-color:var(--nh);background:rgba(249,115,22,.1)}
 .tag{font-size:9.5px;font-weight:800;padding:3px 8px;border-radius:20px;letter-spacing:.02em}
+/* Conversa do WhatsApp/Direct na ficha (08/11/2026). */
+.cv-lista{max-height:320px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:2px 2px 10px}
+.cv-m{max-width:82%;padding:7px 11px;border-radius:12px;font-size:12.5px;line-height:1.45;white-space:pre-wrap;word-break:break-word}
+.cv-m small{display:block;font-size:10px;opacity:.6;margin-top:3px}
+.cv-cli{align-self:flex-start;background:var(--s3,rgba(255,255,255,.06));border:1px solid var(--b1)}
+.cv-nh{align-self:flex-end;background:rgba(37,211,102,.14);border:1px solid rgba(37,211,102,.3)}
+.cv-auto{align-self:flex-end;background:rgba(139,149,161,.12);border:1px dashed var(--b1)}
+.cv-erro{border-color:#ef4444!important}
+.cv-envio{display:flex;gap:8px;align-items:flex-end}
+.cv-envio textarea{flex:1;resize:vertical;min-height:42px}
+.tag-nova{background:rgba(37,211,102,.18);color:#25d366}
 /* Prazo: a cor é o aviso. Vermelho é hoje ou passou. */
 .tag-prz{background:rgba(59,130,246,.15);color:var(--b_)}
 .tag-prz.perto{background:rgba(234,179,8,.16);color:var(--y1)}
@@ -988,6 +999,7 @@ body.light .fn-l:hover{background:rgba(0,0,0,.02)}
     <span>NH <span class="grad">CRM</span></span>
   </div>
   <div style="flex:1"></div>
+  <button class="btn" onclick="abrirAutomaticas()" title="Saudação e ausência do WhatsApp dos anúncios">💬 Automáticas</button>
   <button class="btn btn-nh" onclick="abrirLead()">+ Novo lead</button>
   <span class="nh-quem" id="nh-quem"><span class="nh-quem-av"></span><span class="nh-quem-nm"></span></span>
   <button class="btn" onclick="trocarTema()" id="btn-tema">◐</button>
@@ -1258,6 +1270,19 @@ body.light .fn-l:hover{background:rgba(0,0,0,.02)}
             </div>
           </div>
 
+          <!-- Conversa pelo WhatsApp ou pelo Direct (08/11/2026): só
+               aparece em lead que chegou por uma das duas. -->
+          <div class="bloco" id="cv-bloco" style="--bc:#25d366;display:none">
+            <div class="bloco-t"><span id="cv-titulo">Conversa</span></div>
+            <div id="cv-lista" class="cv-lista"></div>
+            <div class="cv-envio">
+              <textarea id="cv-texto" rows="2" placeholder="Escreva a resposta…"
+                onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();cvEnviar();}"></textarea>
+              <button class="btn btn-nh" id="cv-btn" onclick="cvEnviar()">Enviar</button>
+            </div>
+            <div class="dica" id="cv-dica" style="margin:8px 0 12px">Enter envia; Shift+Enter quebra a linha.</div>
+          </div>
+
           <div class="bloco" style="--bc:#8b95a1">
             <div class="bloco-t">Histórico
               <button class="btn" onclick="abrirAtividade()">+ Registrar</button>
@@ -1273,6 +1298,35 @@ body.light .fn-l:hover{background:rgba(0,0,0,.02)}
       <button class="btn" id="ld-imprimir" onclick="imprimirFicha()" style="display:none">&#128424; Imprimir ficha</button>
       <button class="btn" onclick="fecharModal('ov-lead')">Cancelar</button>
       <button class="btn btn-nh" id="ld-salvar" onclick="salvarLead()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MENSAGENS AUTOMÁTICAS (08/11/2026) -->
+<div class="ov" id="ov-auto">
+  <div class="modal" style="max-width:560px">
+    <div class="mh">
+      <div><h3>Mensagens automáticas</h3><p>O que o WhatsApp dos anúncios e o Direct respondem sozinhos.</p></div>
+      <button class="btn" onclick="fecharModal('ov-auto')" style="padding:6px 11px;font-size:16px;line-height:1">×</button>
+    </div>
+    <div class="mb">
+      <label style="display:flex;gap:8px;align-items:center;font-size:13px;font-weight:700;margin-bottom:14px">
+        <input type="checkbox" id="au-ativo"> Ligadas</label>
+      <div class="campo"><label>Saudação — primeira mensagem de quem chama, no horário</label>
+        <textarea id="au-saudacao" rows="3" placeholder="Olá! Aqui é a NH Licitações. Recebemos sua mensagem e um consultor já vai te atender."></textarea></div>
+      <div class="campo"><label>Ausência — fora do horário (no máximo uma vez a cada 12 h)</label>
+        <textarea id="au-ausencia" rows="3" placeholder="Olá! Nosso atendimento é de segunda a sexta, das 8h às 18h. Assim que voltarmos, respondemos você."></textarea></div>
+      <div class="grade" style="margin-bottom:14px">
+        <div class="campo"><label>Abre às</label><input type="time" id="au-inicio"></div>
+        <div class="campo"><label>Fecha às</label><input type="time" id="au-fim"></div>
+      </div>
+      <div class="campo"><label>Dias de atendimento</label><div id="au-dias" style="display:flex;gap:10px;flex-wrap:wrap;font-size:12.5px"></div></div>
+      <div class="dica">O número do comercial (99969-1071) continua com as automáticas do próprio app; estas valem só para o número dos anúncios e para o Direct.</div>
+      <div class="erro" id="au-erro"></div>
+    </div>
+    <div class="mf">
+      <button class="btn" onclick="fecharModal('ov-auto')">Cancelar</button>
+      <button class="btn btn-nh" id="au-salvar" onclick="salvarAutomaticas()">Salvar</button>
     </div>
   </div>
 </div>
@@ -1532,6 +1586,108 @@ async function carregarTudo(){
   /* Os lembretes vivem sobre a lista que acabou de chegar — nenhuma
      leitura a mais no banco. */
   iniciarLembretes();
+  ouvirConversas();
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   CONVERSA PELO WHATSAPP E PELO DIRECT — 08/11/2026
+   O lead que chama pelo número dos anúncios (ou pelo Direct) chega
+   sozinho, e a equipe responde aqui. Quem recebe e quem envia é o
+   SERVIDOR (server/crmConversa.ts) — as chaves da Meta não passam pelo
+   navegador. Aqui só se lê `crm_mensagens`/`crm_conversas` e se pede o
+   envio pela rota /api/crm/conversa/enviar.
+   ══════════════════════════════════════════════════════════════════ */
+var CRM_API='https://nhlicitacoes.noronhaholanda.com.br';
+var CONVERSAS={};          /* leadId → resumo da conversa */
+var _cvOuvindo=false, _cvSub=null, _cvLead=null;
+function ouvirConversas(){
+  if(_cvOuvindo) return; _cvOuvindo=true;
+  db.collection('crm_conversas').onSnapshot(function(s){
+    var faltaLead=false;
+    s.docChanges().forEach(function(c){
+      if(c.type==='removed'){ delete CONVERSAS[c.doc.id]; return; }
+      CONVERSAS[c.doc.id]=c.doc.data()||{};
+      if(!LEADS.some(function(l){ return l.id===c.doc.id; })) faltaLead=true;
+    });
+    /* Lead que o servidor acabou de criar: ainda não está na lista. */
+    if(faltaLead) db.collection('crm_leads').get().then(function(ld){
+      LEADS=ld.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); }); pintar();
+    }); else pintar();
+    if(_cvLead&&CONVERSAS[_cvLead]) cvMarcarLida(_cvLead);
+  }, function(e){ console.warn('[CRM] conversas:', e.code||'', e.message); });
+}
+function cvNaoLidas(id){ var c=CONVERSAS[id]; return c?Number(c.naoLidas||0):0; }
+function cvMarcarLida(id){
+  if(!cvNaoLidas(id)) return;
+  db.collection('crm_conversas').doc(id).update({naoLidas:0, lidoEm:Date.now()})
+    .catch(function(e){ console.warn('[CRM] marcar lida:', e.message); });
+}
+function cvAbrir(l){
+  cvFechar();
+  var bl=document.getElementById('cv-bloco');
+  var conv=l?CONVERSAS[l.id]:null;
+  if(!l||!conv){ bl.style.display='none'; return; }
+  _cvLead=l.id;
+  bl.style.display='';
+  document.getElementById('cv-titulo').textContent=conv.canal==='INSTAGRAM'?'Conversa no Direct':'Conversa no WhatsApp';
+  document.getElementById('cv-texto').value='';
+  document.getElementById('cv-lista').innerHTML='<div class="dica">Carregando…</div>';
+  _cvSub=db.collection('crm_mensagens').where('leadId','==',l.id).onSnapshot(function(s){
+    var ms=s.docs.map(function(d){ return d.data()||{}; }).sort(function(a,b){ return (a.em||0)-(b.em||0); });
+    var el=document.getElementById('cv-lista');
+    el.innerHTML=ms.length?ms.map(function(m){
+      var cls=m.de==='cliente'?'cv-cli':m.de==='auto'?'cv-auto':'cv-nh';
+      var quem=m.de==='cliente'?'':m.de==='auto'?'Automática · ':((m.autor||'NH')+' · ');
+      return '<div class="cv-m '+cls+(m.erro?' cv-erro':'')+'">'+esc(m.texto||'')+
+        '<small>'+esc(quem)+new Date(m.em||0).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+
+        (m.erro?' · não enviada: '+esc(m.erro):'')+'</small></div>';
+    }).join(''):'<div class="dica">Nenhuma mensagem ainda.</div>';
+    el.scrollTop=el.scrollHeight;
+  }, function(e){ document.getElementById('cv-lista').innerHTML='<div class="dica">Não consegui ler a conversa: '+esc(e.message)+'</div>'; });
+  cvMarcarLida(l.id);
+}
+function cvFechar(){ if(_cvSub){ _cvSub(); _cvSub=null; } _cvLead=null; }
+async function cvEnviar(){
+  var t=document.getElementById('cv-texto'), b=document.getElementById('cv-btn'), txt=t.value.trim();
+  if(!txt||!_cvLead) return;
+  b.disabled=true; b.textContent='Enviando…';
+  try{
+    var r=await fetch(CRM_API+'/api/crm/conversa/enviar',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({idToken:await auth.currentUser.getIdToken(), leadId:_cvLead, texto:txt})});
+    var j=await r.json().catch(function(){ return {}; });
+    if(!r.ok||!j.ok) throw new Error(j.erro||('HTTP '+r.status));
+    t.value='';
+  }catch(e){ alert('Mensagem não enviada: '+(e.message||e)); }
+  finally{ b.disabled=false; b.textContent='Enviar'; }
+}
+
+/* Mensagens automáticas: texto e horário que o servidor usa. */
+var DIAS_SEMANA=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+async function abrirAutomaticas(){
+  erro('au-erro','');
+  var d={};
+  try{ var s=await db.collection('crm_config').doc('whatsapp').get(); d=(s.exists&&s.data())||{}; }
+  catch(e){ erro('au-erro','Não consegui ler a configuração: '+e.message); }
+  document.getElementById('au-ativo').checked=d.ativo===true;
+  sv('au-saudacao', d.saudacao||''); sv('au-ausencia', d.ausencia||'');
+  sv('au-inicio', d.inicio||'08:00'); sv('au-fim', d.fim||'18:00');
+  var dias=Array.isArray(d.dias)&&d.dias.length?d.dias:[1,2,3,4,5];
+  document.getElementById('au-dias').innerHTML=DIAS_SEMANA.map(function(n,i){
+    return '<label style="display:flex;gap:4px;align-items:center"><input type="checkbox" value="'+i+'"'+(dias.indexOf(i)>=0?' checked':'')+'> '+n+'</label>';
+  }).join('');
+  document.getElementById('ov-auto').classList.add('on');
+}
+async function salvarAutomaticas(){
+  var dias=[].slice.call(document.querySelectorAll('#au-dias input:checked')).map(function(x){ return Number(x.value); });
+  var d={ativo:document.getElementById('au-ativo').checked, saudacao:gv('au-saudacao').trim(), ausencia:gv('au-ausencia').trim(),
+         inicio:gv('au-inicio')||'08:00', fim:gv('au-fim')||'18:00', dias:dias,
+         atualizadoPor:quemSou(), atualizadoEm:Date.now()};
+  if(d.ativo&&!d.saudacao) return erro('au-erro','Escreva a saudação antes de ligar.');
+  if(!dias.length) return erro('au-erro','Marque pelo menos um dia de atendimento.');
+  var b=document.getElementById('au-salvar'); b.disabled=true;
+  try{ await db.collection('crm_config').doc('whatsapp').set(d); fecharModal('ov-auto'); }
+  catch(e){ erro('au-erro','Não salvou: '+e.message); }
+  finally{ b.disabled=false; }
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -2437,6 +2593,7 @@ function cartaoLead(l, cor){
         ((prox===0&&l.horaProximaAcao)?' às '+esc(l.horaProximaAcao):'')+'</span>':'')+
       (l.origem==='TRAFEGO'?'<span class="tag tag-ori">anúncio</span>':'')+
       /* Lead que chegou sozinho pela conversa (08/11/2026). */
+      (cvNaoLidas(l.id)?'<span class="tag tag-nova">💬 '+cvNaoLidas(l.id)+(cvNaoLidas(l.id)>1?' novas':' nova')+'</span>':'')+
       (l.canal==='WHATSAPP'?'<span class="tag" style="background:rgba(37,211,102,.14);color:#25d366">WhatsApp</span>':'')+
       (l.canal==='INSTAGRAM'?'<span class="tag" style="background:rgba(225,48,108,.14);color:#e1306c" title="'+esc(l.contatoInstagram||'')+'">Instagram</span>':'')+
     '</div>'+
@@ -3314,6 +3471,7 @@ function abrirLead(id){
   document.getElementById('ld-historico').innerHTML=l?historicoHtml(l.id):
     '<div style="font-size:12px;color:var(--t3);line-height:1.6">O histórico começa depois que o lead for salvo.</div>';
   erro('ld-erro','');
+  cvAbrir(l);
   document.getElementById('ov-lead').classList.add('on');
 }
 
@@ -3871,7 +4029,10 @@ async function salvarAtividade(){
   finally{ btn.disabled=false; btn.textContent='Salvar'; }
 }
 
-function fecharModal(id){ document.getElementById(id).classList.remove('on'); }
+function fecharModal(id){
+  document.getElementById(id).classList.remove('on');
+  if(id==='ov-lead') cvFechar();   /* para de escutar a conversa da ficha */
+}
 
 /* ── Acesso ────────────────────────────────────────────────────────
    O CRM é da equipe NH: e-mail real, cadastrado em Configurações ›
