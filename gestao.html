@@ -18732,13 +18732,39 @@ function _chatPedir(acao, dados){
 window.addEventListener('message', function(e){
   if(e.source !== window || !e.data || e.data.origem !== 'nh-ext') return;
   var m = e.data;
-  if(m.tipo === 'presente'){ _chatExt = {versao: m.versao}; _chatAtualizarFlutuante(); return; }
+  if(m.tipo === 'presente'){ _chatExt = {versao: m.versao}; _chatAtualizarFlutuante(); _chatSincronizarExt(); return; }
   if(m.tipo === 'resposta'){
     var f = _chatEspera[m.reqId]; if(f){ delete _chatEspera[m.reqId]; f(m.resp); }
     return;
   }
   if(m.tipo === 'mensagens') chatReceber(m.itens || []);
 });
+
+/* Extensão 1.3.0 (08/11/2026): manda a lista de pregões em monitoramento
+   da EQUIPE TODA para a extensão deste computador. Com ela, a extensão
+   reconhece sozinha a aba do pregão pelo número da compra — mesmo aberta
+   por fora do gestão, na sala de disputa ou por outra pessoa. Portais de
+   leitura direta (servidor) ficam de fora. Extensão antiga ignora. */
+var _chatSyncTimer = null;
+function _chatSincronizarExt(){
+  clearTimeout(_chatSyncTimer);
+  _chatSyncTimer = setTimeout(function(){
+    if(!_chatExt || !CHAT_MON) return;
+    var lista = Object.keys(CHAT_MON).filter(function(k){
+      var x = CHAT_MON[k]; if(!(x && x.ativo && x.url) || (typeof chatLeitorDireto === 'function' && chatLeitorDireto(x.url))) return false;
+      /* Pregão cuja sessão (data no título, "23.09.2026") passou há mais de
+         15 dias não precisa mais ser reconhecido: recurso e homologação
+         já correram. */
+      var d = String(x.titulo || '').match(/(\d{2})[.\/](\d{2})[.\/](\d{4})/);
+      return !d || (Date.now() - new Date(+d[3], +d[2] - 1, +d[1]).getTime()) < 15 * 86400000;
+    }).map(function(k){
+      var x = CHAT_MON[k], ids = x.ids || {termos: [], cnpj: ''};
+      return {chave: k, url: x.url, titulo: (x.empresa ? x.empresa + ' · ' : '') + (x.titulo || ''),
+        palavras: (ids.termos || []).concat(ids.cnpj ? [ids.cnpj] : []).concat(x.palavras || [])};
+    });
+    _chatPedir('sincronizar', {lista: lista});
+  }, 800);
+}
 
 /* ── Firestore ─────────────────────────────────────────────────────── */
 function chatIniciar(){
@@ -18755,6 +18781,7 @@ function chatIniciar(){
     s.forEach(function(d){ var x = d.data()||{}; if(x.estacao){ est[d.id] = x; return; } x.ids = _chatIdsEmpresa(x.empresa); novo[d.id] = x; });
     CHAT_MON = novo;
     window.CHAT_EST = est;
+    _chatSincronizarExt();
     _chatAtualizarFlutuante();
     if(_chatPainelChave !== null) chatPintarPainel();
   }, function(err){ console.warn('[chat_monitor]', err.message); });
@@ -18801,7 +18828,7 @@ function chatIniciar(){
          botão flutuante e o alarme. */
     }, function(err){ console.warn('[chat_mensagens]', err.message); });
 
-  _chatPedir('ping').then(function(r){ if(r && r.ok) _chatExt = {versao: r.versao}; _chatAtualizarFlutuante(); });
+  _chatPedir('ping').then(function(r){ if(r && r.ok) _chatExt = {versao: r.versao}; _chatAtualizarFlutuante(); _chatSincronizarExt(); });
   chatDiretoLigar();
 }
 
