@@ -35,8 +35,16 @@
      gira ao abrir, gira sem parar enquanto pensa e explode ao fechar. */
   '#nh-ag-bola{width:40px;height:40px;border-radius:12px;border:1px solid rgba(249,115,22,.5);cursor:grab;padding:0;position:relative;'+
     'background:var(--nh-logo,radial-gradient(circle at 35% 30%,#f97316,#111725 62%)) center/cover no-repeat;overflow:visible;'+
-    'opacity:.7;transition:opacity .25s;touch-action:none;animation:nhAgBrilha 3.6s ease-in-out infinite}'+
-  '#nh-ag-bola:hover,#nh-ag.aberto #nh-ag-bola,#nh-ag.ctx #nh-ag-bola{opacity:1}'+
+    'opacity:.42;transition:opacity .25s;touch-action:none;animation:nhAgBrilha 3.6s ease-in-out infinite}'+
+  /* Mais transparente parado (pedido de 08/11); acende ao passar o mouse ou aberto. */
+  '#nh-ag.ctx #nh-ag-bola{opacity:.6}'+
+  '#nh-ag-bola:hover,#nh-ag.aberto #nh-ag-bola,#nh-ag:hover #nh-ag-bola{opacity:1}'+
+  /* Etiqueta "AGENTE IA": deixa claro que é um agente, não uma pessoa. */
+  '#nh-ag-tag{position:absolute;top:45px;left:20px;transform:translateX(-50%);white-space:nowrap;pointer-events:none;'+
+    'font-size:8.5px;font-weight:700;letter-spacing:.09em;line-height:13px;color:#f97316;background:rgba(17,23,37,.55);'+
+    'border:1px solid rgba(249,115,22,.35);border-radius:999px;padding:0 5px;opacity:.55;transition:opacity .25s}'+
+  '#nh-ag:hover #nh-ag-tag,#nh-ag.aberto #nh-ag-tag{opacity:1}'+
+  '.nh-ag-ia{font-style:normal;font-size:10px;font-weight:600;color:#f97316;border:1px solid rgba(249,115,22,.4);border-radius:999px;padding:1px 6px;flex:none}'+
   '#nh-ag-bola:active{cursor:grabbing}'+
   '#nh-ag-bola:focus-visible{outline:2px solid #f97316;outline-offset:3px}'+
   '#nh-ag-bola.gira{animation:nhAgGiraUma .7s cubic-bezier(.2,.8,.2,1),nhAgBrilha 3.6s ease-in-out infinite}'+
@@ -62,7 +70,7 @@
   '#nh-ag-pn{position:absolute;right:0;bottom:52px;width:min(380px,calc(100vw - 24px));max-height:min(560px,calc(100vh - 120px));display:none;flex-direction:column;'+
     'background:var(--s1,#111725);color:var(--t1,#e5e7eb);border:1px solid var(--b1,#252d40);border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.35);overflow:hidden}'+
   '#nh-ag.esq #nh-ag-pn{right:auto;left:0}'+
-  '#nh-ag.baixo #nh-ag-pn{bottom:auto;top:52px}'+
+  '#nh-ag.baixo #nh-ag-pn{bottom:auto;top:64px}'+
   '#nh-ag.aberto #nh-ag-pn{display:flex}'+
   '.nh-ag-cab{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--b1,#252d40);font-size:12px}'+
   '.nh-ag-logo{width:20px;height:20px;border-radius:6px;flex:none;background:var(--nh-logo,#f97316) center/cover no-repeat}'+
@@ -89,7 +97,7 @@
   '.nh-ag-pe button{border:0;border-radius:9px;background:#f97316;color:#fff;font-weight:700;padding:0 13px;cursor:pointer}'+
   '.nh-ag-pe button:disabled{opacity:.5;cursor:default}'+
   '@media (max-width:560px){#nh-ag-pn{position:fixed;left:8px!important;right:8px!important;bottom:8px!important;top:auto!important;width:auto;max-height:70vh}'+
-    '#nh-ag.aberto #nh-ag-bola,#nh-ag.aberto #nh-ag-sus{visibility:hidden}}';
+    '#nh-ag.aberto #nh-ag-bola,#nh-ag.aberto #nh-ag-sus,#nh-ag.aberto #nh-ag-tag{visibility:hidden}}';
   document.head.appendChild(css);
 
   /* ── Montagem ─────────────────────────────────────────────────────── */
@@ -97,7 +105,7 @@
   raiz.id = 'nh-ag';
   raiz.innerHTML =
     '<div id="nh-ag-pn" role="dialog" aria-label="Assistente da NH no Gestão">'+
-      '<div class="nh-ag-cab"><i class="nh-ag-logo" aria-hidden="true"></i><b>ASSISTENTE NH</b><span id="nh-ag-onde">sem card aberto</span>'+
+      '<div class="nh-ag-cab"><i class="nh-ag-logo" aria-hidden="true"></i><b>ASSISTENTE NH</b><em class="nh-ag-ia" title="Respostas geradas por inteligência artificial — confira antes de usar">agente de IA</em><span id="nh-ag-onde">sem card aberto</span>'+
         '<button type="button" id="nh-ag-limpa" title="Começar conversa nova" aria-label="Começar conversa nova">⟲</button>'+
         '<button type="button" id="nh-ag-sil" title="Sussurros ao abrir card" aria-label="Ligar ou desligar os avisos ao abrir card"></button>'+
         '<button type="button" id="nh-ag-x" title="Fechar" aria-label="Fechar">×</button></div>'+
@@ -108,7 +116,8 @@
         '<textarea id="nh-ag-txt" placeholder="Pergunte sobre este processo…" rows="1"></textarea><button type="submit" id="nh-ag-env">➤</button></form>'+
     '</div>'+
     '<div id="nh-ag-sus" aria-hidden="true"></div>'+
-    '<button type="button" id="nh-ag-bola" aria-expanded="false" aria-label="Assistente da NH: clique para conversar, arraste para mudar de lugar"><span id="nh-ag-num"></span></button>';
+    '<button type="button" id="nh-ag-bola" aria-expanded="false" title="Agente de IA da NH — clique para conversar, arraste para mudar de lugar" aria-label="Agente de IA da NH: clique para conversar, arraste para mudar de lugar"><span id="nh-ag-num"></span></button>'+
+    '<span id="nh-ag-tag" aria-hidden="true">AGENTE IA</span>';
   document.body.appendChild(raiz);
   var $ = function(id){ return document.getElementById(id); };
   var bola = $('nh-ag-bola'), pn = $('nh-ag-pn'), msgs = $('nh-ag-msgs'), txt = $('nh-ag-txt');
@@ -276,7 +285,7 @@
   }
   function pintarMsgs(pensando){
     if(!hist.length && !pensando){
-      msgs.innerHTML = '<div class="nh-ag-vazio">Estou acompanhando os cards que você abre. Pergunte o que precisar — situação, prazos, riscos, próximo passo — ou peça uma peça em rascunho.</div>';
+      msgs.innerHTML = '<div class="nh-ag-vazio">Sou o agente de IA da NH e acompanho os cards que você abre. Pergunte o que precisar — situação, prazos, riscos, próximo passo — ou peça uma peça em rascunho. Confira sempre antes de usar.</div>';
       return;
     }
     msgs.innerHTML = hist.map(function(m, i){
