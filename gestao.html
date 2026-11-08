@@ -15424,7 +15424,12 @@ function _radarCard(e,id,jaCap){
     var pal=(c.palavras||[]).length
       ?'<b>&ldquo;'+c.palavras.map(esc0).join('&rdquo;</b>, <b>&ldquo;')+'&rdquo;</b>'
       :'<b>estado e modalidade</b> (busca sem palavra-chave)';
-    return pal+' <span>&middot; busca '+esc0(c.nome)+'</span>';
+    /* 08/11/2026: o Radar usa a busca do site do PNCP, que também acha a
+       palavra nos ITENS. O servidor diz onde casou; "só nos itens" ajuda
+       a separar o edital do serviço de um veículo "com ar condicionado". */
+    var onde=c.onde==='itens'?' <span style="color:#d97706" title="A palavra não está no objeto, só na descrição de algum item do edital">&middot; s&oacute; nos itens</span>'
+      :c.onde==='objeto'?' <span style="color:#22c55e">&middot; no objeto</span>':'';
+    return pal+onde+' <span>&middot; busca '+esc0(c.nome)+'</span>';
   }).join('<br>');
   var quem=t?_radarAttr('Marcado por '+(t.por||'equipe')+(t.em?' em '+new Date(t.em).toLocaleDateString('pt-BR'):'')):'';
   var tag='';
