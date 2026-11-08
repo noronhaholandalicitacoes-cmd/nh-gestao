@@ -612,6 +612,17 @@ body.light .seta-f{box-shadow:0 4px 14px rgba(15,23,42,.16)}
 .cv-envio{display:flex;gap:8px;align-items:flex-end}
 .cv-envio textarea{flex:1;resize:vertical;min-height:42px}
 .tag-nova{background:rgba(37,211,102,.18);color:#25d366}
+/* Lead novo pisca até alguém abrir a ficha. */
+@keyframes lcPisca{0%,100%{box-shadow:0 0 0 0 rgba(249,115,22,0)}50%{box-shadow:0 0 0 3px rgba(249,115,22,.55),0 0 18px rgba(249,115,22,.35)}}
+.lc.lc-novo{animation:lcPisca 1.6s ease-in-out infinite;border-color:rgba(249,115,22,.6)}
+.tag-novo{background:#f97316;color:#111}
+@media (prefers-reduced-motion: reduce){.lc.lc-novo{animation:none;box-shadow:0 0 0 2px rgba(249,115,22,.6)}}
+.novos{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px;padding:10px 14px;border-radius:14px;
+  background:linear-gradient(90deg,rgba(249,115,22,.16),rgba(249,115,22,.05));border:1px solid rgba(249,115,22,.4);font-size:12.5px}
+.novos b{color:var(--nh,#f97316)}
+.novos .nv{cursor:pointer;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--b1);font-weight:700}
+.novos .nv:hover{border-color:rgba(249,115,22,.6)}
+.novos .btn{margin-left:auto;padding:4px 10px;font-size:11.5px}
 /* Prazo: a cor é o aviso. Vermelho é hoje ou passou. */
 .tag-prz{background:rgba(59,130,246,.15);color:var(--b_)}
 .tag-prz.perto{background:rgba(234,179,8,.16);color:var(--y1)}
@@ -1007,6 +1018,8 @@ body.light .fn-l:hover{background:rgba(0,0,0,.02)}
 </div>
 
 <div class="wrap" id="app" style="display:none">
+  <!-- Leads que chegaram sozinhos e ninguém abriu ainda (08/11/2026). -->
+  <div id="novos"></div>
   <div id="prazos"></div>
   <!-- Uma resposta antes de qualquer clique: quanto entra por mês se o
        que está aberto fechar. O resto é apoio. -->
@@ -1587,6 +1600,7 @@ async function carregarTudo(){
      leitura a mais no banco. */
   iniciarLembretes();
   ouvirConversas();
+  ouvirLeadsNovos();
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -1617,6 +1631,82 @@ function ouvirConversas(){
   }, function(e){ console.warn('[CRM] conversas:', e.code||'', e.message); });
 }
 function cvNaoLidas(id){ var c=CONVERSAS[id]; return c?Number(c.naoLidas||0):0; }
+
+/* ── Lead novo: pisca, avisa e aparece no topo (08/11/2026) ─────────
+   Pedido do cliente: "fica piscando o lead novo no CRM, tem algum canto
+   que apareça esse lead novo?". O servidor grava `novo: true` no lead
+   que chega sozinho (anúncio, WhatsApp, Direct); ele pisca e fica na
+   faixa do topo até alguém abrir a ficha. Com o CRM aberto, a chegada
+   ainda toca um som, pisca o título da aba e — se liberado — avisa no
+   computador mesmo com a janela minimizada. */
+function ehNovo(l){ return l.novo===true || cvNaoLidas(l.id)>0; }
+function pintarNovos(){
+  var box=document.getElementById('novos'); if(!box) return;
+  var ns=LEADS.filter(ehNovo).sort(function(a,b){ return (b.criadoEm||0)-(a.criadoEm||0); });
+  if(!ns.length){ box.innerHTML=''; return; }
+  var canal=function(l){ return l.canal==='WHATSAPP'?'WhatsApp':l.canal==='INSTAGRAM'?'Direct':l.canal==='GOOGLE'?'Google':l.canal==='META'?'formulário':''; };
+  box.innerHTML='<div class="novos">🔔 <b>'+ns.length+(ns.length>1?' leads pedindo atenção':' lead pedindo atenção')+'</b>'+
+    ns.slice(0,8).map(function(l){
+      var n=cvNaoLidas(l.id);
+      return '<span class="nv" onclick="abrirLead(\''+esc(l.id)+'\')">'+esc(ldRotulo(l))+
+        (canal(l)?' · '+canal(l):'')+(n?' · 💬 '+n:'')+'</span>';
+    }).join('')+
+    (ns.length>8?'<span style="color:var(--t3)">+'+(ns.length-8)+'</span>':'')+
+    (('Notification' in window&&Notification.permission==='default')
+      ?'<button class="btn" onclick="ativarAvisoPc()">Avisar no computador</button>':'')+
+    '</div>';
+}
+function ativarAvisoPc(){
+  if(!('Notification' in window)) return;
+  Notification.requestPermission().then(function(){ pintarNovos(); });
+}
+var _tituloOrig=document.title, _piscaTitulo=null;
+function piscarTitulo(txt){
+  clearInterval(_piscaTitulo); var on=false;
+  _piscaTitulo=setInterval(function(){ on=!on; document.title=on?txt:_tituloOrig; }, 1000);
+}
+addEventListener('focus', function(){ clearInterval(_piscaTitulo); document.title=_tituloOrig; });
+function somNovo(){
+  try{
+    var A=window.AudioContext||window.webkitAudioContext, ctx=new A();
+    [880,1320].forEach(function(f,i){
+      var o=ctx.createOscillator(), g=ctx.createGain(), t=ctx.currentTime+i*0.18;
+      o.frequency.value=f; o.connect(g); g.connect(ctx.destination);
+      g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.25,t+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t+0.16);
+      o.start(t); o.stop(t+0.17);
+    });
+    setTimeout(function(){ ctx.close(); }, 800);
+  }catch(e){}
+}
+function alertarChegada(titulo, corpo, leadId){
+  somNovo();
+  if(!document.hasFocus()) piscarTitulo('🔔 '+titulo);
+  if('Notification' in window && Notification.permission==='granted'){
+    try{
+      var n=new Notification(titulo, {body:corpo, tag:'crm-'+leadId});
+      n.onclick=function(){ window.focus(); abrirLead(leadId); n.close(); };
+    }catch(e){}
+  }
+}
+/* Escuta só o que nasce depois que a tela abriu — a carga inicial já
+   veio inteira em carregarTudo(). */
+var _leadsOuvindo=false;
+function ouvirLeadsNovos(){
+  if(_leadsOuvindo) return; _leadsOuvindo=true;
+  db.collection('crm_leads').where('criadoEm','>',Date.now()).onSnapshot(function(s){
+    var mudou=false;
+    s.docChanges().forEach(function(c){
+      if(c.type==='removed') return;
+      var l=Object.assign({id:c.doc.id}, c.doc.data());
+      var i=LEADS.findIndex(function(x){ return x.id===l.id; });
+      if(i<0){
+        LEADS.push(l); mudou=true;
+        if(l.novo===true) alertarChegada('Lead novo: '+ldRotulo(l), (l.criadoPor||'')+(l.campanha?' · '+l.campanha:''), l.id);
+      } else { LEADS[i]=l; mudou=true; }
+    });
+    if(mudou) pintar();
+  }, function(e){ console.warn('[CRM] leads novos:', e.code||'', e.message); });
+}
 function cvMarcarLida(id){
   if(!cvNaoLidas(id)) return;
   db.collection('crm_conversas').doc(id).update({naoLidas:0, lidoEm:Date.now()})
@@ -2024,6 +2114,7 @@ function iniciarLembretes(){
 
 /* ── Tela ──────────────────────────────────────────────────────── */
 function pintar(){
+  try{ pintarNovos(); }catch(e){ console.warn('[CRM] faixa de novos:', e.message); }
   var VIS=visiveis();
   var abertos=VIS.filter(function(l){ return l.etapa!=='GANHO'&&l.etapa!=='PERDIDO'; });
   var ganhos=VIS.filter(function(l){ return l.etapa==='GANHO'; });
@@ -2574,9 +2665,9 @@ function cartaoLead(l, cor){
   var t=tempDe(l);
   var gelo=esfriando(l);
 
-  return '<div class="lc'+(gelo?' gelando':'')+'" draggable="true" data-id="'+esc(l.id)+'" '+
+  return '<div class="lc'+(gelo?' gelando':'')+(ehNovo(l)?' lc-novo':'')+'" draggable="true" data-id="'+esc(l.id)+'" '+
       'style="--cc:'+cor+'" onclick="abrirLead(\''+esc(l.id)+'\')">'+
-    '<div class="lc-emp">'+esc(ldRotulo(l))+'</div>'+
+    '<div class="lc-emp">'+(l.novo===true?'<span class="tag tag-novo" style="margin-right:6px">NOVO</span>':'')+esc(ldRotulo(l))+'</div>'+
     (l.contatoNome?'<div class="lc-sub">'+esc(l.contatoNome)+(l.contatoCargo?' · '+esc(l.contatoCargo):'')+'</div>':'')+
     (prop?'<div class="lc-val">'+esc(prop)+'</div>':'')+
     '<div class="lc-pe">'+
@@ -3472,6 +3563,12 @@ function abrirLead(id){
     '<div style="font-size:12px;color:var(--t3);line-height:1.6">O histórico começa depois que o lead for salvo.</div>';
   erro('ld-erro','');
   cvAbrir(l);
+  /* Abriu a ficha: o lead deixa de piscar para toda a equipe. */
+  if(l&&l.novo===true){
+    l.novo=false; pintar();
+    db.collection('crm_leads').doc(l.id).update({novo:false})
+      .catch(function(e){ console.warn('[CRM] marcar visto:', e.message); });
+  }
   document.getElementById('ov-lead').classList.add('on');
 }
 
