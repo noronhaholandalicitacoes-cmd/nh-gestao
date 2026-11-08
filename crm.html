@@ -1134,6 +1134,8 @@ body.light .fn-l:hover{background:rgba(0,0,0,.02)}
                   <option value="INDICACAO">Indicação</option>
                   <option value="SITE">Site</option>
                   <option value="PROSPECCAO">Prospecção ativa</option>
+                  <option value="WHATSAPP">WhatsApp</option>
+                  <option value="INSTAGRAM">Instagram Direct</option>
                   <option value="OUTRO">Outro</option>
                 </select></div>
               <div class="campo"><label>Previsão de fechamento</label><input type="date" id="ld-prev"></div>
@@ -1450,7 +1452,7 @@ var ATIV_TIPOS={
 };
 var ORIGENS={
   TRAFEGO:'Tráfego pago', VENDEDOR:'Vendedor externo', INDICACAO:'Indicação',
-  SITE:'Site', PROSPECCAO:'Prospecção', OUTRO:'Outro'
+  SITE:'Site', PROSPECCAO:'Prospecção', WHATSAPP:'WhatsApp', INSTAGRAM:'Instagram Direct', OUTRO:'Outro'
 };
 /* Os mesmos três do formulário, escritos por extenso para o impresso —
    "AS_VEZES" numa folha que vai para reunião não diz nada. */
@@ -2108,7 +2110,7 @@ function cxOrigem(){
   var chaves=Object.keys(por).sort(function(a,b){ return por[b].n-por[a].n; });
   var maior=Math.max.apply(null,chaves.map(function(k){return por[k].n;}).concat([1]));
   var CORES={TRAFEGO:'#a855f7',VENDEDOR:'#f97316',INDICACAO:'#22c55e',
-             SITE:'#3b82f6',PROSPECCAO:'#06b6d4',OUTRO:'#8b95a1'};
+             SITE:'#3b82f6',PROSPECCAO:'#06b6d4',WHATSAPP:'#25d366',INSTAGRAM:'#e1306c',OUTRO:'#8b95a1'};
   return '<div class="cx">'+
     '<div class="cx-t">De onde vêm</div>'+
     '<div class="cx-sub">Quantas empresas por origem, e quantas delas viraram cliente. É o que diz onde gastar no mês que vem.</div>'+
@@ -2434,6 +2436,9 @@ function cartaoLead(l, cor){
         /* Hora só quando é hoje: em "daqui a 9 dias" o horário é ruído. */
         ((prox===0&&l.horaProximaAcao)?' às '+esc(l.horaProximaAcao):'')+'</span>':'')+
       (l.origem==='TRAFEGO'?'<span class="tag tag-ori">anúncio</span>':'')+
+      /* Lead que chegou sozinho pela conversa (08/11/2026). */
+      (l.canal==='WHATSAPP'?'<span class="tag" style="background:rgba(37,211,102,.14);color:#25d366">WhatsApp</span>':'')+
+      (l.canal==='INSTAGRAM'?'<span class="tag" style="background:rgba(225,48,108,.14);color:#e1306c" title="'+esc(l.contatoInstagram||'')+'">Instagram</span>':'')+
     '</div>'+
     /* Proposta e pasta a um clique do cartão. stopPropagation porque o
        cartão inteiro abre a ficha: sem isso o clique no link abriria a
