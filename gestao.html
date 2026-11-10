@@ -1299,7 +1299,37 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 .bsc-radar-dica{display:none;font-size:12px;color:var(--t2);line-height:1.55;background:var(--nha);
   border:1px solid rgba(249,115,22,.25);border-radius:9px;padding:10px 12px;margin-bottom:14px}
 .bsc-wrap.modo-radar .bsc-radar-dica{display:block}
-.bsc-wrap.modo-radar .bsc-filtros .bsc-fgrupo:not(:last-child){display:none}
+.bsc-wrap.modo-radar .bsc-filtros .bsc-fgrupo:not(.bsc-fgrupo-radar){display:none}
+/* Coluna do Radar ocupando a altura da tela (10/11/2026): antes o painel
+   tinha 380 px e o resto da coluna ficava vazio ao rolar. */
+.bsc-radar-resumo{display:none}
+@media(min-width:961px){.bsc-wrap.modo-radar .bsc-filtros{display:flex;flex-direction:column;height:calc(100vh - 32px)}}
+@media(max-width:960px){.bsc-wrap.modo-radar .bsc-filtros.aberto{display:flex;flex-direction:column}}
+.bsc-wrap.modo-radar .bsc-radar-dica{padding:8px 11px;margin-bottom:12px}
+.bsc-wrap.modo-radar .bsc-radar-resumo{display:flex;flex-direction:column;gap:16px;flex:1;min-height:0;
+  margin-top:16px;padding-top:16px;border-top:1px solid var(--b1)}
+.rr-tit{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:8px;
+  display:flex;align-items:center;justify-content:space-between}
+.rr-tit button{background:none;border:0;color:var(--nh);font:inherit;font-size:11px;text-transform:none;letter-spacing:0;cursor:pointer;padding:0}
+.rr-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.rr-tile{background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:10px 8px;text-align:center;cursor:pointer;
+  font:inherit;color:var(--t2);transition:border-color .15s}
+.rr-tile:hover{border-color:rgba(249,115,22,.5)}
+.rr-tile b{display:block;font-size:22px;font-weight:800;color:var(--t1);line-height:1.1}
+.rr-tile span{font-size:11px;line-height:1.25;display:block;margin-top:3px}
+.rr-tile.on{border-color:var(--nh);background:var(--nha)}
+.rr-tile.on b{color:var(--nh)}
+.rr-lista{display:flex;flex-direction:column;gap:6px}
+.rr-linha{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;background:none;border:1px solid transparent;
+  border-radius:8px;padding:6px 8px;cursor:pointer;font:inherit;color:var(--t1);text-align:left;font-size:13px}
+.rr-linha:hover{background:var(--s2)}
+.rr-linha.on{border-color:var(--nh);background:var(--nha)}
+.rr-linha i{grid-column:1/-1;height:5px;border-radius:3px;background:var(--b1);overflow:hidden;font-style:normal}
+.rr-linha i em{display:block;height:100%;background:var(--nh);border-radius:3px}
+.rr-linha.itens i em{background:#d97706}
+.rr-linha.objeto i em{background:#22c55e}
+.rr-linha small{color:var(--t3);font-size:12px;font-weight:700}
+.rr-pe{margin-top:auto;font-size:11.5px;color:var(--t3);line-height:1.5}
 /* Por que a licitação apareceu no Radar */
 .bsc-radar-mot{font-size:12.5px;color:var(--t2);margin:2px 0 10px;line-height:1.5}
 .bsc-radar-mot b{color:var(--nh);font-weight:700}
@@ -4774,7 +4804,7 @@ body.light-theme .sb-alertas .sb-item:hover{background:rgba(37,99,235,.07);color
     <!-- ── Refinar (só recortes; palavras ficam no bloco de busca) ── -->
     <div class="bsc-filtros" id="bsc-filtros">
       <div class="bsc-filtros-tit">Refinar resultados</div>
-      <div class="bsc-radar-dica">No Radar, cada busca salva com o <b>&#128225;</b> ligado usa os pr&oacute;prios filtros: palavras, estado, modalidade e valor. Ligue ou desligue em <b>Buscas salvas</b>, aqui embaixo.</div>
+      <div class="bsc-radar-dica">Cada busca com <b>&#128225;</b> ligado roda sozinha no servidor, com os pr&oacute;prios filtros.</div>
 
       <div class="bsc-fgrupo">
         <label class="bsc-flabel">Estado</label>
@@ -4831,10 +4861,13 @@ body.light-theme .sb-alertas .sb-item:hover{background:rgba(37,99,235,.07);color
         <button class="bsc-mini" style="flex:1" onclick="nhSalvarFiltro()">&#128190; Salvar</button>
       </div>
 
-      <div class="bsc-fgrupo" style="border-top:1px solid var(--b1);padding-top:14px;margin-bottom:0">
+      <div class="bsc-fgrupo bsc-fgrupo-radar" style="border-top:1px solid var(--b1);padding-top:14px;margin-bottom:0">
         <label class="bsc-flabel">Buscas salvas</label>
         <div id="bsc-salvos" style="display:flex;flex-direction:column;gap:5px"></div>
       </div>
+      <!-- Resumo do Radar (10/11/2026): ocupa o resto da coluna com números
+           que filtram a lista ao clicar. Só aparece no modo Radar. -->
+      <div class="bsc-radar-resumo" id="bsc-radar-resumo"></div>
     </div>
 
     <!-- ── Resultados ─────────────────────────────────── -->
@@ -15364,7 +15397,12 @@ function _radarSit(e){
   return (t&&t.s)||'nova';
 }
 function _radarAberta(e){var d=_bscPrazo(e);return d===null||d>=0;}
-function _radarFiltrar(lista){
+/* Recortes do resumo da coluna (10/11/2026): por busca, por onde a
+   palavra casou e "chegou hoje". Somam-se aos filtros de situação e prazo. */
+var RADAR_BUSCA='', RADAR_ONDE='', RADAR_HOJE=false;
+function _radarHoje(e){return !!(e.achadoEm&&(Date.now()-Number(e.achadoEm)<24*3600000));}
+function _radarNoObjeto(e){return (e._radar||[]).some(function(c){return c.onde!=='itens';});}
+function _radarBase(lista){
   return lista.filter(function(e){
     if(!_radarAberta(e))return false;
     if(RADAR_FILTRO!=='todas'&&_radarSit(e)!==RADAR_FILTRO)return false;
@@ -15372,8 +15410,63 @@ function _radarFiltrar(lista){
     return true;
   });
 }
+function _radarFiltrar(lista){
+  return _radarBase(lista).filter(function(e){
+    if(RADAR_HOJE&&!_radarHoje(e))return false;
+    if(RADAR_BUSCA&&!(e._radar||[]).some(function(c){return c.nome===RADAR_BUSCA;}))return false;
+    if(RADAR_ONDE){var o=_radarNoObjeto(e);if(RADAR_ONDE==='objeto'?!o:o)return false;}
+    return true;
+  });
+}
 function nhRadarFiltro(v){RADAR_FILTRO=v;_radarPintar();}
 function nhRadarJanela(v){RADAR_JANELA=parseInt(v,10)||0;_radarPintar();}
+function nhRadarBusca(v){RADAR_BUSCA=RADAR_BUSCA===v?'':v;_radarPintar();}
+function nhRadarOnde(v){RADAR_ONDE=RADAR_ONDE===v?'':v;_radarPintar();}
+function nhRadarHoje(){RADAR_HOJE=!RADAR_HOJE;_radarPintar();}
+function nhRadarSete(){RADAR_JANELA=RADAR_JANELA===7?0:7;_radarPintar();}
+function nhRadarLimparRecortes(){RADAR_BUSCA='';RADAR_ONDE='';RADAR_HOJE=false;_radarPintar();}
+
+/* A coluna da esquerda no modo Radar: três números do dia, quanto cada
+   busca trouxe e onde a palavra casou. Tudo clicável — filtra a lista. */
+function _radarResumoPintar(){
+  var el=document.getElementById('bsc-radar-resumo');
+  if(!el)return;
+  var base=_radarBase(RADAR_DADOS);
+  var hoje=base.filter(_radarHoje).length;
+  var sete=RADAR_DADOS.filter(function(e){
+    if(!_radarAberta(e))return false;
+    if(RADAR_FILTRO!=='todas'&&_radarSit(e)!==RADAR_FILTRO)return false;
+    var d=_bscPrazo(e);return d!==null&&d<=7;}).length;
+  var porBusca={};
+  _radarBuscas().forEach(function(b){porBusca[b.nome]=0;});
+  base.forEach(function(e){var vistas={};(e._radar||[]).forEach(function(c){if(vistas[c.nome])return;vistas[c.nome]=1;porBusca[c.nome]=(porBusca[c.nome]||0)+1;});});
+  var nomes=Object.keys(porBusca).sort(function(a,b){return porBusca[b]-porBusca[a];});
+  var maior=Math.max(1,Math.max.apply(null,nomes.map(function(n){return porBusca[n];}).concat([0])));
+  var obj=base.filter(_radarNoObjeto).length, itens=base.length-obj;
+  var rot={nova:'novas',interesse:'com interesse',descartada:'descartadas',capturada:'já no sistema',todas:'no total'}[RADAR_FILTRO]||'';
+  var linha=function(fn,val,atual,nome,qt,max,cls){
+    var pct=Math.round(qt/Math.max(1,max)*100);
+    return '<button class="rr-linha '+(cls||'')+(atual===val?' on':'')+'" onclick="'+fn+'(\''+String(val).replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\')">'+
+      '<span>'+esc0(nome)+'</span><small>'+qt+'</small><i><em style="width:'+pct+'%"></em></i></button>';
+  };
+  var temRecorte=RADAR_BUSCA||RADAR_ONDE||RADAR_HOJE;
+  el.innerHTML=
+    '<div><div class="rr-tit">Hoje no Radar'+(temRecorte?'<button onclick="nhRadarLimparRecortes()">limpar recortes</button>':'')+'</div>'+
+      '<div class="rr-tiles">'+
+        '<button class="rr-tile" onclick="nhRadarFiltro(\'nova\')"><b>'+base.length+'</b><span>'+esc0(rot)+'</span></button>'+
+        '<button class="rr-tile'+(RADAR_HOJE?' on':'')+'" onclick="nhRadarHoje()"><b>'+hoje+'</b><span>chegaram hoje</span></button>'+
+        '<button class="rr-tile'+(RADAR_JANELA===7?' on':'')+'" onclick="nhRadarSete()"><b>'+sete+'</b><span>encerram em 7 dias</span></button>'+
+      '</div></div>'+
+    '<div><div class="rr-tit">Por busca</div><div class="rr-lista">'+
+      (nomes.length?nomes.map(function(n){return linha('nhRadarBusca',n,RADAR_BUSCA,n,porBusca[n],maior,'');}).join('')
+        :'<span style="font-size:12px;color:var(--t3)">Nenhuma busca ligada.</span>')+
+    '</div></div>'+
+    '<div><div class="rr-tit">Onde a palavra casou</div><div class="rr-lista">'+
+      linha('nhRadarOnde','objeto',RADAR_ONDE,'No objeto',obj,Math.max(obj,itens),'objeto')+
+      linha('nhRadarOnde','itens',RADAR_ONDE,'Só nos itens',itens,Math.max(obj,itens),'itens')+
+    '</div></div>'+
+    '<div class="rr-pe">'+(RADAR_EM?'Atualizado às '+new Date(RADAR_EM).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+' · roda sozinho de 2 em 2 horas':'Rodando o Radar…')+'</div>';
+}
 
 /* Contador do menu, subtítulo do canal e — se o Radar está aberto — a
    triagem e a lista. */
@@ -15411,6 +15504,7 @@ function _radarPintar(){
       (RADAR_AVISO?'<br><span style="color:#f59e0b">'+esc0(RADAR_AVISO)+'</span>':'')+
       (RADAR_TRI_ERRO?'<br><span style="color:#ef4444">Triagem indispon&iacute;vel: '+esc0(RADAR_TRI_ERRO)+'</span>':'')
     :'Nenhuma busca no Radar ainda.';
+  _radarResumoPintar();
   BSC_BRUTO=RADAR_DADOS;
   nhRenderResultados();
 }
