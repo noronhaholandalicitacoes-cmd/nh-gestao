@@ -232,21 +232,30 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;min-he
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
 /* ─── MAIN ───────────────────────────────── */
-#main{flex:1;display:flex;flex-direction:column;min-width:0;overflow-x:hidden}
+/* 10/11/2026: overflow-x "clip" (e não "hidden") no #main e no .content.
+   "hidden" transformava os dois em área de rolagem própria, e todo
+   position:sticky de dentro grudava neles — que nunca rolam — em vez de
+   na janela. Era por isso que o painel de filtros do Buscador/Radar
+   sumia ao rolar e deixava um vão enorme à esquerda. "clip" corta igual
+   e não cria área de rolagem. */
+#main{flex:1;display:flex;flex-direction:column;min-width:0;overflow-x:clip}
 
 /* TOPBAR */
 .topbar{
   height:58px;background:var(--s1);
   border-bottom:1px solid var(--b1);
   display:flex;align-items:center;padding:0 28px;gap:16px;
-  position:sticky;top:0;z-index:50;flex-shrink:0;
+  /* Era sticky, mas nunca grudou (pelo overflow acima). Com o clip ela
+     passaria a ficar presa no topo de toda tela; fica como a equipe
+     sempre viu. */
+  position:relative;z-index:50;flex-shrink:0;
 }
 .topbar-info{flex:1}
 .topbar-title{font-size:16px;font-weight:700;color:var(--t1);line-height:1.2}
 .topbar-sub{font-size:12px;color:#94a3b8;margin-top:1px;font-weight:400}
 .topbar-actions{display:flex;gap:8px;align-items:center}
 
-.content{padding:26px 28px 26px 28px;min-width:0;overflow-x:hidden}
+.content{padding:26px 28px 26px 28px;min-width:0;overflow-x:clip}
 .page{display:none;min-width:0}
 .page.on{display:block;animation:fadeUp .22s ease;min-width:0}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
