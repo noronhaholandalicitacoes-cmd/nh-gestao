@@ -1305,23 +1305,32 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
 .bsc-radar-resumo{display:none}
 @media(min-width:961px){.bsc-wrap.modo-radar .bsc-filtros{display:flex;flex-direction:column;height:calc(100vh - 32px)}}
 @media(max-width:960px){.bsc-wrap.modo-radar .bsc-filtros.aberto{display:flex;flex-direction:column}}
-.bsc-wrap.modo-radar .bsc-radar-dica{padding:8px 11px;margin-bottom:12px}
-.bsc-wrap.modo-radar .bsc-radar-resumo{display:flex;flex-direction:column;gap:16px;flex:1;min-height:0;
-  margin-top:16px;padding-top:16px;border-top:1px solid var(--b1)}
-.rr-tit{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:8px;
+.bsc-wrap.modo-radar .bsc-filtros{padding:14px 16px}
+.bsc-wrap.modo-radar .bsc-filtros-tit{margin-bottom:8px}
+.bsc-wrap.modo-radar .bsc-radar-dica{padding:8px 11px;margin-bottom:8px}
+.bsc-wrap.modo-radar .bsc-fgrupo-radar{padding-top:10px!important}
+.bsc-wrap.modo-radar .bsc-radar-resumo{display:flex;flex-direction:column;gap:11px;flex:1;min-height:0;
+  margin-top:10px;padding-top:10px;border-top:1px solid var(--b1)}
+.rr-tit{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:6px;
   display:flex;align-items:center;justify-content:space-between}
 .rr-tit button{background:none;border:0;color:var(--nh);font:inherit;font-size:11px;text-transform:none;letter-spacing:0;cursor:pointer;padding:0}
 .rr-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.rr-tile{background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:10px 8px;text-align:center;cursor:pointer;
+.rr-duas{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rr-tile{background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:6px 4px;text-align:center;cursor:pointer;
   font:inherit;color:var(--t2);transition:border-color .15s}
 .rr-tile:hover{border-color:rgba(249,115,22,.5)}
-.rr-tile b{display:block;font-size:22px;font-weight:800;color:var(--t1);line-height:1.1}
-.rr-tile span{font-size:11px;line-height:1.25;display:block;margin-top:3px}
+.rr-tile b{display:block;font-size:19px;font-weight:800;color:var(--t1);line-height:1.1}
+.rr-tile span{font-size:10.5px;line-height:1.25;display:block;margin-top:1px}
 .rr-tile.on{border-color:var(--nh);background:var(--nha)}
 .rr-tile.on b{color:var(--nh)}
-.rr-lista{display:flex;flex-direction:column;gap:6px}
-.rr-linha{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;background:none;border:1px solid transparent;
-  border-radius:8px;padding:6px 8px;cursor:pointer;font:inherit;color:var(--t1);text-align:left;font-size:13px}
+.rr-obj b{color:#22c55e}
+.rr-itens b{color:#d97706}
+.rr-lista{display:flex;flex-direction:column;gap:2px}
+/* Muitas buscas salvas: a lista rola no próprio espaço, o resto fica no lugar. */
+.rr-sec-busca{flex:1;min-height:0;display:flex;flex-direction:column}
+.rr-sec-busca .rr-lista{overflow-y:auto;min-height:0}
+.rr-linha{display:grid;grid-template-columns:1fr auto;gap:3px 8px;align-items:center;background:none;border:1px solid transparent;
+  border-radius:8px;padding:3px 8px;cursor:pointer;font:inherit;color:var(--t1);text-align:left;font-size:13px}
 .rr-linha:hover{background:var(--s2)}
 .rr-linha.on{border-color:var(--nh);background:var(--nha)}
 .rr-linha i{grid-column:1/-1;height:5px;border-radius:3px;background:var(--b1);overflow:hidden;font-style:normal}
@@ -15457,15 +15466,14 @@ function _radarResumoPintar(){
         '<button class="rr-tile'+(RADAR_HOJE?' on':'')+'" onclick="nhRadarHoje()"><b>'+hoje+'</b><span>chegaram hoje</span></button>'+
         '<button class="rr-tile'+(RADAR_JANELA===7?' on':'')+'" onclick="nhRadarSete()"><b>'+sete+'</b><span>encerram em 7 dias</span></button>'+
       '</div></div>'+
-    '<div><div class="rr-tit">Por busca</div><div class="rr-lista">'+
+    '<div class="rr-sec-busca"><div class="rr-tit">Por busca</div><div class="rr-lista">'+
       (nomes.length?nomes.map(function(n){return linha('nhRadarBusca',n,RADAR_BUSCA,n,porBusca[n],maior,'');}).join('')
         :'<span style="font-size:12px;color:var(--t3)">Nenhuma busca ligada.</span>')+
     '</div></div>'+
-    '<div><div class="rr-tit">Onde a palavra casou</div><div class="rr-lista">'+
-      linha('nhRadarOnde','objeto',RADAR_ONDE,'No objeto',obj,Math.max(obj,itens),'objeto')+
-      linha('nhRadarOnde','itens',RADAR_ONDE,'Só nos itens',itens,Math.max(obj,itens),'itens')+
-    '</div></div>'+
-    '<div class="rr-pe">'+(RADAR_EM?'Atualizado às '+new Date(RADAR_EM).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+' · roda sozinho de 2 em 2 horas':'Rodando o Radar…')+'</div>';
+    '<div><div class="rr-tit">Onde a palavra casou</div><div class="rr-duas">'+
+      '<button class="rr-tile rr-obj'+(RADAR_ONDE==='objeto'?' on':'')+'" onclick="nhRadarOnde(\'objeto\')"><b>'+obj+'</b><span>no objeto</span></button>'+
+      '<button class="rr-tile rr-itens'+(RADAR_ONDE==='itens'?' on':'')+'" onclick="nhRadarOnde(\'itens\')"><b>'+itens+'</b><span>s&oacute; nos itens</span></button>'+
+    '</div></div>';
 }
 
 /* Contador do menu, subtítulo do canal e — se o Radar está aberto — a
