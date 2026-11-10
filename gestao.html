@@ -1300,6 +1300,8 @@ body.light-theme #login-screen.nh-acesso{background:var(--bg)!important}
   border:1px solid rgba(249,115,22,.25);border-radius:9px;padding:10px 12px;margin-bottom:14px}
 .bsc-wrap.modo-radar .bsc-radar-dica{display:block}
 .bsc-wrap.modo-radar .bsc-filtros .bsc-fgrupo:not(.bsc-fgrupo-radar){display:none}
+/* Limpar/Salvar agem nos filtros do Buscador, escondidos no Radar. */
+.bsc-wrap.modo-radar .bsc-fgrupo-acoes{display:none!important}
 /* Coluna do Radar ocupando a altura da tela (10/11/2026): antes o painel
    tinha 380 px e o resto da coluna ficava vazio ao rolar. */
 .bsc-radar-resumo{display:none}
@@ -4865,7 +4867,7 @@ body.light-theme .sb-alertas .sb-item:hover{background:rgba(37,99,235,.07);color
         <label class="bsc-chk"><input type="checkbox" id="bsc-favoritos"> Somente favoritos</label>
       </div>
 
-      <div class="bsc-fgrupo" style="display:flex;gap:6px">
+      <div class="bsc-fgrupo bsc-fgrupo-acoes" style="display:flex;gap:6px">
         <button class="bsc-mini" style="flex:1" onclick="nhLimparFiltros()">Limpar</button>
         <button class="bsc-mini" style="flex:1" onclick="nhSalvarFiltro()">&#128190; Salvar</button>
       </div>
