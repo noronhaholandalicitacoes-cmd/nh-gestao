@@ -19130,8 +19130,13 @@ async function _chatAtivar(chave, emp, titulo, portal){
   document.getElementById('nh-chat-ativar').style.display = 'none';
   try{ if(window.Notification && Notification.permission === 'default') Notification.requestPermission(); }catch(_e){}
   if(r && r.ok){
-    toast(url ? '💬 Monitorando. Entre no portal na aba que abriu — se pedir login, faça normalmente.'
-              : '💬 Monitoramento registrado. Abra o chat no portal e vincule a aba pelo ícone da extensão.', 'ok');
+    /* Compras.gov (10/11/2026): a página pública vive pedindo captcha ou
+       dizendo "não encontrada". O caminho que funciona é a área logada —
+       e a extensão 1.3.1 reconhece essa aba sozinha pelo nº do pregão. */
+    toast(/cnetmobile\.|compras\.gov|comprasnet\./i.test(url||'')
+      ? '💬 Monitorando. No Compras.gov, entre com o seu login e abra o pregão (acompanhamento ou sala de disputa): o monitor reconhece a aba sozinho e lê as mensagens.'
+      : url ? '💬 Monitorando. Entre no portal na aba que abriu — se pedir login, faça normalmente.'
+            : '💬 Monitoramento registrado. Abra o chat no portal e vincule a aba pelo ícone da extensão.', 'ok');
   } else {
     toast('Monitoramento registrado, mas a extensão não respondeu — instale-a para o chat ser lido.', 'info');
   }
