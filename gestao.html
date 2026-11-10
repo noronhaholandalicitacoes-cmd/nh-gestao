@@ -15635,9 +15635,9 @@ function nhCapturarLote(){
    devolve. Só sugere — o usuário troca no select se quiser. */
 var PORTAL_DOMINIOS=[
   ["comprasnet.gov.br","Compras Gov"],["compras.gov.br","Compras Gov"],
-  ["gov.br/compras","Compras Gov"],["bll.org.br","BLL"],["bllcompras","BLL"],
+  ["gov.br/compras","Compras Gov"],["cnetmobile.estaleiro.serpro","Compras Gov"],["bll.org.br","BLL"],["bllcompras","BLL"],
   ["licitanet","LICITANET"],["conlicitacao","CONLICITACAO"],
-  ["bnccompras","BNC"],["bnc.org.br","BNC"],["publinexo","Publinexo"],
+  ["bnccompras","BNC"],["bnc.org.br","BNC"],["publinexo","Publinexo"],["bionexo","Publinexo"],
   ["peintegrado","PE-Integrado"],["pe-integrado","PE-Integrado"],
   ["portaldecompraspublicas","Compras Públicas"],["comprarbem","Compras Públicas"],
   ["apoiocotacoes","Apoio Cotações"],["licitardigital","Licitar Digital"],
@@ -18751,7 +18751,7 @@ function _chatSincronizarExt(){
   _chatSyncTimer = setTimeout(function(){
     if(!_chatExt || !CHAT_MON) return;
     var lista = Object.keys(CHAT_MON).filter(function(k){
-      var x = CHAT_MON[k]; if(!(x && x.ativo && x.url) || (typeof chatLeitorDireto === 'function' && chatLeitorDireto(x.url))) return false;
+      var x = CHAT_MON[k]; if(!(x && x.ativo && (x.url || x.portal)) || (x.url && typeof chatLeitorDireto === 'function' && chatLeitorDireto(x.url))) return false;
       /* Pregão cuja sessão (data no título, "23.09.2026") passou há mais de
          15 dias não precisa mais ser reconhecido: recurso e homologação
          já correram. */
@@ -18759,7 +18759,7 @@ function _chatSincronizarExt(){
       return !d || (Date.now() - new Date(+d[3], +d[2] - 1, +d[1]).getTime()) < 15 * 86400000;
     }).map(function(k){
       var x = CHAT_MON[k], ids = x.ids || {termos: [], cnpj: ''};
-      return {chave: k, url: x.url, titulo: (x.empresa ? x.empresa + ' · ' : '') + (x.titulo || ''),
+      return {chave: k, url: x.url || '', portal: x.portal || '', titulo: (x.empresa ? x.empresa + ' · ' : '') + (x.titulo || ''),
         palavras: (ids.termos || []).concat(ids.cnpj ? [ids.cnpj] : []).concat(x.palavras || [])};
     });
     _chatPedir('sincronizar', {lista: lista});
@@ -19125,7 +19125,7 @@ async function _chatAtivar(chave, emp, titulo, portal){
   }
   /* A extensão recebe a empresa e o CNPJ junto com as palavras: com o
      gestão fechado, é ela quem decide se vale a notificação do Windows. */
-  var r = await _chatPedir('monitorar', {chave: chave, url: url, titulo: (emp ? emp + ' · ' : '') + (titulo||''),
+  var r = await _chatPedir('monitorar', {chave: chave, url: url, portal: portal || '', titulo: (emp ? emp + ' · ' : '') + (titulo||''),
     palavras: ids.termos.concat(ids.cnpj ? [ids.cnpj] : []).concat(extras)});
   document.getElementById('nh-chat-ativar').style.display = 'none';
   try{ if(window.Notification && Notification.permission === 'default') Notification.requestPermission(); }catch(_e){}
@@ -19136,7 +19136,7 @@ async function _chatAtivar(chave, emp, titulo, portal){
     toast(/cnetmobile\.|compras\.gov|comprasnet\./i.test(url||'')
       ? '💬 Monitorando. No Compras.gov, entre com o seu login e abra o pregão (acompanhamento ou sala de disputa): o monitor reconhece a aba sozinho e lê as mensagens.'
       : url ? '💬 Monitorando. Entre no portal na aba que abriu — se pedir login, faça normalmente.'
-            : '💬 Monitoramento registrado. Abra o chat no portal e vincule a aba pelo ícone da extensão.', 'ok');
+            : '💬 Monitoramento registrado. Entre no portal com o seu login e abra o pregão: o monitor reconhece a aba sozinho (se houver mais de um pregão do mesmo portal, vincule pelo ícone NH).', 'ok');
   } else {
     toast('Monitoramento registrado, mas a extensão não respondeu — instale-a para o chat ser lido.', 'info');
   }
@@ -19181,7 +19181,7 @@ async function chatParar(chave){
 
 function chatReabrirAba(chave){
   var mon = CHAT_MON[chave]; if(!mon) return;
-  _chatPedir('monitorar', {chave: chave, url: mon.url||'', titulo: (mon.empresa ? mon.empresa + ' · ' : '') + (mon.titulo||''),
+  _chatPedir('monitorar', {chave: chave, url: mon.url||'', portal: mon.portal||'', titulo: (mon.empresa ? mon.empresa + ' · ' : '') + (mon.titulo||''),
     palavras: (mon.ids ? mon.ids.termos.concat(mon.ids.cnpj ? [mon.ids.cnpj] : []) : []).concat(mon.palavras||[])})
     .then(function(r){ if(!r) toast('A extensão não respondeu. Ela está instalada neste navegador?', 'err'); });
 }
@@ -19801,7 +19801,30 @@ async function _chatAcharLinkPortal(chave, urlCard){
   if(!info.portal || _chatEhPCP(info.portal)){
     try{ var pcp = await _chatBuscarPCP(info.titulo); if(pcp) return pcp; }catch(_e){}
   }
-  try{ return await _chatBuscarPNCP(info.titulo, _chatObjetoDaChave(chave)); }catch(_e){ return ''; }
+  var achado = '';
+  try{ achado = await _chatBuscarPNCP(info.titulo, _chatObjetoDaChave(chave)); }catch(_e){ achado = ''; }
+  return _chatLinkDoPortal(achado, info.portal) ? achado : '';
+}
+
+/* ⚠️ 10/11/2026 — o link achado TEM de ser do portal do card.
+   A busca no PNCP casa pelo número e pela cidade do título; no PE
+   501.2026 de Fortaleza (VISE, portal Publinexo) ela trouxe o Pregão
+   501/2026 do Governo do Ceará, no Compras.gov — outro processo, com o
+   mesmo número. A extensão abriu o portal errado. Agora, se o card diz
+   o portal e o link é de outro portal conhecido, o link é descartado e a
+   pessoa cola o certo. Portal em branco ou desconhecido: aceita. */
+function _chatPortalDoLink(url){
+  var u = String(url||'').toLowerCase();
+  if(!u) return '';
+  for(var i = 0; i < PORTAL_DOMINIOS.length; i++) if(u.indexOf(PORTAL_DOMINIOS[i][0]) >= 0) return PORTAL_DOMINIOS[i][1];
+  return '';
+}
+function _chatLinkDoPortal(url, portalCard){
+  if(!url) return false;
+  var norm = function(s){ return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z]/g,''); };
+  var pc = norm(portalCard), pl = norm(_chatPortalDoLink(url));
+  if(!pc || !pl) return true;
+  return pc === pl;
 }
 
 /** Portal e título de um card. O portal às vezes só foi preenchido numa
