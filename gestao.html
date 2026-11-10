@@ -18752,11 +18752,12 @@ function _chatSincronizarExt(){
     if(!_chatExt || !CHAT_MON) return;
     var lista = Object.keys(CHAT_MON).filter(function(k){
       var x = CHAT_MON[k]; if(!(x && x.ativo && (x.url || x.portal)) || (x.url && typeof chatLeitorDireto === 'function' && chatLeitorDireto(x.url))) return false;
-      /* Pregão cuja sessão (data no título, "23.09.2026") passou há mais de
-         15 dias não precisa mais ser reconhecido: recurso e homologação
-         já correram. */
-      var d = String(x.titulo || '').match(/(\d{2})[.\/](\d{2})[.\/](\d{4})/);
-      return !d || (Date.now() - new Date(+d[3], +d[2] - 1, +d[1]).getTime()) < 15 * 86400000;
+      /* Todo pregão ativo vai, por mais antiga que seja a data do título:
+         a sessão é reaberta semanas depois (PE 68 de Parnamirim, título
+         "21.10.2026", sessão reaberta em 10/11). Corte por data, que
+         existiu de 08 a 10/11, deixava esse pregão de fora. Quem encerra
+         é o botão Parar. */
+      return true;
     }).map(function(k){
       var x = CHAT_MON[k], ids = x.ids || {termos: [], cnpj: ''};
       return {chave: k, url: x.url || '', portal: x.portal || '', titulo: (x.empresa ? x.empresa + ' · ' : '') + (x.titulo || ''),
