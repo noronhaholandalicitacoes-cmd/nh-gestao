@@ -18873,11 +18873,101 @@ function _chatSincronizarExt(){
       return true;
     }).map(function(k){
       var x = CHAT_MON[k], ids = x.ids || {termos: [], cnpj: ''};
-      return {chave: k, url: x.url || '', portal: x.portal || '', titulo: (x.empresa ? x.empresa + ' · ' : '') + (x.titulo || ''),
+      return {chave: k, url: x.url || '', portal: _chatPortalParaExt(x.portal || ''), titulo: (x.empresa ? x.empresa + ' · ' : '') + (x.titulo || ''),
+        empresa: {nome: x.empresa || '', termos: ids.termos || [], cnpj: ids.cnpj || ''},
         palavras: (ids.termos || []).concat(ids.cnpj ? [ids.cnpj] : []).concat(x.palavras || [])};
     });
+    if(_chatExtAntiga()) lista = lista.concat(_chatTravas());
     _chatPedir('sincronizar', {lista: lista});
+    _chatSoltarChutes();
   }, 800);
+}
+
+/* ⚠️ VAZAMENTO ENTRE EMPRESAS — 11/11/2026.
+   A extensão 1.3.2 ligava QUALQUER aba de um portal ao pregão quando só
+   havia UM pregão daquele portal em monitoramento. A proposta da VISE
+   cadastrada no BNC caiu no chat da RECCONM (e-740, único pregão BNC):
+   192 registros de telas de busca e de proposta no card errado.
+   A 1.3.3 não faz mais isso. Enquanto houver computador na 1.3.2 (a loja
+   leva dias para aprovar), o gestão desarma o chute de lá:
+     - não manda o portal (o chute dos pregões sem link usava ele);
+     - manda duas "travas" por portal — com dois candidatos a 1.3.2 nunca
+       chuta (as travas não gravam nada: chave sem pregão é descartada);
+     - solta os vínculos que podem ter sido chute (abas fora do Compras.gov);
+     - e o chatReceber confere o endereço de cada mensagem. */
+function _chatVersaoNum(v){
+  var p = String(v||'0').split('.').map(function(n){ return parseInt(n,10)||0; });
+  return (p[0]||0)*1e6 + (p[1]||0)*1e3 + (p[2]||0);
+}
+function _chatExtAntiga(){ return !!_chatExt && _chatVersaoNum(_chatExt.versao) < _chatVersaoNum('1.3.3'); }
+function _chatPortalParaExt(portal){ return _chatExtAntiga() ? '' : portal; }
+var _CHAT_HOSTS_TRAVA = ['bnccompras.com','bllcompras.com','licitardigital.com.br','licitanet.com.br','peintegrado.pe.gov.br',
+  'licitacoes-e.com.br','pregaobanrisul.com.br','publinexo.bionexo.com','apoiocotacoes.com.br'];
+function _chatTravas(){
+  var out = [];
+  _CHAT_HOSTS_TRAVA.forEach(function(h){
+    [1, 2].forEach(function(n){
+      out.push({chave: '_trava_' + h.replace(/\W/g,'') + '_' + n, trava: true, url: 'https://' + h + '/#nh-trava-' + n,
+        portal: '', titulo: '🔒 trava de segurança (não use)', palavras: []});
+    });
+  });
+  return out;
+}
+var _chatChutesSoltos = false;
+function _chatSoltarChutes(){
+  if(_chatChutesSoltos || !_chatExtAntiga()) return;
+  _chatChutesSoltos = true;
+  _chatPedir('situacao').then(function(r){
+    if(!r || !r.abertas) return;
+    Object.keys(r.abertas).forEach(function(k){
+      var mon = CHAT_MON[k], u = String((mon && mon.url) || '');
+      /* Compras.gov liga por número (não por chute): fica. O resto sai;
+         quem precisar abre de novo pelo card. */
+      if(mon && /cnetmobile\.|compras\.gov|comprasnet\./i.test(u)) return;
+      _chatPedir('parar', {chave: k}).then(function(){ _chatSincronizarExt(); });
+    });
+  });
+}
+
+/* Conferência de cada mensagem vinda da extensão, ANTES de gravar. */
+var _CHAT_PAG_LISTA = /search|pesquisa|busca|consulta|listagem|\/lista|proposal|proposta|cadastr/i;
+function _chatIdsDaUrl(u){
+  u = String(u||''); var out = [], m;
+  if((m = u.match(/[?&]compra=(\d{6,})/i))){ out.push('compra:' + m[1]); if(m[1].length === 17) out.push('ne:' + Number(m[1].slice(8,13)) + '/' + m[1].slice(13)); }
+  if((m = u.match(/\/compras?\/(\d{8,})(?:[/?#]|$)/i))) out.push('compra:' + m[1]);
+  if((m = u.match(/[?&]param1=([^&#]+)/i))){ var v = m[1]; try{ v = decodeURIComponent(v); }catch(_e){} if(v !== '0') out.push('param1:' + v); }
+  if((m = u.match(/[?&](?:idLicitacao|licitacao|processo|id)=(\d{4,})/i))) out.push('id:' + m[1]);
+  return out;
+}
+function _chatNeDoTitulo(t){
+  var m = String(t||'').match(/(\d{1,5})\s*[.\/]\s*(20\d{2})/);
+  return m ? 'ne:' + Number(m[1]) + '/' + m[2] : '';
+}
+/** '' = pode gravar; senão, o motivo da recusa. */
+function _chatMotivoRecusa(n){
+  var mon = CHAT_MON[n.chave];
+  if(!mon) return 'pregão não monitorado';
+  if(!mon.ativo) return 'monitoramento parado';
+  if(n.empresa && mon.empresa && _chatSemAcento(n.empresa) !== _chatSemAcento(mon.empresa)) return 'empresa diferente';
+  var u = String(n.url||'');
+  if(!u) return 'sem endereço';
+  var caminho = ''; try{ caminho = new URL(u).pathname; }catch(_e){ return 'endereço inválido'; }
+  if(_CHAT_PAG_LISTA.test(caminho)) return 'tela de busca/proposta';
+  var portalMon = mon.portal || _chatPortalDoLink(mon.url);
+  if(!_chatPortalDoLink(u) || !_chatLinkDoPortal(u, portalMon)) return 'outro portal';
+  /* Extensão 1.3.3 confere o vínculo a cada remessa (marca "via"). Da
+     1.3.2 para trás, só aceita se o endereço provar o processo. */
+  if(n.via) return '';
+  var semH = function(x){ return String(x||'').split('#')[0]; };
+  if(mon.url){
+    if(semH(u) === semH(mon.url)) return '';
+    var a = _chatIdsDaUrl(u), b = _chatIdsDaUrl(mon.url);
+    if(a.some(function(i){ return b.indexOf(i) >= 0; })) return '';
+    var ne = a.filter(function(i){ return i.indexOf('ne:') === 0; })[0];
+    if(ne && /cnetmobile\.|compras\.gov|comprasnet\./i.test(u) && _chatNeDoTitulo(mon.titulo) === ne) return '';
+    return 'endereço de outro processo';
+  }
+  return 'versão antiga da extensão sem como provar o processo';
 }
 
 /* ── Firestore ─────────────────────────────────────────────────────── */
@@ -18961,6 +19051,17 @@ async function chatReceber(itens, opc){
   if(opc && opc.direto){
     novos = novos.filter(function(i){ return CHAT_MON[i.chave]; });
     if(!novos.length) return;
+  } else {
+    var recusados = {};
+    novos = novos.filter(function(i){
+      var mot = _chatMotivoRecusa(i);
+      if(mot){ recusados[mot] = (recusados[mot]||0) + 1; return false; }
+      return true;
+    });
+    if(Object.keys(recusados).length) console.warn('[chat] recusadas pela conferência:', JSON.stringify(recusados));
+    /* Recusadas também são confirmadas: a extensão tira da fila e não
+       manda de novo. */
+    if(!novos.length){ _chatPedir('confirmar', {ids: itens.map(function(i){ return i.chave + '|' + i.id; })}); return; }
   }
   var quem = (auth.currentUser && auth.currentUser.email) || '';
   try{
@@ -19239,7 +19340,8 @@ async function _chatAtivar(chave, emp, titulo, portal){
   }
   /* A extensão recebe a empresa e o CNPJ junto com as palavras: com o
      gestão fechado, é ela quem decide se vale a notificação do Windows. */
-  var r = await _chatPedir('monitorar', {chave: chave, url: url, portal: portal || '', titulo: (emp ? emp + ' · ' : '') + (titulo||''),
+  var r = await _chatPedir('monitorar', {chave: chave, url: url, portal: _chatPortalParaExt(portal || ''), titulo: (emp ? emp + ' · ' : '') + (titulo||''),
+    empresa: {nome: emp || '', termos: ids.termos, cnpj: ids.cnpj},
     palavras: ids.termos.concat(ids.cnpj ? [ids.cnpj] : []).concat(extras)});
   document.getElementById('nh-chat-ativar').style.display = 'none';
   try{ if(window.Notification && Notification.permission === 'default') Notification.requestPermission(); }catch(_e){}
@@ -19295,7 +19397,8 @@ async function chatParar(chave){
 
 function chatReabrirAba(chave){
   var mon = CHAT_MON[chave]; if(!mon) return;
-  _chatPedir('monitorar', {chave: chave, url: mon.url||'', portal: mon.portal||'', titulo: (mon.empresa ? mon.empresa + ' · ' : '') + (mon.titulo||''),
+  _chatPedir('monitorar', {chave: chave, url: mon.url||'', portal: _chatPortalParaExt(mon.portal||''), titulo: (mon.empresa ? mon.empresa + ' · ' : '') + (mon.titulo||''),
+    empresa: {nome: mon.empresa || '', termos: (mon.ids && mon.ids.termos) || [], cnpj: (mon.ids && mon.ids.cnpj) || ''},
     palavras: (mon.ids ? mon.ids.termos.concat(mon.ids.cnpj ? [mon.ids.cnpj] : []) : []).concat(mon.palavras||[])})
     .then(function(r){ if(!r) toast('A extensão não respondeu. Ela está instalada neste navegador?', 'err'); });
 }
