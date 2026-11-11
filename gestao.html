@@ -19397,7 +19397,18 @@ function chatPintarPainel(){
         '</div></div>' +
       /* O link é achado sozinho (PNCP, 05/10/2026). Colar à mão virou o
          último recurso, recolhido, só quando a busca não conseguiu. */
-      (mon.ativo && !direto && !mon.url
+      /* 11/11/2026: portal só com login (Publinexo, Apoio Cotações, BLL,
+         BNC, Licitanet…) não tem link público para achar — e a extensão
+         1.3.2 reconhece a aba pelo portal, sem link. Para esses, em vez de
+         "não achei", diz o que fazer. */
+      (mon.ativo && !direto && !mon.url && mon.portal && !_chatEhPCP(mon.portal) && !/compras\s*gov/i.test(mon.portal)
+        ? '<div class="chat-aviso" style="margin:10px 16px 0"><b>Como ler este chat:</b> entre no <b>' + esc0(mon.portal) + '</b> com o seu login ' +
+            'e abra este processo. A extensão NH Monitor de Chat reconhece a aba sozinha e as mensagens começam a aparecer aqui.' +
+            (_chatExt ? '' : '<br><span style="color:#f87171">A extensão não está ativa neste navegador.</span>') +
+            '<details style="margin-top:8px"><summary style="cursor:pointer">Tem mais de um pregão neste portal? Cole o link</summary>' +
+            '<div style="display:flex;gap:8px;margin-top:8px"><input id="chat-link-painel" class="chat-in" style="flex:1" placeholder="https://…">' +
+            '<button class="btn btn-nh" onclick="chatSalvarLink(\'' + sel + '\')">Salvar link</button></div></details></div>'
+      : mon.ativo && !direto && !mon.url
         ? (_chatLinkTentado[sel] === 'falhou'
             ? '<div class="chat-aviso" style="margin:10px 16px 0"><b>Não achei este processo sozinho.</b> ' +
                 'Confira se o título do card tem número/ano, cidade, UF e a data da sessão (ex.: "PE 17.2026 - João Pessoa - PB - 10.08.2026 as 09h").' +
