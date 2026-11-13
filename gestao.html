@@ -18955,6 +18955,15 @@ function _chatMotivoRecusa(n){
   if(_CHAT_PAG_LISTA.test(caminho)) return 'tela de busca/proposta';
   var portalMon = mon.portal || _chatPortalDoLink(mon.url);
   if(!_chatPortalDoLink(u) || !_chatLinkDoPortal(u, portalMon)) return 'outro portal';
+  /* BNC (13/11/2026): a tela do processo tem Notificações, Esclarecimentos,
+     Arquivos e Lotes no MESMO endereço, todos com data — a 1.3.3 gravava
+     essas listas como se fossem chat ("LOTE 1: O detentor da melhor
+     oferta…"). Só vale o que a 1.3.4 tirou da tabela "Mensagens do
+     processo". */
+  if(/bnccompras\.com|bnc\.org\.br/i.test(u) && n.fonte !== 'bnc-msgprocess') return 'BNC fora da janela de mensagens';
+  if(/©/.test(String(n.texto||''))) return 'não é mensagem';
+  var letras = String(n.texto||'').replace(/\d{2}\/\d{2}\/\d{4}/g,' ').replace(/\d{2}:\d{2}(:\d{2})?/g,' ').match(/[A-Za-zÀ-ÿ]/g);
+  if(!letras || letras.length < 3) return 'não é mensagem';
   /* Extensão 1.3.3 confere o vínculo a cada remessa (marca "via"). Da
      1.3.2 para trás, só aceita se o endereço provar o processo. */
   if(n.via) return '';
