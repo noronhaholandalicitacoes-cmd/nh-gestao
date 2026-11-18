@@ -18964,16 +18964,24 @@ function _chatMotivoRecusa(n){
   if(/©/.test(String(n.texto||''))) return 'não é mensagem';
   var letras = String(n.texto||'').replace(/\d{2}\/\d{2}\/\d{4}/g,' ').replace(/\d{2}:\d{2}(:\d{2})?/g,' ').match(/[A-Za-zÀ-ÿ]/g);
   if(!letras || letras.length < 3) return 'não é mensagem';
+  /* ⚠️ COMPRAS.GOV: O NÚMERO DA COMPRA MANDA — 18/11/2026.
+     O PE 62/2026 de Caruaru (UASG 926809) caiu no pregão da RECCONM em
+     João Pessoa (PE 62/2026, UASG 925302): a extensão casava só o
+     nº/ano. Se o card e a aba têm o id da compra, eles têm de ser o
+     MESMO (id longo) ou, com o id curto do card, do MESMO órgão (UASG). */
+  var idA = (u.match(/[?&]compra=(\d{6,})/i)||[])[1]||'', idM = (String(mon.url||'').match(/[?&]compra=(\d{6,})/i)||[])[1]||'';
+  if(idA && idM){
+    if(idM.length === 17 && idA !== idM) return 'outro processo do Compras.gov';
+    if(idM.length !== 17 && idA.slice(0,6) !== idM.slice(0,6)) return 'outro órgão do Compras.gov';
+  }
   /* Extensão 1.3.3 confere o vínculo a cada remessa (marca "via"). Da
      1.3.2 para trás, só aceita se o endereço provar o processo. */
   if(n.via) return '';
   var semH = function(x){ return String(x||'').split('#')[0]; };
   if(mon.url){
     if(semH(u) === semH(mon.url)) return '';
-    var a = _chatIdsDaUrl(u), b = _chatIdsDaUrl(mon.url);
+    var a = _chatIdsDaUrl(u).filter(function(i){ return i.indexOf('ne:') !== 0; }), b = _chatIdsDaUrl(mon.url);
     if(a.some(function(i){ return b.indexOf(i) >= 0; })) return '';
-    var ne = a.filter(function(i){ return i.indexOf('ne:') === 0; })[0];
-    if(ne && /cnetmobile\.|compras\.gov|comprasnet\./i.test(u) && _chatNeDoTitulo(mon.titulo) === ne) return '';
     return 'endereço de outro processo';
   }
   return 'versão antiga da extensão sem como provar o processo';
@@ -19529,6 +19537,7 @@ function chatPintarPainel(){
                 '<button class="btn btn-nh" onclick="chatSalvarLink(\'' + sel + '\')">Salvar link</button></div></details></div>'
             : '<div class="chat-aviso" style="margin:10px 16px 0">🔎 Procurando o processo no portal pelo PNCP… em segundos o chat começa a ser lido.</div>')
         : '') +
+      (mon.ativo && !direto ? _chatLeituraAgora(sel, mon) : '') +
       '<div class="chat-msgs">' + (msgs.length ? msgs.map(function(x){
         return '<div class="chat-msg ' + x.nivel + (x.ts > lido && !x.historico ? ' nova' : '') + '">' +
           '<div class="chat-msg-cab"><b>' + esc0(x.autor || 'Pregoeiro') + '</b>' +
@@ -20284,8 +20293,72 @@ function nhLimparCards(tab){
     card.setAttribute('data-limpo', '1');
     try{ _kcMenuAcoes(card, tab); }catch(e){ console.warn('[cards] menu', e); }
     try{ if(tab === 'editais') _kcFerramentas(card, tab); }catch(e){ console.warn('[cards] ferramentas', e); }
+    try{ if(tab === 'andamento') _kcPortalDisputa(card); }catch(e){ console.warn('[cards] portal', e); }
   });
   try{ if(typeof _chatAtualizarCards === 'function') _chatAtualizarCards(); }catch(_e){}
+}
+
+/* ⚠️ PORTAL = BOTÃO PARA A DISPUTA — 18/11/2026.
+   Pedido: em Em Andamento, o campo Portal "tem que ser um botão clicável
+   que segue a mesma lógica do chat: ao clicar, já leva direto para a
+   disputa". Mesmo link que o monitor de chat usa:
+     1. o processo tem chat monitorado → abre o link dele; no Compras.gov
+        abre a área LOGADA do pregão (de lá se entra na sala de disputa) —
+        e a extensão reconhece a aba pelo número da compra e lê o chat;
+     2. sem link → abre o portal cadastrado e copia o login da empresa.
+   O seletor continua lá para trocar o portal (lápis ✎). */
+function _nhLinkDisputa(row){
+  var id = String(row && row[0] || '').trim();
+  var chaves = ['a-' + id];
+  try{ var el = nhFichaElos('andamento', id); (el && el.chaves || []).forEach(function(c){ if(chaves.indexOf(c) < 0) chaves.push(c); }); }catch(_e){}
+  for(var i = 0; i < chaves.length; i++){
+    var m = (typeof CHAT_MON !== 'undefined') ? CHAT_MON[chaves[i]] : null;
+    var u = String(m && m.url || '').trim();
+    if(!u) continue;
+    var cg = u.match(/^https:\/\/cnetmobile\.estaleiro\.serpro\.gov\.br\/.*[?&]compra=(\d{17})/i);
+    if(cg) return {url: 'https://cnetmobile.estaleiro.serpro.gov.br/comprasnet-web/seguro/fornecedor/acompanhamento-compra?compra=' + cg[1], chave: chaves[i]};
+    if(/^https:\/\//i.test(u)) return {url: u, chave: chaves[i]};
+  }
+  return null;
+}
+async function nhIrParaDisputa(idx){
+  var row = (FIL.andamento || [])[idx];
+  if(!row) return;
+  var portal = String(row[9] || '').trim(), emp = String(row[2] || '').trim();
+  var l = _nhLinkDisputa(row);
+  if(l){
+    /* Login da empresa na área de transferência, como no botão do edital. */
+    try{
+      var cred = portal ? await _nhCredPortal(portal, emp) : null;
+      if(cred && cred.login && navigator.clipboard) await navigator.clipboard.writeText(cred.login);
+      toast('Abrindo a disputa' + (cred && cred.login ? ' — login de ' + emp + ' copiado' : ''), 'ok');
+    }catch(_e){}
+    window.open(l.url, '_blank', 'noopener');
+    return;
+  }
+  if(!portal){ toast('Escolha o portal deste processo (✎ ao lado)', 'err'); return; }
+  nhAbrirPortalEdital(portal, emp);
+}
+function _kcPortalDisputa(card){
+  var m = String(card.id || '').match(/^row-andamento-(\d+)$/); if(!m) return;
+  var sel = card.querySelector('select[id$="-9"][id^="ic-andamento-"]'); if(!sel) return;
+  var campo = sel.closest('.kfield'); if(!campo || campo.querySelector('.kc-portal-bt')) return;
+  var idx = +m[1], row = (FIL.andamento || [])[idx]; if(!row) return;
+  var portal = String(row[9] || '').trim();
+  var temLink = !!_nhLinkDisputa(row);
+  var bt = document.createElement('button');
+  bt.type = 'button';
+  bt.className = 'kc-portal-bt' + (temLink ? ' direto' : '');
+  bt.title = temLink ? 'Abre a disputa deste pregão no portal (e copia o login da empresa)' : 'Abre o portal e copia o login da empresa';
+  bt.innerHTML = (portal ? _kcEsc(portal) : 'Escolher portal') + ' <span>' + (temLink ? 'ir à disputa ↗' : '↗') + '</span>';
+  bt.addEventListener('click', function(ev){ ev.stopPropagation(); if(!portal){ ed.click(); return; } nhIrParaDisputa(idx); });
+  var ed = document.createElement('button');
+  ed.type = 'button'; ed.className = 'kc-portal-ed'; ed.title = 'Trocar o portal'; ed.textContent = '✎';
+  ed.addEventListener('click', function(ev){ ev.stopPropagation(); var vis = sel.style.display === 'none'; sel.style.display = vis ? '' : 'none'; if(vis) sel.focus(); });
+  sel.style.display = 'none';
+  var linha = document.createElement('div'); linha.className = 'kc-portal-linha';
+  linha.appendChild(bt); linha.appendChild(ed);
+  sel.parentNode.insertBefore(linha, sel);
 }
 
 /* ── 1. Topo: lápis à vista, o resto no "⋯" ─────────────────────────── */
@@ -20393,12 +20466,30 @@ function _kcSelos(card){
     if(linha) linha.appendChild(alvo); else return;
   }
   var selos = [];
-  var prop = card.querySelector('[data-proposta]');
-  if(prop && prop.getAttribute('data-proposta') === '1') selos.push(['ok', '✓ Proposta cadastrada']);
+  /* 18/11/2026: o card redesenhado traz o botão SEM data-proposta (só o
+     clique punha o atributo) — o selo sumia e a equipe ia nos 3 pontinhos
+     conferir. O estado de verdade é a chave salva (config/toggles →
+     localStorage). */
+  var prop = card.querySelector('[data-prop-key]');
+  var temProp = prop && (prop.getAttribute('data-proposta') === '1' ||
+    (prop.getAttribute('data-proposta') !== '0' && (function(){ try{ return localStorage.getItem(prop.getAttribute('data-prop-key')) === '1'; }catch(_e){ return false; } })()));
+  if(temProp) selos.push(['ok', '✓ Proposta cadastrada']);
   var robo = card.querySelector('[data-robo-key]');
   if(robo && /Lance via Rob/i.test(robo.getAttribute('title') || '')) selos.push(['robo', '🤖 Robô']);
   alvo.innerHTML = selos.map(function(s){ return '<span class="kc-selo ' + s[0] + '">' + s[1] + '</span>'; }).join('');
 }
+
+/* As marcas (proposta cadastrada) chegam do banco DEPOIS da primeira
+   pintura: quando chegarem, refaz os selos de todos os cards. */
+(function(){
+  var t = setInterval(function(){
+    if(typeof _togglesLoaded !== 'undefined' && _togglesLoaded){
+      clearInterval(t);
+      document.querySelectorAll('.kcard').forEach(function(c){ try{ _kcSelos(c); }catch(_e){} });
+    }
+  }, 1000);
+  setTimeout(function(){ clearInterval(t); }, 180000);
+})();
 
 /* ── 2. Ferramentas recolhidas, situação à vista ────────────────────── */
 function _kcFerramentas(card, tab){
@@ -20450,12 +20541,17 @@ function _kcFerramentas(card, tab){
       .replace(/^Monitorar\s+/i, '').trim();
     var ehChat = /nhChatDoEdital/.test(b.getAttribute('onclick') || '');
     var itK = b.getAttribute('data-itens-chave');
+    /* Tipo + chave para o pintor ao vivo (_kcAtualizarEstados). */
+    var oc = b.getAttribute('onclick') || '';
+    var kTipo = /nhAbrirAnaliseCard/.test(oc) ? 'analise' : /nhAbrirModalViab/.test(oc) ? 'viab' : ehChat ? 'chat' : itK ? 'itens' : b.getAttribute('data-cli-chave') ? 'cli' : '';
+    var kChave = (oc.match(/\('([ea]-[^']+)'/) || [])[1] || itK || b.getAttribute('data-cli-chave') || '';
     /* Arquivos: o selo só aparece no resumo quando já existe arquivo —
        "○ Arquivos" em todo card seria ruído. Fica escondido, e o ouvinte
        ao vivo o acende quando o primeiro chega. */
     var arK = b.getAttribute('data-cli-chave');
     var arVazio = arK && !_clienteChip(arK).tem;
     partes.push('<span class="kc-st' + (ok ? ' feito' : '') + '"' + (ehChat ? ' data-chat="1"' : '') +
+      (kTipo && kChave ? ' data-ktipo="' + kTipo + '" data-kchave="' + _kcEsc(kChave) + '"' : '') +
       (itK ? ' data-itens="' + itK + '"' : '') + (arK ? ' data-cli="' + arK + '"' : '') +
       (arVazio ? ' style="display:none"' : '') + ' title="' + _kcEsc(b.getAttribute('title') || '') + '">' +
       (ok ? '✓ ' : '○ ') + _kcEsc(curto.charAt(0).toUpperCase() + curto.slice(1)) + '</span>');
@@ -20485,6 +20581,46 @@ function _kcFerramentas(card, tab){
   bar.appendChild(ferr);
   pintar();
 }
+
+/* ⚠️ COR = ESTADO — 18/11/2026. Pedido: "essas funções, depois de ter
+   alteração, têm que mudar a cor para saber que tiveram alteração ou
+   movimentação". A linha do card (Análise do edital · Viabilidade · Itens
+   do TR · Cliente · Chat) era pintada uma vez, na hora do desenho — e os
+   dados (pendências, viabilidade, chat, respostas do cliente) chegam
+   depois, então ficava tudo "○" cinza. Agora um pintor ao vivo refaz a
+   cor a cada 3 s, só no DOM (não lê o banco):
+     verde ✓  feito          laranja ●  movimentação nova (mensagem do
+     azul ◔   aguardando        cliente, chat não lido, preço parcial)
+     cinza ○  ainda não feito */
+function _kcEstado(tipo, k){
+  var cls = function(c){ return /nh-btn-ok/.test(c) ? 'feito' : /nh-btn-parcial/.test(c) ? 'mov' : /nh-btn-espera/.test(c) ? 'espera' : ''; };
+  try{
+    if(tipo === 'analise') return {e: (typeof PENDENCIAS !== 'undefined' && PENDENCIAS[k]) ? 'feito' : '', t: 'Análise do edital'};
+    if(tipo === 'viab') return {e: (typeof ANALISES_VIAB !== 'undefined' && ANALISES_VIAB[k]) ? 'feito' : '', t: 'Viabilidade'};
+    if(tipo === 'itens'){ var ic = _itensChip(k); return {e: cls(ic.cls), t: ic.txt.replace(/^(📋|💬|✅|💰)\s*/, ''), title: ic.title}; }
+    if(tipo === 'cli'){ var ac = _clienteChip(k); return {e: cls(ac.cls), t: ac.txt.replace(/^💬\s*/, ''), title: ac.title, esconde: !ac.tem}; }
+    if(tipo === 'chat'){
+      var m = typeof CHAT_MON !== 'undefined' ? CHAT_MON[k] : null;
+      if(!m || !m.ativo) return {e: '', t: 'Chat'};
+      var r = typeof chatResumo === 'function' ? chatResumo(k) : {naoLidas: 0};
+      return r.naoLidas ? {e: 'mov', t: 'Chat · ' + r.naoLidas + ' nova' + (r.naoLidas > 1 ? 's' : '')} : {e: 'feito', t: 'Chat'};
+    }
+  }catch(_e){}
+  return null;
+}
+function _kcAtualizarEstados(){
+  var PRE = {feito: '✓ ', mov: '● ', espera: '◔ ', '': '○ '};
+  document.querySelectorAll('.kc-st[data-ktipo]').forEach(function(st){
+    var s = _kcEstado(st.getAttribute('data-ktipo'), st.getAttribute('data-kchave'));
+    if(!s) return;
+    var txt = PRE[s.e] + s.t;
+    if(st.textContent !== txt) st.textContent = txt;
+    ['feito', 'mov', 'espera'].forEach(function(c){ st.classList.toggle(c, s.e === c); });
+    if(s.title) st.title = s.title;
+    if(s.esconde !== undefined) st.style.display = s.esconde ? 'none' : '';
+  });
+}
+setInterval(_kcAtualizarEstados, 3000);
 
 function _kcEsc(s){
   return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){
@@ -25318,6 +25454,15 @@ body:not(.compact) .kcard .kcard-body{gap:18px 26px}
 .kc-st{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;color:var(--t3);white-space:nowrap}
 .kc-st b{font-weight:800}
 .kc-st.feito{color:#22c55e}
+.kc-st.mov{color:#f97316;font-weight:800;text-shadow:0 0 10px rgba(249,115,22,.35)}
+.kc-st.espera{color:#60a5fa}
+.kc-portal-linha{display:flex;gap:6px;align-items:center}
+.kc-portal-bt{flex:1;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 12px;border-radius:9px;border:1px solid rgba(249,115,22,.4);background:rgba(249,115,22,.08);color:var(--t1);font-weight:700;font-size:13.5px;font-family:inherit;cursor:pointer;text-align:left}
+.kc-portal-bt span{font-size:12px;font-weight:700;color:#f97316;white-space:nowrap}
+.kc-portal-bt.direto{border-color:rgba(34,197,94,.5);background:rgba(34,197,94,.1)}
+.kc-portal-bt.direto span{color:#22c55e}
+.kc-portal-bt:hover{filter:brightness(1.2)}
+.kc-portal-ed{border:1px solid var(--b1);background:transparent;color:var(--t3);border-radius:8px;padding:6px 9px;cursor:pointer}
 .kc-st.prio{color:#f59e0b;font-weight:700}
 .kc-st.prio.alta{color:#f87171}
 .kc-dot{width:9px;height:9px;border-radius:50%;display:inline-block}
@@ -26219,6 +26364,28 @@ function _estId(){
     return '_est_' + id;
   }catch(_e){ return ''; }
 }
+/* "O pregoeiro fala no portal e nunca atualiza o chat" (18/11/2026).
+   Pelo portal com login, o chat só é lido ENQUANTO o pregão está aberto
+   numa aba do Chrome com a extensão — e nenhuma estação tinha aba
+   aberta. Agora o painel diz, na hora, se alguém está lendo. */
+function _chatLeituraAgora(sel, mon){
+  var agora = Date.now(), quem = [];
+  var est = window.CHAT_EST || {};
+  Object.keys(est).forEach(function(k){
+    var x = est[k] || {};
+    if(agora - (x.em || 0) < 5*60000 && (x.abertas || []).indexOf(sel) >= 0) quem.push(String(x.nome || x.email || 'alguém').split(' ')[0]);
+  });
+  try{ if(_chatAbertasAqui && _chatAbertasAqui[sel] && quem.indexOf('você') < 0) quem.unshift('você'); }catch(_e){}
+  if(quem.length)
+    return '<div class="chat-aviso" style="margin:10px 16px 0;border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.08)">🟢 <b>Lendo agora</b> — o pregão está aberto na aba de ' + esc0(quem.join(', ')) + '. Mensagem nova do pregoeiro aparece aqui em até 15 segundos.</div>';
+  var cg = /cnetmobile\.|compras\.gov|comprasnet\./i.test(mon.url || '') || /compras\s*gov/i.test(mon.portal || '');
+  return '<div class="chat-aviso" style="margin:10px 16px 0;border-color:rgba(248,113,113,.45);background:rgba(248,113,113,.08)">⚪ <b>Ninguém está lendo este chat agora.</b> ' +
+    'Ele só é lido enquanto o pregão estiver aberto numa aba do Chrome com a extensão. ' +
+    (cg ? 'Entre no Compras.gov <b>com o login da empresa</b> e abra este pregão (Acompanhamento ou sala de disputa).'
+        : 'Entre no ' + esc0(mon.portal || 'portal') + ' com o login da empresa e abra este processo.') +
+    (_chatExt ? '' : '<br><span style="color:#f87171">A extensão não está ativa neste navegador.</span>') + '</div>';
+}
+var _chatAbertasAqui = {};
 async function _estBater(){
   if(typeof _chatExt === 'undefined' || !_chatExt || typeof db === 'undefined' || typeof auth === 'undefined' || !auth.currentUser) return;
   if(typeof IS_READONLY !== 'undefined' && IS_READONLY) return;
@@ -26226,6 +26393,9 @@ async function _estBater(){
   var r = null; try{ r = await _chatPedir('situacao'); }catch(_e){}
   if(!r || !r.ok) return;
   var abertas = Object.keys(r.abertas || {}).sort(), assin = abertas.join(',');
+  var mudou = JSON.stringify(_chatAbertasAqui) !== JSON.stringify(r.abertas || {});
+  _chatAbertasAqui = r.abertas || {};
+  if(mudou && typeof _chatPainelChave !== 'undefined' && _chatPainelChave !== null){ try{ chatPintarPainel(); }catch(_e){} }
   var agora = Date.now();
   /* Grava quando muda, ou a cada 2 min com aba aberta, ou a cada 10 min sem nenhuma. */
   if(assin === _estUlt.abertas && agora - _estUlt.em < (abertas.length ? 2*60000 : 10*60000)) return;
