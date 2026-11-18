@@ -3854,11 +3854,15 @@ function farolPNCPPainel(j, cnpj){
      não de um fornecedor — e o total não vale nada. */
   var total=itens.length ? ((j&&typeof j.total==='number')?j.total:itens.length) : 0;
 
+  /* ⚠️ 18/11/2026: a busca do PNCP deixou de indexar o CNPJ do
+     fornecedor — até a RECCONM, que tem contratos, voltava zero, e o
+     farol dizia "Nunca ganhou pelo PNCP" para todo mundo. Zero não
+     prova mais nada: não afirma, só diz que o histórico não veio. (A
+     API do Compras.gov também não serve: exige o código do órgão.) */
   if(!total){
-    box.innerHTML='<div class="pncp-t"><span class="pncp-tag zero">Nunca ganhou pelo PNCP</span></div>'+
-      '<div class="pncp-nota">Não achei contrato público em nome deste CNPJ desde 2023. '+
-      'Pode ser empresa que licita pouco, que perde, ou que nunca tentou — e é exatamente '+
-      'a conversa que a NH quer ter.</div>';
+    box.innerHTML='<div class="pncp-t"><span class="pncp-tag zero">Histórico de contratos indisponível</span></div>'+
+      '<div class="pncp-nota">O PNCP não devolve mais contratos pela busca do CNPJ do fornecedor, então aqui não dá para saber se a empresa já ganhou. '+
+      'Pergunte na conversa: "vocês já venderam para órgão público?". Os dados da Receita acima continuam valendo.</div>';
     return;
   }
 
