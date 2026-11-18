@@ -19033,7 +19033,10 @@ function chatIniciar(){
         s.docChanges().forEach(function(c){
           if(c.type !== 'added') return;
           var x = c.doc.data()||{}, k = x.chave + '|' + x.id;
-          if(x.historico || x.nivel === 'normal' || _chatAlertados[k]) return;
+          /* 18/11/2026: "o pregoeiro falou, a gente já fica sabendo" —
+             mensagem comum também avisa (som leve); antes só apitava a
+             importante e a que citava a empresa. */
+          if(x.historico || _chatAlertados[k]) return;
           if(agora - (x.capturadoEm||0) > 15*60000) return;
           _chatAlertados[k] = 1;
           novas.push(x);
@@ -19109,15 +19112,19 @@ async function chatReceber(itens, opc){
 }
 
 /* ── Alerta ────────────────────────────────────────────────────────── */
+/* forte = citou a empresa (4 toques) · true/1 = importante (1 toque)
+   · 'leve' = mensagem comum do pregoeiro (2 toques baixos, mais suaves). */
 function _chatBip(forte){
   try{
     var C = window.AudioContext || window.webkitAudioContext; if(!C) return;
     var ctx = new C(), t = ctx.currentTime;
-    (forte ? [880, 1175, 880, 1175] : [880]).forEach(function(f, i){
+    var leve = forte === 'leve';
+    var vol = leve ? 0.12 : 0.25;
+    (leve ? [660, 880] : forte ? [880, 1175, 880, 1175] : [880]).forEach(function(f, i){
       var o = ctx.createOscillator(), g = ctx.createGain();
       o.frequency.value = f; o.type = 'sine';
       g.gain.setValueAtTime(0.0001, t + i*0.22);
-      g.gain.exponentialRampToValueAtTime(0.25, t + i*0.22 + 0.02);
+      g.gain.exponentialRampToValueAtTime(vol, t + i*0.22 + 0.02);
       g.gain.exponentialRampToValueAtTime(0.0001, t + i*0.22 + 0.2);
       o.connect(g); g.connect(ctx.destination); o.start(t + i*0.22); o.stop(t + i*0.22 + 0.21);
     });
@@ -19126,13 +19133,21 @@ function _chatBip(forte){
 
 function _chatAlertar(lista){
   var mencoes = lista.filter(function(m){ return m.nivel === 'mencao'; });
-  var alvo = mencoes[0] || lista[0];
+  var importantes = lista.filter(function(m){ return m.nivel === 'importante'; });
+  var alvo = mencoes[0] || importantes[0] || lista[0];
   var mon = CHAT_MON[alvo.chave] || {};
-  _chatBip(!!mencoes.length);
-  toast((mencoes.length ? '🔴 O pregoeiro citou ' + (mon.empresa||'a empresa') : '💬 Mensagem importante') +
-        ' — ' + (mon.titulo||alvo.chave) + ': ' + alvo.texto.slice(0, 140), mencoes.length ? 'err' : 'info');
+  /* 18/11/2026: "apitar foi uma forma de falar, é notificar". Toda
+     mensagem nova do pregoeiro AVISA (aviso na tela + notificação do
+     Windows); o som fica para citar a empresa ou mensagem importante. */
+  if(mencoes.length) _chatBip(true);
+  else if(importantes.length) _chatBip(false);
+  toast((mencoes.length ? '🔴 O pregoeiro citou ' + (mon.empresa||'a empresa') : importantes.length ? '💬 Mensagem importante' : '💬 Pregoeiro') +
+        ' — ' + (mon.titulo||alvo.chave) + ': ' + alvo.texto.slice(0, 140) + (lista.length > 1 ? ' (+' + (lista.length - 1) + ')' : ''), mencoes.length ? 'err' : 'info');
   try{
-    if(window.Notification && Notification.permission === 'granted' && document.hidden){
+    /* Notificação do Windows também quando a pessoa está em outro
+       programa com o Gestão visível atrás (antes: só aba escondida). */
+    if(window.Notification && Notification.permission === 'default'){ try{ Notification.requestPermission(); }catch(_e){} }
+    if(window.Notification && Notification.permission === 'granted' && (document.hidden || !document.hasFocus())){
       var n = new Notification((mencoes.length ? '🔴 Citaram ' : '💬 ') + (mon.empresa||'') + ' · ' + (mon.titulo||''),
         {body: alvo.texto.slice(0, 220), requireInteraction: !!mencoes.length, tag: 'nh-chat-' + alvo.chave});
       n.onclick = function(){ window.focus(); chatAbrirPainel(alvo.chave); n.close(); };
