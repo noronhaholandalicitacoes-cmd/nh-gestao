@@ -1356,15 +1356,57 @@ function resolverPerfilResponsavel(num, lista) {
 }
 // Cores reais vêm do Firebase (config/empresas) — o objeto acima é só fallback
 // de segurança para o caso de falha de conexão antes do fetch completar.
+/* ⚠️ FICHA INDIVIDUAL DE ACESSO — 22/11/2026.
+   Antes, esta tela lia config/responsaveis, config/usuarios e
+   config/empresas INTEIROS só para saber quem é a pessoa logada — e
+   qualquer cliente, pelo console, baixava a carteira de clientes da NH.
+   A regra agora fecha essas três listas para a cliente, que lê só a
+   própria ficha (acesso_cliente/<número>, mantida pelo servidor). A
+   equipe da NH continua lendo as listas. Acesso recém-criado no Gestão
+   leva até 1 minuto para ganhar a ficha: por isso as novas tentativas. */
+var _NH_MEU_ACESSO = null;
+function _nhNumDoLogin(){
+  try{ var e = (auth.currentUser && auth.currentUser.email) || ''; return e.split('@')[0].split('.r')[0]; }catch(_e){ return ''; }
+}
+async function nhMeuAcesso(num){
+  num = String(num || _nhNumDoLogin()); if(!num) return null;
+  if(_NH_MEU_ACESSO && _NH_MEU_ACESSO._num === num) return _NH_MEU_ACESSO;
+  for(var t = 0; t < 4; t++){
+    try{
+      var d = await db.collection('acesso_cliente').doc(num).get();
+      if(d.exists){ var x = d.data() || {}; x._num = num; _NH_MEU_ACESSO = x; return x; }
+    }catch(_e){}
+    if(t < 3) await new Promise(function(r){ setTimeout(r, t === 0 ? 3000 : 15000); });
+  }
+  return null;
+}
+/** {lista, leu}: a lista inteira para a equipe; só a própria ficha para a cliente. */
+async function nhListaResponsaveis(num){
+  try{
+    var s = await db.collection('config').doc('responsaveis').get();
+    return {lista: (s.exists && s.data() && s.data().lista) || {}, leu: true};
+  }catch(_e){}
+  var m = await nhMeuAcesso(num);
+  var o = {};
+  if(m){ var c = Object.assign({}, m); delete c._num; delete c.empresasInfo; delete c.espelhadoEm; o[String(num)] = c; }
+  return {lista: o, leu: true};
+}
+/** Empresas (nome, cor, CNPJ): lista inteira para a equipe; as da ficha para a cliente. */
+async function nhEmpresasVisiveis(){
+  try{
+    var snap = await db.collection('config').doc('empresas').get();
+    if(snap.exists && snap.data().lista) return snap.data().lista;
+  }catch(_e){}
+  var m = await nhMeuAcesso();
+  return (m && Array.isArray(m.empresasInfo)) ? m.empresasInfo : [];
+}
+
 async function carregarCoresEmpresas(){
   try{
-    var snap=await db.collection('config').doc('empresas').get();
-    if(snap.exists&&snap.data().lista){
-      snap.data().lista.forEach(function(emp){
-        if(emp.nome&&emp.cor) EMP_CORES[emp.nome.toUpperCase().trim()]=emp.cor;
-        if(emp.nome&&emp.cnpj) EMP_CNPJS[emp.nome.toUpperCase().trim()]=String(emp.cnpj).replace(/\D/g,'');
-      });
-    }
+    (await nhEmpresasVisiveis()).forEach(function(emp){
+      if(emp.nome&&emp.cor) EMP_CORES[emp.nome.toUpperCase().trim()]=emp.cor;
+      if(emp.nome&&emp.cnpj) EMP_CNPJS[emp.nome.toUpperCase().trim()]=String(emp.cnpj).replace(/\D/g,'');
+    });
   }catch(e){/* mantém fallback em caso de erro */}
 }
 
@@ -1444,8 +1486,7 @@ function corResp(nome){
 
 async function carregarRespsCad(){
   try{
-    var s=await db.collection('config').doc('responsaveis').get();
-    RESPS_CAD=(s.exists&&s.data()&&s.data().lista)||{};
+    RESPS_CAD=(await nhListaResponsaveis(_nhNumDoLogin())).lista||{};
   }catch(e){RESPS_CAD={};}
   _canon=null;}
 
@@ -3754,8 +3795,7 @@ async function nhQuemSou(email){
      redefinição de senha cria. */
   var num=em.split('@')[0].split('.r')[0];
   try{
-    var dr=await db.collection('config').doc('responsaveis').get();
-    var lr=(dr.exists&&dr.data()&&dr.data().lista)||{};
+    var lr=(await nhListaResponsaveis(num)).lista||{};
     var r=lr[num];
     if(r&&r.nome) return {nome:r.nome, papel:'Cliente'};
   }catch(e){}
@@ -3797,8 +3837,8 @@ auth.onAuthStateChanged(async function(user){
      ter permissão de ler a lista de clientes, e vice-versa: exigir os
      dois transformaria uma permissão negada em "sem internet". */
   try{
-    var snap=await db.collection('config').doc('responsaveis').get();
-    lista=(snap.exists&&snap.data()&&snap.data().lista)||{}; leuAlgum=true;
+    var _lr=await nhListaResponsaveis(num);
+    lista=_lr.lista||{}; if(_lr.leu) leuAlgum=true;
   }catch(e){}
   try{
     var snapU=await db.collection('config').doc('usuarios').get();
