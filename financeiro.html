@@ -2999,8 +2999,35 @@ function finCofreMarcar(v){
   try{ v ? sessionStorage.setItem('nh_fin_cofre','1') : sessionStorage.removeItem('nh_fin_cofre'); }catch(e){}
 }
 
+/* ⚠️ 22/11/2026: as senhas eram pedidas com prompt() do navegador —
+   a senha aparecia em TEXTO ABERTO na tela (sem bolinhas) e a janela
+   travava a página inteira até alguém responder. Agora é uma janela
+   própria, com campo de senha mascarado. Devolve o texto ou null. */
+function finSenha(titulo, dica){
+  return new Promise(function(ok){
+    var fundo=document.createElement('div');
+    fundo.setAttribute('style','position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px');
+    fundo.innerHTML='<form style="background:#141a2a;border:1px solid rgba(249,115,22,.35);border-radius:14px;padding:22px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.5);font-family:inherit;color:#e5e7eb">'+
+      '<div style="font-weight:800;font-size:16px;margin-bottom:6px"></div>'+
+      '<div style="font-size:12.5px;color:#9ca3af;margin-bottom:12px;line-height:1.5"></div>'+
+      '<input type="password" autocomplete="off" style="width:100%;box-sizing:border-box;padding:11px 12px;border-radius:9px;border:1px solid rgba(255,255,255,.15);background:#0b1020;color:#fff;font-size:15px">'+
+      '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">'+
+        '<button type="button" data-x style="padding:9px 14px;border-radius:9px;border:1px solid rgba(255,255,255,.15);background:transparent;color:#cbd5e1;cursor:pointer">Cancelar</button>'+
+        '<button type="submit" style="padding:9px 16px;border-radius:9px;border:0;background:#f97316;color:#111;font-weight:800;cursor:pointer">Confirmar</button></div></form>';
+    var f=fundo.querySelector('form'), cx=f.querySelectorAll('div');
+    cx[0].textContent=titulo; cx[1].textContent=dica||''; if(!dica) cx[1].style.display='none';
+    var inp=f.querySelector('input');
+    var fim=function(v){ fundo.remove(); ok(v); };
+    f.addEventListener('submit',function(e){ e.preventDefault(); fim(inp.value); });
+    f.querySelector('[data-x]').addEventListener('click',function(){ fim(null); });
+    fundo.addEventListener('keydown',function(e){ if(e.key==='Escape') fim(null); });
+    document.body.appendChild(fundo);
+    setTimeout(function(){ inp.focus(); },30);
+  });
+}
+
 async function finPedirCofre(){
-  var s=prompt('Senha do financeiro:\n\n(é a senha exclusiva deste sistema, não a do seu login)');
+  var s=await finSenha('Senha do financeiro','É a senha exclusiva deste sistema, não a do seu login.');
   if(s===null) return false;
   if(!s) return false;
   try{
@@ -3029,11 +3056,11 @@ async function finCofreIndefinido(){
     + 'Se você já tem a senha e só errou, clique Cancelar e tente de novo.');
   if(!criar) return false;
 
-  var a=prompt('Crie a senha do financeiro (mínimo 8 caracteres):');
+  var a=await finSenha('Crie a senha do financeiro','Mínimo de 8 caracteres.');
   if(a===null) return false;
   a=String(a);
   if(a.length<8){ alert('A senha precisa de ao menos 8 caracteres.'); return false; }
-  var b=prompt('Digite de novo para confirmar:');
+  var b=await finSenha('Digite de novo para confirmar');
   if(b===null) return false;
   if(a!==b){ alert('As duas senhas não são iguais.'); return false; }
 
@@ -3059,7 +3086,7 @@ async function finCofreIndefinido(){
    cofre.financeiro@nh.interno é domínio interno — o e-mail não chega.
    Pede a atual antes, para não bastar estar diante da tela aberta. */
 async function trocarSenhaFinanceiro(){
-  var atual=prompt('Senha ATUAL do financeiro:');
+  var atual=await finSenha('Senha ATUAL do financeiro');
   if(atual===null) return;
   var cred;
   try{
@@ -3070,11 +3097,11 @@ async function trocarSenhaFinanceiro(){
     await finCofreIndefinido();
     return;
   }
-  var n1=prompt('Nova senha (mínimo 8 caracteres):');
+  var n1=await finSenha('Nova senha do financeiro','Mínimo de 8 caracteres.');
   if(n1===null){ try{ await authCofre.signOut(); }catch(e){} return; }
   n1=String(n1);
   if(n1.length<8){ try{ await authCofre.signOut(); }catch(e){} alert('Mínimo 8 caracteres.'); return; }
-  var n2=prompt('Digite a nova senha de novo:');
+  var n2=await finSenha('Digite a nova senha de novo');
   if(n2===null){ try{ await authCofre.signOut(); }catch(e){} return; }
   if(n1!==n2){ try{ await authCofre.signOut(); }catch(e){} alert('As duas senhas não são iguais.'); return; }
 
