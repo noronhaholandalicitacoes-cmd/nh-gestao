@@ -9810,6 +9810,30 @@ if(typeof nhFiltrosCompactos==='function'){
   ]);
 }
 </script>
+<style>
+/* ═══ CARDS COM A CARA DO GESTÃO — 24/11/2026 ═══════════════════════════
+   Pedido: "dar mais vida nos cards do dashboard do gestão de contratos,
+   deixar os cards iguais aos do sistema de gestão". Mesmo tratamento do
+   .stat do Gestão: fio de cor à esquerda, brilho da cor no canto, número
+   na cor do indicador e realce ao passar o mouse. Vem por último para
+   valer sobre a limpeza visual antiga. */
+.pg-kpi,.pg-bloco{position:relative;overflow:hidden;border:1px solid var(--b1)!important;border-radius:12px!important;
+  transition:transform .15s ease,box-shadow .15s ease}
+.pg-kpi{border-left:4px solid var(--kc)!important}
+.pg-bloco{border-left:4px solid var(--bc)!important}
+body:not(.light-theme) .pg-kpi{background:radial-gradient(135% 135% at 100% 112%,var(--kcf),transparent 56%),var(--s1)!important}
+body:not(.light-theme) .pg-bloco{background:radial-gradient(135% 135% at 100% 112%,color-mix(in srgb,var(--bc) 16%,transparent),transparent 56%),var(--s1)!important}
+.pg-kpi::after,.pg-bloco::after{content:'';position:absolute;top:-24px;right:-24px;width:80px;height:80px;border-radius:50%;opacity:.08;pointer-events:none}
+.pg-kpi::after{background:var(--kc)}
+.pg-bloco::after{background:var(--bc)}
+.pg-kpi-fio{height:2px!important;background:linear-gradient(90deg,var(--kc),transparent)!important;opacity:.6!important}
+.pg-kpi-val{color:var(--kc)!important}
+.pg-bloco-val{color:var(--bc)!important}
+.pg-kpi:not([tabindex="-1"]):hover,.pg-bloco:hover{transform:translateY(-2px)}
+body:not(.light-theme) .pg-kpi:not([tabindex="-1"]):hover{box-shadow:0 12px 30px rgba(0,0,0,.5),0 0 0 1px color-mix(in srgb,var(--kc) 42%,transparent),0 0 28px -6px color-mix(in srgb,var(--kc) 50%,transparent)}
+body:not(.light-theme) .pg-bloco:hover{box-shadow:0 12px 30px rgba(0,0,0,.5),0 0 0 1px color-mix(in srgb,var(--bc) 42%,transparent),0 0 28px -6px color-mix(in srgb,var(--bc) 50%,transparent)}
+.pg-kpi.on{box-shadow:0 0 0 2px var(--kc) inset!important}
+</style>
 </body>
 </html>
 
