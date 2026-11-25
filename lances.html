@@ -5,13 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Robô de Lances · NH Licitações</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <!--
   ═══ CENTRAL DO ROBÔ DE LANCES — 25/11/2026 ═══════════════════════════
   Pedido: "precisamos fazer o nosso robô de lances … esse nosso robô
   precisa sair". Começa pelo Compras.gov (104 disputas no Gestão, 64 da
-  VISE). Esta página é a parte de CONFIGURAR: o robô em si roda na nuvem
-  (serviço próprio), e lê daqui o que a equipe armou.
+  VISE). Visual refeito no mesmo dia: "muito fraquinho, quero algo
+  extraordinário e moderno" — virou uma central de comando: relógio de
+  Brasília com segundos, contagem regressiva por disputa, medidor de
+  prontidão e estratégia em cartões.
 
   De onde vêm os dados — nada é redigitado:
     · processos: Em Andamento (coleção `andamento`), portal Compras Gov;
@@ -22,10 +24,12 @@
     · modalidade e modo de disputa: o edital (campos soltos).
   A configuração do robô fica em `robo_lances/a-<andamento>` — só equipe.
 
+  O robô roda na nuvem (dashboard-nh/robo). Esta página fala com ele
+  pelo servidor (/api/robo/*), que confere token e cadastro da equipe.
+
   Regras do robô (manual oficial do fornecedor, IN 73/2022):
     · nunca abaixo do mínimo; só lance menor que o MEU último lance,
-      respeitando o intervalo mínimo do edital (vale também para lance
-      intermediário);
+      respeitando o intervalo mínimo do edital;
     · aberto: 10 min + prorrogações de 2 min a cada lance nos 2 finais;
     · aberto-fechado: 15 min + aleatório de até 10 min + fase fechada de
       5 min para quem está até 10% acima do melhor;
@@ -34,152 +38,304 @@
 -->
 <style>
 :root{
-  --bg:#0a0e1a;--s1:#111725;--s2:#161d2e;--s3:#1c2438;--b1:#252d40;--b2:#303a52;
-  --nh:#f97316;--nho:#fb923c;--nha:rgba(249,115,22,.12);
-  --g1:#22c55e;--y1:#eab308;--r1:#ef4444;--b_:#3b82f6;--p1:#a855f7;
-  --t1:#f5f5f5;--t2:#a3a3a3;--t3:#8b95a1;
+  --bg:#070a12;--bg2:#0b1020;--s1:rgba(17,23,37,.78);--s1s:#111725;--s2:#161d2e;--s3:#1c2438;
+  --b1:rgba(148,163,184,.13);--b2:rgba(148,163,184,.24);
+  --nh:#ff7a1a;--nh2:#ff4d00;--nha:rgba(255,122,26,.14);--nhg:rgba(255,122,26,.35);
+  --g1:#22c55e;--g2:rgba(34,197,94,.14);--y1:#facc15;--y2:rgba(250,204,21,.13);--r1:#f43f5e;--r2:rgba(244,63,94,.14);
+  --c1:#38bdf8;--c2:rgba(56,189,248,.14);--p1:#a78bfa;
+  --t1:#f4f6fb;--t2:#a7b0c2;--t3:#6f7a8f;
+  --raio:18px;
 }
 body.light-theme{
-  --bg:#f2f5fc;--s1:#ffffff;--s2:#eef2fb;--s3:#e2e9f8;--b1:#d9e1f2;--b2:#b6c4e6;
-  --nh:#f4560a;--nho:#ff7a1a;--nha:rgba(244,86,10,.12);
-  --g1:#059669;--y1:#d97706;--r1:#dc2626;--t1:#141a2b;--t2:#3d4559;--t3:#6b7489;
+  --bg:#eef2fa;--bg2:#e6ecf8;--s1:rgba(255,255,255,.82);--s1s:#ffffff;--s2:#f2f5fc;--s3:#e5ebf7;
+  --b1:rgba(30,41,59,.1);--b2:rgba(30,41,59,.18);
+  --nh:#f4560a;--nh2:#e03d00;--nha:rgba(244,86,10,.1);--nhg:rgba(244,86,10,.25);
+  --g1:#059669;--g2:rgba(5,150,105,.1);--y1:#ca8a04;--y2:rgba(202,138,4,.1);--r1:#e11d48;--r2:rgba(225,29,72,.1);
+  --c1:#0284c7;--c2:rgba(2,132,199,.1);--t1:#101627;--t2:#3d4559;--t3:#6b7489;
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--t1);font-family:Outfit,system-ui,sans-serif;font-size:14px}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--t1);font-family:Outfit,system-ui,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased}
+body{background:
+  radial-gradient(1200px 600px at 8% -10%,rgba(255,122,26,.13),transparent 60%),
+  radial-gradient(900px 500px at 110% 10%,rgba(56,189,248,.08),transparent 60%),
+  linear-gradient(var(--bg),var(--bg2));background-attachment:fixed}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+  background-image:linear-gradient(var(--b1) 1px,transparent 1px),linear-gradient(90deg,var(--b1) 1px,transparent 1px);
+  background-size:44px 44px;mask-image:radial-gradient(ellipse at 30% 0%,#000 0%,transparent 70%)}
 a{color:var(--nh)}
 button,input,select{font-family:inherit}
-.topo{display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid var(--b1);background:var(--s1);position:sticky;top:0;z-index:20}
-.topo h1{font-size:18px;margin:0;font-weight:800;letter-spacing:-.01em}
-.topo h1 span{color:var(--nh)}
-.topo .sub{color:var(--t3);font-size:12.5px}
-.topo .dir{margin-left:auto;display:flex;gap:10px;align-items:center}
-.pilula{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid var(--b2);color:var(--t2);background:var(--s2)}
+.mono{font-family:'JetBrains Mono',monospace}
+.app{position:relative;z-index:1}
+
+/* ── Topo ─────────────────────────────────────────────── */
+.topo{display:flex;align-items:center;gap:18px;padding:14px 26px;position:sticky;top:0;z-index:30;
+  background:linear-gradient(180deg,rgba(7,10,18,.92),rgba(7,10,18,.72));backdrop-filter:blur(14px);border-bottom:1px solid var(--b1)}
+body.light-theme .topo{background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(255,255,255,.8))}
+.marca{display:flex;align-items:center;gap:12px}
+.marca .logo{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;
+  background:conic-gradient(from 210deg,var(--nh),var(--nh2),#ffb067,var(--nh));box-shadow:0 0 0 1px rgba(255,255,255,.08),0 8px 28px var(--nhg)}
+.marca .logo svg{width:22px;height:22px;color:#fff}
+.marca h1{margin:0;font-size:18px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.marca h1 b{background:linear-gradient(90deg,var(--nh),#ffb067);-webkit-background-clip:text;background-clip:text;color:transparent}
+.marca .sub{color:var(--t3);font-size:12px;letter-spacing:.02em}
+.relogio{margin-left:auto;text-align:right;line-height:1.05}
+.relogio .h{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;letter-spacing:.02em}
+.relogio .h small{font-size:15px;color:var(--nh)}
+.relogio .d{font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.12em}
+.orb{display:flex;align-items:center;gap:10px;padding:8px 14px 8px 10px;border-radius:999px;border:1px solid var(--b2);background:var(--s1);cursor:pointer;transition:.2s}
+.orb:hover{border-color:var(--nh);box-shadow:0 0 0 4px var(--nha)}
+.orb .o{width:12px;height:12px;border-radius:50%;background:var(--t3);position:relative}
+.orb.ok .o{background:var(--g1);box-shadow:0 0 12px var(--g1)}
+.orb.ok .o::after,.orb.aviso .o::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:2px solid currentColor;animation:pulso 1.8s infinite;color:var(--g1)}
+.orb.aviso .o{background:var(--y1);box-shadow:0 0 12px var(--y1)}
+.orb.aviso .o::after{color:var(--y1)}
+.orb .tx{font-size:12.5px;font-weight:700}
+.orb .tx small{display:block;font-weight:500;color:var(--t3);font-size:11px}
+@keyframes pulso{0%{transform:scale(.6);opacity:1}100%{transform:scale(1.9);opacity:0}}
+.bt{display:inline-flex;align-items:center;gap:7px;padding:9px 15px;border-radius:11px;border:1px solid var(--b2);background:var(--s1);color:var(--t1);font-weight:700;cursor:pointer;font-size:13px;transition:.18s;text-decoration:none}
+.bt:hover{border-color:var(--nh);transform:translateY(-1px)}
+.bt.pri{border:0;color:#fff;background:linear-gradient(135deg,var(--nh),var(--nh2));box-shadow:0 8px 24px var(--nhg)}
+.bt.pri:hover{box-shadow:0 10px 32px var(--nhg),0 0 0 4px var(--nha)}
+.bt.perigo{border-color:rgba(244,63,94,.45);color:var(--r1)}
+.bt.fant{background:transparent}
+.bt:disabled{opacity:.45;cursor:not-allowed;transform:none}
+
+/* ── KPIs ─────────────────────────────────────────────── */
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;padding:18px 26px 4px}
+.kpi{position:relative;overflow:hidden;padding:15px 16px;border-radius:var(--raio);background:var(--s1);border:1px solid var(--b1);backdrop-filter:blur(10px)}
+.kpi::after{content:"";position:absolute;right:-30px;top:-30px;width:110px;height:110px;border-radius:50%;background:radial-gradient(var(--kc,var(--nha)),transparent 70%);opacity:.9}
+.kpi .l{font-size:11px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.1em}
+.kpi .v{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:700;margin-top:4px;line-height:1}
+.kpi .s{font-size:12px;color:var(--t2);margin-top:6px}
+.kpi.k1{--kc:rgba(255,122,26,.25)} .kpi.k1 .v{color:var(--nh)}
+.kpi.k2{--kc:rgba(56,189,248,.22)} .kpi.k2 .v{color:var(--c1)}
+.kpi.k3{--kc:rgba(34,197,94,.22)} .kpi.k3 .v{color:var(--g1)}
+.kpi.k4{--kc:rgba(244,63,94,.22)} .kpi.k4 .v{color:var(--r1)}
+.kpi.k5{--kc:rgba(167,139,250,.22)} .kpi.k5 .v{color:var(--p1);font-size:20px;padding-top:6px}
+
+/* ── Layout ───────────────────────────────────────────── */
+.wrap{display:grid;grid-template-columns:400px 1fr;gap:18px;padding:16px 26px 40px;align-items:start}
+.coluna{position:sticky;top:86px;max-height:calc(100vh - 100px);display:flex;flex-direction:column;border-radius:var(--raio);background:var(--s1);border:1px solid var(--b1);backdrop-filter:blur(12px);overflow:hidden}
+.col-cab{padding:14px 14px 10px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid var(--b1)}
+.busca{position:relative}
+.busca input{width:100%;padding:11px 14px 11px 38px;border-radius:12px;border:1px solid var(--b1);background:var(--s2);color:var(--t1);font-size:13.5px;outline:none;transition:.18s}
+.busca input:focus{border-color:var(--nh);box-shadow:0 0 0 4px var(--nha)}
+.busca svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--t3)}
+.seg{display:flex;gap:4px;padding:4px;border-radius:12px;background:var(--s2);border:1px solid var(--b1)}
+.seg button{flex:1;font-size:12px;font-weight:700;padding:7px 6px;border-radius:9px;border:0;background:transparent;color:var(--t2);cursor:pointer;transition:.15s}
+.seg button.on{background:var(--s1s);color:var(--t1);box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.seg button .n{font-family:'JetBrains Mono',monospace;color:var(--nh);margin-left:3px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid var(--b1);background:transparent;color:var(--t2);cursor:pointer}
+.chips button.on{border-color:var(--nh);color:var(--nh);background:var(--nha)}
+.lista{overflow:auto;padding:6px 10px 12px}
+.grupo{font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--t3);padding:14px 6px 7px;display:flex;align-items:center;gap:8px}
+.grupo::after{content:"";flex:1;height:1px;background:var(--b1)}
+.proc{display:block;width:100%;text-align:left;margin:6px 0;padding:13px 14px;border-radius:14px;border:1px solid var(--b1);background:linear-gradient(180deg,rgba(255,255,255,.02),transparent);color:var(--t1);cursor:pointer;position:relative;transition:.18s}
+.proc:hover{border-color:var(--b2);transform:translateX(2px)}
+.proc.on{border-color:var(--nh);background:linear-gradient(135deg,var(--nha),transparent 70%);box-shadow:0 0 0 3px var(--nha)}
+.proc.armado::before{content:"";position:absolute;left:-1px;top:14px;bottom:14px;width:3px;border-radius:3px;background:var(--g1);box-shadow:0 0 10px var(--g1)}
+.proc .l1{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--t3);font-weight:600}
+.proc .emp{display:inline-flex;align-items:center;gap:6px;color:var(--t2);font-weight:800;letter-spacing:.02em}
+.proc .emp i{width:8px;height:8px;border-radius:50%;background:var(--ec,var(--nh))}
+.proc .cd{margin-left:auto;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:11.5px;padding:2px 8px;border-radius:7px;background:var(--s2);color:var(--t2)}
+.proc .cd.hoje{background:var(--nha);color:var(--nh)}
+.proc .cd.ja{background:var(--r2);color:var(--r1)}
+.proc .t{font-weight:700;font-size:14px;line-height:1.35;margin:7px 0 9px}
+.proc .barra{height:5px;border-radius:5px;background:var(--s3);overflow:hidden}
+.proc .barra i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,var(--g1),#86efac)}
+.proc .barra.fraco i{background:linear-gradient(90deg,var(--r1),#fb7185)}
+.proc .barra.medio i{background:linear-gradient(90deg,var(--y1),#fde68a)}
+.proc .l3{display:flex;justify-content:space-between;margin-top:6px;font-size:11.5px;color:var(--t3)}
+.proc .l3 b{color:var(--t2)}
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:8px;border:1px solid var(--b2);color:var(--t2);background:var(--s1)}
+.tag.ok{border-color:rgba(34,197,94,.4);color:var(--g1);background:var(--g2)}
+.tag.ruim{border-color:rgba(244,63,94,.4);color:var(--r1);background:var(--r2)}
+.tag.am{border-color:rgba(250,204,21,.4);color:var(--y1);background:var(--y2)}
+.tag.az{border-color:rgba(56,189,248,.4);color:var(--c1);background:var(--c2)}
+
+/* ── Painel do processo ───────────────────────────────── */
+.painel{min-width:0}
+.vazio{color:var(--t3);padding:70px 20px;text-align:center;font-size:15px;border-radius:var(--raio);border:1px dashed var(--b2);background:var(--s1)}
+.vazio .ic{font-size:42px;margin-bottom:10px;filter:grayscale(.2)}
+.hero{position:relative;overflow:hidden;border-radius:22px;padding:24px 26px;border:1px solid var(--b2);
+  background:radial-gradient(600px 240px at 100% 0%,rgba(255,122,26,.22),transparent 60%),linear-gradient(135deg,var(--s1s),var(--s1));}
+.hero::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,transparent 40%,rgba(255,255,255,.04) 50%,transparent 60%);background-size:250% 100%;animation:brilho 6s linear infinite}
+@keyframes brilho{from{background-position:120% 0}to{background-position:-120% 0}}
+.hero-top{display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap;position:relative;z-index:1}
+.hero h2{margin:0 0 10px;font-size:23px;font-weight:800;line-height:1.25;letter-spacing:-.01em}
+.hero .tags{display:flex;gap:7px;flex-wrap:wrap}
+.hero .acoes{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.contagem{display:flex;gap:10px;margin-top:20px;position:relative;z-index:1;flex-wrap:wrap;align-items:flex-end}
+.contagem .cx{min-width:74px;padding:10px 12px;border-radius:14px;background:rgba(0,0,0,.25);border:1px solid var(--b1);text-align:center}
+body.light-theme .contagem .cx{background:rgba(255,255,255,.7)}
+.contagem .cx b{display:block;font-family:'JetBrains Mono',monospace;font-size:28px;line-height:1;font-weight:700}
+.contagem .cx span{font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:var(--t3);font-weight:800}
+.contagem .rot{font-size:12px;color:var(--t2);margin-right:6px;align-self:center;max-width:120px;line-height:1.3}
+.armado-faixa{display:flex;align-items:center;gap:12px;margin-top:18px;padding:12px 16px;border-radius:14px;border:1px solid rgba(34,197,94,.4);background:var(--g2);position:relative;z-index:1}
+.armado-faixa .rad{width:34px;height:34px;border-radius:50%;position:relative;flex:none;background:radial-gradient(var(--g1) 30%,transparent 32%)}
+.armado-faixa .rad::before,.armado-faixa .rad::after{content:"";position:absolute;inset:0;border-radius:50%;border:2px solid var(--g1);animation:pulso 2s infinite}
+.armado-faixa .rad::after{animation-delay:1s}
+
+.grade2{display:grid;grid-template-columns:300px 1fr;gap:16px;margin-top:16px}
+.cartao{border-radius:var(--raio);background:var(--s1);border:1px solid var(--b1);padding:18px 20px;backdrop-filter:blur(10px)}
+.cartao h3{margin:0 0 14px;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--t2);display:flex;align-items:center;gap:8px}
+.cartao h3 small{text-transform:none;letter-spacing:0;font-weight:500;color:var(--t3);font-size:12px}
+.prontidao{display:flex;flex-direction:column;align-items:center}
+.anel{position:relative;width:150px;height:150px}
+.anel svg{width:100%;height:100%;transform:rotate(-90deg)}
+.anel .num{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.anel .num b{font-family:'JetBrains Mono',monospace;font-size:34px;line-height:1}
+.anel .num span{display:block;font-size:10.5px;color:var(--t3);text-transform:uppercase;letter-spacing:.14em;font-weight:800;margin-top:4px}
+.check{list-style:none;padding:0;margin:16px 0 0;width:100%}
+.check li{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--b1);font-size:13px;color:var(--t2)}
+.check li:last-child{border-bottom:0}
+.check li i{width:22px;height:22px;flex:none;border-radius:7px;display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:900}
+.check li.ok i{background:var(--g2);color:var(--g1)}
+.check li.no i{background:var(--r2);color:var(--r1)}
+.check li.am i{background:var(--y2);color:var(--y1)}
+.check li b{color:var(--t1);font-weight:700}
+
+.estrategias{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.est{position:relative;text-align:left;padding:15px 15px 14px;border-radius:15px;border:1px solid var(--b1);background:var(--s2);color:var(--t1);cursor:pointer;transition:.18s}
+.est:hover{border-color:var(--b2);transform:translateY(-2px)}
+.est.on{border-color:var(--nh);background:linear-gradient(160deg,var(--nha),var(--s2) 70%);box-shadow:0 0 0 3px var(--nha),0 10px 30px rgba(0,0,0,.2)}
+.est .ico{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;font-size:18px;background:var(--s3);margin-bottom:10px}
+.est.on .ico{background:linear-gradient(135deg,var(--nh),var(--nh2));box-shadow:0 6px 18px var(--nhg)}
+.est b{display:block;font-size:14px}
+.est span{display:block;font-size:12px;color:var(--t3);margin-top:4px;line-height:1.4}
+.est.on::after{content:"✓";position:absolute;top:12px;right:12px;width:20px;height:20px;border-radius:50%;background:var(--nh);color:#fff;font-size:11px;font-weight:900;display:grid;place-items:center}
+.params{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:16px}
+.campo label{display:block;font-size:11.5px;font-weight:800;color:var(--t3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
+.campo input,.campo select{width:100%;padding:10px 12px;border-radius:11px;border:1px solid var(--b1);background:var(--s2);color:var(--t1);font-size:14px;outline:none;transition:.15s}
+.campo input:focus,.campo select:focus{border-color:var(--nh);box-shadow:0 0 0 4px var(--nha)}
+.campo .dica{font-size:11.5px;color:var(--t3);margin-top:5px;line-height:1.4}
+.campo .comp{display:flex;gap:6px}
+.campo .comp select{width:84px;flex:none}
+.modos{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.modo{display:flex;gap:12px;align-items:center;padding:13px 14px;border-radius:14px;border:1px solid var(--b1);background:var(--s2);cursor:pointer;text-align:left;color:var(--t1)}
+.modo.on{border-color:var(--c1);background:linear-gradient(160deg,var(--c2),var(--s2) 70%);box-shadow:0 0 0 3px var(--c2)}
+.modo.real.on{border-color:var(--r1);background:linear-gradient(160deg,var(--r2),var(--s2) 70%);box-shadow:0 0 0 3px var(--r2)}
+.modo:disabled{opacity:.5;cursor:not-allowed}
+.modo .ico{font-size:22px}
+.modo b{display:block;font-size:13.5px}
+.modo span{display:block;font-size:11.5px;color:var(--t3);margin-top:2px}
+
+.barra-itens{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px;font-size:13px;color:var(--t2)}
+.barra-itens input{width:74px;padding:8px 10px;border-radius:10px;border:1px solid var(--b1);background:var(--s2);color:var(--t1);text-align:center}
+.tabela{overflow:auto;border-radius:14px;border:1px solid var(--b1)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);font-weight:800;padding:11px 12px;background:var(--s2);white-space:nowrap}
+td{padding:11px 12px;border-top:1px solid var(--b1);vertical-align:middle}
+tr:hover td{background:rgba(255,122,26,.03)}
+td.num{text-align:right;font-family:'JetBrains Mono',monospace;font-size:12.5px;white-space:nowrap}
+td .desc{max-width:380px;line-height:1.35}
+td .n{display:inline-grid;place-items:center;min-width:28px;height:28px;border-radius:8px;background:var(--s3);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:12px}
+td input.min{width:130px;padding:8px 10px;border-radius:10px;border:1px solid var(--b1);background:var(--s2);color:var(--t1);text-align:right;font-family:'JetBrains Mono',monospace;font-size:13px;outline:none}
+td input.min:focus{border-color:var(--nh);box-shadow:0 0 0 3px var(--nha)}
+td input.min.cliente{border-color:rgba(34,197,94,.5)}
+td input.min.vazio{border-color:rgba(244,63,94,.6);background:var(--r2)}
+td .orig{font-size:11px;color:var(--t3);margin-top:3px}
+.desconto{min-width:140px}
+.desconto .db{height:7px;border-radius:7px;background:var(--s3);overflow:hidden;margin-bottom:4px}
+.desconto .db i{display:block;height:100%;border-radius:7px;background:linear-gradient(90deg,var(--c1),var(--g1))}
+.desconto .db.perigo i{background:linear-gradient(90deg,var(--y1),var(--r1))}
+.desconto .dt{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--t2)}
+.sw{position:relative;width:38px;height:22px;flex:none}
+.sw input{opacity:0;width:0;height:0}
+.sw span{position:absolute;inset:0;border-radius:22px;background:var(--s3);border:1px solid var(--b2);transition:.18s;cursor:pointer}
+.sw span::before{content:"";position:absolute;width:16px;height:16px;left:2px;top:2px;border-radius:50%;background:var(--t3);transition:.18s}
+.sw input:checked+span{background:var(--g2);border-color:var(--g1)}
+.sw input:checked+span::before{transform:translateX(16px);background:var(--g1)}
+.aviso{padding:12px 14px;border-radius:13px;font-size:13px;line-height:1.5;margin-top:10px}
+.aviso.am{background:var(--y2);border:1px solid rgba(250,204,21,.35)}
+.aviso.vm{background:var(--r2);border:1px solid rgba(244,63,94,.4)}
+.terminal{font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.7;color:#9ef0b5;background:#04070d;border:1px solid var(--b2);border-radius:14px;padding:14px 16px;min-height:120px;max-height:260px;overflow:auto;position:relative}
+.terminal .cur{display:inline-block;width:8px;height:15px;background:#9ef0b5;vertical-align:-2px;animation:pisca 1s steps(1) infinite}
+@keyframes pisca{50%{opacity:0}}
+.terminal .cinza{color:#5b6b80}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--s1s);border:1px solid var(--b2);color:var(--t1);padding:12px 18px;border-radius:13px;font-weight:600;z-index:99;max-width:90vw;transition:.25s;box-shadow:0 20px 50px rgba(0,0,0,.4);pointer-events:none}
+.toast.on{opacity:1;transform:translateX(-50%)}
+.toast.err{border-color:var(--r1)} .toast.ok{border-color:var(--g1)}
+.modal-ov{position:fixed;inset:0;background:rgba(3,5,10,.72);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+.modal{background:var(--s1s);border:1px solid var(--b2);border-radius:22px;padding:26px;max-width:520px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.modal h3{margin:0 0 10px;font-size:20px;font-weight:800}
+.modal p{color:var(--t2);line-height:1.55;margin:6px 0}
+.modal input{width:100%;padding:13px 14px;border-radius:12px;border:1px solid var(--b2);background:var(--s2);color:var(--t1);font-size:18px;margin-top:10px;letter-spacing:.2em;text-align:center;font-family:'JetBrains Mono',monospace;outline:none}
+.modal input:focus{border-color:var(--nh);box-shadow:0 0 0 4px var(--nha)}
+.modal .acoes{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+.robo-ov{position:fixed;inset:0;background:rgba(3,5,10,.8);backdrop-filter:blur(6px);display:none;z-index:60;padding:16px;overflow:auto}
+.robo-box{background:var(--s1s);border:1px solid var(--b2);border-radius:22px;max-width:1340px;margin:0 auto;padding:18px 20px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.robo-cab{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.robo-cab h3{margin:0;font-size:19px;font-weight:800}
+.robo-cab .x{margin-left:auto}
+.robo-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.robo-bar input{padding:10px 12px;border-radius:11px;border:1px solid var(--b1);background:var(--s2);color:var(--t1);font-size:13.5px;outline:none}
+.robo-tela{position:relative;border:1px solid var(--b2);border-radius:14px;overflow:hidden;background:#000;line-height:0;box-shadow:0 0 0 6px rgba(255,255,255,.02)}
+.robo-tela img{width:100%;height:auto;cursor:crosshair;user-select:none;min-height:220px}
+.robo-tela .carreg{position:absolute;top:10px;right:12px;font-size:11px;color:#fff;background:rgba(0,0,0,.6);padding:3px 10px;border-radius:8px;line-height:1.6;font-family:'JetBrains Mono',monospace}
+.robo-dica{font-size:13px;color:var(--t2);line-height:1.55;margin:4px 0 14px;padding:12px 14px;border-radius:13px;background:var(--s2);border:1px solid var(--b1)}
+.robo-ev{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--t3);max-height:140px;overflow:auto;margin-top:12px;line-height:1.6;white-space:pre-wrap}
+.pilula{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;padding:5px 11px;border-radius:999px;border:1px solid var(--b2);color:var(--t2);background:var(--s2)}
 .pilula .bol{width:8px;height:8px;border-radius:50%;background:var(--t3)}
 .pilula.ok .bol{background:var(--g1);box-shadow:0 0 8px var(--g1)}
 .pilula.off .bol{background:var(--y1)}
-.bt{padding:8px 14px;border-radius:9px;border:1px solid var(--b2);background:var(--s2);color:var(--t1);font-weight:700;cursor:pointer;font-size:13px}
-.bt:hover{border-color:var(--nh)}
-.bt.pri{background:var(--nh);border-color:var(--nh);color:#fff}
-.bt.perigo{border-color:rgba(239,68,68,.5);color:var(--r1)}
-.bt:disabled{opacity:.5;cursor:not-allowed}
-.wrap{display:grid;grid-template-columns:360px 1fr;gap:0;min-height:calc(100vh - 58px)}
-.lista{border-right:1px solid var(--b1);background:var(--s1);overflow:auto;max-height:calc(100vh - 58px);position:sticky;top:58px}
-.lista-cab{padding:14px 16px 8px;display:flex;flex-direction:column;gap:8px}
-.lista-cab input{width:100%;padding:9px 12px;border-radius:9px;border:1px solid var(--b1);background:var(--s2);color:var(--t1)}
-.filtros{display:flex;gap:6px;flex-wrap:wrap}
-.filtros button{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid var(--b1);background:transparent;color:var(--t2);cursor:pointer}
-.filtros button.on{border-color:var(--nh);color:var(--nh);background:var(--nha)}
-.grupo{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);padding:14px 16px 6px}
-.proc{display:block;width:100%;text-align:left;padding:11px 16px;border:0;border-left:3px solid transparent;background:transparent;color:var(--t1);cursor:pointer;border-bottom:1px solid var(--b1)}
-.proc:hover{background:var(--s2)}
-.proc.on{background:var(--nha);border-left-color:var(--nh)}
-.proc .t{font-weight:700;font-size:13.5px;line-height:1.35}
-.proc .m{display:flex;gap:8px;flex-wrap:wrap;margin-top:5px;font-size:11.5px;color:var(--t3)}
-.tag{font-size:11px;font-weight:700;padding:1px 7px;border-radius:6px;border:1px solid var(--b2);color:var(--t2)}
-.tag.arm{border-color:rgba(34,197,94,.5);color:var(--g1);background:rgba(34,197,94,.08)}
-.tag.min{border-color:rgba(234,179,8,.5);color:var(--y1)}
-.tag.semmin{border-color:rgba(239,68,68,.45);color:var(--r1)}
-.painel{padding:22px 26px;overflow:auto}
-.vazio{color:var(--t3);padding:60px 20px;text-align:center;font-size:15px}
-.cab-proc{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
-.cab-proc h2{margin:0 0 6px;font-size:20px;font-weight:800;line-height:1.3}
-.cab-proc .info{display:flex;gap:8px;flex-wrap:wrap;color:var(--t2);font-size:12.5px}
-.cab-proc .acoes{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
-.bloco{background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:16px 18px;margin-top:16px}
-.bloco h3{margin:0 0 12px;font-size:14px;font-weight:800;display:flex;align-items:center;gap:8px}
-.bloco h3 small{font-weight:500;color:var(--t3);font-size:12px}
-.grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
-.campo label{display:block;font-size:12px;font-weight:700;color:var(--t2);margin-bottom:5px}
-.campo input,.campo select{width:100%;padding:9px 11px;border-radius:9px;border:1px solid var(--b1);background:var(--s2);color:var(--t1);font-size:13.5px}
-.campo .dica{font-size:11.5px;color:var(--t3);margin-top:4px;line-height:1.4}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);font-weight:800;padding:8px 8px;border-bottom:1px solid var(--b1);white-space:nowrap}
-td{padding:8px 8px;border-bottom:1px solid var(--b1);vertical-align:top}
-td.num{text-align:right;font-family:'JetBrains Mono',monospace;font-size:12.5px;white-space:nowrap}
-td .desc{max-width:420px;line-height:1.35;color:var(--t1)}
-td input.min{width:120px;padding:6px 8px;border-radius:7px;border:1px solid var(--b1);background:var(--s2);color:var(--t1);text-align:right;font-family:'JetBrains Mono',monospace}
-td input.min.cliente{border-color:rgba(34,197,94,.45)}
-td input.min.vazio{border-color:rgba(239,68,68,.55)}
-.desc-pct{font-size:11.5px;color:var(--t3)}
-.barra-itens{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;font-size:12.5px;color:var(--t2)}
-.barra-itens input{width:70px;padding:6px 8px;border-radius:7px;border:1px solid var(--b1);background:var(--s2);color:var(--t1)}
-.aviso{padding:10px 12px;border-radius:10px;font-size:12.5px;line-height:1.45;margin-top:10px}
-.aviso.am{background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.35);color:var(--t1)}
-.aviso.vm{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.4);color:var(--t1)}
-.aviso.vd{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.35);color:var(--t1)}
-.log{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--t2);max-height:220px;overflow:auto;line-height:1.6}
-.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--s3);border:1px solid var(--b2);color:var(--t1);padding:10px 16px;border-radius:10px;font-weight:600;z-index:99;display:none;max-width:90vw}
-.toast.err{border-color:var(--r1)}
-.toast.ok{border-color:var(--g1)}
-.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
-.modal{background:var(--s1);border:1px solid var(--b2);border-radius:16px;padding:22px;max-width:520px;width:100%}
-.modal h3{margin:0 0 10px;font-size:17px}
-.modal p{color:var(--t2);line-height:1.5;margin:6px 0}
-.modal input{width:100%;padding:10px 12px;border-radius:9px;border:1px solid var(--b1);background:var(--s2);color:var(--t1);font-size:15px;margin-top:8px}
-.modal .acoes{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
-.robo-ov{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;z-index:60;padding:14px;overflow:auto}
-.robo-box{background:var(--s1);border:1px solid var(--b2);border-radius:16px;max-width:1340px;margin:0 auto;padding:16px 18px}
-.robo-cab{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
-.robo-cab h3{margin:0;font-size:17px}
-.robo-cab .x{margin-left:auto}
-.robo-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
-.robo-bar input{padding:8px 10px;border-radius:8px;border:1px solid var(--b1);background:var(--s2);color:var(--t1);font-size:13.5px}
-.robo-tela{position:relative;border:1px solid var(--b2);border-radius:10px;overflow:hidden;background:#000;line-height:0}
-.robo-tela img{width:100%;height:auto;cursor:crosshair;user-select:none;min-height:200px}
-.robo-tela .carreg{position:absolute;top:8px;right:10px;font-size:11px;color:#fff;background:rgba(0,0,0,.55);padding:2px 8px;border-radius:6px;line-height:1.6}
-.robo-dica{font-size:12.5px;color:var(--t2);line-height:1.5;margin:8px 0}
-.robo-ev{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--t3);max-height:140px;overflow:auto;margin-top:10px;line-height:1.55;white-space:pre-wrap}
-@media (max-width:860px){.wrap{grid-template-columns:1fr}.lista{position:static;max-height:none}.painel{padding:16px}}
+@media (max-width:1180px){.kpis{grid-template-columns:repeat(3,1fr)}.grade2{grid-template-columns:1fr}.estrategias{grid-template-columns:1fr}}
+@media (max-width:900px){.wrap{grid-template-columns:1fr;padding:12px 16px}.coluna{position:static;max-height:none}.kpis{grid-template-columns:1fr 1fr;padding:14px 16px 0}.topo{padding:12px 16px;flex-wrap:wrap}.relogio{display:none}.modos{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <script>try{if(localStorage.getItem('nh_tema')==='claro')document.body.classList.add('light-theme');}catch(e){}</script>
-
-<div class="topo">
-  <div>
-    <h1><span>NH</span> · Robô de Lances</h1>
-    <div class="sub">Compras.gov · configure, arme e acompanhe</div>
+<div class="app">
+<header class="topo">
+  <div class="marca">
+    <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="8" width="14" height="11" rx="3"/><path stroke-linecap="round" d="M12 4v4M9 13h.01M15 13h.01M9.5 16.5h5"/></svg></div>
+    <div><h1><b>NH</b> Robô de Lances</h1><div class="sub">Central de comando · Compras.gov</div></div>
   </div>
-  <div class="dir">
-    <span class="pilula off" id="pl-robo" title="Abrir o robô na nuvem (login do Compras.gov)" style="cursor:pointer" onclick="abrirRobo()"><span class="bol"></span><span id="pl-robo-t">Robô na nuvem: verificando…</span></span>
-    <a class="bt" href="gestao.html" style="text-decoration:none">← Gestão</a>
-  </div>
-</div>
+  <div class="relogio"><div class="h" id="rel-h">--:--<small>:--</small></div><div class="d" id="rel-d">Horário de Brasília</div></div>
+  <div class="orb" id="pl-robo" onclick="abrirRobo()" title="Abrir o robô na nuvem (login do Compras.gov)"><span class="o"></span><span class="tx" id="pl-robo-t">Robô na nuvem<small>verificando…</small></span></div>
+  <a class="bt fant" href="gestao.html">← Gestão</a>
+</header>
 
-<div id="tela-login" class="vazio" style="display:none">
+<div id="tela-login" class="vazio" style="display:none;margin:40px 26px"><div class="ic">🔐</div>
   Entre no <a href="gestao.html">Sistema de Gestão</a> primeiro — esta página usa o mesmo login.<br>
   <small>Depois de entrar, volte e atualize esta página.</small>
 </div>
-<div id="tela-sem-acesso" class="vazio" style="display:none"></div>
+<div id="tela-sem-acesso" class="vazio" style="display:none;margin:40px 26px"></div>
 
-<div class="wrap" id="tela" style="display:none">
-  <aside class="lista">
-    <div class="lista-cab">
-      <input type="search" id="busca" placeholder="Buscar processo, órgão, empresa…" oninput="pintarLista()">
-      <div class="filtros" id="filtros">
-        <button data-f="proximas" class="on" onclick="filtro(this)">Próximas</button>
-        <button data-f="hoje" onclick="filtro(this)">Hoje</button>
-        <button data-f="armados" onclick="filtro(this)">Armados</button>
-        <button data-f="todas" onclick="filtro(this)">Todas</button>
+<div id="tela" style="display:none">
+  <section class="kpis" id="kpis"></section>
+  <div class="wrap">
+    <aside class="coluna">
+      <div class="col-cab">
+        <div class="busca"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M21 21l-4.3-4.3"/></svg>
+          <input type="search" id="busca" placeholder="Buscar processo, órgão, empresa…" oninput="pintarLista()"></div>
+        <div class="seg" id="filtros">
+          <button data-f="proximas" class="on" onclick="filtro(this)">Próximas</button>
+          <button data-f="hoje" onclick="filtro(this)">Hoje</button>
+          <button data-f="armados" onclick="filtro(this)">Armados</button>
+          <button data-f="todas" onclick="filtro(this)">Todas</button>
+        </div>
+        <div class="chips" id="filtros-emp"></div>
       </div>
-      <div class="filtros" id="filtros-emp"></div>
-    </div>
-    <div id="lista"></div>
-  </aside>
-  <main class="painel" id="painel">
-    <div class="vazio">Escolha um processo à esquerda.</div>
-  </main>
+      <div class="lista" id="lista"></div>
+    </aside>
+    <main class="painel" id="painel">
+      <div class="vazio"><div class="ic">🎯</div>Escolha uma disputa à esquerda para configurar o robô.</div>
+    </main>
+  </div>
 </div>
 
 <div class="modal-ov" id="mo-armar">
   <div class="modal">
-    <h3>Armar o robô</h3>
+    <h3>⚡ Armar o robô</h3>
     <p id="mo-armar-txt"></p>
     <p>Para confirmar, digite <b>ARMAR</b>:</p>
-    <input id="mo-armar-in" autocomplete="off">
+    <input id="mo-armar-in" autocomplete="off" maxlength="10">
     <div class="acoes">
       <button class="bt" onclick="fecharArmar()">Cancelar</button>
-      <button class="bt pri" id="mo-armar-ok">Armar</button>
+      <button class="bt pri" id="mo-armar-ok">Armar robô</button>
     </div>
   </div>
 </div>
@@ -196,12 +352,12 @@ td input.min.vazio{border-color:rgba(239,68,68,.55)}
       <button class="bt" onclick="roboVerificar()">✔ Já entrei — verificar</button>
       <button class="bt" onclick="roboAcao({acao:'voltar'})">← Voltar</button>
       <span style="flex:1"></span>
-      <span id="robo-url" style="font-size:12px;color:var(--t3)"></span>
+      <span id="robo-url" class="mono" style="font-size:11.5px;color:var(--t3)"></span>
     </div>
     <div class="robo-tela"><img id="robo-img" alt="Tela do navegador do robô" draggable="false"><span class="carreg" id="robo-carreg">carregando…</span></div>
-    <div class="robo-bar" style="margin-top:10px">
+    <div class="robo-bar" style="margin-top:12px">
       <input id="robo-txt" type="password" placeholder="Digite aqui e clique em Enviar texto (vai para o campo selecionado na tela)" style="flex:1;min-width:260px" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();roboDigitar();}">
-      <label style="font-size:12px;color:var(--t2)"><input type="checkbox" onchange="document.getElementById('robo-txt').type=this.checked?'text':'password'"> mostrar</label>
+      <label style="font-size:12px;color:var(--t2);display:flex;gap:6px;align-items:center"><input type="checkbox" onchange="document.getElementById('robo-txt').type=this.checked?'text':'password'"> mostrar</label>
       <button class="bt" onclick="roboDigitar()">Enviar texto</button>
       <button class="bt" onclick="roboTecla('Enter')">Enter ↵</button>
       <button class="bt" onclick="roboTecla('Tab')">Tab</button>
@@ -211,6 +367,7 @@ td input.min.vazio{border-color:rgba(239,68,68,.55)}
   </div>
 </div>
 <div class="toast" id="toast"></div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-firestore-compat.js"></script>
@@ -221,17 +378,24 @@ firebase.initializeApp(firebaseConfig);
 var db=firebase.firestore(), auth=firebase.auth();
 var NH_API='https://nhlicitacoes.noronhaholanda.com.br';
 
-var AND=[], EDITAIS={}, ITENS={}, CFG={}, SEL=null, FILTRO='proximas', EMP_F='';
+var AND=[], EDITAIS={}, ITENS={}, CFG={}, SEL=null, FILTRO='proximas', EMP_F='', ROBO_ST=null;
+var ESTRATEGIAS=[
+  ['primeiro','🏆','Brigar pelo 1º lugar','Cobre o melhor lance, passo mínimo, até o piso.'],
+  ['posicao','🎯','Ficar numa posição','Mira uma colocação (ex.: 2º) sem queimar margem.'],
+  ['classificar','🛡️','Só se classificar','Fica até 10% do melhor para a fase fechada.']
+];
+var CORES_EMP=['#ff7a1a','#38bdf8','#22c55e','#a78bfa','#f43f5e','#facc15','#2dd4bf','#fb7185'];
 
 function $(id){return document.getElementById(id);}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
-function toast(m,t){var el=$('toast');el.textContent=m;el.className='toast '+(t||'');el.style.display='block';clearTimeout(el._t);el._t=setTimeout(function(){el.style.display='none';},4200);}
+function toast(m,t){var el=$('toast');el.textContent=m;el.className='toast on '+(t||'');clearTimeout(el._t);el._t=setTimeout(function(){el.className='toast';},4200);}
 function moeda(v){v=Number(v);return isFinite(v)&&v>0?v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}):'—';}
 function numBR(s){if(typeof s==='number')return s;s=String(s||'').replace(/[R$\s]/g,'');if(!s)return 0;if(s.indexOf(',')>=0)s=s.replace(/\./g,'').replace(',','.');var n=parseFloat(s);return isFinite(n)?n:0;}
 function semAc(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim();}
 function ehComprasGov(p){p=semAc(p);return /compras ?gov|comprasnet/.test(p);}
 function tit(r){return String(r[3]||'').trim();}
 function emp(r){return String(r[2]||'').trim().replace(/\s+/g,' ').toUpperCase();}
+function corEmp(e){var h=0;for(var i=0;i<e.length;i++)h=(h*31+e.charCodeAt(i))>>>0;return CORES_EMP[h%CORES_EMP.length];}
 /* "25/11/2026 09:30" → Date (col. 10 de Em Andamento; a nova data, col. 23, vence). */
 function dataDisputa(r){
   var s=String(r[23]||'').trim()||String(r[10]||'').trim();
@@ -239,8 +403,15 @@ function dataDisputa(r){
   if(!m)return null;
   return new Date(+m[3],+m[2]-1,+m[1],m[4]?+m[4]:8,m[5]?+m[5]:0);
 }
-function fmtData(d){if(!d)return 'sem data';return d.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'})+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
+function fmtData(d){if(!d)return 'sem data';return d.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'})+' · '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
 function mesmoDia(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();}
+function falta(d){
+  if(!d)return {txt:'sem data',cls:''};
+  var ms=d-Date.now(),ab=Math.abs(ms),dd=Math.floor(ab/864e5),hh=Math.floor(ab%864e5/36e5),mm=Math.floor(ab%36e5/6e4);
+  var t=dd?dd+'d '+hh+'h':hh?hh+'h '+('0'+mm).slice(-2)+'m':mm+'m';
+  if(ms<0)return {txt:'há '+t,cls:'ja'};
+  return {txt:'em '+t,cls:mesmoDia(d,new Date())?'hoje':''};
+}
 
 /* O edital de onde o processo nasceu: pelo elo `_edital` ou pelo título + empresa (ficha única). */
 function editalDo(r){
@@ -265,18 +436,35 @@ function itensDo(r){
   return {edital:ed,doc:doc,itens:lista};
 }
 
+/* ── Relógio de Brasília e contagens regressivas ─────────── */
+function tic(){
+  var agora=new Date(),f=new Intl.DateTimeFormat('pt-BR',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).formatToParts(agora);
+  var p={};f.forEach(function(x){p[x.type]=x.value;});
+  $('rel-h').innerHTML=p.hour+':'+p.minute+'<small>:'+p.second+'</small>';
+  $('rel-d').textContent=agora.toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo',weekday:'long',day:'2-digit',month:'long'});
+  var c=$('contagem');
+  if(c&&c.getAttribute('data-ate')){
+    var ms=new Date(c.getAttribute('data-ate'))-agora,neg=ms<0;ms=Math.abs(ms);
+    var v=[Math.floor(ms/864e5),Math.floor(ms%864e5/36e5),Math.floor(ms%36e5/6e4),Math.floor(ms%6e4/1e3)];
+    c.querySelectorAll('.cx b').forEach(function(b,i){b.textContent=('0'+v[i]).slice(-2);});
+    var r=c.querySelector('.rot');if(r)r.textContent=neg?'Sessão aberta há':'A sessão abre em';
+  }
+}
+setInterval(tic,1000);tic();
+
 auth.onAuthStateChanged(async function(u){
   if(!u){$('tela-login').style.display='block';$('tela').style.display='none';return;}
   $('tela-login').style.display='none';
   try{await carregar();}
   catch(e){
     var msg=(e&&e.code==='permission-denied')?
-      'Sem permissão para a Central de Lances. Ela é só da equipe NH — e a regra <b>robo_lances</b> precisa estar publicada no Firestore.':
-      'Não consegui carregar: '+esc(e&&e.message||e);
+      '<div class="ic">⛔</div>Sem permissão para a Central de Lances. Ela é só da equipe NH — e a regra <b>robo_lances</b> precisa estar publicada no Firestore.':
+      '<div class="ic">⚠️</div>Não consegui carregar: '+esc(e&&e.message||e);
     $('tela-sem-acesso').innerHTML=msg;$('tela-sem-acesso').style.display='block';return;
   }
-  $('tela').style.display='grid';
+  $('tela').style.display='block';
   verRobo();setInterval(verRobo,30000);
+  setInterval(function(){pintarLista();},60000);
 });
 
 async function carregar(){
@@ -295,8 +483,8 @@ async function carregar(){
   });
   AND.sort(function(a,b){var x=dataDisputa(a),y=dataDisputa(b);if(!x&&!y)return 0;if(!x)return 1;if(!y)return -1;return x-y;});
   var emps={};AND.forEach(function(a){emps[emp(a)]=1;});
-  $('filtros-emp').innerHTML='<button class="on" data-e="" onclick="filtroEmp(this)">Todas</button>'+
-    Object.keys(emps).sort().map(function(e){return '<button data-e="'+esc(e)+'" onclick="filtroEmp(this)">'+esc(e)+'</button>';}).join('');
+  $('filtros-emp').innerHTML='<button class="on" data-e="" onclick="filtroEmp(this)">Todas as empresas</button>'+
+    Object.keys(emps).sort().map(function(e){return '<button data-e="'+esc(e)+'" onclick="filtroEmp(this)"><span style="color:'+corEmp(e)+'">●</span> '+esc(e)+'</button>';}).join('');
   pintarLista();
   var q=new URLSearchParams(location.search).get('p');
   if(q){var alvo=AND.find(function(a){return 'a-'+a[0]===q;});if(alvo)abrir(String(alvo[0]));}
@@ -304,8 +492,29 @@ async function carregar(){
 function filtro(b){FILTRO=b.getAttribute('data-f');document.querySelectorAll('#filtros button').forEach(function(x){x.classList.toggle('on',x===b);});pintarLista();}
 function filtroEmp(b){EMP_F=b.getAttribute('data-e');document.querySelectorAll('#filtros-emp button').forEach(function(x){x.classList.toggle('on',x===b);});pintarLista();}
 
+function pintarKpis(){
+  var hoje=new Date(),em7=Date.now()+7*864e5,nHoje=0,n7=0,nArm=0,semMin=0;
+  AND.forEach(function(a){
+    var d=dataDisputa(a);if(d&&mesmoDia(d,hoje))nHoje++;
+    if(d&&d>=hoje&&d<=em7)n7++;
+    if((CFG['a-'+a[0]]||{}).armado)nArm++;
+    if(!d||d>=new Date(Date.now()-864e5))semMin+=itensDo(a).itens.filter(function(i){return !(i.minimo>0);}).length;
+  });
+  var rb=ROBO_ST||{};
+  $('kpis').innerHTML=
+    '<div class="kpi k1"><div class="l">Disputas hoje</div><div class="v">'+nHoje+'</div><div class="s">no Compras.gov</div></div>'+
+    '<div class="kpi k2"><div class="l">Próximos 7 dias</div><div class="v">'+n7+'</div><div class="s">'+AND.length+' em andamento no total</div></div>'+
+    '<div class="kpi k3"><div class="l">Robôs armados</div><div class="v">'+nArm+'</div><div class="s">'+(nArm?'acompanhando as salas':'nenhum armado')+'</div></div>'+
+    '<div class="kpi k4"><div class="l">Itens sem mínimo</div><div class="v">'+semMin+'</div><div class="s">nas disputas que vêm aí</div></div>'+
+    '<div class="kpi k5"><div class="l">Robô na nuvem</div><div class="v">'+(rb.ativo?(rb.logado?'Logado':'Sem login'):(rb.configurado?'Sem resposta':'Instalando'))+'</div><div class="s">'+(rb.ativo?(rb.acompanhando||0)+' sala(s) acompanhada(s)':'clique no robô no topo')+'</div></div>';
+}
+
 function pintarLista(){
+  pintarKpis();
   var q=semAc($('busca').value), hoje=new Date(), ontem=new Date(Date.now()-86400000);
+  var cont={proximas:0,hoje:0,armados:0,todas:AND.length};
+  AND.forEach(function(a){var d=dataDisputa(a);if(!d||d>=ontem)cont.proximas++;if(d&&mesmoDia(d,hoje))cont.hoje++;if((CFG['a-'+a[0]]||{}).armado)cont.armados++;});
+  document.querySelectorAll('#filtros button').forEach(function(b){var f=b.getAttribute('data-f');b.innerHTML=b.textContent.replace(/\d+$/,'').trim()+' <span class="n">'+cont[f]+'</span>';});
   var l=AND.filter(function(a){
     if(EMP_F&&emp(a)!==EMP_F)return false;
     if(q&&semAc(a.join(' ')).indexOf(q)<0)return false;
@@ -315,20 +524,36 @@ function pintarLista(){
     if(FILTRO==='proximas')return !d||d>=ontem;
     return true;
   });
-  if(!l.length){$('lista').innerHTML='<div class="vazio" style="padding:30px 16px;font-size:13px">Nenhum processo do Compras.gov nesse filtro.</div>';return;}
+  if(!l.length){$('lista').innerHTML='<div style="padding:34px 16px;text-align:center;color:var(--t3);font-size:13px">Nenhuma disputa do Compras.gov nesse filtro.</div>';return;}
   var html='',grupoAnt='';
   l.forEach(function(a){
     var d=dataDisputa(a),g=!d?'Sem data de disputa':mesmoDia(d,hoje)?'Hoje':d<hoje?'Já passou':'Próximas';
     if(g!==grupoAnt){html+='<div class="grupo">'+g+'</div>';grupoAnt=g;}
-    var cfg=CFG['a-'+a[0]]||{},it=itensDo(a).itens,comMin=it.filter(function(i){return i.minimo>0;}).length;
-    html+='<button class="proc'+(SEL===String(a[0])?' on':'')+'" onclick="abrir(\''+esc(a[0])+'\')">'+
+    var cfg=CFG['a-'+a[0]]||{},it=itensDo(a).itens,comMin=it.filter(function(i){return i.minimo>0;}).length,pct=it.length?Math.round(comMin/it.length*100):0,fa=falta(d),e=emp(a);
+    html+='<button class="proc'+(SEL===String(a[0])?' on':'')+(cfg.armado?' armado':'')+'" onclick="abrir(\''+esc(a[0])+'\')">'+
+      '<div class="l1"><span class="emp" style="--ec:'+corEmp(e)+'"><i></i>'+esc(e)+'</span><span>'+esc(fmtData(d))+'</span><span class="cd '+fa.cls+'">'+esc(fa.txt)+'</span></div>'+
       '<div class="t">'+esc(tit(a)||'(sem título)')+'</div>'+
-      '<div class="m"><span>'+esc(emp(a))+'</span><span>'+esc(fmtData(d))+'</span>'+
-      (cfg.armado?'<span class="tag arm">armado · '+(cfg.modo==='real'?'real':'sombra')+'</span>':'')+
-      (it.length?(comMin===it.length?'<span class="tag min">'+it.length+' itens c/ mínimo</span>':'<span class="tag semmin">'+(it.length-comMin)+' de '+it.length+' sem mínimo</span>'):'<span class="tag semmin">sem itens</span>')+
-      '</div></button>';
+      '<div class="barra '+(pct<50?'fraco':pct<100?'medio':'')+'"><i style="width:'+(it.length?Math.max(pct,4):0)+'%"></i></div>'+
+      '<div class="l3"><span>'+(it.length?'<b>'+comMin+'/'+it.length+'</b> itens com mínimo':'sem itens do TR')+'</span><span>'+(cfg.armado?'<b style="color:var(--g1)">● armado · '+(cfg.modo==='real'?'real':'sombra')+'</b>':'')+'</span></div>'+
+      '</button>';
   });
   $('lista').innerHTML=html;
+}
+
+function prontidao(a,info,cfg){
+  var ativos=info.itens.filter(function(i){return i.ativo;});
+  var comMin=ativos.filter(function(i){return i.minimo>0;}).length;
+  var ed=info.edital,dis=a._disputa||(ed&&ed._disputa)||'';
+  var rb=ROBO_ST||{};
+  var c=[
+    {ok:info.itens.length>0,t:'Itens do TR',d:info.itens.length?info.itens.length+' itens':'não extraídos'},
+    {ok:ativos.length&&comMin===ativos.length,am:comMin>0&&comMin<ativos.length,t:'Valores mínimos',d:comMin+' de '+ativos.length},
+    {ok:!!dis,am:!dis,t:'Modo de disputa',d:dis||'não informado'},
+    {ok:!!cfg.compra,t:'Sala no Compras.gov',d:cfg.compra?'compra '+cfg.compra:'buscando…'},
+    {ok:!!(rb.ativo&&rb.logado),am:!!rb.ativo&&!rb.logado,t:'Robô logado',d:rb.ativo?(rb.logado?'sessão ativa':'falta o login'):'aguardando'}
+  ];
+  var pontos=c.reduce(function(s,x){return s+(x.ok?1:x.am?.5:0);},0);
+  return {itens:c,pct:Math.round(pontos/c.length*100)};
 }
 
 function abrir(id){
@@ -337,61 +562,87 @@ function abrir(id){
   var info=itensDo(a),cfg=CFG['a-'+id]||{},ed=info.edital;
   var mod=a._modalidade||(ed&&ed._modalidade)||'',dis=a._disputa||(ed&&ed._disputa)||'';
   var link=String(a[19]||'').trim()||(ed?String(ed[13]||'').trim():'');
-  var est=cfg.estrategia||'primeiro';
-  var h='<div class="cab-proc"><div><h2>'+esc(tit(a))+'</h2><div class="info">'+
-    '<span class="tag">'+esc(emp(a))+'</span><span class="tag">'+esc(fmtData(dataDisputa(a)))+'</span>'+
-    (mod?'<span class="tag">'+esc(mod)+'</span>':'')+(dis?'<span class="tag">Disputa: '+esc(dis)+'</span>':'<span class="tag semmin">modo de disputa não informado</span>')+
-    (cfg.compra?'<span class="tag">Compra '+esc(cfg.compra)+'</span>':'')+
+  var est=cfg.estrategia||'primeiro',d=dataDisputa(a),e=emp(a);
+  var pr=prontidao(a,info,cfg),cor=pr.pct>=80?'var(--g1)':pr.pct>=50?'var(--y1)':'var(--r1)',circ=2*Math.PI*62;
+
+  var h='<section class="hero"><div class="hero-top"><div style="flex:1;min-width:260px">'+
+    '<h2>'+esc(tit(a))+'</h2><div class="tags">'+
+    '<span class="tag" style="border-color:'+corEmp(e)+';color:'+corEmp(e)+'">● '+esc(e)+'</span>'+
+    (mod?'<span class="tag az">'+esc(mod)+'</span>':'')+(dis?'<span class="tag az">Disputa: '+esc(dis)+'</span>':'<span class="tag am">modo de disputa não informado</span>')+
+    '<span class="tag" id="tag-compra">'+(cfg.compra?'Compra '+esc(cfg.compra):'procurando a sala…')+'</span>'+
     (link?'<a class="tag" href="'+esc(link)+'" target="_blank" rel="noopener">edital ↗</a>':'')+
     '</div></div><div class="acoes">'+
     '<button class="bt" onclick="salvar()">💾 Salvar</button>'+
-    (cfg.armado?'<button class="bt perigo" onclick="desarmar()">■ Desarmar</button>':'<button class="bt pri" onclick="pedirArmar()">▶ Armar robô</button>')+
-    '</div></div>';
+    (cfg.armado?'<button class="bt perigo" onclick="desarmar()">■ Desarmar</button>':'<button class="bt pri" onclick="pedirArmar()">⚡ Armar robô</button>')+
+    '</div></div>'+
+    (d?'<div class="contagem" id="contagem" data-ate="'+d.toISOString()+'"><span class="rot">A sessão abre em</span>'+
+      '<div class="cx"><b>00</b><span>dias</span></div><div class="cx"><b>00</b><span>horas</span></div><div class="cx"><b>00</b><span>min</span></div><div class="cx"><b>00</b><span>seg</span></div>'+
+      '<span class="rot" style="margin-left:10px;max-width:none">'+esc(fmtData(d))+'</span></div>':'<div class="aviso am" style="position:relative;z-index:1">Sem data de disputa em Em Andamento.</div>')+
+    (cfg.armado?'<div class="armado-faixa"><span class="rad"></span><div><b>Robô armado em modo '+(cfg.modo==='real'?'REAL':'sombra')+'</b><div style="font-size:12.5px;color:var(--t2)">por '+esc(cfg.armadoPor||'')+' em '+esc(cfg.armadoEm||'')+(cfg.modo==='real'?'':' · acompanha e calcula, não envia lance')+'</div></div></div>':'')+
+    '</section>';
 
-  h+='<div class="bloco"><h3>Como o robô vai disputar</h3><div class="grade">'+
-    campoSel('cf-estrategia','Estratégia',[['primeiro','Brigar pelo 1º lugar'],['posicao','Ficar numa posição'],['classificar','Só se manter classificado (fase fechada)']],est,
-      'Nunca passa do valor mínimo de cada item.')+
-    campoNum('cf-posicao','Posição desejada',cfg.posicaoAlvo||2,'Só para "Ficar numa posição".')+
-    campoSel('cf-dectipo','Intervalo mínimo entre lances',[['valor','em R$'],['pct','em %']],cfg.decTipo||'pct','Está no edital (art. 57 da Lei 14.133). O robô nunca usa menos que isso.')+
-    campoNum('cf-dec','Valor do intervalo',cfg.dec!=null?cfg.dec:0.5,'Ex.: 0,5 (%) ou 10,00 (R$).')+
-    campoNum('cf-entrar','Entrar nos últimos (segundos)',cfg.entrarSeg||60,'No modo aberto, cada lance nos 2 min finais prorroga 2 min.')+
-    campoSel('cf-fechada','Fase fechada (aberto-fechado)',[['minimo','Dar o valor mínimo'],['margem','Mínimo + margem'],['manter','Manter o último lance']],cfg.fechada||'minimo','Lance único e sigiloso, até 5 min.')+
-    campoNum('cf-margem','Margem sobre o mínimo (%)',cfg.margem!=null?cfg.margem:0,'Só para "Mínimo + margem".')+
-    campoSel('cf-modo','Modo',[['sombra','Sombra — acompanha e calcula, NÃO envia'],['real','Real — envia os lances']],cfg.modo||'sombra','O modo real fica liberado depois que o sombra acertar em disputas reais.')+
-    '</div></div>';
+  h+='<div class="grade2"><div class="cartao prontidao"><h3>Prontidão</h3>'+
+    '<div class="anel"><svg viewBox="0 0 150 150"><circle cx="75" cy="75" r="62" fill="none" stroke="var(--s3)" stroke-width="12"/>'+
+    '<circle cx="75" cy="75" r="62" fill="none" stroke="'+cor+'" stroke-width="12" stroke-linecap="round" stroke-dasharray="'+circ+'" stroke-dashoffset="'+(circ*(1-pr.pct/100))+'" style="filter:drop-shadow(0 0 8px '+cor+');transition:stroke-dashoffset .8s"/></svg>'+
+    '<div class="num"><div><b style="color:'+cor+'">'+pr.pct+'%</b><span>pronto</span></div></div></div>'+
+    '<ul class="check">'+pr.itens.map(function(x){return '<li class="'+(x.ok?'ok':x.am?'am':'no')+'"><i>'+(x.ok?'✓':x.am?'!':'✕')+'</i><div><b>'+x.t+'</b><br>'+esc(x.d)+'</div></li>';}).join('')+'</ul></div>';
 
-  h+='<div class="bloco"><h3>Itens e valores mínimos <small>— itens do TR, mínimo preenchido pelo cliente no Viabilidade</small></h3>';
+  h+='<div class="cartao"><h3>Estratégia <small>— como o robô disputa</small></h3><input type="hidden" id="cf-estrategia" value="'+esc(est)+'">'+
+    '<div class="estrategias">'+ESTRATEGIAS.map(function(s){return '<button type="button" class="est'+(s[0]===est?' on':'')+'" data-v="'+s[0]+'" onclick="escolherEst(this)"><div class="ico">'+s[1]+'</div><b>'+s[2]+'</b><span>'+s[3]+'</span></button>';}).join('')+'</div>'+
+    '<div class="params">'+
+      campoNum('cf-posicao','Posição desejada',cfg.posicaoAlvo||2,'Só para "Ficar numa posição".')+
+      '<div class="campo"><label for="cf-dec">Intervalo mínimo entre lances</label><div class="comp"><input id="cf-dec" type="number" step="any" value="'+esc(cfg.dec!=null?cfg.dec:0.5)+'"><select id="cf-dectipo"><option value="pct"'+((cfg.decTipo||'pct')==='pct'?' selected':'')+'>%</option><option value="valor"'+(cfg.decTipo==='valor'?' selected':'')+'>R$</option></select></div><div class="dica">Está no edital. O robô nunca usa menos.</div></div>'+
+      campoNum('cf-entrar','Entrar nos últimos (s)',cfg.entrarSeg||60,'Cada lance nos 2 min finais prorroga 2 min.')+
+      campoSel('cf-fechada','Fase fechada',[['minimo','Dar o valor mínimo'],['margem','Mínimo + margem'],['manter','Manter o último lance']],cfg.fechada||'minimo','Lance único e sigiloso, até 5 min.')+
+      campoNum('cf-margem','Margem sobre o mínimo (%)',cfg.margem!=null?cfg.margem:0,'Só para "Mínimo + margem".')+
+    '</div><input type="hidden" id="cf-modo" value="'+esc(cfg.modo||'sombra')+'">'+
+    '<div class="modos">'+
+      '<button type="button" class="modo'+((cfg.modo||'sombra')==='sombra'?' on':'')+'" data-v="sombra" onclick="escolherModo(this)"><span class="ico">👁️</span><div><b>Modo sombra</b><span>Acompanha a sala e calcula o lance — não envia nada.</span></div></button>'+
+      '<button type="button" class="modo real'+(cfg.modo==='real'?' on':'')+'" data-v="real" disabled title="Liberado depois que o modo sombra acertar em disputas reais"><span class="ico">⚡</span><div><b>Modo real</b><span>Envia os lances. Liberado após validação no sombra.</span></div></button>'+
+    '</div></div></div>';
+
+  h+='<div class="cartao" style="margin-top:16px"><h3>Itens e valores mínimos <small>— itens do TR · mínimo do cliente no Viabilidade</small></h3>';
   if(!info.itens.length){
     h+='<div class="aviso vm">Este processo ainda não tem os <b>Itens do TR</b> extraídos. Abra o card do edital no Gestão → Ferramentas → <b>Itens do TR</b>, e peça ao cliente o valor mínimo no Viabilidade.</div>';
   }else{
     var sem=info.itens.filter(function(i){return !(i.minimo>0);}).length;
     h+='<div class="barra-itens">Preencher os itens sem mínimo com <input id="pct-massa" type="number" step="0.1" value="'+(cfg.pctMassa||'')+'" placeholder="%"> % abaixo do estimado <button class="bt" onclick="aplicarPct()">Aplicar</button>'+
-      (sem?'<span class="tag semmin">'+sem+' item(ns) sem mínimo — o robô não disputa item sem mínimo</span>':'<span class="tag min">todos com mínimo</span>')+'</div>';
-    h+='<div style="overflow:auto"><table><thead><tr><th></th><th>Item</th><th>Descrição</th><th>Qtd</th><th>Estimado (un.)</th><th>Mínimo (un.)</th><th>Desconto</th></tr></thead><tbody>';
+      (sem?'<span class="tag ruim">'+sem+' item(ns) sem mínimo — o robô não disputa item sem mínimo</span>':'<span class="tag ok">✓ todos com mínimo</span>')+'</div>';
+    h+='<div class="tabela"><table><thead><tr><th>Disputar</th><th>Item</th><th>Descrição</th><th>Qtd</th><th>Estimado (un.)</th><th>Mínimo (un.)</th><th>Desconto</th></tr></thead><tbody>';
     info.itens.forEach(function(i){
-      var desc=i.vunit>0&&i.minimo>0?((1-i.minimo/i.vunit)*100):null;
-      h+='<tr data-idx="'+i.idx+'"><td><input type="checkbox" class="ativo" '+(i.ativo?'checked':'')+' title="Disputar este item"></td>'+
-        '<td class="num">'+esc(i.n)+'</td><td><div class="desc">'+esc(i.desc.slice(0,180))+(i.desc.length>180?'…':'')+'</div></td>'+
+      h+='<tr data-idx="'+i.idx+'"><td><label class="sw"><input type="checkbox" class="ativo" '+(i.ativo?'checked':'')+'><span></span></label></td>'+
+        '<td><span class="n">'+esc(i.n)+'</span></td><td><div class="desc">'+esc(i.desc.slice(0,170))+(i.desc.length>170?'…':'')+'</div></td>'+
         '<td class="num">'+esc(i.qtd)+' '+esc(i.unid)+'</td><td class="num">'+moeda(i.vunit)+'</td>'+
-        '<td><input class="min'+(i.minimo>0?(i.ajustado?'':' cliente'):' vazio')+'" value="'+(i.minimo>0?i.minimo.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:4}):'')+'" data-cli="'+i.minCliente+'" title="'+(i.minCliente>0?'Cliente informou '+moeda(i.minCliente):'Cliente não informou')+'" oninput="recalc(this)">'+
-        (i.ajustado?'<div class="desc-pct">cliente: '+moeda(i.minCliente)+'</div>':'')+'</td>'+
-        '<td class="num desc-pct">'+(desc==null?'—':desc.toFixed(1).replace('.',',')+'%')+(desc!=null&&desc>=50?' <span style="color:var(--r1)" title="O Compras.gov alerta lance inexequível abaixo de 50% do estimado">⚠</span>':'')+'</td></tr>';
+        '<td><input class="min'+(i.minimo>0?(i.ajustado?'':' cliente'):' vazio')+'" value="'+(i.minimo>0?i.minimo.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:4}):'')+'" data-cli="'+i.minCliente+'" data-est="'+i.vunit+'" title="'+(i.minCliente>0?'Cliente informou '+moeda(i.minCliente):'Cliente não informou')+'" oninput="recalc(this)">'+
+        (i.ajustado?'<div class="orig">cliente: '+moeda(i.minCliente)+'</div>':i.minCliente>0?'<div class="orig" style="color:var(--g1)">do cliente</div>':'')+'</td>'+
+        '<td class="desconto">'+barraDesc(i.vunit,i.minimo)+'</td></tr>';
     });
     h+='</tbody></table></div>';
   }
   h+='</div>';
 
-  h+='<div class="bloco"><h3>Ao vivo <small>— aparece quando o robô na nuvem estiver rodando</small></h3><div id="aovivo" class="log">'+
-    (cfg.armado?'Armado em '+esc(cfg.armadoEm||'')+' por '+esc(cfg.armadoPor||'')+'. Aguardando a sessão abrir.':'Robô não armado para este processo.')+'</div>'+
-    (cfg.armado&&cfg.compra?'<button class="bt" style="margin-top:10px" onclick="baixarDiagnostico(\''+esc(cfg.compra)+'\')">⬇ Diagnóstico da sala (o que o robô viu)</button>':'')+
-    (cfg.armado&&!cfg.compra?'<div class="aviso am">Não achei o número da compra no Compras.gov (17 dígitos) pelo link do PNCP. Sem ele o robô não acha a sala.</div>':'')+'</div>';
-  $('painel').innerHTML=h;
-  /* Compra do Compras.gov (17 dígitos) pelo link do PNCP — é como o robô acha a sala. */
+  h+='<div class="cartao" style="margin-top:16px"><h3>Ao vivo <small>— o que o robô vê na sala</small></h3><div class="terminal" id="aovivo">'+
+    (cfg.armado?'<span class="cinza">['+esc(cfg.armadoEm||'')+']</span> robô armado por '+esc(cfg.armadoPor||'')+'<br><span class="cinza">[agora]</span> aguardando a sessão abrir no Compras.gov <span class="cur"></span>':
+      '<span class="cinza">$</span> robô desarmado para este processo. Configure e clique em <b style="color:#fff">⚡ Armar robô</b>. <span class="cur"></span>')+'</div>'+
+    (cfg.armado&&cfg.compra?'<button class="bt" style="margin-top:12px" onclick="baixarDiagnostico(\''+esc(cfg.compra)+'\')">⬇ Diagnóstico da sala (o que o robô viu)</button>':'')+
+    (cfg.armado&&!cfg.compra?'<div class="aviso am">Não achei o número da compra no Compras.gov (17 dígitos) pelo link do PNCP. Sem ele o robô não acha a sala.</div>':'')+
+    '</div>';
+  $('painel').innerHTML=h;tic();
   if(!cfg.compra)acharCompra(a,ed);
 }
+function barraDesc(est,min){
+  if(!(est>0&&min>0))return '<span class="dt">—</span>';
+  var d=(1-min/est)*100,w=Math.max(2,Math.min(100,d));
+  return '<div class="db'+(d>=50?' perigo':'')+'"><i style="width:'+w+'%"></i></div><span class="dt">'+d.toFixed(1).replace('.',',')+'%'+(d>=50?' <span style="color:var(--r1)" title="O Compras.gov alerta lance inexequível abaixo de 50% do estimado">⚠ inexequível?</span>':'')+'</span>';
+}
+function escolherEst(b){$('cf-estrategia').value=b.getAttribute('data-v');document.querySelectorAll('.est').forEach(function(x){x.classList.toggle('on',x===b);});}
+function escolherModo(b){if(b.disabled)return;$('cf-modo').value=b.getAttribute('data-v');document.querySelectorAll('.modo').forEach(function(x){x.classList.toggle('on',x===b);});}
 function campoSel(id,lbl,ops,val,dica){return '<div class="campo"><label for="'+id+'">'+lbl+'</label><select id="'+id+'">'+ops.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===val?' selected':'')+'>'+esc(o[1])+'</option>';}).join('')+'</select>'+(dica?'<div class="dica">'+dica+'</div>':'')+'</div>';}
 function campoNum(id,lbl,val,dica){return '<div class="campo"><label for="'+id+'">'+lbl+'</label><input id="'+id+'" type="number" step="any" value="'+esc(val)+'">'+(dica?'<div class="dica">'+dica+'</div>':'')+'</div>';}
-function recalc(inp){var v=numBR(inp.value);inp.classList.toggle('vazio',!(v>0));inp.classList.toggle('cliente',v>0&&v===Number(inp.getAttribute('data-cli')));}
+function recalc(inp){
+  var v=numBR(inp.value);inp.classList.toggle('vazio',!(v>0));inp.classList.toggle('cliente',v>0&&v===Number(inp.getAttribute('data-cli')));
+  var td=inp.closest('tr').querySelector('.desconto');if(td)td.innerHTML=barraDesc(Number(inp.getAttribute('data-est')),v);
+}
 function aplicarPct(){
   var p=parseFloat(String($('pct-massa').value).replace(',','.'));if(!(p>0&&p<100)){toast('Informe um percentual entre 0 e 100','err');return;}
   var a=AND.find(function(x){return String(x[0])===SEL;}),info=itensDo(a),n=0;
@@ -411,10 +662,9 @@ async function acharCompra(a,ed){
   if(!compra&&cnpj){
     try{var r=await fetch(NH_API+'/api/pncp/compra?cnpj='+cnpj+'&ano='+ano+'&seq='+seq);if(r.ok){var j=await r.json();var c=String(j.linkSistemaOrigem||'').match(/compra=(\d{17})/);if(c)compra=c[1];}}catch(_e){}
   }
-  if(compra&&SEL===String(a[0])){
-    (CFG['a-'+a[0]]=CFG['a-'+a[0]]||{}).compra=compra;
-    var info=document.querySelector('.cab-proc .info');if(info)info.insertAdjacentHTML('beforeend','<span class="tag">Compra '+esc(compra)+'</span>');
-  }
+  var tg=$('tag-compra');
+  if(compra){(CFG['a-'+a[0]]=CFG['a-'+a[0]]||{}).compra=compra;if(SEL===String(a[0])&&tg){tg.textContent='Compra '+compra;tg.className='tag ok';}}
+  else if(SEL===String(a[0])&&tg){tg.textContent='sala não encontrada';tg.className='tag am';}
 }
 function lerForm(){
   var a=AND.find(function(x){return String(x[0])===SEL;});
@@ -424,10 +674,10 @@ function lerForm(){
     itens.push({idx:+tr.getAttribute('data-idx'),minimo:numBR(inp.value)||null,ativo:tr.querySelector('.ativo').checked});
   });
   var g=function(id){var e=$(id);return e?e.value:'';};
-  var info=itensDo(a);
+  var info=itensDo(a),d=dataDisputa(a);
   return {
     empresa:emp(a),andamentoId:String(a[0]),editalId:info.edital?String(info.edital[0]):'',titulo:tit(a),
-    dataDisputa:(dataDisputa(a)||'')&&dataDisputa(a).toISOString(),portal:'Compras.gov',
+    dataDisputa:d?d.toISOString():'',portal:'Compras.gov',
     compra:(CFG['a-'+a[0]]||{}).compra||'',
     modalidade:a._modalidade||(info.edital&&info.edital._modalidade)||'',disputa:a._disputa||(info.edital&&info.edital._disputa)||'',
     estrategia:g('cf-estrategia'),posicaoAlvo:parseInt(g('cf-posicao'),10)||2,decTipo:g('cf-dectipo'),dec:numBR(g('cf-dec')),
@@ -463,16 +713,19 @@ function pedirArmar(){
   var c=lerForm(),erros=validar(c);
   if(erros.length){toast(erros[0],'err');return;}
   var ativos=c.itens.filter(function(i){return i.ativo;}).length;
-  $('mo-armar-txt').innerHTML='<b>'+esc(c.titulo)+'</b> · '+esc(c.empresa)+'<br>'+ativos+' item(ns), estratégia <b>'+esc($('cf-estrategia').selectedOptions[0].text)+'</b>, modo <b>'+(c.modo==='real'?'REAL':'sombra (não envia lances)')+'</b>.';
+  var est=(ESTRATEGIAS.find(function(s){return s[0]===c.estrategia;})||[])[2]||c.estrategia;
+  $('mo-armar-txt').innerHTML='<b>'+esc(c.titulo)+'</b> · '+esc(c.empresa)+'<br>'+ativos+' item(ns) · estratégia <b>'+esc(est)+'</b> · modo <b>'+(c.modo==='real'?'REAL':'sombra (não envia lances)')+'</b>.';
   $('mo-armar-in').value='';$('mo-armar').style.display='flex';setTimeout(function(){$('mo-armar-in').focus();},50);
   $('mo-armar-ok').onclick=async function(){
     if($('mo-armar-in').value.trim().toUpperCase()!=='ARMAR'){toast('Digite ARMAR para confirmar','err');return;}
     if(!(await salvar(true)))return;
     try{
-      await db.collection('robo_lances').doc('a-'+SEL).set({armado:true,armadoEm:new Date().toLocaleString('pt-BR'),armadoPor:(auth.currentUser&&auth.currentUser.email)||''},{merge:true});
+      var quando=new Date().toLocaleString('pt-BR'),quem=(auth.currentUser&&auth.currentUser.email)||'';
+      await db.collection('robo_lances').doc('a-'+SEL).set({armado:true,armadoEm:quando,armadoPor:quem},{merge:true});
       await registrar('armou',c);
-      Object.assign(CFG['a-'+SEL],{armado:true,armadoEm:new Date().toLocaleString('pt-BR'),armadoPor:(auth.currentUser&&auth.currentUser.email)||''});
+      Object.assign(CFG['a-'+SEL],{armado:true,armadoEm:quando,armadoPor:quem});
       fecharArmar();toast('Robô armado ('+(c.modo==='real'?'real':'sombra')+')','ok');abrir(SEL);
+      roboApi('acao',{acao:'sincronizar'}).catch(function(){});
     }catch(e){toast('Não consegui armar: '+(e.message||e),'err');}
   };
 }
@@ -483,6 +736,7 @@ async function desarmar(){
     await db.collection('robo_lances').doc('a-'+SEL).set({armado:false,desarmadoEm:new Date().toLocaleString('pt-BR'),desarmadoPor:(auth.currentUser&&auth.currentUser.email)||''},{merge:true});
     await registrar('desarmou',{empresa:emp(AND.find(function(x){return String(x[0])===SEL;}))});
     CFG['a-'+SEL].armado=false;toast('Robô desarmado','ok');abrir(SEL);
+    roboApi('acao',{acao:'sincronizar'}).catch(function(){});
   }catch(e){toast('Não consegui desarmar: '+(e.message||e),'err');}
 }
 /* Trilha: quem armou, desarmou e (depois) cada lance que o robô deu. */
@@ -490,6 +744,7 @@ function registrar(tipo,c){
   return db.collection('robo_lances_log').add({tipo:tipo,processo:'a-'+SEL,empresa:c.empresa||'',modo:c.modo||'',
     por:(auth.currentUser&&auth.currentUser.email)||'',em:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(e){console.warn('[robo] log',e.message);});
 }
+
 /* ── Robô na nuvem: tela de login e estado ─────────────────────── */
 var _roboAberto=false,_roboTimer=null,_roboOcupado=false;
 async function roboApi(nome,corpo){
@@ -503,7 +758,7 @@ function abrirRobo(){_roboAberto=true;$('robo-ov').style.display='block';roboTel
 function fecharRobo(){_roboAberto=false;$('robo-ov').style.display='none';clearInterval(_roboTimer);}
 async function roboTela(){
   if(!_roboAberto||_roboOcupado)return;_roboOcupado=true;
-  try{var t=await roboApi('tela');$('robo-img').src='data:image/jpeg;base64,'+t.img;$('robo-url').textContent=t.url||'';$('robo-carreg').textContent='ao vivo';}
+  try{var t=await roboApi('tela');$('robo-img').src='data:image/jpeg;base64,'+t.img;$('robo-url').textContent=t.url||'';$('robo-carreg').textContent='● ao vivo';}
   catch(e){$('robo-carreg').textContent=e.message;}
   finally{_roboOcupado=false;}
 }
@@ -534,16 +789,17 @@ async function baixarDiagnostico(compra){
     var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(d,null,1)],{type:'application/json'}));a.download='diagnostico-'+compra+'.json';a.click();
   }catch(e){toast(e.message,'err');}
 }
-/* Pílula do topo: o que o servidor sabe do robô. */
+/* Orbe do topo e cartão do robô: o que o servidor sabe dele. */
 async function verRobo(){
   var p=$('pl-robo'),t=$('pl-robo-t');
   try{
     var r=await fetch(NH_API+'/api/health',{cache:'no-store'});var j=await r.json();
-    var rb=j&&j.robo;
-    if(rb&&rb.ativo){p.className='pilula '+(rb.logado?'ok':'off');t.textContent='Robô na nuvem: '+(rb.logado?'logado · '+rb.acompanhando+' sala(s)':'clique para fazer o login');}
-    else if(rb&&rb.configurado){p.className='pilula off';t.textContent='Robô na nuvem: sem resposta';}
-    else{p.className='pilula off';t.textContent='Robô na nuvem: ainda não instalado';}
-  }catch(e){p.className='pilula off';t.textContent='Robô na nuvem: sem resposta';}
+    var rb=j&&j.robo;ROBO_ST=rb||null;
+    if(rb&&rb.ativo){p.className='orb '+(rb.logado?'ok':'aviso');t.innerHTML='Robô na nuvem<small>'+(rb.logado?'logado · '+(rb.acompanhando||0)+' sala(s)':'clique para fazer o login')+'</small>';}
+    else if(rb&&rb.configurado){p.className='orb aviso';t.innerHTML='Robô na nuvem<small>sem resposta — subindo?</small>';}
+    else{p.className='orb';t.innerHTML='Robô na nuvem<small>ainda não instalado</small>';}
+  }catch(e){p.className='orb';t.innerHTML='Robô na nuvem<small>sem resposta</small>';}
+  if(AND.length)pintarKpis();
 }
 </script>
 </body>
