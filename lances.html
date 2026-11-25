@@ -356,8 +356,10 @@ td .orig{font-size:11px;color:var(--t3);margin-top:3px}
     </div>
     <div class="robo-tela"><img id="robo-img" alt="Tela do navegador do robô" draggable="false"><span class="carreg" id="robo-carreg">carregando…</span></div>
     <div class="robo-bar" style="margin-top:12px">
-      <input id="robo-txt" type="password" placeholder="Digite aqui e clique em Enviar texto (vai para o campo selecionado na tela)" style="flex:1;min-width:260px" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();roboDigitar();}">
-      <label style="font-size:12px;color:var(--t2);display:flex;gap:6px;align-items:center"><input type="checkbox" onchange="document.getElementById('robo-txt').type=this.checked?'text':'password'"> mostrar</label>
+      <!-- Campo de texto mascarado, e não type=password: o Chrome preenchia
+           sozinho com a senha salva do Gestão (25/11/2026). -->
+      <input id="robo-txt" type="text" name="robo-digitar" placeholder="Digite aqui e clique em Enviar texto (vai para o campo selecionado na tela)" style="flex:1;min-width:260px;-webkit-text-security:disc" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore onkeydown="if(event.key==='Enter'){event.preventDefault();roboDigitar();}">
+      <label style="font-size:12px;color:var(--t2);display:flex;gap:6px;align-items:center"><input type="checkbox" onchange="document.getElementById('robo-txt').style.webkitTextSecurity=this.checked?'none':'disc'"> mostrar</label>
       <button class="bt" onclick="roboDigitar()">Enviar texto</button>
       <button class="bt" onclick="roboTecla('Enter')">Enter ↵</button>
       <button class="bt" onclick="roboTecla('Tab')">Tab</button>
@@ -759,7 +761,7 @@ function fecharRobo(){_roboAberto=false;$('robo-ov').style.display='none';clearI
 async function roboTela(){
   if(!_roboAberto||_roboOcupado)return;_roboOcupado=true;
   try{var t=await roboApi('tela');$('robo-img').src='data:image/jpeg;base64,'+t.img;$('robo-url').textContent=t.url||'';$('robo-carreg').textContent='● ao vivo';}
-  catch(e){$('robo-carreg').textContent=e.message;}
+  catch(e){$('robo-carreg').textContent=String(e.message||'').slice(0,90);}
   finally{_roboOcupado=false;}
 }
 async function roboEstado(){
