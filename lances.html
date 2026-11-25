@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Robô de Lances · NH Licitações</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!--
+  ═══ CENTRAL DO ROBÔ DE LANCES — 25/11/2026 ═══════════════════════════
+  Pedido: "precisamos fazer o nosso robô de lances … esse nosso robô
+  precisa sair". Começa pelo Compras.gov (104 disputas no Gestão, 64 da
+  VISE). Esta página é a parte de CONFIGURAR: o robô em si roda na nuvem
+  (serviço próprio), e lê daqui o que a equipe armou.
+
+  De onde vêm os dados — nada é redigitado:
+    · processos: Em Andamento (coleção `andamento`), portal Compras Gov;
+    · itens, quantidade e valor estimado: Itens do TR do edital
+      (`itens_edital/e-<edital>`, campo `itens`);
+    · valor mínimo: o que o CLIENTE preencheu no Viabilidade
+      (`itens_edital/.../resposta.valores`, por índice do item);
+    · modalidade e modo de disputa: o edital (campos soltos).
+  A configuração do robô fica em `robo_lances/a-<andamento>` — só equipe.
+
+  Regras do robô (manual oficial do fornecedor, IN 73/2022):
+    · nunca abaixo do mínimo; só lance menor que o MEU último lance,
+      respeitando o intervalo mínimo do edital (vale também para lance
+      intermediário);
+    · aberto: 10 min + prorrogações de 2 min a cada lance nos 2 finais;
+    · aberto-fechado: 15 min + aleatório de até 10 min + fase fechada de
+      5 min para quem está até 10% acima do melhor;
+    · alerta de inexequível (< 50% do estimado ou do meu último lance):
+      o robô NÃO confirma — para e chama a equipe.
+-->
+<style>
+:root{
+  --bg:#0a0e1a;--s1:#111725;--s2:#161d2e;--s3:#1c2438;--b1:#252d40;--b2:#303a52;
+  --nh:#f97316;--nho:#fb923c;--nha:rgba(249,115,22,.12);
+  --g1:#22c55e;--y1:#eab308;--r1:#ef4444;--b_:#3b82f6;--p1:#a855f7;
+  --t1:#f5f5f5;--t2:#a3a3a3;--t3:#8b95a1;
+}
+body.light-theme{
+  --bg:#f2f5fc;--s1:#ffffff;--s2:#eef2fb;--s3:#e2e9f8;--b1:#d9e1f2;--b2:#b6c4e6;
+  --nh:#f4560a;--nho:#ff7a1a;--nha:rgba(244,86,10,.12);
+  --g1:#059669;--y1:#d97706;--r1:#dc2626;--t1:#141a2b;--t2:#3d4559;--t3:#6b7489;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--t1);font-family:Outfit,system-ui,sans-serif;font-size:14px}
+a{color:var(--nh)}
+button,input,select{font-family:inherit}
+.topo{display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid var(--b1);background:var(--s1);position:sticky;top:0;z-index:20}
+.topo h1{font-size:18px;margin:0;font-weight:800;letter-spacing:-.01em}
+.topo h1 span{color:var(--nh)}
+.topo .sub{color:var(--t3);font-size:12.5px}
+.topo .dir{margin-left:auto;display:flex;gap:10px;align-items:center}
+.pilula{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid var(--b2);color:var(--t2);background:var(--s2)}
+.pilula .bol{width:8px;height:8px;border-radius:50%;background:var(--t3)}
+.pilula.ok .bol{background:var(--g1);box-shadow:0 0 8px var(--g1)}
+.pilula.off .bol{background:var(--y1)}
+.bt{padding:8px 14px;border-radius:9px;border:1px solid var(--b2);background:var(--s2);color:var(--t1);font-weight:700;cursor:pointer;font-size:13px}
+.bt:hover{border-color:var(--nh)}
+.bt.pri{background:var(--nh);border-color:var(--nh);color:#fff}
+.bt.perigo{border-color:rgba(239,68,68,.5);color:var(--r1)}
+.bt:disabled{opacity:.5;cursor:not-allowed}
+.wrap{display:grid;grid-template-columns:360px 1fr;gap:0;min-height:calc(100vh - 58px)}
+.lista{border-right:1px solid var(--b1);background:var(--s1);overflow:auto;max-height:calc(100vh - 58px);position:sticky;top:58px}
+.lista-cab{padding:14px 16px 8px;display:flex;flex-direction:column;gap:8px}
+.lista-cab input{width:100%;padding:9px 12px;border-radius:9px;border:1px solid var(--b1);background:var(--s2);color:var(--t1)}
+.filtros{display:flex;gap:6px;flex-wrap:wrap}
+.filtros button{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid var(--b1);background:transparent;color:var(--t2);cursor:pointer}
+.filtros button.on{border-color:var(--nh);color:var(--nh);background:var(--nha)}
+.grupo{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);padding:14px 16px 6px}
+.proc{display:block;width:100%;text-align:left;padding:11px 16px;border:0;border-left:3px solid transparent;background:transparent;color:var(--t1);cursor:pointer;border-bottom:1px solid var(--b1)}
+.proc:hover{background:var(--s2)}
+.proc.on{background:var(--nha);border-left-color:var(--nh)}
+.proc .t{font-weight:700;font-size:13.5px;line-height:1.35}
+.proc .m{display:flex;gap:8px;flex-wrap:wrap;margin-top:5px;font-size:11.5px;color:var(--t3)}
+.tag{font-size:11px;font-weight:700;padding:1px 7px;border-radius:6px;border:1px solid var(--b2);color:var(--t2)}
+.tag.arm{border-color:rgba(34,197,94,.5);color:var(--g1);background:rgba(34,197,94,.08)}
+.tag.min{border-color:rgba(234,179,8,.5);color:var(--y1)}
+.tag.semmin{border-color:rgba(239,68,68,.45);color:var(--r1)}
+.painel{padding:22px 26px;overflow:auto}
+.vazio{color:var(--t3);padding:60px 20px;text-align:center;font-size:15px}
+.cab-proc{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.cab-proc h2{margin:0 0 6px;font-size:20px;font-weight:800;line-height:1.3}
+.cab-proc .info{display:flex;gap:8px;flex-wrap:wrap;color:var(--t2);font-size:12.5px}
+.cab-proc .acoes{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.bloco{background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:16px 18px;margin-top:16px}
+.bloco h3{margin:0 0 12px;font-size:14px;font-weight:800;display:flex;align-items:center;gap:8px}
+.bloco h3 small{font-weight:500;color:var(--t3);font-size:12px}
+.grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.campo label{display:block;font-size:12px;font-weight:700;color:var(--t2);margin-bottom:5px}
+.campo input,.campo select{width:100%;padding:9px 11px;border-radius:9px;border:1px solid var(--b1);background:var(--s2);color:var(--t1);font-size:13.5px}
+.campo .dica{font-size:11.5px;color:var(--t3);margin-top:4px;line-height:1.4}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);font-weight:800;padding:8px 8px;border-bottom:1px solid var(--b1);white-space:nowrap}
+td{padding:8px 8px;border-bottom:1px solid var(--b1);vertical-align:top}
+td.num{text-align:right;font-family:'JetBrains Mono',monospace;font-size:12.5px;white-space:nowrap}
+td .desc{max-width:420px;line-height:1.35;color:var(--t1)}
+td input.min{width:120px;padding:6px 8px;border-radius:7px;border:1px solid var(--b1);background:var(--s2);color:var(--t1);text-align:right;font-family:'JetBrains Mono',monospace}
+td input.min.cliente{border-color:rgba(34,197,94,.45)}
+td input.min.vazio{border-color:rgba(239,68,68,.55)}
+.desc-pct{font-size:11.5px;color:var(--t3)}
+.barra-itens{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;font-size:12.5px;color:var(--t2)}
+.barra-itens input{width:70px;padding:6px 8px;border-radius:7px;border:1px solid var(--b1);background:var(--s2);color:var(--t1)}
+.aviso{padding:10px 12px;border-radius:10px;font-size:12.5px;line-height:1.45;margin-top:10px}
+.aviso.am{background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.35);color:var(--t1)}
+.aviso.vm{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.4);color:var(--t1)}
+.aviso.vd{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.35);color:var(--t1)}
+.log{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--t2);max-height:220px;overflow:auto;line-height:1.6}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--s3);border:1px solid var(--b2);color:var(--t1);padding:10px 16px;border-radius:10px;font-weight:600;z-index:99;display:none;max-width:90vw}
+.toast.err{border-color:var(--r1)}
+.toast.ok{border-color:var(--g1)}
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+.modal{background:var(--s1);border:1px solid var(--b2);border-radius:16px;padding:22px;max-width:520px;width:100%}
+.modal h3{margin:0 0 10px;font-size:17px}
+.modal p{color:var(--t2);line-height:1.5;margin:6px 0}
+.modal input{width:100%;padding:10px 12px;border-radius:9px;border:1px solid var(--b1);background:var(--s2);color:var(--t1);font-size:15px;margin-top:8px}
+.modal .acoes{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+@media (max-width:860px){.wrap{grid-template-columns:1fr}.lista{position:static;max-height:none}.painel{padding:16px}}
+</style>
+</head>
+<body>
+<script>try{if(localStorage.getItem('nh_tema')==='claro')document.body.classList.add('light-theme');}catch(e){}</script>
+
+<div class="topo">
+  <div>
+    <h1><span>NH</span> · Robô de Lances</h1>
+    <div class="sub">Compras.gov · configure, arme e acompanhe</div>
+  </div>
+  <div class="dir">
+    <span class="pilula off" id="pl-robo" title="Situação do robô na nuvem"><span class="bol"></span><span id="pl-robo-t">Robô na nuvem: verificando…</span></span>
+    <a class="bt" href="gestao.html" style="text-decoration:none">← Gestão</a>
+  </div>
+</div>
+
+<div id="tela-login" class="vazio" style="display:none">
+  Entre no <a href="gestao.html">Sistema de Gestão</a> primeiro — esta página usa o mesmo login.<br>
+  <small>Depois de entrar, volte e atualize esta página.</small>
+</div>
+<div id="tela-sem-acesso" class="vazio" style="display:none"></div>
+
+<div class="wrap" id="tela" style="display:none">
+  <aside class="lista">
+    <div class="lista-cab">
+      <input type="search" id="busca" placeholder="Buscar processo, órgão, empresa…" oninput="pintarLista()">
+      <div class="filtros" id="filtros">
+        <button data-f="proximas" class="on" onclick="filtro(this)">Próximas</button>
+        <button data-f="hoje" onclick="filtro(this)">Hoje</button>
+        <button data-f="armados" onclick="filtro(this)">Armados</button>
+        <button data-f="todas" onclick="filtro(this)">Todas</button>
+      </div>
+      <div class="filtros" id="filtros-emp"></div>
+    </div>
+    <div id="lista"></div>
+  </aside>
+  <main class="painel" id="painel">
+    <div class="vazio">Escolha um processo à esquerda.</div>
+  </main>
+</div>
+
+<div class="modal-ov" id="mo-armar">
+  <div class="modal">
+    <h3>Armar o robô</h3>
+    <p id="mo-armar-txt"></p>
+    <p>Para confirmar, digite <b>ARMAR</b>:</p>
+    <input id="mo-armar-in" autocomplete="off">
+    <div class="acoes">
+      <button class="bt" onclick="fecharArmar()">Cancelar</button>
+      <button class="bt pri" id="mo-armar-ok">Armar</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-auth-compat.js"></script>
+<script>
+var firebaseConfig={apiKey:"AIzaSyBhcpJP9dRM0SEJsGfcNUXYb1rTMdEDw6M",authDomain:"nh-licitacoes.firebaseapp.com",projectId:"nh-licitacoes",storageBucket:"nh-licitacoes.firebasestorage.app",messagingSenderId:"1081646053691",appId:"1:1081646053691:web:a8abcb5792d026ade71f1e"};
+firebase.initializeApp(firebaseConfig);
+var db=firebase.firestore(), auth=firebase.auth();
+var NH_API='https://nhlicitacoes.noronhaholanda.com.br';
+
+var AND=[], EDITAIS={}, ITENS={}, CFG={}, SEL=null, FILTRO='proximas', EMP_F='';
+
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function toast(m,t){var el=$('toast');el.textContent=m;el.className='toast '+(t||'');el.style.display='block';clearTimeout(el._t);el._t=setTimeout(function(){el.style.display='none';},4200);}
+function moeda(v){v=Number(v);return isFinite(v)&&v>0?v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}):'—';}
+function numBR(s){if(typeof s==='number')return s;s=String(s||'').replace(/[R$\s]/g,'');if(!s)return 0;if(s.indexOf(',')>=0)s=s.replace(/\./g,'').replace(',','.');var n=parseFloat(s);return isFinite(n)?n:0;}
+function semAc(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim();}
+function ehComprasGov(p){p=semAc(p);return /compras ?gov|comprasnet/.test(p);}
+function tit(r){return String(r[3]||'').trim();}
+function emp(r){return String(r[2]||'').trim().replace(/\s+/g,' ').toUpperCase();}
+/* "25/11/2026 09:30" → Date (col. 10 de Em Andamento; a nova data, col. 23, vence). */
+function dataDisputa(r){
+  var s=String(r[23]||'').trim()||String(r[10]||'').trim();
+  var m=s.match(/(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{1,2})[:h](\d{2}))?/);
+  if(!m)return null;
+  return new Date(+m[3],+m[2]-1,+m[1],m[4]?+m[4]:8,m[5]?+m[5]:0);
+}
+function fmtData(d){if(!d)return 'sem data';return d.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'})+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
+function mesmoDia(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();}
+
+/* O edital de onde o processo nasceu: pelo elo `_edital` ou pelo título + empresa (ficha única). */
+function editalDo(r){
+  var el=String(r._edital||'').replace(/^e-/,'');
+  if(el&&EDITAIS[el])return EDITAIS[el];
+  var k=semAc(tit(r))+'|'+emp(r);
+  for(var id in EDITAIS){var e=EDITAIS[id];if(semAc(tit(e))+'|'+emp(e)===k)return e;}
+  return null;
+}
+/* Itens + mínimo do cliente, já combinados com o que a equipe ajustou aqui. */
+function itensDo(r){
+  var ed=editalDo(r), doc=ed?ITENS[String(ed[0])]:null;
+  var cfg=CFG['a-'+r[0]]||{};
+  var ajuste={};(cfg.itens||[]).forEach(function(i){ajuste[i.idx]=i;});
+  var lista=((doc&&doc.itens)||[]).map(function(it,idx){
+    var cli=doc.resposta&&doc.resposta.valores?numBR(doc.resposta.valores[idx]):0;
+    var a=ajuste[idx];
+    return {idx:idx,n:it.n||idx+1,desc:String(it.desc||''),qtd:Number(it.qtd)||0,unid:String(it.unid||''),vunit:numBR(it.vunit),
+      minCliente:cli, minimo:a&&a.minimo!=null&&a.minimo!==''?numBR(a.minimo):cli, ajustado:!!(a&&a.minimo!=null&&a.minimo!==''&&numBR(a.minimo)!==cli),
+      ativo:a?a.ativo!==false:true};
+  });
+  return {edital:ed,doc:doc,itens:lista};
+}
+
+auth.onAuthStateChanged(async function(u){
+  if(!u){$('tela-login').style.display='block';$('tela').style.display='none';return;}
+  $('tela-login').style.display='none';
+  try{await carregar();}
+  catch(e){
+    var msg=(e&&e.code==='permission-denied')?
+      'Sem permissão para a Central de Lances. Ela é só da equipe NH — e a regra <b>robo_lances</b> precisa estar publicada no Firestore.':
+      'Não consegui carregar: '+esc(e&&e.message||e);
+    $('tela-sem-acesso').innerHTML=msg;$('tela-sem-acesso').style.display='block';return;
+  }
+  $('tela').style.display='grid';
+  verRobo();setInterval(verRobo,30000);
+});
+
+async function carregar(){
+  var r=await Promise.all([db.collection('andamento').get(),db.collection('editais').get(),db.collection('itens_edital').get(),db.collection('robo_lances').get()]);
+  AND=[];
+  r[0].forEach(function(d){var x=d.data()||{};var a=(x._arr||[]).slice();if(!a.length)return;a._fbId=d.id;a._edital=x._edital||'';a._modalidade=x.modalidade||'';a._disputa=x.disputa||'';AND.push(a);});
+  EDITAIS={};
+  r[1].forEach(function(d){var x=d.data()||{};var a=(x._arr||[]).slice();if(!a.length)return;a._fbId=d.id;a._modalidade=x.modalidade||'';a._disputa=x.disputa||'';EDITAIS[String(a[0])]=a;});
+  ITENS={};r[2].forEach(function(d){ITENS[d.id.replace(/^e-/,'')]=d.data()||{};});
+  CFG={};r[3].forEach(function(d){CFG[d.id]=d.data()||{};});
+  /* Só Compras.gov e só o que ainda está em disputa. */
+  AND=AND.filter(function(a){
+    if(!ehComprasGov(a[9]))return false;
+    var st=semAc(a[12]);
+    return !/finalizado|cancelado|desclassificado|inabilitado|ganha/.test(st)&&semAc(a[16])!=='sim';
+  });
+  AND.sort(function(a,b){var x=dataDisputa(a),y=dataDisputa(b);if(!x&&!y)return 0;if(!x)return 1;if(!y)return -1;return x-y;});
+  var emps={};AND.forEach(function(a){emps[emp(a)]=1;});
+  $('filtros-emp').innerHTML='<button class="on" data-e="" onclick="filtroEmp(this)">Todas</button>'+
+    Object.keys(emps).sort().map(function(e){return '<button data-e="'+esc(e)+'" onclick="filtroEmp(this)">'+esc(e)+'</button>';}).join('');
+  pintarLista();
+  var q=new URLSearchParams(location.search).get('p');
+  if(q){var alvo=AND.find(function(a){return 'a-'+a[0]===q;});if(alvo)abrir(String(alvo[0]));}
+}
+function filtro(b){FILTRO=b.getAttribute('data-f');document.querySelectorAll('#filtros button').forEach(function(x){x.classList.toggle('on',x===b);});pintarLista();}
+function filtroEmp(b){EMP_F=b.getAttribute('data-e');document.querySelectorAll('#filtros-emp button').forEach(function(x){x.classList.toggle('on',x===b);});pintarLista();}
+
+function pintarLista(){
+  var q=semAc($('busca').value), hoje=new Date(), ontem=new Date(Date.now()-86400000);
+  var l=AND.filter(function(a){
+    if(EMP_F&&emp(a)!==EMP_F)return false;
+    if(q&&semAc(a.join(' ')).indexOf(q)<0)return false;
+    var d=dataDisputa(a),cfg=CFG['a-'+a[0]]||{};
+    if(FILTRO==='hoje')return d&&mesmoDia(d,hoje);
+    if(FILTRO==='armados')return !!cfg.armado;
+    if(FILTRO==='proximas')return !d||d>=ontem;
+    return true;
+  });
+  if(!l.length){$('lista').innerHTML='<div class="vazio" style="padding:30px 16px;font-size:13px">Nenhum processo do Compras.gov nesse filtro.</div>';return;}
+  var html='',grupoAnt='';
+  l.forEach(function(a){
+    var d=dataDisputa(a),g=!d?'Sem data de disputa':mesmoDia(d,hoje)?'Hoje':d<hoje?'Já passou':'Próximas';
+    if(g!==grupoAnt){html+='<div class="grupo">'+g+'</div>';grupoAnt=g;}
+    var cfg=CFG['a-'+a[0]]||{},it=itensDo(a).itens,comMin=it.filter(function(i){return i.minimo>0;}).length;
+    html+='<button class="proc'+(SEL===String(a[0])?' on':'')+'" onclick="abrir(\''+esc(a[0])+'\')">'+
+      '<div class="t">'+esc(tit(a)||'(sem título)')+'</div>'+
+      '<div class="m"><span>'+esc(emp(a))+'</span><span>'+esc(fmtData(d))+'</span>'+
+      (cfg.armado?'<span class="tag arm">armado · '+(cfg.modo==='real'?'real':'sombra')+'</span>':'')+
+      (it.length?(comMin===it.length?'<span class="tag min">'+it.length+' itens c/ mínimo</span>':'<span class="tag semmin">'+(it.length-comMin)+' de '+it.length+' sem mínimo</span>'):'<span class="tag semmin">sem itens</span>')+
+      '</div></button>';
+  });
+  $('lista').innerHTML=html;
+}
+
+function abrir(id){
+  SEL=id;pintarLista();
+  var a=AND.find(function(x){return String(x[0])===id;});if(!a)return;
+  var info=itensDo(a),cfg=CFG['a-'+id]||{},ed=info.edital;
+  var mod=a._modalidade||(ed&&ed._modalidade)||'',dis=a._disputa||(ed&&ed._disputa)||'';
+  var link=String(a[19]||'').trim()||(ed?String(ed[13]||'').trim():'');
+  var est=cfg.estrategia||'primeiro';
+  var h='<div class="cab-proc"><div><h2>'+esc(tit(a))+'</h2><div class="info">'+
+    '<span class="tag">'+esc(emp(a))+'</span><span class="tag">'+esc(fmtData(dataDisputa(a)))+'</span>'+
+    (mod?'<span class="tag">'+esc(mod)+'</span>':'')+(dis?'<span class="tag">Disputa: '+esc(dis)+'</span>':'<span class="tag semmin">modo de disputa não informado</span>')+
+    (cfg.compra?'<span class="tag">Compra '+esc(cfg.compra)+'</span>':'')+
+    (link?'<a class="tag" href="'+esc(link)+'" target="_blank" rel="noopener">edital ↗</a>':'')+
+    '</div></div><div class="acoes">'+
+    '<button class="bt" onclick="salvar()">💾 Salvar</button>'+
+    (cfg.armado?'<button class="bt perigo" onclick="desarmar()">■ Desarmar</button>':'<button class="bt pri" onclick="pedirArmar()">▶ Armar robô</button>')+
+    '</div></div>';
+
+  h+='<div class="bloco"><h3>Como o robô vai disputar</h3><div class="grade">'+
+    campoSel('cf-estrategia','Estratégia',[['primeiro','Brigar pelo 1º lugar'],['posicao','Ficar numa posição'],['classificar','Só se manter classificado (fase fechada)']],est,
+      'Nunca passa do valor mínimo de cada item.')+
+    campoNum('cf-posicao','Posição desejada',cfg.posicaoAlvo||2,'Só para "Ficar numa posição".')+
+    campoSel('cf-dectipo','Intervalo mínimo entre lances',[['valor','em R$'],['pct','em %']],cfg.decTipo||'pct','Está no edital (art. 57 da Lei 14.133). O robô nunca usa menos que isso.')+
+    campoNum('cf-dec','Valor do intervalo',cfg.dec!=null?cfg.dec:0.5,'Ex.: 0,5 (%) ou 10,00 (R$).')+
+    campoNum('cf-entrar','Entrar nos últimos (segundos)',cfg.entrarSeg||60,'No modo aberto, cada lance nos 2 min finais prorroga 2 min.')+
+    campoSel('cf-fechada','Fase fechada (aberto-fechado)',[['minimo','Dar o valor mínimo'],['margem','Mínimo + margem'],['manter','Manter o último lance']],cfg.fechada||'minimo','Lance único e sigiloso, até 5 min.')+
+    campoNum('cf-margem','Margem sobre o mínimo (%)',cfg.margem!=null?cfg.margem:0,'Só para "Mínimo + margem".')+
+    campoSel('cf-modo','Modo',[['sombra','Sombra — acompanha e calcula, NÃO envia'],['real','Real — envia os lances']],cfg.modo||'sombra','O modo real fica liberado depois que o sombra acertar em disputas reais.')+
+    '</div></div>';
+
+  h+='<div class="bloco"><h3>Itens e valores mínimos <small>— itens do TR, mínimo preenchido pelo cliente no Viabilidade</small></h3>';
+  if(!info.itens.length){
+    h+='<div class="aviso vm">Este processo ainda não tem os <b>Itens do TR</b> extraídos. Abra o card do edital no Gestão → Ferramentas → <b>Itens do TR</b>, e peça ao cliente o valor mínimo no Viabilidade.</div>';
+  }else{
+    var sem=info.itens.filter(function(i){return !(i.minimo>0);}).length;
+    h+='<div class="barra-itens">Preencher os itens sem mínimo com <input id="pct-massa" type="number" step="0.1" value="'+(cfg.pctMassa||'')+'" placeholder="%"> % abaixo do estimado <button class="bt" onclick="aplicarPct()">Aplicar</button>'+
+      (sem?'<span class="tag semmin">'+sem+' item(ns) sem mínimo — o robô não disputa item sem mínimo</span>':'<span class="tag min">todos com mínimo</span>')+'</div>';
+    h+='<div style="overflow:auto"><table><thead><tr><th></th><th>Item</th><th>Descrição</th><th>Qtd</th><th>Estimado (un.)</th><th>Mínimo (un.)</th><th>Desconto</th></tr></thead><tbody>';
+    info.itens.forEach(function(i){
+      var desc=i.vunit>0&&i.minimo>0?((1-i.minimo/i.vunit)*100):null;
+      h+='<tr data-idx="'+i.idx+'"><td><input type="checkbox" class="ativo" '+(i.ativo?'checked':'')+' title="Disputar este item"></td>'+
+        '<td class="num">'+esc(i.n)+'</td><td><div class="desc">'+esc(i.desc.slice(0,180))+(i.desc.length>180?'…':'')+'</div></td>'+
+        '<td class="num">'+esc(i.qtd)+' '+esc(i.unid)+'</td><td class="num">'+moeda(i.vunit)+'</td>'+
+        '<td><input class="min'+(i.minimo>0?(i.ajustado?'':' cliente'):' vazio')+'" value="'+(i.minimo>0?i.minimo.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:4}):'')+'" data-cli="'+i.minCliente+'" title="'+(i.minCliente>0?'Cliente informou '+moeda(i.minCliente):'Cliente não informou')+'" oninput="recalc(this)">'+
+        (i.ajustado?'<div class="desc-pct">cliente: '+moeda(i.minCliente)+'</div>':'')+'</td>'+
+        '<td class="num desc-pct">'+(desc==null?'—':desc.toFixed(1).replace('.',',')+'%')+(desc!=null&&desc>=50?' <span style="color:var(--r1)" title="O Compras.gov alerta lance inexequível abaixo de 50% do estimado">⚠</span>':'')+'</td></tr>';
+    });
+    h+='</tbody></table></div>';
+  }
+  h+='</div>';
+
+  h+='<div class="bloco"><h3>Ao vivo <small>— aparece quando o robô na nuvem estiver rodando</small></h3><div id="aovivo" class="log">'+
+    (cfg.armado?'Armado em '+esc(cfg.armadoEm||'')+' por '+esc(cfg.armadoPor||'')+'. Aguardando a sessão abrir.':'Robô não armado para este processo.')+'</div></div>';
+  $('painel').innerHTML=h;
+  /* Compra do Compras.gov (17 dígitos) pelo link do PNCP — é como o robô acha a sala. */
+  if(!cfg.compra)acharCompra(a,ed);
+}
+function campoSel(id,lbl,ops,val,dica){return '<div class="campo"><label for="'+id+'">'+lbl+'</label><select id="'+id+'">'+ops.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===val?' selected':'')+'>'+esc(o[1])+'</option>';}).join('')+'</select>'+(dica?'<div class="dica">'+dica+'</div>':'')+'</div>';}
+function campoNum(id,lbl,val,dica){return '<div class="campo"><label for="'+id+'">'+lbl+'</label><input id="'+id+'" type="number" step="any" value="'+esc(val)+'">'+(dica?'<div class="dica">'+dica+'</div>':'')+'</div>';}
+function recalc(inp){var v=numBR(inp.value);inp.classList.toggle('vazio',!(v>0));inp.classList.toggle('cliente',v>0&&v===Number(inp.getAttribute('data-cli')));}
+function aplicarPct(){
+  var p=parseFloat(String($('pct-massa').value).replace(',','.'));if(!(p>0&&p<100)){toast('Informe um percentual entre 0 e 100','err');return;}
+  var a=AND.find(function(x){return String(x[0])===SEL;}),info=itensDo(a),n=0;
+  document.querySelectorAll('#painel tr[data-idx]').forEach(function(tr){
+    var inp=tr.querySelector('input.min');if(numBR(inp.value)>0)return;
+    var it=info.itens[+tr.getAttribute('data-idx')];if(!it||!(it.vunit>0))return;
+    inp.value=(Math.round(it.vunit*(1-p/100)*100)/100).toLocaleString('pt-BR',{minimumFractionDigits:2});recalc(inp);n++;
+  });
+  toast(n?n+' item(ns) preenchido(s) — confira e salve':'Nenhum item vazio com valor estimado','ok');
+}
+async function acharCompra(a,ed){
+  var url=String((ed&&ed[13])||a[19]||''),m,cnpj,ano,seq;
+  if((m=url.match(/pncp\.gov\.br\/app\/editais\/(\d{14})-\d+-0*(\d+)\/(\d{4})/))){cnpj=m[1];seq=m[2];ano=m[3];}
+  else if((m=url.match(/pncp\.gov\.br\/app\/editais\/(\d{14})\/(\d{4})\/(\d+)/))){cnpj=m[1];ano=m[2];seq=m[3];}
+  var direto=url.match(/[?&]compra=(\d{17})/);
+  var compra=direto?direto[1]:'';
+  if(!compra&&cnpj){
+    try{var r=await fetch(NH_API+'/api/pncp/compra?cnpj='+cnpj+'&ano='+ano+'&seq='+seq);if(r.ok){var j=await r.json();var c=String(j.linkSistemaOrigem||'').match(/compra=(\d{17})/);if(c)compra=c[1];}}catch(_e){}
+  }
+  if(compra&&SEL===String(a[0])){
+    (CFG['a-'+a[0]]=CFG['a-'+a[0]]||{}).compra=compra;
+    var info=document.querySelector('.cab-proc .info');if(info)info.insertAdjacentHTML('beforeend','<span class="tag">Compra '+esc(compra)+'</span>');
+  }
+}
+function lerForm(){
+  var a=AND.find(function(x){return String(x[0])===SEL;});
+  var itens=[];
+  document.querySelectorAll('#painel tr[data-idx]').forEach(function(tr){
+    var inp=tr.querySelector('input.min');
+    itens.push({idx:+tr.getAttribute('data-idx'),minimo:numBR(inp.value)||null,ativo:tr.querySelector('.ativo').checked});
+  });
+  var g=function(id){var e=$(id);return e?e.value:'';};
+  var info=itensDo(a);
+  return {
+    empresa:emp(a),andamentoId:String(a[0]),editalId:info.edital?String(info.edital[0]):'',titulo:tit(a),
+    dataDisputa:(dataDisputa(a)||'')&&dataDisputa(a).toISOString(),portal:'Compras.gov',
+    compra:(CFG['a-'+a[0]]||{}).compra||'',
+    modalidade:a._modalidade||(info.edital&&info.edital._modalidade)||'',disputa:a._disputa||(info.edital&&info.edital._disputa)||'',
+    estrategia:g('cf-estrategia'),posicaoAlvo:parseInt(g('cf-posicao'),10)||2,decTipo:g('cf-dectipo'),dec:numBR(g('cf-dec')),
+    entrarSeg:parseInt(g('cf-entrar'),10)||60,fechada:g('cf-fechada'),margem:numBR(g('cf-margem')),modo:g('cf-modo'),
+    pctMassa:numBR(g('pct-massa'))||null,
+    itens:itens.map(function(i){var it=info.itens[i.idx]||{};return {idx:i.idx,n:it.n,desc:String(it.desc||'').slice(0,300),qtd:it.qtd,vunit:it.vunit,minimo:i.minimo,ativo:i.ativo};}),
+    atualizadoEm:firebase.firestore.FieldValue.serverTimestamp(),atualizadoPor:(auth.currentUser&&auth.currentUser.email)||''
+  };
+}
+function validar(c){
+  var erros=[];
+  if(!(c.dec>0))erros.push('Informe o intervalo mínimo entre lances (está no edital).');
+  var ativos=c.itens.filter(function(i){return i.ativo;});
+  if(!ativos.length)erros.push('Nenhum item marcado para disputar.');
+  ativos.forEach(function(i){
+    if(!(i.minimo>0))erros.push('Item '+i.n+' sem valor mínimo.');
+    else if(i.vunit>0&&i.minimo>i.vunit*1.5)erros.push('Item '+i.n+': mínimo acima do estimado — confira se não é o valor TOTAL em vez do unitário.');
+  });
+  if(c.modo==='real')erros.push('O modo real ainda não está liberado: primeiro o robô precisa acertar em modo sombra.');
+  return erros;
+}
+async function salvar(silencioso){
+  if(!SEL)return false;
+  var c=lerForm();
+  try{
+    await db.collection('robo_lances').doc('a-'+SEL).set(c,{merge:true});
+    CFG['a-'+SEL]=Object.assign(CFG['a-'+SEL]||{},c);
+    if(!silencioso)toast('Configuração salva','ok');
+    pintarLista();return true;
+  }catch(e){toast('Não consegui salvar: '+(e.message||e),'err');return false;}
+}
+function pedirArmar(){
+  var c=lerForm(),erros=validar(c);
+  if(erros.length){toast(erros[0],'err');return;}
+  var ativos=c.itens.filter(function(i){return i.ativo;}).length;
+  $('mo-armar-txt').innerHTML='<b>'+esc(c.titulo)+'</b> · '+esc(c.empresa)+'<br>'+ativos+' item(ns), estratégia <b>'+esc($('cf-estrategia').selectedOptions[0].text)+'</b>, modo <b>'+(c.modo==='real'?'REAL':'sombra (não envia lances)')+'</b>.';
+  $('mo-armar-in').value='';$('mo-armar').style.display='flex';setTimeout(function(){$('mo-armar-in').focus();},50);
+  $('mo-armar-ok').onclick=async function(){
+    if($('mo-armar-in').value.trim().toUpperCase()!=='ARMAR'){toast('Digite ARMAR para confirmar','err');return;}
+    if(!(await salvar(true)))return;
+    try{
+      await db.collection('robo_lances').doc('a-'+SEL).set({armado:true,armadoEm:new Date().toLocaleString('pt-BR'),armadoPor:(auth.currentUser&&auth.currentUser.email)||''},{merge:true});
+      await registrar('armou',c);
+      Object.assign(CFG['a-'+SEL],{armado:true,armadoEm:new Date().toLocaleString('pt-BR'),armadoPor:(auth.currentUser&&auth.currentUser.email)||''});
+      fecharArmar();toast('Robô armado ('+(c.modo==='real'?'real':'sombra')+')','ok');abrir(SEL);
+    }catch(e){toast('Não consegui armar: '+(e.message||e),'err');}
+  };
+}
+function fecharArmar(){$('mo-armar').style.display='none';}
+async function desarmar(){
+  if(!confirm('Desarmar o robô deste processo? Ele para de acompanhar e não envia mais nada.'))return;
+  try{
+    await db.collection('robo_lances').doc('a-'+SEL).set({armado:false,desarmadoEm:new Date().toLocaleString('pt-BR'),desarmadoPor:(auth.currentUser&&auth.currentUser.email)||''},{merge:true});
+    await registrar('desarmou',{empresa:emp(AND.find(function(x){return String(x[0])===SEL;}))});
+    CFG['a-'+SEL].armado=false;toast('Robô desarmado','ok');abrir(SEL);
+  }catch(e){toast('Não consegui desarmar: '+(e.message||e),'err');}
+}
+/* Trilha: quem armou, desarmou e (depois) cada lance que o robô deu. */
+function registrar(tipo,c){
+  return db.collection('robo_lances_log').add({tipo:tipo,processo:'a-'+SEL,empresa:c.empresa||'',modo:c.modo||'',
+    por:(auth.currentUser&&auth.currentUser.email)||'',em:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(e){console.warn('[robo] log',e.message);});
+}
+/* O robô na nuvem ainda não existe: a pílula diz a verdade. */
+async function verRobo(){
+  var p=$('pl-robo'),t=$('pl-robo-t');
+  try{
+    var r=await fetch(NH_API+'/api/health',{cache:'no-store'});var j=await r.json();
+    if(j&&j.robo&&j.robo.ativo){p.className='pilula ok';t.textContent='Robô na nuvem: '+(j.robo.logado?'logado no Compras.gov':'aguardando login');}
+    else{p.className='pilula off';t.textContent='Robô na nuvem: em construção';}
+  }catch(e){p.className='pilula off';t.textContent='Robô na nuvem: sem resposta';}
+}
+</script>
+</body>
+</html>
