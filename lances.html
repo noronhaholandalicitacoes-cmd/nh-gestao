@@ -117,6 +117,18 @@ td input.min.vazio{border-color:rgba(239,68,68,.55)}
 .modal p{color:var(--t2);line-height:1.5;margin:6px 0}
 .modal input{width:100%;padding:10px 12px;border-radius:9px;border:1px solid var(--b1);background:var(--s2);color:var(--t1);font-size:15px;margin-top:8px}
 .modal .acoes{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+.robo-ov{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;z-index:60;padding:14px;overflow:auto}
+.robo-box{background:var(--s1);border:1px solid var(--b2);border-radius:16px;max-width:1340px;margin:0 auto;padding:16px 18px}
+.robo-cab{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.robo-cab h3{margin:0;font-size:17px}
+.robo-cab .x{margin-left:auto}
+.robo-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.robo-bar input{padding:8px 10px;border-radius:8px;border:1px solid var(--b1);background:var(--s2);color:var(--t1);font-size:13.5px}
+.robo-tela{position:relative;border:1px solid var(--b2);border-radius:10px;overflow:hidden;background:#000;line-height:0}
+.robo-tela img{width:100%;height:auto;cursor:crosshair;user-select:none;min-height:200px}
+.robo-tela .carreg{position:absolute;top:8px;right:10px;font-size:11px;color:#fff;background:rgba(0,0,0,.55);padding:2px 8px;border-radius:6px;line-height:1.6}
+.robo-dica{font-size:12.5px;color:var(--t2);line-height:1.5;margin:8px 0}
+.robo-ev{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--t3);max-height:140px;overflow:auto;margin-top:10px;line-height:1.55;white-space:pre-wrap}
 @media (max-width:860px){.wrap{grid-template-columns:1fr}.lista{position:static;max-height:none}.painel{padding:16px}}
 </style>
 </head>
@@ -129,7 +141,7 @@ td input.min.vazio{border-color:rgba(239,68,68,.55)}
     <div class="sub">Compras.gov · configure, arme e acompanhe</div>
   </div>
   <div class="dir">
-    <span class="pilula off" id="pl-robo" title="Situação do robô na nuvem"><span class="bol"></span><span id="pl-robo-t">Robô na nuvem: verificando…</span></span>
+    <span class="pilula off" id="pl-robo" title="Abrir o robô na nuvem (login do Compras.gov)" style="cursor:pointer" onclick="abrirRobo()"><span class="bol"></span><span id="pl-robo-t">Robô na nuvem: verificando…</span></span>
     <a class="bt" href="gestao.html" style="text-decoration:none">← Gestão</a>
   </div>
 </div>
@@ -169,6 +181,33 @@ td input.min.vazio{border-color:rgba(239,68,68,.55)}
       <button class="bt" onclick="fecharArmar()">Cancelar</button>
       <button class="bt pri" id="mo-armar-ok">Armar</button>
     </div>
+  </div>
+</div>
+<div class="robo-ov" id="robo-ov">
+  <div class="robo-box">
+    <div class="robo-cab">
+      <h3>🤖 Robô na nuvem</h3>
+      <span class="pilula" id="robo-st">verificando…</span>
+      <button class="bt x" onclick="fecharRobo()">Fechar</button>
+    </div>
+    <div class="robo-dica">Esta é a tela do navegador que roda na nuvem. <b>Faça o login do Compras.gov aqui</b>, como faria no seu computador: clique na imagem para clicar na página, digite no campo abaixo e use os botões de tecla. Se aparecer o “não sou um robô”, resolva você mesmo — o robô não contorna verificação. A senha não fica guardada em lugar nenhum. Se a página oferecer, dá para entrar pelo QR code do aplicativo gov.br.</div>
+    <div class="robo-bar">
+      <button class="bt pri" onclick="roboAcao({acao:'abrir'})">Abrir login do Compras.gov</button>
+      <button class="bt" onclick="roboVerificar()">✔ Já entrei — verificar</button>
+      <button class="bt" onclick="roboAcao({acao:'voltar'})">← Voltar</button>
+      <span style="flex:1"></span>
+      <span id="robo-url" style="font-size:12px;color:var(--t3)"></span>
+    </div>
+    <div class="robo-tela"><img id="robo-img" alt="Tela do navegador do robô" draggable="false"><span class="carreg" id="robo-carreg">carregando…</span></div>
+    <div class="robo-bar" style="margin-top:10px">
+      <input id="robo-txt" type="password" placeholder="Digite aqui e clique em Enviar texto (vai para o campo selecionado na tela)" style="flex:1;min-width:260px" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();roboDigitar();}">
+      <label style="font-size:12px;color:var(--t2)"><input type="checkbox" onchange="document.getElementById('robo-txt').type=this.checked?'text':'password'"> mostrar</label>
+      <button class="bt" onclick="roboDigitar()">Enviar texto</button>
+      <button class="bt" onclick="roboTecla('Enter')">Enter ↵</button>
+      <button class="bt" onclick="roboTecla('Tab')">Tab</button>
+      <button class="bt" onclick="roboTecla('Backspace')">⌫ Apagar</button>
+    </div>
+    <div class="robo-ev" id="robo-ev"></div>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -343,7 +382,9 @@ function abrir(id){
   h+='</div>';
 
   h+='<div class="bloco"><h3>Ao vivo <small>— aparece quando o robô na nuvem estiver rodando</small></h3><div id="aovivo" class="log">'+
-    (cfg.armado?'Armado em '+esc(cfg.armadoEm||'')+' por '+esc(cfg.armadoPor||'')+'. Aguardando a sessão abrir.':'Robô não armado para este processo.')+'</div></div>';
+    (cfg.armado?'Armado em '+esc(cfg.armadoEm||'')+' por '+esc(cfg.armadoPor||'')+'. Aguardando a sessão abrir.':'Robô não armado para este processo.')+'</div>'+
+    (cfg.armado&&cfg.compra?'<button class="bt" style="margin-top:10px" onclick="baixarDiagnostico(\''+esc(cfg.compra)+'\')">⬇ Diagnóstico da sala (o que o robô viu)</button>':'')+
+    (cfg.armado&&!cfg.compra?'<div class="aviso am">Não achei o número da compra no Compras.gov (17 dígitos) pelo link do PNCP. Sem ele o robô não acha a sala.</div>':'')+'</div>';
   $('painel').innerHTML=h;
   /* Compra do Compras.gov (17 dígitos) pelo link do PNCP — é como o robô acha a sala. */
   if(!cfg.compra)acharCompra(a,ed);
@@ -449,13 +490,59 @@ function registrar(tipo,c){
   return db.collection('robo_lances_log').add({tipo:tipo,processo:'a-'+SEL,empresa:c.empresa||'',modo:c.modo||'',
     por:(auth.currentUser&&auth.currentUser.email)||'',em:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(e){console.warn('[robo] log',e.message);});
 }
-/* O robô na nuvem ainda não existe: a pílula diz a verdade. */
+/* ── Robô na nuvem: tela de login e estado ─────────────────────── */
+var _roboAberto=false,_roboTimer=null,_roboOcupado=false;
+async function roboApi(nome,corpo){
+  var tk=await auth.currentUser.getIdToken();
+  var r=await fetch(NH_API+'/api/robo/'+nome,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({idToken:tk},corpo||{}))});
+  var j=await r.json().catch(function(){return {};});
+  if(!r.ok)throw new Error(j.erro||('HTTP '+r.status));
+  return j;
+}
+function abrirRobo(){_roboAberto=true;$('robo-ov').style.display='block';roboTela();roboEstado();clearInterval(_roboTimer);_roboTimer=setInterval(roboTela,1200);}
+function fecharRobo(){_roboAberto=false;$('robo-ov').style.display='none';clearInterval(_roboTimer);}
+async function roboTela(){
+  if(!_roboAberto||_roboOcupado)return;_roboOcupado=true;
+  try{var t=await roboApi('tela');$('robo-img').src='data:image/jpeg;base64,'+t.img;$('robo-url').textContent=t.url||'';$('robo-carreg').textContent='ao vivo';}
+  catch(e){$('robo-carreg').textContent=e.message;}
+  finally{_roboOcupado=false;}
+}
+async function roboEstado(){
+  try{
+    var s=await roboApi('estado');
+    $('robo-st').className='pilula '+(s.logado?'ok':'off');
+    $('robo-st').innerHTML='<span class="bol"></span>'+(s.logado?'Logado no Compras.gov':'Não logado')+' · v'+esc(s.versao||'');
+    $('robo-ev').textContent=(s.eventos||[]).slice().reverse().join('\n');
+  }catch(e){$('robo-st').className='pilula off';$('robo-st').textContent=e.message;}
+}
+async function roboAcao(c){try{await roboApi('acao',c);setTimeout(roboTela,350);setTimeout(roboTela,1500);}catch(e){toast(e.message,'err');}}
+async function roboVerificar(){
+  toast('Conferindo a sessão no Compras.gov…');
+  try{var r=await roboApi('acao',{acao:'verificar'});toast(r.logado?'Logado! O robô já pode acompanhar as disputas.':'Ainda não está logado no Compras.gov.',r.logado?'ok':'err');roboEstado();verRobo();}
+  catch(e){toast(e.message,'err');}
+}
+async function roboDigitar(){var i=$('robo-txt'),t=i.value;if(!t)return;i.value='';await roboAcao({acao:'digitar',texto:t});}
+function roboTecla(k){roboAcao({acao:'tecla',tecla:k});}
+(function(){
+  var img=$('robo-img');
+  img.addEventListener('click',function(ev){var r=img.getBoundingClientRect();roboAcao({acao:'clique',x:Math.round((ev.clientX-r.left)*1280/r.width),y:Math.round((ev.clientY-r.top)*800/r.height)});});
+  img.addEventListener('wheel',function(ev){ev.preventDefault();roboAcao({acao:'rolar',dy:Math.round(ev.deltaY)});},{passive:false});
+})();
+/* Diagnóstico da sala (o que o robô viu) — para a NH mapear a leitura. */
+async function baixarDiagnostico(compra){
+  try{var d=await roboApi('diagnostico',{compra:compra,ultimas:200});
+    var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(d,null,1)],{type:'application/json'}));a.download='diagnostico-'+compra+'.json';a.click();
+  }catch(e){toast(e.message,'err');}
+}
+/* Pílula do topo: o que o servidor sabe do robô. */
 async function verRobo(){
   var p=$('pl-robo'),t=$('pl-robo-t');
   try{
     var r=await fetch(NH_API+'/api/health',{cache:'no-store'});var j=await r.json();
-    if(j&&j.robo&&j.robo.ativo){p.className='pilula ok';t.textContent='Robô na nuvem: '+(j.robo.logado?'logado no Compras.gov':'aguardando login');}
-    else{p.className='pilula off';t.textContent='Robô na nuvem: em construção';}
+    var rb=j&&j.robo;
+    if(rb&&rb.ativo){p.className='pilula '+(rb.logado?'ok':'off');t.textContent='Robô na nuvem: '+(rb.logado?'logado · '+rb.acompanhando+' sala(s)':'clique para fazer o login');}
+    else if(rb&&rb.configurado){p.className='pilula off';t.textContent='Robô na nuvem: sem resposta';}
+    else{p.className='pilula off';t.textContent='Robô na nuvem: ainda não instalado';}
   }catch(e){p.className='pilula off';t.textContent='Robô na nuvem: sem resposta';}
 }
 </script>
