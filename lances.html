@@ -770,7 +770,10 @@ async function roboEstado(){
     $('robo-ev').textContent=(s.eventos||[]).slice().reverse().join('\n');
   }catch(e){$('robo-st').className='pilula off';$('robo-st').textContent=e.message;}
 }
-async function roboAcao(c){try{await roboApi('acao',c);setTimeout(roboTela,350);setTimeout(roboTela,1500);}catch(e){toast(e.message,'err');}}
+async function roboAcao(c){
+  if(c.acao==='abrir'){toast('Abrindo a página de login do Compras.gov…');$('robo-carreg').textContent='carregando…';}
+  try{await roboApi('acao',c);setTimeout(roboTela,350);setTimeout(roboTela,1500);setTimeout(roboTela,4000);}catch(e){toast(e.message,'err');}
+}
 async function roboVerificar(){
   toast('Conferindo a sessão no Compras.gov…');
   try{var r=await roboApi('acao',{acao:'verificar'});toast(r.logado?'Logado! O robô já pode acompanhar as disputas.':'Ainda não está logado no Compras.gov.',r.logado?'ok':'err');roboEstado();verRobo();}
