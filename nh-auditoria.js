@@ -362,7 +362,8 @@
         /* Se alguém recriou o registro com o mesmo número no meio do
            caminho, restaurar por cima apagaria o trabalho novo. */
         if (atual.exists) return { ok: false, erro: 'já existe um registro com este número — restaurar apagaria o atual' };
-        return _db.collection(it.colecao).doc(it.docId).set(it.dados).then(function () {
+        var _dados = Object.assign({}, it.dados || {}, { _updatedAt: Date.now() });   /* 26/11/2026: os caches das telas enxergam o que voltou */
+        return _db.collection(it.colecao).doc(it.docId).set(_dados).then(function () {
           return lref.update({ restaurado: true, restauradoPor: _quem, restauradoEm: _agora() })
             .catch(function () { /* o que importa já voltou */ })
             .then(function () {

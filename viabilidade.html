@@ -1162,6 +1162,32 @@ const firebaseConfig={apiKey:"AIzaSyBhcpJP9dRM0SEJsGfcNUXYb1rTMdEDw6M",authDomai
    problema documentado em index (74).html para o cadastro de responsáveis,
    só que aqui era o login normal desta página que causava). */
 var _viabApp=(firebase.apps||[]).filter(function(a){return a.name==='nh-viabilidade';})[0]||firebase.initializeApp(firebaseConfig,'nh-viabilidade');
+/* ═══ CARIMBO AUTOMÁTICO DE ALTERAÇÃO — 26/11/2026 ═════════════════════
+   A cota diária de leitura do Firestore estourou e clientes ficaram sem
+   entrar. Parte da correção: o Gestão guarda as listas no navegador e,
+   ao abrir, busca só o que mudou (_updatedAt maior que a última leitura).
+   Para isso funcionar, TODA gravação nessas listas precisa levar
+   _updatedAt — e várias gravavam só um campo (prioridade, modalidade,
+   conversa, contrato...). Este carimbo põe a data em qualquer set/update
+   dessas coleções que não a trouxer. */
+(function(){
+  try{
+    var P = firebase.firestore.DocumentReference.prototype;
+    if(P.__nhCarimbo) return; P.__nhCarimbo = true;
+    var C = {editais:1, andamento:1, finalizados:1, ganhas:1, atestados:1, valores:1, financeiro:1};
+    function marca(ref, d){
+      try{
+        if(d && typeof d === 'object' && !Array.isArray(d) && ref && ref.parent && C[ref.parent.id] && !('_updatedAt' in d))
+          return Object.assign({}, d, {_updatedAt: Date.now()});
+      }catch(_e){}
+      return d;
+    }
+    var _set = P.set, _upd = P.update;
+    P.set = function(d, o){ return _set.call(this, marca(this, d), o); };
+    P.update = function(d){ if(arguments.length === 1) return _upd.call(this, marca(this, d)); return _upd.apply(this, arguments); };
+  }catch(e){ console.warn('[carimbo]', e && e.message); }
+})();
+
 const db=_viabApp.firestore();
 db.settings({experimentalAutoDetectLongPolling:true,merge:true});
 
