@@ -247,6 +247,14 @@ td .orig{font-size:11px;color:var(--t3);margin-top:3px}
 .sw span::before{content:"";position:absolute;width:16px;height:16px;left:2px;top:2px;border-radius:50%;background:var(--t3);transition:.18s}
 .sw input:checked+span{background:var(--g2);border-color:var(--g1)}
 .sw input:checked+span::before{transform:translateX(16px);background:var(--g1)}
+.loc{margin-top:12px;padding:14px 16px;border-radius:14px;border:1px solid rgba(250,204,21,.35);background:var(--y2)}
+.loc h4{margin:0 0 4px;font-size:14px;font-weight:800}
+.loc p{margin:0 0 10px;font-size:12.5px;color:var(--t2);line-height:1.5}
+.loc-l{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.loc-l input{padding:9px 11px;border-radius:10px;border:1px solid var(--b2);background:var(--s1);color:var(--t1);font-size:13px;outline:none;font-family:'JetBrains Mono',monospace}
+.loc-l input:focus{border-color:var(--nh)}
+.loc-l .rot{font-size:12px;color:var(--t3);font-weight:700}
+#tag-compra{cursor:pointer}
 .aviso{padding:12px 14px;border-radius:13px;font-size:13px;line-height:1.5;margin-top:10px}
 .aviso.am{background:var(--y2);border:1px solid rgba(250,204,21,.35)}
 .aviso.vm{background:var(--r2);border:1px solid rgba(244,63,94,.4)}
@@ -622,7 +630,7 @@ function abrir(id){
     '<h2>'+esc(tit(a))+'</h2><div class="tags">'+
     '<span class="tag" style="border-color:'+corEmp(e)+';color:'+corEmp(e)+'">● '+esc(e)+'</span>'+
     (mod?'<span class="tag az">'+esc(mod)+'</span>':'')+(dis?'<span class="tag az">Disputa: '+esc(dis)+'</span>':'<span class="tag am">modo de disputa não informado</span>')+
-    '<span class="tag" id="tag-compra">'+(cfg.compra?'Compra '+esc(cfg.compra):'procurando a sala…')+'</span>'+
+    '<span class="tag'+(cfg.compra?' ok':'')+'" id="tag-compra" title="Clique para informar ou corrigir a sala no Compras.gov" onclick="locAlternar()">'+(cfg.compra?'Compra '+esc(cfg.compra)+' ✎':'procurando a sala…')+'</span>'+
     (link?'<a class="tag" href="'+esc(link)+'" target="_blank" rel="noopener">edital ↗</a>':'')+
     '</div></div><div class="acoes">'+
     '<button class="bt" onclick="salvar()">💾 Salvar</button>'+
@@ -682,7 +690,7 @@ function abrir(id){
     (cfg.armado&&cfg.compra?'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><a class="bt pri" target="_blank" rel="noopener" href="'+SALA_URL+esc(cfg.compra)+'">↗ Abrir a sala no Compras.gov</a>'+
       '<button class="bt" onclick="baixarDiagnostico(\''+esc(cfg.compra)+'\')">⬇ Diagnóstico da sala (o que o robô viu)</button></div>'+
       '<div class="cinza" style="font-size:12px;margin-top:8px;color:var(--t3)">Abra a sala no seu Chrome, já logado no Compras.gov, e deixe a aba aberta. A extensão lê a sala e manda para cá — em modo sombra ela não envia lances.</div>':'')+
-    (cfg.armado&&!cfg.compra?'<div class="aviso am">Não achei o número da compra no Compras.gov (17 dígitos) pelo link do PNCP. Sem ele o robô não acha a sala.</div>':'')+
+    locHtml(cfg)+
     '</div>';
   $('painel').innerHTML=h;tic();atualizarSit();
   if(!cfg.compra)acharCompra(a,ed);
@@ -749,6 +757,60 @@ async function acharCompra(a,ed){
   var tg=$('tag-compra');
   if(compra){(CFG['a-'+a[0]]=CFG['a-'+a[0]]||{}).compra=compra;if(SEL===String(a[0])&&tg){tg.textContent='Compra '+compra;tg.className='tag ok';}}
   else if(SEL===String(a[0])&&tg){tg.textContent='sala não encontrada';tg.className='tag am';}
+}
+/* ═══ LOCALIZAR A SALA À MÃO — 26/11/2026 ══════════════════════════════
+   Pedido: "ele não localiza o certame, tem que ter uma opção de localizar
+   o processo manual". A busca automática só funciona quando o edital tem
+   o link do PNCP; muito processo foi cadastrado com link do Drive. Aqui
+   a pessoa informa a sala de três jeitos:
+     · cola o link da sala (…acompanhamento-compra?compra=…) ou o nº da
+       compra de 17 dígitos;
+     · ou monta pelo UASG + nº/ano do pregão eletrônico (o nº da compra
+       do Compras.gov é UASG(6) + modalidade(2, pregão = 05) + nº(5) + ano(4)).
+   Fica gravado no robo_lances do processo (compraManual) e a extensão
+   recebe a lista nova se o robô estiver armado. */
+var MINHAS_COMPRAS='https://cnetmobile.estaleiro.serpro.gov.br/comprasnet-web/seguro/fornecedor/compras';
+var _locAberto=false;
+function locHtml(cfg){
+  if(cfg.compra&&!_locAberto)return '';
+  return '<div class="loc" id="loc-sala">'+
+    '<h4>📍 '+(cfg.compra?'Corrigir a sala no Compras.gov':'Localizar a sala no Compras.gov')+'</h4>'+
+    '<p>'+(cfg.compra?'Hoje o robô usa a compra <b class="mono">'+esc(cfg.compra)+'</b>.':'Não achei a sala sozinho (o edital não tem o link do PNCP).')+
+    ' Abra o pregão no Compras.gov, já logado, e cole aqui o <b>link da página</b> ou o <b>número da compra</b> (17 dígitos). '+
+    '<a href="'+MINHAS_COMPRAS+'" target="_blank" rel="noopener">Abrir minhas compras no Compras.gov ↗</a></p>'+
+    '<div class="loc-l"><input id="loc-link" style="flex:1;min-width:240px" placeholder="Cole o link da sala ou o nº da compra" onkeydown="if(event.key===\'Enter\')locUsarLink()">'+
+      '<button class="bt pri" onclick="locUsarLink()">Usar esta sala</button></div>'+
+    '<div class="loc-l"><span class="rot">ou pregão eletrônico:</span>'+
+      '<input id="loc-uasg" style="width:110px" maxlength="6" inputmode="numeric" placeholder="UASG">'+
+      '<input id="loc-num" style="width:90px" maxlength="5" inputmode="numeric" placeholder="Nº">'+
+      '<span class="rot">/</span><input id="loc-ano" style="width:80px" maxlength="4" inputmode="numeric" value="'+new Date().getFullYear()+'">'+
+      '<button class="bt" onclick="locMontar()">Montar</button>'+
+      (cfg.compra?'<button class="bt" onclick="locAlternar()">Fechar</button>':'')+'</div>'+
+  '</div>';
+}
+function locAlternar(){var c=CFG['a-'+SEL]||{};_locAberto=!_locAberto||!c.compra;abrir(SEL);var i=$('loc-link');if(i&&_locAberto)setTimeout(function(){i.focus();},50);}
+function locUsarLink(){
+  var v=String(($('loc-link')||{}).value||'').trim();
+  var m=v.match(/[?&]compra=(\d{17})(?!\d)/)||v.replace(/\D/g,'').match(/^(\d{17})$/);
+  if(!m){toast('Não achei um número de compra de 17 dígitos. Cole o link da sala (com "compra=") ou só o número.','err');return;}
+  definirCompra(m[1]);
+}
+function locMontar(){
+  var u=String(($('loc-uasg')||{}).value||'').replace(/\D/g,''),n=String(($('loc-num')||{}).value||'').replace(/\D/g,''),y=String(($('loc-ano')||{}).value||'').replace(/\D/g,'');
+  if(u.length!==6){toast('A UASG tem 6 números.','err');return;}
+  if(!n||n.length>5){toast('Informe o número do pregão (até 5 números).','err');return;}
+  if(y.length!==4){toast('Informe o ano com 4 números.','err');return;}
+  definirCompra(u+'05'+('00000'+n).slice(-5)+y);
+}
+async function definirCompra(c){
+  if(!/^\d{17}$/.test(c)){toast('Número de compra inválido.','err');return;}
+  var k='a-'+SEL,quem=(auth.currentUser&&auth.currentUser.email)||'';
+  try{
+    await db.collection('robo_lances').doc(k).set({compra:c,compraManual:true,compraPor:quem,compraEm:new Date().toLocaleString('pt-BR')},{merge:true});
+    (CFG[k]=CFG[k]||{}).compra=c;CFG[k].compraManual=true;
+    _locAberto=false;toast('Sala definida: compra '+c,'ok');abrir(SEL);
+    if(CFG[k].armado)extSincronizar();
+  }catch(e){toast('Não consegui gravar: '+(e.message||e),'err');}
 }
 function lerForm(){
   var a=AND.find(function(x){return String(x[0])===SEL;});
