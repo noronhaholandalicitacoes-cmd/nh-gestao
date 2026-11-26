@@ -276,6 +276,29 @@ td .orig{font-size:11px;color:var(--t3);margin-top:3px}
 .robo-tela img{width:100%;height:auto;cursor:crosshair;user-select:none;min-height:220px}
 .robo-tela .carreg{position:absolute;top:10px;right:12px;font-size:11px;color:#fff;background:rgba(0,0,0,.6);padding:3px 10px;border-radius:8px;line-height:1.6;font-family:'JetBrains Mono',monospace}
 .robo-dica{font-size:13px;color:var(--t2);line-height:1.55;margin:4px 0 14px;padding:12px 14px;border-radius:13px;background:var(--s2);border:1px solid var(--b1)}
+.robo-grid{display:grid;grid-template-columns:350px minmax(0,1fr);gap:18px;align-items:start}
+@media(max-width:900px){.robo-grid{grid-template-columns:1fr}}
+.rp-tit{font-size:16px;font-weight:800;margin:2px 0 4px}
+.rp-sub{font-size:12.5px;color:var(--t2);line-height:1.5;margin-bottom:14px}
+.rp{border:1px solid var(--b1);background:var(--s2);border-radius:15px;padding:12px 14px;margin-bottom:10px;opacity:.55;transition:.2s}
+.rp.at{opacity:1;border-color:#f97316;box-shadow:0 0 0 3px rgba(249,115,22,.15)}
+.rp.ok{opacity:1;border-color:#22c55e}
+.rp-l{display:flex;align-items:center;gap:9px;font-weight:700;font-size:13.5px;margin-bottom:8px}
+.rp-n{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;background:var(--b2);flex:0 0 auto}
+.rp.at .rp-n{background:#f97316;color:#fff}.rp.ok .rp-n{background:#22c55e;color:#fff}
+.rp-c{display:flex;gap:8px}
+.rp-c input{flex:1;min-width:0;padding:11px 12px;border-radius:11px;border:1px solid var(--b1);background:var(--s1s);color:var(--t1);font-size:15px;outline:none;font-family:'JetBrains Mono',monospace;letter-spacing:.04em}
+.rp-c input:focus{border-color:#f97316}
+.rp-aviso{font-size:13px;line-height:1.5;padding:11px 13px;border-radius:12px;margin:4px 0 10px;background:var(--s2);border:1px solid var(--b1);color:var(--t2)}
+.rp-aviso.lar{border-color:#f97316;background:rgba(249,115,22,.1);color:var(--t1)}
+.rp-aviso.vd{border-color:#22c55e;background:rgba(34,197,94,.1);color:var(--t1)}
+.rp-aviso.vm{border-color:#ef4444;background:rgba(239,68,68,.1);color:var(--t1)}
+.rp-mais{margin-top:6px;font-size:12.5px;color:var(--t2)}
+.rp-mais summary{cursor:pointer;font-weight:700;padding:6px 0}
+.robo-tela-col{max-width:calc((100vh - 170px) * 1.6);width:100%;justify-self:center}
+.robo-tela-cab{font-size:12.5px;color:var(--t2);margin-bottom:8px;line-height:1.5}
+.robo-tela-cab .vivo{color:#22c55e;font-weight:800}
+.robo-tela img{cursor:pointer}
 .robo-ev{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--t3);max-height:140px;overflow:auto;margin-top:12px;line-height:1.6;white-space:pre-wrap}
 .pilula{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;padding:5px 11px;border-radius:999px;border:1px solid var(--b2);color:var(--t2);background:var(--s2)}
 .pilula .bol{width:8px;height:8px;border-radius:50%;background:var(--t3)}
@@ -346,26 +369,47 @@ td .orig{font-size:11px;color:var(--t3);margin-top:3px}
       <span class="pilula" id="robo-st">verificando…</span>
       <button class="bt x" onclick="fecharRobo()">Fechar</button>
     </div>
-    <div class="robo-dica">Esta é a tela do navegador que roda na nuvem. <b>Faça o login do Compras.gov aqui</b>, como faria no seu computador: clique na imagem para clicar na página, digite no campo abaixo e use os botões de tecla. Se aparecer o “não sou um robô”, resolva você mesmo — o robô não contorna verificação. A senha não fica guardada em lugar nenhum. Se a página oferecer, dá para entrar pelo QR code do aplicativo gov.br.</div>
-    <div class="robo-bar">
-      <button class="bt pri" onclick="roboAcao({acao:'abrir'})">Abrir login do Compras.gov</button>
-      <button class="bt" onclick="roboVerificar()">✔ Já entrei — verificar</button>
-      <button class="bt" onclick="roboAcao({acao:'voltar'})">← Voltar</button>
-      <span style="flex:1"></span>
-      <span id="robo-url" class="mono" style="font-size:11.5px;color:var(--t3)"></span>
+    <div class="robo-grid">
+      <div>
+        <div class="rp-tit">Entrar no Compras.gov</div>
+        <div class="rp-sub">Use a sua conta gov.br, a mesma de sempre. Você digita aqui e o robô preenche a página do gov.br na nuvem. <b>Nada fica guardado</b> — nem CPF, nem senha.</div>
+        <div class="rp at" id="rp-1">
+          <div class="rp-l"><span class="rp-n">1</span>CPF</div>
+          <div class="rp-c"><input id="robo-cpf" type="text" inputmode="numeric" placeholder="000.000.000-00" maxlength="14" autocomplete="off" data-lpignore="true" data-1p-ignore oninput="this.value=fmtCpf(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();roboCpf();}"><button class="bt pri" id="rp-1-bt" onclick="roboCpf()">Continuar</button></div>
+        </div>
+        <div class="rp" id="rp-2">
+          <div class="rp-l"><span class="rp-n">2</span>Senha do gov.br</div>
+          <!-- Campo mascarado, e não type=password: o Chrome preenchia sozinho com a senha salva do Gestão (25/11/2026). -->
+          <div class="rp-c"><input id="robo-senha" type="text" name="robo-chave" style="-webkit-text-security:disc" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore onkeydown="if(event.key==='Enter'){event.preventDefault();roboSenha();}"><button class="bt pri" id="rp-2-bt" onclick="roboSenha()">Entrar</button></div>
+        </div>
+        <div class="rp" id="rp-3">
+          <div class="rp-l"><span class="rp-n">3</span>Pronto para disputar</div>
+          <button class="bt" onclick="roboVerificar()" style="width:100%">✔ Conferir login</button>
+        </div>
+        <div class="rp-aviso" id="robo-aviso">Digite o CPF e clique em <b>Continuar</b>.</div>
+        <details class="rp-mais"><summary>Ferramentas da tela</summary>
+          <div class="robo-bar" style="margin-top:8px">
+            <button class="bt" onclick="roboAcao({acao:'abrir'})">↻ Recomeçar login</button>
+            <button class="bt" onclick="roboAcao({acao:'voltar'})">← Voltar</button>
+          </div>
+          <div class="robo-bar">
+            <input id="robo-txt" type="text" name="robo-digitar" placeholder="Texto para o campo clicado na tela" style="flex:1;min-width:0;-webkit-text-security:disc" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore onkeydown="if(event.key==='Enter'){event.preventDefault();roboDigitar();}">
+            <button class="bt" onclick="roboDigitar()">Enviar</button>
+          </div>
+          <div class="robo-bar">
+            <button class="bt" onclick="roboTecla('Enter')">Enter ↵</button>
+            <button class="bt" onclick="roboTecla('Tab')">Tab</button>
+            <button class="bt" onclick="roboTecla('Backspace')">⌫ Apagar</button>
+          </div>
+          <div id="robo-url" class="mono" style="font-size:11px;color:var(--t3);word-break:break-all"></div>
+          <div class="robo-ev" id="robo-ev"></div>
+        </details>
+      </div>
+      <div class="robo-tela-col">
+        <div class="robo-tela-cab"><span class="vivo">● Tela ao vivo</span> do navegador do robô na nuvem. Não precisa mexer nela — só se o gov.br pedir a verificação <b>“Sou humano”</b>: aí clique nela aqui mesmo, como se fosse o seu navegador.</div>
+        <div class="robo-tela"><img id="robo-img" alt="Tela do navegador do robô" draggable="false"><span class="carreg" id="robo-carreg">carregando…</span></div>
+      </div>
     </div>
-    <div class="robo-tela"><img id="robo-img" alt="Tela do navegador do robô" draggable="false"><span class="carreg" id="robo-carreg">carregando…</span></div>
-    <div class="robo-bar" style="margin-top:12px">
-      <!-- Campo de texto mascarado, e não type=password: o Chrome preenchia
-           sozinho com a senha salva do Gestão (25/11/2026). -->
-      <input id="robo-txt" type="text" name="robo-digitar" placeholder="Digite aqui e clique em Enviar texto (vai para o campo selecionado na tela)" style="flex:1;min-width:260px;-webkit-text-security:disc" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore onkeydown="if(event.key==='Enter'){event.preventDefault();roboDigitar();}">
-      <label style="font-size:12px;color:var(--t2);display:flex;gap:6px;align-items:center"><input type="checkbox" onchange="document.getElementById('robo-txt').style.webkitTextSecurity=this.checked?'none':'disc'"> mostrar</label>
-      <button class="bt" onclick="roboDigitar()">Enviar texto</button>
-      <button class="bt" onclick="roboTecla('Enter')">Enter ↵</button>
-      <button class="bt" onclick="roboTecla('Tab')">Tab</button>
-      <button class="bt" onclick="roboTecla('Backspace')">⌫ Apagar</button>
-    </div>
-    <div class="robo-ev" id="robo-ev"></div>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -790,8 +834,50 @@ async function roboApi(nome,corpo){
   if(!r.ok)throw new Error(j.erro||('HTTP '+r.status));
   return j;
 }
-function abrirRobo(){_roboAberto=true;$('robo-ov').style.display='block';roboTela();roboEstado();clearInterval(_roboTimer);_roboTimer=setInterval(roboTela,1200);}
-function fecharRobo(){_roboAberto=false;$('robo-ov').style.display='none';clearInterval(_roboTimer);}
+var _roboEtTimer=null,_roboEtapa='',_roboPassoOcupado=false;
+function abrirRobo(){_roboAberto=true;$('robo-ov').style.display='block';roboTela();roboEstado();roboEtapa();clearInterval(_roboTimer);_roboTimer=setInterval(roboTela,1200);clearInterval(_roboEtTimer);_roboEtTimer=setInterval(roboEtapa,3000);setTimeout(function(){try{$('robo-cpf').focus();}catch(_e){}},200);}
+function fecharRobo(){_roboAberto=false;$('robo-ov').style.display='none';clearInterval(_roboTimer);clearInterval(_roboEtTimer);}
+function fmtCpf(v){v=String(v||'').replace(/\D/g,'').slice(0,11);return v.replace(/^(\d{3})(\d)/,'$1.$2').replace(/^(\d{3})\.(\d{3})(\d)/,'$1.$2.$3').replace(/\.(\d{3})(\d)/,'.$1-$2');}
+/* Login guiado: o passo da vez acende; o aviso diz o que fazer. */
+var ROBO_AVISO={
+  inicio:['','Digite o CPF e clique em <b>Continuar</b>.'],
+  outra:['','Digite o CPF e clique em <b>Continuar</b>.'],
+  cpf:['','Digite o CPF e clique em <b>Continuar</b>.'],
+  captcha:['lar','🧩 O gov.br pediu a verificação <b>“Sou humano”</b>. Resolva clicando na <b>tela ao vivo</b> ao lado (o robô não faz isso por você). Depois siga aqui.'],
+  senha:['lar','Agora digite a <b>senha do gov.br</b> e clique em <b>Entrar</b>.'],
+  govbr:['lar','O gov.br mostrou outra tela. Veja a <b>tela ao vivo</b> ao lado e clique no que ele pedir.'],
+  logado:['vd','✅ <b>Robô logado no Compras.gov.</b> Ele já pode acompanhar as disputas armadas. Pode fechar esta janela.']
+};
+function pintarEtapa(r){
+  var e=r&&r.etapa||'outra';_roboEtapa=e;
+  var passo=e==='logado'?3:(e==='senha'?2:1);
+  [1,2,3].forEach(function(n){$('rp-'+n).className='rp'+(n<passo||e==='logado'?' ok':n===passo?' at':'');});
+  var a=ROBO_AVISO[e]||ROBO_AVISO.outra,msg=r&&r.msg?'<br><b>Aviso do gov.br:</b> '+esc(r.msg):'';
+  if(r&&r.erro)a=['vm',esc(r.erro)];
+  $('robo-aviso').className='rp-aviso'+(a[0]?' '+a[0]:'');$('robo-aviso').innerHTML=a[1]+msg;
+}
+async function roboEtapa(){
+  if(!_roboAberto||_roboPassoOcupado)return;
+  try{var r=await roboApi('acao',{acao:'etapa'});if(!_roboPassoOcupado)pintarEtapa(r);}catch(_e){}
+}
+async function roboCpf(){
+  var c=$('robo-cpf').value.replace(/\D/g,'');
+  if(c.length!==11){toast('Digite os 11 números do CPF.','err');return;}
+  var bt=$('rp-1-bt');bt.disabled=true;bt.textContent='Enviando…';_roboPassoOcupado=true;
+  $('robo-aviso').className='rp-aviso';$('robo-aviso').textContent='Abrindo o gov.br e preenchendo o CPF… (leva uns segundos)';
+  try{var r=await roboApi('acao',{acao:'cpf',cpf:c});pintarEtapa(r);if(r.etapa==='senha')setTimeout(function(){$('robo-senha').focus();},100);}
+  catch(e){pintarEtapa({etapa:_roboEtapa,erro:e.message});}
+  finally{bt.disabled=false;bt.textContent='Continuar';_roboPassoOcupado=false;roboTela();}
+}
+async function roboSenha(){
+  var i=$('robo-senha'),s=i.value;
+  if(!s){toast('Digite a senha do gov.br.','err');return;}
+  var bt=$('rp-2-bt');bt.disabled=true;bt.textContent='Entrando…';_roboPassoOcupado=true;
+  $('robo-aviso').className='rp-aviso';$('robo-aviso').textContent='Entrando no gov.br… (até 30 segundos)';
+  try{var r=await roboApi('acao',{acao:'senha',senha:s});i.value='';pintarEtapa(r);if(r.etapa==='logado'){roboEstado();verRobo();}}
+  catch(e){pintarEtapa({etapa:_roboEtapa,erro:e.message});}
+  finally{s='';bt.disabled=false;bt.textContent='Entrar';_roboPassoOcupado=false;roboTela();}
+}
 async function roboTela(){
   if(!_roboAberto||_roboOcupado)return;_roboOcupado=true;
   try{var t=await roboApi('tela');$('robo-img').src='data:image/jpeg;base64,'+t.img;$('robo-url').textContent=t.url||'';$('robo-carreg').textContent='● ao vivo';}
@@ -812,7 +898,7 @@ async function roboAcao(c){
 }
 async function roboVerificar(){
   toast('Conferindo a sessão no Compras.gov…');
-  try{var r=await roboApi('acao',{acao:'verificar'});toast(r.logado?'Logado! O robô já pode acompanhar as disputas.':'Ainda não está logado no Compras.gov.',r.logado?'ok':'err');roboEstado();verRobo();}
+  try{var r=await roboApi('acao',{acao:'verificar'});toast(r.logado?'Logado! O robô já pode acompanhar as disputas.':'Ainda não está logado no Compras.gov.',r.logado?'ok':'err');if(r.logado)pintarEtapa({etapa:'logado'});roboEstado();verRobo();}
   catch(e){toast(e.message,'err');}
 }
 async function roboDigitar(){var i=$('robo-txt'),t=i.value;if(!t)return;i.value='';await roboAcao({acao:'digitar',texto:t});}
