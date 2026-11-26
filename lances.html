@@ -834,7 +834,7 @@ async function roboApi(nome,corpo){
   if(!r.ok)throw new Error(j.erro||('HTTP '+r.status));
   return j;
 }
-var _roboEtTimer=null,_roboEtapa='',_roboPassoOcupado=false;
+var _roboAbriuVazio=false,_roboEtTimer=null,_roboEtapa='',_roboPassoOcupado=false;
 function abrirRobo(){_roboAberto=true;$('robo-ov').style.display='block';roboTela();roboEstado();roboEtapa();clearInterval(_roboTimer);_roboTimer=setInterval(roboTela,1200);clearInterval(_roboEtTimer);_roboEtTimer=setInterval(roboEtapa,3000);setTimeout(function(){try{$('robo-cpf').focus();}catch(_e){}},200);}
 function fecharRobo(){_roboAberto=false;$('robo-ov').style.display='none';clearInterval(_roboTimer);clearInterval(_roboEtTimer);}
 function fmtCpf(v){v=String(v||'').replace(/\D/g,'').slice(0,11);return v.replace(/^(\d{3})(\d)/,'$1.$2').replace(/^(\d{3})\.(\d{3})(\d)/,'$1.$2.$3').replace(/\.(\d{3})(\d)/,'.$1-$2');}
@@ -858,7 +858,9 @@ function pintarEtapa(r){
 }
 async function roboEtapa(){
   if(!_roboAberto||_roboPassoOcupado)return;
-  try{var r=await roboApi('acao',{acao:'etapa'});if(!_roboPassoOcupado)pintarEtapa(r);}catch(_e){}
+  try{var r=await roboApi('acao',{acao:'etapa'});if(!_roboPassoOcupado)pintarEtapa(r);
+    /* Navegador recém-aberto (página vazia): já mostra o login. */
+    if(r&&!r.url&&r.etapa!=='logado'&&!_roboAbriuVazio){_roboAbriuVazio=true;roboAcao({acao:'abrir'});}}catch(_e){}
 }
 async function roboCpf(){
   var c=$('robo-cpf').value.replace(/\D/g,'');
