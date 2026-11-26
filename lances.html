@@ -317,7 +317,7 @@ td .orig{font-size:11px;color:var(--t3);margin-top:3px}
     <div><h1><b>NH</b> Robô de Lances</h1><div class="sub">Central de comando · Compras.gov</div></div>
   </div>
   <div class="relogio"><div class="h" id="rel-h">--:--<small>:--</small></div><div class="d" id="rel-d">Horário de Brasília</div></div>
-  <div class="orb" id="pl-robo" onclick="abrirRobo()" title="Abrir o robô na nuvem (login do Compras.gov)"><span class="o"></span><span class="tx" id="pl-robo-t">Robô na nuvem<small>verificando…</small></span></div>
+  <div class="orb" id="pl-robo" onclick="abrirExt()" title="Robô de lances no seu Chrome"><span class="o"></span><span class="tx" id="pl-robo-t">Robô no Chrome<small>verificando…</small></span></div>
   <a class="bt fant" href="gestao.html">← Gestão</a>
 </header>
 
@@ -360,6 +360,13 @@ td .orig{font-size:11px;color:var(--t3);margin-top:3px}
       <button class="bt" onclick="fecharArmar()">Cancelar</button>
       <button class="bt pri" id="mo-armar-ok">Armar robô</button>
     </div>
+  </div>
+</div>
+<div class="modal-ov" id="mo-ext">
+  <div class="modal" style="max-width:620px">
+    <h3>🤖 Robô de lances no seu Chrome</h3>
+    <div id="mo-ext-corpo"></div>
+    <div class="acoes"><button class="bt" onclick="$('mo-ext').style.display='none'">Fechar</button></div>
   </div>
 </div>
 <div class="robo-ov" id="robo-ov">
@@ -509,7 +516,7 @@ auth.onAuthStateChanged(async function(u){
     $('tela-sem-acesso').innerHTML=msg;$('tela-sem-acesso').style.display='block';return;
   }
   $('tela').style.display='block';
-  verRobo();setInterval(verRobo,30000);
+  extPing();
   setInterval(function(){pintarLista();},60000);
 });
 
@@ -552,7 +559,7 @@ function pintarKpis(){
     '<div class="kpi k2"><div class="l">Próximos 7 dias</div><div class="v">'+n7+'</div><div class="s">'+AND.length+' em andamento no total</div></div>'+
     '<div class="kpi k3"><div class="l">Robôs armados</div><div class="v">'+nArm+'</div><div class="s">'+(nArm?'acompanhando as salas':'nenhum armado')+'</div></div>'+
     '<div class="kpi k4"><div class="l">Itens sem mínimo</div><div class="v">'+semMin+'</div><div class="s">nas disputas que vêm aí</div></div>'+
-    '<div class="kpi k5"><div class="l">Robô na nuvem</div><div class="v">'+(rb.ativo?(rb.logado?'Logado':'Sem login'):(rb.configurado?'Sem resposta':'Instalando'))+'</div><div class="s">'+(rb.ativo?(rb.acompanhando||0)+' sala(s) acompanhada(s)':'clique no robô no topo')+'</div></div>';
+    '<div class="kpi k5"><div class="l">Robô no Chrome</div><div class="v">'+(EXT?'Conectado':'Não instalado')+'</div><div class="s">'+(EXT?salasLidas()+' sala(s) sendo lida(s)':'clique no robô no topo')+'</div></div>';
 }
 
 function pintarLista(){
@@ -596,7 +603,7 @@ function prontidao(a,info,cfg){
     {ok:ativos.length&&comMin===ativos.length,am:comMin>0&&comMin<ativos.length,t:'Valores mínimos',d:comMin+' de '+ativos.length},
     {ok:!!dis,am:!dis,t:'Modo de disputa',d:dis||'não informado'},
     {ok:!!cfg.compra,t:'Sala no Compras.gov',d:cfg.compra?'compra '+cfg.compra:'buscando…'},
-    {ok:!!(rb.ativo&&rb.logado),am:!!rb.ativo&&!rb.logado,t:'Robô logado',d:rb.ativo?(rb.logado?'sessão ativa':'falta o login'):'aguardando'}
+    {ok:!!EXT,t:'Robô no Chrome',d:EXT?'extensão v'+(EXT.versao||''):'instalar a extensão'}
   ];
   var pontos=c.reduce(function(s,x){return s+(x.ok?1:x.am?.5:0);},0);
   return {itens:c,pct:Math.round(pontos/c.length*100)};
@@ -670,9 +677,11 @@ function abrir(id){
   h+='</div>';
 
   h+='<div class="cartao" style="margin-top:16px"><h3>Ao vivo <small>— o que o robô vê na sala</small></h3><div class="terminal" id="aovivo">'+
-    (cfg.armado?'<span class="cinza">['+esc(cfg.armadoEm||'')+']</span> robô armado por '+esc(cfg.armadoPor||'')+'<br><span class="cinza">[agora]</span> aguardando a sessão abrir no Compras.gov <span class="cur"></span>':
+    (cfg.armado?'<span class="cinza">['+esc(cfg.armadoEm||'')+']</span> robô armado por '+esc(cfg.armadoPor||'')+'<br>'+linhasLeitura(cfg.compra)+'<span class="cur"></span>':
       '<span class="cinza">$</span> robô desarmado para este processo. Configure e clique em <b style="color:#fff">⚡ Armar robô</b>. <span class="cur"></span>')+'</div>'+
-    (cfg.armado&&cfg.compra?'<button class="bt" style="margin-top:12px" onclick="baixarDiagnostico(\''+esc(cfg.compra)+'\')">⬇ Diagnóstico da sala (o que o robô viu)</button>':'')+
+    (cfg.armado&&cfg.compra?'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><a class="bt pri" target="_blank" rel="noopener" href="'+SALA_URL+esc(cfg.compra)+'">↗ Abrir a sala no Compras.gov</a>'+
+      '<button class="bt" onclick="baixarDiagnostico(\''+esc(cfg.compra)+'\')">⬇ Diagnóstico da sala (o que o robô viu)</button></div>'+
+      '<div class="cinza" style="font-size:12px;margin-top:8px;color:var(--t3)">Abra a sala no seu Chrome, já logado no Compras.gov, e deixe a aba aberta. A extensão lê a sala e manda para cá — em modo sombra ela não envia lances.</div>':'')+
     (cfg.armado&&!cfg.compra?'<div class="aviso am">Não achei o número da compra no Compras.gov (17 dígitos) pelo link do PNCP. Sem ele o robô não acha a sala.</div>':'')+
     '</div>';
   $('painel').innerHTML=h;tic();atualizarSit();
@@ -805,7 +814,7 @@ function pedirArmar(){
       await registrar('armou',c);
       Object.assign(CFG['a-'+SEL],{armado:true,armadoEm:quando,armadoPor:quem});
       fecharArmar();toast('Robô armado ('+(c.modo==='real'?'real':'sombra')+')','ok');abrir(SEL);
-      roboApi('acao',{acao:'sincronizar'}).catch(function(){});
+      extSincronizar();
     }catch(e){toast('Não consegui armar: '+(e.message||e),'err');}
   };
 }
@@ -816,7 +825,7 @@ async function desarmar(){
     await db.collection('robo_lances').doc('a-'+SEL).set({armado:false,desarmadoEm:new Date().toLocaleString('pt-BR'),desarmadoPor:(auth.currentUser&&auth.currentUser.email)||''},{merge:true});
     await registrar('desarmou',{empresa:emp(AND.find(function(x){return String(x[0])===SEL;}))});
     CFG['a-'+SEL].armado=false;toast('Robô desarmado','ok');abrir(SEL);
-    roboApi('acao',{acao:'sincronizar'}).catch(function(){});
+    extSincronizar();
   }catch(e){toast('Não consegui desarmar: '+(e.message||e),'err');}
 }
 /* Trilha: quem armou, desarmou e (depois) cada lance que o robô deu. */
@@ -913,11 +922,93 @@ function roboTecla(k){roboAcao({acao:'tecla',tecla:k});}
 })();
 /* Diagnóstico da sala (o que o robô viu) — para a NH mapear a leitura. */
 async function baixarDiagnostico(compra){
-  try{var d=await roboApi('diagnostico',{compra:compra,ultimas:200});
+  try{var d=await extPedir('diagnostico',{compra:compra});
+    if(!d.capturas||!d.capturas.length){toast('A extensão ainda não leu nada desta sala. Abra a sala no seu Chrome, logado.','err');return;}
     var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(d,null,1)],{type:'application/json'}));a.download='diagnostico-'+compra+'.json';a.click();
   }catch(e){toast(e.message,'err');}
 }
-/* Orbe do topo e cartão do robô: o que o servidor sabe dele. */
+/* ═══ ROBÔ NO CHROME (extensão NH Robô de Lances) — 25/11/2026 ═════════
+   O gov.br recusou (403) o login do navegador na nuvem. O login fica no
+   Chrome da pessoa; a extensão lê a sala na aba logada e conversa com
+   esta página pela ponte (carimbo 'nh-robo'). Versão 0.1 = modo sombra. */
+var EXT=null,_extReq=0,_extEsp={},LEIT={},_extSincronizado=false;
+var SALA_URL='https://cnetmobile.estaleiro.serpro.gov.br/comprasnet-web/seguro/fornecedor/acompanhamento-compra?compra=';
+window.addEventListener('message',function(e){
+  if(e.source!==window||!e.data||e.data.origem!=='nh-robo')return;
+  var d=e.data;
+  if(d.tipo==='presente'){extPing();return;}
+  if(d.tipo==='resposta'){var f=_extEsp[d.reqId];if(f){delete _extEsp[d.reqId];f(d);}return;}
+  if(d.tipo==='leitura')receberLeitura(d);
+});
+function extPedir(acao,dados){
+  return new Promise(function(ok,falha){
+    var id='r'+(++_extReq);
+    var t=setTimeout(function(){delete _extEsp[id];falha(new Error('A extensão NH Robô de Lances não respondeu — ela está instalada neste Chrome?'));},4000);
+    _extEsp[id]=function(d){clearTimeout(t);if(d.erro)falha(new Error(d.erro));else ok(d.resp||{});};
+    window.postMessage(Object.assign({destino:'nh-robo',acao:acao,reqId:id},dados||{}),location.origin);
+  });
+}
+async function extPing(){
+  try{EXT=await extPedir('ping');}catch(_e){EXT=null;}
+  if(EXT&&!_extSincronizado&&AND.length){_extSincronizado=true;extSincronizar();}
+  pintarRobo();
+}
+function extSincronizar(){
+  if(!EXT)return;
+  var lista=AND.filter(function(a){var c=CFG['a-'+a[0]]||{};return c.armado&&c.compra;})
+    .map(function(a){var c=CFG['a-'+a[0]];return {compra:c.compra,id:'a-'+a[0],titulo:tit(a),empresa:emp(a)};});
+  extPedir('sincronizar',{lista:lista}).then(function(){extPing();}).catch(function(){});
+}
+function salasLidas(){return ((EXT&&EXT.salas)||[]).filter(function(x){return x.abaAberta;}).length;}
+function hhmmss(t){return new Date(t).toLocaleTimeString('pt-BR');}
+function receberLeitura(d){
+  var L=LEIT[d.compra]=LEIT[d.compra]||{linhas:[]};
+  L.ultima=Date.now();L.n=d.n;
+  var partes=[];
+  if(d.json&&d.json.length)partes.push(d.json.length+' dado(s): '+d.json.slice(0,3).map(function(j){return j.url.split('?')[0].slice(-60);}).join(' · '));
+  if(d.tela)partes.push('tela atualizada');
+  L.linhas.push('<span class="cinza">['+hhmmss(L.ultima)+']</span> sala lida — '+esc(partes.join(' · ')||'sem novidade'));
+  if(L.linhas.length>40)L.linhas.shift();
+  var cfg=SEL&&CFG['a-'+SEL];
+  if(cfg&&cfg.compra===d.compra){var t=$('aovivo');if(t){t.innerHTML='<span class="cinza">['+esc(cfg.armadoEm||'')+']</span> robô armado por '+esc(cfg.armadoPor||'')+'<br>'+linhasLeitura(d.compra)+'<span class="cur"></span>';t.scrollTop=t.scrollHeight;}}
+}
+function linhasLeitura(compra){
+  if(!EXT)return '<span style="color:#fbbf24">⚠ A extensão NH Robô de Lances não está neste Chrome — clique em “Robô no Chrome”, no topo.</span><br>';
+  var L=LEIT[compra];
+  var sala=((EXT&&EXT.salas)||[]).find(function(x){return x.compra===compra;});
+  if(L&&L.linhas.length)return L.linhas.join('<br>')+'<br>';
+  if(sala&&sala.abaAberta)return '<span class="cinza">[agora]</span> sala aberta no seu Chrome — esperando os primeiros dados <br>';
+  return '<span class="cinza">[agora]</span> abra a sala desta compra no seu Chrome (botão abaixo), já logado no Compras.gov <br>';
+}
+function pintarRobo(){
+  var p=$('pl-robo'),t=$('pl-robo-t');
+  if(EXT){var n=salasLidas();p.className='orb ok';t.innerHTML='Robô no Chrome<small>v'+esc(EXT.versao||'')+' · '+(n?n+' sala(s) aberta(s)':'modo sombra')+'</small>';}
+  else{p.className='orb aviso';t.innerHTML='Robô no Chrome<small>extensão não instalada</small>';}
+  if(AND.length)pintarKpis();
+  if($('mo-ext').style.display==='flex')abrirExt();
+}
+function abrirExt(){
+  var h='';
+  if(EXT){
+    var sl=EXT.salas||[];
+    h+='<p>✅ <b>Extensão conectada</b> (v'+esc(EXT.versao||'')+', modo sombra — só lê, não envia lances).</p>';
+    h+='<p><b>Como usar:</b> entre no Compras.gov neste Chrome como sempre, com o seu gov.br. Na Central, arme o robô do processo e clique em <b>↗ Abrir a sala no Compras.gov</b>. Deixe a aba aberta: a extensão lê e manda para cá.</p>';
+    h+='<p><b>Robôs armados:</b> '+(sl.length?'':'nenhum')+'</p>';
+    sl.forEach(function(x){h+='<p style="font-size:13px">'+(x.abaAberta?'🟢':'⚪')+' '+esc(x.titulo||x.compra)+' — '+(x.abaAberta?'sala aberta'+(x.ultima?', última leitura '+hhmmss(x.ultima):''):'sala não está aberta')+'</p>';});
+  }else{
+    h+='<p>O gov.br não aceita o login do robô pela nuvem (recusa com erro 403). Por isso o robô trabalha <b>no seu Chrome</b>, na aba do Compras.gov em que você já entrou.</p>';
+    h+='<p><b>Instalar (uma vez, só nos computadores da equipe NH):</b></p><ol style="color:var(--t2);line-height:1.7;margin:4px 0 0 18px;padding:0">'+
+      '<li>Abra <span class="mono">chrome://extensions</span> numa aba nova.</li>'+
+      '<li>Ligue o <b>Modo do desenvolvedor</b> (canto superior direito).</li>'+
+      '<li>Clique em <b>Carregar sem compactação</b> e escolha a pasta <span class="mono">Desktop\SISTEMA NH\robo-extensao</span>.</li>'+
+      '<li>Volte aqui e recarregue esta página (F5).</li></ol>';
+  }
+  $('mo-ext-corpo').innerHTML=h;$('mo-ext').style.display='flex';
+}
+setInterval(function(){extPing();},20000);
+setTimeout(function(){extPing();},1500);
+
+/* Antigo: robô na nuvem (o gov.br recusou o login). Fica para consulta. */
 async function verRobo(){
   var p=$('pl-robo'),t=$('pl-robo-t');
   try{
