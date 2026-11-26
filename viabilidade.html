@@ -139,6 +139,8 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(1200px
    a "não existe edital nenhum". */
 .v-achados{font-size:11.5px;color:var(--t3);flex-basis:100%;margin-top:-2px}
 .v-achados b{color:var(--t2)}
+.v-foco{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 12px;padding:10px 14px;border-radius:12px;border:1px solid rgba(249,115,22,.45);background:rgba(249,115,22,.08);font-size:13.5px;font-weight:700;color:var(--t1)}
+.v-foco button{border:1px solid rgba(249,115,22,.6);background:transparent;color:var(--nh,#f97316);font:inherit;font-size:13px;padding:7px 12px;border-radius:9px;cursor:pointer}
 
 /* ── Bandeirinha de prioridade no cartão ───────────────────────────
    Três estados no mesmo botão (nenhuma → alta → média → nenhuma). Um
@@ -2286,6 +2288,7 @@ async function definirPrioridade(id, novo, ev){
 }
 
 function getFiltrados(){
+  var _foco=vFocoLista();if(_foco)return _foco;
   return TODOS.filter(function(d){
     if(!vNoPeriodo(d.arr)) return false;
     if(FILTRO_PRIO!=='todas' && (d.prio||'')!==FILTRO_PRIO) return false;
@@ -2355,6 +2358,58 @@ function renderizar(){
   wrap.innerHTML=lista.map(function(d){return renderCard(d);}).join('');
   document.getElementById('main-content').innerHTML='';
   document.getElementById('main-content').appendChild(wrap);
+  vMostrarFoco(lista);
+}
+
+/* ═══ ABRIR DIRETO O PROCESSO — 26/11/2026 ═════════════════════════════
+   Pedido: tocar na notificação do celular ou no link do WhatsApp tem de
+   abrir O PROCESSO, não a lista para a pessoa procurar. O endereço traz
+   ?p=<id do processo>; a notificação com o app já aberto manda o mesmo
+   recado pelo service worker. Enquanto houver foco, a tela mostra só
+   aquele card, aberto, com "Ver todos os processos" para voltar. O id
+   fica na sessão para sobreviver ao login. */
+var V_FOCO=(function(){
+  var p='';
+  try{p=new URLSearchParams(location.search).get('p')||'';}catch(e){}
+  try{ if(p) sessionStorage.setItem('nh_viab_foco',p); else p=sessionStorage.getItem('nh_viab_foco')||''; }catch(e){}
+  return String(p).replace(/[^A-Za-z0-9_-]/g,'').slice(0,80);
+})();
+var _vFocoAvisado=false;
+function vFocoLista(){
+  if(!V_FOCO||!TODOS.length)return null;
+  var d=TODOS.filter(function(x){return x.id===V_FOCO;});
+  if(d.length)return d;
+  if(!_vFocoAvisado){_vFocoAvisado=true;setTimeout(function(){toast('Esse processo não está mais na sua lista.','err');},300);}
+  vSairFoco(true);
+  return null;
+}
+function vMostrarFoco(lista){
+  if(!V_FOCO||!lista.length||lista[0].id!==V_FOCO)return;
+  var c=document.getElementById('card-'+V_FOCO);
+  if(c){c.classList.remove('recolhido');var h=c.querySelector('.card-head');if(h)h.setAttribute('aria-expanded','true');}
+  var b=document.createElement('div');
+  b.className='v-foco';
+  b.innerHTML='<span>📌 Processo da notificação</span><button type="button" onclick="vSairFoco()">Ver todos os processos</button>';
+  document.getElementById('main-content').insertBefore(b,document.getElementById('main-content').firstChild);
+}
+function vFocar(id){
+  V_FOCO=String(id||'').replace(/[^A-Za-z0-9_-]/g,'').slice(0,80);
+  _vFocoAvisado=false;
+  try{sessionStorage.setItem('nh_viab_foco',V_FOCO);}catch(e){}
+  if(TODOS.length)renderizar();
+  window.scrollTo(0,0);
+}
+function vSairFoco(semDesenhar){
+  V_FOCO='';
+  try{sessionStorage.removeItem('nh_viab_foco');}catch(e){}
+  try{var u=new URL(location.href);if(u.searchParams.has('p')){u.searchParams.delete('p');history.replaceState(null,'',u.pathname+u.search+u.hash);}}catch(e){}
+  if(!semDesenhar)renderizar();
+}
+/* Notificação tocada com o app já aberto: o service worker avisa aqui. */
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.addEventListener('message',function(e){
+    if(e.data&&e.data.tipo==='abrir-processo'&&e.data.p)vFocar(e.data.p);
+  });
 }
 
 /* ── Nota de Viabilidade (IA) e CAPAG — cores/labels/gauge ── */

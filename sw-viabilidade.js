@@ -1,4 +1,4 @@
-const CACHE = 'nh-viabilidade-v4';
+const CACHE = 'nh-viabilidade-v5';
 self.addEventListener('install', function(e){
   e.waitUntil(caches.open(CACHE).then(function(c){ return c.addAll(['./viabilidade.html']); }).catch(function(){}));
   self.skipWaiting();
@@ -13,7 +13,9 @@ self.addEventListener('fetch', function(e){
 });
 
 /* Notificações do Viabilidade (29/10/2026): o servidor manda
-   {titulo, corpo, tag, url}; tocar abre (ou traz para a frente) o app. */
+   {titulo, corpo, tag, url}. Desde 26/11/2026 a url traz ?p=<processo>:
+   tocar abre O PROCESSO. App já aberto: manda o recado para a tela
+   (que mostra o card) e traz para a frente; fechado: abre no endereço. */
 self.addEventListener('push', function(e){
   var d = {};
   try{ d = e.data ? e.data.json() : {}; }catch(x){ d = {corpo: e.data ? e.data.text() : ''}; }
@@ -25,8 +27,15 @@ self.addEventListener('push', function(e){
 self.addEventListener('notificationclick', function(e){
   e.notification.close();
   var url = new URL((e.notification.data && e.notification.data.url) || 'viabilidade.html', self.registration.scope).href;
+  var p = '';
+  try{ p = new URL(url).searchParams.get('p') || ''; }catch(x){}
   e.waitUntil(self.clients.matchAll({type: 'window', includeUncontrolled: true}).then(function(cs){
-    for(var i = 0; i < cs.length; i++){ if(cs[i].url.indexOf('viabilidade') >= 0 && 'focus' in cs[i]) return cs[i].focus(); }
+    for(var i = 0; i < cs.length; i++){
+      var c = cs[i];
+      if(c.url.indexOf('viabilidade') < 0) continue;
+      if(p) c.postMessage({tipo: 'abrir-processo', p: p});
+      if('focus' in c) return c.focus();
+    }
     return self.clients.openWindow(url);
   }));
 });
